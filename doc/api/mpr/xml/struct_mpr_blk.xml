@@ -1,0 +1,142 @@
+<?xml version='1.0' encoding='UTF-8' standalone='no'?>
+<doxygen xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="compound.xsd" version="1.5.8">
+  <compounddef id="struct_mpr_blk" kind="struct" prot="public">
+    <compoundname>MprBlk</compoundname>
+    <includes refid="mpr_8h" local="no">mpr.h</includes>
+      <sectiondef kind="public-attrib">
+      <memberdef kind="variable" id="struct_mpr_blk_1a395d063bb951b9bbc4d52749c90380a" prot="public" static="no" mutable="no">
+        <type>struct <ref refid="struct_mpr_blk" kindref="compound">MprBlk</ref> *</type>
+        <definition>struct MprBlk* MprBlk::children</definition>
+        <argsstring></argsstring>
+        <name>children</name>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/mob/hg/mpr/all/mpr.h" line="4634" bodyfile="/Users/mob/hg/mpr/all/mpr.h" bodystart="4634" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="variable" id="struct_mpr_blk_124b8f43fe2c0e6e98c8df1f526762ca9" prot="public" static="no" mutable="no">
+        <type>uint</type>
+        <definition>uint MprBlk::flags</definition>
+        <argsstring></argsstring>
+        <name>flags</name>
+        <bitfield> 4</bitfield>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/mob/hg/mpr/all/mpr.h" line="4638" bodyfile="/Users/mob/hg/mpr/all/mpr.h" bodystart="4638" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="variable" id="struct_mpr_blk_12a9c2437fabcf79ac85bfed606f412c7" prot="public" static="no" mutable="no">
+        <type>uint</type>
+        <definition>uint MprBlk::magic</definition>
+        <argsstring></argsstring>
+        <name>magic</name>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/mob/hg/mpr/all/mpr.h" line="4640" bodyfile="/Users/mob/hg/mpr/all/mpr.h" bodystart="4640" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="variable" id="struct_mpr_blk_16f94541224f1a28315b94cabb519979c" prot="public" static="no" mutable="no">
+        <type>char *</type>
+        <definition>char* MprBlk::name</definition>
+        <argsstring></argsstring>
+        <name>name</name>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/mob/hg/mpr/all/mpr.h" line="4631" bodyfile="/Users/mob/hg/mpr/all/mpr.h" bodystart="4631" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="variable" id="struct_mpr_blk_1db7dcb20c4751c8d88d1cb55dca54044" prot="public" static="no" mutable="no">
+        <type>struct <ref refid="struct_mpr_blk" kindref="compound">MprBlk</ref> *</type>
+        <definition>struct MprBlk* MprBlk::next</definition>
+        <argsstring></argsstring>
+        <name>next</name>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/mob/hg/mpr/all/mpr.h" line="4635" bodyfile="/Users/mob/hg/mpr/all/mpr.h" bodystart="4635" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="variable" id="struct_mpr_blk_184b0823d4cc7c2633e4b7e3168703c56" prot="public" static="no" mutable="no">
+        <type>struct <ref refid="struct_mpr_blk" kindref="compound">MprBlk</ref> *</type>
+        <definition>struct MprBlk* MprBlk::parent</definition>
+        <argsstring></argsstring>
+        <name>parent</name>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/mob/hg/mpr/all/mpr.h" line="4633" bodyfile="/Users/mob/hg/mpr/all/mpr.h" bodystart="4633" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="variable" id="struct_mpr_blk_165c2066a6395edc542be2bbf304cf28c" prot="public" static="no" mutable="no">
+        <type>struct <ref refid="struct_mpr_blk" kindref="compound">MprBlk</ref> *</type>
+        <definition>struct MprBlk* MprBlk::prev</definition>
+        <argsstring></argsstring>
+        <name>prev</name>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/mob/hg/mpr/all/mpr.h" line="4636" bodyfile="/Users/mob/hg/mpr/all/mpr.h" bodystart="4636" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="variable" id="struct_mpr_blk_1a272dd1487c7e9c3b7d65d8ca504ef2e" prot="public" static="no" mutable="no">
+        <type>uint</type>
+        <definition>uint MprBlk::size</definition>
+        <argsstring></argsstring>
+        <name>size</name>
+        <bitfield> 28</bitfield>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/mob/hg/mpr/all/mpr.h" line="4637" bodyfile="/Users/mob/hg/mpr/all/mpr.h" bodystart="4637" bodyend="-1"/>
+      </memberdef>
+      </sectiondef>
+    <briefdescription>
+<para>Memory Allocation Block Header. </para>    </briefdescription>
+    <detaileddescription>
+    </detaileddescription>
+    <collaborationgraph>
+      <node id="9">
+        <label>MprBlk</label>
+        <link refid="struct_mpr_blk"/>
+        <childnode refid="9" relation="usage">
+          <edgelabel>prev</edgelabel>
+          <edgelabel>next</edgelabel>
+          <edgelabel>parent</edgelabel>
+          <edgelabel>children</edgelabel>
+        </childnode>
+      </node>
+    </collaborationgraph>
+    <location file="/Users/mob/hg/mpr/all/mpr.h" line="4629" bodyfile="/Users/mob/hg/mpr/all/mpr.h" bodystart="4629" bodyend="4642"/>
+    <listofallmembers>
+      <member refid="struct_mpr_blk_1a395d063bb951b9bbc4d52749c90380a" prot="public" virt="non-virtual"><scope>MprBlk</scope><name>children</name></member>
+      <member refid="struct_mpr_blk_124b8f43fe2c0e6e98c8df1f526762ca9" prot="public" virt="non-virtual"><scope>MprBlk</scope><name>flags</name></member>
+      <member refid="struct_mpr_blk_12a9c2437fabcf79ac85bfed606f412c7" prot="public" virt="non-virtual"><scope>MprBlk</scope><name>magic</name></member>
+      <member refid="struct_mpr_blk_16f94541224f1a28315b94cabb519979c" prot="public" virt="non-virtual"><scope>MprBlk</scope><name>name</name></member>
+      <member refid="struct_mpr_blk_1db7dcb20c4751c8d88d1cb55dca54044" prot="public" virt="non-virtual"><scope>MprBlk</scope><name>next</name></member>
+      <member refid="struct_mpr_blk_184b0823d4cc7c2633e4b7e3168703c56" prot="public" virt="non-virtual"><scope>MprBlk</scope><name>parent</name></member>
+      <member refid="struct_mpr_blk_165c2066a6395edc542be2bbf304cf28c" prot="public" virt="non-virtual"><scope>MprBlk</scope><name>prev</name></member>
+      <member refid="struct_mpr_blk_1a272dd1487c7e9c3b7d65d8ca504ef2e" prot="public" virt="non-virtual"><scope>MprBlk</scope><name>size</name></member>
+    </listofallmembers>
+  </compounddef>
+</doxygen>

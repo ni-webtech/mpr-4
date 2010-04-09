@@ -1,0 +1,536 @@
+<?xml version='1.0' encoding='UTF-8' standalone='no'?>
+<doxygen xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="compound.xsd" version="1.5.8">
+  <compounddef id="group___mpr_event" kind="group">
+    <compoundname>MprEvent</compoundname>
+    <title>MprEvent</title>
+      <sectiondef kind="typedef">
+      <memberdef kind="typedef" id="group___mpr_event_1g6777c813e9ab55b0e29dfa9d0d19f32b" prot="public" static="no">
+        <type>int(*</type>
+        <definition>typedef int(* MprEventProc)(void *data, struct MprEvent *event)</definition>
+        <argsstring>)(void *data, struct MprEvent *event)</argsstring>
+        <name>MprEventProc</name>
+        <briefdescription>
+<para>Event callback function. </para>        </briefdescription>
+        <detaileddescription>
+<para><simplesect kind="return"><para>Return non-zero if the dispatcher is deleted. Otherwise return 0 </para></simplesect>
+</para>        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/mob/hg/mpr/all/mpr.h" line="3802" bodyfile="/Users/mob/hg/mpr/all/mpr.h" bodystart="3802" bodyend="-1"/>
+      </memberdef>
+      </sectiondef>
+      <sectiondef kind="func">
+      <memberdef kind="function" id="group___mpr_event_1gf292a0f7982192dba8e5f7535d24377d" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type>MprEvent *</type>
+        <definition>MprEvent* mprCreateEvent</definition>
+        <argsstring>(MprDispatcher *dispatcher, cchar *name, int period, MprEventProc proc, void *data, int flags)</argsstring>
+        <name>mprCreateEvent</name>
+        <param>
+          <type>MprDispatcher *</type>
+          <declname>dispatcher</declname>
+        </param>
+        <param>
+          <type>cchar *</type>
+          <declname>name</declname>
+        </param>
+        <param>
+          <type>int</type>
+          <declname>period</declname>
+        </param>
+        <param>
+          <type><ref refid="group___mpr_event_1g6777c813e9ab55b0e29dfa9d0d19f32b" kindref="member">MprEventProc</ref></type>
+          <declname>proc</declname>
+        </param>
+        <param>
+          <type>void *</type>
+          <declname>data</declname>
+        </param>
+        <param>
+          <type>int</type>
+          <declname>flags</declname>
+        </param>
+        <briefdescription>
+<para>Create a new event. </para>        </briefdescription>
+        <detaileddescription>
+<para><simplesect kind="par"><title><bold>Description</bold>:</title><para>Create a new event for service </para></simplesect>
+<parameterlist kind="param"><parameteritem>
+<parameternamelist>
+<parametername>dispatcher</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>Dispatcher object created via mprCreateDispatcher </para></parameterdescription>
+</parameteritem>
+<parameteritem>
+<parameternamelist>
+<parametername>name</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>Debug name of the event </para></parameterdescription>
+</parameteritem>
+<parameteritem>
+<parameternamelist>
+<parametername>period</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>Time in milliseconds used by continuous events between firing of the event. </para></parameterdescription>
+</parameteritem>
+<parameteritem>
+<parameternamelist>
+<parametername>proc</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>Function to invoke when the event is run </para></parameterdescription>
+</parameteritem>
+<parameteritem>
+<parameternamelist>
+<parametername>data</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>Data to associate with the event and stored in event-&gt;data. </para></parameterdescription>
+</parameteritem>
+<parameteritem>
+<parameternamelist>
+<parametername>flags</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>Flags to modify the behavior of the event. Valid values are: MPR_EVENT_CONTINUOUS to create an event which will be automatically rescheduled accoring to the specified period. </para></parameterdescription>
+</parameteritem>
+</parameterlist>
+<simplesect kind="return"><para>Returns the event object if successful. </para></simplesect>
+</para>        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/mob/hg/mpr/all/mpr.h" line="3941"/>
+      </memberdef>
+      <memberdef kind="function" id="group___mpr_event_1g67402fd2c25d36deed940433da8350d3" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type>MprEvent *</type>
+        <definition>MprEvent* mprCreateTimerEvent</definition>
+        <argsstring>(MprDispatcher *dispatcher, cchar *name, int period, MprEventProc proc, void *data, int flags)</argsstring>
+        <name>mprCreateTimerEvent</name>
+        <param>
+          <type>MprDispatcher *</type>
+          <declname>dispatcher</declname>
+        </param>
+        <param>
+          <type>cchar *</type>
+          <declname>name</declname>
+        </param>
+        <param>
+          <type>int</type>
+          <declname>period</declname>
+        </param>
+        <param>
+          <type><ref refid="group___mpr_event_1g6777c813e9ab55b0e29dfa9d0d19f32b" kindref="member">MprEventProc</ref></type>
+          <declname>proc</declname>
+        </param>
+        <param>
+          <type>void *</type>
+          <declname>data</declname>
+        </param>
+        <param>
+          <type>int</type>
+          <declname>flags</declname>
+        </param>
+        <briefdescription>
+<para>Create a timer event. </para>        </briefdescription>
+        <detaileddescription>
+<para><simplesect kind="par"><title><bold>Description</bold>:</title><para>Create and queue a timer event for service. This is a convenience wrapper to create continuous events over the <ref refid="group___mpr_event_1gf292a0f7982192dba8e5f7535d24377d" kindref="member">mprCreateEvent</ref> call. </para></simplesect>
+<parameterlist kind="param"><parameteritem>
+<parameternamelist>
+<parametername>dispatcher</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>Dispatcher object created via mprCreateDispatcher </para></parameterdescription>
+</parameteritem>
+<parameteritem>
+<parameternamelist>
+<parametername>name</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>Debug name of the event </para></parameterdescription>
+</parameteritem>
+<parameteritem>
+<parameternamelist>
+<parametername>proc</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>Function to invoke when the event is run </para></parameterdescription>
+</parameteritem>
+<parameteritem>
+<parameternamelist>
+<parametername>period</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>Time in milliseconds used by continuous events between firing of the event. </para></parameterdescription>
+</parameteritem>
+<parameteritem>
+<parameternamelist>
+<parametername>data</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>Data to associate with the event and stored in event-&gt;data. </para></parameterdescription>
+</parameteritem>
+<parameteritem>
+<parameternamelist>
+<parametername>flags</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>Not used. </para></parameterdescription>
+</parameteritem>
+</parameterlist>
+</para>        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/mob/hg/mpr/all/mpr.h" line="4011"/>
+      </memberdef>
+      <memberdef kind="function" id="group___mpr_event_1gd1638be85f9f4424a91c7fff288a4f74" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type>void</type>
+        <definition>void mprInitEvent</definition>
+        <argsstring>(MprDispatcher *dispatcher, MprEvent *event, cchar *name, int period, MprEventProc proc, void *data, int flags)</argsstring>
+        <name>mprInitEvent</name>
+        <param>
+          <type>MprDispatcher *</type>
+          <declname>dispatcher</declname>
+        </param>
+        <param>
+          <type>MprEvent *</type>
+          <declname>event</declname>
+        </param>
+        <param>
+          <type>cchar *</type>
+          <declname>name</declname>
+        </param>
+        <param>
+          <type>int</type>
+          <declname>period</declname>
+        </param>
+        <param>
+          <type><ref refid="group___mpr_event_1g6777c813e9ab55b0e29dfa9d0d19f32b" kindref="member">MprEventProc</ref></type>
+          <declname>proc</declname>
+        </param>
+        <param>
+          <type>void *</type>
+          <declname>data</declname>
+        </param>
+        <param>
+          <type>int</type>
+          <declname>flags</declname>
+        </param>
+        <briefdescription>
+<para>Initialize an event. </para>        </briefdescription>
+        <detaileddescription>
+<para><simplesect kind="par"><title><bold>Description</bold>:</title><para>Statically initialize an event. </para></simplesect>
+<parameterlist kind="param"><parameteritem>
+<parameternamelist>
+<parametername>dispatcher</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>Dispatcher object created via mprCreateDispatcher </para></parameterdescription>
+</parameteritem>
+<parameteritem>
+<parameternamelist>
+<parametername>event</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>Event structure to initialize </para></parameterdescription>
+</parameteritem>
+<parameteritem>
+<parameternamelist>
+<parametername>name</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>Debug name for the event. Should be static. </para></parameterdescription>
+</parameteritem>
+<parameteritem>
+<parameternamelist>
+<parametername>period</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>Time in milliseconds used by continuous events between firing of the event. </para></parameterdescription>
+</parameteritem>
+<parameteritem>
+<parameternamelist>
+<parametername>proc</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>Function to invoke when the event is run </para></parameterdescription>
+</parameteritem>
+<parameteritem>
+<parameternamelist>
+<parametername>data</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>Data to associate with the event and stored in event-&gt;data. </para></parameterdescription>
+</parameteritem>
+<parameteritem>
+<parameternamelist>
+<parametername>flags</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>Flags to modify the behavior of the event. Valid values are: MPR_EVENT_CONTINUOUS to create an event which will be automatically rescheduled accoring to the specified period. </para></parameterdescription>
+</parameteritem>
+</parameterlist>
+</para>        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/mob/hg/mpr/all/mpr.h" line="3970"/>
+      </memberdef>
+      <memberdef kind="function" id="group___mpr_event_1gba03b8d6ddac9b5e4dce96bc470e5af7" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type>int</type>
+        <definition>int mprPumpEvents</definition>
+        <argsstring>(MprCtx ctx, int delay, int flags)</argsstring>
+        <name>mprPumpEvents</name>
+        <param>
+          <type><ref refid="group___mpr_mem_1g1413d66bb5356730c6fa08ca0af6bc0f" kindref="member">MprCtx</ref></type>
+          <declname>ctx</declname>
+        </param>
+        <param>
+          <type>int</type>
+          <declname>delay</declname>
+        </param>
+        <param>
+          <type>int</type>
+          <declname>flags</declname>
+        </param>
+        <briefdescription>
+<para>Pump events. </para>        </briefdescription>
+        <detaileddescription>
+<para><simplesect kind="par"><title><bold>Description</bold>:</title><para>Service all dispatchers and pump events. This routine may be called by any thread at any time. It will block for the given delay until an event is ready to be serviced. Flags may modify the calls behavior. </para></simplesect>
+<parameterlist kind="param"><parameteritem>
+<parameternamelist>
+<parametername>ctx</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>Memory context object </para></parameterdescription>
+</parameteritem>
+<parameteritem>
+<parameternamelist>
+<parametername>delay</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>Time in milliseconds to block until an event occurs. </para></parameterdescription>
+</parameteritem>
+<parameteritem>
+<parameternamelist>
+<parametername>flags</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>If set to MPR_SERVICE_ONE_THING, this call will service at most one event. Otherwise set to zero. </para></parameterdescription>
+</parameteritem>
+</parameterlist>
+<simplesect kind="return"><para>An approximate count of the number of events executed </para></simplesect>
+</para>        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/mob/hg/mpr/all/mpr.h" line="3924"/>
+      </memberdef>
+      <memberdef kind="function" id="group___mpr_event_1g0a9fa25c6efe71b9f18314f79335fe2f" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type>void</type>
+        <definition>void mprQueueEvent</definition>
+        <argsstring>(MprDispatcher *dispatcher, MprEvent *event)</argsstring>
+        <name>mprQueueEvent</name>
+        <param>
+          <type>MprDispatcher *</type>
+          <declname>dispatcher</declname>
+        </param>
+        <param>
+          <type>MprEvent *</type>
+          <declname>event</declname>
+        </param>
+        <briefdescription>
+<para>Queue a new event for service. </para>        </briefdescription>
+        <detaileddescription>
+<para>This is typically used if mprInitEvent is used to statically initialize an event. It is not used often as mprCreateEvent will create and queue the event. <simplesect kind="par"><title><bold>Description</bold>:</title><para>Queue an event for service </para></simplesect>
+<parameterlist kind="param"><parameteritem>
+<parameternamelist>
+<parametername>dispatcher</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>Dispatcher object created via mprCreateDispatcher </para></parameterdescription>
+</parameteritem>
+<parameteritem>
+<parameternamelist>
+<parametername>event</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>Event object to queue </para></parameterdescription>
+</parameteritem>
+</parameterlist>
+</para>        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/mob/hg/mpr/all/mpr.h" line="3954"/>
+      </memberdef>
+      <memberdef kind="function" id="group___mpr_event_1g9163bc8e37a8ff05c0c957cfcc86e02e" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type>void</type>
+        <definition>void mprRemoveEvent</definition>
+        <argsstring>(MprEvent *event)</argsstring>
+        <name>mprRemoveEvent</name>
+        <param>
+          <type>MprEvent *</type>
+          <declname>event</declname>
+        </param>
+        <briefdescription>
+<para>Remove an event. </para>        </briefdescription>
+        <detaileddescription>
+<para><simplesect kind="par"><title><bold>Description</bold>:</title><para>Remove a queued event. This is useful to remove continuous events from the event queue. </para></simplesect>
+<parameterlist kind="param"><parameteritem>
+<parameternamelist>
+<parametername>event</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>Event object returned from <ref refid="group___mpr_event_1gf292a0f7982192dba8e5f7535d24377d" kindref="member">mprCreateEvent</ref> </para></parameterdescription>
+</parameteritem>
+</parameterlist>
+</para>        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/mob/hg/mpr/all/mpr.h" line="3978"/>
+      </memberdef>
+      <memberdef kind="function" id="group___mpr_event_1gf33d646f5cdb5e2e798b22e1b941e79b" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type>void</type>
+        <definition>void mprRescheduleEvent</definition>
+        <argsstring>(MprEvent *event, int period)</argsstring>
+        <name>mprRescheduleEvent</name>
+        <param>
+          <type>MprEvent *</type>
+          <declname>event</declname>
+        </param>
+        <param>
+          <type>int</type>
+          <declname>period</declname>
+        </param>
+        <briefdescription>
+<para>Reschedule an event. </para>        </briefdescription>
+        <detaileddescription>
+<para><simplesect kind="par"><title><bold>Description</bold>:</title><para>Reschedule a continuous event by modifying its period. </para></simplesect>
+<parameterlist kind="param"><parameteritem>
+<parameternamelist>
+<parametername>event</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>Event object returned from <ref refid="group___mpr_event_1gf292a0f7982192dba8e5f7535d24377d" kindref="member">mprCreateEvent</ref> </para></parameterdescription>
+</parameteritem>
+<parameteritem>
+<parameternamelist>
+<parametername>period</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>Time in milliseconds used by continuous events between firing of the event. </para></parameterdescription>
+</parameteritem>
+</parameterlist>
+</para>        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/mob/hg/mpr/all/mpr.h" line="4020"/>
+      </memberdef>
+      <memberdef kind="function" id="group___mpr_event_1g6fa51ab06c56baaad50f1b4df7efc1d4" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type>void</type>
+        <definition>void mprRestartContinuousEvent</definition>
+        <argsstring>(MprEvent *event)</argsstring>
+        <name>mprRestartContinuousEvent</name>
+        <param>
+          <type>MprEvent *</type>
+          <declname>event</declname>
+        </param>
+        <briefdescription>
+<para>Restart an event. </para>        </briefdescription>
+        <detaileddescription>
+<para><simplesect kind="par"><title><bold>Description</bold>:</title><para>Restart a continuous event after it has been stopped via <ref refid="group___mpr_event_1g1f2c85a20242ec0c1e4830ccd25c7bb7" kindref="member">mprStopContinuousEvent</ref>. This call will add the event to the event queue and it will run after the configured event period has expired. </para></simplesect>
+<parameterlist kind="param"><parameteritem>
+<parameternamelist>
+<parametername>event</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>Event object returned from <ref refid="group___mpr_event_1gf292a0f7982192dba8e5f7535d24377d" kindref="member">mprCreateEvent</ref> </para></parameterdescription>
+</parameteritem>
+</parameterlist>
+</para>        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/mob/hg/mpr/all/mpr.h" line="3996"/>
+      </memberdef>
+      <memberdef kind="function" id="group___mpr_event_1gd10813ca9e8ff44df3a8116171d44246" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type>int</type>
+        <definition>int mprServiceEvents</definition>
+        <argsstring>(MprCtx ctx, int delay, int flags)</argsstring>
+        <name>mprServiceEvents</name>
+        <param>
+          <type><ref refid="group___mpr_mem_1g1413d66bb5356730c6fa08ca0af6bc0f" kindref="member">MprCtx</ref></type>
+          <declname>ctx</declname>
+        </param>
+        <param>
+          <type>int</type>
+          <declname>delay</declname>
+        </param>
+        <param>
+          <type>int</type>
+          <declname>flags</declname>
+        </param>
+        <briefdescription>
+<para>Service events. </para>        </briefdescription>
+        <detaileddescription>
+<para><simplesect kind="par"><title><bold>Description</bold>:</title><para>Service all dispatchers. This should only be called by one thread in the application. It must not be called by worker threads. This call will block for the given delay until an event is ready to be serviced. Flags may modify the calls behavior. </para></simplesect>
+<parameterlist kind="param"><parameteritem>
+<parameternamelist>
+<parametername>ctx</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>Memory context object. </para></parameterdescription>
+</parameteritem>
+<parameteritem>
+<parameternamelist>
+<parametername>delay</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>Time in milliseconds to block until an event occurs. </para></parameterdescription>
+</parameteritem>
+<parameteritem>
+<parameternamelist>
+<parametername>flags</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>If set to MPR_SERVICE_ONE_THING, this call will service at most one event. Otherwise set to zero. </para></parameterdescription>
+</parameteritem>
+</parameterlist>
+<simplesect kind="return"><para>An approximate count of the number of events serviced </para></simplesect>
+</para>        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/mob/hg/mpr/all/mpr.h" line="3911"/>
+      </memberdef>
+      <memberdef kind="function" id="group___mpr_event_1g1f2c85a20242ec0c1e4830ccd25c7bb7" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type>void</type>
+        <definition>void mprStopContinuousEvent</definition>
+        <argsstring>(MprEvent *event)</argsstring>
+        <name>mprStopContinuousEvent</name>
+        <param>
+          <type>MprEvent *</type>
+          <declname>event</declname>
+        </param>
+        <briefdescription>
+<para>Stop an event. </para>        </briefdescription>
+        <detaileddescription>
+<para><simplesect kind="par"><title><bold>Description</bold>:</title><para>Stop a continuous event and remove from the queue. The event object is not freed, but simply removed from the event queue. </para></simplesect>
+<parameterlist kind="param"><parameteritem>
+<parameternamelist>
+<parametername>event</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>Event object returned from <ref refid="group___mpr_event_1gf292a0f7982192dba8e5f7535d24377d" kindref="member">mprCreateEvent</ref> </para></parameterdescription>
+</parameteritem>
+</parameterlist>
+</para>        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/mob/hg/mpr/all/mpr.h" line="3987"/>
+      </memberdef>
+      </sectiondef>
+    <briefdescription>
+<para>Event object. </para>    </briefdescription>
+    <detaileddescription>
+<para><simplesect kind="par"><title><bold>Description</bold>:</title><para>The MPR provides a powerful priority based eventing mechanism. Events are described by MprEvent objects which are created and queued via <ref refid="group___mpr_event_1gf292a0f7982192dba8e5f7535d24377d" kindref="member">mprCreateEvent</ref>. Each event may have a priority and may be one-shot or be continuously rescheduled according to a specified period. The event subsystem provides the basis for callback timers. </para></simplesect>
+<simplesect kind="see"><para><ref refid="group___mpr_event" kindref="compound">MprEvent</ref>, <ref refid="group___mpr_event_1gf292a0f7982192dba8e5f7535d24377d" kindref="member">mprCreateEvent</ref>, <ref refid="group___mpr_event_1gd1638be85f9f4424a91c7fff288a4f74" kindref="member">mprInitEvent</ref>, <ref refid="group___mpr_event_1g0a9fa25c6efe71b9f18314f79335fe2f" kindref="member">mprQueueEvent</ref>, <ref refid="group___mpr_event_1g67402fd2c25d36deed940433da8350d3" kindref="member">mprCreateTimerEvent</ref>, <ref refid="group___mpr_event_1gf33d646f5cdb5e2e798b22e1b941e79b" kindref="member">mprRescheduleEvent</ref>, <ref refid="group___mpr_event_1g1f2c85a20242ec0c1e4830ccd25c7bb7" kindref="member">mprStopContinuousEvent</ref>, <ref refid="group___mpr_event_1g6fa51ab06c56baaad50f1b4df7efc1d4" kindref="member">mprRestartContinuousEvent</ref>, <ref refid="group___mpr_event_1g6777c813e9ab55b0e29dfa9d0d19f32b" kindref="member">MprEventProc</ref>, mprCreateDispatcherService, <ref refid="mpr_8h_139e6373ded494a2d3154004e58a53caa" kindref="member">mprCreateDispatcher</ref>, <ref refid="mpr_8h_1b9239642f6f3418d97c779c410a9aa91" kindref="member">mprEnableDispatcher</ref>, <ref refid="group___mpr_event_1gd10813ca9e8ff44df3a8116171d44246" kindref="member">mprServiceEvents</ref>, <ref refid="group___mpr_event_1gba03b8d6ddac9b5e4dce96bc470e5af7" kindref="member">mprPumpEvents</ref> </para></simplesect>
+</para>    </detaileddescription>
+  </compounddef>
+</doxygen>

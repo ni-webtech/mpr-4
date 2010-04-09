@@ -1,0 +1,335 @@
+<?xml version='1.0' encoding='UTF-8' standalone='no'?>
+<doxygen xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="compound.xsd" version="1.5.8">
+  <compounddef id="struct_mpr_test_service" kind="struct" prot="public">
+    <compoundname>MprTestService</compoundname>
+      <sectiondef kind="public-attrib">
+      <memberdef kind="variable" id="struct_mpr_test_service_11f627d85ff0bed6af8ebaab9762c531b" prot="public" static="no" mutable="no">
+        <type>int</type>
+        <definition>int MprTestService::activeThreadCount</definition>
+        <argsstring></argsstring>
+        <name>activeThreadCount</name>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/mob/hg/mpr/all/mpr.h" line="6993" bodyfile="/Users/mob/hg/mpr/all/mpr.h" bodystart="6993" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="variable" id="struct_mpr_test_service_10211c67d84939fe7645e9cc025570dea" prot="public" static="no" mutable="no">
+        <type>int</type>
+        <definition>int MprTestService::argc</definition>
+        <argsstring></argsstring>
+        <name>argc</name>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/mob/hg/mpr/all/mpr.h" line="6991" bodyfile="/Users/mob/hg/mpr/all/mpr.h" bodystart="6991" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="variable" id="struct_mpr_test_service_179861cad41f8f0db355e6151369dc805" prot="public" static="no" mutable="no">
+        <type>char **</type>
+        <definition>char** MprTestService::argv</definition>
+        <argsstring></argsstring>
+        <name>argv</name>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/mob/hg/mpr/all/mpr.h" line="6992" bodyfile="/Users/mob/hg/mpr/all/mpr.h" bodystart="6992" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="variable" id="struct_mpr_test_service_1baa0ab2287b2077f6c8f3d411850f703" prot="public" static="no" mutable="no">
+        <type>char *</type>
+        <definition>char* MprTestService::commandLine</definition>
+        <argsstring></argsstring>
+        <name>commandLine</name>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/mob/hg/mpr/all/mpr.h" line="6994" bodyfile="/Users/mob/hg/mpr/all/mpr.h" bodystart="6994" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="variable" id="struct_mpr_test_service_1a01abcc60dfb3f9914d462fa86e6d0af" prot="public" static="no" mutable="no">
+        <type>bool</type>
+        <definition>bool MprTestService::continueOnFailures</definition>
+        <argsstring></argsstring>
+        <name>continueOnFailures</name>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/mob/hg/mpr/all/mpr.h" line="6995" bodyfile="/Users/mob/hg/mpr/all/mpr.h" bodystart="6995" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="variable" id="struct_mpr_test_service_1f8ebad13b91825d7eda9bb0283dd27fd" prot="public" static="no" mutable="no">
+        <type>bool</type>
+        <definition>bool MprTestService::debugOnFailures</definition>
+        <argsstring></argsstring>
+        <name>debugOnFailures</name>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/mob/hg/mpr/all/mpr.h" line="6996" bodyfile="/Users/mob/hg/mpr/all/mpr.h" bodystart="6996" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="variable" id="struct_mpr_test_service_146a836d250ebc7bbfbb3275be942f6d8" prot="public" static="no" mutable="no">
+        <type>int</type>
+        <definition>int MprTestService::echoCmdLine</definition>
+        <argsstring></argsstring>
+        <name>echoCmdLine</name>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/mob/hg/mpr/all/mpr.h" line="6997" bodyfile="/Users/mob/hg/mpr/all/mpr.h" bodystart="6997" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="variable" id="struct_mpr_test_service_1617c7aec857c419d2528d193393c98bb" prot="public" static="no" mutable="no">
+        <type>int</type>
+        <definition>int MprTestService::firstArg</definition>
+        <argsstring></argsstring>
+        <name>firstArg</name>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/mob/hg/mpr/all/mpr.h" line="6998" bodyfile="/Users/mob/hg/mpr/all/mpr.h" bodystart="6998" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="variable" id="struct_mpr_test_service_169a975c07b75bcc1874663c4debd802f" prot="public" static="no" mutable="no">
+        <type>MprList *</type>
+        <definition>MprList* MprTestService::groups</definition>
+        <argsstring></argsstring>
+        <name>groups</name>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/mob/hg/mpr/all/mpr.h" line="6999" bodyfile="/Users/mob/hg/mpr/all/mpr.h" bodystart="6999" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="variable" id="struct_mpr_test_service_100838f860dc27d31e6a6c33a077c6fea" prot="public" static="no" mutable="no">
+        <type>int</type>
+        <definition>int MprTestService::iterations</definition>
+        <argsstring></argsstring>
+        <name>iterations</name>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/mob/hg/mpr/all/mpr.h" line="7000" bodyfile="/Users/mob/hg/mpr/all/mpr.h" bodystart="7000" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="variable" id="struct_mpr_test_service_18e34b9b7daa4d1937536e33338c982a8" prot="public" static="no" mutable="no">
+        <type><ref refid="struct_mpr_mutex" kindref="compound">MprMutex</ref> *</type>
+        <definition>MprMutex* MprTestService::mutex</definition>
+        <argsstring></argsstring>
+        <name>mutex</name>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/mob/hg/mpr/all/mpr.h" line="7014" bodyfile="/Users/mob/hg/mpr/all/mpr.h" bodystart="7014" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="variable" id="struct_mpr_test_service_1e28e829dbb03fa212d09b73c4b45ddb0" prot="public" static="no" mutable="no">
+        <type>cchar *</type>
+        <definition>cchar* MprTestService::name</definition>
+        <argsstring></argsstring>
+        <name>name</name>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/mob/hg/mpr/all/mpr.h" line="7002" bodyfile="/Users/mob/hg/mpr/all/mpr.h" bodystart="7002" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="variable" id="struct_mpr_test_service_1b6862248455b0aed5778dc955265e391" prot="public" static="no" mutable="no">
+        <type>int</type>
+        <definition>int MprTestService::numThreads</definition>
+        <argsstring></argsstring>
+        <name>numThreads</name>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/mob/hg/mpr/all/mpr.h" line="7003" bodyfile="/Users/mob/hg/mpr/all/mpr.h" bodystart="7003" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="variable" id="struct_mpr_test_service_17d7ed5f97a2efb10c0d021fa4850ed2a" prot="public" static="no" mutable="no">
+        <type>MprList *</type>
+        <definition>MprList* MprTestService::perThreadGroups</definition>
+        <argsstring></argsstring>
+        <name>perThreadGroups</name>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/mob/hg/mpr/all/mpr.h" line="7007" bodyfile="/Users/mob/hg/mpr/all/mpr.h" bodystart="7007" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="variable" id="struct_mpr_test_service_1e235ddafcbcccd3419b8b27a471cbbc6" prot="public" static="no" mutable="no">
+        <type>bool</type>
+        <definition>bool MprTestService::singleStep</definition>
+        <argsstring></argsstring>
+        <name>singleStep</name>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/mob/hg/mpr/all/mpr.h" line="7001" bodyfile="/Users/mob/hg/mpr/all/mpr.h" bodystart="7001" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="variable" id="struct_mpr_test_service_1a6419e609942d506c66c126b3208f7da" prot="public" static="no" mutable="no">
+        <type><ref refid="group___mpr_date_1gdd377cb2c4ec9c665b99de02f87f768b" kindref="member">MprTime</ref></type>
+        <definition>MprTime MprTestService::start</definition>
+        <argsstring></argsstring>
+        <name>start</name>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/mob/hg/mpr/all/mpr.h" line="7005" bodyfile="/Users/mob/hg/mpr/all/mpr.h" bodystart="7005" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="variable" id="struct_mpr_test_service_1d6f499f19b60600bfa2910862da13bab" prot="public" static="no" mutable="no">
+        <type>int</type>
+        <definition>int MprTestService::testDepth</definition>
+        <argsstring></argsstring>
+        <name>testDepth</name>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/mob/hg/mpr/all/mpr.h" line="7006" bodyfile="/Users/mob/hg/mpr/all/mpr.h" bodystart="7006" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="variable" id="struct_mpr_test_service_1419897a2a46814477dca0907bee6a6a0" prot="public" static="no" mutable="no">
+        <type>MprList *</type>
+        <definition>MprList* MprTestService::testFilter</definition>
+        <argsstring></argsstring>
+        <name>testFilter</name>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/mob/hg/mpr/all/mpr.h" line="7010" bodyfile="/Users/mob/hg/mpr/all/mpr.h" bodystart="7010" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="variable" id="struct_mpr_test_service_1bc6b44110f82471dd9711f810c06dd60" prot="public" static="no" mutable="no">
+        <type>int</type>
+        <definition>int MprTestService::totalFailedCount</definition>
+        <argsstring></argsstring>
+        <name>totalFailedCount</name>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/mob/hg/mpr/all/mpr.h" line="7008" bodyfile="/Users/mob/hg/mpr/all/mpr.h" bodystart="7008" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="variable" id="struct_mpr_test_service_132392df2dce400c9926926359f4f87ee" prot="public" static="no" mutable="no">
+        <type>int</type>
+        <definition>int MprTestService::totalTestCount</definition>
+        <argsstring></argsstring>
+        <name>totalTestCount</name>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/mob/hg/mpr/all/mpr.h" line="7009" bodyfile="/Users/mob/hg/mpr/all/mpr.h" bodystart="7009" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="variable" id="struct_mpr_test_service_18a40d022f74f6e80cc9cf996b5c00195" prot="public" static="no" mutable="no">
+        <type>int</type>
+        <definition>int MprTestService::verbose</definition>
+        <argsstring></argsstring>
+        <name>verbose</name>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/mob/hg/mpr/all/mpr.h" line="7011" bodyfile="/Users/mob/hg/mpr/all/mpr.h" bodystart="7011" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="variable" id="struct_mpr_test_service_1015873989481d9188a0cf7f9c763cf2c" prot="public" static="no" mutable="no">
+        <type>int</type>
+        <definition>int MprTestService::workers</definition>
+        <argsstring></argsstring>
+        <name>workers</name>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/mob/hg/mpr/all/mpr.h" line="7004" bodyfile="/Users/mob/hg/mpr/all/mpr.h" bodystart="7004" bodyend="-1"/>
+      </memberdef>
+      </sectiondef>
+    <briefdescription>
+    </briefdescription>
+    <detaileddescription>
+    </detaileddescription>
+    <collaborationgraph>
+      <node id="101">
+        <label>MprTestService</label>
+        <childnode refid="102" relation="usage">
+          <edgelabel>mutex</edgelabel>
+        </childnode>
+      </node>
+      <node id="102">
+        <label>MprMutex</label>
+        <link refid="struct_mpr_mutex"/>
+      </node>
+    </collaborationgraph>
+    <location file="/Users/mob/hg/mpr/all/mpr.h" line="6990" bodyfile="/Users/mob/hg/mpr/all/mpr.h" bodystart="6990" bodyend="7016"/>
+    <listofallmembers>
+      <member refid="struct_mpr_test_service_11f627d85ff0bed6af8ebaab9762c531b" prot="public" virt="non-virtual"><scope>MprTestService</scope><name>activeThreadCount</name></member>
+      <member refid="struct_mpr_test_service_10211c67d84939fe7645e9cc025570dea" prot="public" virt="non-virtual"><scope>MprTestService</scope><name>argc</name></member>
+      <member refid="struct_mpr_test_service_179861cad41f8f0db355e6151369dc805" prot="public" virt="non-virtual"><scope>MprTestService</scope><name>argv</name></member>
+      <member refid="struct_mpr_test_service_1baa0ab2287b2077f6c8f3d411850f703" prot="public" virt="non-virtual"><scope>MprTestService</scope><name>commandLine</name></member>
+      <member refid="struct_mpr_test_service_1a01abcc60dfb3f9914d462fa86e6d0af" prot="public" virt="non-virtual"><scope>MprTestService</scope><name>continueOnFailures</name></member>
+      <member refid="struct_mpr_test_service_1f8ebad13b91825d7eda9bb0283dd27fd" prot="public" virt="non-virtual"><scope>MprTestService</scope><name>debugOnFailures</name></member>
+      <member refid="struct_mpr_test_service_146a836d250ebc7bbfbb3275be942f6d8" prot="public" virt="non-virtual"><scope>MprTestService</scope><name>echoCmdLine</name></member>
+      <member refid="struct_mpr_test_service_1617c7aec857c419d2528d193393c98bb" prot="public" virt="non-virtual"><scope>MprTestService</scope><name>firstArg</name></member>
+      <member refid="struct_mpr_test_service_169a975c07b75bcc1874663c4debd802f" prot="public" virt="non-virtual"><scope>MprTestService</scope><name>groups</name></member>
+      <member refid="struct_mpr_test_service_100838f860dc27d31e6a6c33a077c6fea" prot="public" virt="non-virtual"><scope>MprTestService</scope><name>iterations</name></member>
+      <member refid="struct_mpr_test_service_18e34b9b7daa4d1937536e33338c982a8" prot="public" virt="non-virtual"><scope>MprTestService</scope><name>mutex</name></member>
+      <member refid="struct_mpr_test_service_1e28e829dbb03fa212d09b73c4b45ddb0" prot="public" virt="non-virtual"><scope>MprTestService</scope><name>name</name></member>
+      <member refid="struct_mpr_test_service_1b6862248455b0aed5778dc955265e391" prot="public" virt="non-virtual"><scope>MprTestService</scope><name>numThreads</name></member>
+      <member refid="struct_mpr_test_service_17d7ed5f97a2efb10c0d021fa4850ed2a" prot="public" virt="non-virtual"><scope>MprTestService</scope><name>perThreadGroups</name></member>
+      <member refid="struct_mpr_test_service_1e235ddafcbcccd3419b8b27a471cbbc6" prot="public" virt="non-virtual"><scope>MprTestService</scope><name>singleStep</name></member>
+      <member refid="struct_mpr_test_service_1a6419e609942d506c66c126b3208f7da" prot="public" virt="non-virtual"><scope>MprTestService</scope><name>start</name></member>
+      <member refid="struct_mpr_test_service_1d6f499f19b60600bfa2910862da13bab" prot="public" virt="non-virtual"><scope>MprTestService</scope><name>testDepth</name></member>
+      <member refid="struct_mpr_test_service_1419897a2a46814477dca0907bee6a6a0" prot="public" virt="non-virtual"><scope>MprTestService</scope><name>testFilter</name></member>
+      <member refid="struct_mpr_test_service_1bc6b44110f82471dd9711f810c06dd60" prot="public" virt="non-virtual"><scope>MprTestService</scope><name>totalFailedCount</name></member>
+      <member refid="struct_mpr_test_service_132392df2dce400c9926926359f4f87ee" prot="public" virt="non-virtual"><scope>MprTestService</scope><name>totalTestCount</name></member>
+      <member refid="struct_mpr_test_service_18a40d022f74f6e80cc9cf996b5c00195" prot="public" virt="non-virtual"><scope>MprTestService</scope><name>verbose</name></member>
+      <member refid="struct_mpr_test_service_1015873989481d9188a0cf7f9c763cf2c" prot="public" virt="non-virtual"><scope>MprTestService</scope><name>workers</name></member>
+    </listofallmembers>
+  </compounddef>
+</doxygen>

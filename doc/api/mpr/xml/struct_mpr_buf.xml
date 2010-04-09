@@ -1,0 +1,141 @@
+<?xml version='1.0' encoding='UTF-8' standalone='no'?>
+<doxygen xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="compound.xsd" version="1.5.8">
+  <compounddef id="struct_mpr_buf" kind="struct" prot="public">
+    <compoundname>MprBuf</compoundname>
+      <sectiondef kind="public-attrib">
+      <memberdef kind="variable" id="struct_mpr_buf_1b9f7316f88b5a8c87cf498a06c66e8c1" prot="public" static="no" mutable="no">
+        <type>int</type>
+        <definition>int MprBuf::buflen</definition>
+        <argsstring></argsstring>
+        <name>buflen</name>
+        <briefdescription>
+<para>Current size of buffer. </para>        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/mob/hg/mpr/all/mpr.h" line="1887" bodyfile="/Users/mob/hg/mpr/all/mpr.h" bodystart="1887" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="variable" id="struct_mpr_buf_1f4e09b6359644e49f464d33c5d469a4d" prot="public" static="no" mutable="no">
+        <type>char *</type>
+        <definition>char* MprBuf::data</definition>
+        <argsstring></argsstring>
+        <name>data</name>
+        <briefdescription>
+<para>Actual buffer for data. </para>        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/mob/hg/mpr/all/mpr.h" line="1883" bodyfile="/Users/mob/hg/mpr/all/mpr.h" bodystart="1883" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="variable" id="struct_mpr_buf_175340bf903542227aea82cc380ab0fc6" prot="public" static="no" mutable="no">
+        <type>char *</type>
+        <definition>char* MprBuf::end</definition>
+        <argsstring></argsstring>
+        <name>end</name>
+        <briefdescription>
+<para>Pointer one past the last data chr. </para>        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/mob/hg/mpr/all/mpr.h" line="1886" bodyfile="/Users/mob/hg/mpr/all/mpr.h" bodystart="1886" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="variable" id="struct_mpr_buf_1d35db13b7cce15201b5a36f67c008f0a" prot="public" static="no" mutable="no">
+        <type>char *</type>
+        <definition>char* MprBuf::endbuf</definition>
+        <argsstring></argsstring>
+        <name>endbuf</name>
+        <briefdescription>
+<para>Pointer one past the end of buffer. </para>        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/mob/hg/mpr/all/mpr.h" line="1884" bodyfile="/Users/mob/hg/mpr/all/mpr.h" bodystart="1884" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="variable" id="struct_mpr_buf_1fa0f9770f182d53fe2af6e63c8d8faa5" prot="public" static="no" mutable="no">
+        <type>int</type>
+        <definition>int MprBuf::growBy</definition>
+        <argsstring></argsstring>
+        <name>growBy</name>
+        <briefdescription>
+<para>Next growth increment to use. </para>        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/mob/hg/mpr/all/mpr.h" line="1889" bodyfile="/Users/mob/hg/mpr/all/mpr.h" bodystart="1889" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="variable" id="struct_mpr_buf_1ace3ccf6b3f6a2df93f9b7465de969d4" prot="public" static="no" mutable="no">
+        <type>int</type>
+        <definition>int MprBuf::maxsize</definition>
+        <argsstring></argsstring>
+        <name>maxsize</name>
+        <briefdescription>
+<para>Max size the buffer can ever grow. </para>        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/mob/hg/mpr/all/mpr.h" line="1888" bodyfile="/Users/mob/hg/mpr/all/mpr.h" bodystart="1888" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="variable" id="struct_mpr_buf_1ffad3b33f0678d11457eb9deae9c4b52" prot="public" static="no" mutable="no">
+        <type>void *</type>
+        <definition>void* MprBuf::refillArg</definition>
+        <argsstring></argsstring>
+        <name>refillArg</name>
+        <briefdescription>
+<para>Refill arg. </para>        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/mob/hg/mpr/all/mpr.h" line="1891" bodyfile="/Users/mob/hg/mpr/all/mpr.h" bodystart="1891" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="variable" id="struct_mpr_buf_13f50e00bbebf5fd446f2689ee011ccb0" prot="public" static="no" mutable="no">
+        <type><ref refid="group___mpr_buf_1ga0f2f003728ef5bb244fdabe2edc56f7" kindref="member">MprBufProc</ref></type>
+        <definition>MprBufProc MprBuf::refillProc</definition>
+        <argsstring></argsstring>
+        <name>refillProc</name>
+        <briefdescription>
+<para>Auto-refill procedure. </para>        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/mob/hg/mpr/all/mpr.h" line="1890" bodyfile="/Users/mob/hg/mpr/all/mpr.h" bodystart="1890" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="variable" id="struct_mpr_buf_1faf050e0d55aa3eaa3392aa5f33fd5a7" prot="public" static="no" mutable="no">
+        <type>char *</type>
+        <definition>char* MprBuf::start</definition>
+        <argsstring></argsstring>
+        <name>start</name>
+        <briefdescription>
+<para>Pointer to next data char. </para>        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/mob/hg/mpr/all/mpr.h" line="1885" bodyfile="/Users/mob/hg/mpr/all/mpr.h" bodystart="1885" bodyend="-1"/>
+      </memberdef>
+      </sectiondef>
+    <briefdescription>
+    </briefdescription>
+    <detaileddescription>
+    </detaileddescription>
+    <location file="/Users/mob/hg/mpr/all/mpr.h" line="1882" bodyfile="/Users/mob/hg/mpr/all/mpr.h" bodystart="1882" bodyend="1892"/>
+    <listofallmembers>
+      <member refid="struct_mpr_buf_1b9f7316f88b5a8c87cf498a06c66e8c1" prot="public" virt="non-virtual"><scope>MprBuf</scope><name>buflen</name></member>
+      <member refid="struct_mpr_buf_1f4e09b6359644e49f464d33c5d469a4d" prot="public" virt="non-virtual"><scope>MprBuf</scope><name>data</name></member>
+      <member refid="struct_mpr_buf_175340bf903542227aea82cc380ab0fc6" prot="public" virt="non-virtual"><scope>MprBuf</scope><name>end</name></member>
+      <member refid="struct_mpr_buf_1d35db13b7cce15201b5a36f67c008f0a" prot="public" virt="non-virtual"><scope>MprBuf</scope><name>endbuf</name></member>
+      <member refid="struct_mpr_buf_1fa0f9770f182d53fe2af6e63c8d8faa5" prot="public" virt="non-virtual"><scope>MprBuf</scope><name>growBy</name></member>
+      <member refid="struct_mpr_buf_1ace3ccf6b3f6a2df93f9b7465de969d4" prot="public" virt="non-virtual"><scope>MprBuf</scope><name>maxsize</name></member>
+      <member refid="struct_mpr_buf_1ffad3b33f0678d11457eb9deae9c4b52" prot="public" virt="non-virtual"><scope>MprBuf</scope><name>refillArg</name></member>
+      <member refid="struct_mpr_buf_13f50e00bbebf5fd446f2689ee011ccb0" prot="public" virt="non-virtual"><scope>MprBuf</scope><name>refillProc</name></member>
+      <member refid="struct_mpr_buf_1faf050e0d55aa3eaa3392aa5f33fd5a7" prot="public" virt="non-virtual"><scope>MprBuf</scope><name>start</name></member>
+    </listofallmembers>
+  </compounddef>
+</doxygen>

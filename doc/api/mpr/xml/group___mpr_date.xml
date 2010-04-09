@@ -1,0 +1,291 @@
+<?xml version='1.0' encoding='UTF-8' standalone='no'?>
+<doxygen xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="compound.xsd" version="1.5.8">
+  <compounddef id="group___mpr_date" kind="group">
+    <compoundname>MprDate</compoundname>
+    <title>MprDate</title>
+      <sectiondef kind="typedef">
+      <memberdef kind="typedef" id="group___mpr_date_1gdd377cb2c4ec9c665b99de02f87f768b" prot="public" static="no">
+        <type>int64</type>
+        <definition>typedef int64 MprTime</definition>
+        <argsstring></argsstring>
+        <name>MprTime</name>
+        <briefdescription>
+<para>Mpr time structure. </para>        </briefdescription>
+        <detaileddescription>
+<para><simplesect kind="par"><title><bold>Description</bold>:</title><para>MprTime is the cross platform time abstraction structure. Time is stored as milliseconds since the epoch: 00:00:00 UTC Jan 1 1970. MprTime is typically a 64 bit quantity. </para></simplesect>
+</para>        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/mob/hg/mpr/all/mpr.h" line="2243" bodyfile="/Users/mob/hg/mpr/all/mpr.h" bodystart="2243" bodyend="-1"/>
+      </memberdef>
+      </sectiondef>
+      <sectiondef kind="func">
+      <memberdef kind="function" id="group___mpr_date_1g1fe29b0b5a726295afe36d28ab027270" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type>struct tm *</type>
+        <definition>struct tm* mprDecodeLocalTime</definition>
+        <argsstring>(MprCtx ctx, struct tm *timep, MprTime time)</argsstring>
+        <name>mprDecodeLocalTime</name>
+        <param>
+          <type><ref refid="group___mpr_mem_1g1413d66bb5356730c6fa08ca0af6bc0f" kindref="member">MprCtx</ref></type>
+          <declname>ctx</declname>
+        </param>
+        <param>
+          <type>struct tm *</type>
+          <declname>timep</declname>
+        </param>
+        <param>
+          <type><ref refid="group___mpr_date_1gdd377cb2c4ec9c665b99de02f87f768b" kindref="member">MprTime</ref></type>
+          <declname>time</declname>
+        </param>
+        <briefdescription>
+<para>Decode a time value into a tokenized local time value. </para>        </briefdescription>
+        <detaileddescription>
+<para><simplesect kind="par"><title><bold>Description</bold>:</title><para>Safe replacement for localtime. This call converts the time value to local time and formats the as a struct tm. </para></simplesect>
+<parameterlist kind="param"><parameteritem>
+<parameternamelist>
+<parametername>ctx</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>Any memory context allocated by mprAlloc or mprCreate. </para></parameterdescription>
+</parameteritem>
+<parameteritem>
+<parameternamelist>
+<parametername>timep</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>Pointer to a tm structure to hold the result </para></parameterdescription>
+</parameteritem>
+<parameteritem>
+<parameternamelist>
+<parametername>time</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>Time to format </para></parameterdescription>
+</parameteritem>
+</parameterlist>
+<simplesect kind="return"><para>Returns a pointer to the tmBuf. </para></simplesect>
+</para>        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/mob/hg/mpr/all/mpr.h" line="2267"/>
+      </memberdef>
+      <memberdef kind="function" id="group___mpr_date_1g4437f3ff3a58a9cf9d4d7d9e763fcc1a" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type>struct tm *</type>
+        <definition>struct tm* mprDecodeUniversalTime</definition>
+        <argsstring>(MprCtx ctx, struct tm *timep, MprTime time)</argsstring>
+        <name>mprDecodeUniversalTime</name>
+        <param>
+          <type><ref refid="group___mpr_mem_1g1413d66bb5356730c6fa08ca0af6bc0f" kindref="member">MprCtx</ref></type>
+          <declname>ctx</declname>
+        </param>
+        <param>
+          <type>struct tm *</type>
+          <declname>timep</declname>
+        </param>
+        <param>
+          <type><ref refid="group___mpr_date_1gdd377cb2c4ec9c665b99de02f87f768b" kindref="member">MprTime</ref></type>
+          <declname>time</declname>
+        </param>
+        <briefdescription>
+<para>Decode a time value into a tokenized UTC time structure. </para>        </briefdescription>
+        <detaileddescription>
+<para><simplesect kind="par"><title><bold>Description</bold>:</title><para>Safe replacement for gmtime. This call converts the supplied time value to UTC time and parses the result into a tm structure. </para></simplesect>
+<parameterlist kind="param"><parameteritem>
+<parameternamelist>
+<parametername>ctx</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>Any memory context allocated by mprAlloc or mprCreate. </para></parameterdescription>
+</parameteritem>
+<parameteritem>
+<parameternamelist>
+<parametername>timep</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>Pointer to a tm structure to hold the result. </para></parameterdescription>
+</parameteritem>
+<parameteritem>
+<parameternamelist>
+<parametername>time</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>The time to format </para></parameterdescription>
+</parameteritem>
+</parameterlist>
+<simplesect kind="return"><para>Returns the tm structure reference </para></simplesect>
+</para>        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/mob/hg/mpr/all/mpr.h" line="2279"/>
+      </memberdef>
+      <memberdef kind="function" id="group___mpr_date_1g70e43deb465cef84d2387800ae07a194" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type>char *</type>
+        <definition>char* mprFormatLocalTime</definition>
+        <argsstring>(MprCtx ctx, MprTime time)</argsstring>
+        <name>mprFormatLocalTime</name>
+        <param>
+          <type><ref refid="group___mpr_mem_1g1413d66bb5356730c6fa08ca0af6bc0f" kindref="member">MprCtx</ref></type>
+          <declname>ctx</declname>
+        </param>
+        <param>
+          <type><ref refid="group___mpr_date_1gdd377cb2c4ec9c665b99de02f87f768b" kindref="member">MprTime</ref></type>
+          <declname>time</declname>
+        </param>
+        <briefdescription>
+<para>Convert a time value to local time and format as a string. </para>        </briefdescription>
+        <detaileddescription>
+<para><simplesect kind="par"><title><bold>Description</bold>:</title><para>Safe replacement for ctime. This call formats the time value supplied via <emphasis>timep</emphasis>. </para></simplesect>
+<parameterlist kind="param"><parameteritem>
+<parameternamelist>
+<parametername>ctx</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>Any memory context allocated by mprAlloc or mprCreate. </para></parameterdescription>
+</parameteritem>
+<parameteritem>
+<parameternamelist>
+<parametername>time</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>Time to format. Use mprGetTime to retrieve the current time. </para></parameterdescription>
+</parameteritem>
+</parameterlist>
+<simplesect kind="return"><para>The formatting time string </para></simplesect>
+</para>        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/mob/hg/mpr/all/mpr.h" line="2289"/>
+      </memberdef>
+      <memberdef kind="function" id="group___mpr_date_1g315d7591e179c57cd2072796a8dce0c5" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type>char *</type>
+        <definition>char* mprFormatTime</definition>
+        <argsstring>(MprCtx ctx, cchar *fmt, struct tm *timep)</argsstring>
+        <name>mprFormatTime</name>
+        <param>
+          <type><ref refid="group___mpr_mem_1g1413d66bb5356730c6fa08ca0af6bc0f" kindref="member">MprCtx</ref></type>
+          <declname>ctx</declname>
+        </param>
+        <param>
+          <type>cchar *</type>
+          <declname>fmt</declname>
+        </param>
+        <param>
+          <type>struct tm *</type>
+          <declname>timep</declname>
+        </param>
+        <briefdescription>
+<para>Format a time value as a local time. </para>        </briefdescription>
+        <detaileddescription>
+<para><simplesect kind="par"><title><bold>Description</bold>:</title><para>This call formats the time value supplied via <emphasis>timep</emphasis>. </para></simplesect>
+<parameterlist kind="param"><parameteritem>
+<parameternamelist>
+<parametername>ctx</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>Any memory context allocated by mprAlloc or mprCreate. </para></parameterdescription>
+</parameteritem>
+<parameteritem>
+<parameternamelist>
+<parametername>fmt</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>The time format to use. </para></parameterdescription>
+</parameteritem>
+<parameteritem>
+<parameternamelist>
+<parametername>timep</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>The time value to format. </para></parameterdescription>
+</parameteritem>
+</parameterlist>
+<simplesect kind="return"><para>The formatting time string. Caller should free. </para></simplesect>
+</para>        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/mob/hg/mpr/all/mpr.h" line="2300"/>
+      </memberdef>
+      <memberdef kind="function" id="group___mpr_date_1gc0334d0cee72fb5d5bd9a5dd63b62b03" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type><ref refid="group___mpr_date_1gdd377cb2c4ec9c665b99de02f87f768b" kindref="member">MprTime</ref></type>
+        <definition>MprTime mprGetRemainingTime</definition>
+        <argsstring>(MprCtx ctx, MprTime mark, uint timeout)</argsstring>
+        <name>mprGetRemainingTime</name>
+        <param>
+          <type><ref refid="group___mpr_mem_1g1413d66bb5356730c6fa08ca0af6bc0f" kindref="member">MprCtx</ref></type>
+          <declname>ctx</declname>
+        </param>
+        <param>
+          <type><ref refid="group___mpr_date_1gdd377cb2c4ec9c665b99de02f87f768b" kindref="member">MprTime</ref></type>
+          <declname>mark</declname>
+        </param>
+        <param>
+          <type>uint</type>
+          <declname>timeout</declname>
+        </param>
+        <briefdescription>
+<para>Return the time remaining until a timeout has elapsed. </para>        </briefdescription>
+        <detaileddescription>
+<para><parameterlist kind="param"><parameteritem>
+<parameternamelist>
+<parametername>ctx</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>Any memory context allocated by mprAlloc or mprCreate. </para></parameterdescription>
+</parameteritem>
+<parameteritem>
+<parameternamelist>
+<parametername>mark</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>Starting time stamp </para></parameterdescription>
+</parameteritem>
+<parameteritem>
+<parameternamelist>
+<parametername>timeout</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>Time in milliseconds </para></parameterdescription>
+</parameteritem>
+</parameterlist>
+<simplesect kind="return"><para>Time in milliseconds until the timeout elapses </para></simplesect>
+</para>        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/mob/hg/mpr/all/mpr.h" line="2319"/>
+      </memberdef>
+      <memberdef kind="function" id="group___mpr_date_1gedc887ffd106e62ff9f4e69044910c92" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type><ref refid="group___mpr_date_1gdd377cb2c4ec9c665b99de02f87f768b" kindref="member">MprTime</ref></type>
+        <definition>MprTime mprGetTime</definition>
+        <argsstring>(MprCtx ctx)</argsstring>
+        <name>mprGetTime</name>
+        <param>
+          <type><ref refid="group___mpr_mem_1g1413d66bb5356730c6fa08ca0af6bc0f" kindref="member">MprCtx</ref></type>
+          <declname>ctx</declname>
+        </param>
+        <briefdescription>
+<para>Get the system time. </para>        </briefdescription>
+        <detaileddescription>
+<para><simplesect kind="par"><title><bold>Description</bold>:</title><para>Get the system time in milliseconds. </para></simplesect>
+<parameterlist kind="param"><parameteritem>
+<parameternamelist>
+<parametername>ctx</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>Any memory context allocated by mprAlloc or mprCreate. </para></parameterdescription>
+</parameteritem>
+</parameterlist>
+<simplesect kind="return"><para>Returns the time in milliseconds since boot. </para></simplesect>
+</para>        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/mob/hg/mpr/all/mpr.h" line="2309"/>
+      </memberdef>
+      </sectiondef>
+    <briefdescription>
+<para>Date and Time Service. </para>    </briefdescription>
+    <detaileddescription>
+<para><simplesect kind="par"><title><bold>API</bold> Stability:</title><para>Evolving </para></simplesect>
+<simplesect kind="see"><para><ref refid="group___mpr_date_1gdd377cb2c4ec9c665b99de02f87f768b" kindref="member">MprTime</ref>, <ref refid="group___mpr_date_1g1fe29b0b5a726295afe36d28ab027270" kindref="member">mprDecodeLocalTime</ref>, <ref refid="group___mpr_date_1g4437f3ff3a58a9cf9d4d7d9e763fcc1a" kindref="member">mprDecodeUniversalTime</ref>, <ref refid="group___mpr_date_1g70e43deb465cef84d2387800ae07a194" kindref="member">mprFormatLocalTime</ref>, <ref refid="group___mpr_date_1g315d7591e179c57cd2072796a8dce0c5" kindref="member">mprFormatTime</ref>, mprParseTime </para></simplesect>
+</para>    </detaileddescription>
+  </compounddef>
+</doxygen>

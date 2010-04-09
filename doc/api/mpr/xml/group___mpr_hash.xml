@@ -1,0 +1,396 @@
+<?xml version='1.0' encoding='UTF-8' standalone='no'?>
+<doxygen xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="compound.xsd" version="1.5.8">
+  <compounddef id="group___mpr_hash" kind="group">
+    <compoundname>MprHash</compoundname>
+    <title>MprHash</title>
+      <sectiondef kind="func">
+      <memberdef kind="function" id="group___mpr_hash_1g6cac9e79143bfdc2c884590446e5edaf" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type>MprHash *</type>
+        <definition>MprHash* mprAddDuplicateHash</definition>
+        <argsstring>(MprHashTable *table, cchar *key, cvoid *ptr)</argsstring>
+        <name>mprAddDuplicateHash</name>
+        <param>
+          <type><ref refid="struct_mpr_hash_table" kindref="compound">MprHashTable</ref> *</type>
+          <declname>table</declname>
+        </param>
+        <param>
+          <type>cchar *</type>
+          <declname>key</declname>
+        </param>
+        <param>
+          <type>cvoid *</type>
+          <declname>ptr</declname>
+        </param>
+        <briefdescription>
+<para>Add a duplicate symbol value into the hash table. </para>        </briefdescription>
+        <detaileddescription>
+<para><simplesect kind="par"><title><bold>Description</bold>:</title><para>Add a symbol to the hash which may clash with an existing entry. Duplicate symbols can be added to the hash, but only one may be retrieved via <ref refid="group___mpr_hash_1gf3613de4c34a09b684aebddadc0851cb" kindref="member">mprLookupHash</ref>. To recover duplicate entries walk the hash using <ref refid="group___mpr_hash_1gba1514fa60bf0b72bf528b2c1fbecfc3" kindref="member">mprGetNextHash</ref>. </para></simplesect>
+<parameterlist kind="param"><parameteritem>
+<parameternamelist>
+<parametername>table</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>Symbol table returned via mprCreateSymbolTable. </para></parameterdescription>
+</parameteritem>
+<parameteritem>
+<parameternamelist>
+<parametername>key</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>String key of the symbole entry to delete. </para></parameterdescription>
+</parameteritem>
+<parameteritem>
+<parameternamelist>
+<parametername>ptr</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>Arbitrary pointer to associate with the key in the table. </para></parameterdescription>
+</parameteritem>
+</parameterlist>
+<simplesect kind="return"><para>Integer count of the number of entries. </para></simplesect>
+</para>        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/mob/hg/mpr/all/mpr.h" line="2837"/>
+      </memberdef>
+      <memberdef kind="function" id="group___mpr_hash_1gdd7d9c74e9073729c721efe1e5dec0aa" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type>MprHash *</type>
+        <definition>MprHash* mprAddHash</definition>
+        <argsstring>(MprHashTable *table, cchar *key, cvoid *ptr)</argsstring>
+        <name>mprAddHash</name>
+        <param>
+          <type><ref refid="struct_mpr_hash_table" kindref="compound">MprHashTable</ref> *</type>
+          <declname>table</declname>
+        </param>
+        <param>
+          <type>cchar *</type>
+          <declname>key</declname>
+        </param>
+        <param>
+          <type>cvoid *</type>
+          <declname>ptr</declname>
+        </param>
+        <briefdescription>
+<para>Add a symbol value into the hash table. </para>        </briefdescription>
+        <detaileddescription>
+<para><simplesect kind="par"><title><bold>Description</bold>:</title><para>Associate an arbitrary value with a string symbol key and insert into the symbol table. </para></simplesect>
+<parameterlist kind="param"><parameteritem>
+<parameternamelist>
+<parametername>table</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>Symbol table returned via mprCreateSymbolTable. </para></parameterdescription>
+</parameteritem>
+<parameteritem>
+<parameternamelist>
+<parametername>key</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>String key of the symbole entry to delete. </para></parameterdescription>
+</parameteritem>
+<parameteritem>
+<parameternamelist>
+<parametername>ptr</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>Arbitrary pointer to associate with the key in the table. </para></parameterdescription>
+</parameteritem>
+</parameterlist>
+<simplesect kind="return"><para>Integer count of the number of entries. </para></simplesect>
+</para>        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/mob/hg/mpr/all/mpr.h" line="2824"/>
+      </memberdef>
+      <memberdef kind="function" id="group___mpr_hash_1g84a5c66179387a6fc1090f5117d49af1" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type><ref refid="struct_mpr_hash_table" kindref="compound">MprHashTable</ref> *</type>
+        <definition>MprHashTable* mprCopyHash</definition>
+        <argsstring>(MprCtx ctx, MprHashTable *table)</argsstring>
+        <name>mprCopyHash</name>
+        <param>
+          <type><ref refid="group___mpr_mem_1g1413d66bb5356730c6fa08ca0af6bc0f" kindref="member">MprCtx</ref></type>
+          <declname>ctx</declname>
+        </param>
+        <param>
+          <type><ref refid="struct_mpr_hash_table" kindref="compound">MprHashTable</ref> *</type>
+          <declname>table</declname>
+        </param>
+        <briefdescription>
+<para>Copy a hash table. </para>        </briefdescription>
+        <detaileddescription>
+<para><simplesect kind="par"><title><bold>Description</bold>:</title><para>Create a new hash table and copy all the entries from an existing table. </para></simplesect>
+<parameterlist kind="param"><parameteritem>
+<parameternamelist>
+<parametername>ctx</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>Any memory context allocated by the MPR. </para></parameterdescription>
+</parameteritem>
+<parameteritem>
+<parameternamelist>
+<parametername>table</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>Symbol table returned via mprCreateSymbolTable. </para></parameterdescription>
+</parameteritem>
+</parameterlist>
+<simplesect kind="return"><para>A new hash table initialized with the contents of the original hash table. </para></simplesect>
+</para>        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/mob/hg/mpr/all/mpr.h" line="2847"/>
+      </memberdef>
+      <memberdef kind="function" id="group___mpr_hash_1gf653f8353d355f27d6fc00883daa82d9" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type><ref refid="struct_mpr_hash_table" kindref="compound">MprHashTable</ref> *</type>
+        <definition>MprHashTable* mprCreateHash</definition>
+        <argsstring>(MprCtx ctx, int hashSize)</argsstring>
+        <name>mprCreateHash</name>
+        <param>
+          <type><ref refid="group___mpr_mem_1g1413d66bb5356730c6fa08ca0af6bc0f" kindref="member">MprCtx</ref></type>
+          <declname>ctx</declname>
+        </param>
+        <param>
+          <type>int</type>
+          <declname>hashSize</declname>
+        </param>
+        <briefdescription>
+<para>Create a hash table. </para>        </briefdescription>
+        <detaileddescription>
+<para><simplesect kind="par"><title><bold>Description</bold>:</title><para>Creates a hash table that can store arbitrary objects associated with string key values. </para></simplesect>
+<parameterlist kind="param"><parameteritem>
+<parameternamelist>
+<parametername>ctx</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>Any memory context allocated by the MPR. </para></parameterdescription>
+</parameteritem>
+<parameteritem>
+<parameternamelist>
+<parametername>hashSize</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>Size of the hash table for the symbol table. Should be a prime number. </para></parameterdescription>
+</parameteritem>
+</parameterlist>
+<simplesect kind="return"><para>Returns a pointer to the allocated symbol table. Caller should use mprFree to dispose of the table when complete. </para></simplesect>
+</para>        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/mob/hg/mpr/all/mpr.h" line="2858"/>
+      </memberdef>
+      <memberdef kind="function" id="group___mpr_hash_1g56c37e6def80582b297fa3c27cd5a15e" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type>MprHash *</type>
+        <definition>MprHash* mprGetFirstHash</definition>
+        <argsstring>(MprHashTable *table)</argsstring>
+        <name>mprGetFirstHash</name>
+        <param>
+          <type><ref refid="struct_mpr_hash_table" kindref="compound">MprHashTable</ref> *</type>
+          <declname>table</declname>
+        </param>
+        <briefdescription>
+<para>Return the first symbol in a symbol entry. </para>        </briefdescription>
+        <detaileddescription>
+<para><simplesect kind="par"><title><bold>Description</bold>:</title><para>Prepares for walking the contents of a symbol table by returning the first entry in the symbol table. </para></simplesect>
+<parameterlist kind="param"><parameteritem>
+<parameternamelist>
+<parametername>table</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>Symbol table returned via mprCreateSymbolTable. </para></parameterdescription>
+</parameteritem>
+</parameterlist>
+<simplesect kind="return"><para>Pointer to the first entry in the symbol table. </para></simplesect>
+</para>        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/mob/hg/mpr/all/mpr.h" line="2867"/>
+      </memberdef>
+      <memberdef kind="function" id="group___mpr_hash_1gb18f7a0015706d7c7ded172357978875" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type>int</type>
+        <definition>int mprGetHashCount</definition>
+        <argsstring>(MprHashTable *table)</argsstring>
+        <name>mprGetHashCount</name>
+        <param>
+          <type><ref refid="struct_mpr_hash_table" kindref="compound">MprHashTable</ref> *</type>
+          <declname>table</declname>
+        </param>
+        <briefdescription>
+<para>Return the count of symbols in a symbol entry. </para>        </briefdescription>
+        <detaileddescription>
+<para><simplesect kind="par"><title><bold>Description</bold>:</title><para>Returns the number of symbols currently existing in a symbol table. </para></simplesect>
+<parameterlist kind="param"><parameteritem>
+<parameternamelist>
+<parametername>table</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>Symbol table returned via mprCreateSymbolTable. </para></parameterdescription>
+</parameteritem>
+</parameterlist>
+<simplesect kind="return"><para>Integer count of the number of entries. </para></simplesect>
+</para>        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/mob/hg/mpr/all/mpr.h" line="2889"/>
+      </memberdef>
+      <memberdef kind="function" id="group___mpr_hash_1gba1514fa60bf0b72bf528b2c1fbecfc3" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type>MprHash *</type>
+        <definition>MprHash* mprGetNextHash</definition>
+        <argsstring>(MprHashTable *table, MprHash *last)</argsstring>
+        <name>mprGetNextHash</name>
+        <param>
+          <type><ref refid="struct_mpr_hash_table" kindref="compound">MprHashTable</ref> *</type>
+          <declname>table</declname>
+        </param>
+        <param>
+          <type>MprHash *</type>
+          <declname>last</declname>
+        </param>
+        <briefdescription>
+<para>Return the next symbol in a symbol entry. </para>        </briefdescription>
+        <detaileddescription>
+<para><simplesect kind="par"><title><bold>Description</bold>:</title><para>Continues walking the contents of a symbol table by returning the next entry in the symbol table. A previous call to mprGetFirstSymbol or mprGetNextSymbol is required to supply the value of the <emphasis>last</emphasis> argument. </para></simplesect>
+<parameterlist kind="param"><parameteritem>
+<parameternamelist>
+<parametername>table</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>Symbol table returned via mprCreateSymbolTable. </para></parameterdescription>
+</parameteritem>
+<parameteritem>
+<parameternamelist>
+<parametername>last</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>Symbol table entry returned via mprGetFirstSymbol or mprGetNextSymbol. </para></parameterdescription>
+</parameteritem>
+</parameterlist>
+<simplesect kind="return"><para>Pointer to the first entry in the symbol table. </para></simplesect>
+</para>        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/mob/hg/mpr/all/mpr.h" line="2880"/>
+      </memberdef>
+      <memberdef kind="function" id="group___mpr_hash_1gf3613de4c34a09b684aebddadc0851cb" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type>cvoid *</type>
+        <definition>cvoid* mprLookupHash</definition>
+        <argsstring>(MprHashTable *table, cchar *key)</argsstring>
+        <name>mprLookupHash</name>
+        <param>
+          <type><ref refid="struct_mpr_hash_table" kindref="compound">MprHashTable</ref> *</type>
+          <declname>table</declname>
+        </param>
+        <param>
+          <type>cchar *</type>
+          <declname>key</declname>
+        </param>
+        <briefdescription>
+<para>Lookup a symbol in the hash table. </para>        </briefdescription>
+        <detaileddescription>
+<para><simplesect kind="par"><title><bold>Description</bold>:</title><para>Lookup a symbol key and return the value associated with that key. </para></simplesect>
+<parameterlist kind="param"><parameteritem>
+<parameternamelist>
+<parametername>table</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>Symbol table returned via mprCreateSymbolTable. </para></parameterdescription>
+</parameteritem>
+<parameteritem>
+<parameternamelist>
+<parametername>key</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>String key of the symbole entry to delete. </para></parameterdescription>
+</parameteritem>
+</parameterlist>
+<simplesect kind="return"><para>Value associated with the key when the entry was inserted via mprInsertSymbol. </para></simplesect>
+</para>        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/mob/hg/mpr/all/mpr.h" line="2899"/>
+      </memberdef>
+      <memberdef kind="function" id="group___mpr_hash_1g69e2a6c5e3b8f36892d841d7019a657f" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type>MprHash *</type>
+        <definition>MprHash* mprLookupHashEntry</definition>
+        <argsstring>(MprHashTable *table, cchar *key)</argsstring>
+        <name>mprLookupHashEntry</name>
+        <param>
+          <type><ref refid="struct_mpr_hash_table" kindref="compound">MprHashTable</ref> *</type>
+          <declname>table</declname>
+        </param>
+        <param>
+          <type>cchar *</type>
+          <declname>key</declname>
+        </param>
+        <briefdescription>
+<para>Lookup a symbol in the hash table and return the hash entry. </para>        </briefdescription>
+        <detaileddescription>
+<para><simplesect kind="par"><title><bold>Description</bold>:</title><para>Lookup a symbol key and return the hash table descriptor associated with that key. </para></simplesect>
+<parameterlist kind="param"><parameteritem>
+<parameternamelist>
+<parametername>table</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>Symbol table returned via mprCreateSymbolTable. </para></parameterdescription>
+</parameteritem>
+<parameteritem>
+<parameternamelist>
+<parametername>key</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>String key of the symbole entry to delete. </para></parameterdescription>
+</parameteritem>
+</parameterlist>
+<simplesect kind="return"><para>MprHash table structure for the entry </para></simplesect>
+</para>        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/mob/hg/mpr/all/mpr.h" line="2909"/>
+      </memberdef>
+      <memberdef kind="function" id="group___mpr_hash_1g18a3c4ccbb662c68f32d6eff52f045bf" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type>int</type>
+        <definition>int mprRemoveHash</definition>
+        <argsstring>(MprHashTable *table, cchar *key)</argsstring>
+        <name>mprRemoveHash</name>
+        <param>
+          <type><ref refid="struct_mpr_hash_table" kindref="compound">MprHashTable</ref> *</type>
+          <declname>table</declname>
+        </param>
+        <param>
+          <type>cchar *</type>
+          <declname>key</declname>
+        </param>
+        <briefdescription>
+<para>Remove a symbol entry from the hash table. </para>        </briefdescription>
+        <detaileddescription>
+<para><simplesect kind="par"><title><bold>Description</bold>:</title><para>Removes a symbol entry from the symbol table. The entry is looked up via the supplied <emphasis>key</emphasis>. </para></simplesect>
+<parameterlist kind="param"><parameteritem>
+<parameternamelist>
+<parametername>table</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>Symbol table returned via mprCreateSymbolTable. </para></parameterdescription>
+</parameteritem>
+<parameteritem>
+<parameternamelist>
+<parametername>key</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>String key of the symbole entry to delete. </para></parameterdescription>
+</parameteritem>
+</parameterlist>
+<simplesect kind="return"><para>Returns zero if successful, otherwise a negative MPR error code is returned. </para></simplesect>
+</para>        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/mob/hg/mpr/all/mpr.h" line="2919"/>
+      </memberdef>
+      </sectiondef>
+    <briefdescription>
+<para>Hash table entry structure. </para>    </briefdescription>
+    <detaileddescription>
+<para><simplesect kind="par"><title><bold>Description</bold>:</title><para>Each hash entry has a descriptor entry. This is used to manage the hash table link chains. </para></simplesect>
+<simplesect kind="see"><para><ref refid="group___mpr_hash" kindref="compound">MprHash</ref>, <ref refid="group___mpr_hash_1gdd7d9c74e9073729c721efe1e5dec0aa" kindref="member">mprAddHash</ref>, <ref refid="group___mpr_hash_1g6cac9e79143bfdc2c884590446e5edaf" kindref="member">mprAddDuplicateHash</ref>, <ref refid="group___mpr_hash_1g84a5c66179387a6fc1090f5117d49af1" kindref="member">mprCopyHash</ref>, <ref refid="group___mpr_hash_1gf653f8353d355f27d6fc00883daa82d9" kindref="member">mprCreateHash</ref>, <ref refid="group___mpr_hash_1g56c37e6def80582b297fa3c27cd5a15e" kindref="member">mprGetFirstHash</ref>, <ref refid="group___mpr_hash_1gba1514fa60bf0b72bf528b2c1fbecfc3" kindref="member">mprGetNextHash</ref>, mprGethashCount, <ref refid="group___mpr_hash_1gf3613de4c34a09b684aebddadc0851cb" kindref="member">mprLookupHash</ref>, <ref refid="group___mpr_hash_1g69e2a6c5e3b8f36892d841d7019a657f" kindref="member">mprLookupHashEntry</ref>, <ref refid="group___mpr_hash_1g18a3c4ccbb662c68f32d6eff52f045bf" kindref="member">mprRemoveHash</ref>, <ref refid="group___mpr_mem_1g6d2fdfc4a34dc8ef4e7172fbcf977045" kindref="member">mprFree</ref>, <ref refid="group___mpr_list_1g6dc1e2980f934578a5a88f9f987adcf5" kindref="member">mprCreateKeyPair</ref> </para></simplesect>
+<simplesect kind="par"><title><bold>API</bold> Stability:</title><para>Evolving. </para></simplesect>
+</para>    </detaileddescription>
+  </compounddef>
+</doxygen>

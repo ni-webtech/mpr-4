@@ -1,0 +1,31 @@
+<?xml version='1.0' encoding='UTF-8' standalone='no'?>
+<doxygen xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="compound.xsd" version="1.5.8">
+  <compounddef id="struct_mpr_mutex" kind="struct" prot="public">
+    <compoundname>MprMutex</compoundname>
+    <includes refid="mpr_8h" local="no">mpr.h</includes>
+      <sectiondef kind="public-attrib">
+      <memberdef kind="variable" id="struct_mpr_mutex_135a083e861b4665838b97e896360d977" prot="public" static="no" mutable="no">
+        <type>CRITICAL_SECTION</type>
+        <definition>CRITICAL_SECTION MprMutex::cs</definition>
+        <argsstring></argsstring>
+        <name>cs</name>
+        <briefdescription>
+<para>Internal mutex critical section. </para>        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/mob/hg/mpr/all/mpr.h" line="4189" bodyfile="/Users/mob/hg/mpr/all/mpr.h" bodystart="4189" bodyend="-1"/>
+      </memberdef>
+      </sectiondef>
+    <briefdescription>
+<para>Multithreading lock control structure. </para>    </briefdescription>
+    <detaileddescription>
+<para><simplesect kind="par"><title><bold>Description</bold>:</title><para><ref refid="struct_mpr_mutex" kindref="compound">MprMutex</ref> is used for multithread locking in multithreaded applications. </para></simplesect>
+</para>    </detaileddescription>
+    <location file="/Users/mob/hg/mpr/all/mpr.h" line="4187" bodyfile="/Users/mob/hg/mpr/all/mpr.h" bodystart="4187" bodyend="4197"/>
+    <listofallmembers>
+      <member refid="struct_mpr_mutex_135a083e861b4665838b97e896360d977" prot="public" virt="non-virtual"><scope>MprMutex</scope><name>cs</name></member>
+    </listofallmembers>
+  </compounddef>
+</doxygen>

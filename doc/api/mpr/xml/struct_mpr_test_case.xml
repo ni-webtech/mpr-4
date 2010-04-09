@@ -1,0 +1,85 @@
+<?xml version='1.0' encoding='UTF-8' standalone='no'?>
+<doxygen xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="compound.xsd" version="1.5.8">
+  <compounddef id="struct_mpr_test_case" kind="struct" prot="public">
+    <compoundname>MprTestCase</compoundname>
+      <sectiondef kind="public-attrib">
+      <memberdef kind="variable" id="struct_mpr_test_case_1978b7ddcb37680e8446c59d5ac354bff" prot="public" static="no" mutable="no">
+        <type>int(*</type>
+        <definition>int(* MprTestCase::init)(struct MprTestGroup *gp)</definition>
+        <argsstring>)(struct MprTestGroup *gp)</argsstring>
+        <name>init</name>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/mob/hg/mpr/all/mpr.h" line="6969"/>
+      </memberdef>
+      <memberdef kind="variable" id="struct_mpr_test_case_1909dcaedb43d0cfdc5c42d7909d01dea" prot="public" static="no" mutable="no">
+        <type>int</type>
+        <definition>int MprTestCase::level</definition>
+        <argsstring></argsstring>
+        <name>level</name>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/mob/hg/mpr/all/mpr.h" line="6967" bodyfile="/Users/mob/hg/mpr/all/mpr.h" bodystart="6967" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="variable" id="struct_mpr_test_case_18a4ad8a1d8d87f68610ba0b2597178f5" prot="public" static="no" mutable="no">
+        <type>char *</type>
+        <definition>char* MprTestCase::name</definition>
+        <argsstring></argsstring>
+        <name>name</name>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/mob/hg/mpr/all/mpr.h" line="6966" bodyfile="/Users/mob/hg/mpr/all/mpr.h" bodystart="6966" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="variable" id="struct_mpr_test_case_1bd595386d9f41bf4ff0d2941f957b140" prot="public" static="no" mutable="no">
+        <type>MprTestProc</type>
+        <definition>MprTestProc MprTestCase::proc</definition>
+        <argsstring></argsstring>
+        <name>proc</name>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/mob/hg/mpr/all/mpr.h" line="6968" bodyfile="/Users/mob/hg/mpr/all/mpr.h" bodystart="6968" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="variable" id="struct_mpr_test_case_1f16084b80a0aaee3e0b76ecd8d56ee0b" prot="public" static="no" mutable="no">
+        <type>int(*</type>
+        <definition>int(* MprTestCase::term)(struct MprTestGroup *gp)</definition>
+        <argsstring>)(struct MprTestGroup *gp)</argsstring>
+        <name>term</name>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/mob/hg/mpr/all/mpr.h" line="6970"/>
+      </memberdef>
+      </sectiondef>
+    <briefdescription>
+    </briefdescription>
+    <detaileddescription>
+    </detaileddescription>
+    <location file="/Users/mob/hg/mpr/all/mpr.h" line="6965" bodyfile="/Users/mob/hg/mpr/all/mpr.h" bodystart="6965" bodyend="6971"/>
+    <listofallmembers>
+      <member refid="struct_mpr_test_case_1978b7ddcb37680e8446c59d5ac354bff" prot="public" virt="non-virtual"><scope>MprTestCase</scope><name>init</name></member>
+      <member refid="struct_mpr_test_case_1909dcaedb43d0cfdc5c42d7909d01dea" prot="public" virt="non-virtual"><scope>MprTestCase</scope><name>level</name></member>
+      <member refid="struct_mpr_test_case_18a4ad8a1d8d87f68610ba0b2597178f5" prot="public" virt="non-virtual"><scope>MprTestCase</scope><name>name</name></member>
+      <member refid="struct_mpr_test_case_1bd595386d9f41bf4ff0d2941f957b140" prot="public" virt="non-virtual"><scope>MprTestCase</scope><name>proc</name></member>
+      <member refid="struct_mpr_test_case_1f16084b80a0aaee3e0b76ecd8d56ee0b" prot="public" virt="non-virtual"><scope>MprTestCase</scope><name>term</name></member>
+    </listofallmembers>
+  </compounddef>
+</doxygen>

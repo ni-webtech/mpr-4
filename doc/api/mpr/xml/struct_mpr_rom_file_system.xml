@@ -1,0 +1,104 @@
+<?xml version='1.0' encoding='UTF-8' standalone='no'?>
+<doxygen xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="compound.xsd" version="1.5.8">
+  <compounddef id="struct_mpr_rom_file_system" kind="struct" prot="public">
+    <compoundname>MprRomFileSystem</compoundname>
+      <sectiondef kind="public-attrib">
+      <memberdef kind="variable" id="struct_mpr_rom_file_system_1060c736e8714ea58f2ff3810fa5dce19" prot="public" static="no" mutable="no">
+        <type><ref refid="struct_mpr_hash_table" kindref="compound">MprHashTable</ref> *</type>
+        <definition>MprHashTable* MprRomFileSystem::fileIndex</definition>
+        <argsstring></argsstring>
+        <name>fileIndex</name>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/mob/hg/mpr/all/mpr.h" line="2987" bodyfile="/Users/mob/hg/mpr/all/mpr.h" bodystart="2987" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="variable" id="struct_mpr_rom_file_system_160328bb69f864a50ca7afd6b6cd3ad01" prot="public" static="no" mutable="no">
+        <type><ref refid="struct_mpr_file_system" kindref="compound">MprFileSystem</ref></type>
+        <definition>MprFileSystem MprRomFileSystem::fileSystem</definition>
+        <argsstring></argsstring>
+        <name>fileSystem</name>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/mob/hg/mpr/all/mpr.h" line="2986" bodyfile="/Users/mob/hg/mpr/all/mpr.h" bodystart="2986" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="variable" id="struct_mpr_rom_file_system_1224ee707ddb73abcb931876c494aa761" prot="public" static="no" mutable="no">
+        <type>MprRomInode *</type>
+        <definition>MprRomInode* MprRomFileSystem::romInodes</definition>
+        <argsstring></argsstring>
+        <name>romInodes</name>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/mob/hg/mpr/all/mpr.h" line="2988" bodyfile="/Users/mob/hg/mpr/all/mpr.h" bodystart="2988" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="variable" id="struct_mpr_rom_file_system_17e7bc874ed28fde77dc10fb4b42cdfcc" prot="public" static="no" mutable="no">
+        <type>char *</type>
+        <definition>char* MprRomFileSystem::root</definition>
+        <argsstring></argsstring>
+        <name>root</name>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/mob/hg/mpr/all/mpr.h" line="2989" bodyfile="/Users/mob/hg/mpr/all/mpr.h" bodystart="2989" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="variable" id="struct_mpr_rom_file_system_14d3de39eb0124cdac9a3c09faf6c7fee" prot="public" static="no" mutable="no">
+        <type>int</type>
+        <definition>int MprRomFileSystem::rootLen</definition>
+        <argsstring></argsstring>
+        <name>rootLen</name>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/mob/hg/mpr/all/mpr.h" line="2990" bodyfile="/Users/mob/hg/mpr/all/mpr.h" bodystart="2990" bodyend="-1"/>
+      </memberdef>
+      </sectiondef>
+    <briefdescription>
+    </briefdescription>
+    <detaileddescription>
+    </detaileddescription>
+    <collaborationgraph>
+      <node id="72">
+        <label>MprHashTable</label>
+        <link refid="struct_mpr_hash_table"/>
+      </node>
+      <node id="71">
+        <label>MprRomFileSystem</label>
+        <childnode refid="72" relation="usage">
+          <edgelabel>fileIndex</edgelabel>
+        </childnode>
+        <childnode refid="73" relation="usage">
+          <edgelabel>fileSystem</edgelabel>
+        </childnode>
+      </node>
+      <node id="73">
+        <label>MprFileSystem</label>
+        <link refid="struct_mpr_file_system"/>
+      </node>
+    </collaborationgraph>
+    <location file="/Users/mob/hg/mpr/all/mpr.h" line="2985" bodyfile="/Users/mob/hg/mpr/all/mpr.h" bodystart="2985" bodyend="2991"/>
+    <listofallmembers>
+      <member refid="struct_mpr_rom_file_system_1060c736e8714ea58f2ff3810fa5dce19" prot="public" virt="non-virtual"><scope>MprRomFileSystem</scope><name>fileIndex</name></member>
+      <member refid="struct_mpr_rom_file_system_160328bb69f864a50ca7afd6b6cd3ad01" prot="public" virt="non-virtual"><scope>MprRomFileSystem</scope><name>fileSystem</name></member>
+      <member refid="struct_mpr_rom_file_system_1224ee707ddb73abcb931876c494aa761" prot="public" virt="non-virtual"><scope>MprRomFileSystem</scope><name>romInodes</name></member>
+      <member refid="struct_mpr_rom_file_system_17e7bc874ed28fde77dc10fb4b42cdfcc" prot="public" virt="non-virtual"><scope>MprRomFileSystem</scope><name>root</name></member>
+      <member refid="struct_mpr_rom_file_system_14d3de39eb0124cdac9a3c09faf6c7fee" prot="public" virt="non-virtual"><scope>MprRomFileSystem</scope><name>rootLen</name></member>
+    </listofallmembers>
+  </compounddef>
+</doxygen>

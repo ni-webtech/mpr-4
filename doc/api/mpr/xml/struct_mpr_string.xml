@@ -1,0 +1,32 @@
+<?xml version='1.0' encoding='UTF-8' standalone='no'?>
+<doxygen xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="compound.xsd" version="1.5.8">
+  <compounddef id="struct_mpr_string" kind="struct" prot="public">
+    <compoundname>MprString</compoundname>
+    <includes refid="mpr_8h" local="no">mpr.h</includes>
+      <sectiondef kind="public-attrib">
+      <memberdef kind="variable" id="struct_mpr_string_1a99e255809e1f5c4239c9fec50fd6723" prot="public" static="no" mutable="no">
+        <type>int</type>
+        <definition>int MprString::dummy</definition>
+        <argsstring></argsstring>
+        <name>dummy</name>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/mob/hg/mpr/all/mpr.h" line="1524" bodyfile="/Users/mob/hg/mpr/all/mpr.h" bodystart="1524" bodyend="-1"/>
+      </memberdef>
+      </sectiondef>
+    <briefdescription>
+<para>Safe String Module. </para>    </briefdescription>
+    <detaileddescription>
+<para><simplesect kind="par"><title><bold>Description</bold>:</title><para>The MPR provides a suite of safe string manipulation routines to help prevent buffer overflows and other potential security traps. </para></simplesect>
+<simplesect kind="see"><para><ref refid="struct_mpr_string" kindref="compound">MprString</ref>, <ref refid="mpr_8h_147b6a089018e38316476e97b49bb8d82" kindref="member">mprAsprintf</ref>, mprAllocStrcpy, <ref refid="mpr_8h_1b2b1ebf1965beac947ab9b77970f49c5" kindref="member">mprAtoi</ref>, <ref refid="mpr_8h_1c44ccf179c55dbbcf7aa04ba86090463" kindref="member">mprItoa</ref>, <ref refid="mpr_8h_1bcb752b124b706ebff6798cfeafc9f99" kindref="member">mprMemcpy</ref>, <ref refid="mpr_8h_1dfbd1fa43e7b737e566661e5d6ab6c36" kindref="member">mprPrintf</ref>, <ref refid="mpr_8h_12493bcee3c3b7f8351e16c731dd401f6" kindref="member">mprReallocStrcat</ref>, <ref refid="mpr_8h_16cedd059c2f7ea313fbf7bc136ab2909" kindref="member">mprSprintf</ref>, <ref refid="mpr_8h_14d6edb96beee6c995edc3197556536f5" kindref="member">mprStaticPrintf</ref>, <ref refid="mpr_8h_1b9c7e8c93945fa0bc4aa3608ea2b9802" kindref="member">mprStrLower</ref>, <ref refid="mpr_8h_1607579dc34bc84ebea2b67d7f9d55641" kindref="member">mprStrTok</ref>, <ref refid="mpr_8h_1cab0129f8454deb9debf1513ddf15738" kindref="member">mprStrTrim</ref>, <ref refid="mpr_8h_1f746a3a94464da0f6991d88d3d76ae75" kindref="member">mprStrUpper</ref>, <ref refid="mpr_8h_1e15c6b644b07a706125e13656d3be03b" kindref="member">mprStrcmpAnyCase</ref>, <ref refid="mpr_8h_112ece4a3c6060f5c09051b17212f14f8" kindref="member">mprStrcmpAnyCaseCount</ref>, <ref refid="mpr_8h_1239b2debb47dd4553372d0ad89294521" kindref="member">mprStrcpy</ref>, <ref refid="mpr_8h_1d672f4f5cd20ea78325864b263460133" kindref="member">mprStrlen</ref>, <ref refid="mpr_8h_15bba3c0b15d48ec6cc90966f14ae663a" kindref="member">mprVsprintf</ref>, <ref refid="mpr_8h_113f99df19731bdfca83cd7ab64b6dd90" kindref="member">mprPrintfError</ref>, <ref refid="mpr_8h_1d3156f9075164b2fee835a66f62eb4aa" kindref="member">mprStrcat</ref>, mprAllocStrcpy, <ref refid="mpr_8h_12493bcee3c3b7f8351e16c731dd401f6" kindref="member">mprReallocStrcat</ref>, <ref refid="mpr_8h_1bd8e3ce747235f08bf1fca492a653f9b" kindref="member">mprVasprintf</ref> </para></simplesect>
+</para>    </detaileddescription>
+    <location file="/Users/mob/hg/mpr/all/mpr.h" line="1524" bodyfile="/Users/mob/hg/mpr/all/mpr.h" bodystart="1524" bodyend="1524"/>
+    <listofallmembers>
+      <member refid="struct_mpr_string_1a99e255809e1f5c4239c9fec50fd6723" prot="public" virt="non-virtual"><scope>MprString</scope><name>dummy</name></member>
+    </listofallmembers>
+  </compounddef>
+</doxygen>

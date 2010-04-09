@@ -1,0 +1,71 @@
+<?xml version='1.0' encoding='UTF-8' standalone='no'?>
+<doxygen xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="compound.xsd" version="1.5.8">
+  <compounddef id="struct_mpr_list" kind="struct" prot="public">
+    <compoundname>MprList</compoundname>
+      <sectiondef kind="public-attrib">
+      <memberdef kind="variable" id="struct_mpr_list_1eac7318ec5e473d25f5b83067736f5bc" prot="public" static="no" mutable="no">
+        <type>int</type>
+        <definition>int MprList::capacity</definition>
+        <argsstring></argsstring>
+        <name>capacity</name>
+        <briefdescription>
+<para>Current list size. </para>        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/mob/hg/mpr/all/mpr.h" line="2375" bodyfile="/Users/mob/hg/mpr/all/mpr.h" bodystart="2375" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="variable" id="struct_mpr_list_1446abf1935f3efffa574af9e72ce4f97" prot="public" static="no" mutable="no">
+        <type>void **</type>
+        <definition>void** MprList::items</definition>
+        <argsstring></argsstring>
+        <name>items</name>
+        <briefdescription>
+<para>List item data. </para>        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/mob/hg/mpr/all/mpr.h" line="2373" bodyfile="/Users/mob/hg/mpr/all/mpr.h" bodystart="2373" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="variable" id="struct_mpr_list_1f2e7e096a331a6610066a163f667bb4a" prot="public" static="no" mutable="no">
+        <type>int</type>
+        <definition>int MprList::length</definition>
+        <argsstring></argsstring>
+        <name>length</name>
+        <briefdescription>
+<para>Current length of the list contents. </para>        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/mob/hg/mpr/all/mpr.h" line="2374" bodyfile="/Users/mob/hg/mpr/all/mpr.h" bodystart="2374" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="variable" id="struct_mpr_list_19594b7bf2f1769e837977f1448386061" prot="public" static="no" mutable="no">
+        <type>int</type>
+        <definition>int MprList::maxSize</definition>
+        <argsstring></argsstring>
+        <name>maxSize</name>
+        <briefdescription>
+<para>Maximum capacity. </para>        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/mob/hg/mpr/all/mpr.h" line="2376" bodyfile="/Users/mob/hg/mpr/all/mpr.h" bodystart="2376" bodyend="-1"/>
+      </memberdef>
+      </sectiondef>
+    <briefdescription>
+    </briefdescription>
+    <detaileddescription>
+    </detaileddescription>
+    <location file="/Users/mob/hg/mpr/all/mpr.h" line="2372" bodyfile="/Users/mob/hg/mpr/all/mpr.h" bodystart="2372" bodyend="2377"/>
+    <listofallmembers>
+      <member refid="struct_mpr_list_1eac7318ec5e473d25f5b83067736f5bc" prot="public" virt="non-virtual"><scope>MprList</scope><name>capacity</name></member>
+      <member refid="struct_mpr_list_1446abf1935f3efffa574af9e72ce4f97" prot="public" virt="non-virtual"><scope>MprList</scope><name>items</name></member>
+      <member refid="struct_mpr_list_1f2e7e096a331a6610066a163f667bb4a" prot="public" virt="non-virtual"><scope>MprList</scope><name>length</name></member>
+      <member refid="struct_mpr_list_19594b7bf2f1769e837977f1448386061" prot="public" virt="non-virtual"><scope>MprList</scope><name>maxSize</name></member>
+    </listofallmembers>
+  </compounddef>
+</doxygen>

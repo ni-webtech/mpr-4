@@ -1,0 +1,244 @@
+<?xml version='1.0' encoding='UTF-8' standalone='no'?>
+<doxygen xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="compound.xsd" version="1.5.8">
+  <compounddef id="struct_mpr_wait_handler" kind="struct" prot="public">
+    <compoundname>MprWaitHandler</compoundname>
+      <sectiondef kind="public-attrib">
+      <memberdef kind="variable" id="struct_mpr_wait_handler_11016819e31b4750246c83936e5874e2a" prot="public" static="no" mutable="no">
+        <type><ref refid="struct_mpr_cond" kindref="compound">MprCond</ref> *</type>
+        <definition>MprCond* MprWaitHandler::callbackComplete</definition>
+        <argsstring></argsstring>
+        <name>callbackComplete</name>
+        <briefdescription>
+<para>Signalled when a callback is complete. </para>        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/mob/hg/mpr/all/mpr.h" line="5402" bodyfile="/Users/mob/hg/mpr/all/mpr.h" bodystart="5402" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="variable" id="struct_mpr_wait_handler_1df4c7806d4cdffcaeb9a7d5cd8f5e798" prot="public" static="no" mutable="no">
+        <type>int</type>
+        <definition>int MprWaitHandler::desiredMask</definition>
+        <argsstring></argsstring>
+        <name>desiredMask</name>
+        <briefdescription>
+<para>Mask of desired events. </para>        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/mob/hg/mpr/all/mpr.h" line="5387" bodyfile="/Users/mob/hg/mpr/all/mpr.h" bodystart="5387" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="variable" id="struct_mpr_wait_handler_1c93e7d959943be7f1c3bcecf20d9d957" prot="public" static="no" mutable="no">
+        <type>MprDispatcher *</type>
+        <definition>MprDispatcher* MprWaitHandler::dispatcher</definition>
+        <argsstring></argsstring>
+        <name>dispatcher</name>
+        <briefdescription>
+<para>Event dispatcher to use for I/O events. </para>        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/mob/hg/mpr/all/mpr.h" line="5395" bodyfile="/Users/mob/hg/mpr/all/mpr.h" bodystart="5395" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="variable" id="struct_mpr_wait_handler_197c343b6bb8db07c0a92276a88c2b771" prot="public" static="no" mutable="no">
+        <type>MprEvent</type>
+        <definition>MprEvent MprWaitHandler::event</definition>
+        <argsstring></argsstring>
+        <name>event</name>
+        <briefdescription>
+<para>Inline event object to process I/O events. </para>        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/mob/hg/mpr/all/mpr.h" line="5393" bodyfile="/Users/mob/hg/mpr/all/mpr.h" bodystart="5393" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="variable" id="struct_mpr_wait_handler_1ee7fb2a6fd11f444eb5797ea2dbd0332" prot="public" static="no" mutable="no">
+        <type>int</type>
+        <definition>int MprWaitHandler::fd</definition>
+        <argsstring></argsstring>
+        <name>fd</name>
+        <briefdescription>
+<para>O/S File descriptor (sp-&gt;sock). </para>        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/mob/hg/mpr/all/mpr.h" line="5389" bodyfile="/Users/mob/hg/mpr/all/mpr.h" bodystart="5389" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="variable" id="struct_mpr_wait_handler_162a070c99ca6d2ba10f75303a89899e4" prot="public" static="no" mutable="no">
+        <type>int</type>
+        <definition>int MprWaitHandler::flags</definition>
+        <argsstring></argsstring>
+        <name>flags</name>
+        <briefdescription>
+<para>Control flags. </para>        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/mob/hg/mpr/all/mpr.h" line="5391" bodyfile="/Users/mob/hg/mpr/all/mpr.h" bodystart="5391" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="variable" id="struct_mpr_wait_handler_159421f36f0b85b2a1e2299e2d2b8c678" prot="public" static="no" mutable="no">
+        <type>void *</type>
+        <definition>void* MprWaitHandler::handlerData</definition>
+        <argsstring></argsstring>
+        <name>handlerData</name>
+        <briefdescription>
+<para>Argument to pass to proc. </para>        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/mob/hg/mpr/all/mpr.h" line="5392" bodyfile="/Users/mob/hg/mpr/all/mpr.h" bodystart="5392" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="variable" id="struct_mpr_wait_handler_1728fec66b100bf03093d68e05da2f765" prot="public" static="no" mutable="no">
+        <type>struct MprWaitHandler *</type>
+        <definition>struct MprWaitHandler* MprWaitHandler::next</definition>
+        <argsstring></argsstring>
+        <name>next</name>
+        <briefdescription>
+<para>List linkage. </para>        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/mob/hg/mpr/all/mpr.h" line="5397" bodyfile="/Users/mob/hg/mpr/all/mpr.h" bodystart="5397" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="variable" id="struct_mpr_wait_handler_1e0f76b4138418c1da9bea8f6c5cc342a" prot="public" static="no" mutable="no">
+        <type>int</type>
+        <definition>int MprWaitHandler::notifierIndex</definition>
+        <argsstring></argsstring>
+        <name>notifierIndex</name>
+        <briefdescription>
+<para>Index for notifier. </para>        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/mob/hg/mpr/all/mpr.h" line="5390" bodyfile="/Users/mob/hg/mpr/all/mpr.h" bodystart="5390" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="variable" id="struct_mpr_wait_handler_113ed83affc710662180787f603d112de" prot="public" static="no" mutable="no">
+        <type>int</type>
+        <definition>int MprWaitHandler::presentMask</definition>
+        <argsstring></argsstring>
+        <name>presentMask</name>
+        <briefdescription>
+<para>Mask of current events. </para>        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/mob/hg/mpr/all/mpr.h" line="5388" bodyfile="/Users/mob/hg/mpr/all/mpr.h" bodystart="5388" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="variable" id="struct_mpr_wait_handler_1bf7817e84ff8c176f7dfb1d54bed1777" prot="public" static="no" mutable="no">
+        <type>struct MprWaitHandler *</type>
+        <definition>struct MprWaitHandler* MprWaitHandler::prev</definition>
+        <argsstring></argsstring>
+        <name>prev</name>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/mob/hg/mpr/all/mpr.h" line="5398" bodyfile="/Users/mob/hg/mpr/all/mpr.h" bodystart="5398" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="variable" id="struct_mpr_wait_handler_1ffa14f5e66972faef98ae815aad44069" prot="public" static="no" mutable="no">
+        <type><ref refid="group___mpr_event_1g6777c813e9ab55b0e29dfa9d0d19f32b" kindref="member">MprEventProc</ref></type>
+        <definition>MprEventProc MprWaitHandler::proc</definition>
+        <argsstring></argsstring>
+        <name>proc</name>
+        <briefdescription>
+<para>Callback event procedure. </para>        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/mob/hg/mpr/all/mpr.h" line="5396" bodyfile="/Users/mob/hg/mpr/all/mpr.h" bodystart="5396" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="variable" id="struct_mpr_wait_handler_18d4a68b6b6d56faa345e216d754a8c13" prot="public" static="no" mutable="no">
+        <type>struct MprWorker *</type>
+        <definition>struct MprWorker* MprWaitHandler::requiredWorker</definition>
+        <argsstring></argsstring>
+        <name>requiredWorker</name>
+        <briefdescription>
+<para>Designate the required worker thread to run the callback. </para>        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/mob/hg/mpr/all/mpr.h" line="5400" bodyfile="/Users/mob/hg/mpr/all/mpr.h" bodystart="5400" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="variable" id="struct_mpr_wait_handler_1e5fd15b46ce7355db48d9bd001acf295" prot="public" static="no" mutable="no">
+        <type>MprWaitService *</type>
+        <definition>MprWaitService* MprWaitHandler::service</definition>
+        <argsstring></argsstring>
+        <name>service</name>
+        <briefdescription>
+<para>Wait service pointer. </para>        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/mob/hg/mpr/all/mpr.h" line="5394" bodyfile="/Users/mob/hg/mpr/all/mpr.h" bodystart="5394" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="variable" id="struct_mpr_wait_handler_153b2ccb48929afd9e4e5fb227ef0aead" prot="public" static="no" mutable="no">
+        <type>struct MprThread *</type>
+        <definition>struct MprThread* MprWaitHandler::thread</definition>
+        <argsstring></argsstring>
+        <name>thread</name>
+        <briefdescription>
+<para>Thread executing the callback, set even if worker is null. </para>        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/mob/hg/mpr/all/mpr.h" line="5401" bodyfile="/Users/mob/hg/mpr/all/mpr.h" bodystart="5401" bodyend="-1"/>
+      </memberdef>
+      </sectiondef>
+    <briefdescription>
+    </briefdescription>
+    <detaileddescription>
+    </detaileddescription>
+    <collaborationgraph>
+      <node id="114">
+        <label>MprCond</label>
+        <link refid="struct_mpr_cond"/>
+        <childnode refid="115" relation="usage">
+          <edgelabel>mutex</edgelabel>
+        </childnode>
+      </node>
+      <node id="113">
+        <label>MprWaitHandler</label>
+        <childnode refid="114" relation="usage">
+          <edgelabel>callbackComplete</edgelabel>
+        </childnode>
+      </node>
+      <node id="115">
+        <label>MprMutex</label>
+        <link refid="struct_mpr_mutex"/>
+      </node>
+    </collaborationgraph>
+    <location file="/Users/mob/hg/mpr/all/mpr.h" line="5386" bodyfile="/Users/mob/hg/mpr/all/mpr.h" bodystart="5386" bodyend="5404"/>
+    <listofallmembers>
+      <member refid="struct_mpr_wait_handler_11016819e31b4750246c83936e5874e2a" prot="public" virt="non-virtual"><scope>MprWaitHandler</scope><name>callbackComplete</name></member>
+      <member refid="struct_mpr_wait_handler_1df4c7806d4cdffcaeb9a7d5cd8f5e798" prot="public" virt="non-virtual"><scope>MprWaitHandler</scope><name>desiredMask</name></member>
+      <member refid="struct_mpr_wait_handler_1c93e7d959943be7f1c3bcecf20d9d957" prot="public" virt="non-virtual"><scope>MprWaitHandler</scope><name>dispatcher</name></member>
+      <member refid="struct_mpr_wait_handler_197c343b6bb8db07c0a92276a88c2b771" prot="public" virt="non-virtual"><scope>MprWaitHandler</scope><name>event</name></member>
+      <member refid="struct_mpr_wait_handler_1ee7fb2a6fd11f444eb5797ea2dbd0332" prot="public" virt="non-virtual"><scope>MprWaitHandler</scope><name>fd</name></member>
+      <member refid="struct_mpr_wait_handler_162a070c99ca6d2ba10f75303a89899e4" prot="public" virt="non-virtual"><scope>MprWaitHandler</scope><name>flags</name></member>
+      <member refid="struct_mpr_wait_handler_159421f36f0b85b2a1e2299e2d2b8c678" prot="public" virt="non-virtual"><scope>MprWaitHandler</scope><name>handlerData</name></member>
+      <member refid="struct_mpr_wait_handler_1728fec66b100bf03093d68e05da2f765" prot="public" virt="non-virtual"><scope>MprWaitHandler</scope><name>next</name></member>
+      <member refid="struct_mpr_wait_handler_1e0f76b4138418c1da9bea8f6c5cc342a" prot="public" virt="non-virtual"><scope>MprWaitHandler</scope><name>notifierIndex</name></member>
+      <member refid="struct_mpr_wait_handler_113ed83affc710662180787f603d112de" prot="public" virt="non-virtual"><scope>MprWaitHandler</scope><name>presentMask</name></member>
+      <member refid="struct_mpr_wait_handler_1bf7817e84ff8c176f7dfb1d54bed1777" prot="public" virt="non-virtual"><scope>MprWaitHandler</scope><name>prev</name></member>
+      <member refid="struct_mpr_wait_handler_1ffa14f5e66972faef98ae815aad44069" prot="public" virt="non-virtual"><scope>MprWaitHandler</scope><name>proc</name></member>
+      <member refid="struct_mpr_wait_handler_18d4a68b6b6d56faa345e216d754a8c13" prot="public" virt="non-virtual"><scope>MprWaitHandler</scope><name>requiredWorker</name></member>
+      <member refid="struct_mpr_wait_handler_1e5fd15b46ce7355db48d9bd001acf295" prot="public" virt="non-virtual"><scope>MprWaitHandler</scope><name>service</name></member>
+      <member refid="struct_mpr_wait_handler_153b2ccb48929afd9e4e5fb227ef0aead" prot="public" virt="non-virtual"><scope>MprWaitHandler</scope><name>thread</name></member>
+    </listofallmembers>
+  </compounddef>
+</doxygen>

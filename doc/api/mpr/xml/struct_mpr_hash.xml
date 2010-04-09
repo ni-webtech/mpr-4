@@ -1,0 +1,71 @@
+<?xml version='1.0' encoding='UTF-8' standalone='no'?>
+<doxygen xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="compound.xsd" version="1.5.8">
+  <compounddef id="struct_mpr_hash" kind="struct" prot="public">
+    <compoundname>MprHash</compoundname>
+      <sectiondef kind="public-attrib">
+      <memberdef kind="variable" id="struct_mpr_hash_1a1a530f7a484d63304232811cec883ea" prot="public" static="no" mutable="no">
+        <type>int</type>
+        <definition>int MprHash::bucket</definition>
+        <argsstring></argsstring>
+        <name>bucket</name>
+        <briefdescription>
+<para>Hash bucket index. </para>        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/mob/hg/mpr/all/mpr.h" line="2803" bodyfile="/Users/mob/hg/mpr/all/mpr.h" bodystart="2803" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="variable" id="struct_mpr_hash_1f1a50a6b6c7da80eeff0560058bf0bc5" prot="public" static="no" mutable="no">
+        <type>cvoid *</type>
+        <definition>cvoid* MprHash::data</definition>
+        <argsstring></argsstring>
+        <name>data</name>
+        <briefdescription>
+<para>Pointer to symbol data. </para>        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/mob/hg/mpr/all/mpr.h" line="2802" bodyfile="/Users/mob/hg/mpr/all/mpr.h" bodystart="2802" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="variable" id="struct_mpr_hash_166e9bea3d75e6e5b9119aca323144ae6" prot="public" static="no" mutable="no">
+        <type>char *</type>
+        <definition>char* MprHash::key</definition>
+        <argsstring></argsstring>
+        <name>key</name>
+        <briefdescription>
+<para>Hash key. </para>        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/mob/hg/mpr/all/mpr.h" line="2801" bodyfile="/Users/mob/hg/mpr/all/mpr.h" bodystart="2801" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="variable" id="struct_mpr_hash_1ab844fc855bd5c5c86d4406a78e2aa06" prot="public" static="no" mutable="no">
+        <type>struct MprHash *</type>
+        <definition>struct MprHash* MprHash::next</definition>
+        <argsstring></argsstring>
+        <name>next</name>
+        <briefdescription>
+<para>Next symbol in hash chain. </para>        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/mob/hg/mpr/all/mpr.h" line="2800" bodyfile="/Users/mob/hg/mpr/all/mpr.h" bodystart="2800" bodyend="-1"/>
+      </memberdef>
+      </sectiondef>
+    <briefdescription>
+    </briefdescription>
+    <detaileddescription>
+    </detaileddescription>
+    <location file="/Users/mob/hg/mpr/all/mpr.h" line="2799" bodyfile="/Users/mob/hg/mpr/all/mpr.h" bodystart="2799" bodyend="2804"/>
+    <listofallmembers>
+      <member refid="struct_mpr_hash_1a1a530f7a484d63304232811cec883ea" prot="public" virt="non-virtual"><scope>MprHash</scope><name>bucket</name></member>
+      <member refid="struct_mpr_hash_1f1a50a6b6c7da80eeff0560058bf0bc5" prot="public" virt="non-virtual"><scope>MprHash</scope><name>data</name></member>
+      <member refid="struct_mpr_hash_166e9bea3d75e6e5b9119aca323144ae6" prot="public" virt="non-virtual"><scope>MprHash</scope><name>key</name></member>
+      <member refid="struct_mpr_hash_1ab844fc855bd5c5c86d4406a78e2aa06" prot="public" virt="non-virtual"><scope>MprHash</scope><name>next</name></member>
+    </listofallmembers>
+  </compounddef>
+</doxygen>

@@ -1,0 +1,29 @@
+<?xml version='1.0' encoding='UTF-8' standalone='no'?>
+<doxygen xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="compound.xsd" version="1.5.8">
+  <compounddef id="struct_mpr_os_service" kind="struct" prot="public">
+    <compoundname>MprOsService</compoundname>
+      <sectiondef kind="public-attrib">
+      <memberdef kind="variable" id="struct_mpr_os_service_113cce0d9300ece347c1103f1f4eefa7f" prot="public" static="no" mutable="no">
+        <type>int</type>
+        <definition>int MprOsService::dummy</definition>
+        <argsstring></argsstring>
+        <name>dummy</name>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/mob/hg/mpr/all/mpr.h" line="3659" bodyfile="/Users/mob/hg/mpr/all/mpr.h" bodystart="3659" bodyend="-1"/>
+      </memberdef>
+      </sectiondef>
+    <briefdescription>
+    </briefdescription>
+    <detaileddescription>
+    </detaileddescription>
+    <location file="/Users/mob/hg/mpr/all/mpr.h" line="3658" bodyfile="/Users/mob/hg/mpr/all/mpr.h" bodystart="3658" bodyend="3660"/>
+    <listofallmembers>
+      <member refid="struct_mpr_os_service_113cce0d9300ece347c1103f1f4eefa7f" prot="public" virt="non-virtual"><scope>MprOsService</scope><name>dummy</name></member>
+    </listofallmembers>
+  </compounddef>
+</doxygen>

@@ -1,0 +1,223 @@
+<?xml version='1.0' encoding='UTF-8' standalone='no'?>
+<doxygen xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="compound.xsd" version="1.5.8">
+  <compounddef id="struct_mpr_socket" kind="struct" prot="public">
+    <compoundname>MprSocket</compoundname>
+      <sectiondef kind="public-attrib">
+      <memberdef kind="variable" id="struct_mpr_socket_1a5afcef1bdf7f5d5e5f336ce3cd8ba06" prot="public" static="no" mutable="no">
+        <type>char *</type>
+        <definition>char* MprSocket::clientIpAddr</definition>
+        <argsstring></argsstring>
+        <name>clientIpAddr</name>
+        <briefdescription>
+<para>Client side ip address. </para>        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/mob/hg/mpr/all/mpr.h" line="5640" bodyfile="/Users/mob/hg/mpr/all/mpr.h" bodystart="5640" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="variable" id="struct_mpr_socket_140a2a14d911376989b8300bc475e10f4" prot="public" static="no" mutable="no">
+        <type>MprDispatcher *</type>
+        <definition>MprDispatcher* MprSocket::dispatcher</definition>
+        <argsstring></argsstring>
+        <name>dispatcher</name>
+        <briefdescription>
+<para>Event dispatcher for I/O events. </para>        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/mob/hg/mpr/all/mpr.h" line="5637" bodyfile="/Users/mob/hg/mpr/all/mpr.h" bodystart="5637" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="variable" id="struct_mpr_socket_1a117c640125d09137068c781b4ac5470" prot="public" static="no" mutable="no">
+        <type>int</type>
+        <definition>int MprSocket::error</definition>
+        <argsstring></argsstring>
+        <name>error</name>
+        <briefdescription>
+<para>Last error. </para>        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/mob/hg/mpr/all/mpr.h" line="5636" bodyfile="/Users/mob/hg/mpr/all/mpr.h" bodystart="5636" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="variable" id="struct_mpr_socket_143a7100810215c2666032d7398da9e42" prot="public" static="no" mutable="no">
+        <type>int</type>
+        <definition>int MprSocket::fd</definition>
+        <argsstring></argsstring>
+        <name>fd</name>
+        <briefdescription>
+<para>Actual socket file handle. </para>        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/mob/hg/mpr/all/mpr.h" line="5642" bodyfile="/Users/mob/hg/mpr/all/mpr.h" bodystart="5642" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="variable" id="struct_mpr_socket_1855e74ff7ea2974db10e3a9adffaffd7" prot="public" static="no" mutable="no">
+        <type>int</type>
+        <definition>int MprSocket::flags</definition>
+        <argsstring></argsstring>
+        <name>flags</name>
+        <briefdescription>
+<para>Current state flags. </para>        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/mob/hg/mpr/all/mpr.h" line="5643" bodyfile="/Users/mob/hg/mpr/all/mpr.h" bodystart="5643" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="variable" id="struct_mpr_socket_15e9efd04776e754c48e4488c4ae241ef" prot="public" static="no" mutable="no">
+        <type>MprWaitHandler *</type>
+        <definition>MprWaitHandler* MprSocket::handler</definition>
+        <argsstring></argsstring>
+        <name>handler</name>
+        <briefdescription>
+<para>Wait handler. </para>        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/mob/hg/mpr/all/mpr.h" line="5638" bodyfile="/Users/mob/hg/mpr/all/mpr.h" bodystart="5638" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="variable" id="struct_mpr_socket_19381f31f685e4993d6ff87b034ed72d9" prot="public" static="no" mutable="no">
+        <type>char *</type>
+        <definition>char* MprSocket::ip</definition>
+        <argsstring></argsstring>
+        <name>ip</name>
+        <briefdescription>
+<para>Server side ip address. </para>        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/mob/hg/mpr/all/mpr.h" line="5639" bodyfile="/Users/mob/hg/mpr/all/mpr.h" bodystart="5639" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="variable" id="struct_mpr_socket_12c8afa88ef6a4af8059995ee582119ce" prot="public" static="no" mutable="no">
+        <type>struct MprSocket *</type>
+        <definition>struct MprSocket* MprSocket::listenSock</definition>
+        <argsstring></argsstring>
+        <name>listenSock</name>
+        <briefdescription>
+<para>Listening socket. </para>        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/mob/hg/mpr/all/mpr.h" line="5645" bodyfile="/Users/mob/hg/mpr/all/mpr.h" bodystart="5645" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="variable" id="struct_mpr_socket_1d9f77056ebbf48d2b60d4767be3611c0" prot="public" static="no" mutable="no">
+        <type><ref refid="struct_mpr_mutex" kindref="compound">MprMutex</ref> *</type>
+        <definition>MprMutex* MprSocket::mutex</definition>
+        <argsstring></argsstring>
+        <name>mutex</name>
+        <briefdescription>
+<para>Multi-thread sync. </para>        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/mob/hg/mpr/all/mpr.h" line="5649" bodyfile="/Users/mob/hg/mpr/all/mpr.h" bodystart="5649" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="variable" id="struct_mpr_socket_1d9c35fae8b2ab42377042d97697a40d1" prot="public" static="no" mutable="no">
+        <type>int</type>
+        <definition>int MprSocket::port</definition>
+        <argsstring></argsstring>
+        <name>port</name>
+        <briefdescription>
+<para>Port to listen on. </para>        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/mob/hg/mpr/all/mpr.h" line="5641" bodyfile="/Users/mob/hg/mpr/all/mpr.h" bodystart="5641" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="variable" id="struct_mpr_socket_1d9340353ec5ea0d6e13f642f1bdc52f6" prot="public" static="no" mutable="no">
+        <type>MprSocketProvider *</type>
+        <definition>MprSocketProvider* MprSocket::provider</definition>
+        <argsstring></argsstring>
+        <name>provider</name>
+        <briefdescription>
+<para>Socket implementation provider. </para>        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/mob/hg/mpr/all/mpr.h" line="5644" bodyfile="/Users/mob/hg/mpr/all/mpr.h" bodystart="5644" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="variable" id="struct_mpr_socket_1861c91d35cab72e10741be1c95615813" prot="public" static="no" mutable="no">
+        <type>MprSocketService *</type>
+        <definition>MprSocketService* MprSocket::service</definition>
+        <argsstring></argsstring>
+        <name>service</name>
+        <briefdescription>
+<para>Socket service. </para>        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/mob/hg/mpr/all/mpr.h" line="5635" bodyfile="/Users/mob/hg/mpr/all/mpr.h" bodystart="5635" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="variable" id="struct_mpr_socket_15f139d11863df05371f0754e3e361a8d" prot="public" static="no" mutable="no">
+        <type>struct MprSsl *</type>
+        <definition>struct MprSsl* MprSocket::ssl</definition>
+        <argsstring></argsstring>
+        <name>ssl</name>
+        <briefdescription>
+<para>SSL configuration. </para>        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/mob/hg/mpr/all/mpr.h" line="5647" bodyfile="/Users/mob/hg/mpr/all/mpr.h" bodystart="5647" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="variable" id="struct_mpr_socket_1afbd7628fc95d3f14370e18bec9d3c78" prot="public" static="no" mutable="no">
+        <type>struct MprSslSocket *</type>
+        <definition>struct MprSslSocket* MprSocket::sslSocket</definition>
+        <argsstring></argsstring>
+        <name>sslSocket</name>
+        <briefdescription>
+<para>Extended ssl socket state. </para>        </briefdescription>
+        <detaileddescription>
+<para>If set, then using ssl </para>        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/mob/hg/mpr/all/mpr.h" line="5646" bodyfile="/Users/mob/hg/mpr/all/mpr.h" bodystart="5646" bodyend="-1"/>
+      </memberdef>
+      </sectiondef>
+    <briefdescription>
+    </briefdescription>
+    <detaileddescription>
+    </detaileddescription>
+    <collaborationgraph>
+      <node id="77">
+        <label>MprSocket</label>
+        <childnode refid="78" relation="usage">
+          <edgelabel>mutex</edgelabel>
+        </childnode>
+      </node>
+      <node id="78">
+        <label>MprMutex</label>
+        <link refid="struct_mpr_mutex"/>
+      </node>
+    </collaborationgraph>
+    <location file="/Users/mob/hg/mpr/all/mpr.h" line="5634" bodyfile="/Users/mob/hg/mpr/all/mpr.h" bodystart="5634" bodyend="5651"/>
+    <listofallmembers>
+      <member refid="struct_mpr_socket_1a5afcef1bdf7f5d5e5f336ce3cd8ba06" prot="public" virt="non-virtual"><scope>MprSocket</scope><name>clientIpAddr</name></member>
+      <member refid="struct_mpr_socket_140a2a14d911376989b8300bc475e10f4" prot="public" virt="non-virtual"><scope>MprSocket</scope><name>dispatcher</name></member>
+      <member refid="struct_mpr_socket_1a117c640125d09137068c781b4ac5470" prot="public" virt="non-virtual"><scope>MprSocket</scope><name>error</name></member>
+      <member refid="struct_mpr_socket_143a7100810215c2666032d7398da9e42" prot="public" virt="non-virtual"><scope>MprSocket</scope><name>fd</name></member>
+      <member refid="struct_mpr_socket_1855e74ff7ea2974db10e3a9adffaffd7" prot="public" virt="non-virtual"><scope>MprSocket</scope><name>flags</name></member>
+      <member refid="struct_mpr_socket_15e9efd04776e754c48e4488c4ae241ef" prot="public" virt="non-virtual"><scope>MprSocket</scope><name>handler</name></member>
+      <member refid="struct_mpr_socket_19381f31f685e4993d6ff87b034ed72d9" prot="public" virt="non-virtual"><scope>MprSocket</scope><name>ip</name></member>
+      <member refid="struct_mpr_socket_12c8afa88ef6a4af8059995ee582119ce" prot="public" virt="non-virtual"><scope>MprSocket</scope><name>listenSock</name></member>
+      <member refid="struct_mpr_socket_1d9f77056ebbf48d2b60d4767be3611c0" prot="public" virt="non-virtual"><scope>MprSocket</scope><name>mutex</name></member>
+      <member refid="struct_mpr_socket_1d9c35fae8b2ab42377042d97697a40d1" prot="public" virt="non-virtual"><scope>MprSocket</scope><name>port</name></member>
+      <member refid="struct_mpr_socket_1d9340353ec5ea0d6e13f642f1bdc52f6" prot="public" virt="non-virtual"><scope>MprSocket</scope><name>provider</name></member>
+      <member refid="struct_mpr_socket_1861c91d35cab72e10741be1c95615813" prot="public" virt="non-virtual"><scope>MprSocket</scope><name>service</name></member>
+      <member refid="struct_mpr_socket_15f139d11863df05371f0754e3e361a8d" prot="public" virt="non-virtual"><scope>MprSocket</scope><name>ssl</name></member>
+      <member refid="struct_mpr_socket_1afbd7628fc95d3f14370e18bec9d3c78" prot="public" virt="non-virtual"><scope>MprSocket</scope><name>sslSocket</name></member>
+    </listofallmembers>
+  </compounddef>
+</doxygen>

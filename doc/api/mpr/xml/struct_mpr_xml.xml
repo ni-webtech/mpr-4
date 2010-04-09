@@ -1,0 +1,141 @@
+<?xml version='1.0' encoding='UTF-8' standalone='no'?>
+<doxygen xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="compound.xsd" version="1.5.8">
+  <compounddef id="struct_mpr_xml" kind="struct" prot="public">
+    <compoundname>MprXml</compoundname>
+      <sectiondef kind="public-attrib">
+      <memberdef kind="variable" id="struct_mpr_xml_16180bb13bbb6722df76d3f58a4550134" prot="public" static="no" mutable="no">
+        <type>char *</type>
+        <definition>char* MprXml::errMsg</definition>
+        <argsstring></argsstring>
+        <name>errMsg</name>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/mob/hg/mpr/all/mpr.h" line="4085" bodyfile="/Users/mob/hg/mpr/all/mpr.h" bodystart="4085" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="variable" id="struct_mpr_xml_1a42a8465bf77de3396244183174c2e18" prot="public" static="no" mutable="no">
+        <type>MprXmlHandler</type>
+        <definition>MprXmlHandler MprXml::handler</definition>
+        <argsstring></argsstring>
+        <name>handler</name>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/mob/hg/mpr/all/mpr.h" line="4077" bodyfile="/Users/mob/hg/mpr/all/mpr.h" bodystart="4077" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="variable" id="struct_mpr_xml_16e01f0d6fd13696686bbbf54feefa06c" prot="public" static="no" mutable="no">
+        <type>MprBuf *</type>
+        <definition>MprBuf* MprXml::inBuf</definition>
+        <argsstring></argsstring>
+        <name>inBuf</name>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/mob/hg/mpr/all/mpr.h" line="4079" bodyfile="/Users/mob/hg/mpr/all/mpr.h" bodystart="4079" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="variable" id="struct_mpr_xml_1cc894e8a2c77e26c2bc7e497933f1307" prot="public" static="no" mutable="no">
+        <type>void *</type>
+        <definition>void* MprXml::inputArg</definition>
+        <argsstring></argsstring>
+        <name>inputArg</name>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/mob/hg/mpr/all/mpr.h" line="4084" bodyfile="/Users/mob/hg/mpr/all/mpr.h" bodystart="4084" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="variable" id="struct_mpr_xml_1fcafc22fecd6d8a155e972667cb61638" prot="public" static="no" mutable="no">
+        <type>int</type>
+        <definition>int MprXml::lineNumber</definition>
+        <argsstring></argsstring>
+        <name>lineNumber</name>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/mob/hg/mpr/all/mpr.h" line="4082" bodyfile="/Users/mob/hg/mpr/all/mpr.h" bodystart="4082" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="variable" id="struct_mpr_xml_17d3f83c4cf99a528ea60d40454e89ca7" prot="public" static="no" mutable="no">
+        <type>void *</type>
+        <definition>void* MprXml::parseArg</definition>
+        <argsstring></argsstring>
+        <name>parseArg</name>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/mob/hg/mpr/all/mpr.h" line="4083" bodyfile="/Users/mob/hg/mpr/all/mpr.h" bodystart="4083" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="variable" id="struct_mpr_xml_11ea1ac4bdc69b502be191484b856d3d6" prot="public" static="no" mutable="no">
+        <type>int</type>
+        <definition>int MprXml::quoteChar</definition>
+        <argsstring></argsstring>
+        <name>quoteChar</name>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/mob/hg/mpr/all/mpr.h" line="4081" bodyfile="/Users/mob/hg/mpr/all/mpr.h" bodystart="4081" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="variable" id="struct_mpr_xml_142a95109164a0a5d4866b00cefb3175c" prot="public" static="no" mutable="no">
+        <type>MprXmlInputStream</type>
+        <definition>MprXmlInputStream MprXml::readFn</definition>
+        <argsstring></argsstring>
+        <name>readFn</name>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/mob/hg/mpr/all/mpr.h" line="4078" bodyfile="/Users/mob/hg/mpr/all/mpr.h" bodystart="4078" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="variable" id="struct_mpr_xml_1f64420c5fb53b37c2bad0a314a1a740b" prot="public" static="no" mutable="no">
+        <type>MprBuf *</type>
+        <definition>MprBuf* MprXml::tokBuf</definition>
+        <argsstring></argsstring>
+        <name>tokBuf</name>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/mob/hg/mpr/all/mpr.h" line="4080" bodyfile="/Users/mob/hg/mpr/all/mpr.h" bodystart="4080" bodyend="-1"/>
+      </memberdef>
+      </sectiondef>
+    <briefdescription>
+    </briefdescription>
+    <detaileddescription>
+    </detaileddescription>
+    <location file="/Users/mob/hg/mpr/all/mpr.h" line="4076" bodyfile="/Users/mob/hg/mpr/all/mpr.h" bodystart="4076" bodyend="4086"/>
+    <listofallmembers>
+      <member refid="struct_mpr_xml_16180bb13bbb6722df76d3f58a4550134" prot="public" virt="non-virtual"><scope>MprXml</scope><name>errMsg</name></member>
+      <member refid="struct_mpr_xml_1a42a8465bf77de3396244183174c2e18" prot="public" virt="non-virtual"><scope>MprXml</scope><name>handler</name></member>
+      <member refid="struct_mpr_xml_16e01f0d6fd13696686bbbf54feefa06c" prot="public" virt="non-virtual"><scope>MprXml</scope><name>inBuf</name></member>
+      <member refid="struct_mpr_xml_1cc894e8a2c77e26c2bc7e497933f1307" prot="public" virt="non-virtual"><scope>MprXml</scope><name>inputArg</name></member>
+      <member refid="struct_mpr_xml_1fcafc22fecd6d8a155e972667cb61638" prot="public" virt="non-virtual"><scope>MprXml</scope><name>lineNumber</name></member>
+      <member refid="struct_mpr_xml_17d3f83c4cf99a528ea60d40454e89ca7" prot="public" virt="non-virtual"><scope>MprXml</scope><name>parseArg</name></member>
+      <member refid="struct_mpr_xml_11ea1ac4bdc69b502be191484b856d3d6" prot="public" virt="non-virtual"><scope>MprXml</scope><name>quoteChar</name></member>
+      <member refid="struct_mpr_xml_142a95109164a0a5d4866b00cefb3175c" prot="public" virt="non-virtual"><scope>MprXml</scope><name>readFn</name></member>
+      <member refid="struct_mpr_xml_1f64420c5fb53b37c2bad0a314a1a740b" prot="public" virt="non-virtual"><scope>MprXml</scope><name>tokBuf</name></member>
+    </listofallmembers>
+  </compounddef>
+</doxygen>

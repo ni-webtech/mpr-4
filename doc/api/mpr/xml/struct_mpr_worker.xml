@@ -1,0 +1,146 @@
+<?xml version='1.0' encoding='UTF-8' standalone='no'?>
+<doxygen xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="compound.xsd" version="1.5.8">
+  <compounddef id="struct_mpr_worker" kind="struct" prot="public">
+    <compoundname>MprWorker</compoundname>
+      <sectiondef kind="public-attrib">
+      <memberdef kind="variable" id="struct_mpr_worker_1199cf29e8eb19aec6a53e55f6076ad0d" prot="public" static="no" mutable="no">
+        <type><ref refid="mpr_8h_11c2789aea11b60b13644c3b4e7c54f99" kindref="member">MprWorkerProc</ref></type>
+        <definition>MprWorkerProc MprWorker::cleanup</definition>
+        <argsstring></argsstring>
+        <name>cleanup</name>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/mob/hg/mpr/all/mpr.h" line="6074" bodyfile="/Users/mob/hg/mpr/all/mpr.h" bodystart="6074" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="variable" id="struct_mpr_worker_15f24de6ad5d6ac31d98348bc37c43f30" prot="public" static="no" mutable="no">
+        <type>void *</type>
+        <definition>void* MprWorker::data</definition>
+        <argsstring></argsstring>
+        <name>data</name>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/mob/hg/mpr/all/mpr.h" line="6075" bodyfile="/Users/mob/hg/mpr/all/mpr.h" bodystart="6075" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="variable" id="struct_mpr_worker_177ce502db94a9b7e7ef497aaa4c65a85" prot="public" static="no" mutable="no">
+        <type>int</type>
+        <definition>int MprWorker::flags</definition>
+        <argsstring></argsstring>
+        <name>flags</name>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/mob/hg/mpr/all/mpr.h" line="6077" bodyfile="/Users/mob/hg/mpr/all/mpr.h" bodystart="6077" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="variable" id="struct_mpr_worker_16bf5342fac611056aeaae620ce98d0f8" prot="public" static="no" mutable="no">
+        <type><ref refid="struct_mpr_cond" kindref="compound">MprCond</ref> *</type>
+        <definition>MprCond* MprWorker::idleCond</definition>
+        <argsstring></argsstring>
+        <name>idleCond</name>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/mob/hg/mpr/all/mpr.h" line="6080" bodyfile="/Users/mob/hg/mpr/all/mpr.h" bodystart="6080" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="variable" id="struct_mpr_worker_116f0aeddc5ab6cbd4e291b51900fbaa4" prot="public" static="no" mutable="no">
+        <type><ref refid="mpr_8h_11c2789aea11b60b13644c3b4e7c54f99" kindref="member">MprWorkerProc</ref></type>
+        <definition>MprWorkerProc MprWorker::proc</definition>
+        <argsstring></argsstring>
+        <name>proc</name>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/mob/hg/mpr/all/mpr.h" line="6073" bodyfile="/Users/mob/hg/mpr/all/mpr.h" bodystart="6073" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="variable" id="struct_mpr_worker_136056bc344006471d1b44c5bff0bfdd2" prot="public" static="no" mutable="no">
+        <type>int</type>
+        <definition>int MprWorker::state</definition>
+        <argsstring></argsstring>
+        <name>state</name>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/mob/hg/mpr/all/mpr.h" line="6076" bodyfile="/Users/mob/hg/mpr/all/mpr.h" bodystart="6076" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="variable" id="struct_mpr_worker_1b59f7bab90fdf181292d42d808485adf" prot="public" static="no" mutable="no">
+        <type>MprThread *</type>
+        <definition>MprThread* MprWorker::thread</definition>
+        <argsstring></argsstring>
+        <name>thread</name>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/mob/hg/mpr/all/mpr.h" line="6078" bodyfile="/Users/mob/hg/mpr/all/mpr.h" bodystart="6078" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="variable" id="struct_mpr_worker_189bc48ddf0b8046e3dfe2f3409e12ec7" prot="public" static="no" mutable="no">
+        <type>MprWorkerService *</type>
+        <definition>MprWorkerService* MprWorker::workerService</definition>
+        <argsstring></argsstring>
+        <name>workerService</name>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/mob/hg/mpr/all/mpr.h" line="6079" bodyfile="/Users/mob/hg/mpr/all/mpr.h" bodystart="6079" bodyend="-1"/>
+      </memberdef>
+      </sectiondef>
+    <briefdescription>
+    </briefdescription>
+    <detaileddescription>
+    </detaileddescription>
+    <collaborationgraph>
+      <node id="121">
+        <label>MprWorker</label>
+        <childnode refid="122" relation="usage">
+          <edgelabel>idleCond</edgelabel>
+        </childnode>
+      </node>
+      <node id="122">
+        <label>MprCond</label>
+        <link refid="struct_mpr_cond"/>
+        <childnode refid="123" relation="usage">
+          <edgelabel>mutex</edgelabel>
+        </childnode>
+      </node>
+      <node id="123">
+        <label>MprMutex</label>
+        <link refid="struct_mpr_mutex"/>
+      </node>
+    </collaborationgraph>
+    <location file="/Users/mob/hg/mpr/all/mpr.h" line="6072" bodyfile="/Users/mob/hg/mpr/all/mpr.h" bodystart="6072" bodyend="6081"/>
+    <listofallmembers>
+      <member refid="struct_mpr_worker_1199cf29e8eb19aec6a53e55f6076ad0d" prot="public" virt="non-virtual"><scope>MprWorker</scope><name>cleanup</name></member>
+      <member refid="struct_mpr_worker_15f24de6ad5d6ac31d98348bc37c43f30" prot="public" virt="non-virtual"><scope>MprWorker</scope><name>data</name></member>
+      <member refid="struct_mpr_worker_177ce502db94a9b7e7ef497aaa4c65a85" prot="public" virt="non-virtual"><scope>MprWorker</scope><name>flags</name></member>
+      <member refid="struct_mpr_worker_16bf5342fac611056aeaae620ce98d0f8" prot="public" virt="non-virtual"><scope>MprWorker</scope><name>idleCond</name></member>
+      <member refid="struct_mpr_worker_116f0aeddc5ab6cbd4e291b51900fbaa4" prot="public" virt="non-virtual"><scope>MprWorker</scope><name>proc</name></member>
+      <member refid="struct_mpr_worker_136056bc344006471d1b44c5bff0bfdd2" prot="public" virt="non-virtual"><scope>MprWorker</scope><name>state</name></member>
+      <member refid="struct_mpr_worker_1b59f7bab90fdf181292d42d808485adf" prot="public" virt="non-virtual"><scope>MprWorker</scope><name>thread</name></member>
+      <member refid="struct_mpr_worker_189bc48ddf0b8046e3dfe2f3409e12ec7" prot="public" virt="non-virtual"><scope>MprWorker</scope><name>workerService</name></member>
+    </listofallmembers>
+  </compounddef>
+</doxygen>

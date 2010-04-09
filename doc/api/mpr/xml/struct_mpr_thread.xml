@@ -1,0 +1,205 @@
+<?xml version='1.0' encoding='UTF-8' standalone='no'?>
+<doxygen xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="compound.xsd" version="1.5.8">
+  <compounddef id="struct_mpr_thread" kind="struct" prot="public">
+    <compoundname>MprThread</compoundname>
+      <sectiondef kind="public-attrib">
+      <memberdef kind="variable" id="struct_mpr_thread_1d538fab2305cbd0c7ca53859722c3b32" prot="public" static="no" mutable="no">
+        <type><ref refid="struct_mpr_cond" kindref="compound">MprCond</ref> *</type>
+        <definition>MprCond* MprThread::cond</definition>
+        <argsstring></argsstring>
+        <name>cond</name>
+        <briefdescription>
+<para>Multi-thread synchronization. </para>        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/mob/hg/mpr/all/mpr.h" line="4417" bodyfile="/Users/mob/hg/mpr/all/mpr.h" bodystart="4417" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="variable" id="struct_mpr_thread_1781a2b32433d92cd0aa481895ad8ed53" prot="public" static="no" mutable="no">
+        <type>void *</type>
+        <definition>void* MprThread::data</definition>
+        <argsstring></argsstring>
+        <name>data</name>
+        <briefdescription>
+<para>Data argument. </para>        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/mob/hg/mpr/all/mpr.h" line="4419" bodyfile="/Users/mob/hg/mpr/all/mpr.h" bodystart="4419" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="variable" id="struct_mpr_thread_17342f361eeaee5c9c6c1d8fef6a83bd6" prot="public" static="no" mutable="no">
+        <type>MprDispatcher *</type>
+        <definition>MprDispatcher* MprThread::dispatcher</definition>
+        <argsstring></argsstring>
+        <name>dispatcher</name>
+        <briefdescription>
+<para>Dispatcher associated with this thread. </para>        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/mob/hg/mpr/all/mpr.h" line="4418" bodyfile="/Users/mob/hg/mpr/all/mpr.h" bodystart="4418" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="variable" id="struct_mpr_thread_13f1464eb965d2c7c3b01af0a33b6248e" prot="public" static="no" mutable="no">
+        <type>MprThreadProc</type>
+        <definition>MprThreadProc MprThread::entry</definition>
+        <argsstring></argsstring>
+        <name>entry</name>
+        <briefdescription>
+<para>Users thread entry point. </para>        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/mob/hg/mpr/all/mpr.h" line="4415" bodyfile="/Users/mob/hg/mpr/all/mpr.h" bodystart="4415" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="variable" id="struct_mpr_thread_1538c701666a2027af078dd3aa4f68992" prot="public" static="no" mutable="no">
+        <type>int</type>
+        <definition>int MprThread::isMain</definition>
+        <argsstring></argsstring>
+        <name>isMain</name>
+        <briefdescription>
+<para>Is the main thread. </para>        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/mob/hg/mpr/all/mpr.h" line="4424" bodyfile="/Users/mob/hg/mpr/all/mpr.h" bodystart="4424" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="variable" id="struct_mpr_thread_1f13e8e86fd56610896c3607a86ce007f" prot="public" static="no" mutable="no">
+        <type><ref refid="struct_mpr_mutex" kindref="compound">MprMutex</ref> *</type>
+        <definition>MprMutex* MprThread::mutex</definition>
+        <argsstring></argsstring>
+        <name>mutex</name>
+        <briefdescription>
+<para>Multi-thread locking. </para>        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/mob/hg/mpr/all/mpr.h" line="4416" bodyfile="/Users/mob/hg/mpr/all/mpr.h" bodystart="4416" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="variable" id="struct_mpr_thread_1c3619490404a11e74577190b1b1cd0f7" prot="public" static="no" mutable="no">
+        <type>char *</type>
+        <definition>char* MprThread::name</definition>
+        <argsstring></argsstring>
+        <name>name</name>
+        <briefdescription>
+<para>Name of thead for trace. </para>        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/mob/hg/mpr/all/mpr.h" line="4420" bodyfile="/Users/mob/hg/mpr/all/mpr.h" bodystart="4420" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="variable" id="struct_mpr_thread_1cb3165b014f00a1c424fc5eb9a237b9b" prot="public" static="no" mutable="no">
+        <type>MprOsThread</type>
+        <definition>MprOsThread MprThread::osThread</definition>
+        <argsstring></argsstring>
+        <name>osThread</name>
+        <briefdescription>
+<para>O/S thread id. </para>        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/mob/hg/mpr/all/mpr.h" line="4411" bodyfile="/Users/mob/hg/mpr/all/mpr.h" bodystart="4411" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="variable" id="struct_mpr_thread_1c557d0024e34c752fa1de38a7f1c6e46" prot="public" static="no" mutable="no">
+        <type>ulong</type>
+        <definition>ulong MprThread::pid</definition>
+        <argsstring></argsstring>
+        <name>pid</name>
+        <briefdescription>
+<para>Owning process id. </para>        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/mob/hg/mpr/all/mpr.h" line="4421" bodyfile="/Users/mob/hg/mpr/all/mpr.h" bodystart="4421" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="variable" id="struct_mpr_thread_105169fa85da0c39e62cdc19b852998da" prot="public" static="no" mutable="no">
+        <type>int</type>
+        <definition>int MprThread::priority</definition>
+        <argsstring></argsstring>
+        <name>priority</name>
+        <briefdescription>
+<para>Current priority. </para>        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/mob/hg/mpr/all/mpr.h" line="4422" bodyfile="/Users/mob/hg/mpr/all/mpr.h" bodystart="4422" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="variable" id="struct_mpr_thread_1f708a9a3b4c77483c6a8ee3a82ce0a3d" prot="public" static="no" mutable="no">
+        <type>int</type>
+        <definition>int MprThread::stackSize</definition>
+        <argsstring></argsstring>
+        <name>stackSize</name>
+        <briefdescription>
+<para>Only VxWorks implements. </para>        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/mob/hg/mpr/all/mpr.h" line="4423" bodyfile="/Users/mob/hg/mpr/all/mpr.h" bodystart="4423" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="variable" id="struct_mpr_thread_1bfe36d0ca993bbd5ac48f7ed3c664ebd" prot="public" static="no" mutable="no">
+        <type>handle</type>
+        <definition>handle MprThread::threadHandle</definition>
+        <argsstring></argsstring>
+        <name>threadHandle</name>
+        <briefdescription>
+<para>Threads OS handle for WIN. </para>        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/mob/hg/mpr/all/mpr.h" line="4413" bodyfile="/Users/mob/hg/mpr/all/mpr.h" bodystart="4413" bodyend="-1"/>
+      </memberdef>
+      </sectiondef>
+    <briefdescription>
+    </briefdescription>
+    <detaileddescription>
+    </detaileddescription>
+    <collaborationgraph>
+      <node id="104">
+        <label>MprThread</label>
+        <childnode refid="105" relation="usage">
+          <edgelabel>cond</edgelabel>
+        </childnode>
+        <childnode refid="106" relation="usage">
+          <edgelabel>mutex</edgelabel>
+        </childnode>
+      </node>
+      <node id="105">
+        <label>MprCond</label>
+        <link refid="struct_mpr_cond"/>
+        <childnode refid="106" relation="usage">
+          <edgelabel>mutex</edgelabel>
+        </childnode>
+      </node>
+      <node id="106">
+        <label>MprMutex</label>
+        <link refid="struct_mpr_mutex"/>
+      </node>
+    </collaborationgraph>
+    <location file="/Users/mob/hg/mpr/all/mpr.h" line="4410" bodyfile="/Users/mob/hg/mpr/all/mpr.h" bodystart="4410" bodyend="4425"/>
+    <listofallmembers>
+      <member refid="struct_mpr_thread_1d538fab2305cbd0c7ca53859722c3b32" prot="public" virt="non-virtual"><scope>MprThread</scope><name>cond</name></member>
+      <member refid="struct_mpr_thread_1781a2b32433d92cd0aa481895ad8ed53" prot="public" virt="non-virtual"><scope>MprThread</scope><name>data</name></member>
+      <member refid="struct_mpr_thread_17342f361eeaee5c9c6c1d8fef6a83bd6" prot="public" virt="non-virtual"><scope>MprThread</scope><name>dispatcher</name></member>
+      <member refid="struct_mpr_thread_13f1464eb965d2c7c3b01af0a33b6248e" prot="public" virt="non-virtual"><scope>MprThread</scope><name>entry</name></member>
+      <member refid="struct_mpr_thread_1538c701666a2027af078dd3aa4f68992" prot="public" virt="non-virtual"><scope>MprThread</scope><name>isMain</name></member>
+      <member refid="struct_mpr_thread_1f13e8e86fd56610896c3607a86ce007f" prot="public" virt="non-virtual"><scope>MprThread</scope><name>mutex</name></member>
+      <member refid="struct_mpr_thread_1c3619490404a11e74577190b1b1cd0f7" prot="public" virt="non-virtual"><scope>MprThread</scope><name>name</name></member>
+      <member refid="struct_mpr_thread_1cb3165b014f00a1c424fc5eb9a237b9b" prot="public" virt="non-virtual"><scope>MprThread</scope><name>osThread</name></member>
+      <member refid="struct_mpr_thread_1c557d0024e34c752fa1de38a7f1c6e46" prot="public" virt="non-virtual"><scope>MprThread</scope><name>pid</name></member>
+      <member refid="struct_mpr_thread_105169fa85da0c39e62cdc19b852998da" prot="public" virt="non-virtual"><scope>MprThread</scope><name>priority</name></member>
+      <member refid="struct_mpr_thread_1f708a9a3b4c77483c6a8ee3a82ce0a3d" prot="public" virt="non-virtual"><scope>MprThread</scope><name>stackSize</name></member>
+      <member refid="struct_mpr_thread_1bfe36d0ca993bbd5ac48f7ed3c664ebd" prot="public" virt="non-virtual"><scope>MprThread</scope><name>threadHandle</name></member>
+    </listofallmembers>
+  </compounddef>
+</doxygen>

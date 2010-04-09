@@ -1,0 +1,30 @@
+<?xml version='1.0' encoding='UTF-8' standalone='no'?>
+<doxygen xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="compound.xsd" version="1.5.8">
+  <compounddef id="struct_mpr_thread_local" kind="struct" prot="public">
+    <compoundname>MprThreadLocal</compoundname>
+    <includes refid="mpr_8h" local="no">mpr.h</includes>
+      <sectiondef kind="public-attrib">
+      <memberdef kind="variable" id="struct_mpr_thread_local_176226f0ba0cb5d4d37a438947493a39f" prot="public" static="no" mutable="no">
+        <type>pthread_key_t</type>
+        <definition>pthread_key_t MprThreadLocal::key</definition>
+        <argsstring></argsstring>
+        <name>key</name>
+        <briefdescription>
+<para>Data key. </para>        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/mob/hg/mpr/all/mpr.h" line="4433" bodyfile="/Users/mob/hg/mpr/all/mpr.h" bodystart="4433" bodyend="-1"/>
+      </memberdef>
+      </sectiondef>
+    <briefdescription>
+<para>Thread local data storage. </para>    </briefdescription>
+    <detaileddescription>
+    </detaileddescription>
+    <location file="/Users/mob/hg/mpr/all/mpr.h" line="4431" bodyfile="/Users/mob/hg/mpr/all/mpr.h" bodystart="4431" bodyend="4439"/>
+    <listofallmembers>
+      <member refid="struct_mpr_thread_local_176226f0ba0cb5d4d37a438947493a39f" prot="public" virt="non-virtual"><scope>MprThreadLocal</scope><name>key</name></member>
+    </listofallmembers>
+  </compounddef>
+</doxygen>

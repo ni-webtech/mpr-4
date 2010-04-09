@@ -1,0 +1,45 @@
+<?xml version='1.0' encoding='UTF-8' standalone='no'?>
+<doxygen xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="compound.xsd" version="1.5.8">
+  <compounddef id="struct_mpr_spin" kind="struct" prot="public">
+    <compoundname>MprSpin</compoundname>
+    <includes refid="mpr_8h" local="no">mpr.h</includes>
+      <sectiondef kind="public-attrib">
+      <memberdef kind="variable" id="struct_mpr_spin_12c64ee0b71bc7bfdcd19d9c72e6cb7e3" prot="public" static="no" mutable="no">
+        <type>CRITICAL_SECTION</type>
+        <definition>CRITICAL_SECTION MprSpin::cs</definition>
+        <argsstring></argsstring>
+        <name>cs</name>
+        <briefdescription>
+<para>Internal mutex critical section. </para>        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/mob/hg/mpr/all/mpr.h" line="4209" bodyfile="/Users/mob/hg/mpr/all/mpr.h" bodystart="4209" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="variable" id="struct_mpr_spin_1d94654054668ecec9f62bca7a995d186" prot="public" static="no" mutable="no">
+        <type>MprOsThread</type>
+        <definition>MprOsThread MprSpin::owner</definition>
+        <argsstring></argsstring>
+        <name>owner</name>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/mob/hg/mpr/all/mpr.h" line="4222" bodyfile="/Users/mob/hg/mpr/all/mpr.h" bodystart="4222" bodyend="-1"/>
+      </memberdef>
+      </sectiondef>
+    <briefdescription>
+<para>Multithreading spin lock control structure. </para>    </briefdescription>
+    <detaileddescription>
+<para><simplesect kind="par"><title><bold>Description</bold>:</title><para><ref refid="struct_mpr_spin" kindref="compound">MprSpin</ref> is used for multithread locking in multithreaded applications. </para></simplesect>
+</para>    </detaileddescription>
+    <location file="/Users/mob/hg/mpr/all/mpr.h" line="4205" bodyfile="/Users/mob/hg/mpr/all/mpr.h" bodystart="4205" bodyend="4224"/>
+    <listofallmembers>
+      <member refid="struct_mpr_spin_12c64ee0b71bc7bfdcd19d9c72e6cb7e3" prot="public" virt="non-virtual"><scope>MprSpin</scope><name>cs</name></member>
+      <member refid="struct_mpr_spin_1d94654054668ecec9f62bca7a995d186" prot="public" virt="non-virtual"><scope>MprSpin</scope><name>owner</name></member>
+    </listofallmembers>
+  </compounddef>
+</doxygen>

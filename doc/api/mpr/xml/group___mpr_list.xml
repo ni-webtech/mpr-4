@@ -1,0 +1,902 @@
+<?xml version='1.0' encoding='UTF-8' standalone='no'?>
+<doxygen xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="compound.xsd" version="1.5.8">
+  <compounddef id="group___mpr_list" kind="group">
+    <compoundname>MprList</compoundname>
+    <title>MprList</title>
+    <innerclass refid="struct_mpr_key_value" prot="public">MprKeyValue</innerclass>
+      <sectiondef kind="typedef">
+      <memberdef kind="typedef" id="group___mpr_list_1ga4064169552596b7923bc734da239f96" prot="public" static="no">
+        <type>int(*</type>
+        <definition>typedef int(* MprListCompareProc)(cvoid *arg1, cvoid *arg2)</definition>
+        <argsstring>)(cvoid *arg1, cvoid *arg2)</argsstring>
+        <name>MprListCompareProc</name>
+        <briefdescription>
+<para>List comparison procedure for sorting. </para>        </briefdescription>
+        <detaileddescription>
+<para><simplesect kind="par"><title><bold>Description</bold>:</title><para>Callback function signature used by <ref refid="group___mpr_list_1g50c9e84e551dffe01dfe6a2697464f5d" kindref="member">mprSortList</ref> </para></simplesect>
+<parameterlist kind="param"><parameteritem>
+<parameternamelist>
+<parametername>arg1</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>First list item to compare </para></parameterdescription>
+</parameteritem>
+<parameteritem>
+<parameternamelist>
+<parametername>arg2</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>Second list item to compare </para></parameterdescription>
+</parameteritem>
+</parameterlist>
+<simplesect kind="return"><para>Return zero if the items are equal. Return -1 if the first arg is less than the second. Otherwise return 1. </para></simplesect>
+</para>        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/mob/hg/mpr/all/mpr.h" line="2387" bodyfile="/Users/mob/hg/mpr/all/mpr.h" bodystart="2387" bodyend="-1"/>
+      </memberdef>
+      </sectiondef>
+      <sectiondef kind="func">
+      <memberdef kind="function" id="group___mpr_list_1gbf10109abc063c47702769c0e89442cf" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type>int</type>
+        <definition>int mprAddItem</definition>
+        <argsstring>(MprList *list, cvoid *item)</argsstring>
+        <name>mprAddItem</name>
+        <param>
+          <type>MprList *</type>
+          <declname>list</declname>
+        </param>
+        <param>
+          <type>cvoid *</type>
+          <declname>item</declname>
+        </param>
+        <briefdescription>
+<para>Add an item to a list. </para>        </briefdescription>
+        <detaileddescription>
+<para><simplesect kind="par"><title><bold>Description</bold>:</title><para>Add the specified item to the list. The list must have been previously created via mprCreateList. The list will grow as required to store the item </para></simplesect>
+<parameterlist kind="param"><parameteritem>
+<parameternamelist>
+<parametername>list</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>List pointer returned from <ref refid="group___mpr_list_1gd5e29adbb51053e84bcb52b9f6756e37" kindref="member">mprCreateList</ref> </para></parameterdescription>
+</parameteritem>
+<parameteritem>
+<parameternamelist>
+<parametername>item</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>Pointer to item to store </para></parameterdescription>
+</parameteritem>
+</parameterlist>
+<simplesect kind="return"><para>Returns a positive integer list index for the inserted item. If the item cannot be inserted due to a memory allocation failure, -1 is returned </para></simplesect>
+</para>        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/mob/hg/mpr/all/mpr.h" line="2399"/>
+      </memberdef>
+      <memberdef kind="function" id="group___mpr_list_1g5f81ae14eecf28b6e6bdd64677860e39" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type>MprList *</type>
+        <definition>MprList* mprAppendList</definition>
+        <argsstring>(MprList *list, MprList *add)</argsstring>
+        <name>mprAppendList</name>
+        <param>
+          <type>MprList *</type>
+          <declname>list</declname>
+        </param>
+        <param>
+          <type>MprList *</type>
+          <declname>add</declname>
+        </param>
+        <briefdescription>
+<para>Append a list. </para>        </briefdescription>
+        <detaileddescription>
+<para><simplesect kind="par"><title><bold>Description</bold>:</title><para>Append the contents of one list to another. The list will grow as required to store the item </para></simplesect>
+<parameterlist kind="param"><parameteritem>
+<parameternamelist>
+<parametername>list</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>List pointer returned from <ref refid="group___mpr_list_1gd5e29adbb51053e84bcb52b9f6756e37" kindref="member">mprCreateList</ref> </para></parameterdescription>
+</parameteritem>
+<parameteritem>
+<parameternamelist>
+<parametername>add</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>List whose contents are added </para></parameterdescription>
+</parameteritem>
+</parameterlist>
+<simplesect kind="return"><para>Returns a pointer to the original list if successful. Returns NULL on memory allocation errors. </para></simplesect>
+</para>        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/mob/hg/mpr/all/mpr.h" line="2409"/>
+      </memberdef>
+      <memberdef kind="function" id="group___mpr_list_1gcf49292693e22c7bdc43fbb41a83817d" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type>void</type>
+        <definition>void mprClearList</definition>
+        <argsstring>(MprList *list)</argsstring>
+        <name>mprClearList</name>
+        <param>
+          <type>MprList *</type>
+          <declname>list</declname>
+        </param>
+        <briefdescription>
+<para>Clears the list of all items. </para>        </briefdescription>
+        <detaileddescription>
+<para><simplesect kind="par"><title><bold>Description</bold>:</title><para>Resets the list length to zero and clears all items. Existing items are not freed, they are only removed from the list. </para></simplesect>
+<parameterlist kind="param"><parameteritem>
+<parameternamelist>
+<parametername>list</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>List pointer returned from mprCreateList. </para></parameterdescription>
+</parameteritem>
+</parameterlist>
+</para>        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/mob/hg/mpr/all/mpr.h" line="2450"/>
+      </memberdef>
+      <memberdef kind="function" id="group___mpr_list_1g64b04ef8c2be20d2d952ecfa22b7ce54" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type>int</type>
+        <definition>int mprCopyList</definition>
+        <argsstring>(MprList *dest, MprList *src)</argsstring>
+        <name>mprCopyList</name>
+        <param>
+          <type>MprList *</type>
+          <declname>dest</declname>
+        </param>
+        <param>
+          <type>MprList *</type>
+          <declname>src</declname>
+        </param>
+        <briefdescription>
+<para>Copy a list. </para>        </briefdescription>
+        <detaileddescription>
+<para><simplesect kind="par"><title><bold>Description</bold>:</title><para>Copy the contents of a list into an existing list. The destination list is cleared first and has its dimensions set to that of the source clist. </para></simplesect>
+<parameterlist kind="param"><parameteritem>
+<parameternamelist>
+<parametername>dest</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>Destination list for the copy </para></parameterdescription>
+</parameteritem>
+<parameteritem>
+<parameternamelist>
+<parametername>src</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>Source list </para></parameterdescription>
+</parameteritem>
+</parameterlist>
+<simplesect kind="return"><para>Returns zero if successful, otherwise a negative MPR error code. </para></simplesect>
+</para>        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/mob/hg/mpr/all/mpr.h" line="2431"/>
+      </memberdef>
+      <memberdef kind="function" id="group___mpr_list_1g6dc1e2980f934578a5a88f9f987adcf5" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type><ref refid="struct_mpr_key_value" kindref="compound">MprKeyValue</ref> *</type>
+        <definition>MprKeyValue* mprCreateKeyPair</definition>
+        <argsstring>(MprCtx ctx, cchar *key, cchar *value)</argsstring>
+        <name>mprCreateKeyPair</name>
+        <param>
+          <type><ref refid="group___mpr_mem_1g1413d66bb5356730c6fa08ca0af6bc0f" kindref="member">MprCtx</ref></type>
+          <declname>ctx</declname>
+        </param>
+        <param>
+          <type>cchar *</type>
+          <declname>key</declname>
+        </param>
+        <param>
+          <type>cchar *</type>
+          <declname>value</declname>
+        </param>
+        <briefdescription>
+<para>Create a key / value pair. </para>        </briefdescription>
+        <detaileddescription>
+<para><simplesect kind="par"><title><bold>Description</bold>:</title><para>Allocate and initialize a key value pair for use by the MprList or MprHash modules. </para></simplesect>
+<parameterlist kind="param"><parameteritem>
+<parameternamelist>
+<parametername>ctx</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>Any memory context allocated by the MPR. </para></parameterdescription>
+</parameteritem>
+<parameteritem>
+<parameternamelist>
+<parametername>key</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>Key string </para></parameterdescription>
+</parameteritem>
+<parameteritem>
+<parameternamelist>
+<parametername>value</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>Key value string </para></parameterdescription>
+</parameteritem>
+</parameterlist>
+<simplesect kind="return"><para>An initialized <ref refid="struct_mpr_key_value" kindref="compound">MprKeyValue</ref> </para></simplesect>
+</para>        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/mob/hg/mpr/all/mpr.h" line="2638"/>
+      </memberdef>
+      <memberdef kind="function" id="group___mpr_list_1gd5e29adbb51053e84bcb52b9f6756e37" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type>MprList *</type>
+        <definition>MprList* mprCreateList</definition>
+        <argsstring>(MprCtx ctx)</argsstring>
+        <name>mprCreateList</name>
+        <param>
+          <type><ref refid="group___mpr_mem_1g1413d66bb5356730c6fa08ca0af6bc0f" kindref="member">MprCtx</ref></type>
+          <declname>ctx</declname>
+        </param>
+        <briefdescription>
+<para>Create a list. </para>        </briefdescription>
+        <detaileddescription>
+<para><simplesect kind="par"><title><bold>Description</bold>:</title><para>Creates an empty list. MprList&apos;s can store generic pointers. They automatically grow as required when items are added to the list. Callers should invoke mprFree when finished with the list to release allocated storage. </para></simplesect>
+<parameterlist kind="param"><parameteritem>
+<parameternamelist>
+<parametername>ctx</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>Any memory context allocated by the MPR. </para></parameterdescription>
+</parameteritem>
+</parameterlist>
+<simplesect kind="return"><para>Returns a pointer to the list. </para></simplesect>
+</para>        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/mob/hg/mpr/all/mpr.h" line="2420"/>
+      </memberdef>
+      <memberdef kind="function" id="group___mpr_list_1gc6512c8fa92c1d91cf99f4e3ad6af2f1" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type>MprList *</type>
+        <definition>MprList* mprDupList</definition>
+        <argsstring>(MprCtx ctx, MprList *src)</argsstring>
+        <name>mprDupList</name>
+        <param>
+          <type><ref refid="group___mpr_mem_1g1413d66bb5356730c6fa08ca0af6bc0f" kindref="member">MprCtx</ref></type>
+          <declname>ctx</declname>
+        </param>
+        <param>
+          <type>MprList *</type>
+          <declname>src</declname>
+        </param>
+        <briefdescription>
+<para>Duplicate a list. </para>        </briefdescription>
+        <detaileddescription>
+<para><simplesect kind="par"><title><bold>Description</bold>:</title><para>Copy the contents of a list into a new list. </para></simplesect>
+<parameterlist kind="param"><parameteritem>
+<parameternamelist>
+<parametername>ctx</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>Memory context from which to allocate the list. See <ref refid="group___mpr_mem_1g8453c59fd682fda78bbd18eb9f572dec" kindref="member">mprAlloc</ref> </para></parameterdescription>
+</parameteritem>
+<parameteritem>
+<parameternamelist>
+<parametername>src</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>Source list to copy </para></parameterdescription>
+</parameteritem>
+</parameterlist>
+<simplesect kind="return"><para>Returns a new list reference </para></simplesect>
+</para>        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/mob/hg/mpr/all/mpr.h" line="2441"/>
+      </memberdef>
+      <memberdef kind="function" id="group___mpr_list_1g34b6f80710796e4d3d766299ebf37078" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type>void *</type>
+        <definition>void* mprGetFirstItem</definition>
+        <argsstring>(MprList *list)</argsstring>
+        <name>mprGetFirstItem</name>
+        <param>
+          <type>MprList *</type>
+          <declname>list</declname>
+        </param>
+        <briefdescription>
+<para>Get the first item in the list. </para>        </briefdescription>
+        <detaileddescription>
+<para><simplesect kind="par"><title><bold>Description</bold>:</title><para>Returns the value of the first item in the list. After calling this routine, the remaining list items can be walked using mprGetNextItem. </para></simplesect>
+<parameterlist kind="param"><parameteritem>
+<parameternamelist>
+<parametername>list</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>List pointer returned from mprCreateList. </para></parameterdescription>
+</parameteritem>
+</parameterlist>
+</para>        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/mob/hg/mpr/all/mpr.h" line="2468"/>
+      </memberdef>
+      <memberdef kind="function" id="group___mpr_list_1g4535837cc644f208063b1ca3e2ae46c2" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type>void *</type>
+        <definition>void* mprGetItem</definition>
+        <argsstring>(MprList *list, int index)</argsstring>
+        <name>mprGetItem</name>
+        <param>
+          <type>MprList *</type>
+          <declname>list</declname>
+        </param>
+        <param>
+          <type>int</type>
+          <declname>index</declname>
+        </param>
+        <briefdescription>
+<para>Get an list item. </para>        </briefdescription>
+        <detaileddescription>
+<para><simplesect kind="par"><title><bold>Description</bold>:</title><para>Get an list item specified by its index. </para></simplesect>
+<parameterlist kind="param"><parameteritem>
+<parameternamelist>
+<parametername>list</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>List pointer returned from mprCreateList. </para></parameterdescription>
+</parameteritem>
+<parameteritem>
+<parameternamelist>
+<parametername>index</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>Item index into the list. Indexes have a range from zero to the lenghth of the list - 1. </para></parameterdescription>
+</parameteritem>
+</parameterlist>
+</para>        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/mob/hg/mpr/all/mpr.h" line="2486"/>
+      </memberdef>
+      <memberdef kind="function" id="group___mpr_list_1g629c61d9bfbea110851227fd61569093" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type>void *</type>
+        <definition>void* mprGetLastItem</definition>
+        <argsstring>(MprList *list)</argsstring>
+        <name>mprGetLastItem</name>
+        <param>
+          <type>MprList *</type>
+          <declname>list</declname>
+        </param>
+        <briefdescription>
+<para>Get the last item in the list. </para>        </briefdescription>
+        <detaileddescription>
+<para><simplesect kind="par"><title><bold>Description</bold>:</title><para>Returns the value of the last item in the list. After calling this routine, the remaining list items can be walked using mprGetPrevItem. </para></simplesect>
+<parameterlist kind="param"><parameteritem>
+<parameternamelist>
+<parametername>list</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>List pointer returned from mprCreateList. </para></parameterdescription>
+</parameteritem>
+</parameterlist>
+</para>        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/mob/hg/mpr/all/mpr.h" line="2477"/>
+      </memberdef>
+      <memberdef kind="function" id="group___mpr_list_1gc47331b3442493d84405d32ffcb98aba" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type>int</type>
+        <definition>int mprGetListCapacity</definition>
+        <argsstring>(MprList *list)</argsstring>
+        <name>mprGetListCapacity</name>
+        <param>
+          <type>MprList *</type>
+          <declname>list</declname>
+        </param>
+        <briefdescription>
+<para>Get the current capacity of the list. </para>        </briefdescription>
+        <detaileddescription>
+<para><simplesect kind="par"><title><bold>Description</bold>:</title><para>Returns the capacity of the list. This will always be equal to or greater than the list length. </para></simplesect>
+<parameterlist kind="param"><parameteritem>
+<parameternamelist>
+<parametername>list</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>List pointer returned from mprCreateList. </para></parameterdescription>
+</parameteritem>
+</parameterlist>
+</para>        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/mob/hg/mpr/all/mpr.h" line="2494"/>
+      </memberdef>
+      <memberdef kind="function" id="group___mpr_list_1g8710190bcf91677b3758890b7deefd75" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type>int</type>
+        <definition>int mprGetListCount</definition>
+        <argsstring>(MprList *list)</argsstring>
+        <name>mprGetListCount</name>
+        <param>
+          <type>MprList *</type>
+          <declname>list</declname>
+        </param>
+        <briefdescription>
+<para>Get the number of items in the list. </para>        </briefdescription>
+        <detaileddescription>
+<para><simplesect kind="par"><title><bold>Description</bold>:</title><para>Returns the number of items in the list. This will always be less than or equal to the list capacity. </para></simplesect>
+<parameterlist kind="param"><parameteritem>
+<parameternamelist>
+<parametername>list</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>List pointer returned from mprCreateList. </para></parameterdescription>
+</parameteritem>
+</parameterlist>
+</para>        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/mob/hg/mpr/all/mpr.h" line="2502"/>
+      </memberdef>
+      <memberdef kind="function" id="group___mpr_list_1gf84ab68545207f073e9f916adc8817e4" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type>void *</type>
+        <definition>void* mprGetNextItem</definition>
+        <argsstring>(MprList *list, int *lastIndex)</argsstring>
+        <name>mprGetNextItem</name>
+        <param>
+          <type>MprList *</type>
+          <declname>list</declname>
+        </param>
+        <param>
+          <type>int *</type>
+          <declname>lastIndex</declname>
+        </param>
+        <briefdescription>
+<para>Get the next item in the list. </para>        </briefdescription>
+        <detaileddescription>
+<para><simplesect kind="par"><title><bold>Description</bold>:</title><para>Returns the value of the next item in the list. Before calling this routine, mprGetFirstItem must be called to initialize the traversal of the list. </para></simplesect>
+<parameterlist kind="param"><parameteritem>
+<parameternamelist>
+<parametername>list</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>List pointer returned from mprCreateList. </para></parameterdescription>
+</parameteritem>
+<parameteritem>
+<parameternamelist>
+<parametername>lastIndex</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>Pointer to an integer that will hold the last index retrieved. </para></parameterdescription>
+</parameteritem>
+</parameterlist>
+</para>        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/mob/hg/mpr/all/mpr.h" line="2512"/>
+      </memberdef>
+      <memberdef kind="function" id="group___mpr_list_1g701e2771ac787973c94e523898d596a6" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type>void *</type>
+        <definition>void* mprGetPrevItem</definition>
+        <argsstring>(MprList *list, int *lastIndex)</argsstring>
+        <name>mprGetPrevItem</name>
+        <param>
+          <type>MprList *</type>
+          <declname>list</declname>
+        </param>
+        <param>
+          <type>int *</type>
+          <declname>lastIndex</declname>
+        </param>
+        <briefdescription>
+<para>Get the previous item in the list. </para>        </briefdescription>
+        <detaileddescription>
+<para><simplesect kind="par"><title><bold>Description</bold>:</title><para>Returns the value of the previous item in the list. Before calling this routine, mprGetFirstItem and/or mprGetNextItem must be called to initialize the traversal of the list. </para></simplesect>
+<parameterlist kind="param"><parameteritem>
+<parameternamelist>
+<parametername>list</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>List pointer returned from mprCreateList. </para></parameterdescription>
+</parameteritem>
+<parameteritem>
+<parameternamelist>
+<parametername>lastIndex</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>Pointer to an integer that will hold the last index retrieved. </para></parameterdescription>
+</parameteritem>
+</parameterlist>
+</para>        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/mob/hg/mpr/all/mpr.h" line="2523"/>
+      </memberdef>
+      <memberdef kind="function" id="group___mpr_list_1gc1b1433c9a3b963c78572f53cf2a6fd8" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type>void</type>
+        <definition>void mprInitList</definition>
+        <argsstring>(MprList *list)</argsstring>
+        <name>mprInitList</name>
+        <param>
+          <type>MprList *</type>
+          <declname>list</declname>
+        </param>
+        <briefdescription>
+<para>Initialize a list structure. </para>        </briefdescription>
+        <detaileddescription>
+<para><simplesect kind="par"><title><bold>Description</bold>:</title><para>If a list is statically declared inside another structure, mprInitList can be used to initialize it before use. </para></simplesect>
+<parameterlist kind="param"><parameteritem>
+<parameternamelist>
+<parametername>list</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>Reference to the MprList struct. </para></parameterdescription>
+</parameteritem>
+</parameterlist>
+</para>        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/mob/hg/mpr/all/mpr.h" line="2532"/>
+      </memberdef>
+      <memberdef kind="function" id="group___mpr_list_1gf3e8599ae4707459cf42ad960256af98" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type>int</type>
+        <definition>int mprInsertItemAtPos</definition>
+        <argsstring>(MprList *list, int index, cvoid *item)</argsstring>
+        <name>mprInsertItemAtPos</name>
+        <param>
+          <type>MprList *</type>
+          <declname>list</declname>
+        </param>
+        <param>
+          <type>int</type>
+          <declname>index</declname>
+        </param>
+        <param>
+          <type>cvoid *</type>
+          <declname>item</declname>
+        </param>
+        <briefdescription>
+<para>Insert an item into a list at a specific position. </para>        </briefdescription>
+        <detaileddescription>
+<para><simplesect kind="par"><title><bold>Description</bold>:</title><para>Insert the item into the list before the specified position. The list will grow as required to store the item </para></simplesect>
+<parameterlist kind="param"><parameteritem>
+<parameternamelist>
+<parametername>list</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>List pointer returned from <ref refid="group___mpr_list_1gd5e29adbb51053e84bcb52b9f6756e37" kindref="member">mprCreateList</ref> </para></parameterdescription>
+</parameteritem>
+<parameteritem>
+<parameternamelist>
+<parametername>index</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>Location at which to store the item. The previous item at this index is moved up to make room. </para></parameterdescription>
+</parameteritem>
+<parameteritem>
+<parameternamelist>
+<parametername>item</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>Pointer to item to store </para></parameterdescription>
+</parameteritem>
+</parameterlist>
+<simplesect kind="return"><para>Returns the position index (positive integer) if successful. If the item cannot be inserted due to a memory allocation failure, -1 is returned </para></simplesect>
+</para>        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/mob/hg/mpr/all/mpr.h" line="2545"/>
+      </memberdef>
+      <memberdef kind="function" id="group___mpr_list_1g8b3d6afe4be8d416e28f64d05e8391eb" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type>int</type>
+        <definition>int mprLookupItem</definition>
+        <argsstring>(MprList *list, cvoid *item)</argsstring>
+        <name>mprLookupItem</name>
+        <param>
+          <type>MprList *</type>
+          <declname>list</declname>
+        </param>
+        <param>
+          <type>cvoid *</type>
+          <declname>item</declname>
+        </param>
+        <briefdescription>
+<para>Find an item and return its index. </para>        </briefdescription>
+        <detaileddescription>
+<para><simplesect kind="par"><title><bold>Description</bold>:</title><para>Search for an item in the list and return its index. </para></simplesect>
+<parameterlist kind="param"><parameteritem>
+<parameternamelist>
+<parametername>list</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>List pointer returned from mprCreateList. </para></parameterdescription>
+</parameteritem>
+<parameteritem>
+<parameternamelist>
+<parametername>item</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>Pointer to value stored in the list. </para></parameterdescription>
+</parameteritem>
+</parameterlist>
+</para>        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/mob/hg/mpr/all/mpr.h" line="2459"/>
+      </memberdef>
+      <memberdef kind="function" id="group___mpr_list_1g2206c8d8a7049ad6f26ff74c215f32a7" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type>int</type>
+        <definition>int mprRemoveItem</definition>
+        <argsstring>(MprList *list, void *item)</argsstring>
+        <name>mprRemoveItem</name>
+        <param>
+          <type>MprList *</type>
+          <declname>list</declname>
+        </param>
+        <param>
+          <type>void *</type>
+          <declname>item</declname>
+        </param>
+        <briefdescription>
+<para>Remove an item from the list. </para>        </briefdescription>
+        <detaileddescription>
+<para><simplesect kind="par"><title><bold>Description</bold>:</title><para>Search for a specified item and then remove it from the list. Existing items are not freed, they are only removed from the list. </para></simplesect>
+<parameterlist kind="param"><parameteritem>
+<parameternamelist>
+<parametername>list</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>List pointer returned from mprCreateList. </para></parameterdescription>
+</parameteritem>
+<parameteritem>
+<parameternamelist>
+<parametername>item</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>Item pointer to remove. </para></parameterdescription>
+</parameteritem>
+</parameterlist>
+<simplesect kind="return"><para>Returns zero if successful, otherwise a negative MPR error code. </para></simplesect>
+</para>        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/mob/hg/mpr/all/mpr.h" line="2556"/>
+      </memberdef>
+      <memberdef kind="function" id="group___mpr_list_1gc758d5af71b0bbf943bb6a1e263a494c" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type>int</type>
+        <definition>int mprRemoveItemAtPos</definition>
+        <argsstring>(MprList *list, int index)</argsstring>
+        <name>mprRemoveItemAtPos</name>
+        <param>
+          <type>MprList *</type>
+          <declname>list</declname>
+        </param>
+        <param>
+          <type>int</type>
+          <declname>index</declname>
+        </param>
+        <briefdescription>
+<para>Remove an item from the list. </para>        </briefdescription>
+        <detaileddescription>
+<para><simplesect kind="par"><title><bold>Description</bold>:</title><para>Removes the element specified by <emphasis>index</emphasis>, from the list. The list index is provided by mprInsertItem. </para></simplesect>
+<simplesect kind="return"><para>Returns zero if successful, otherwise a negative MPR error code. </para></simplesect>
+</para>        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/mob/hg/mpr/all/mpr.h" line="2565"/>
+      </memberdef>
+      <memberdef kind="function" id="group___mpr_list_1g85633d8034896cf4f056caa1857bf4a8" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type>int</type>
+        <definition>int mprRemoveLastItem</definition>
+        <argsstring>(MprList *list)</argsstring>
+        <name>mprRemoveLastItem</name>
+        <param>
+          <type>MprList *</type>
+          <declname>list</declname>
+        </param>
+        <briefdescription>
+<para>Remove the last item from the list. </para>        </briefdescription>
+        <detaileddescription>
+<para><simplesect kind="par"><title><bold>Description</bold>:</title><para>Remove the item at the highest index position. Existing items are not freed, they are only removed from the list. </para></simplesect>
+<parameterlist kind="param"><parameteritem>
+<parameternamelist>
+<parametername>list</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>List pointer returned from mprCreateList. </para></parameterdescription>
+</parameteritem>
+</parameterlist>
+<simplesect kind="return"><para>Returns zero if successful, otherwise a negative MPR error code. </para></simplesect>
+</para>        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/mob/hg/mpr/all/mpr.h" line="2575"/>
+      </memberdef>
+      <memberdef kind="function" id="group___mpr_list_1g16748fa2520761d373cebe4b39be3e8e" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type>int</type>
+        <definition>int mprRemoveRangeOfItems</definition>
+        <argsstring>(MprList *list, int start, int end)</argsstring>
+        <name>mprRemoveRangeOfItems</name>
+        <param>
+          <type>MprList *</type>
+          <declname>list</declname>
+        </param>
+        <param>
+          <type>int</type>
+          <declname>start</declname>
+        </param>
+        <param>
+          <type>int</type>
+          <declname>end</declname>
+        </param>
+        <briefdescription>
+<para>Remove a range of items from the list. </para>        </briefdescription>
+        <detaileddescription>
+<para><simplesect kind="par"><title><bold>Description</bold>:</title><para>Remove a range of items from the list. The range is specified from the <emphasis>start</emphasis> index up to and including the <emphasis>end</emphasis> index. </para></simplesect>
+<parameterlist kind="param"><parameteritem>
+<parameternamelist>
+<parametername>list</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>List pointer returned from mprCreateList. </para></parameterdescription>
+</parameteritem>
+<parameteritem>
+<parameternamelist>
+<parametername>start</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>Starting item index to remove (inclusive) </para></parameterdescription>
+</parameteritem>
+<parameteritem>
+<parameternamelist>
+<parametername>end</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>Ending item index to remove (inclusive) </para></parameterdescription>
+</parameteritem>
+</parameterlist>
+<simplesect kind="return"><para>Returns zero if successful, otherwise a negative MPR error code. </para></simplesect>
+</para>        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/mob/hg/mpr/all/mpr.h" line="2587"/>
+      </memberdef>
+      <memberdef kind="function" id="group___mpr_list_1g20dffb6f04ddb568db844dd1a83025f7" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type>void *</type>
+        <definition>void* mprSetItem</definition>
+        <argsstring>(MprList *list, int index, cvoid *item)</argsstring>
+        <name>mprSetItem</name>
+        <param>
+          <type>MprList *</type>
+          <declname>list</declname>
+        </param>
+        <param>
+          <type>int</type>
+          <declname>index</declname>
+        </param>
+        <param>
+          <type>cvoid *</type>
+          <declname>item</declname>
+        </param>
+        <briefdescription>
+<para>Set a list item. </para>        </briefdescription>
+        <detaileddescription>
+<para><simplesect kind="par"><title><bold>Description</bold>:</title><para>Update the list item stored at the specified index </para></simplesect>
+<parameterlist kind="param"><parameteritem>
+<parameternamelist>
+<parametername>list</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>List pointer returned from mprCreateList. </para></parameterdescription>
+</parameteritem>
+<parameteritem>
+<parameternamelist>
+<parametername>index</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>Location to update </para></parameterdescription>
+</parameteritem>
+<parameteritem>
+<parameternamelist>
+<parametername>item</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>Pointer to item to store </para></parameterdescription>
+</parameteritem>
+</parameterlist>
+<simplesect kind="return"><para>Returns the old item previously at that location index </para></simplesect>
+</para>        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/mob/hg/mpr/all/mpr.h" line="2598"/>
+      </memberdef>
+      <memberdef kind="function" id="group___mpr_list_1g38bd862a8bc3076d86b0185d5bd81aa6" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type>int</type>
+        <definition>int mprSetListLimits</definition>
+        <argsstring>(MprList *list, int initialSize, int maxSize)</argsstring>
+        <name>mprSetListLimits</name>
+        <param>
+          <type>MprList *</type>
+          <declname>list</declname>
+        </param>
+        <param>
+          <type>int</type>
+          <declname>initialSize</declname>
+        </param>
+        <param>
+          <type>int</type>
+          <declname>maxSize</declname>
+        </param>
+        <briefdescription>
+<para>Define the list size limits. </para>        </briefdescription>
+        <detaileddescription>
+<para><simplesect kind="par"><title><bold>Description</bold>:</title><para>Define the list initial size and maximum size it can grow to. </para></simplesect>
+<parameterlist kind="param"><parameteritem>
+<parameternamelist>
+<parametername>list</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>List pointer returned from mprCreateList. </para></parameterdescription>
+</parameteritem>
+<parameteritem>
+<parameternamelist>
+<parametername>initialSize</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>Initial size for the list. This call will allocate space for at least this number of items. </para></parameterdescription>
+</parameteritem>
+<parameteritem>
+<parameternamelist>
+<parametername>maxSize</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>Set the maximum limit the list can grow to become. </para></parameterdescription>
+</parameteritem>
+</parameterlist>
+<simplesect kind="return"><para>Returns zero if successful, otherwise a negative MPR error code. </para></simplesect>
+</para>        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/mob/hg/mpr/all/mpr.h" line="2609"/>
+      </memberdef>
+      <memberdef kind="function" id="group___mpr_list_1g50c9e84e551dffe01dfe6a2697464f5d" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type>void</type>
+        <definition>void mprSortList</definition>
+        <argsstring>(MprList *list, MprListCompareProc compare)</argsstring>
+        <name>mprSortList</name>
+        <param>
+          <type>MprList *</type>
+          <declname>list</declname>
+        </param>
+        <param>
+          <type><ref refid="group___mpr_list_1ga4064169552596b7923bc734da239f96" kindref="member">MprListCompareProc</ref></type>
+          <declname>compare</declname>
+        </param>
+        <briefdescription>
+<para>Sort a list. </para>        </briefdescription>
+        <detaileddescription>
+<para><simplesect kind="par"><title><bold>Description</bold>:</title><para>Sort a list using the sort ordering dictated by the supplied compare function. </para></simplesect>
+<parameterlist kind="param"><parameteritem>
+<parameternamelist>
+<parametername>list</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>List pointer returned from mprCreateList. </para></parameterdescription>
+</parameteritem>
+<parameteritem>
+<parameternamelist>
+<parametername>compare</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>Comparison function. If null, then a default string comparison is used. </para></parameterdescription>
+</parameteritem>
+</parameterlist>
+</para>        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/mob/hg/mpr/all/mpr.h" line="2618"/>
+      </memberdef>
+      </sectiondef>
+    <briefdescription>
+<para>List Module. </para>    </briefdescription>
+    <detaileddescription>
+<para><simplesect kind="par"><title><bold>Description</bold>:</title><para>The MprList is a dynamic growable list suitable for storing pointers to arbitrary objects. </para></simplesect>
+<simplesect kind="par"><title><bold>API</bold> Stability:</title><para>Evolving. </para></simplesect>
+<simplesect kind="see"><para><ref refid="group___mpr_list" kindref="compound">MprList</ref>, <ref refid="group___mpr_list_1gbf10109abc063c47702769c0e89442cf" kindref="member">mprAddItem</ref>, <ref refid="group___mpr_list_1g4535837cc644f208063b1ca3e2ae46c2" kindref="member">mprGetItem</ref>, <ref refid="group___mpr_list_1gd5e29adbb51053e84bcb52b9f6756e37" kindref="member">mprCreateList</ref>, <ref refid="group___mpr_list_1gcf49292693e22c7bdc43fbb41a83817d" kindref="member">mprClearList</ref>, <ref refid="group___mpr_list_1g8b3d6afe4be8d416e28f64d05e8391eb" kindref="member">mprLookupItem</ref>, <ref refid="group___mpr_mem_1g6d2fdfc4a34dc8ef4e7172fbcf977045" kindref="member">mprFree</ref>, <ref refid="group___mpr_list_1g34b6f80710796e4d3d766299ebf37078" kindref="member">mprGetFirstItem</ref>, <ref refid="group___mpr_list_1gc47331b3442493d84405d32ffcb98aba" kindref="member">mprGetListCapacity</ref>, <ref refid="group___mpr_list_1g8710190bcf91677b3758890b7deefd75" kindref="member">mprGetListCount</ref>, <ref refid="group___mpr_list_1gf84ab68545207f073e9f916adc8817e4" kindref="member">mprGetNextItem</ref>, <ref refid="group___mpr_list_1g701e2771ac787973c94e523898d596a6" kindref="member">mprGetPrevItem</ref>, <ref refid="group___mpr_list_1g2206c8d8a7049ad6f26ff74c215f32a7" kindref="member">mprRemoveItem</ref>, mprRemoveItemByIndex, <ref refid="group___mpr_list_1g16748fa2520761d373cebe4b39be3e8e" kindref="member">mprRemoveRangeOfItems</ref>, <ref refid="group___mpr_list_1g5f81ae14eecf28b6e6bdd64677860e39" kindref="member">mprAppendList</ref>, <ref refid="group___mpr_list_1g50c9e84e551dffe01dfe6a2697464f5d" kindref="member">mprSortList</ref>, <ref refid="group___mpr_list_1gc6512c8fa92c1d91cf99f4e3ad6af2f1" kindref="member">mprDupList</ref>, <ref refid="group___mpr_list_1ga4064169552596b7923bc734da239f96" kindref="member">MprListCompareProc</ref>, <ref refid="group___mpr_mem_1g6d2fdfc4a34dc8ef4e7172fbcf977045" kindref="member">mprFree</ref>, <ref refid="group___mpr_list_1g6dc1e2980f934578a5a88f9f987adcf5" kindref="member">mprCreateKeyPair</ref> </para></simplesect>
+</para>    </detaileddescription>
+  </compounddef>
+</doxygen>

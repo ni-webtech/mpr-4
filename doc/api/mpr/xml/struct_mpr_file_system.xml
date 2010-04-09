@@ -1,0 +1,297 @@
+<?xml version='1.0' encoding='UTF-8' standalone='no'?>
+<doxygen xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="compound.xsd" version="1.5.8">
+  <compounddef id="struct_mpr_file_system" kind="struct" prot="public">
+    <compoundname>MprFileSystem</compoundname>
+    <includes refid="mpr_8h" local="no">mpr.h</includes>
+      <sectiondef kind="public-attrib">
+      <memberdef kind="variable" id="struct_mpr_file_system_15e38be96c5740833a45e22af727841ad" prot="public" static="no" mutable="no">
+        <type>MprAccessFileProc</type>
+        <definition>MprAccessFileProc MprFileSystem::accessPath</definition>
+        <argsstring></argsstring>
+        <name>accessPath</name>
+        <briefdescription>
+<para>Virtual access file routine. </para>        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/mob/hg/mpr/all/mpr.h" line="2947" bodyfile="/Users/mob/hg/mpr/all/mpr.h" bodystart="2947" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="variable" id="struct_mpr_file_system_19b4688b394cbaf9e9ee4657529f1e39a" prot="public" static="no" mutable="no">
+        <type>bool</type>
+        <definition>bool MprFileSystem::caseSensitive</definition>
+        <argsstring></argsstring>
+        <name>caseSensitive</name>
+        <briefdescription>
+<para>Path comparisons are case sensitive. </para>        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/mob/hg/mpr/all/mpr.h" line="2960" bodyfile="/Users/mob/hg/mpr/all/mpr.h" bodystart="2960" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="variable" id="struct_mpr_file_system_17df8785da0a67e2016265d3b59d738e5" prot="public" static="no" mutable="no">
+        <type>MprCloseFileProc</type>
+        <definition>MprCloseFileProc MprFileSystem::closeFile</definition>
+        <argsstring></argsstring>
+        <name>closeFile</name>
+        <briefdescription>
+<para>Virtual close file routine. </para>        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/mob/hg/mpr/all/mpr.h" line="2952" bodyfile="/Users/mob/hg/mpr/all/mpr.h" bodystart="2952" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="variable" id="struct_mpr_file_system_1120bf58a6da09dc91d7fe17b72a5c056" prot="public" static="no" mutable="no">
+        <type>char *</type>
+        <definition>char* MprFileSystem::cygdrive</definition>
+        <argsstring></argsstring>
+        <name>cygdrive</name>
+        <briefdescription>
+<para>Cygwin drive root. </para>        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/mob/hg/mpr/all/mpr.h" line="2968" bodyfile="/Users/mob/hg/mpr/all/mpr.h" bodystart="2968" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="variable" id="struct_mpr_file_system_1de70dd4a4a64b35b9e8e01786d4b5cbb" prot="public" static="no" mutable="no">
+        <type>MprDeleteFileProc</type>
+        <definition>MprDeleteFileProc MprFileSystem::deletePath</definition>
+        <argsstring></argsstring>
+        <name>deletePath</name>
+        <briefdescription>
+<para>Virtual delete file routine. </para>        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/mob/hg/mpr/all/mpr.h" line="2948" bodyfile="/Users/mob/hg/mpr/all/mpr.h" bodystart="2948" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="variable" id="struct_mpr_file_system_10ec09744445986fe68db0aca69fa15f3" prot="public" static="no" mutable="no">
+        <type>MprGetPathInfoProc</type>
+        <definition>MprGetPathInfoProc MprFileSystem::getPathInfo</definition>
+        <argsstring></argsstring>
+        <name>getPathInfo</name>
+        <briefdescription>
+<para>Virtual get file information routine. </para>        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/mob/hg/mpr/all/mpr.h" line="2949" bodyfile="/Users/mob/hg/mpr/all/mpr.h" bodystart="2949" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="variable" id="struct_mpr_file_system_1c8949ced258642ec23295cb6f875f35e" prot="public" static="no" mutable="no">
+        <type>bool</type>
+        <definition>bool MprFileSystem::hasDriveSpecs</definition>
+        <argsstring></argsstring>
+        <name>hasDriveSpecs</name>
+        <briefdescription>
+<para>Paths can have drive specifications. </para>        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/mob/hg/mpr/all/mpr.h" line="2961" bodyfile="/Users/mob/hg/mpr/all/mpr.h" bodystart="2961" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="variable" id="struct_mpr_file_system_164221e1859f7d931b789bcf48a605e3e" prot="public" static="no" mutable="no">
+        <type>MprMakeDirProc</type>
+        <definition>MprMakeDirProc MprFileSystem::makeDir</definition>
+        <argsstring></argsstring>
+        <name>makeDir</name>
+        <briefdescription>
+<para>Virtual make directory routine. </para>        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/mob/hg/mpr/all/mpr.h" line="2950" bodyfile="/Users/mob/hg/mpr/all/mpr.h" bodystart="2950" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="variable" id="struct_mpr_file_system_1e73fbee65d384f31201b4da6532078b5" prot="public" static="no" mutable="no">
+        <type>char *</type>
+        <definition>char* MprFileSystem::newline</definition>
+        <argsstring></argsstring>
+        <name>newline</name>
+        <briefdescription>
+<para>Newline for text files. </para>        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/mob/hg/mpr/all/mpr.h" line="2964" bodyfile="/Users/mob/hg/mpr/all/mpr.h" bodystart="2964" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="variable" id="struct_mpr_file_system_1a99b374f8a7246c0994b431fb7e464be" prot="public" static="no" mutable="no">
+        <type>MprOpenFileProc</type>
+        <definition>MprOpenFileProc MprFileSystem::openFile</definition>
+        <argsstring></argsstring>
+        <name>openFile</name>
+        <briefdescription>
+<para>Virtual open file routine. </para>        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/mob/hg/mpr/all/mpr.h" line="2951" bodyfile="/Users/mob/hg/mpr/all/mpr.h" bodystart="2951" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="variable" id="struct_mpr_file_system_10fadda61688308594e9f3fbcbd5234d9" prot="public" static="no" mutable="no">
+        <type>char *</type>
+        <definition>char* MprFileSystem::portSeparators</definition>
+        <argsstring></argsstring>
+        <name>portSeparators</name>
+        <briefdescription>
+<para>Portable path separators. </para>        </briefdescription>
+        <detaileddescription>
+<para>Typically &quot;/\\&quot; </para>        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/mob/hg/mpr/all/mpr.h" line="2963" bodyfile="/Users/mob/hg/mpr/all/mpr.h" bodystart="2963" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="variable" id="struct_mpr_file_system_17175e397f99eb660db76ad895646133d" prot="public" static="no" mutable="no">
+        <type>MprReadFileProc</type>
+        <definition>MprReadFileProc MprFileSystem::readFile</definition>
+        <argsstring></argsstring>
+        <name>readFile</name>
+        <briefdescription>
+<para>Virtual read file routine. </para>        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/mob/hg/mpr/all/mpr.h" line="2953" bodyfile="/Users/mob/hg/mpr/all/mpr.h" bodystart="2953" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="variable" id="struct_mpr_file_system_10fed3fab45a0a7492c0a0cc152a44473" prot="public" static="no" mutable="no">
+        <type>cchar *</type>
+        <definition>cchar* MprFileSystem::root</definition>
+        <argsstring></argsstring>
+        <name>root</name>
+        <briefdescription>
+<para>Root file path. </para>        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/mob/hg/mpr/all/mpr.h" line="2965" bodyfile="/Users/mob/hg/mpr/all/mpr.h" bodystart="2965" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="variable" id="struct_mpr_file_system_12a8005c378cbc4055d508f2b63ca0339" prot="public" static="no" mutable="no">
+        <type>MprSeekFileProc</type>
+        <definition>MprSeekFileProc MprFileSystem::seekFile</definition>
+        <argsstring></argsstring>
+        <name>seekFile</name>
+        <briefdescription>
+<para>Virtual seek file routine. </para>        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/mob/hg/mpr/all/mpr.h" line="2954" bodyfile="/Users/mob/hg/mpr/all/mpr.h" bodystart="2954" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="variable" id="struct_mpr_file_system_18fbd13ce78415325e0e1152cbe90ad03" prot="public" static="no" mutable="no">
+        <type>char *</type>
+        <definition>char* MprFileSystem::separators</definition>
+        <argsstring></argsstring>
+        <name>separators</name>
+        <briefdescription>
+<para>Filename path separators. </para>        </briefdescription>
+        <detaileddescription>
+<para>First separator is the preferred separator. </para>        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/mob/hg/mpr/all/mpr.h" line="2962" bodyfile="/Users/mob/hg/mpr/all/mpr.h" bodystart="2962" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="variable" id="struct_mpr_file_system_1c0abc8c8d32e710ca939941d980d4939" prot="public" static="no" mutable="no">
+        <type>MprSetBufferedProc</type>
+        <definition>MprSetBufferedProc MprFileSystem::setBuffered</definition>
+        <argsstring></argsstring>
+        <name>setBuffered</name>
+        <briefdescription>
+<para>Virtual set buffered I/O routine. </para>        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/mob/hg/mpr/all/mpr.h" line="2955" bodyfile="/Users/mob/hg/mpr/all/mpr.h" bodystart="2955" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="variable" id="struct_mpr_file_system_1c899e638f8607eae5ab63e5b5972ef34" prot="public" static="no" mutable="no">
+        <type>struct MprFile *</type>
+        <definition>struct MprFile* MprFileSystem::stdError</definition>
+        <argsstring></argsstring>
+        <name>stdError</name>
+        <briefdescription>
+<para>Standard error file. </para>        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/mob/hg/mpr/all/mpr.h" line="2957" bodyfile="/Users/mob/hg/mpr/all/mpr.h" bodystart="2957" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="variable" id="struct_mpr_file_system_1be08971a623907993f3ca6277e3b5921" prot="public" static="no" mutable="no">
+        <type>struct MprFile *</type>
+        <definition>struct MprFile* MprFileSystem::stdInput</definition>
+        <argsstring></argsstring>
+        <name>stdInput</name>
+        <briefdescription>
+<para>Standard input file. </para>        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/mob/hg/mpr/all/mpr.h" line="2958" bodyfile="/Users/mob/hg/mpr/all/mpr.h" bodystart="2958" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="variable" id="struct_mpr_file_system_10028d6e0f1a5c606a7fb2c25fffe4b78" prot="public" static="no" mutable="no">
+        <type>struct MprFile *</type>
+        <definition>struct MprFile* MprFileSystem::stdOutput</definition>
+        <argsstring></argsstring>
+        <name>stdOutput</name>
+        <briefdescription>
+<para>Standard output file. </para>        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/mob/hg/mpr/all/mpr.h" line="2959" bodyfile="/Users/mob/hg/mpr/all/mpr.h" bodystart="2959" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="variable" id="struct_mpr_file_system_10f0d990df095b7581f9897b40744b1ed" prot="public" static="no" mutable="no">
+        <type>MprWriteFileProc</type>
+        <definition>MprWriteFileProc MprFileSystem::writeFile</definition>
+        <argsstring></argsstring>
+        <name>writeFile</name>
+        <briefdescription>
+<para>Virtual write file routine. </para>        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/mob/hg/mpr/all/mpr.h" line="2956" bodyfile="/Users/mob/hg/mpr/all/mpr.h" bodystart="2956" bodyend="-1"/>
+      </memberdef>
+      </sectiondef>
+    <briefdescription>
+<para>File system service. </para>    </briefdescription>
+    <detaileddescription>
+<para><simplesect kind="par"><title><bold>Description</bold>:</title><para>The MPR provides a file system abstraction to support non-disk based file access such as flash or other ROM based file systems. The <ref refid="struct_mpr_file_system" kindref="compound">MprFileSystem</ref> structure defines a virtual file system interface that will be invoked by the various MPR file routines. </para></simplesect>
+</para>    </detaileddescription>
+    <location file="/Users/mob/hg/mpr/all/mpr.h" line="2946" bodyfile="/Users/mob/hg/mpr/all/mpr.h" bodystart="2946" bodyend="2971"/>
+    <listofallmembers>
+      <member refid="struct_mpr_file_system_15e38be96c5740833a45e22af727841ad" prot="public" virt="non-virtual"><scope>MprFileSystem</scope><name>accessPath</name></member>
+      <member refid="struct_mpr_file_system_19b4688b394cbaf9e9ee4657529f1e39a" prot="public" virt="non-virtual"><scope>MprFileSystem</scope><name>caseSensitive</name></member>
+      <member refid="struct_mpr_file_system_17df8785da0a67e2016265d3b59d738e5" prot="public" virt="non-virtual"><scope>MprFileSystem</scope><name>closeFile</name></member>
+      <member refid="struct_mpr_file_system_1120bf58a6da09dc91d7fe17b72a5c056" prot="public" virt="non-virtual"><scope>MprFileSystem</scope><name>cygdrive</name></member>
+      <member refid="struct_mpr_file_system_1de70dd4a4a64b35b9e8e01786d4b5cbb" prot="public" virt="non-virtual"><scope>MprFileSystem</scope><name>deletePath</name></member>
+      <member refid="struct_mpr_file_system_10ec09744445986fe68db0aca69fa15f3" prot="public" virt="non-virtual"><scope>MprFileSystem</scope><name>getPathInfo</name></member>
+      <member refid="struct_mpr_file_system_1c8949ced258642ec23295cb6f875f35e" prot="public" virt="non-virtual"><scope>MprFileSystem</scope><name>hasDriveSpecs</name></member>
+      <member refid="struct_mpr_file_system_164221e1859f7d931b789bcf48a605e3e" prot="public" virt="non-virtual"><scope>MprFileSystem</scope><name>makeDir</name></member>
+      <member refid="struct_mpr_file_system_1e73fbee65d384f31201b4da6532078b5" prot="public" virt="non-virtual"><scope>MprFileSystem</scope><name>newline</name></member>
+      <member refid="struct_mpr_file_system_1a99b374f8a7246c0994b431fb7e464be" prot="public" virt="non-virtual"><scope>MprFileSystem</scope><name>openFile</name></member>
+      <member refid="struct_mpr_file_system_10fadda61688308594e9f3fbcbd5234d9" prot="public" virt="non-virtual"><scope>MprFileSystem</scope><name>portSeparators</name></member>
+      <member refid="struct_mpr_file_system_17175e397f99eb660db76ad895646133d" prot="public" virt="non-virtual"><scope>MprFileSystem</scope><name>readFile</name></member>
+      <member refid="struct_mpr_file_system_10fed3fab45a0a7492c0a0cc152a44473" prot="public" virt="non-virtual"><scope>MprFileSystem</scope><name>root</name></member>
+      <member refid="struct_mpr_file_system_12a8005c378cbc4055d508f2b63ca0339" prot="public" virt="non-virtual"><scope>MprFileSystem</scope><name>seekFile</name></member>
+      <member refid="struct_mpr_file_system_18fbd13ce78415325e0e1152cbe90ad03" prot="public" virt="non-virtual"><scope>MprFileSystem</scope><name>separators</name></member>
+      <member refid="struct_mpr_file_system_1c0abc8c8d32e710ca939941d980d4939" prot="public" virt="non-virtual"><scope>MprFileSystem</scope><name>setBuffered</name></member>
+      <member refid="struct_mpr_file_system_1c899e638f8607eae5ab63e5b5972ef34" prot="public" virt="non-virtual"><scope>MprFileSystem</scope><name>stdError</name></member>
+      <member refid="struct_mpr_file_system_1be08971a623907993f3ca6277e3b5921" prot="public" virt="non-virtual"><scope>MprFileSystem</scope><name>stdInput</name></member>
+      <member refid="struct_mpr_file_system_10028d6e0f1a5c606a7fb2c25fffe4b78" prot="public" virt="non-virtual"><scope>MprFileSystem</scope><name>stdOutput</name></member>
+      <member refid="struct_mpr_file_system_10f0d990df095b7581f9897b40744b1ed" prot="public" virt="non-virtual"><scope>MprFileSystem</scope><name>writeFile</name></member>
+    </listofallmembers>
+  </compounddef>
+</doxygen>

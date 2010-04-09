@@ -1,0 +1,1352 @@
+<?xml version='1.0' encoding='UTF-8' standalone='no'?>
+<doxygen xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="compound.xsd" version="1.5.8">
+  <compounddef id="group___mpr_path" kind="group">
+    <compoundname>MprPath</compoundname>
+    <title>MprPath</title>
+      <sectiondef kind="func">
+      <memberdef kind="function" id="group___mpr_path_1g5819b28cca6734f98b1fe114c5620d8a" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type>int</type>
+        <definition>int mprCopyPath</definition>
+        <argsstring>(MprCtx ctx, cchar *from, cchar *to, int omode)</argsstring>
+        <name>mprCopyPath</name>
+        <param>
+          <type><ref refid="group___mpr_mem_1g1413d66bb5356730c6fa08ca0af6bc0f" kindref="member">MprCtx</ref></type>
+          <declname>ctx</declname>
+        </param>
+        <param>
+          <type>cchar *</type>
+          <declname>from</declname>
+        </param>
+        <param>
+          <type>cchar *</type>
+          <declname>to</declname>
+        </param>
+        <param>
+          <type>int</type>
+          <declname>omode</declname>
+        </param>
+        <briefdescription>
+<para>Copy a file. </para>        </briefdescription>
+        <detaileddescription>
+<para><simplesect kind="par"><title><bold>Description</bold>:</title><para>Create a new copy of a file with the specified open permissions mode. </para></simplesect>
+<parameterlist kind="param"><parameteritem>
+<parameternamelist>
+<parametername>ctx</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>Any memory context allocated by the MPR. </para></parameterdescription>
+</parameteritem>
+<parameteritem>
+<parameternamelist>
+<parametername>from</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>Path of the existing file to copy </para></parameterdescription>
+</parameteritem>
+<parameteritem>
+<parameternamelist>
+<parametername>to</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>Name of the new file copy </para></parameterdescription>
+</parameteritem>
+<parameteritem>
+<parameternamelist>
+<parametername>omode</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>Posix style file open mode mask. See <ref refid="group___mpr_file_1g4f97953317f303fe033be11fcbcec4e9" kindref="member">mprOpen</ref> for the various modes. </para></parameterdescription>
+</parameteritem>
+</parameterlist>
+<simplesect kind="return"><para>True if the file exists and can be accessed </para></simplesect>
+</para>        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/mob/hg/mpr/all/mpr.h" line="3309"/>
+      </memberdef>
+      <memberdef kind="function" id="group___mpr_path_1g4e9f46a4287d3c8392e2bacfc45fea75" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type>int</type>
+        <definition>int mprDeletePath</definition>
+        <argsstring>(MprCtx ctx, cchar *path)</argsstring>
+        <name>mprDeletePath</name>
+        <param>
+          <type><ref refid="group___mpr_mem_1g1413d66bb5356730c6fa08ca0af6bc0f" kindref="member">MprCtx</ref></type>
+          <declname>ctx</declname>
+        </param>
+        <param>
+          <type>cchar *</type>
+          <declname>path</declname>
+        </param>
+        <briefdescription>
+<para>Delete a file. </para>        </briefdescription>
+        <detaileddescription>
+<para><simplesect kind="par"><title><bold>Description</bold>:</title><para>Delete a file or directory. </para></simplesect>
+<parameterlist kind="param"><parameteritem>
+<parameternamelist>
+<parametername>ctx</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>Any memory context allocated by the MPR. </para></parameterdescription>
+</parameteritem>
+<parameteritem>
+<parameternamelist>
+<parametername>path</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>String containing the path to delete. </para></parameterdescription>
+</parameteritem>
+</parameterlist>
+<simplesect kind="return"><para>Returns zero if successful otherwise a negative MPR error code is returned. </para></simplesect>
+</para>        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/mob/hg/mpr/all/mpr.h" line="3326"/>
+      </memberdef>
+      <memberdef kind="function" id="group___mpr_path_1g6d804c1b812c9ea7a1d0fb09764def90" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type>char *</type>
+        <definition>char* mprGetAbsPath</definition>
+        <argsstring>(MprCtx ctx, cchar *path)</argsstring>
+        <name>mprGetAbsPath</name>
+        <param>
+          <type><ref refid="group___mpr_mem_1g1413d66bb5356730c6fa08ca0af6bc0f" kindref="member">MprCtx</ref></type>
+          <declname>ctx</declname>
+        </param>
+        <param>
+          <type>cchar *</type>
+          <declname>path</declname>
+        </param>
+        <briefdescription>
+<para>Convert a path to an absolute path. </para>        </briefdescription>
+        <detaileddescription>
+<para><simplesect kind="par"><title><bold>Description</bold>:</title><para>Get an absolute (canonical) equivalent representation of a path. </para></simplesect>
+<parameterlist kind="param"><parameteritem>
+<parameternamelist>
+<parametername>ctx</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>Any memory context allocated by the MPR. </para></parameterdescription>
+</parameteritem>
+<parameteritem>
+<parameternamelist>
+<parametername>path</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>Path to examine </para></parameterdescription>
+</parameteritem>
+</parameterlist>
+<simplesect kind="return"><para>An absolute path. Caller should free via <ref refid="group___mpr_mem_1g6d2fdfc4a34dc8ef4e7172fbcf977045" kindref="member">mprFree</ref> </para></simplesect>
+</para>        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/mob/hg/mpr/all/mpr.h" line="3336"/>
+      </memberdef>
+      <memberdef kind="function" id="group___mpr_path_1g2de05fa43e494c05da7b2e941f3f407d" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type>char *</type>
+        <definition>char* mprGetNativePath</definition>
+        <argsstring>(MprCtx ctx, cchar *path)</argsstring>
+        <name>mprGetNativePath</name>
+        <param>
+          <type><ref refid="group___mpr_mem_1g1413d66bb5356730c6fa08ca0af6bc0f" kindref="member">MprCtx</ref></type>
+          <declname>ctx</declname>
+        </param>
+        <param>
+          <type>cchar *</type>
+          <declname>path</declname>
+        </param>
+        <briefdescription>
+<para>Get a path formatted according to the native O/S conventions. </para>        </briefdescription>
+        <detaileddescription>
+<para><simplesect kind="par"><title><bold>Description</bold>:</title><para>Get an equivalent absolute path formatted using the directory separators native to the O/S platform. On Windows, it will use backward slashes (&quot;\&quot;) as the directory separator and will contain a drive specification. </para></simplesect>
+<parameterlist kind="param"><parameteritem>
+<parameternamelist>
+<parametername>ctx</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>Any memory context allocated by the MPR. </para></parameterdescription>
+</parameteritem>
+<parameteritem>
+<parameternamelist>
+<parametername>path</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>Path name to examine </para></parameterdescription>
+</parameteritem>
+</parameterlist>
+<simplesect kind="return"><para>An allocated string containing the new path. Caller must free using <ref refid="group___mpr_mem_1g6d2fdfc4a34dc8ef4e7172fbcf977045" kindref="member">mprFree</ref>. </para></simplesect>
+</para>        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/mob/hg/mpr/all/mpr.h" line="3347"/>
+      </memberdef>
+      <memberdef kind="function" id="group___mpr_path_1g94ae6e9571d7089105a11a38b758d808" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type>char *</type>
+        <definition>char* mprGetNormalizedPath</definition>
+        <argsstring>(MprCtx ctx, cchar *path)</argsstring>
+        <name>mprGetNormalizedPath</name>
+        <param>
+          <type><ref refid="group___mpr_mem_1g1413d66bb5356730c6fa08ca0af6bc0f" kindref="member">MprCtx</ref></type>
+          <declname>ctx</declname>
+        </param>
+        <param>
+          <type>cchar *</type>
+          <declname>path</declname>
+        </param>
+        <briefdescription>
+<para>Normalize a path. </para>        </briefdescription>
+        <detaileddescription>
+<para><simplesect kind="par"><title><bold>Description</bold>:</title><para>A path is normalized by redundant segments such as &quot;./&quot; and &quot;../dir&quot; and duplicate path separators. Path separators are mapped. Paths are not converted to absolute paths. </para></simplesect>
+<parameterlist kind="param"><parameteritem>
+<parameternamelist>
+<parametername>ctx</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>Any memory context allocated by the MPR. </para></parameterdescription>
+</parameteritem>
+<parameteritem>
+<parameternamelist>
+<parametername>path</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>First path to compare </para></parameterdescription>
+</parameteritem>
+</parameterlist>
+<simplesect kind="return"><para>A newly allocated, clean path. Caller should free via <ref refid="group___mpr_mem_1g6d2fdfc4a34dc8ef4e7172fbcf977045" kindref="member">mprFree</ref> </para></simplesect>
+</para>        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/mob/hg/mpr/all/mpr.h" line="3545"/>
+      </memberdef>
+      <memberdef kind="function" id="group___mpr_path_1g40b746d52c5d360b93e62cd7f151e790" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type>char *</type>
+        <definition>char* mprGetPathBase</definition>
+        <argsstring>(MprCtx ctx, cchar *path)</argsstring>
+        <name>mprGetPathBase</name>
+        <param>
+          <type><ref refid="group___mpr_mem_1g1413d66bb5356730c6fa08ca0af6bc0f" kindref="member">MprCtx</ref></type>
+          <declname>ctx</declname>
+        </param>
+        <param>
+          <type>cchar *</type>
+          <declname>path</declname>
+        </param>
+        <briefdescription>
+<para>Get the base portion of a path. </para>        </briefdescription>
+        <detaileddescription>
+<para><simplesect kind="par"><title><bold>Description</bold>:</title><para>Get the base portion of a path by stripping off all directory components </para></simplesect>
+<parameterlist kind="param"><parameteritem>
+<parameternamelist>
+<parametername>ctx</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>Any memory context allocated by the MPR. </para></parameterdescription>
+</parameteritem>
+<parameteritem>
+<parameternamelist>
+<parametername>path</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>Path name to examine </para></parameterdescription>
+</parameteritem>
+</parameterlist>
+<simplesect kind="return"><para>A path without any directory portion. The path is a reference into the original file string and should not be freed. </para></simplesect>
+</para>        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/mob/hg/mpr/all/mpr.h" line="3358"/>
+      </memberdef>
+      <memberdef kind="function" id="group___mpr_path_1g0b13450482bec406bd1ca4f97e8b0ac9" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type>char *</type>
+        <definition>char* mprGetPathDir</definition>
+        <argsstring>(MprCtx ctx, cchar *path)</argsstring>
+        <name>mprGetPathDir</name>
+        <param>
+          <type><ref refid="group___mpr_mem_1g1413d66bb5356730c6fa08ca0af6bc0f" kindref="member">MprCtx</ref></type>
+          <declname>ctx</declname>
+        </param>
+        <param>
+          <type>cchar *</type>
+          <declname>path</declname>
+        </param>
+        <briefdescription>
+<para>Get the directory portion of a path. </para>        </briefdescription>
+        <detaileddescription>
+<para><simplesect kind="par"><title><bold>Description</bold>:</title><para>Get the directory portion of a path by stripping off the base name. </para></simplesect>
+<parameterlist kind="param"><parameteritem>
+<parameternamelist>
+<parametername>ctx</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>Any memory context allocated by the MPR. </para></parameterdescription>
+</parameteritem>
+<parameteritem>
+<parameternamelist>
+<parametername>path</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>Path name to examine </para></parameterdescription>
+</parameteritem>
+</parameterlist>
+<simplesect kind="return"><para>A new string containing the directory name. Caller must free. </para></simplesect>
+</para>        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/mob/hg/mpr/all/mpr.h" line="3368"/>
+      </memberdef>
+      <memberdef kind="function" id="group___mpr_path_1g2aca381507c3d8455a896015d3532421" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type>cchar *</type>
+        <definition>cchar* mprGetPathExtension</definition>
+        <argsstring>(MprCtx ctx, cchar *path)</argsstring>
+        <name>mprGetPathExtension</name>
+        <param>
+          <type><ref refid="group___mpr_mem_1g1413d66bb5356730c6fa08ca0af6bc0f" kindref="member">MprCtx</ref></type>
+          <declname>ctx</declname>
+        </param>
+        <param>
+          <type>cchar *</type>
+          <declname>path</declname>
+        </param>
+        <briefdescription>
+<para>Get the file extension portion of a path. </para>        </briefdescription>
+        <detaileddescription>
+<para><simplesect kind="par"><title><bold>Description</bold>:</title><para>Get the file extension portion of a path. The file extension is the portion starting with the last &quot;.&quot; in the path. It thus includes &quot;.&quot; as the first charcter. </para></simplesect>
+<parameterlist kind="param"><parameteritem>
+<parameternamelist>
+<parametername>ctx</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>Any memory context allocated by the MPR. </para></parameterdescription>
+</parameteritem>
+<parameteritem>
+<parameternamelist>
+<parametername>path</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>Path name to examine </para></parameterdescription>
+</parameteritem>
+</parameterlist>
+<simplesect kind="return"><para>A path extension. The extension is a reference into the original file string and should not be freed. </para></simplesect>
+</para>        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/mob/hg/mpr/all/mpr.h" line="3391"/>
+      </memberdef>
+      <memberdef kind="function" id="group___mpr_path_1gbee132c7baac86f676fa60f28d387341" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type>MprList *</type>
+        <definition>MprList* mprGetPathFiles</definition>
+        <argsstring>(MprCtx ctx, cchar *dir, bool enumDirs)</argsstring>
+        <name>mprGetPathFiles</name>
+        <param>
+          <type><ref refid="group___mpr_mem_1g1413d66bb5356730c6fa08ca0af6bc0f" kindref="member">MprCtx</ref></type>
+          <declname>ctx</declname>
+        </param>
+        <param>
+          <type>cchar *</type>
+          <declname>dir</declname>
+        </param>
+        <param>
+          <type>bool</type>
+          <declname>enumDirs</declname>
+        </param>
+        <briefdescription>
+<para>Create a directory list of files. </para>        </briefdescription>
+        <detaileddescription>
+<para><simplesect kind="par"><title><bold>Description</bold>:</title><para>Get the list of files in a directory and return a list. </para></simplesect>
+<parameterlist kind="param"><parameteritem>
+<parameternamelist>
+<parametername>ctx</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>Any memory context allocated by the MPR. </para></parameterdescription>
+</parameteritem>
+<parameteritem>
+<parameternamelist>
+<parametername>dir</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>Directory to list. </para></parameterdescription>
+</parameteritem>
+<parameteritem>
+<parameternamelist>
+<parametername>enumDirs</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>Set to true to enumerate directory entries as well as regular paths. </para></parameterdescription>
+</parameteritem>
+</parameterlist>
+<simplesect kind="return"><para>A list (MprList) of directory paths. Each path is a regular string owned by the list object. Use <ref refid="group___mpr_mem_1g6d2fdfc4a34dc8ef4e7172fbcf977045" kindref="member">mprFree</ref> to free the memory for the list and directory paths. </para></simplesect>
+</para>        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/mob/hg/mpr/all/mpr.h" line="3380"/>
+      </memberdef>
+      <memberdef kind="function" id="group___mpr_path_1g57c6c3e051b4c39dc2f320adbb27df9d" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type>int</type>
+        <definition>int mprGetPathInfo</definition>
+        <argsstring>(MprCtx ctx, cchar *path, MprPath *info)</argsstring>
+        <name>mprGetPathInfo</name>
+        <param>
+          <type><ref refid="group___mpr_mem_1g1413d66bb5356730c6fa08ca0af6bc0f" kindref="member">MprCtx</ref></type>
+          <declname>ctx</declname>
+        </param>
+        <param>
+          <type>cchar *</type>
+          <declname>path</declname>
+        </param>
+        <param>
+          <type>MprPath *</type>
+          <declname>info</declname>
+        </param>
+        <briefdescription>
+<para>Return information about a file represented by a path. </para>        </briefdescription>
+        <detaileddescription>
+<para><simplesect kind="par"><title><bold>Description</bold>:</title><para>Returns file status information regarding the <emphasis>path</emphasis>. </para></simplesect>
+<parameterlist kind="param"><parameteritem>
+<parameternamelist>
+<parametername>ctx</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>Any memory context allocated by the MPR. </para></parameterdescription>
+</parameteritem>
+<parameteritem>
+<parameternamelist>
+<parametername>path</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>String containing the path to query. </para></parameterdescription>
+</parameteritem>
+<parameteritem>
+<parameternamelist>
+<parametername>info</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>Pointer to a pre-allocated MprPath structure. </para></parameterdescription>
+</parameteritem>
+</parameterlist>
+<simplesect kind="return"><para>Returns zero if successful, otherwise a negative MPR error code is returned. </para></simplesect>
+</para>        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/mob/hg/mpr/all/mpr.h" line="3402"/>
+      </memberdef>
+      <memberdef kind="function" id="group___mpr_path_1g85a7b4f2de356310207f30d416e4b64e" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type>cchar *</type>
+        <definition>cchar* mprGetPathNewline</definition>
+        <argsstring>(MprCtx ctx, cchar *path)</argsstring>
+        <name>mprGetPathNewline</name>
+        <param>
+          <type><ref refid="group___mpr_mem_1g1413d66bb5356730c6fa08ca0af6bc0f" kindref="member">MprCtx</ref></type>
+          <declname>ctx</declname>
+        </param>
+        <param>
+          <type>cchar *</type>
+          <declname>path</declname>
+        </param>
+        <briefdescription>
+<para>Get the file newline character string for a given path. </para>        </briefdescription>
+        <detaileddescription>
+<para>Return the character string used to delimit new lines in text files. <parameterlist kind="param"><parameteritem>
+<parameternamelist>
+<parametername>ctx</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>Any memory context allocated by the MPR. </para></parameterdescription>
+</parameteritem>
+<parameteritem>
+<parameternamelist>
+<parametername>path</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>Use this path to specify either the root of the file system or a file on the file system. </para></parameterdescription>
+</parameteritem>
+</parameterlist>
+<simplesect kind="return"><para>A string used to delimit new lines. This is typically &quot;\n&quot; or &quot;\r\n&quot; </para></simplesect>
+</para>        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/mob/hg/mpr/all/mpr.h" line="3432"/>
+      </memberdef>
+      <memberdef kind="function" id="group___mpr_path_1g962d4a24986091501b0db73e3d55d2b2" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type>char *</type>
+        <definition>char* mprGetPathParent</definition>
+        <argsstring>(MprCtx ctx, cchar *path)</argsstring>
+        <name>mprGetPathParent</name>
+        <param>
+          <type><ref refid="group___mpr_mem_1g1413d66bb5356730c6fa08ca0af6bc0f" kindref="member">MprCtx</ref></type>
+          <declname>ctx</declname>
+        </param>
+        <param>
+          <type>cchar *</type>
+          <declname>path</declname>
+        </param>
+        <briefdescription>
+<para>Get the parent directory of a path. </para>        </briefdescription>
+        <detaileddescription>
+<para><parameterlist kind="param"><parameteritem>
+<parameternamelist>
+<parametername>ctx</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>Any memory context allocated by the MPR. </para></parameterdescription>
+</parameteritem>
+<parameteritem>
+<parameternamelist>
+<parametername>path</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>Path name to examine </para></parameterdescription>
+</parameteritem>
+</parameterlist>
+<simplesect kind="return"><para>An allocated string containing the parent directory. Caller must free using <ref refid="group___mpr_mem_1g6d2fdfc4a34dc8ef4e7172fbcf977045" kindref="member">mprFree</ref>. </para></simplesect>
+</para>        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/mob/hg/mpr/all/mpr.h" line="3411"/>
+      </memberdef>
+      <memberdef kind="function" id="group___mpr_path_1g15dd176c544a6d52fa77c32cec9ab45d" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type>cchar *</type>
+        <definition>cchar* mprGetPathSeparators</definition>
+        <argsstring>(MprCtx ctx, cchar *path)</argsstring>
+        <name>mprGetPathSeparators</name>
+        <param>
+          <type><ref refid="group___mpr_mem_1g1413d66bb5356730c6fa08ca0af6bc0f" kindref="member">MprCtx</ref></type>
+          <declname>ctx</declname>
+        </param>
+        <param>
+          <type>cchar *</type>
+          <declname>path</declname>
+        </param>
+        <briefdescription>
+<para>Get the path directory separator. </para>        </briefdescription>
+        <detaileddescription>
+<para>Return the directory separator characters used to separate directories on a given file system. Typically &quot;/&quot; or &quot;\&quot; The first entry is the default separator. <parameterlist kind="param"><parameteritem>
+<parameternamelist>
+<parametername>ctx</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>Any memory context allocated by the MPR. </para></parameterdescription>
+</parameteritem>
+<parameteritem>
+<parameternamelist>
+<parametername>path</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>Use this path to specify either the root of the file system or a file on the file system. </para></parameterdescription>
+</parameteritem>
+</parameterlist>
+<simplesect kind="return"><para>The string of path separators. The first entry is the default separator. </para></simplesect>
+</para>        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/mob/hg/mpr/all/mpr.h" line="3422"/>
+      </memberdef>
+      <memberdef kind="function" id="group___mpr_path_1g8679aa877fd97feb7173442aab53b308" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type>char *</type>
+        <definition>char* mprGetPortablePath</definition>
+        <argsstring>(MprCtx ctx, cchar *path)</argsstring>
+        <name>mprGetPortablePath</name>
+        <param>
+          <type><ref refid="group___mpr_mem_1g1413d66bb5356730c6fa08ca0af6bc0f" kindref="member">MprCtx</ref></type>
+          <declname>ctx</declname>
+        </param>
+        <param>
+          <type>cchar *</type>
+          <declname>path</declname>
+        </param>
+        <briefdescription>
+<para>Get a portable path. </para>        </briefdescription>
+        <detaileddescription>
+<para><simplesect kind="par"><title><bold>Description</bold>:</title><para>Get an equivalent absolute path that is somewhat portable. This means it will use forward slashes (&quot;/&quot;) as the directory separator. </para></simplesect>
+<parameterlist kind="param"><parameteritem>
+<parameternamelist>
+<parametername>ctx</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>Any memory context allocated by the MPR. </para></parameterdescription>
+</parameteritem>
+<parameteritem>
+<parameternamelist>
+<parametername>path</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>Path name to examine </para></parameterdescription>
+</parameteritem>
+</parameterlist>
+<simplesect kind="return"><para>An allocated string containing the new path. Caller must free using <ref refid="group___mpr_mem_1g6d2fdfc4a34dc8ef4e7172fbcf977045" kindref="member">mprFree</ref>. </para></simplesect>
+</para>        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/mob/hg/mpr/all/mpr.h" line="3443"/>
+      </memberdef>
+      <memberdef kind="function" id="group___mpr_path_1g947673b01c05ec0b68cdebb4159bddee" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type>char *</type>
+        <definition>char* mprGetRelPath</definition>
+        <argsstring>(MprCtx ctx, cchar *path)</argsstring>
+        <name>mprGetRelPath</name>
+        <param>
+          <type><ref refid="group___mpr_mem_1g1413d66bb5356730c6fa08ca0af6bc0f" kindref="member">MprCtx</ref></type>
+          <declname>ctx</declname>
+        </param>
+        <param>
+          <type>cchar *</type>
+          <declname>path</declname>
+        </param>
+        <briefdescription>
+<para>Get a relative path. </para>        </briefdescription>
+        <detaileddescription>
+<para><simplesect kind="par"><title><bold>Description</bold>:</title><para>Get an equivalent path that is relative to the application&apos;s current working directory. </para></simplesect>
+<parameterlist kind="param"><parameteritem>
+<parameternamelist>
+<parametername>ctx</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>Any memory context allocated by the MPR. </para></parameterdescription>
+</parameteritem>
+<parameteritem>
+<parameternamelist>
+<parametername>path</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>Path name to examine </para></parameterdescription>
+</parameteritem>
+</parameterlist>
+<simplesect kind="return"><para>An allocated string containing the relative directory. Caller must free using <ref refid="group___mpr_mem_1g6d2fdfc4a34dc8ef4e7172fbcf977045" kindref="member">mprFree</ref>. </para></simplesect>
+</para>        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/mob/hg/mpr/all/mpr.h" line="3453"/>
+      </memberdef>
+      <memberdef kind="function" id="group___mpr_path_1g5539f40a5da3f48b5b2db3ea90e28221" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type>char *</type>
+        <definition>char* mprGetTempPath</definition>
+        <argsstring>(MprCtx ctx, cchar *tmpDir)</argsstring>
+        <name>mprGetTempPath</name>
+        <param>
+          <type><ref refid="group___mpr_mem_1g1413d66bb5356730c6fa08ca0af6bc0f" kindref="member">MprCtx</ref></type>
+          <declname>ctx</declname>
+        </param>
+        <param>
+          <type>cchar *</type>
+          <declname>tmpDir</declname>
+        </param>
+        <briefdescription>
+<para>Make a temporary file. </para>        </briefdescription>
+        <detaileddescription>
+<para><simplesect kind="par"><title><bold>Description</bold>:</title><para>Thread-safe way to make a unique temporary file. </para></simplesect>
+<parameterlist kind="param"><parameteritem>
+<parameternamelist>
+<parametername>ctx</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>Any memory context allocated by the MPR. </para></parameterdescription>
+</parameteritem>
+<parameteritem>
+<parameternamelist>
+<parametername>tmpDir</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>Base directory in which the temp file will be allocated. </para></parameterdescription>
+</parameteritem>
+</parameterlist>
+<simplesect kind="return"><para>An allocated string containing the path of the temp file. </para></simplesect>
+</para>        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/mob/hg/mpr/all/mpr.h" line="3463"/>
+      </memberdef>
+      <memberdef kind="function" id="group___mpr_path_1gadb495c2337079742752f4e8e572d975" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type>char *</type>
+        <definition>char* mprGetTransformedPath</definition>
+        <argsstring>(MprCtx ctx, cchar *path, int flags)</argsstring>
+        <name>mprGetTransformedPath</name>
+        <param>
+          <type><ref refid="group___mpr_mem_1g1413d66bb5356730c6fa08ca0af6bc0f" kindref="member">MprCtx</ref></type>
+          <declname>ctx</declname>
+        </param>
+        <param>
+          <type>cchar *</type>
+          <declname>path</declname>
+        </param>
+        <param>
+          <type>int</type>
+          <declname>flags</declname>
+        </param>
+        <briefdescription>
+<para>Transform a path. </para>        </briefdescription>
+        <detaileddescription>
+<para><simplesect kind="par"><title><bold>Description</bold>:</title><para>A path is transformed by cleaning and then transforming according to the flags. </para></simplesect>
+<parameterlist kind="param"><parameteritem>
+<parameternamelist>
+<parametername>ctx</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>Any memory context allocated by the MPR. </para></parameterdescription>
+</parameteritem>
+<parameteritem>
+<parameternamelist>
+<parametername>path</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>First path to compare </para></parameterdescription>
+</parameteritem>
+<parameteritem>
+<parameternamelist>
+<parametername>flags</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>Flags to modify the path representation. </para></parameterdescription>
+</parameteritem>
+</parameterlist>
+<simplesect kind="return"><para>A newly allocated, clean path. Caller should free via <ref refid="group___mpr_mem_1g6d2fdfc4a34dc8ef4e7172fbcf977045" kindref="member">mprFree</ref> </para></simplesect>
+</para>        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/mob/hg/mpr/all/mpr.h" line="3482"/>
+      </memberdef>
+      <memberdef kind="function" id="group___mpr_path_1g081cac7e87fa8a3800d0cdd3112d5c08" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type>bool</type>
+        <definition>bool mprIsAbsPath</definition>
+        <argsstring>(MprCtx ctx, cchar *path)</argsstring>
+        <name>mprIsAbsPath</name>
+        <param>
+          <type><ref refid="group___mpr_mem_1g1413d66bb5356730c6fa08ca0af6bc0f" kindref="member">MprCtx</ref></type>
+          <declname>ctx</declname>
+        </param>
+        <param>
+          <type>cchar *</type>
+          <declname>path</declname>
+        </param>
+        <briefdescription>
+<para>Determine if a path is absolute. </para>        </briefdescription>
+        <detaileddescription>
+<para><parameterlist kind="param"><parameteritem>
+<parameternamelist>
+<parametername>ctx</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>Any memory context allocated by the MPR. </para></parameterdescription>
+</parameteritem>
+<parameteritem>
+<parameternamelist>
+<parametername>path</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>Path name to examine </para></parameterdescription>
+</parameteritem>
+</parameterlist>
+<simplesect kind="return"><para>True if the path is absolue </para></simplesect>
+</para>        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/mob/hg/mpr/all/mpr.h" line="3491"/>
+      </memberdef>
+      <memberdef kind="function" id="group___mpr_path_1ge2e81ff8178627822dcac584dc719326" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type>bool</type>
+        <definition>bool mprIsRelPath</definition>
+        <argsstring>(MprCtx ctx, cchar *path)</argsstring>
+        <name>mprIsRelPath</name>
+        <param>
+          <type><ref refid="group___mpr_mem_1g1413d66bb5356730c6fa08ca0af6bc0f" kindref="member">MprCtx</ref></type>
+          <declname>ctx</declname>
+        </param>
+        <param>
+          <type>cchar *</type>
+          <declname>path</declname>
+        </param>
+        <briefdescription>
+<para>Determine if a path is relative. </para>        </briefdescription>
+        <detaileddescription>
+<para><parameterlist kind="param"><parameteritem>
+<parameternamelist>
+<parametername>ctx</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>Any memory context allocated by the MPR. </para></parameterdescription>
+</parameteritem>
+<parameteritem>
+<parameternamelist>
+<parametername>path</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>Path name to examine </para></parameterdescription>
+</parameteritem>
+</parameterlist>
+<simplesect kind="return"><para>True if the path is relative </para></simplesect>
+</para>        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/mob/hg/mpr/all/mpr.h" line="3500"/>
+      </memberdef>
+      <memberdef kind="function" id="group___mpr_path_1g4d312924fd21c6cb9067857a0225782f" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type>char *</type>
+        <definition>char* mprJoinPath</definition>
+        <argsstring>(MprCtx ctx, cchar *dir, cchar *other)</argsstring>
+        <name>mprJoinPath</name>
+        <param>
+          <type><ref refid="group___mpr_mem_1g1413d66bb5356730c6fa08ca0af6bc0f" kindref="member">MprCtx</ref></type>
+          <declname>ctx</declname>
+        </param>
+        <param>
+          <type>cchar *</type>
+          <declname>dir</declname>
+        </param>
+        <param>
+          <type>cchar *</type>
+          <declname>other</declname>
+        </param>
+        <briefdescription>
+<para>Join paths. </para>        </briefdescription>
+        <detaileddescription>
+<para><simplesect kind="par"><title><bold>Description</bold>:</title><para>Resolve one path relative to another </para></simplesect>
+<parameterlist kind="param"><parameteritem>
+<parameternamelist>
+<parametername>ctx</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>Any memory context allocated by the MPR. </para></parameterdescription>
+</parameteritem>
+<parameteritem>
+<parameternamelist>
+<parametername>dir</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>Directory path name to test use as the base/dir. </para></parameterdescription>
+</parameteritem>
+<parameteritem>
+<parameternamelist>
+<parametername>other</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>Other path name to resolve against path. </para></parameterdescription>
+</parameteritem>
+</parameterlist>
+<simplesect kind="return"><para>Allocated string containing the resolved path. </para></simplesect>
+</para>        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/mob/hg/mpr/all/mpr.h" line="3511"/>
+      </memberdef>
+      <memberdef kind="function" id="group___mpr_path_1g4ef9ac6d0d8789279fef742255d56879" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type>char *</type>
+        <definition>char* mprJoinPathExt</definition>
+        <argsstring>(MprCtx ctx, cchar *dir, cchar *ext)</argsstring>
+        <name>mprJoinPathExt</name>
+        <param>
+          <type><ref refid="group___mpr_mem_1g1413d66bb5356730c6fa08ca0af6bc0f" kindref="member">MprCtx</ref></type>
+          <declname>ctx</declname>
+        </param>
+        <param>
+          <type>cchar *</type>
+          <declname>dir</declname>
+        </param>
+        <param>
+          <type>cchar *</type>
+          <declname>ext</declname>
+        </param>
+        <briefdescription>
+<para>Join an extension to a path. </para>        </briefdescription>
+        <detaileddescription>
+<para><simplesect kind="par"><title><bold>Description</bold>:</title><para>Add an extension to a path if it does not already have one. </para></simplesect>
+<parameterlist kind="param"><parameteritem>
+<parameternamelist>
+<parametername>ctx</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>Any memory context allocated by the MPR. </para></parameterdescription>
+</parameteritem>
+<parameteritem>
+<parameternamelist>
+<parametername>dir</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>Directory path name to test use as the base/dir. </para></parameterdescription>
+</parameteritem>
+<parameteritem>
+<parameternamelist>
+<parametername>ext</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>Extension to add. Must have period prefix. </para></parameterdescription>
+</parameteritem>
+</parameterlist>
+<simplesect kind="return"><para>Allocated string containing the resolved path. </para></simplesect>
+</para>        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/mob/hg/mpr/all/mpr.h" line="3522"/>
+      </memberdef>
+      <memberdef kind="function" id="group___mpr_path_1g3b396266e71364659d4d0fe25c41c052" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type>int</type>
+        <definition>int mprMakeDir</definition>
+        <argsstring>(MprCtx ctx, cchar *path, int perms, bool makeMissing)</argsstring>
+        <name>mprMakeDir</name>
+        <param>
+          <type><ref refid="group___mpr_mem_1g1413d66bb5356730c6fa08ca0af6bc0f" kindref="member">MprCtx</ref></type>
+          <declname>ctx</declname>
+        </param>
+        <param>
+          <type>cchar *</type>
+          <declname>path</declname>
+        </param>
+        <param>
+          <type>int</type>
+          <declname>perms</declname>
+        </param>
+        <param>
+          <type>bool</type>
+          <declname>makeMissing</declname>
+        </param>
+        <briefdescription>
+<para>Make a directory. </para>        </briefdescription>
+        <detaileddescription>
+<para><simplesect kind="par"><title><bold>Description</bold>:</title><para>Make a directory using the supplied path. Intermediate directories are created as required. </para></simplesect>
+<parameterlist kind="param"><parameteritem>
+<parameternamelist>
+<parametername>ctx</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>Any memory context allocated by the MPR. </para></parameterdescription>
+</parameteritem>
+<parameteritem>
+<parameternamelist>
+<parametername>path</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>String containing the directory pathname to create. </para></parameterdescription>
+</parameteritem>
+<parameteritem>
+<parameternamelist>
+<parametername>makeMissing</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>If true make all required intervening directory segments. </para></parameterdescription>
+</parameteritem>
+<parameteritem>
+<parameternamelist>
+<parametername>perms</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>Posix style file permissions mask. </para></parameterdescription>
+</parameteritem>
+</parameterlist>
+<simplesect kind="return"><para>Returns zero if successful, otherwise a negative MPR error code is returned. </para></simplesect>
+</para>        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/mob/hg/mpr/all/mpr.h" line="3534"/>
+      </memberdef>
+      <memberdef kind="function" id="group___mpr_path_1g6f84759fa62171fd5ff1dae1bff70e08" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type>void</type>
+        <definition>void mprMapSeparators</definition>
+        <argsstring>(MprCtx ctx, char *path, int separator)</argsstring>
+        <name>mprMapSeparators</name>
+        <param>
+          <type><ref refid="group___mpr_mem_1g1413d66bb5356730c6fa08ca0af6bc0f" kindref="member">MprCtx</ref></type>
+          <declname>ctx</declname>
+        </param>
+        <param>
+          <type>char *</type>
+          <declname>path</declname>
+        </param>
+        <param>
+          <type>int</type>
+          <declname>separator</declname>
+        </param>
+        <briefdescription>
+<para>Map the separators in a path. </para>        </briefdescription>
+        <detaileddescription>
+<para><simplesect kind="par"><title><bold>Description</bold>:</title><para>Map the directory separators in a path to the specified separators. This is useful to change from backward to forward slashes when dealing with Windows paths. </para></simplesect>
+<parameterlist kind="param"><parameteritem>
+<parameternamelist>
+<parametername>ctx</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>Any memory context allocated by the MPR. </para></parameterdescription>
+</parameteritem>
+<parameteritem>
+<parameternamelist>
+<parametername>path</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>Path name to examine </para></parameterdescription>
+</parameteritem>
+<parameteritem>
+<parameternamelist>
+<parametername>separator</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>Separator character to use. </para></parameterdescription>
+</parameteritem>
+</parameterlist>
+<simplesect kind="return"><para>An allocated string containing the parent directory. Caller must free using <ref refid="group___mpr_mem_1g6d2fdfc4a34dc8ef4e7172fbcf977045" kindref="member">mprFree</ref>. </para></simplesect>
+</para>        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/mob/hg/mpr/all/mpr.h" line="3557"/>
+      </memberdef>
+      <memberdef kind="function" id="group___mpr_path_1gbdd09f63c16165c91f22a479d29c6ffe" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type>bool</type>
+        <definition>bool mprPathExists</definition>
+        <argsstring>(MprCtx ctx, cchar *path, int omode)</argsstring>
+        <name>mprPathExists</name>
+        <param>
+          <type><ref refid="group___mpr_mem_1g1413d66bb5356730c6fa08ca0af6bc0f" kindref="member">MprCtx</ref></type>
+          <declname>ctx</declname>
+        </param>
+        <param>
+          <type>cchar *</type>
+          <declname>path</declname>
+        </param>
+        <param>
+          <type>int</type>
+          <declname>omode</declname>
+        </param>
+        <briefdescription>
+<para>Determine if a file exists for a path name and can be accessed. </para>        </briefdescription>
+        <detaileddescription>
+<para><simplesect kind="par"><title><bold>Description</bold>:</title><para>Test if a file can be accessed for a given mode </para></simplesect>
+<parameterlist kind="param"><parameteritem>
+<parameternamelist>
+<parametername>ctx</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>Any memory context allocated by the MPR. </para></parameterdescription>
+</parameteritem>
+<parameteritem>
+<parameternamelist>
+<parametername>path</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>Path name to test </para></parameterdescription>
+</parameteritem>
+<parameteritem>
+<parameternamelist>
+<parametername>omode</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>Posix style file open mode mask. See <ref refid="group___mpr_file_1g4f97953317f303fe033be11fcbcec4e9" kindref="member">mprOpen</ref> for the various modes. </para></parameterdescription>
+</parameteritem>
+</parameterlist>
+<simplesect kind="return"><para>True if the file exists and can be accessed </para></simplesect>
+</para>        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/mob/hg/mpr/all/mpr.h" line="3568"/>
+      </memberdef>
+      <memberdef kind="function" id="group___mpr_path_1g413a694581512471730fcc80c2b5338a" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type>char *</type>
+        <definition>char* mprResolvePath</definition>
+        <argsstring>(MprCtx ctx, cchar *path, cchar *other)</argsstring>
+        <name>mprResolvePath</name>
+        <param>
+          <type><ref refid="group___mpr_mem_1g1413d66bb5356730c6fa08ca0af6bc0f" kindref="member">MprCtx</ref></type>
+          <declname>ctx</declname>
+        </param>
+        <param>
+          <type>cchar *</type>
+          <declname>path</declname>
+        </param>
+        <param>
+          <type>cchar *</type>
+          <declname>other</declname>
+        </param>
+        <briefdescription>
+<para>Resolve paths. </para>        </briefdescription>
+        <detaileddescription>
+<para><simplesect kind="par"><title><bold>Description</bold>:</title><para>Resolve one path relative to another. If the other path is absolute, it is returned. Otherwise it is resolved relative to the directory containing the first path. </para></simplesect>
+<parameterlist kind="param"><parameteritem>
+<parameternamelist>
+<parametername>ctx</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>Any memory context allocated by the MPR. </para></parameterdescription>
+</parameteritem>
+<parameteritem>
+<parameternamelist>
+<parametername>path</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>Path name to test use as the base. </para></parameterdescription>
+</parameteritem>
+<parameteritem>
+<parameternamelist>
+<parametername>other</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>Other path name to resolve against path. </para></parameterdescription>
+</parameteritem>
+</parameterlist>
+<simplesect kind="return"><para>Allocated string containing the resolved path. </para></simplesect>
+</para>        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/mob/hg/mpr/all/mpr.h" line="3580"/>
+      </memberdef>
+      <memberdef kind="function" id="group___mpr_path_1g1fe179d2b59869522057af90f9d0e28e" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type>int</type>
+        <definition>int mprSamePath</definition>
+        <argsstring>(MprCtx ctx, cchar *path1, cchar *path2)</argsstring>
+        <name>mprSamePath</name>
+        <param>
+          <type><ref refid="group___mpr_mem_1g1413d66bb5356730c6fa08ca0af6bc0f" kindref="member">MprCtx</ref></type>
+          <declname>ctx</declname>
+        </param>
+        <param>
+          <type>cchar *</type>
+          <declname>path1</declname>
+        </param>
+        <param>
+          <type>cchar *</type>
+          <declname>path2</declname>
+        </param>
+        <briefdescription>
+<para>Compare two paths if they are the same. </para>        </briefdescription>
+        <detaileddescription>
+<para><simplesect kind="par"><title><bold>Description</bold>:</title><para>Compare two paths to see if they are equal. This normalizes the paths to absolute paths first before comparing. It does handle case sensitivity appropriately. </para></simplesect>
+<parameterlist kind="param"><parameteritem>
+<parameternamelist>
+<parametername>ctx</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>Any memory context allocated by the MPR. </para></parameterdescription>
+</parameteritem>
+<parameteritem>
+<parameternamelist>
+<parametername>path1</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>First path to compare </para></parameterdescription>
+</parameteritem>
+<parameteritem>
+<parameternamelist>
+<parametername>path2</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>Second path to compare </para></parameterdescription>
+</parameteritem>
+</parameterlist>
+<simplesect kind="return"><para>True if the file exists and can be accessed </para></simplesect>
+</para>        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/mob/hg/mpr/all/mpr.h" line="3592"/>
+      </memberdef>
+      <memberdef kind="function" id="group___mpr_path_1g00858c33bad20e8a653f74078fcc4a6e" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type>int</type>
+        <definition>int mprSamePathCount</definition>
+        <argsstring>(MprCtx ctx, cchar *path1, cchar *path2, int len)</argsstring>
+        <name>mprSamePathCount</name>
+        <param>
+          <type><ref refid="group___mpr_mem_1g1413d66bb5356730c6fa08ca0af6bc0f" kindref="member">MprCtx</ref></type>
+          <declname>ctx</declname>
+        </param>
+        <param>
+          <type>cchar *</type>
+          <declname>path1</declname>
+        </param>
+        <param>
+          <type>cchar *</type>
+          <declname>path2</declname>
+        </param>
+        <param>
+          <type>int</type>
+          <declname>len</declname>
+        </param>
+        <briefdescription>
+<para>Compare two paths if they are the same for a given length. </para>        </briefdescription>
+        <detaileddescription>
+<para><simplesect kind="par"><title><bold>Description</bold>:</title><para>Compare two paths to see if they are equal. This normalizes the paths to absolute paths first before comparing. It does handle case sensitivity appropriately. The len parameter if non-zero, specifies how many characters of the paths to compare. </para></simplesect>
+<parameterlist kind="param"><parameteritem>
+<parameternamelist>
+<parametername>ctx</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>Any memory context allocated by the MPR. </para></parameterdescription>
+</parameteritem>
+<parameteritem>
+<parameternamelist>
+<parametername>path1</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>First path to compare </para></parameterdescription>
+</parameteritem>
+<parameteritem>
+<parameternamelist>
+<parametername>path2</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>Second path to compare </para></parameterdescription>
+</parameteritem>
+<parameteritem>
+<parameternamelist>
+<parametername>len</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>How many characters to compare. </para></parameterdescription>
+</parameteritem>
+</parameterlist>
+<simplesect kind="return"><para>True if the file exists and can be accessed </para></simplesect>
+</para>        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/mob/hg/mpr/all/mpr.h" line="3606"/>
+      </memberdef>
+      <memberdef kind="function" id="group___mpr_path_1g158aef4d8a9c0162832198421198f6e8" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type>char *</type>
+        <definition>char* mprSearchPath</definition>
+        <argsstring>(MprCtx ctx, cchar *path, int flags, cchar *search,...)</argsstring>
+        <name>mprSearchPath</name>
+        <param>
+          <type><ref refid="group___mpr_mem_1g1413d66bb5356730c6fa08ca0af6bc0f" kindref="member">MprCtx</ref></type>
+          <declname>ctx</declname>
+        </param>
+        <param>
+          <type>cchar *</type>
+          <declname>path</declname>
+        </param>
+        <param>
+          <type>int</type>
+          <declname>flags</declname>
+        </param>
+        <param>
+          <type>cchar *</type>
+          <declname>search</declname>
+        </param>
+        <param>
+          <type>...</type>
+        </param>
+        <briefdescription>
+<para>Search for a path. </para>        </briefdescription>
+        <detaileddescription>
+<para><simplesect kind="par"><title><bold>Description</bold>:</title><para>Search for a file using a given set of search directories </para></simplesect>
+<parameterlist kind="param"><parameteritem>
+<parameternamelist>
+<parametername>ctx</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>Any memory context allocated by the MPR. </para></parameterdescription>
+</parameteritem>
+<parameteritem>
+<parameternamelist>
+<parametername>path</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>Path name to locate. Must be an existing file or directory. </para></parameterdescription>
+</parameteritem>
+<parameteritem>
+<parameternamelist>
+<parametername>flags</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>Flags. </para></parameterdescription>
+</parameteritem>
+<parameteritem>
+<parameternamelist>
+<parametername>search</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>Variable number of directories to search. </para></parameterdescription>
+</parameteritem>
+</parameterlist>
+<simplesect kind="return"><para>Allocated string containing the full path name of the located file. </para></simplesect>
+</para>        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/mob/hg/mpr/all/mpr.h" line="3634"/>
+      </memberdef>
+      <memberdef kind="function" id="group___mpr_path_1gb8e93fa1d44e924d6bb6845c86d5607d" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type>char *</type>
+        <definition>char* mprTrimPathExtension</definition>
+        <argsstring>(MprCtx ctx, cchar *path)</argsstring>
+        <name>mprTrimPathExtension</name>
+        <param>
+          <type><ref refid="group___mpr_mem_1g1413d66bb5356730c6fa08ca0af6bc0f" kindref="member">MprCtx</ref></type>
+          <declname>ctx</declname>
+        </param>
+        <param>
+          <type>cchar *</type>
+          <declname>path</declname>
+        </param>
+        <briefdescription>
+<para>Trim an extension from a path. </para>        </briefdescription>
+        <detaileddescription>
+<para><simplesect kind="par"><title><bold>Description</bold>:</title><para>Trim a file extension (&quot;.ext&quot;) from a path name. </para></simplesect>
+<parameterlist kind="param"><parameteritem>
+<parameternamelist>
+<parametername>ctx</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>Any memory context allocated by the MPR. </para></parameterdescription>
+</parameteritem>
+<parameteritem>
+<parameternamelist>
+<parametername>path</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>First path to compare </para></parameterdescription>
+</parameteritem>
+</parameterlist>
+<simplesect kind="return"><para>An allocated string with the trimmed path. </para></simplesect>
+</para>        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/mob/hg/mpr/all/mpr.h" line="3655"/>
+      </memberdef>
+      <memberdef kind="function" id="group___mpr_path_1g5d652358240a8e968114cfa718b420ab" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type>int</type>
+        <definition>int mprTruncatePath</definition>
+        <argsstring>(MprCtx ctx, cchar *path, int size)</argsstring>
+        <name>mprTruncatePath</name>
+        <param>
+          <type><ref refid="group___mpr_mem_1g1413d66bb5356730c6fa08ca0af6bc0f" kindref="member">MprCtx</ref></type>
+          <declname>ctx</declname>
+        </param>
+        <param>
+          <type>cchar *</type>
+          <declname>path</declname>
+        </param>
+        <param>
+          <type>int</type>
+          <declname>size</declname>
+        </param>
+        <briefdescription>
+<para>Truncate a path. </para>        </briefdescription>
+        <detaileddescription>
+<para><simplesect kind="par"><title><bold>Description</bold>:</title><para>Truncate a file to a given size </para></simplesect>
+<parameterlist kind="param"><parameteritem>
+<parameternamelist>
+<parametername>ctx</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>Any memory context allocated by the MPR. </para></parameterdescription>
+</parameteritem>
+<parameteritem>
+<parameternamelist>
+<parametername>path</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>First path to compare </para></parameterdescription>
+</parameteritem>
+<parameteritem>
+<parameternamelist>
+<parametername>size</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>New maximum size for the file. </para></parameterdescription>
+</parameteritem>
+</parameterlist>
+<simplesect kind="return"><para>Zero if successful. </para></simplesect>
+</para>        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/mob/hg/mpr/all/mpr.h" line="3645"/>
+      </memberdef>
+      </sectiondef>
+    <briefdescription>
+<para>Path (filename) Information. </para>    </briefdescription>
+    <detaileddescription>
+<para><simplesect kind="par"><title><bold>Description</bold>:</title><para>MprPath is the cross platform Path (filename) information structure. </para></simplesect>
+<simplesect kind="par"><title><bold>API</bold> Stability:</title><para>Evolving. </para></simplesect>
+<simplesect kind="see"><para><ref refid="group___mpr_path" kindref="compound">MprPath</ref> mprComparePath <ref refid="group___mpr_path_1g5819b28cca6734f98b1fe114c5620d8a" kindref="member">mprCopyPath</ref> <ref refid="group___mpr_path_1g4e9f46a4287d3c8392e2bacfc45fea75" kindref="member">mprDeletePath</ref> <ref refid="group___mpr_path_1g6d804c1b812c9ea7a1d0fb09764def90" kindref="member">mprGetAbsPath</ref> <ref refid="mpr_8h_18b5d0f5ed666f1ec48caaf65a9304acb" kindref="member">mprGetCurrentPath</ref> <ref refid="group___mpr_path_1g40b746d52c5d360b93e62cd7f151e790" kindref="member">mprGetPathBase</ref> <ref refid="group___mpr_path_1g0b13450482bec406bd1ca4f97e8b0ac9" kindref="member">mprGetPathDir</ref> <ref refid="group___mpr_path_1gbee132c7baac86f676fa60f28d387341" kindref="member">mprGetPathFiles</ref> <ref refid="group___mpr_path_1g2aca381507c3d8455a896015d3532421" kindref="member">mprGetPathExtension</ref> <ref refid="group___mpr_path_1g962d4a24986091501b0db73e3d55d2b2" kindref="member">mprGetPathParent</ref> <ref refid="group___mpr_path_1g85a7b4f2de356310207f30d416e4b64e" kindref="member">mprGetPathNewline</ref> <ref refid="group___mpr_path_1g15dd176c544a6d52fa77c32cec9ab45d" kindref="member">mprGetPathSeparators</ref> <ref refid="group___mpr_path_1g8679aa877fd97feb7173442aab53b308" kindref="member">mprGetPortablePath</ref> <ref refid="group___mpr_path_1g947673b01c05ec0b68cdebb4159bddee" kindref="member">mprGetRelPath</ref> <ref refid="group___mpr_path_1g5539f40a5da3f48b5b2db3ea90e28221" kindref="member">mprGetTempPath</ref> <ref refid="group___mpr_path_1gadb495c2337079742752f4e8e572d975" kindref="member">mprGetTransformedPath</ref> <ref refid="group___mpr_path_1g081cac7e87fa8a3800d0cdd3112d5c08" kindref="member">mprIsAbsPath</ref> <ref refid="group___mpr_path_1ge2e81ff8178627822dcac584dc719326" kindref="member">mprIsRelPath</ref> <ref refid="group___mpr_path_1g3b396266e71364659d4d0fe25c41c052" kindref="member">mprMakeDir</ref> <ref refid="group___mpr_path_1g94ae6e9571d7089105a11a38b758d808" kindref="member">mprGetNormalizedPath</ref> <ref refid="group___mpr_path_1g4d312924fd21c6cb9067857a0225782f" kindref="member">mprJoinPath</ref> <ref refid="group___mpr_path_1g4ef9ac6d0d8789279fef742255d56879" kindref="member">mprJoinPathExt</ref> <ref refid="group___mpr_path_1g6f84759fa62171fd5ff1dae1bff70e08" kindref="member">mprMapSeparators</ref> <ref refid="group___mpr_path_1gbdd09f63c16165c91f22a479d29c6ffe" kindref="member">mprPathExists</ref> <ref refid="group___mpr_path_1g413a694581512471730fcc80c2b5338a" kindref="member">mprResolvePath</ref> <ref refid="group___mpr_path_1g158aef4d8a9c0162832198421198f6e8" kindref="member">mprSearchPath</ref> <ref refid="group___mpr_path_1g5d652358240a8e968114cfa718b420ab" kindref="member">mprTruncatePath</ref> mprTrimExtension <ref refid="group___mpr_file" kindref="compound">MprFile</ref> </para></simplesect>
+</para>    </detaileddescription>
+  </compounddef>
+</doxygen>

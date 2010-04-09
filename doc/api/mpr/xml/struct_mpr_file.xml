@@ -1,0 +1,167 @@
+<?xml version='1.0' encoding='UTF-8' standalone='no'?>
+<doxygen xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="compound.xsd" version="1.5.8">
+  <compounddef id="struct_mpr_file" kind="struct" prot="public">
+    <compoundname>MprFile</compoundname>
+      <sectiondef kind="public-attrib">
+      <memberdef kind="variable" id="struct_mpr_file_15a3b48af7cbac1467100d5b466a9b74e" prot="public" static="no" mutable="no">
+        <type>MprBuf *</type>
+        <definition>MprBuf* MprFile::buf</definition>
+        <argsstring></argsstring>
+        <name>buf</name>
+        <briefdescription>
+<para>Buffer for I/O if buffered. </para>        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/mob/hg/mpr/all/mpr.h" line="3027" bodyfile="/Users/mob/hg/mpr/all/mpr.h" bodystart="3027" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="variable" id="struct_mpr_file_14f98e1428a38f53a6b1e755dd25899fe" prot="public" static="no" mutable="no">
+        <type>int</type>
+        <definition>int MprFile::fd</definition>
+        <argsstring></argsstring>
+        <name>fd</name>
+        <briefdescription>
+<para>File handle. </para>        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/mob/hg/mpr/all/mpr.h" line="3033" bodyfile="/Users/mob/hg/mpr/all/mpr.h" bodystart="3033" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="variable" id="struct_mpr_file_177bbf88476f16d643c0903f6bf0f3bf6" prot="public" static="no" mutable="no">
+        <type><ref refid="struct_mpr_file_system" kindref="compound">MprFileSystem</ref> *</type>
+        <definition>MprFileSystem* MprFile::fileSystem</definition>
+        <argsstring></argsstring>
+        <name>fileSystem</name>
+        <briefdescription>
+<para>File system owning this file. </para>        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/mob/hg/mpr/all/mpr.h" line="3026" bodyfile="/Users/mob/hg/mpr/all/mpr.h" bodystart="3026" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="variable" id="struct_mpr_file_19beaf646a90dd7aa9fbb5d7ac2c5768d" prot="public" static="no" mutable="no">
+        <type>MprRomInode *</type>
+        <definition>MprRomInode* MprFile::inode</definition>
+        <argsstring></argsstring>
+        <name>inode</name>
+        <briefdescription>
+<para>Reference to ROM file. </para>        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/mob/hg/mpr/all/mpr.h" line="3035" bodyfile="/Users/mob/hg/mpr/all/mpr.h" bodystart="3035" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="variable" id="struct_mpr_file_1df70259cfd9c9c9df9279c267759f172" prot="public" static="no" mutable="no">
+        <type>MprOffset</type>
+        <definition>MprOffset MprFile::iopos</definition>
+        <argsstring></argsstring>
+        <name>iopos</name>
+        <briefdescription>
+<para>Raw I/O position. </para>        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/mob/hg/mpr/all/mpr.h" line="3029" bodyfile="/Users/mob/hg/mpr/all/mpr.h" bodystart="3029" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="variable" id="struct_mpr_file_12f51de7895f1235d5e6d08a0be6c9810" prot="public" static="no" mutable="no">
+        <type>int</type>
+        <definition>int MprFile::mode</definition>
+        <argsstring></argsstring>
+        <name>mode</name>
+        <briefdescription>
+<para>File open mode. </para>        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/mob/hg/mpr/all/mpr.h" line="3031" bodyfile="/Users/mob/hg/mpr/all/mpr.h" bodystart="3031" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="variable" id="struct_mpr_file_1554123928e087fe6bf66c8fe21c9c1ce" prot="public" static="no" mutable="no">
+        <type>cchar *</type>
+        <definition>cchar* MprFile::path</definition>
+        <argsstring></argsstring>
+        <name>path</name>
+        <briefdescription>
+<para>Filename. </para>        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/mob/hg/mpr/all/mpr.h" line="3025" bodyfile="/Users/mob/hg/mpr/all/mpr.h" bodystart="3025" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="variable" id="struct_mpr_file_132e5080afa98f7d98111a6e84930089e" prot="public" static="no" mutable="no">
+        <type>int</type>
+        <definition>int MprFile::perms</definition>
+        <argsstring></argsstring>
+        <name>perms</name>
+        <briefdescription>
+<para>File permissions. </para>        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/mob/hg/mpr/all/mpr.h" line="3032" bodyfile="/Users/mob/hg/mpr/all/mpr.h" bodystart="3032" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="variable" id="struct_mpr_file_17023a0ca9a387b1f19bea32e82f633ba" prot="public" static="no" mutable="no">
+        <type>MprOffset</type>
+        <definition>MprOffset MprFile::pos</definition>
+        <argsstring></argsstring>
+        <name>pos</name>
+        <briefdescription>
+<para>Current read position. </para>        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/mob/hg/mpr/all/mpr.h" line="3028" bodyfile="/Users/mob/hg/mpr/all/mpr.h" bodystart="3028" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="variable" id="struct_mpr_file_1155bdeb0cdf029f02c8a9b07256a7d84" prot="public" static="no" mutable="no">
+        <type>MprOffset</type>
+        <definition>MprOffset MprFile::size</definition>
+        <argsstring></argsstring>
+        <name>size</name>
+        <briefdescription>
+<para>Current file size. </para>        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/mob/hg/mpr/all/mpr.h" line="3030" bodyfile="/Users/mob/hg/mpr/all/mpr.h" bodystart="3030" bodyend="-1"/>
+      </memberdef>
+      </sectiondef>
+    <briefdescription>
+    </briefdescription>
+    <detaileddescription>
+    </detaileddescription>
+    <collaborationgraph>
+      <node id="35">
+        <label>MprFile</label>
+        <childnode refid="36" relation="usage">
+          <edgelabel>fileSystem</edgelabel>
+        </childnode>
+      </node>
+      <node id="36">
+        <label>MprFileSystem</label>
+        <link refid="struct_mpr_file_system"/>
+      </node>
+    </collaborationgraph>
+    <location file="/Users/mob/hg/mpr/all/mpr.h" line="3024" bodyfile="/Users/mob/hg/mpr/all/mpr.h" bodystart="3024" bodyend="3037"/>
+    <listofallmembers>
+      <member refid="struct_mpr_file_15a3b48af7cbac1467100d5b466a9b74e" prot="public" virt="non-virtual"><scope>MprFile</scope><name>buf</name></member>
+      <member refid="struct_mpr_file_14f98e1428a38f53a6b1e755dd25899fe" prot="public" virt="non-virtual"><scope>MprFile</scope><name>fd</name></member>
+      <member refid="struct_mpr_file_177bbf88476f16d643c0903f6bf0f3bf6" prot="public" virt="non-virtual"><scope>MprFile</scope><name>fileSystem</name></member>
+      <member refid="struct_mpr_file_19beaf646a90dd7aa9fbb5d7ac2c5768d" prot="public" virt="non-virtual"><scope>MprFile</scope><name>inode</name></member>
+      <member refid="struct_mpr_file_1df70259cfd9c9c9df9279c267759f172" prot="public" virt="non-virtual"><scope>MprFile</scope><name>iopos</name></member>
+      <member refid="struct_mpr_file_12f51de7895f1235d5e6d08a0be6c9810" prot="public" virt="non-virtual"><scope>MprFile</scope><name>mode</name></member>
+      <member refid="struct_mpr_file_1554123928e087fe6bf66c8fe21c9c1ce" prot="public" virt="non-virtual"><scope>MprFile</scope><name>path</name></member>
+      <member refid="struct_mpr_file_132e5080afa98f7d98111a6e84930089e" prot="public" virt="non-virtual"><scope>MprFile</scope><name>perms</name></member>
+      <member refid="struct_mpr_file_17023a0ca9a387b1f19bea32e82f633ba" prot="public" virt="non-virtual"><scope>MprFile</scope><name>pos</name></member>
+      <member refid="struct_mpr_file_1155bdeb0cdf029f02c8a9b07256a7d84" prot="public" virt="non-virtual"><scope>MprFile</scope><name>size</name></member>
+    </listofallmembers>
+  </compounddef>
+</doxygen>

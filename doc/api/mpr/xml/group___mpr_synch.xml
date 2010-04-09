@@ -1,0 +1,436 @@
+<?xml version='1.0' encoding='UTF-8' standalone='no'?>
+<doxygen xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="compound.xsd" version="1.5.8">
+  <compounddef id="group___mpr_synch" kind="group">
+    <compoundname>MprSynch</compoundname>
+    <title>MprSynch</title>
+    <innerclass refid="struct_mpr_cond" prot="public">MprCond</innerclass>
+    <innerclass refid="struct_mpr_mutex" prot="public">MprMutex</innerclass>
+    <innerclass refid="struct_mpr_spin" prot="public">MprSpin</innerclass>
+      <sectiondef kind="func">
+      <memberdef kind="function" id="group___mpr_synch_1g30046b7108565283ac168c6a90739a3f" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type><ref refid="struct_mpr_cond" kindref="compound">MprCond</ref> *</type>
+        <definition>MprCond* mprCreateCond</definition>
+        <argsstring>(MprCtx ctx)</argsstring>
+        <name>mprCreateCond</name>
+        <param>
+          <type><ref refid="group___mpr_mem_1g1413d66bb5356730c6fa08ca0af6bc0f" kindref="member">MprCtx</ref></type>
+          <declname>ctx</declname>
+        </param>
+        <briefdescription>
+<para>Create a condition lock variable. </para>        </briefdescription>
+        <detaileddescription>
+<para><simplesect kind="par"><title><bold>Description</bold>:</title><para>This call creates a condition variable object that can be used in <ref refid="group___mpr_synch_1g38ffd872f11254b3ca0a14e0388d98b5" kindref="member">mprWaitForCond</ref> and <ref refid="group___mpr_synch_1gb014329886bcb9a8cb9b970afc30378b" kindref="member">mprSignalCond</ref> calls. Use <ref refid="group___mpr_mem_1g6d2fdfc4a34dc8ef4e7172fbcf977045" kindref="member">mprFree</ref> to destroy the condition variable. </para></simplesect>
+<parameterlist kind="param"><parameteritem>
+<parameternamelist>
+<parametername>ctx</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>Any memory context allocated by mprAlloc or mprCreate. </para></parameterdescription>
+</parameteritem>
+</parameterlist>
+</para>        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/mob/hg/mpr/all/mpr.h" line="4131"/>
+      </memberdef>
+      <memberdef kind="function" id="group___mpr_synch_1g825387252381219bd94edfa9c60855fa" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type><ref refid="struct_mpr_mutex" kindref="compound">MprMutex</ref> *</type>
+        <definition>MprMutex* mprCreateLock</definition>
+        <argsstring>(MprCtx ctx)</argsstring>
+        <name>mprCreateLock</name>
+        <param>
+          <type><ref refid="group___mpr_mem_1g1413d66bb5356730c6fa08ca0af6bc0f" kindref="member">MprCtx</ref></type>
+          <declname>ctx</declname>
+        </param>
+        <briefdescription>
+<para>Create a Mutex lock object. </para>        </briefdescription>
+        <detaileddescription>
+<para><simplesect kind="par"><title><bold>Description</bold>:</title><para>This call creates a Mutex lock object that can be used in <ref refid="group___mpr_synch_1gd193cb5549a1101dc17177f046144ede" kindref="member">mprLock</ref>, <ref refid="group___mpr_synch_1g2b3b8e824b92499192ea48512e31c26d" kindref="member">mprTryLock</ref> and <ref refid="group___mpr_synch_1g40a516fe58b4b2998852cd0c853027ad" kindref="member">mprUnlock</ref> calls. Use <ref refid="group___mpr_mem_1g6d2fdfc4a34dc8ef4e7172fbcf977045" kindref="member">mprFree</ref> to destroy the lock. </para></simplesect>
+<parameterlist kind="param"><parameteritem>
+<parameternamelist>
+<parametername>ctx</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>Any memory context allocated by mprAlloc or mprCreate. </para></parameterdescription>
+</parameteritem>
+</parameterlist>
+</para>        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/mob/hg/mpr/all/mpr.h" line="4239"/>
+      </memberdef>
+      <memberdef kind="function" id="group___mpr_synch_1ge63f87a8d093d294bd1ce6747cbb42ec" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type><ref refid="struct_mpr_spin" kindref="compound">MprSpin</ref> *</type>
+        <definition>MprSpin* mprCreateSpinLock</definition>
+        <argsstring>(MprCtx ctx)</argsstring>
+        <name>mprCreateSpinLock</name>
+        <param>
+          <type><ref refid="group___mpr_mem_1g1413d66bb5356730c6fa08ca0af6bc0f" kindref="member">MprCtx</ref></type>
+          <declname>ctx</declname>
+        </param>
+        <briefdescription>
+<para>Create a spin lock lock object. </para>        </briefdescription>
+        <detaileddescription>
+<para><simplesect kind="par"><title><bold>Description</bold>:</title><para>This call creates a spinlock object that can be used in <ref refid="group___mpr_synch_1gf2a84bc9cee343c8ebfc3bfa49751795" kindref="member">mprSpinLock</ref>, and <ref refid="group___mpr_synch_1geb11c8a1f0c2c3f905967a932626121e" kindref="member">mprSpinUnlock</ref> calls. Spin locks using <ref refid="struct_mpr_spin" kindref="compound">MprSpin</ref> are much faster than <ref refid="struct_mpr_mutex" kindref="compound">MprMutex</ref> based locks on some systems. Use <ref refid="group___mpr_mem_1g6d2fdfc4a34dc8ef4e7172fbcf977045" kindref="member">mprFree</ref> to destroy the lock. </para></simplesect>
+<parameterlist kind="param"><parameteritem>
+<parameternamelist>
+<parametername>ctx</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>Any memory context allocated by mprAlloc or mprCreate. </para></parameterdescription>
+</parameteritem>
+</parameterlist>
+</para>        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/mob/hg/mpr/all/mpr.h" line="4269"/>
+      </memberdef>
+      <memberdef kind="function" id="group___mpr_synch_1g934273252bb4202c8adeb9d8841769a4" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type>void</type>
+        <definition>void mprGlobalLock</definition>
+        <argsstring>(MprCtx ctx)</argsstring>
+        <name>mprGlobalLock</name>
+        <param>
+          <type><ref refid="group___mpr_mem_1g1413d66bb5356730c6fa08ca0af6bc0f" kindref="member">MprCtx</ref></type>
+          <declname>ctx</declname>
+        </param>
+        <briefdescription>
+<para>Globally lock the application. </para>        </briefdescription>
+        <detaileddescription>
+<para><simplesect kind="par"><title><bold>Description</bold>:</title><para>This call asserts the application global lock so that other threads calling mprGlobalLock will block until the current thread calls mprGlobalUnlock. </para></simplesect>
+<parameterlist kind="param"><parameteritem>
+<parameternamelist>
+<parametername>ctx</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>Any memory context allocated by mprAlloc or mprCreate. </para></parameterdescription>
+</parameteritem>
+</parameterlist>
+</para>        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/mob/hg/mpr/all/mpr.h" line="4371"/>
+      </memberdef>
+      <memberdef kind="function" id="group___mpr_synch_1g9af03d596ad19cd7974d85d82a8c27ca" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type>void</type>
+        <definition>void mprGlobalUnlock</definition>
+        <argsstring>(MprCtx ctx)</argsstring>
+        <name>mprGlobalUnlock</name>
+        <param>
+          <type><ref refid="group___mpr_mem_1g1413d66bb5356730c6fa08ca0af6bc0f" kindref="member">MprCtx</ref></type>
+          <declname>ctx</declname>
+        </param>
+        <briefdescription>
+<para>Unlock the global mutex. </para>        </briefdescription>
+        <detaileddescription>
+<para><simplesect kind="par"><title><bold>Description</bold>:</title><para>This call unlocks the global mutex previously locked via mprGlobalLock. </para></simplesect>
+<parameterlist kind="param"><parameteritem>
+<parameternamelist>
+<parametername>ctx</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>Any memory context allocated by mprAlloc or mprCreate. </para></parameterdescription>
+</parameteritem>
+</parameterlist>
+</para>        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/mob/hg/mpr/all/mpr.h" line="4379"/>
+      </memberdef>
+      <memberdef kind="function" id="group___mpr_synch_1ge5ac7172314ec00d74bc8a5b61ee98fa" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type><ref refid="struct_mpr_mutex" kindref="compound">MprMutex</ref> *</type>
+        <definition>MprMutex* mprInitLock</definition>
+        <argsstring>(MprCtx ctx, MprMutex *mutex)</argsstring>
+        <name>mprInitLock</name>
+        <param>
+          <type><ref refid="group___mpr_mem_1g1413d66bb5356730c6fa08ca0af6bc0f" kindref="member">MprCtx</ref></type>
+          <declname>ctx</declname>
+        </param>
+        <param>
+          <type><ref refid="struct_mpr_mutex" kindref="compound">MprMutex</ref> *</type>
+          <declname>mutex</declname>
+        </param>
+        <briefdescription>
+<para>Initialize a statically allocated Mutex lock object. </para>        </briefdescription>
+        <detaileddescription>
+<para><simplesect kind="par"><title><bold>Description</bold>:</title><para>This call initialized a Mutex lock object without allocation. The object can then be used used in <ref refid="group___mpr_synch_1gd193cb5549a1101dc17177f046144ede" kindref="member">mprLock</ref>, <ref refid="group___mpr_synch_1g2b3b8e824b92499192ea48512e31c26d" kindref="member">mprTryLock</ref> and <ref refid="group___mpr_synch_1g40a516fe58b4b2998852cd0c853027ad" kindref="member">mprUnlock</ref> calls. </para></simplesect>
+<parameterlist kind="param"><parameteritem>
+<parameternamelist>
+<parametername>ctx</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>Any memory context allocated by mprAlloc or mprCreate. </para></parameterdescription>
+</parameteritem>
+<parameteritem>
+<parameternamelist>
+<parametername>mutex</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>Reference to an <ref refid="struct_mpr_mutex" kindref="compound">MprMutex</ref> structure to initialize </para></parameterdescription>
+</parameteritem>
+</parameterlist>
+<simplesect kind="return"><para>A reference to the supplied mutex. Returns null on errors. </para></simplesect>
+</para>        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/mob/hg/mpr/all/mpr.h" line="4250"/>
+      </memberdef>
+      <memberdef kind="function" id="group___mpr_synch_1gd0e8debf5fc06d66c839ef8979d8e4c9" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type><ref refid="struct_mpr_spin" kindref="compound">MprSpin</ref> *</type>
+        <definition>MprSpin* mprInitSpinLock</definition>
+        <argsstring>(MprCtx ctx, MprSpin *lock)</argsstring>
+        <name>mprInitSpinLock</name>
+        <param>
+          <type><ref refid="group___mpr_mem_1g1413d66bb5356730c6fa08ca0af6bc0f" kindref="member">MprCtx</ref></type>
+          <declname>ctx</declname>
+        </param>
+        <param>
+          <type><ref refid="struct_mpr_spin" kindref="compound">MprSpin</ref> *</type>
+          <declname>lock</declname>
+        </param>
+        <briefdescription>
+<para>Initialize a statically allocated spinlock object. </para>        </briefdescription>
+        <detaileddescription>
+<para><simplesect kind="par"><title><bold>Description</bold>:</title><para>This call initialized a spinlock lock object without allocation. The object can then be used used in <ref refid="group___mpr_synch_1gf2a84bc9cee343c8ebfc3bfa49751795" kindref="member">mprSpinLock</ref> and <ref refid="group___mpr_synch_1geb11c8a1f0c2c3f905967a932626121e" kindref="member">mprSpinUnlock</ref> calls. </para></simplesect>
+<parameterlist kind="param"><parameteritem>
+<parameternamelist>
+<parametername>ctx</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>Any memory context allocated by mprAlloc or mprCreate. </para></parameterdescription>
+</parameteritem>
+<parameteritem>
+<parameternamelist>
+<parametername>lock</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>Reference to a static <ref refid="struct_mpr_spin" kindref="compound">MprSpin</ref> object. </para></parameterdescription>
+</parameteritem>
+</parameterlist>
+<simplesect kind="return"><para>A reference to the <ref refid="struct_mpr_spin" kindref="compound">MprSpin</ref> object. Returns null on errors. </para></simplesect>
+</para>        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/mob/hg/mpr/all/mpr.h" line="4280"/>
+      </memberdef>
+      <memberdef kind="function" id="group___mpr_synch_1gd193cb5549a1101dc17177f046144ede" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type>void</type>
+        <definition>void mprLock</definition>
+        <argsstring>(MprMutex *lock)</argsstring>
+        <name>mprLock</name>
+        <param>
+          <type><ref refid="struct_mpr_mutex" kindref="compound">MprMutex</ref> *</type>
+          <declname>lock</declname>
+        </param>
+        <briefdescription>
+<para>Lock access. </para>        </briefdescription>
+        <detaileddescription>
+<para><simplesect kind="par"><title><bold>Description</bold>:</title><para>This call asserts a lock on the given <emphasis>lock</emphasis> mutex so that other threads calling mprLock will block until the current thread calls mprUnlock. </para></simplesect>
+</para>        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/mob/hg/mpr/all/mpr.h" line="4339"/>
+      </memberdef>
+      <memberdef kind="function" id="group___mpr_synch_1gb014329886bcb9a8cb9b970afc30378b" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type>void</type>
+        <definition>void mprSignalCond</definition>
+        <argsstring>(MprCond *cond)</argsstring>
+        <name>mprSignalCond</name>
+        <param>
+          <type><ref refid="struct_mpr_cond" kindref="compound">MprCond</ref> *</type>
+          <declname>cond</declname>
+        </param>
+        <briefdescription>
+<para>Signal a condition lock variable. </para>        </briefdescription>
+        <detaileddescription>
+<para><simplesect kind="par"><title><bold>Description</bold>:</title><para>Signal a condition variable and set it to the <emphasis>triggered</emphasis> status. Existing or future callers of <ref refid="group___mpr_synch_1g38ffd872f11254b3ca0a14e0388d98b5" kindref="member">mprWaitForCond</ref> will be awakened. </para></simplesect>
+<parameterlist kind="param"><parameteritem>
+<parameternamelist>
+<parametername>cond</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>Condition variable object created via <ref refid="group___mpr_synch_1g30046b7108565283ac168c6a90739a3f" kindref="member">mprCreateCond</ref> </para></parameterdescription>
+</parameteritem>
+</parameterlist>
+</para>        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/mob/hg/mpr/all/mpr.h" line="4170"/>
+      </memberdef>
+      <memberdef kind="function" id="group___mpr_synch_1gf2a84bc9cee343c8ebfc3bfa49751795" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type>void</type>
+        <definition>void mprSpinLock</definition>
+        <argsstring>(MprSpin *lock)</argsstring>
+        <name>mprSpinLock</name>
+        <param>
+          <type><ref refid="struct_mpr_spin" kindref="compound">MprSpin</ref> *</type>
+          <declname>lock</declname>
+        </param>
+        <briefdescription>
+<para>Lock a spinlock. </para>        </briefdescription>
+        <detaileddescription>
+<para><simplesect kind="par"><title><bold>Description</bold>:</title><para>This call asserts a lock on the given <emphasis>spinlock</emphasis> so that other threads calling mprSpinLock will block until the curren thread calls mprSpinUnlock. </para></simplesect>
+</para>        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/mob/hg/mpr/all/mpr.h" line="4354"/>
+      </memberdef>
+      <memberdef kind="function" id="group___mpr_synch_1geb11c8a1f0c2c3f905967a932626121e" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type>void</type>
+        <definition>void mprSpinUnlock</definition>
+        <argsstring>(MprSpin *lock)</argsstring>
+        <name>mprSpinUnlock</name>
+        <param>
+          <type><ref refid="struct_mpr_spin" kindref="compound">MprSpin</ref> *</type>
+          <declname>lock</declname>
+        </param>
+        <briefdescription>
+<para>Unlock a spinlock. </para>        </briefdescription>
+        <detaileddescription>
+<para><simplesect kind="par"><title><bold>Description</bold>:</title><para>This call unlocks a spinlock previously locked via mprSpinLock or mprTrySpinLock. </para></simplesect>
+</para>        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/mob/hg/mpr/all/mpr.h" line="4361"/>
+      </memberdef>
+      <memberdef kind="function" id="group___mpr_synch_1g2b3b8e824b92499192ea48512e31c26d" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type>bool</type>
+        <definition>bool mprTryLock</definition>
+        <argsstring>(MprMutex *lock)</argsstring>
+        <name>mprTryLock</name>
+        <param>
+          <type><ref refid="struct_mpr_mutex" kindref="compound">MprMutex</ref> *</type>
+          <declname>lock</declname>
+        </param>
+        <briefdescription>
+<para>Attempt to lock access. </para>        </briefdescription>
+        <detaileddescription>
+<para><simplesect kind="par"><title><bold>Description</bold>:</title><para>This call attempts to assert a lock on the given <emphasis>lock</emphasis> mutex so that other threads calling mprLock or mprTryLock will block until the current thread calls mprUnlock. </para></simplesect>
+<simplesect kind="return"><para>Returns zero if the successful in locking the mutex. Returns a negative MPR error code if unsuccessful. </para></simplesect>
+</para>        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/mob/hg/mpr/all/mpr.h" line="4259"/>
+      </memberdef>
+      <memberdef kind="function" id="group___mpr_synch_1gc257b932fcc7140852e6830640d2301b" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type>bool</type>
+        <definition>bool mprTrySpinLock</definition>
+        <argsstring>(MprSpin *lock)</argsstring>
+        <name>mprTrySpinLock</name>
+        <param>
+          <type><ref refid="struct_mpr_spin" kindref="compound">MprSpin</ref> *</type>
+          <declname>lock</declname>
+        </param>
+        <briefdescription>
+<para>Attempt to lock access on a spin lock. </para>        </briefdescription>
+        <detaileddescription>
+<para><simplesect kind="par"><title><bold>Description</bold>:</title><para>This call attempts to assert a lock on the given <emphasis>spin</emphasis> lock so that other threads calling mprSpinLock or mprTrySpinLock will block until the current thread calls mprSpinUnlock. </para></simplesect>
+<simplesect kind="return"><para>Returns zero if the successful in locking the spinlock. Returns a negative MPR error code if unsuccessful. </para></simplesect>
+</para>        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/mob/hg/mpr/all/mpr.h" line="4289"/>
+      </memberdef>
+      <memberdef kind="function" id="group___mpr_synch_1g40a516fe58b4b2998852cd0c853027ad" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type>void</type>
+        <definition>void mprUnlock</definition>
+        <argsstring>(MprMutex *lock)</argsstring>
+        <name>mprUnlock</name>
+        <param>
+          <type><ref refid="struct_mpr_mutex" kindref="compound">MprMutex</ref> *</type>
+          <declname>lock</declname>
+        </param>
+        <briefdescription>
+<para>Unlock a mutex. </para>        </briefdescription>
+        <detaileddescription>
+<para><simplesect kind="par"><title><bold>Description</bold>:</title><para>This call unlocks a mutex previously locked via mprLock or mprTryLock. </para></simplesect>
+</para>        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/mob/hg/mpr/all/mpr.h" line="4346"/>
+      </memberdef>
+      <memberdef kind="function" id="group___mpr_synch_1g38ffd872f11254b3ca0a14e0388d98b5" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type>int</type>
+        <definition>int mprWaitForCond</definition>
+        <argsstring>(MprCond *cond, int timeout)</argsstring>
+        <name>mprWaitForCond</name>
+        <param>
+          <type><ref refid="struct_mpr_cond" kindref="compound">MprCond</ref> *</type>
+          <declname>cond</declname>
+        </param>
+        <param>
+          <type>int</type>
+          <declname>timeout</declname>
+        </param>
+        <briefdescription>
+<para>Wait for a condition lock variable. </para>        </briefdescription>
+        <detaileddescription>
+<para><simplesect kind="par"><title><bold>Description</bold>:</title><para>Wait for a condition lock variable to be signaled. If the condition is signaled before the timeout expires this call will reset the condition variable and return. This way, it automatically resets the variable for future waiters. </para></simplesect>
+<parameterlist kind="param"><parameteritem>
+<parameternamelist>
+<parametername>cond</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>Condition variable object created via <ref refid="group___mpr_synch_1g30046b7108565283ac168c6a90739a3f" kindref="member">mprCreateCond</ref> </para></parameterdescription>
+</parameteritem>
+<parameteritem>
+<parameternamelist>
+<parametername>timeout</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>Time in milliseconds to wait for the condition variable to be signaled. </para></parameterdescription>
+</parameteritem>
+</parameterlist>
+<simplesect kind="return"><para>Zero if the event was signalled. Returns &lt; 0 for a timeout. </para></simplesect>
+</para>        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/mob/hg/mpr/all/mpr.h" line="4149"/>
+      </memberdef>
+      <memberdef kind="function" id="group___mpr_synch_1g4ce11896445416406d85d4d7a18bac7e" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type>int</type>
+        <definition>int mprWaitForCondWithService</definition>
+        <argsstring>(MprCond *cond, int timeout)</argsstring>
+        <name>mprWaitForCondWithService</name>
+        <param>
+          <type><ref refid="struct_mpr_cond" kindref="compound">MprCond</ref> *</type>
+          <declname>cond</declname>
+        </param>
+        <param>
+          <type>int</type>
+          <declname>timeout</declname>
+        </param>
+        <briefdescription>
+<para>Wait for a condition lock variable and pump events while waiting. </para>        </briefdescription>
+        <detaileddescription>
+<para><simplesect kind="par"><title><bold>Description</bold>:</title><para>Wait for a condition lock variable to be signaled. If the condition is signaled before the timeout expires this call will reset the condition variable and return. This way, it automatically resets the variable for future waiters. </para></simplesect>
+<parameterlist kind="param"><parameteritem>
+<parameternamelist>
+<parametername>cond</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>Condition variable object created via <ref refid="group___mpr_synch_1g30046b7108565283ac168c6a90739a3f" kindref="member">mprCreateCond</ref> </para></parameterdescription>
+</parameteritem>
+<parameteritem>
+<parameternamelist>
+<parametername>timeout</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>Time in milliseconds to wait for the condition variable to be signaled. </para></parameterdescription>
+</parameteritem>
+</parameterlist>
+<simplesect kind="return"><para>Zero if the event was signalled. Returns &lt; 0 for a timeout. </para></simplesect>
+</para>        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/mob/hg/mpr/all/mpr.h" line="4161"/>
+      </memberdef>
+      </sectiondef>
+    <briefdescription>
+<para>Multithreaded Synchronization Services. </para>    </briefdescription>
+    <detaileddescription>
+<para><simplesect kind="see"><para><ref refid="struct_mpr_mutex" kindref="compound">MprMutex</ref>, mprCreateStaticLock, <ref refid="group___mpr_mem_1g6d2fdfc4a34dc8ef4e7172fbcf977045" kindref="member">mprFree</ref>, <ref refid="group___mpr_synch_1gd193cb5549a1101dc17177f046144ede" kindref="member">mprLock</ref>, <ref refid="group___mpr_synch_1g2b3b8e824b92499192ea48512e31c26d" kindref="member">mprTryLock</ref>, <ref refid="group___mpr_synch_1g40a516fe58b4b2998852cd0c853027ad" kindref="member">mprUnlock</ref>, <ref refid="group___mpr_synch_1g934273252bb4202c8adeb9d8841769a4" kindref="member">mprGlobalLock</ref>, <ref refid="group___mpr_synch_1g9af03d596ad19cd7974d85d82a8c27ca" kindref="member">mprGlobalUnlock</ref>, <ref refid="struct_mpr_spin" kindref="compound">MprSpin</ref>, <ref refid="group___mpr_synch_1ge63f87a8d093d294bd1ce6747cbb42ec" kindref="member">mprCreateSpinLock</ref>, <ref refid="struct_mpr_cond" kindref="compound">MprCond</ref>, <ref refid="group___mpr_synch_1g30046b7108565283ac168c6a90739a3f" kindref="member">mprCreateCond</ref>, <ref refid="group___mpr_synch_1g38ffd872f11254b3ca0a14e0388d98b5" kindref="member">mprWaitForCond</ref>, <ref refid="group___mpr_synch_1gb014329886bcb9a8cb9b970afc30378b" kindref="member">mprSignalCond</ref>, <ref refid="group___mpr_mem_1g6d2fdfc4a34dc8ef4e7172fbcf977045" kindref="member">mprFree</ref> </para></simplesect>
+<simplesect kind="par"><title><bold>API</bold> Stability:</title><para>Evolving. </para></simplesect>
+</para>    </detaileddescription>
+  </compounddef>
+</doxygen>

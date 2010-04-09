@@ -1,0 +1,83 @@
+<?xml version='1.0' encoding='UTF-8' standalone='no'?>
+<doxygen xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="compound.xsd" version="1.5.8">
+  <compounddef id="struct_mpr_thread_service" kind="struct" prot="public">
+    <compoundname>MprThreadService</compoundname>
+      <sectiondef kind="public-attrib">
+      <memberdef kind="variable" id="struct_mpr_thread_service_1fa377fab1e440a5e2c24214d5c6f8dde" prot="public" static="no" mutable="no">
+        <type>struct MprThread *</type>
+        <definition>struct MprThread* MprThreadService::mainThread</definition>
+        <argsstring></argsstring>
+        <name>mainThread</name>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/mob/hg/mpr/all/mpr.h" line="4386" bodyfile="/Users/mob/hg/mpr/all/mpr.h" bodystart="4386" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="variable" id="struct_mpr_thread_service_1f804f049bfcfd5921f4e6bf9b5b5cdfb" prot="public" static="no" mutable="no">
+        <type><ref refid="struct_mpr_mutex" kindref="compound">MprMutex</ref> *</type>
+        <definition>MprMutex* MprThreadService::mutex</definition>
+        <argsstring></argsstring>
+        <name>mutex</name>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/mob/hg/mpr/all/mpr.h" line="4387" bodyfile="/Users/mob/hg/mpr/all/mpr.h" bodystart="4387" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="variable" id="struct_mpr_thread_service_140107f177176ea3c35d69b6bc7729a7c" prot="public" static="no" mutable="no">
+        <type>int</type>
+        <definition>int MprThreadService::stackSize</definition>
+        <argsstring></argsstring>
+        <name>stackSize</name>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/mob/hg/mpr/all/mpr.h" line="4388" bodyfile="/Users/mob/hg/mpr/all/mpr.h" bodystart="4388" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="variable" id="struct_mpr_thread_service_159fe82165fe8e11acfcfaba93a1c7160" prot="public" static="no" mutable="no">
+        <type>MprList *</type>
+        <definition>MprList* MprThreadService::threads</definition>
+        <argsstring></argsstring>
+        <name>threads</name>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/mob/hg/mpr/all/mpr.h" line="4385" bodyfile="/Users/mob/hg/mpr/all/mpr.h" bodystart="4385" bodyend="-1"/>
+      </memberdef>
+      </sectiondef>
+    <briefdescription>
+    </briefdescription>
+    <detaileddescription>
+    </detaileddescription>
+    <collaborationgraph>
+      <node id="110">
+        <label>MprThreadService</label>
+        <childnode refid="111" relation="usage">
+          <edgelabel>mutex</edgelabel>
+        </childnode>
+      </node>
+      <node id="111">
+        <label>MprMutex</label>
+        <link refid="struct_mpr_mutex"/>
+      </node>
+    </collaborationgraph>
+    <location file="/Users/mob/hg/mpr/all/mpr.h" line="4384" bodyfile="/Users/mob/hg/mpr/all/mpr.h" bodystart="4384" bodyend="4389"/>
+    <listofallmembers>
+      <member refid="struct_mpr_thread_service_1fa377fab1e440a5e2c24214d5c6f8dde" prot="public" virt="non-virtual"><scope>MprThreadService</scope><name>mainThread</name></member>
+      <member refid="struct_mpr_thread_service_1f804f049bfcfd5921f4e6bf9b5b5cdfb" prot="public" virt="non-virtual"><scope>MprThreadService</scope><name>mutex</name></member>
+      <member refid="struct_mpr_thread_service_140107f177176ea3c35d69b6bc7729a7c" prot="public" virt="non-virtual"><scope>MprThreadService</scope><name>stackSize</name></member>
+      <member refid="struct_mpr_thread_service_159fe82165fe8e11acfcfaba93a1c7160" prot="public" virt="non-virtual"><scope>MprThreadService</scope><name>threads</name></member>
+    </listofallmembers>
+  </compounddef>
+</doxygen>

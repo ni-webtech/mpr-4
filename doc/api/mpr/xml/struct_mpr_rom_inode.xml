@@ -1,0 +1,71 @@
+<?xml version='1.0' encoding='UTF-8' standalone='no'?>
+<doxygen xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="compound.xsd" version="1.5.8">
+  <compounddef id="struct_mpr_rom_inode" kind="struct" prot="public">
+    <compoundname>MprRomInode</compoundname>
+      <sectiondef kind="public-attrib">
+      <memberdef kind="variable" id="struct_mpr_rom_inode_1715a39717f6c4a2b884b38846085aa98" prot="public" static="no" mutable="no">
+        <type>uchar *</type>
+        <definition>uchar* MprRomInode::data</definition>
+        <argsstring></argsstring>
+        <name>data</name>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/mob/hg/mpr/all/mpr.h" line="2980" bodyfile="/Users/mob/hg/mpr/all/mpr.h" bodystart="2980" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="variable" id="struct_mpr_rom_inode_1fe5ef901e2dfdb1c26a67660d812943e" prot="public" static="no" mutable="no">
+        <type>int</type>
+        <definition>int MprRomInode::num</definition>
+        <argsstring></argsstring>
+        <name>num</name>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/mob/hg/mpr/all/mpr.h" line="2982" bodyfile="/Users/mob/hg/mpr/all/mpr.h" bodystart="2982" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="variable" id="struct_mpr_rom_inode_1fa7ff319c35c23b7c48aa224de9801b8" prot="public" static="no" mutable="no">
+        <type>char *</type>
+        <definition>char* MprRomInode::path</definition>
+        <argsstring></argsstring>
+        <name>path</name>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/mob/hg/mpr/all/mpr.h" line="2979" bodyfile="/Users/mob/hg/mpr/all/mpr.h" bodystart="2979" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="variable" id="struct_mpr_rom_inode_126a709911c0d9140d5bff025433ffd6f" prot="public" static="no" mutable="no">
+        <type>int</type>
+        <definition>int MprRomInode::size</definition>
+        <argsstring></argsstring>
+        <name>size</name>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/mob/hg/mpr/all/mpr.h" line="2981" bodyfile="/Users/mob/hg/mpr/all/mpr.h" bodystart="2981" bodyend="-1"/>
+      </memberdef>
+      </sectiondef>
+    <briefdescription>
+    </briefdescription>
+    <detaileddescription>
+    </detaileddescription>
+    <location file="/Users/mob/hg/mpr/all/mpr.h" line="2978" bodyfile="/Users/mob/hg/mpr/all/mpr.h" bodystart="2978" bodyend="2983"/>
+    <listofallmembers>
+      <member refid="struct_mpr_rom_inode_1715a39717f6c4a2b884b38846085aa98" prot="public" virt="non-virtual"><scope>MprRomInode</scope><name>data</name></member>
+      <member refid="struct_mpr_rom_inode_1fe5ef901e2dfdb1c26a67660d812943e" prot="public" virt="non-virtual"><scope>MprRomInode</scope><name>num</name></member>
+      <member refid="struct_mpr_rom_inode_1fa7ff319c35c23b7c48aa224de9801b8" prot="public" virt="non-virtual"><scope>MprRomInode</scope><name>path</name></member>
+      <member refid="struct_mpr_rom_inode_126a709911c0d9140d5bff025433ffd6f" prot="public" virt="non-virtual"><scope>MprRomInode</scope><name>size</name></member>
+    </listofallmembers>
+  </compounddef>
+</doxygen>

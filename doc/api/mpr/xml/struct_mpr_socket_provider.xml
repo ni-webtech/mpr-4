@@ -1,0 +1,183 @@
+<?xml version='1.0' encoding='UTF-8' standalone='no'?>
+<doxygen xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="compound.xsd" version="1.5.8">
+  <compounddef id="struct_mpr_socket_provider" kind="struct" prot="public">
+    <compoundname>MprSocketProvider</compoundname>
+      <sectiondef kind="public-attrib">
+      <memberdef kind="variable" id="struct_mpr_socket_provider_1fbafe7aed5f20fd3ed24422e38f7abc7" prot="public" static="no" mutable="no">
+        <type>struct MprSocket *(*</type>
+        <definition>struct MprSocket*(* MprSocketProvider::acceptSocket)(struct MprSocket *sp)</definition>
+        <argsstring>)(struct MprSocket *sp)</argsstring>
+        <name>acceptSocket</name>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/mob/hg/mpr/all/mpr.h" line="5540"/>
+      </memberdef>
+      <memberdef kind="variable" id="struct_mpr_socket_provider_1ded64f17c78f062c261e5cca3c04828b" prot="public" static="no" mutable="no">
+        <type>void(*</type>
+        <definition>void(* MprSocketProvider::closeSocket)(struct MprSocket *socket, bool gracefully)</definition>
+        <argsstring>)(struct MprSocket *socket, bool gracefully)</argsstring>
+        <name>closeSocket</name>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/mob/hg/mpr/all/mpr.h" line="5541"/>
+      </memberdef>
+      <memberdef kind="variable" id="struct_mpr_socket_provider_16ccbcb946fe5eb1140bf44c518854c68" prot="public" static="no" mutable="no">
+        <type>int(*</type>
+        <definition>int(* MprSocketProvider::configureSsl)(struct MprSsl *ssl)</definition>
+        <argsstring>)(struct MprSsl *ssl)</argsstring>
+        <name>configureSsl</name>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/mob/hg/mpr/all/mpr.h" line="5542"/>
+      </memberdef>
+      <memberdef kind="variable" id="struct_mpr_socket_provider_124c4080ea1a58e46277e8bb4cb3f30cf" prot="public" static="no" mutable="no">
+        <type>int(*</type>
+        <definition>int(* MprSocketProvider::connectSocket)(struct MprSocket *socket, cchar *host, int port, int flags)</definition>
+        <argsstring>)(struct MprSocket *socket, cchar *host, int port, int flags)</argsstring>
+        <name>connectSocket</name>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/mob/hg/mpr/all/mpr.h" line="5543"/>
+      </memberdef>
+      <memberdef kind="variable" id="struct_mpr_socket_provider_148d8ba3ddc0e0ec4fc0229b685488544" prot="public" static="no" mutable="no">
+        <type>struct MprSocket *(*</type>
+        <definition>struct MprSocket*(* MprSocketProvider::createSocket)(MprCtx ctx, struct MprSsl *ssl)</definition>
+        <argsstring>)(MprCtx ctx, struct MprSsl *ssl)</argsstring>
+        <name>createSocket</name>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/mob/hg/mpr/all/mpr.h" line="5544"/>
+      </memberdef>
+      <memberdef kind="variable" id="struct_mpr_socket_provider_17d2b621446af721bf92d1689271ead05" prot="public" static="no" mutable="no">
+        <type>struct MprSsl *</type>
+        <definition>struct MprSsl* MprSocketProvider::defaultSsl</definition>
+        <argsstring></argsstring>
+        <name>defaultSsl</name>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/mob/hg/mpr/all/mpr.h" line="5538" bodyfile="/Users/mob/hg/mpr/all/mpr.h" bodystart="5538" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="variable" id="struct_mpr_socket_provider_1c8aa15227276dfe7ee6ed9a22c79cb10" prot="public" static="no" mutable="no">
+        <type>void(*</type>
+        <definition>void(* MprSocketProvider::disconnectSocket)(struct MprSocket *socket)</definition>
+        <argsstring>)(struct MprSocket *socket)</argsstring>
+        <name>disconnectSocket</name>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/mob/hg/mpr/all/mpr.h" line="5545"/>
+      </memberdef>
+      <memberdef kind="variable" id="struct_mpr_socket_provider_145023cbb3dfe4643bedc0f81c8bf5d7a" prot="public" static="no" mutable="no">
+        <type>int(*</type>
+        <definition>int(* MprSocketProvider::flushSocket)(struct MprSocket *socket)</definition>
+        <argsstring>)(struct MprSocket *socket)</argsstring>
+        <name>flushSocket</name>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/mob/hg/mpr/all/mpr.h" line="5546"/>
+      </memberdef>
+      <memberdef kind="variable" id="struct_mpr_socket_provider_15f5f472032241c6500e9255e712bdf96" prot="public" static="no" mutable="no">
+        <type>int(*</type>
+        <definition>int(* MprSocketProvider::listenSocket)(struct MprSocket *socket, cchar *host, int port, int flags)</definition>
+        <argsstring>)(struct MprSocket *socket, cchar *host, int port, int flags)</argsstring>
+        <name>listenSocket</name>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/mob/hg/mpr/all/mpr.h" line="5547"/>
+      </memberdef>
+      <memberdef kind="variable" id="struct_mpr_socket_provider_177ef1555eb51ccad4657fdfb7254125c" prot="public" static="no" mutable="no">
+        <type>cchar *</type>
+        <definition>cchar* MprSocketProvider::name</definition>
+        <argsstring></argsstring>
+        <name>name</name>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/mob/hg/mpr/all/mpr.h" line="5536" bodyfile="/Users/mob/hg/mpr/all/mpr.h" bodystart="5536" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="variable" id="struct_mpr_socket_provider_15405fb4c8e5d910cf94f7e81b9e65eb3" prot="public" static="no" mutable="no">
+        <type>int(*</type>
+        <definition>int(* MprSocketProvider::readSocket)(struct MprSocket *socket, void *buf, int len)</definition>
+        <argsstring>)(struct MprSocket *socket, void *buf, int len)</argsstring>
+        <name>readSocket</name>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/mob/hg/mpr/all/mpr.h" line="5548"/>
+      </memberdef>
+      <memberdef kind="variable" id="struct_mpr_socket_provider_1d09a98b1018a323530951cdfab89aa3a" prot="public" static="no" mutable="no">
+        <type>int(*</type>
+        <definition>int(* MprSocketProvider::writeSocket)(struct MprSocket *socket, void *buf, int len)</definition>
+        <argsstring>)(struct MprSocket *socket, void *buf, int len)</argsstring>
+        <name>writeSocket</name>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/mob/hg/mpr/all/mpr.h" line="5549"/>
+      </memberdef>
+      </sectiondef>
+    <briefdescription>
+    </briefdescription>
+    <detaileddescription>
+    </detaileddescription>
+    <location file="/Users/mob/hg/mpr/all/mpr.h" line="5535" bodyfile="/Users/mob/hg/mpr/all/mpr.h" bodystart="5535" bodyend="5550"/>
+    <listofallmembers>
+      <member refid="struct_mpr_socket_provider_1fbafe7aed5f20fd3ed24422e38f7abc7" prot="public" virt="non-virtual"><scope>MprSocketProvider</scope><name>acceptSocket</name></member>
+      <member refid="struct_mpr_socket_provider_1ded64f17c78f062c261e5cca3c04828b" prot="public" virt="non-virtual"><scope>MprSocketProvider</scope><name>closeSocket</name></member>
+      <member refid="struct_mpr_socket_provider_16ccbcb946fe5eb1140bf44c518854c68" prot="public" virt="non-virtual"><scope>MprSocketProvider</scope><name>configureSsl</name></member>
+      <member refid="struct_mpr_socket_provider_124c4080ea1a58e46277e8bb4cb3f30cf" prot="public" virt="non-virtual"><scope>MprSocketProvider</scope><name>connectSocket</name></member>
+      <member refid="struct_mpr_socket_provider_148d8ba3ddc0e0ec4fc0229b685488544" prot="public" virt="non-virtual"><scope>MprSocketProvider</scope><name>createSocket</name></member>
+      <member refid="struct_mpr_socket_provider_17d2b621446af721bf92d1689271ead05" prot="public" virt="non-virtual"><scope>MprSocketProvider</scope><name>defaultSsl</name></member>
+      <member refid="struct_mpr_socket_provider_1c8aa15227276dfe7ee6ed9a22c79cb10" prot="public" virt="non-virtual"><scope>MprSocketProvider</scope><name>disconnectSocket</name></member>
+      <member refid="struct_mpr_socket_provider_145023cbb3dfe4643bedc0f81c8bf5d7a" prot="public" virt="non-virtual"><scope>MprSocketProvider</scope><name>flushSocket</name></member>
+      <member refid="struct_mpr_socket_provider_15f5f472032241c6500e9255e712bdf96" prot="public" virt="non-virtual"><scope>MprSocketProvider</scope><name>listenSocket</name></member>
+      <member refid="struct_mpr_socket_provider_177ef1555eb51ccad4657fdfb7254125c" prot="public" virt="non-virtual"><scope>MprSocketProvider</scope><name>name</name></member>
+      <member refid="struct_mpr_socket_provider_15405fb4c8e5d910cf94f7e81b9e65eb3" prot="public" virt="non-virtual"><scope>MprSocketProvider</scope><name>readSocket</name></member>
+      <member refid="struct_mpr_socket_provider_1d09a98b1018a323530951cdfab89aa3a" prot="public" virt="non-virtual"><scope>MprSocketProvider</scope><name>writeSocket</name></member>
+    </listofallmembers>
+  </compounddef>
+</doxygen>

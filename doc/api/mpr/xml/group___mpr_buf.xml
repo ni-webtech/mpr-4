@@ -1,0 +1,1180 @@
+<?xml version='1.0' encoding='UTF-8' standalone='no'?>
+<doxygen xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="compound.xsd" version="1.5.8">
+  <compounddef id="group___mpr_buf" kind="group">
+    <compoundname>MprBuf</compoundname>
+    <title>MprBuf</title>
+      <sectiondef kind="typedef">
+      <memberdef kind="typedef" id="group___mpr_buf_1ga0f2f003728ef5bb244fdabe2edc56f7" prot="public" static="no">
+        <type>int(*</type>
+        <definition>typedef int(* MprBufProc)(struct MprBuf *bp, void *arg)</definition>
+        <argsstring>)(struct MprBuf *bp, void *arg)</argsstring>
+        <name>MprBufProc</name>
+        <briefdescription>
+<para>Buffer refill callback function. </para>        </briefdescription>
+        <detaileddescription>
+<para><simplesect kind="par"><title><bold>Description</bold>:</title><para>Function to call when the buffer is depleted and needs more data. </para></simplesect>
+<parameterlist kind="param"><parameteritem>
+<parameternamelist>
+<parametername>buf</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>Instance of an MprBuf </para></parameterdescription>
+</parameteritem>
+<parameteritem>
+<parameternamelist>
+<parametername>arg</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>Data argument supplied to <ref refid="group___mpr_buf_1g7f74f8c3d5af9db8c064b365f39cae2c" kindref="member">mprSetBufRefillProc</ref> </para></parameterdescription>
+</parameteritem>
+</parameterlist>
+<simplesect kind="return"><para>The callback should return 0 if successful, otherwise a negative error code. </para></simplesect>
+</para>        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/mob/hg/mpr/all/mpr.h" line="1861" bodyfile="/Users/mob/hg/mpr/all/mpr.h" bodystart="1861" bodyend="-1"/>
+      </memberdef>
+      </sectiondef>
+      <sectiondef kind="func">
+      <memberdef kind="function" id="group___mpr_buf_1g159c096de4aec192e25b275f1f5e031d" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type>void</type>
+        <definition>void mprAddNullToBuf</definition>
+        <argsstring>(MprBuf *buf)</argsstring>
+        <name>mprAddNullToBuf</name>
+        <param>
+          <type>MprBuf *</type>
+          <declname>buf</declname>
+        </param>
+        <briefdescription>
+<para>Add a null character to the buffer contents. </para>        </briefdescription>
+        <detaileddescription>
+<para><simplesect kind="par"><title><bold>Description</bold>:</title><para>Add a null byte but do not change the buffer content lengths. The null is added outside the &quot;official&quot; content length. This is useful when calling <ref refid="group___mpr_buf_1gc982291efef3d49cce4bc2ecec6566e5" kindref="member">mprGetBufStart</ref> and using the returned pointer as a &quot;C&quot; string pointer. </para></simplesect>
+<parameterlist kind="param"><parameteritem>
+<parameternamelist>
+<parametername>buf</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>Buffer created via mprCreateBuf </para></parameterdescription>
+</parameteritem>
+</parameterlist>
+</para>        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/mob/hg/mpr/all/mpr.h" line="1935"/>
+      </memberdef>
+      <memberdef kind="function" id="group___mpr_buf_1g61c8f33c54c45ad4d6bf33d8d72543c1" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type>void</type>
+        <definition>void mprAdjustBufEnd</definition>
+        <argsstring>(MprBuf *buf, int count)</argsstring>
+        <name>mprAdjustBufEnd</name>
+        <param>
+          <type>MprBuf *</type>
+          <declname>buf</declname>
+        </param>
+        <param>
+          <type>int</type>
+          <declname>count</declname>
+        </param>
+        <briefdescription>
+<para>Adjust the buffer end position. </para>        </briefdescription>
+        <detaileddescription>
+<para><simplesect kind="par"><title><bold>Description</bold>:</title><para>Adjust the buffer start end position by the specified amount. This is typically used to advance the end position as content is appended to the buffer. Adjusting the start or end position will change the value returned by <ref refid="group___mpr_buf_1g4d39e8467818e491ecec68a4db8df054" kindref="member">mprGetBufLength</ref>. If using the mprPutBlock or mprPutChar routines, adjusting the end position is done automatically. </para></simplesect>
+<parameterlist kind="param"><parameteritem>
+<parameternamelist>
+<parametername>buf</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>Buffer created via mprCreateBuf </para></parameterdescription>
+</parameteritem>
+<parameteritem>
+<parameternamelist>
+<parametername>count</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>Positive or negative count of bytes to adjust the start position. </para></parameterdescription>
+</parameteritem>
+</parameterlist>
+</para>        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/mob/hg/mpr/all/mpr.h" line="1959"/>
+      </memberdef>
+      <memberdef kind="function" id="group___mpr_buf_1g1fbe536bbdd8bc3f68a5246f69305994" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type>void</type>
+        <definition>void mprAdjustBufStart</definition>
+        <argsstring>(MprBuf *buf, int count)</argsstring>
+        <name>mprAdjustBufStart</name>
+        <param>
+          <type>MprBuf *</type>
+          <declname>buf</declname>
+        </param>
+        <param>
+          <type>int</type>
+          <declname>count</declname>
+        </param>
+        <briefdescription>
+<para>Adjust the buffer start position. </para>        </briefdescription>
+        <detaileddescription>
+<para><simplesect kind="par"><title><bold>Description</bold>:</title><para>Adjust the buffer start position by the specified amount. This is typically used to advance the start position as content is consumed. Adjusting the start or end position will change the value returned by <ref refid="group___mpr_buf_1g4d39e8467818e491ecec68a4db8df054" kindref="member">mprGetBufLength</ref>. If using the mprGetBlock or mprGetChar routines, adjusting the start position is done automatically. </para></simplesect>
+<parameterlist kind="param"><parameteritem>
+<parameternamelist>
+<parametername>buf</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>Buffer created via mprCreateBuf </para></parameterdescription>
+</parameteritem>
+<parameteritem>
+<parameternamelist>
+<parametername>count</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>Positive or negative count of bytes to adjust the start position. </para></parameterdescription>
+</parameteritem>
+</parameterlist>
+</para>        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/mob/hg/mpr/all/mpr.h" line="1947"/>
+      </memberdef>
+      <memberdef kind="function" id="group___mpr_buf_1gab2501188e2f3f59008f8f27e14732e9" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type>void</type>
+        <definition>void mprCompactBuf</definition>
+        <argsstring>(MprBuf *buf)</argsstring>
+        <name>mprCompactBuf</name>
+        <param>
+          <type>MprBuf *</type>
+          <declname>buf</declname>
+        </param>
+        <briefdescription>
+<para>Compact the buffer contents. </para>        </briefdescription>
+        <detaileddescription>
+<para><simplesect kind="par"><title><bold>Description</bold>:</title><para>Compact the buffer contents by copying the contents down to start the the buffer origin. </para></simplesect>
+<parameterlist kind="param"><parameteritem>
+<parameternamelist>
+<parametername>buf</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>Buffer created via mprCreateBuf </para></parameterdescription>
+</parameteritem>
+</parameterlist>
+</para>        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/mob/hg/mpr/all/mpr.h" line="1967"/>
+      </memberdef>
+      <memberdef kind="function" id="group___mpr_buf_1ga2d850779c9881637028fcf54a1ebe30" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type>MprBuf *</type>
+        <definition>MprBuf* mprCreateBuf</definition>
+        <argsstring>(MprCtx ctx, int initialSize, int maxSize)</argsstring>
+        <name>mprCreateBuf</name>
+        <param>
+          <type><ref refid="group___mpr_mem_1g1413d66bb5356730c6fa08ca0af6bc0f" kindref="member">MprCtx</ref></type>
+          <declname>ctx</declname>
+        </param>
+        <param>
+          <type>int</type>
+          <declname>initialSize</declname>
+        </param>
+        <param>
+          <type>int</type>
+          <declname>maxSize</declname>
+        </param>
+        <briefdescription>
+<para>Create a new buffer. </para>        </briefdescription>
+        <detaileddescription>
+<para><simplesect kind="par"><title><bold>Description</bold>:</title><para>Create a new buffer. Use mprFree to free the buffer </para></simplesect>
+<parameterlist kind="param"><parameteritem>
+<parameternamelist>
+<parametername>ctx</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>Any memory context allocated by the MPR </para></parameterdescription>
+</parameteritem>
+<parameteritem>
+<parameternamelist>
+<parametername>initialSize</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>Initial size of the buffer </para></parameterdescription>
+</parameteritem>
+<parameteritem>
+<parameternamelist>
+<parametername>maxSize</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>Maximum size the buffer can grow to </para></parameterdescription>
+</parameteritem>
+</parameterlist>
+<simplesect kind="return"><para>a new buffer </para></simplesect>
+</para>        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/mob/hg/mpr/all/mpr.h" line="1903"/>
+      </memberdef>
+      <memberdef kind="function" id="group___mpr_buf_1g453b62a6659fc9fa4d041165dad7461e" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type>void</type>
+        <definition>void mprFlushBuf</definition>
+        <argsstring>(MprBuf *buf)</argsstring>
+        <name>mprFlushBuf</name>
+        <param>
+          <type>MprBuf *</type>
+          <declname>buf</declname>
+        </param>
+        <briefdescription>
+<para>Flush the buffer contents. </para>        </briefdescription>
+        <detaileddescription>
+<para><simplesect kind="par"><title><bold>Description</bold>:</title><para>Discard the buffer contents and reset the start end content pointers. </para></simplesect>
+<parameterlist kind="param"><parameteritem>
+<parameternamelist>
+<parametername>buf</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>Buffer created via mprCreateBuf </para></parameterdescription>
+</parameteritem>
+</parameterlist>
+</para>        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/mob/hg/mpr/all/mpr.h" line="1975"/>
+      </memberdef>
+      <memberdef kind="function" id="group___mpr_buf_1g3a1388925b9ab4a209b0610cd674139f" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type>int</type>
+        <definition>int mprGetBlockFromBuf</definition>
+        <argsstring>(MprBuf *buf, char *blk, int count)</argsstring>
+        <name>mprGetBlockFromBuf</name>
+        <param>
+          <type>MprBuf *</type>
+          <declname>buf</declname>
+        </param>
+        <param>
+          <type>char *</type>
+          <declname>blk</declname>
+        </param>
+        <param>
+          <type>int</type>
+          <declname>count</declname>
+        </param>
+        <briefdescription>
+<para>Get a block of data from the buffer. </para>        </briefdescription>
+        <detaileddescription>
+<para><simplesect kind="par"><title><bold>Description</bold>:</title><para>Get a block of data from the buffer start and advance the start position. If the requested length is greater than the available buffer content, then return whatever data is available. </para></simplesect>
+<parameterlist kind="param"><parameteritem>
+<parameternamelist>
+<parametername>buf</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>Buffer created via mprCreateBuf </para></parameterdescription>
+</parameteritem>
+<parameteritem>
+<parameternamelist>
+<parametername>blk</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>Destination block for the read data. </para></parameterdescription>
+</parameteritem>
+<parameteritem>
+<parameternamelist>
+<parametername>count</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>Count of bytes to read from the buffer. </para></parameterdescription>
+</parameteritem>
+</parameterlist>
+<simplesect kind="return"><para>The count of bytes rread into the block or -1 if the buffer is empty. </para></simplesect>
+</para>        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/mob/hg/mpr/all/mpr.h" line="1996"/>
+      </memberdef>
+      <memberdef kind="function" id="group___mpr_buf_1gbd1fae7a41a8c38220de4f06e6d0e053" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type>char *</type>
+        <definition>char* mprGetBufEnd</definition>
+        <argsstring>(MprBuf *buf)</argsstring>
+        <name>mprGetBufEnd</name>
+        <param>
+          <type>MprBuf *</type>
+          <declname>buf</declname>
+        </param>
+        <briefdescription>
+<para>Get a reference to the end of the buffer contents. </para>        </briefdescription>
+        <detaileddescription>
+<para><simplesect kind="par"><title><bold>Description</bold>:</title><para>Get a pointer to the location immediately after the end of the buffer contents. </para></simplesect>
+<parameterlist kind="param"><parameteritem>
+<parameternamelist>
+<parametername>buf</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>Buffer created via mprCreateBuf </para></parameterdescription>
+</parameteritem>
+</parameterlist>
+<simplesect kind="return"><para>Pointer to the end of the buffer data contents. Points to the location one after the last data byte. </para></simplesect>
+</para>        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/mob/hg/mpr/all/mpr.h" line="2053"/>
+      </memberdef>
+      <memberdef kind="function" id="group___mpr_buf_1g4d39e8467818e491ecec68a4db8df054" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type>int</type>
+        <definition>int mprGetBufLength</definition>
+        <argsstring>(MprBuf *buf)</argsstring>
+        <name>mprGetBufLength</name>
+        <param>
+          <type>MprBuf *</type>
+          <declname>buf</declname>
+        </param>
+        <briefdescription>
+<para>Get the buffer content length. </para>        </briefdescription>
+        <detaileddescription>
+<para><simplesect kind="par"><title><bold>Description</bold>:</title><para>Get the length of the buffer contents. This is not the same as the buffer size which may be larger. </para></simplesect>
+<parameterlist kind="param"><parameteritem>
+<parameternamelist>
+<parametername>buf</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>Buffer created via mprCreateBuf </para></parameterdescription>
+</parameteritem>
+</parameterlist>
+<simplesect kind="return"><para>The length of the content stored in the buffer. </para></simplesect>
+</para>        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/mob/hg/mpr/all/mpr.h" line="2005"/>
+      </memberdef>
+      <memberdef kind="function" id="group___mpr_buf_1g962aeff07a87ab52da3bcd1973fe801b" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type>char *</type>
+        <definition>char* mprGetBufOrigin</definition>
+        <argsstring>(MprBuf *buf)</argsstring>
+        <name>mprGetBufOrigin</name>
+        <param>
+          <type>MprBuf *</type>
+          <declname>buf</declname>
+        </param>
+        <briefdescription>
+<para>Get the origin of the buffer content storage. </para>        </briefdescription>
+        <detaileddescription>
+<para><simplesect kind="par"><title><bold>Description</bold>:</title><para>Get a pointer to the start of the buffer content storage. This may not be equal to the start of the buffer content if <ref refid="group___mpr_buf_1g1fbe536bbdd8bc3f68a5246f69305994" kindref="member">mprAdjustBufStart</ref> has been called. Use <ref refid="group___mpr_buf_1ga609f1dc4e3f8315949c4cf93e27aff1" kindref="member">mprGetBufSize</ref> to determine the length of the buffer content storage array. </para></simplesect>
+<parameterlist kind="param"><parameteritem>
+<parameternamelist>
+<parametername>buf</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>Buffer created via mprCreateBuf </para></parameterdescription>
+</parameteritem>
+</parameterlist>
+<simplesect kind="return"><para>A pointer to the buffer content storage. </para></simplesect>
+</para>        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/mob/hg/mpr/all/mpr.h" line="2016"/>
+      </memberdef>
+      <memberdef kind="function" id="group___mpr_buf_1g2791daeb72ae2e3f455250dfba72aa67" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type><ref refid="group___mpr_buf_1ga0f2f003728ef5bb244fdabe2edc56f7" kindref="member">MprBufProc</ref></type>
+        <definition>MprBufProc mprGetBufRefillProc</definition>
+        <argsstring>(MprBuf *buf)</argsstring>
+        <name>mprGetBufRefillProc</name>
+        <param>
+          <type>MprBuf *</type>
+          <declname>buf</declname>
+        </param>
+        <briefdescription>
+<para>Get the buffer refill procedure. </para>        </briefdescription>
+        <detaileddescription>
+<para><simplesect kind="par"><title><bold>Description</bold>:</title><para>Return the buffer refill callback function. </para></simplesect>
+<parameterlist kind="param"><parameteritem>
+<parameternamelist>
+<parametername>buf</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>Buffer created via mprCreateBuf </para></parameterdescription>
+</parameteritem>
+</parameterlist>
+<simplesect kind="return"><para>The refill call back function if defined. </para></simplesect>
+</para>        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/mob/hg/mpr/all/mpr.h" line="2210"/>
+      </memberdef>
+      <memberdef kind="function" id="group___mpr_buf_1ga609f1dc4e3f8315949c4cf93e27aff1" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type>int</type>
+        <definition>int mprGetBufSize</definition>
+        <argsstring>(MprBuf *buf)</argsstring>
+        <name>mprGetBufSize</name>
+        <param>
+          <type>MprBuf *</type>
+          <declname>buf</declname>
+        </param>
+        <briefdescription>
+<para>Get the current size of the buffer content storage. </para>        </briefdescription>
+        <detaileddescription>
+<para><simplesect kind="par"><title><bold>Description</bold>:</title><para>This returns the size of the memory block allocated for storing the buffer contents. </para></simplesect>
+<parameterlist kind="param"><parameteritem>
+<parameternamelist>
+<parametername>buf</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>Buffer created via mprCreateBuf </para></parameterdescription>
+</parameteritem>
+</parameterlist>
+<simplesect kind="return"><para>The size of the buffer content storage. </para></simplesect>
+</para>        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/mob/hg/mpr/all/mpr.h" line="2025"/>
+      </memberdef>
+      <memberdef kind="function" id="group___mpr_buf_1g6c6646d8f5933dfbf31983a374b491e7" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type>int</type>
+        <definition>int mprGetBufSpace</definition>
+        <argsstring>(MprBuf *buf)</argsstring>
+        <name>mprGetBufSpace</name>
+        <param>
+          <type>MprBuf *</type>
+          <declname>buf</declname>
+        </param>
+        <briefdescription>
+<para>Get the space available to store content. </para>        </briefdescription>
+        <detaileddescription>
+<para><simplesect kind="par"><title><bold>Description</bold>:</title><para>Get the number of bytes available to store content in the buffer </para></simplesect>
+<parameterlist kind="param"><parameteritem>
+<parameternamelist>
+<parametername>buf</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>Buffer created via mprCreateBuf </para></parameterdescription>
+</parameteritem>
+</parameterlist>
+<simplesect kind="return"><para>The number of bytes available </para></simplesect>
+</para>        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/mob/hg/mpr/all/mpr.h" line="2034"/>
+      </memberdef>
+      <memberdef kind="function" id="group___mpr_buf_1gc982291efef3d49cce4bc2ecec6566e5" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type>char *</type>
+        <definition>char* mprGetBufStart</definition>
+        <argsstring>(MprBuf *buf)</argsstring>
+        <name>mprGetBufStart</name>
+        <param>
+          <type>MprBuf *</type>
+          <declname>buf</declname>
+        </param>
+        <briefdescription>
+<para>Get the start of the buffer contents. </para>        </briefdescription>
+        <detaileddescription>
+<para><simplesect kind="par"><title><bold>Description</bold>:</title><para>Get a pointer to the start of the buffer contents. Use <ref refid="group___mpr_buf_1g4d39e8467818e491ecec68a4db8df054" kindref="member">mprGetBufLength</ref> to determine the length of the content. Use <ref refid="group___mpr_buf_1gbd1fae7a41a8c38220de4f06e6d0e053" kindref="member">mprGetBufEnd</ref> to get a pointer to the location after the end of the content. </para></simplesect>
+<parameterlist kind="param"><parameteritem>
+<parameternamelist>
+<parametername>buf</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>Buffer created via mprCreateBuf </para></parameterdescription>
+</parameteritem>
+</parameterlist>
+<simplesect kind="return"><para>Pointer to the start of the buffer data contents </para></simplesect>
+</para>        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/mob/hg/mpr/all/mpr.h" line="2044"/>
+      </memberdef>
+      <memberdef kind="function" id="group___mpr_buf_1gf128b71005bdd12507110e1f21b483d4" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type>int</type>
+        <definition>int mprGetCharFromBuf</definition>
+        <argsstring>(MprBuf *buf)</argsstring>
+        <name>mprGetCharFromBuf</name>
+        <param>
+          <type>MprBuf *</type>
+          <declname>buf</declname>
+        </param>
+        <briefdescription>
+<para>Get a character from the buffer. </para>        </briefdescription>
+        <detaileddescription>
+<para><simplesect kind="par"><title><bold>Description</bold>:</title><para>Get the next byte from the buffer start and advance the start position. </para></simplesect>
+<parameterlist kind="param"><parameteritem>
+<parameternamelist>
+<parametername>buf</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>Buffer created via mprCreateBuf </para></parameterdescription>
+</parameteritem>
+</parameterlist>
+<simplesect kind="return"><para>The character or -1 if the buffer is empty. </para></simplesect>
+</para>        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/mob/hg/mpr/all/mpr.h" line="1984"/>
+      </memberdef>
+      <memberdef kind="function" id="group___mpr_buf_1g6c40bdb62af47cbae761c6bfdc7da11b" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type>int</type>
+        <definition>int mprGrowBuf</definition>
+        <argsstring>(MprBuf *buf, int count)</argsstring>
+        <name>mprGrowBuf</name>
+        <param>
+          <type>MprBuf *</type>
+          <declname>buf</declname>
+        </param>
+        <param>
+          <type>int</type>
+          <declname>count</declname>
+        </param>
+        <briefdescription>
+<para>Grow the buffer. </para>        </briefdescription>
+        <detaileddescription>
+<para><simplesect kind="par"><title><bold>Description</bold>:</title><para>Grow the storage allocated for content for the buffer. The new size must be less than the maximum limit specified via <ref refid="group___mpr_buf_1ga2d850779c9881637028fcf54a1ebe30" kindref="member">mprCreateBuf</ref> or <ref refid="group___mpr_buf_1gb66fa4b1cc3c02e8808811b027d54898" kindref="member">mprSetBufSize</ref>. </para></simplesect>
+<parameterlist kind="param"><parameteritem>
+<parameternamelist>
+<parametername>buf</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>Buffer created via mprCreateBuf </para></parameterdescription>
+</parameteritem>
+<parameteritem>
+<parameternamelist>
+<parametername>count</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>Count of bytes by which to grow the buffer content size. </para></parameterdescription>
+</parameteritem>
+</parameterlist>
+<simplesect kind="return"><para>Zero if successful and otherwise a negative error code </para></simplesect>
+</para>        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/mob/hg/mpr/all/mpr.h" line="2064"/>
+      </memberdef>
+      <memberdef kind="function" id="group___mpr_buf_1g6f91b177cd36508c9d470636b04fa7b5" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type>int</type>
+        <definition>int mprInsertCharToBuf</definition>
+        <argsstring>(MprBuf *buf, int c)</argsstring>
+        <name>mprInsertCharToBuf</name>
+        <param>
+          <type>MprBuf *</type>
+          <declname>buf</declname>
+        </param>
+        <param>
+          <type>int</type>
+          <declname>c</declname>
+        </param>
+        <briefdescription>
+<para>Insert a character into the buffer. </para>        </briefdescription>
+        <detaileddescription>
+<para><simplesect kind="par"><title><bold>Description</bold>:</title><para>Insert a character into to the buffer prior to the current buffer start point. </para></simplesect>
+<parameterlist kind="param"><parameteritem>
+<parameternamelist>
+<parametername>buf</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>Buffer created via mprCreateBuf </para></parameterdescription>
+</parameteritem>
+<parameteritem>
+<parameternamelist>
+<parametername>c</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>Character to append. </para></parameterdescription>
+</parameteritem>
+</parameterlist>
+<simplesect kind="return"><para>Zero if successful and otherwise a negative error code </para></simplesect>
+</para>        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/mob/hg/mpr/all/mpr.h" line="2074"/>
+      </memberdef>
+      <memberdef kind="function" id="group___mpr_buf_1g9ae5abc2e8c8b3359ca450e505564359" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type>int</type>
+        <definition>int mprLookAtLastCharInBuf</definition>
+        <argsstring>(MprBuf *buf)</argsstring>
+        <name>mprLookAtLastCharInBuf</name>
+        <param>
+          <type>MprBuf *</type>
+          <declname>buf</declname>
+        </param>
+        <briefdescription>
+<para>Peek at the last character in the buffer. </para>        </briefdescription>
+        <detaileddescription>
+<para><simplesect kind="par"><title><bold>Description</bold>:</title><para>Non-destructively return the last character from just prior to the end position in the buffer. The character is returned and the end position is not altered. </para></simplesect>
+<parameterlist kind="param"><parameteritem>
+<parameternamelist>
+<parametername>buf</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>Buffer created via mprCreateBuf </para></parameterdescription>
+</parameteritem>
+</parameterlist>
+<simplesect kind="return"><para>Zero if successful and otherwise a negative error code </para></simplesect>
+</para>        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/mob/hg/mpr/all/mpr.h" line="2094"/>
+      </memberdef>
+      <memberdef kind="function" id="group___mpr_buf_1gbe01ab970d735db5a92cea5f9456de5e" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type>int</type>
+        <definition>int mprLookAtNextCharInBuf</definition>
+        <argsstring>(MprBuf *buf)</argsstring>
+        <name>mprLookAtNextCharInBuf</name>
+        <param>
+          <type>MprBuf *</type>
+          <declname>buf</declname>
+        </param>
+        <briefdescription>
+<para>Peek at the next character in the buffer. </para>        </briefdescription>
+        <detaileddescription>
+<para><simplesect kind="par"><title><bold>Description</bold>:</title><para>Non-destructively return the next character from the start position in the buffer. The character is returned and the start position is not altered. </para></simplesect>
+<parameterlist kind="param"><parameteritem>
+<parameternamelist>
+<parametername>buf</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>Buffer created via mprCreateBuf </para></parameterdescription>
+</parameteritem>
+</parameterlist>
+<simplesect kind="return"><para>Zero if successful and otherwise a negative error code </para></simplesect>
+</para>        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/mob/hg/mpr/all/mpr.h" line="2084"/>
+      </memberdef>
+      <memberdef kind="function" id="group___mpr_buf_1g3a8934d430c8345cd1e19b42173b1336" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type>int</type>
+        <definition>int mprPutBlockToBuf</definition>
+        <argsstring>(MprBuf *buf, cchar *ptr, int size)</argsstring>
+        <name>mprPutBlockToBuf</name>
+        <param>
+          <type>MprBuf *</type>
+          <declname>buf</declname>
+        </param>
+        <param>
+          <type>cchar *</type>
+          <declname>ptr</declname>
+        </param>
+        <param>
+          <type>int</type>
+          <declname>size</declname>
+        </param>
+        <briefdescription>
+<para>Put a block to the buffer. </para>        </briefdescription>
+        <detaileddescription>
+<para><simplesect kind="par"><title><bold>Description</bold>:</title><para>Append a block of data to the buffer at the end position and increment the end pointer. </para></simplesect>
+<parameterlist kind="param"><parameteritem>
+<parameternamelist>
+<parametername>buf</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>Buffer created via mprCreateBuf </para></parameterdescription>
+</parameteritem>
+<parameteritem>
+<parameternamelist>
+<parametername>ptr</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>Block to append </para></parameterdescription>
+</parameteritem>
+<parameteritem>
+<parameternamelist>
+<parametername>size</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>Size of block to append </para></parameterdescription>
+</parameteritem>
+</parameterlist>
+<simplesect kind="return"><para>Zero if successful and otherwise a negative error code </para></simplesect>
+</para>        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/mob/hg/mpr/all/mpr.h" line="2126"/>
+      </memberdef>
+      <memberdef kind="function" id="group___mpr_buf_1g5ab66b5d96db8b33e3bb0c3bbb9c90e2" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type>int</type>
+        <definition>int mprPutCharToBuf</definition>
+        <argsstring>(MprBuf *buf, int c)</argsstring>
+        <name>mprPutCharToBuf</name>
+        <param>
+          <type>MprBuf *</type>
+          <declname>buf</declname>
+        </param>
+        <param>
+          <type>int</type>
+          <declname>c</declname>
+        </param>
+        <briefdescription>
+<para>Put a character to the buffer. </para>        </briefdescription>
+        <detaileddescription>
+<para><simplesect kind="par"><title><bold>Description</bold>:</title><para>Append a character to the buffer at the end position and increment the end pointer. </para></simplesect>
+<parameterlist kind="param"><parameteritem>
+<parameternamelist>
+<parametername>buf</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>Buffer created via mprCreateBuf </para></parameterdescription>
+</parameteritem>
+<parameteritem>
+<parameternamelist>
+<parametername>c</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>Character to append </para></parameterdescription>
+</parameteritem>
+</parameterlist>
+<simplesect kind="return"><para>Zero if successful and otherwise a negative error code </para></simplesect>
+</para>        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/mob/hg/mpr/all/mpr.h" line="2104"/>
+      </memberdef>
+      <memberdef kind="function" id="group___mpr_buf_1g87bc8fae31c0dc3ffae2c7d4fb4aa49b" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type>int</type>
+        <definition>int mprPutFmtToBuf</definition>
+        <argsstring>(MprBuf *buf, cchar *fmt,...)</argsstring>
+        <name>mprPutFmtToBuf</name>
+        <param>
+          <type>MprBuf *</type>
+          <declname>buf</declname>
+        </param>
+        <param>
+          <type>cchar *</type>
+          <declname>fmt</declname>
+        </param>
+        <param>
+          <type>...</type>
+        </param>
+        <briefdescription>
+<para>Put a formatted string to the buffer. </para>        </briefdescription>
+        <detaileddescription>
+<para><simplesect kind="par"><title><bold>Description</bold>:</title><para>Format a string and Append to the buffer at the end position and increment the end pointer. </para></simplesect>
+<parameterlist kind="param"><parameteritem>
+<parameternamelist>
+<parametername>buf</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>Buffer created via mprCreateBuf </para></parameterdescription>
+</parameteritem>
+<parameteritem>
+<parameternamelist>
+<parametername>fmt</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>Printf style format string </para></parameterdescription>
+</parameteritem>
+<parameteritem>
+<parameternamelist>
+<parametername>...</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>Variable arguments for the format string </para></parameterdescription>
+</parameteritem>
+</parameterlist>
+<simplesect kind="return"><para>Zero if successful and otherwise a negative error code </para></simplesect>
+</para>        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/mob/hg/mpr/all/mpr.h" line="2168"/>
+      </memberdef>
+      <memberdef kind="function" id="group___mpr_buf_1g117b7d1d0a1b08b7395a2ad67a1a5ccc" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type>int</type>
+        <definition>int mprPutIntToBuf</definition>
+        <argsstring>(MprBuf *buf, int i)</argsstring>
+        <name>mprPutIntToBuf</name>
+        <param>
+          <type>MprBuf *</type>
+          <declname>buf</declname>
+        </param>
+        <param>
+          <type>int</type>
+          <declname>i</declname>
+        </param>
+        <briefdescription>
+<para>Put an integer to the buffer. </para>        </briefdescription>
+        <detaileddescription>
+<para><simplesect kind="par"><title><bold>Description</bold>:</title><para>Append a integer to the buffer at the end position and increment the end pointer. </para></simplesect>
+<parameterlist kind="param"><parameteritem>
+<parameternamelist>
+<parametername>buf</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>Buffer created via mprCreateBuf </para></parameterdescription>
+</parameteritem>
+<parameteritem>
+<parameternamelist>
+<parametername>i</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>Integer to append to the buffer </para></parameterdescription>
+</parameteritem>
+</parameterlist>
+<simplesect kind="return"><para>Zero if successful and otherwise a negative error code </para></simplesect>
+</para>        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/mob/hg/mpr/all/mpr.h" line="2136"/>
+      </memberdef>
+      <memberdef kind="function" id="group___mpr_buf_1g3a72ff88a352a7d2a5cd01e46fb1fdd1" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type>int</type>
+        <definition>int mprPutPadToBuf</definition>
+        <argsstring>(MprBuf *buf, int c, int count)</argsstring>
+        <name>mprPutPadToBuf</name>
+        <param>
+          <type>MprBuf *</type>
+          <declname>buf</declname>
+        </param>
+        <param>
+          <type>int</type>
+          <declname>c</declname>
+        </param>
+        <param>
+          <type>int</type>
+          <declname>count</declname>
+        </param>
+        <briefdescription>
+<para>Put padding characters to the buffer. </para>        </briefdescription>
+        <detaileddescription>
+<para><simplesect kind="par"><title><bold>Description</bold>:</title><para>Append padding characters to the buffer at the end position and increment the end pointer. </para></simplesect>
+<parameterlist kind="param"><parameteritem>
+<parameternamelist>
+<parametername>buf</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>Buffer created via mprCreateBuf </para></parameterdescription>
+</parameteritem>
+<parameteritem>
+<parameternamelist>
+<parametername>c</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>Character to append </para></parameterdescription>
+</parameteritem>
+<parameteritem>
+<parameternamelist>
+<parametername>count</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>Count of pad characters to put </para></parameterdescription>
+</parameteritem>
+</parameterlist>
+<simplesect kind="return"><para>Zero if successful and otherwise a negative error code </para></simplesect>
+</para>        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/mob/hg/mpr/all/mpr.h" line="2115"/>
+      </memberdef>
+      <memberdef kind="function" id="group___mpr_buf_1g482c21dd3356edd53d804b14c5c9f253" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type>int</type>
+        <definition>int mprPutStringToBuf</definition>
+        <argsstring>(MprBuf *buf, cchar *str)</argsstring>
+        <name>mprPutStringToBuf</name>
+        <param>
+          <type>MprBuf *</type>
+          <declname>buf</declname>
+        </param>
+        <param>
+          <type>cchar *</type>
+          <declname>str</declname>
+        </param>
+        <briefdescription>
+<para>Put a string to the buffer. </para>        </briefdescription>
+        <detaileddescription>
+<para><simplesect kind="par"><title><bold>Description</bold>:</title><para>Append a null terminated string to the buffer at the end position and increment the end pointer. </para></simplesect>
+<parameterlist kind="param"><parameteritem>
+<parameternamelist>
+<parametername>buf</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>Buffer created via mprCreateBuf </para></parameterdescription>
+</parameteritem>
+<parameteritem>
+<parameternamelist>
+<parametername>str</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>String to append </para></parameterdescription>
+</parameteritem>
+</parameterlist>
+<simplesect kind="return"><para>Zero if successful and otherwise a negative error code </para></simplesect>
+</para>        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/mob/hg/mpr/all/mpr.h" line="2146"/>
+      </memberdef>
+      <memberdef kind="function" id="group___mpr_buf_1g41b37490b7840471fb6a03288f00df06" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type>int</type>
+        <definition>int mprPutSubStringToBuf</definition>
+        <argsstring>(MprBuf *buf, cchar *str, int count)</argsstring>
+        <name>mprPutSubStringToBuf</name>
+        <param>
+          <type>MprBuf *</type>
+          <declname>buf</declname>
+        </param>
+        <param>
+          <type>cchar *</type>
+          <declname>str</declname>
+        </param>
+        <param>
+          <type>int</type>
+          <declname>count</declname>
+        </param>
+        <briefdescription>
+<para>Put a substring to the buffer. </para>        </briefdescription>
+        <detaileddescription>
+<para><simplesect kind="par"><title><bold>Description</bold>:</title><para>Append a null terminated substring to the buffer at the end position and increment the end pointer. </para></simplesect>
+<parameterlist kind="param"><parameteritem>
+<parameternamelist>
+<parametername>buf</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>Buffer created via mprCreateBuf </para></parameterdescription>
+</parameteritem>
+<parameteritem>
+<parameternamelist>
+<parametername>str</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>String to append </para></parameterdescription>
+</parameteritem>
+<parameteritem>
+<parameternamelist>
+<parametername>count</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>Put at most count characters to the buffer </para></parameterdescription>
+</parameteritem>
+</parameterlist>
+<simplesect kind="return"><para>Zero if successful and otherwise a negative error code </para></simplesect>
+</para>        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/mob/hg/mpr/all/mpr.h" line="2157"/>
+      </memberdef>
+      <memberdef kind="function" id="group___mpr_buf_1g9e7451ec61507706a06c6c8149bebc52" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type>int</type>
+        <definition>int mprRefillBuf</definition>
+        <argsstring>(MprBuf *buf)</argsstring>
+        <name>mprRefillBuf</name>
+        <param>
+          <type>MprBuf *</type>
+          <declname>buf</declname>
+        </param>
+        <briefdescription>
+<para>Refill the buffer with data. </para>        </briefdescription>
+        <detaileddescription>
+<para><simplesect kind="par"><title><bold>Description</bold>:</title><para>Refill the buffer by calling the refill procedure specified via <ref refid="group___mpr_buf_1g7f74f8c3d5af9db8c064b365f39cae2c" kindref="member">mprSetBufRefillProc</ref> </para></simplesect>
+<parameterlist kind="param"><parameteritem>
+<parameternamelist>
+<parametername>buf</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>Buffer created via mprCreateBuf </para></parameterdescription>
+</parameteritem>
+</parameterlist>
+<simplesect kind="return"><para>Zero if successful and otherwise a negative error code </para></simplesect>
+</para>        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/mob/hg/mpr/all/mpr.h" line="2177"/>
+      </memberdef>
+      <memberdef kind="function" id="group___mpr_buf_1ge6f9d70c3aab3eb2d9235a1c2a8f63a8" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type>void</type>
+        <definition>void mprResetBufIfEmpty</definition>
+        <argsstring>(MprBuf *buf)</argsstring>
+        <name>mprResetBufIfEmpty</name>
+        <param>
+          <type>MprBuf *</type>
+          <declname>buf</declname>
+        </param>
+        <briefdescription>
+<para>Reset the buffer. </para>        </briefdescription>
+        <detaileddescription>
+<para><simplesect kind="par"><title><bold>Description</bold>:</title><para>If the buffer is empty, reset the buffer start and end pointers to the beginning of the buffer. </para></simplesect>
+<parameterlist kind="param"><parameteritem>
+<parameternamelist>
+<parametername>buf</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>Buffer created via mprCreateBuf </para></parameterdescription>
+</parameteritem>
+</parameterlist>
+</para>        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/mob/hg/mpr/all/mpr.h" line="2185"/>
+      </memberdef>
+      <memberdef kind="function" id="group___mpr_buf_1gea06aa1b68fc99c1038e07066136fee3" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type>void</type>
+        <definition>void mprSetBufMax</definition>
+        <argsstring>(MprBuf *buf, int maxSize)</argsstring>
+        <name>mprSetBufMax</name>
+        <param>
+          <type>MprBuf *</type>
+          <declname>buf</declname>
+        </param>
+        <param>
+          <type>int</type>
+          <declname>maxSize</declname>
+        </param>
+        <briefdescription>
+<para>Set the maximum buffer size. </para>        </briefdescription>
+        <detaileddescription>
+<para><simplesect kind="par"><title><bold>Description</bold>:</title><para>Update the maximum buffer size set when the buffer was created </para></simplesect>
+<parameterlist kind="param"><parameteritem>
+<parameternamelist>
+<parametername>buf</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>Buffer created via mprCreateBuf </para></parameterdescription>
+</parameteritem>
+<parameteritem>
+<parameternamelist>
+<parametername>maxSize</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>New maximum size the buffer can grow to </para></parameterdescription>
+</parameteritem>
+</parameterlist>
+</para>        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/mob/hg/mpr/all/mpr.h" line="1912"/>
+      </memberdef>
+      <memberdef kind="function" id="group___mpr_buf_1g7f74f8c3d5af9db8c064b365f39cae2c" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type>void</type>
+        <definition>void mprSetBufRefillProc</definition>
+        <argsstring>(MprBuf *buf, MprBufProc fn, void *arg)</argsstring>
+        <name>mprSetBufRefillProc</name>
+        <param>
+          <type>MprBuf *</type>
+          <declname>buf</declname>
+        </param>
+        <param>
+          <type><ref refid="group___mpr_buf_1ga0f2f003728ef5bb244fdabe2edc56f7" kindref="member">MprBufProc</ref></type>
+          <declname>fn</declname>
+        </param>
+        <param>
+          <type>void *</type>
+          <declname>arg</declname>
+        </param>
+        <briefdescription>
+<para>Set the buffer refill procedure. </para>        </briefdescription>
+        <detaileddescription>
+<para><simplesect kind="par"><title><bold>Description</bold>:</title><para>Define a buffer refill procedure. The MprBuf module will not invoke or manage this refill procedure. It is simply stored to allow upper layers to use and provide their own auto-refill mechanism. </para></simplesect>
+<parameterlist kind="param"><parameteritem>
+<parameternamelist>
+<parametername>buf</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>Buffer created via mprCreateBuf </para></parameterdescription>
+</parameteritem>
+<parameteritem>
+<parameternamelist>
+<parametername>fn</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>Callback function to store. </para></parameterdescription>
+</parameteritem>
+<parameteritem>
+<parameternamelist>
+<parametername>arg</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>Callback data argument. </para></parameterdescription>
+</parameteritem>
+</parameterlist>
+</para>        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/mob/hg/mpr/all/mpr.h" line="2221"/>
+      </memberdef>
+      <memberdef kind="function" id="group___mpr_buf_1gb66fa4b1cc3c02e8808811b027d54898" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type>int</type>
+        <definition>int mprSetBufSize</definition>
+        <argsstring>(MprBuf *buf, int size, int maxSize)</argsstring>
+        <name>mprSetBufSize</name>
+        <param>
+          <type>MprBuf *</type>
+          <declname>buf</declname>
+        </param>
+        <param>
+          <type>int</type>
+          <declname>size</declname>
+        </param>
+        <param>
+          <type>int</type>
+          <declname>maxSize</declname>
+        </param>
+        <briefdescription>
+<para>Set the buffer size. </para>        </briefdescription>
+        <detaileddescription>
+<para><simplesect kind="par"><title><bold>Description</bold>:</title><para>Set the current buffer content size and maximum size limit. Setting a current size will immediately grow the buffer to be this size. If the size is less than the current buffer size, the requested size will be ignored. ie. this call will not shrink the buffer. Setting a maxSize will define a maximum limit for how big the buffer contents can grow. Set either argument to -1 to be ignored. </para></simplesect>
+<parameterlist kind="param"><parameteritem>
+<parameternamelist>
+<parametername>buf</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>Buffer created via mprCreateBuf </para></parameterdescription>
+</parameteritem>
+<parameteritem>
+<parameternamelist>
+<parametername>size</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>Size to immediately make the buffer. If size is less than the current buffer size, it will be ignored. Set to -1 to ignore this parameter. </para></parameterdescription>
+</parameteritem>
+<parameteritem>
+<parameternamelist>
+<parametername>maxSize</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>Maximum size the buffer contents can grow to. </para></parameterdescription>
+</parameteritem>
+</parameterlist>
+<simplesect kind="return"><para>Zero if successful and otherwise a negative error code </para></simplesect>
+</para>        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/mob/hg/mpr/all/mpr.h" line="2201"/>
+      </memberdef>
+      <memberdef kind="function" id="group___mpr_buf_1g5800cbdbb6bac03b54fba8af893603b0" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type>char *</type>
+        <definition>char* mprStealBuf</definition>
+        <argsstring>(MprCtx ctx, MprBuf *buf)</argsstring>
+        <name>mprStealBuf</name>
+        <param>
+          <type><ref refid="group___mpr_mem_1g1413d66bb5356730c6fa08ca0af6bc0f" kindref="member">MprCtx</ref></type>
+          <declname>ctx</declname>
+        </param>
+        <param>
+          <type>MprBuf *</type>
+          <declname>buf</declname>
+        </param>
+        <briefdescription>
+<para>Steal the buffer memory from a buffer. </para>        </briefdescription>
+        <detaileddescription>
+<para><simplesect kind="par"><title><bold>Description</bold>:</title><para>Steal ownership of the buffer memory from the buffer structure. All MPR memory is owned by a memory context and the contents of the buffer is owned by the MprBuf object. Stealing the buffer content memory is useful to preserve the buffer contents after the buffer is freed </para></simplesect>
+<parameterlist kind="param"><parameteritem>
+<parameternamelist>
+<parametername>ctx</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>Memory context to won the memory for the buffer </para></parameterdescription>
+</parameteritem>
+<parameteritem>
+<parameternamelist>
+<parametername>buf</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>Buffer created via mprCreateBuf </para></parameterdescription>
+</parameteritem>
+</parameterlist>
+<simplesect kind="return"><para>pointer to the buffer contents. Use mprGetBufLength before calling mprStealBuf to determine the resulting size of the contents. </para></simplesect>
+</para>        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/mob/hg/mpr/all/mpr.h" line="1925"/>
+      </memberdef>
+      </sectiondef>
+    <briefdescription>
+<para>Dynamic Buffer Module. </para>    </briefdescription>
+    <detaileddescription>
+<para><simplesect kind="par"><title><bold>Description</bold>:</title><para>MprBuf is a flexible, dynamic growable buffer structure. It has start and end pointers to the data buffer which act as read/write pointers. Routines are provided to get and put data into and out of the buffer and automatically advance the appropriate start/end pointer. By definition, the buffer is empty when the start pointer == the end pointer. Buffers can be created with a fixed size or can grow dynamically as more data is added to the buffer. <linebreak/>
+<linebreak/>
+ For performance, the specification of MprBuf is deliberately exposed. All members of MprBuf are implicitly public. However, it is still recommended that wherever possible, you use the accessor routines provided. </para></simplesect>
+<simplesect kind="par"><title><bold>API</bold> Stability:</title><para>Evolving. </para></simplesect>
+<simplesect kind="see"><para><ref refid="group___mpr_buf" kindref="compound">MprBuf</ref>, <ref refid="group___mpr_buf_1ga2d850779c9881637028fcf54a1ebe30" kindref="member">mprCreateBuf</ref>, <ref refid="group___mpr_buf_1gea06aa1b68fc99c1038e07066136fee3" kindref="member">mprSetBufMax</ref>, <ref refid="group___mpr_buf_1g5800cbdbb6bac03b54fba8af893603b0" kindref="member">mprStealBuf</ref>, <ref refid="group___mpr_buf_1g1fbe536bbdd8bc3f68a5246f69305994" kindref="member">mprAdjustBufStart</ref>, <ref refid="group___mpr_buf_1g61c8f33c54c45ad4d6bf33d8d72543c1" kindref="member">mprAdjustBufEnd</ref>, mprCopyBufDown, <ref refid="group___mpr_buf_1g453b62a6659fc9fa4d041165dad7461e" kindref="member">mprFlushBuf</ref>, <ref refid="group___mpr_buf_1gf128b71005bdd12507110e1f21b483d4" kindref="member">mprGetCharFromBuf</ref>, <ref refid="group___mpr_buf_1g3a1388925b9ab4a209b0610cd674139f" kindref="member">mprGetBlockFromBuf</ref>, <ref refid="group___mpr_buf_1g4d39e8467818e491ecec68a4db8df054" kindref="member">mprGetBufLength</ref>, <ref refid="group___mpr_buf_1g962aeff07a87ab52da3bcd1973fe801b" kindref="member">mprGetBufOrigin</ref>, <ref refid="group___mpr_buf_1ga609f1dc4e3f8315949c4cf93e27aff1" kindref="member">mprGetBufSize</ref>, <ref refid="group___mpr_buf_1gbd1fae7a41a8c38220de4f06e6d0e053" kindref="member">mprGetBufEnd</ref>, <ref refid="group___mpr_buf_1g6c6646d8f5933dfbf31983a374b491e7" kindref="member">mprGetBufSpace</ref>, mprGetGrowBuf, <ref refid="group___mpr_buf_1g6c40bdb62af47cbae761c6bfdc7da11b" kindref="member">mprGrowBuf</ref>, <ref refid="group___mpr_buf_1g6f91b177cd36508c9d470636b04fa7b5" kindref="member">mprInsertCharToBuf</ref>, <ref refid="group___mpr_buf_1gbe01ab970d735db5a92cea5f9456de5e" kindref="member">mprLookAtNextCharInBuf</ref>, <ref refid="group___mpr_buf_1g9ae5abc2e8c8b3359ca450e505564359" kindref="member">mprLookAtLastCharInBuf</ref>, <ref refid="group___mpr_buf_1g5ab66b5d96db8b33e3bb0c3bbb9c90e2" kindref="member">mprPutCharToBuf</ref>, <ref refid="group___mpr_buf_1g3a8934d430c8345cd1e19b42173b1336" kindref="member">mprPutBlockToBuf</ref>, <ref refid="group___mpr_buf_1g117b7d1d0a1b08b7395a2ad67a1a5ccc" kindref="member">mprPutIntToBuf</ref>, <ref refid="group___mpr_buf_1g482c21dd3356edd53d804b14c5c9f253" kindref="member">mprPutStringToBuf</ref>, <ref refid="group___mpr_buf_1g87bc8fae31c0dc3ffae2c7d4fb4aa49b" kindref="member">mprPutFmtToBuf</ref>, <ref refid="group___mpr_buf_1g9e7451ec61507706a06c6c8149bebc52" kindref="member">mprRefillBuf</ref>, <ref refid="group___mpr_buf_1ge6f9d70c3aab3eb2d9235a1c2a8f63a8" kindref="member">mprResetBufIfEmpty</ref>, <ref refid="group___mpr_buf_1gb66fa4b1cc3c02e8808811b027d54898" kindref="member">mprSetBufSize</ref>, <ref refid="group___mpr_buf_1g2791daeb72ae2e3f455250dfba72aa67" kindref="member">mprGetBufRefillProc</ref>, <ref refid="group___mpr_buf_1g7f74f8c3d5af9db8c064b365f39cae2c" kindref="member">mprSetBufRefillProc</ref>, <ref refid="group___mpr_mem_1g6d2fdfc4a34dc8ef4e7172fbcf977045" kindref="member">mprFree</ref>, <ref refid="group___mpr_buf_1ga0f2f003728ef5bb244fdabe2edc56f7" kindref="member">MprBufProc</ref> </para></simplesect>
+</para>    </detaileddescription>
+  </compounddef>
+</doxygen>

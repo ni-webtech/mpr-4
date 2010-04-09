@@ -1,0 +1,723 @@
+<?xml version='1.0' encoding='UTF-8' standalone='no'?>
+<doxygen xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="compound.xsd" version="1.5.8">
+  <compounddef id="group___mpr_file" kind="group">
+    <compoundname>MprFile</compoundname>
+    <title>MprFile</title>
+      <sectiondef kind="func">
+      <memberdef kind="function" id="group___mpr_file_1ge05c883c658aef3c2e9da52e82e2a39b" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type>MprFile *</type>
+        <definition>MprFile* mprAttachFd</definition>
+        <argsstring>(MprCtx ctx, int fd, cchar *name, int omode)</argsstring>
+        <name>mprAttachFd</name>
+        <param>
+          <type><ref refid="group___mpr_mem_1g1413d66bb5356730c6fa08ca0af6bc0f" kindref="member">MprCtx</ref></type>
+          <declname>ctx</declname>
+        </param>
+        <param>
+          <type>int</type>
+          <declname>fd</declname>
+        </param>
+        <param>
+          <type>cchar *</type>
+          <declname>name</declname>
+        </param>
+        <param>
+          <type>int</type>
+          <declname>omode</declname>
+        </param>
+        <briefdescription>
+<para>Attach to an existing file descriptor. </para>        </briefdescription>
+        <detaileddescription>
+<para><simplesect kind="par"><title><bold>Description</bold>:</title><para>Attach a file to an open file decriptor and return a file object. </para></simplesect>
+<parameterlist kind="param"><parameteritem>
+<parameternamelist>
+<parametername>ctx</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>Any memory context allocated by the MPR. </para></parameterdescription>
+</parameteritem>
+<parameteritem>
+<parameternamelist>
+<parametername>fd</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>File descriptor to attach to </para></parameterdescription>
+</parameteritem>
+<parameteritem>
+<parameternamelist>
+<parametername>name</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>Descriptive name for the file. </para></parameterdescription>
+</parameteritem>
+<parameteritem>
+<parameternamelist>
+<parametername>omode</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>Posix style file open mode mask. The open mode may contain the following mask values ored together: <itemizedlist>
+<listitem><para>O_RDONLY Open read only </para></listitem>
+<listitem><para>O_WRONLY Open write only </para></listitem>
+<listitem><para>O_RDWR Open for read and write </para></listitem>
+<listitem><para>O_CREAT Create or re-create </para></listitem>
+<listitem><para>O_TRUNC Truncate </para></listitem>
+<listitem><para>O_BINARY Open for binary data </para></listitem>
+<listitem><para>O_TEXT Open for text data </para></listitem>
+<listitem><para>O_EXCL Open with an exclusive lock </para></listitem>
+<listitem><para>O_APPEND Open to append </para></listitem>
+</itemizedlist>
+</para></parameterdescription>
+</parameteritem>
+</parameterlist>
+<simplesect kind="return"><para>Returns an MprFile object to use in other file operations. </para></simplesect>
+</para>        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/mob/hg/mpr/all/mpr.h" line="3060"/>
+      </memberdef>
+      <memberdef kind="function" id="group___mpr_file_1g457be50126337e42f1df6c30af9db510" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type>void</type>
+        <definition>void mprDisableFileBuffering</definition>
+        <argsstring>(MprFile *file)</argsstring>
+        <name>mprDisableFileBuffering</name>
+        <param>
+          <type>MprFile *</type>
+          <declname>file</declname>
+        </param>
+        <briefdescription>
+<para>Disable file buffering. </para>        </briefdescription>
+        <detaileddescription>
+<para><simplesect kind="par"><title><bold>Description</bold>:</title><para>Disable any buffering of data when using the buffer. </para></simplesect>
+<parameterlist kind="param"><parameteritem>
+<parameternamelist>
+<parametername>file</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>File instance returned from <ref refid="group___mpr_file_1g4f97953317f303fe033be11fcbcec4e9" kindref="member">mprOpen</ref> </para></parameterdescription>
+</parameteritem>
+</parameterlist>
+</para>        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/mob/hg/mpr/all/mpr.h" line="3068"/>
+      </memberdef>
+      <memberdef kind="function" id="group___mpr_file_1g1912be708fa60f6afde7e174413507bc" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type>int</type>
+        <definition>int mprEnableFileBuffering</definition>
+        <argsstring>(MprFile *file, int size, int maxSize)</argsstring>
+        <name>mprEnableFileBuffering</name>
+        <param>
+          <type>MprFile *</type>
+          <declname>file</declname>
+        </param>
+        <param>
+          <type>int</type>
+          <declname>size</declname>
+        </param>
+        <param>
+          <type>int</type>
+          <declname>maxSize</declname>
+        </param>
+        <briefdescription>
+<para>Enable file buffering. </para>        </briefdescription>
+        <detaileddescription>
+<para><simplesect kind="par"><title><bold>Description</bold>:</title><para>Enable data buffering when using the buffer. </para></simplesect>
+<parameterlist kind="param"><parameteritem>
+<parameternamelist>
+<parametername>file</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>File instance returned from <ref refid="group___mpr_file_1g4f97953317f303fe033be11fcbcec4e9" kindref="member">mprOpen</ref> </para></parameterdescription>
+</parameteritem>
+<parameteritem>
+<parameternamelist>
+<parametername>size</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>Size to allocate for the buffer. </para></parameterdescription>
+</parameteritem>
+<parameteritem>
+<parameternamelist>
+<parametername>maxSize</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>Maximum size the data buffer can grow to </para></parameterdescription>
+</parameteritem>
+</parameterlist>
+</para>        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/mob/hg/mpr/all/mpr.h" line="3078"/>
+      </memberdef>
+      <memberdef kind="function" id="group___mpr_file_1g91dff182995e9e7f443373a5b27da4f4" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type>int</type>
+        <definition>int mprFlush</definition>
+        <argsstring>(MprFile *file)</argsstring>
+        <name>mprFlush</name>
+        <param>
+          <type>MprFile *</type>
+          <declname>file</declname>
+        </param>
+        <briefdescription>
+<para>Flush any buffered write data. </para>        </briefdescription>
+        <detaileddescription>
+<para><simplesect kind="par"><title><bold>Description</bold>:</title><para>Write buffered write data and then reset the internal buffers. </para></simplesect>
+<parameterlist kind="param"><parameteritem>
+<parameternamelist>
+<parametername>file</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>Pointer to an MprFile object returned via MprOpen. </para></parameterdescription>
+</parameteritem>
+</parameterlist>
+<simplesect kind="return"><para>Zero if successful, otherwise a negative MPR error code. </para></simplesect>
+</para>        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/mob/hg/mpr/all/mpr.h" line="3087"/>
+      </memberdef>
+      <memberdef kind="function" id="group___mpr_file_1g33e438e507e4e5effcddb2cc103e5c26" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type>int</type>
+        <definition>int mprGetc</definition>
+        <argsstring>(MprFile *file)</argsstring>
+        <name>mprGetc</name>
+        <param>
+          <type>MprFile *</type>
+          <declname>file</declname>
+        </param>
+        <briefdescription>
+<para>Read a character from the file. </para>        </briefdescription>
+        <detaileddescription>
+<para><simplesect kind="par"><title><bold>Description</bold>:</title><para>Read a single character from the file and advance the read position. </para></simplesect>
+<parameterlist kind="param"><parameteritem>
+<parameternamelist>
+<parametername>file</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>Pointer to an MprFile object returned via MprOpen. </para></parameterdescription>
+</parameteritem>
+</parameterlist>
+<simplesect kind="return"><para>If successful, return the character just read. Otherwise return a negative MPR error code. End of file is signified by reading 0. </para></simplesect>
+</para>        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/mob/hg/mpr/all/mpr.h" line="3128"/>
+      </memberdef>
+      <memberdef kind="function" id="group___mpr_file_1g96273fe03aa3e5e1de8820e8aaba7e5c" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type>MprOffset</type>
+        <definition>MprOffset mprGetFilePosition</definition>
+        <argsstring>(MprFile *file)</argsstring>
+        <name>mprGetFilePosition</name>
+        <param>
+          <type>MprFile *</type>
+          <declname>file</declname>
+        </param>
+        <briefdescription>
+<para>Return the current file position. </para>        </briefdescription>
+        <detaileddescription>
+<para><simplesect kind="par"><title><bold>Description</bold>:</title><para>Return the current read/write file position. </para></simplesect>
+<parameterlist kind="param"><parameteritem>
+<parameternamelist>
+<parametername>file</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>A file object returned from <ref refid="group___mpr_file_1g4f97953317f303fe033be11fcbcec4e9" kindref="member">mprOpen</ref> </para></parameterdescription>
+</parameteritem>
+</parameterlist>
+<simplesect kind="return"><para>The current file offset position if successful. Returns a negative MPR error code on errors. </para></simplesect>
+</para>        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/mob/hg/mpr/all/mpr.h" line="3096"/>
+      </memberdef>
+      <memberdef kind="function" id="group___mpr_file_1gb1ae4e8c4128773497a609e444dbe8c7" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type>MprOffset</type>
+        <definition>MprOffset mprGetFileSize</definition>
+        <argsstring>(MprFile *file)</argsstring>
+        <name>mprGetFileSize</name>
+        <param>
+          <type>MprFile *</type>
+          <declname>file</declname>
+        </param>
+        <briefdescription>
+<para>Get the size of the file. </para>        </briefdescription>
+        <detaileddescription>
+<para><simplesect kind="par"><title><bold>Description</bold>:</title><para>Return the current file size </para></simplesect>
+<parameterlist kind="param"><parameteritem>
+<parameternamelist>
+<parametername>file</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>A file object returned from <ref refid="group___mpr_file_1g4f97953317f303fe033be11fcbcec4e9" kindref="member">mprOpen</ref> </para></parameterdescription>
+</parameteritem>
+</parameterlist>
+<simplesect kind="return"><para>The current file size if successful. Returns a negative MPR error code on errors. </para></simplesect>
+</para>        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/mob/hg/mpr/all/mpr.h" line="3105"/>
+      </memberdef>
+      <memberdef kind="function" id="group___mpr_file_1g15a5b5e70b74166eb1aea7d278d11358" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type>char *</type>
+        <definition>char* mprGets</definition>
+        <argsstring>(MprFile *file, char *buf, uint size)</argsstring>
+        <name>mprGets</name>
+        <param>
+          <type>MprFile *</type>
+          <declname>file</declname>
+        </param>
+        <param>
+          <type>char *</type>
+          <declname>buf</declname>
+        </param>
+        <param>
+          <type>uint</type>
+          <declname>size</declname>
+        </param>
+        <briefdescription>
+<para>Read a line from the file. </para>        </briefdescription>
+        <detaileddescription>
+<para><simplesect kind="par"><title><bold>Description</bold>:</title><para>Read a single line from the file and advance the read position. Lines are delimited by the newline character. The newline is not included in the returned buffer. </para></simplesect>
+<parameterlist kind="param"><parameteritem>
+<parameternamelist>
+<parametername>file</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>Pointer to an MprFile object returned via MprOpen. </para></parameterdescription>
+</parameteritem>
+<parameteritem>
+<parameternamelist>
+<parametername>buf</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>Pre-allocated buffer to contain the line of data. </para></parameterdescription>
+</parameteritem>
+<parameteritem>
+<parameternamelist>
+<parametername>size</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>Size of <emphasis>buf</emphasis>. </para></parameterdescription>
+</parameteritem>
+</parameterlist>
+<simplesect kind="return"><para>The number of characters read into <emphasis>buf</emphasis>. </para></simplesect>
+</para>        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/mob/hg/mpr/all/mpr.h" line="3118"/>
+      </memberdef>
+      <memberdef kind="function" id="group___mpr_file_1g4f97953317f303fe033be11fcbcec4e9" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type>MprFile *</type>
+        <definition>MprFile* mprOpen</definition>
+        <argsstring>(MprCtx ctx, cchar *filename, int omode, int perms)</argsstring>
+        <name>mprOpen</name>
+        <param>
+          <type><ref refid="group___mpr_mem_1g1413d66bb5356730c6fa08ca0af6bc0f" kindref="member">MprCtx</ref></type>
+          <declname>ctx</declname>
+        </param>
+        <param>
+          <type>cchar *</type>
+          <declname>filename</declname>
+        </param>
+        <param>
+          <type>int</type>
+          <declname>omode</declname>
+        </param>
+        <param>
+          <type>int</type>
+          <declname>perms</declname>
+        </param>
+        <briefdescription>
+<para>Open a file. </para>        </briefdescription>
+        <detaileddescription>
+<para><simplesect kind="par"><title><bold>Description</bold>:</title><para>Open a file and return a file object. </para></simplesect>
+<parameterlist kind="param"><parameteritem>
+<parameternamelist>
+<parametername>ctx</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>Any memory context allocated by the MPR. </para></parameterdescription>
+</parameteritem>
+<parameteritem>
+<parameternamelist>
+<parametername>filename</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>String containing the filename to open or create. </para></parameterdescription>
+</parameteritem>
+<parameteritem>
+<parameternamelist>
+<parametername>omode</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>Posix style file open mode mask. The open mode may contain the following mask values ored together: <itemizedlist>
+<listitem><para>O_RDONLY Open read only </para></listitem>
+<listitem><para>O_WRONLY Open write only </para></listitem>
+<listitem><para>O_RDWR Open for read and write </para></listitem>
+<listitem><para>O_CREAT Create or re-create </para></listitem>
+<listitem><para>O_TRUNC Truncate </para></listitem>
+<listitem><para>O_BINARY Open for binary data </para></listitem>
+<listitem><para>O_TEXT Open for text data </para></listitem>
+<listitem><para>O_EXCL Open with an exclusive lock </para></listitem>
+<listitem><para>O_APPEND Open to append </para></listitem>
+</itemizedlist>
+</para></parameterdescription>
+</parameteritem>
+<parameteritem>
+<parameternamelist>
+<parametername>perms</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>Posix style file permissions mask. </para></parameterdescription>
+</parameteritem>
+</parameterlist>
+<simplesect kind="return"><para>Returns an MprFile object to use in other file operations. </para></simplesect>
+</para>        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/mob/hg/mpr/all/mpr.h" line="3171"/>
+      </memberdef>
+      <memberdef kind="function" id="group___mpr_file_1gb50f74711c89a6eb57363aee8090b6bb" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type>int</type>
+        <definition>int mprPeekc</definition>
+        <argsstring>(MprFile *file)</argsstring>
+        <name>mprPeekc</name>
+        <param>
+          <type>MprFile *</type>
+          <declname>file</declname>
+        </param>
+        <briefdescription>
+<para>Non-destructively read a character from the file. </para>        </briefdescription>
+        <detaileddescription>
+<para><simplesect kind="par"><title><bold>Description</bold>:</title><para>Read a single character from the file without advancing the read position. </para></simplesect>
+<parameterlist kind="param"><parameteritem>
+<parameternamelist>
+<parametername>file</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>Pointer to an MprFile object returned via MprOpen. </para></parameterdescription>
+</parameteritem>
+</parameterlist>
+<simplesect kind="return"><para>If successful, return the character just read. Otherwise return a negative MPR error code. End of file is signified by reading 0. </para></simplesect>
+</para>        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/mob/hg/mpr/all/mpr.h" line="3181"/>
+      </memberdef>
+      <memberdef kind="function" id="group___mpr_file_1gda34b4c0fbd1cd04fd636ab49e7dcb71" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type>int</type>
+        <definition>int mprPutc</definition>
+        <argsstring>(MprFile *file, int c)</argsstring>
+        <name>mprPutc</name>
+        <param>
+          <type>MprFile *</type>
+          <declname>file</declname>
+        </param>
+        <param>
+          <type>int</type>
+          <declname>c</declname>
+        </param>
+        <briefdescription>
+<para>Write a character to the file. </para>        </briefdescription>
+        <detaileddescription>
+<para><simplesect kind="par"><title><bold>Description</bold>:</title><para>Writes a single character to the file. Output is buffered and is flushed as required or when mprClose is called. </para></simplesect>
+<parameterlist kind="param"><parameteritem>
+<parameternamelist>
+<parametername>file</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>Pointer to an MprFile object returned via MprOpen. </para></parameterdescription>
+</parameteritem>
+<parameteritem>
+<parameternamelist>
+<parametername>c</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>Character to write </para></parameterdescription>
+</parameteritem>
+</parameterlist>
+<simplesect kind="return"><para>One if successful, otherwise returns a negative MPR error code on errors. </para></simplesect>
+</para>        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/mob/hg/mpr/all/mpr.h" line="3192"/>
+      </memberdef>
+      <memberdef kind="function" id="group___mpr_file_1ge172b6c82656af8d7a4f82bdff01977c" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type>int</type>
+        <definition>int mprPuts</definition>
+        <argsstring>(MprFile *file, cchar *str)</argsstring>
+        <name>mprPuts</name>
+        <param>
+          <type>MprFile *</type>
+          <declname>file</declname>
+        </param>
+        <param>
+          <type>cchar *</type>
+          <declname>str</declname>
+        </param>
+        <briefdescription>
+<para>Write a string to the file. </para>        </briefdescription>
+        <detaileddescription>
+<para><simplesect kind="par"><title><bold>Description</bold>:</title><para>Writes a string to the file. Output is buffered and is flushed as required or when mprClose is called. </para></simplesect>
+<parameterlist kind="param"><parameteritem>
+<parameternamelist>
+<parametername>file</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>Pointer to an MprFile object returned via MprOpen. </para></parameterdescription>
+</parameteritem>
+<parameteritem>
+<parameternamelist>
+<parametername>str</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>String to write </para></parameterdescription>
+</parameteritem>
+</parameterlist>
+<simplesect kind="return"><para>The number of characters written to the file. Returns a negative MPR error code on errors. </para></simplesect>
+</para>        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/mob/hg/mpr/all/mpr.h" line="3202"/>
+      </memberdef>
+      <memberdef kind="function" id="group___mpr_file_1ge3052b9893259fb2f245d5e08310d9c5" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type>int</type>
+        <definition>int mprRead</definition>
+        <argsstring>(MprFile *file, void *buf, uint size)</argsstring>
+        <name>mprRead</name>
+        <param>
+          <type>MprFile *</type>
+          <declname>file</declname>
+        </param>
+        <param>
+          <type>void *</type>
+          <declname>buf</declname>
+        </param>
+        <param>
+          <type>uint</type>
+          <declname>size</declname>
+        </param>
+        <briefdescription>
+<para>Read data from a file. </para>        </briefdescription>
+        <detaileddescription>
+<para><simplesect kind="par"><title><bold>Description</bold>:</title><para>Reads data from a file. </para></simplesect>
+<parameterlist kind="param"><parameteritem>
+<parameternamelist>
+<parametername>file</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>Pointer to an MprFile object returned via MprOpen. </para></parameterdescription>
+</parameteritem>
+<parameteritem>
+<parameternamelist>
+<parametername>buf</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>Buffer to contain the read data. </para></parameterdescription>
+</parameteritem>
+<parameteritem>
+<parameternamelist>
+<parametername>size</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>Size of <emphasis>buf</emphasis> in characters. </para></parameterdescription>
+</parameteritem>
+</parameterlist>
+<simplesect kind="return"><para>The number of characters read from the file. Returns a negative MPR error code on errors. </para></simplesect>
+</para>        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/mob/hg/mpr/all/mpr.h" line="3213"/>
+      </memberdef>
+      <memberdef kind="function" id="group___mpr_file_1g6510f5de249f68beee6bbbe880549793" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type>long</type>
+        <definition>long mprSeek</definition>
+        <argsstring>(MprFile *file, int seekType, long distance)</argsstring>
+        <name>mprSeek</name>
+        <param>
+          <type>MprFile *</type>
+          <declname>file</declname>
+        </param>
+        <param>
+          <type>int</type>
+          <declname>seekType</declname>
+        </param>
+        <param>
+          <type>long</type>
+          <declname>distance</declname>
+        </param>
+        <briefdescription>
+<para>Seek the I/O pointer to a new location in the file. </para>        </briefdescription>
+        <detaileddescription>
+<para><simplesect kind="par"><title><bold>Description</bold>:</title><para>Move the position in the file to/from which I/O will be performed in the file. Seeking prior to a read or write will cause the next I/O to occur at that location. </para></simplesect>
+<parameterlist kind="param"><parameteritem>
+<parameternamelist>
+<parametername>file</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>Pointer to an MprFile object returned via MprOpen. </para></parameterdescription>
+</parameteritem>
+<parameteritem>
+<parameternamelist>
+<parametername>seekType</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>Seek type may be one of the following three values: <itemizedlist>
+<listitem><para>SEEK_SET Seek to a position relative to the start of the file </para></listitem>
+<listitem><para>SEEK_CUR Seek relative to the current position </para></listitem>
+<listitem><para>SEEK_END Seek relative to the end of the file </para></listitem>
+</itemizedlist>
+</para></parameterdescription>
+</parameteritem>
+<parameteritem>
+<parameternamelist>
+<parametername>distance</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>A positive or negative byte offset. </para></parameterdescription>
+</parameteritem>
+</parameterlist>
+<simplesect kind="return"><para>Returns the new file position if successful otherwise a negative MPR error code is returned. </para></simplesect>
+</para>        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/mob/hg/mpr/all/mpr.h" line="3228"/>
+      </memberdef>
+      <memberdef kind="function" id="group___mpr_file_1g1ccf3d98a34232049c0e97384fca88c3" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type>int</type>
+        <definition>int mprWrite</definition>
+        <argsstring>(MprFile *file, cvoid *buf, uint count)</argsstring>
+        <name>mprWrite</name>
+        <param>
+          <type>MprFile *</type>
+          <declname>file</declname>
+        </param>
+        <param>
+          <type>cvoid *</type>
+          <declname>buf</declname>
+        </param>
+        <param>
+          <type>uint</type>
+          <declname>count</declname>
+        </param>
+        <briefdescription>
+<para>Write data to a file. </para>        </briefdescription>
+        <detaileddescription>
+<para><simplesect kind="par"><title><bold>Description</bold>:</title><para>Writes data to a file. </para></simplesect>
+<parameterlist kind="param"><parameteritem>
+<parameternamelist>
+<parametername>file</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>Pointer to an MprFile object returned via MprOpen. </para></parameterdescription>
+</parameteritem>
+<parameteritem>
+<parameternamelist>
+<parametername>buf</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>Buffer containing the data to write. </para></parameterdescription>
+</parameteritem>
+<parameteritem>
+<parameternamelist>
+<parametername>count</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>Cound of characters in <emphasis>buf</emphasis> to write </para></parameterdescription>
+</parameteritem>
+</parameterlist>
+<simplesect kind="return"><para>The number of characters actually written to the file. Returns a negative MPR error code on errors. </para></simplesect>
+</para>        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/mob/hg/mpr/all/mpr.h" line="3239"/>
+      </memberdef>
+      <memberdef kind="function" id="group___mpr_file_1g7acf925a7a7f34a50f45e72e34ccc2c7" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type>int</type>
+        <definition>int mprWriteFormat</definition>
+        <argsstring>(MprFile *file, cchar *fmt,...)</argsstring>
+        <name>mprWriteFormat</name>
+        <param>
+          <type>MprFile *</type>
+          <declname>file</declname>
+        </param>
+        <param>
+          <type>cchar *</type>
+          <declname>fmt</declname>
+        </param>
+        <param>
+          <type>...</type>
+        </param>
+        <briefdescription>
+<para>Write formatted data to a file. </para>        </briefdescription>
+        <detaileddescription>
+<para><simplesect kind="par"><title><bold>Description</bold>:</title><para>Writes a formatted string to a file. </para></simplesect>
+<parameterlist kind="param"><parameteritem>
+<parameternamelist>
+<parametername>file</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>Pointer to an MprFile object returned via MprOpen. </para></parameterdescription>
+</parameteritem>
+<parameteritem>
+<parameternamelist>
+<parametername>fmt</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>Format string </para></parameterdescription>
+</parameteritem>
+</parameterlist>
+<simplesect kind="return"><para>The number of characters actually written to the file. Returns a negative MPR error code on errors. </para></simplesect>
+</para>        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/mob/hg/mpr/all/mpr.h" line="3259"/>
+      </memberdef>
+      <memberdef kind="function" id="group___mpr_file_1g3874c994f9f5b1c4c4fd57100a656148" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type>int</type>
+        <definition>int mprWriteString</definition>
+        <argsstring>(MprFile *file, cchar *str)</argsstring>
+        <name>mprWriteString</name>
+        <param>
+          <type>MprFile *</type>
+          <declname>file</declname>
+        </param>
+        <param>
+          <type>cchar *</type>
+          <declname>str</declname>
+        </param>
+        <briefdescription>
+<para>Write a string to a file. </para>        </briefdescription>
+        <detaileddescription>
+<para><simplesect kind="par"><title><bold>Description</bold>:</title><para>Writes a string to a file. </para></simplesect>
+<parameterlist kind="param"><parameteritem>
+<parameternamelist>
+<parametername>file</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>Pointer to an MprFile object returned via MprOpen. </para></parameterdescription>
+</parameteritem>
+<parameteritem>
+<parameternamelist>
+<parametername>str</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>String to write </para></parameterdescription>
+</parameteritem>
+</parameterlist>
+<simplesect kind="return"><para>The number of characters actually written to the file. Returns a negative MPR error code on errors. </para></simplesect>
+</para>        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/mob/hg/mpr/all/mpr.h" line="3249"/>
+      </memberdef>
+      </sectiondef>
+    <briefdescription>
+<para>File I/O Module. </para>    </briefdescription>
+    <detaileddescription>
+<para><simplesect kind="par"><title><bold>Description</bold>:</title><para>MprFile is the cross platform File I/O abstraction control structure. An instance will be created when a file is created or opened via <ref refid="group___mpr_file_1g4f97953317f303fe033be11fcbcec4e9" kindref="member">mprOpen</ref>. </para></simplesect>
+<simplesect kind="par"><title><bold>API</bold> Stability:</title><para>Evolving. </para></simplesect>
+<simplesect kind="see"><para><ref refid="group___mpr_file" kindref="compound">MprFile</ref> mprClose <ref refid="group___mpr_file_1g15a5b5e70b74166eb1aea7d278d11358" kindref="member">mprGets</ref> <ref refid="group___mpr_file_1g4f97953317f303fe033be11fcbcec4e9" kindref="member">mprOpen</ref> <ref refid="group___mpr_file_1gda34b4c0fbd1cd04fd636ab49e7dcb71" kindref="member">mprPutc</ref> <ref refid="group___mpr_file_1ge172b6c82656af8d7a4f82bdff01977c" kindref="member">mprPuts</ref> <ref refid="group___mpr_file_1ge3052b9893259fb2f245d5e08310d9c5" kindref="member">mprRead</ref> <ref refid="group___mpr_file_1g6510f5de249f68beee6bbbe880549793" kindref="member">mprSeek</ref> <ref refid="group___mpr_file_1g1ccf3d98a34232049c0e97384fca88c3" kindref="member">mprWrite</ref> <ref refid="group___mpr_file_1g3874c994f9f5b1c4c4fd57100a656148" kindref="member">mprWriteString</ref> <ref refid="group___mpr_file_1g7acf925a7a7f34a50f45e72e34ccc2c7" kindref="member">mprWriteFormat</ref> <ref refid="group___mpr_file_1g91dff182995e9e7f443373a5b27da4f4" kindref="member">mprFlush</ref> <ref refid="group___mpr_file" kindref="compound">MprFile</ref> <ref refid="group___mpr_file_1g33e438e507e4e5effcddb2cc103e5c26" kindref="member">mprGetc</ref> <ref refid="group___mpr_file_1g457be50126337e42f1df6c30af9db510" kindref="member">mprDisableFileBuffering</ref> <ref refid="group___mpr_file_1g1912be708fa60f6afde7e174413507bc" kindref="member">mprEnableFileBuffering</ref> <ref refid="group___mpr_file_1gb1ae4e8c4128773497a609e444dbe8c7" kindref="member">mprGetFileSize</ref> <ref refid="group___mpr_file_1g96273fe03aa3e5e1de8820e8aaba7e5c" kindref="member">mprGetFilePosition</ref> <ref refid="group___mpr_file_1gb50f74711c89a6eb57363aee8090b6bb" kindref="member">mprPeekc</ref> </para></simplesect>
+</para>    </detaileddescription>
+  </compounddef>
+</doxygen>

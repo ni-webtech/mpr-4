@@ -1,0 +1,140 @@
+<?xml version='1.0' encoding='UTF-8' standalone='no'?>
+<doxygen xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="compound.xsd" version="1.5.8">
+  <compounddef id="group___mpr_worker_service" kind="group">
+    <compoundname>MprWorkerService</compoundname>
+    <title>MprWorkerService</title>
+      <sectiondef kind="func">
+      <memberdef kind="function" id="group___mpr_worker_service_1gf26e38fd431360fd0099279a28acdd9b" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type>int</type>
+        <definition>int mprGetAvailableWorkers</definition>
+        <argsstring>(MprCtx ctx)</argsstring>
+        <name>mprGetAvailableWorkers</name>
+        <param>
+          <type><ref refid="group___mpr_mem_1g1413d66bb5356730c6fa08ca0af6bc0f" kindref="member">MprCtx</ref></type>
+          <declname>ctx</declname>
+        </param>
+        <briefdescription>
+<para>Get the count of available worker threads Return the count of free threads in the worker thread pool. </para>        </briefdescription>
+        <detaileddescription>
+<para><parameterlist kind="param"><parameteritem>
+<parameternamelist>
+<parametername>ctx</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>Any memory allocation context created by MprAlloc </para></parameterdescription>
+</parameteritem>
+</parameterlist>
+<simplesect kind="return"><para>An integer count of worker threads. </para></simplesect>
+</para>        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/mob/hg/mpr/all/mpr.h" line="6009"/>
+      </memberdef>
+      <memberdef kind="function" id="group___mpr_worker_service_1g5ec8913eb20bf209312f10f69005667a" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type>int</type>
+        <definition>int mprGetMaxWorkers</definition>
+        <argsstring>(MprCtx ctx)</argsstring>
+        <name>mprGetMaxWorkers</name>
+        <param>
+          <type><ref refid="group___mpr_mem_1g1413d66bb5356730c6fa08ca0af6bc0f" kindref="member">MprCtx</ref></type>
+          <declname>ctx</declname>
+        </param>
+        <briefdescription>
+<para>Get the maximum count of worker pool threads Get the maximum limit of worker pool threads. </para>        </briefdescription>
+        <detaileddescription>
+<para><parameterlist kind="param"><parameteritem>
+<parameternamelist>
+<parametername>ctx</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>Any memory allocation context created by MprAlloc </para></parameterdescription>
+</parameteritem>
+</parameterlist>
+<simplesect kind="return"><para>The maximum count of worker pool threads. </para></simplesect>
+</para>        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/mob/hg/mpr/all/mpr.h" line="6045"/>
+      </memberdef>
+      <memberdef kind="function" id="group___mpr_worker_service_1gdb937865f624afea0be874b043260672" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type>void</type>
+        <definition>void mprSetMaxWorkers</definition>
+        <argsstring>(MprCtx ctx, int count)</argsstring>
+        <name>mprSetMaxWorkers</name>
+        <param>
+          <type><ref refid="group___mpr_mem_1g1413d66bb5356730c6fa08ca0af6bc0f" kindref="member">MprCtx</ref></type>
+          <declname>ctx</declname>
+        </param>
+        <param>
+          <type>int</type>
+          <declname>count</declname>
+        </param>
+        <briefdescription>
+<para>Set the maximum count of worker threads Set the maximum number of worker pool threads for the MPR. </para>        </briefdescription>
+        <detaileddescription>
+<para>If this number if less than the current number of threads, excess threads will be gracefully pruned as they exit. <parameterlist kind="param"><parameteritem>
+<parameternamelist>
+<parametername>ctx</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>Any memory allocation context created by MprAlloc </para></parameterdescription>
+</parameteritem>
+<parameteritem>
+<parameternamelist>
+<parametername>count</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>Maximum limit of threads to define. </para></parameterdescription>
+</parameteritem>
+</parameterlist>
+</para>        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/mob/hg/mpr/all/mpr.h" line="6036"/>
+      </memberdef>
+      <memberdef kind="function" id="group___mpr_worker_service_1g2c7a32b885496896b69c928c7f08ffe7" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type>void</type>
+        <definition>void mprSetMinWorkers</definition>
+        <argsstring>(MprCtx ctx, int count)</argsstring>
+        <name>mprSetMinWorkers</name>
+        <param>
+          <type><ref refid="group___mpr_mem_1g1413d66bb5356730c6fa08ca0af6bc0f" kindref="member">MprCtx</ref></type>
+          <declname>ctx</declname>
+        </param>
+        <param>
+          <type>int</type>
+          <declname>count</declname>
+        </param>
+        <briefdescription>
+<para>Set the minimum count of worker threads Set the count of threads the worker pool will have. </para>        </briefdescription>
+        <detaileddescription>
+<para>This will cause the worker pool to pre-create at least this many threads. <parameterlist kind="param"><parameteritem>
+<parameternamelist>
+<parametername>ctx</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>Any memory allocation context created by MprAlloc </para></parameterdescription>
+</parameteritem>
+<parameteritem>
+<parameternamelist>
+<parametername>count</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>Minimum count of threads to use. </para></parameterdescription>
+</parameteritem>
+</parameterlist>
+</para>        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/mob/hg/mpr/all/mpr.h" line="6026"/>
+      </memberdef>
+      </sectiondef>
+    <briefdescription>
+<para>Worker Thread Service. </para>    </briefdescription>
+    <detaileddescription>
+<para><simplesect kind="par"><title><bold>Description</bold>:</title><para>The MPR provides a worker thread pool for rapid starting and assignment of threads to tasks. </para></simplesect>
+<simplesect kind="par"><title><bold>API</bold> Stability:</title><para>Evolving </para></simplesect>
+<simplesect kind="see"><para><ref refid="group___mpr_worker_service" kindref="compound">MprWorkerService</ref>, mprAvailableWorkers, <ref refid="group___mpr_worker_service_1gdb937865f624afea0be874b043260672" kindref="member">mprSetMaxWorkers</ref>, <ref refid="group___mpr_worker_service_1g2c7a32b885496896b69c928c7f08ffe7" kindref="member">mprSetMinWorkers</ref> </para></simplesect>
+</para>    </detaileddescription>
+  </compounddef>
+</doxygen>

@@ -1,0 +1,294 @@
+<?xml version='1.0' encoding='UTF-8' standalone='no'?>
+<doxygen xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="compound.xsd" version="1.5.8">
+  <compounddef id="group___mpr" kind="group">
+    <compoundname>Mpr</compoundname>
+    <title>Mpr</title>
+      <sectiondef kind="func">
+      <memberdef kind="function" id="group___mpr_1gc5203b2138474e781207b39ac4726c1b" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type>void</type>
+        <definition>void mprBreakpoint</definition>
+        <argsstring>()</argsstring>
+        <name>mprBreakpoint</name>
+        <briefdescription>
+<para>Trigger a breakpoint. </para>        </briefdescription>
+        <detaileddescription>
+<para><simplesect kind="par"><title><bold>Description</bold>:</title><para>Triggers a breakpoint and traps to the debugger. </para></simplesect>
+</para>        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/mob/hg/mpr/all/mpr.h" line="1477"/>
+      </memberdef>
+      <memberdef kind="function" id="group___mpr_1g4e84f505d5b6f74de677ffff29806906" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type>Mpr *</type>
+        <definition>Mpr* mprCreate</definition>
+        <argsstring>(int argc, char **argv, MprAllocFailure cback)</argsstring>
+        <name>mprCreate</name>
+        <param>
+          <type>int</type>
+          <declname>argc</declname>
+        </param>
+        <param>
+          <type>char **</type>
+          <declname>argv</declname>
+        </param>
+        <param>
+          <type><ref refid="group___mpr_mem_1ge0e48d1c33f626b414aa311fe400cbf0" kindref="member">MprAllocFailure</ref></type>
+          <declname>cback</declname>
+        </param>
+        <briefdescription>
+<para>Create an instance of the MPR. </para>        </briefdescription>
+        <detaileddescription>
+<para><simplesect kind="par"><title><bold>Description</bold>:</title><para>Initializes the MPR and creates an Mpr control object. The Mpr Object manages Mpr facilities and is the top level memory context. It may be used wherever a MprCtx parameter is required. This function must be called prior to calling any other Mpr API. </para></simplesect>
+<parameterlist kind="param"><parameteritem>
+<parameternamelist>
+<parametername>argc</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>Count of command line args </para></parameterdescription>
+</parameteritem>
+<parameteritem>
+<parameternamelist>
+<parametername>argv</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>Command line arguments for the application. Arguments may be passed into the Mpr for retrieval by the unit test framework. </para></parameterdescription>
+</parameteritem>
+<parameteritem>
+<parameternamelist>
+<parametername>cback</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>Memory allocation failure notification callback. </para></parameterdescription>
+</parameteritem>
+</parameterlist>
+<simplesect kind="return"><para>Returns a pointer to the Mpr object. </para></simplesect>
+<simplesect kind="par"><title><bold>API</bold> Stability:</title><para>Evolving. </para></simplesect>
+</para>        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/mob/hg/mpr/all/mpr.h" line="6569"/>
+      </memberdef>
+      <memberdef kind="function" id="group___mpr_1g045dc3d2476aebeecee838dacd0c63ba" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type>Mpr *</type>
+        <definition>Mpr* mprCreateEx</definition>
+        <argsstring>(int argc, char **argv, MprAllocFailure cback, void *shell)</argsstring>
+        <name>mprCreateEx</name>
+        <param>
+          <type>int</type>
+          <declname>argc</declname>
+        </param>
+        <param>
+          <type>char **</type>
+          <declname>argv</declname>
+        </param>
+        <param>
+          <type><ref refid="group___mpr_mem_1ge0e48d1c33f626b414aa311fe400cbf0" kindref="member">MprAllocFailure</ref></type>
+          <declname>cback</declname>
+        </param>
+        <param>
+          <type>void *</type>
+          <declname>shell</declname>
+        </param>
+        <briefdescription>
+<para>Create an instance of the MPR. </para>        </briefdescription>
+        <detaileddescription>
+<para><simplesect kind="par"><title><bold>Description</bold>:</title><para>Alternate API to create and initialize the MPR. The Mpr object manages Mpr facilities and is the top level memory context. It may be used wherever a MprCtx parameter is required. This function, or <ref refid="group___mpr_1g4e84f505d5b6f74de677ffff29806906" kindref="member">mprCreate</ref> must be called prior to calling any other Mpr API. </para></simplesect>
+<parameterlist kind="param"><parameteritem>
+<parameternamelist>
+<parametername>argc</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>Count of arguments supplied in argv </para></parameterdescription>
+</parameteritem>
+<parameteritem>
+<parameternamelist>
+<parametername>argv</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>Program arguments. The MPR can store the program arguments for retrieval by other parts of the program. </para></parameterdescription>
+</parameteritem>
+<parameteritem>
+<parameternamelist>
+<parametername>cback</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>Callback function to be invoked on memory allocation errors. Set to null if not required. </para></parameterdescription>
+</parameteritem>
+<parameteritem>
+<parameternamelist>
+<parametername>shell</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>Optional reference to an O/S implementation dependent shell object. Used by Brew. </para></parameterdescription>
+</parameteritem>
+</parameterlist>
+<simplesect kind="return"><para>Returns a pointer to the Mpr object. </para></simplesect>
+<simplesect kind="par"><title><bold>API</bold> Stability:</title><para>Evolving. </para></simplesect>
+</para>        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/mob/hg/mpr/all/mpr.h" line="6584"/>
+      </memberdef>
+      <memberdef kind="function" id="group___mpr_1g1392efc11ff7ec56f8cb2e3b6fa1168c" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type>bool</type>
+        <definition>bool mprGetDebugMode</definition>
+        <argsstring>(MprCtx ctx)</argsstring>
+        <name>mprGetDebugMode</name>
+        <param>
+          <type><ref refid="group___mpr_mem_1g1413d66bb5356730c6fa08ca0af6bc0f" kindref="member">MprCtx</ref></type>
+          <declname>ctx</declname>
+        </param>
+        <briefdescription>
+<para>Get the debug mode. </para>        </briefdescription>
+        <detaileddescription>
+<para><simplesect kind="par"><title><bold>Description</bold>:</title><para>Returns whether the debug mode is enabled. Some modules observe debug mode and disable timeouts and timers so that single-step debugging can be used. </para></simplesect>
+<parameterlist kind="param"><parameteritem>
+<parameternamelist>
+<parametername>ctx</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>Any memory context allocated by the MPR. </para></parameterdescription>
+</parameteritem>
+</parameterlist>
+<simplesect kind="return"><para>Returns true if debug mode is enabled, otherwise returns false. </para></simplesect>
+<simplesect kind="par"><title><bold>API</bold> Stability:</title><para>Evolving. </para></simplesect>
+</para>        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/mob/hg/mpr/all/mpr.h" line="6673"/>
+      </memberdef>
+      <memberdef kind="function" id="group___mpr_1gf184a06275222c97f80e0a8d807418ac" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type>int</type>
+        <definition>int mprGetError</definition>
+        <argsstring>()</argsstring>
+        <name>mprGetError</name>
+        <briefdescription>
+<para>Return the error code for the most recent system or library operation. </para>        </briefdescription>
+        <detaileddescription>
+<para><simplesect kind="par"><title><bold>Description</bold>:</title><para>Returns an error code from the most recent system call. This will be mapped to be either a POSIX error code or an MPR error code. </para></simplesect>
+<simplesect kind="return"><para>The mapped error code. </para></simplesect>
+<simplesect kind="par"><title><bold>API</bold> Stability:</title><para>Evolving. </para></simplesect>
+</para>        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/mob/hg/mpr/all/mpr.h" line="6700"/>
+      </memberdef>
+      <memberdef kind="function" id="group___mpr_1gd2fa15bdd6890ff1df432ae25f4c981c" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type>int</type>
+        <definition>int mprGetOsError</definition>
+        <argsstring>()</argsstring>
+        <name>mprGetOsError</name>
+        <briefdescription>
+<para>Return the O/S error code. </para>        </briefdescription>
+        <detaileddescription>
+<para><simplesect kind="par"><title><bold>Description</bold>:</title><para>Returns an O/S error code from the most recent system call. This returns errno on Unix systems or GetLastError() on Windows.. </para></simplesect>
+<simplesect kind="return"><para>The O/S error code. </para></simplesect>
+<simplesect kind="par"><title><bold>API</bold> Stability:</title><para>Evolving. </para></simplesect>
+</para>        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/mob/hg/mpr/all/mpr.h" line="6690"/>
+      </memberdef>
+      <memberdef kind="function" id="group___mpr_1g1dfe792f44331fa47bb8e8cb8c04a2c7" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type>bool</type>
+        <definition>bool mprIsExiting</definition>
+        <argsstring>(MprCtx ctx)</argsstring>
+        <name>mprIsExiting</name>
+        <param>
+          <type><ref refid="group___mpr_mem_1g1413d66bb5356730c6fa08ca0af6bc0f" kindref="member">MprCtx</ref></type>
+          <declname>ctx</declname>
+        </param>
+        <briefdescription>
+<para>Determine if the MPR should exit. </para>        </briefdescription>
+        <detaileddescription>
+<para><simplesect kind="par"><title><bold>Description</bold>:</title><para>Returns true if the MPR should exit gracefully. </para></simplesect>
+<parameterlist kind="param"><parameteritem>
+<parameternamelist>
+<parametername>ctx</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>Any memory context allocated by the MPR. </para></parameterdescription>
+</parameteritem>
+</parameterlist>
+<simplesect kind="return"><para>True if the App has been instructed to exit. </para></simplesect>
+<simplesect kind="par"><title><bold>API</bold> Stability:</title><para>Evolving. </para></simplesect>
+</para>        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/mob/hg/mpr/all/mpr.h" line="6618"/>
+      </memberdef>
+      <memberdef kind="function" id="group___mpr_1gf86c5f0e03d6476670810091ba6a8d3c" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type>void</type>
+        <definition>void mprSignalExit</definition>
+        <argsstring>(MprCtx ctx)</argsstring>
+        <name>mprSignalExit</name>
+        <param>
+          <type><ref refid="group___mpr_mem_1g1413d66bb5356730c6fa08ca0af6bc0f" kindref="member">MprCtx</ref></type>
+          <declname>ctx</declname>
+        </param>
+        <briefdescription>
+<para>Signal the MPR to exit gracefully. </para>        </briefdescription>
+        <detaileddescription>
+<para><simplesect kind="par"><title><bold>Description</bold>:</title><para>Set the must exit flag for the MPR. </para></simplesect>
+<parameterlist kind="param"><parameteritem>
+<parameternamelist>
+<parametername>ctx</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>Any memory context allocated by the MPR. </para></parameterdescription>
+</parameteritem>
+</parameterlist>
+<simplesect kind="par"><title><bold>API</bold> Stability:</title><para>Evolving. </para></simplesect>
+</para>        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/mob/hg/mpr/all/mpr.h" line="6608"/>
+      </memberdef>
+      <memberdef kind="function" id="group___mpr_1gedafb2bdaadd9bccf0938e8e6e31f539" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type>void</type>
+        <definition>void mprTerminate</definition>
+        <argsstring>(MprCtx ctx, bool graceful)</argsstring>
+        <name>mprTerminate</name>
+        <param>
+          <type><ref refid="group___mpr_mem_1g1413d66bb5356730c6fa08ca0af6bc0f" kindref="member">MprCtx</ref></type>
+          <declname>ctx</declname>
+        </param>
+        <param>
+          <type>bool</type>
+          <declname>graceful</declname>
+        </param>
+        <briefdescription>
+<para>Terminate the MPR. </para>        </briefdescription>
+        <detaileddescription>
+<para><simplesect kind="par"><title><bold>Description</bold>:</title><para>Terminates the MPR and disposes of all allocated resources. The mprTerminate function will recursively free all memory allocated by the MPR. </para></simplesect>
+<parameterlist kind="param"><parameteritem>
+<parameternamelist>
+<parametername>ctx</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>Any memory context object returned by <ref refid="group___mpr_mem_1g8453c59fd682fda78bbd18eb9f572dec" kindref="member">mprAlloc</ref>. </para></parameterdescription>
+</parameteritem>
+<parameteritem>
+<parameternamelist>
+<parametername>graceful</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>Shutdown gracefully waiting for all events to drain. Otherise exit immediately without waiting for any threads or events to complete. </para></parameterdescription>
+</parameteritem>
+</parameterlist>
+<simplesect kind="par"><title><bold>API</bold> Stability:</title><para>Evolving. </para></simplesect>
+</para>        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/mob/hg/mpr/all/mpr.h" line="6748"/>
+      </memberdef>
+      </sectiondef>
+    <briefdescription>
+<para>Primary MPR application control structure. </para>    </briefdescription>
+    <detaileddescription>
+<para><simplesect kind="par"><title><bold>Description</bold>:</title><para>The Mpr structure stores critical application state information and is the root memory allocation context block. It is used as the MprCtx context for other memory allocations and is thus the ultimate parent of all allocated memory. </para></simplesect>
+<simplesect kind="par"><title><bold>API</bold> Stability:</title><para>Evolving. </para></simplesect>
+<simplesect kind="see"><para>mprGetApp, <ref refid="group___mpr_1g045dc3d2476aebeecee838dacd0c63ba" kindref="member">mprCreateEx</ref>, <ref refid="group___mpr_1g1dfe792f44331fa47bb8e8cb8c04a2c7" kindref="member">mprIsExiting</ref>, <ref refid="group___mpr_1gf86c5f0e03d6476670810091ba6a8d3c" kindref="member">mprSignalExit</ref>, <ref refid="group___mpr_1gedafb2bdaadd9bccf0938e8e6e31f539" kindref="member">mprTerminate</ref>, mprGetKeyValue, mprRemoveKeyValue, <ref refid="mpr_8h_1a0451f6be62ac9d8c4c9d57df6a4acfb" kindref="member">mprSetDebugMode</ref>, mprGetErrorMsg, <ref refid="group___mpr_1gd2fa15bdd6890ff1df432ae25f4c981c" kindref="member">mprGetOsError</ref>, <ref refid="group___mpr_1gf184a06275222c97f80e0a8d807418ac" kindref="member">mprGetError</ref>, <ref refid="group___mpr_1gc5203b2138474e781207b39ac4726c1b" kindref="member">mprBreakpoint</ref> </para></simplesect>
+</para>    </detaileddescription>
+  </compounddef>
+</doxygen>

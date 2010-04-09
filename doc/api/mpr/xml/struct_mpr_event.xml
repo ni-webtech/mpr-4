@@ -1,0 +1,183 @@
+<?xml version='1.0' encoding='UTF-8' standalone='no'?>
+<doxygen xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="compound.xsd" version="1.5.8">
+  <compounddef id="struct_mpr_event" kind="struct" prot="public">
+    <compoundname>MprEvent</compoundname>
+      <sectiondef kind="public-attrib">
+      <memberdef kind="variable" id="struct_mpr_event_1e7d75a0a32f155a55b7a06b9d759cf01" prot="public" static="no" mutable="no">
+        <type>void *</type>
+        <definition>void* MprEvent::data</definition>
+        <argsstring></argsstring>
+        <name>data</name>
+        <briefdescription>
+<para>Event private data. </para>        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/mob/hg/mpr/all/mpr.h" line="3823" bodyfile="/Users/mob/hg/mpr/all/mpr.h" bodystart="3823" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="variable" id="struct_mpr_event_1eb058bf221ecd4eff0baf8af3b304d38" prot="public" static="no" mutable="no">
+        <type>struct MprDispatcher *</type>
+        <definition>struct MprDispatcher* MprEvent::dispatcher</definition>
+        <argsstring></argsstring>
+        <name>dispatcher</name>
+        <briefdescription>
+<para>Event dispatcher service. </para>        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/mob/hg/mpr/all/mpr.h" line="3828" bodyfile="/Users/mob/hg/mpr/all/mpr.h" bodystart="3828" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="variable" id="struct_mpr_event_1af9600cb432aa3d137086a3c31931687" prot="public" static="no" mutable="no">
+        <type><ref refid="group___mpr_date_1gdd377cb2c4ec9c665b99de02f87f768b" kindref="member">MprTime</ref></type>
+        <definition>MprTime MprEvent::due</definition>
+        <argsstring></argsstring>
+        <name>due</name>
+        <briefdescription>
+<para>When is the event due. </para>        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/mob/hg/mpr/all/mpr.h" line="3822" bodyfile="/Users/mob/hg/mpr/all/mpr.h" bodystart="3822" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="variable" id="struct_mpr_event_166678efbd37b2a6e1857c7ee7d6bcbda" prot="public" static="no" mutable="no">
+        <type>int</type>
+        <definition>int MprEvent::fd</definition>
+        <argsstring></argsstring>
+        <name>fd</name>
+        <briefdescription>
+<para>File descriptor if an I/O event. </para>        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/mob/hg/mpr/all/mpr.h" line="3824" bodyfile="/Users/mob/hg/mpr/all/mpr.h" bodystart="3824" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="variable" id="struct_mpr_event_16161b408e6f761a99231243f178d0205" prot="public" static="no" mutable="no">
+        <type>int</type>
+        <definition>int MprEvent::flags</definition>
+        <argsstring></argsstring>
+        <name>flags</name>
+        <briefdescription>
+<para>Event flags. </para>        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/mob/hg/mpr/all/mpr.h" line="3821" bodyfile="/Users/mob/hg/mpr/all/mpr.h" bodystart="3821" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="variable" id="struct_mpr_event_1f0a5738b14344f18ccdccda0373ac916" prot="public" static="no" mutable="no">
+        <type>int</type>
+        <definition>int MprEvent::mask</definition>
+        <argsstring></argsstring>
+        <name>mask</name>
+        <briefdescription>
+<para>I/O mask of events. </para>        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/mob/hg/mpr/all/mpr.h" line="3825" bodyfile="/Users/mob/hg/mpr/all/mpr.h" bodystart="3825" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="variable" id="struct_mpr_event_19669d32290ca59fd043ed6ee5f915934" prot="public" static="no" mutable="no">
+        <type>cchar *</type>
+        <definition>cchar* MprEvent::name</definition>
+        <argsstring></argsstring>
+        <name>name</name>
+        <briefdescription>
+<para>Debug name of the event. </para>        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/mob/hg/mpr/all/mpr.h" line="3817" bodyfile="/Users/mob/hg/mpr/all/mpr.h" bodystart="3817" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="variable" id="struct_mpr_event_1d4f7fb7441b24afbf4d3225b8d91dbc6" prot="public" static="no" mutable="no">
+        <type>struct MprEvent *</type>
+        <definition>struct MprEvent* MprEvent::next</definition>
+        <argsstring></argsstring>
+        <name>next</name>
+        <briefdescription>
+<para>Next event linkage. </para>        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/mob/hg/mpr/all/mpr.h" line="3826" bodyfile="/Users/mob/hg/mpr/all/mpr.h" bodystart="3826" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="variable" id="struct_mpr_event_105fa3ac7d29bed06b7b1ec99c14c9540" prot="public" static="no" mutable="no">
+        <type>int</type>
+        <definition>int MprEvent::period</definition>
+        <argsstring></argsstring>
+        <name>period</name>
+        <briefdescription>
+<para>Reschedule period. </para>        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/mob/hg/mpr/all/mpr.h" line="3820" bodyfile="/Users/mob/hg/mpr/all/mpr.h" bodystart="3820" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="variable" id="struct_mpr_event_1e30eb7fd0bdcd39a5a8844d45c080a47" prot="public" static="no" mutable="no">
+        <type>struct MprEvent *</type>
+        <definition>struct MprEvent* MprEvent::prev</definition>
+        <argsstring></argsstring>
+        <name>prev</name>
+        <briefdescription>
+<para>Previous event linkage. </para>        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/mob/hg/mpr/all/mpr.h" line="3827" bodyfile="/Users/mob/hg/mpr/all/mpr.h" bodystart="3827" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="variable" id="struct_mpr_event_16bfe55e6782d90c401da1fc36cedf3d2" prot="public" static="no" mutable="no">
+        <type><ref refid="group___mpr_event_1g6777c813e9ab55b0e29dfa9d0d19f32b" kindref="member">MprEventProc</ref></type>
+        <definition>MprEventProc MprEvent::proc</definition>
+        <argsstring></argsstring>
+        <name>proc</name>
+        <briefdescription>
+<para>Callback procedure. </para>        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/mob/hg/mpr/all/mpr.h" line="3818" bodyfile="/Users/mob/hg/mpr/all/mpr.h" bodystart="3818" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="variable" id="struct_mpr_event_1db6eb43c7a35859da0f10a16281320a9" prot="public" static="no" mutable="no">
+        <type><ref refid="group___mpr_date_1gdd377cb2c4ec9c665b99de02f87f768b" kindref="member">MprTime</ref></type>
+        <definition>MprTime MprEvent::timestamp</definition>
+        <argsstring></argsstring>
+        <name>timestamp</name>
+        <briefdescription>
+<para>When was the event created. </para>        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/mob/hg/mpr/all/mpr.h" line="3819" bodyfile="/Users/mob/hg/mpr/all/mpr.h" bodystart="3819" bodyend="-1"/>
+      </memberdef>
+      </sectiondef>
+    <briefdescription>
+    </briefdescription>
+    <detaileddescription>
+    </detaileddescription>
+    <location file="/Users/mob/hg/mpr/all/mpr.h" line="3816" bodyfile="/Users/mob/hg/mpr/all/mpr.h" bodystart="3816" bodyend="3829"/>
+    <listofallmembers>
+      <member refid="struct_mpr_event_1e7d75a0a32f155a55b7a06b9d759cf01" prot="public" virt="non-virtual"><scope>MprEvent</scope><name>data</name></member>
+      <member refid="struct_mpr_event_1eb058bf221ecd4eff0baf8af3b304d38" prot="public" virt="non-virtual"><scope>MprEvent</scope><name>dispatcher</name></member>
+      <member refid="struct_mpr_event_1af9600cb432aa3d137086a3c31931687" prot="public" virt="non-virtual"><scope>MprEvent</scope><name>due</name></member>
+      <member refid="struct_mpr_event_166678efbd37b2a6e1857c7ee7d6bcbda" prot="public" virt="non-virtual"><scope>MprEvent</scope><name>fd</name></member>
+      <member refid="struct_mpr_event_16161b408e6f761a99231243f178d0205" prot="public" virt="non-virtual"><scope>MprEvent</scope><name>flags</name></member>
+      <member refid="struct_mpr_event_1f0a5738b14344f18ccdccda0373ac916" prot="public" virt="non-virtual"><scope>MprEvent</scope><name>mask</name></member>
+      <member refid="struct_mpr_event_19669d32290ca59fd043ed6ee5f915934" prot="public" virt="non-virtual"><scope>MprEvent</scope><name>name</name></member>
+      <member refid="struct_mpr_event_1d4f7fb7441b24afbf4d3225b8d91dbc6" prot="public" virt="non-virtual"><scope>MprEvent</scope><name>next</name></member>
+      <member refid="struct_mpr_event_105fa3ac7d29bed06b7b1ec99c14c9540" prot="public" virt="non-virtual"><scope>MprEvent</scope><name>period</name></member>
+      <member refid="struct_mpr_event_1e30eb7fd0bdcd39a5a8844d45c080a47" prot="public" virt="non-virtual"><scope>MprEvent</scope><name>prev</name></member>
+      <member refid="struct_mpr_event_16bfe55e6782d90c401da1fc36cedf3d2" prot="public" virt="non-virtual"><scope>MprEvent</scope><name>proc</name></member>
+      <member refid="struct_mpr_event_1db6eb43c7a35859da0f10a16281320a9" prot="public" virt="non-virtual"><scope>MprEvent</scope><name>timestamp</name></member>
+    </listofallmembers>
+  </compounddef>
+</doxygen>
