@@ -158,7 +158,7 @@ void mprEnableWaitEvents(MprWaitHandler *wp, int mask)
 
 
 /*
-    Set a handler to be recalled without further I/O. May be called with a null wp.
+    Set a handler to be recalled without further I/O
  */
 void mprRecallWaitHandler(MprCtx ctx, int fd)
 {
