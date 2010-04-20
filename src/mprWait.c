@@ -29,7 +29,7 @@ MprWaitService *mprCreateWaitService(Mpr *mpr)
     if (ws == 0) {
         return 0;
     }
-    mprGetMpr()->waitService = ws;
+    mpr->waitService = ws;
     ws->handlers = mprCreateList(ws);
     ws->mutex = mprCreateLock(ws);
     ws->spin = mprCreateSpinLock(ws);
@@ -45,7 +45,7 @@ MprWaitHandler *mprInitWaitHandler(MprCtx ctx, MprWaitHandler *wp, int fd, int m
 
     mprAssert(fd >= 0);
 
-    ws = mprGetMpr()->waitService;
+    ws = mprGetMpr(ctx)->waitService;
     if (mprGetListCount(ws->handlers) == FD_SETSIZE) {
         mprError(ws, "io: Too many io handlers: %d\n", FD_SETSIZE);
         return 0;
@@ -83,7 +83,7 @@ MprWaitHandler *mprCreateWaitHandler(MprCtx ctx, int fd, int mask, MprDispatcher
 
     mprAssert(fd >= 0);
 
-    ws = mprGetMpr()->waitService;
+    ws = mprGetMpr(ctx)->waitService;
     wp = mprAllocObjWithDestructorZeroed(ws, MprWaitHandler, handlerDestructor);
     if (wp == 0) {
         return 0;
@@ -166,7 +166,7 @@ void mprRecallWaitHandler(MprCtx ctx, int fd)
     MprWaitHandler  *wp;
     int             index;
 
-    ws = mprGetMpr()->waitService;
+    ws = mprGetMpr(ctx)->waitService;
     lock(ws);
     for (index = 0; (wp = (MprWaitHandler*) mprGetNextItem(ws->handlers, &index)) != 0; ) {
         if (wp->fd == fd) {

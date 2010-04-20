@@ -204,8 +204,11 @@ static void testClientServer(MprTestGroup *gp, cchar *host)
 {
     MprSocket       *client;
     MprTestSocket   *ts;
+    MprDispatcher   *dispatcher;
     char            *buf, *thisBuf;
     int             i, rc, len, thisLen, sofar, nbytes, count;
+
+    dispatcher = mprGetDispatcher(gp);
 
     ts = openServer(gp, host);
     assert(ts != NULL);
@@ -246,7 +249,7 @@ static void testClientServer(MprTestGroup *gp, cchar *host)
             thisLen -= nbytes;
             thisBuf += nbytes;
             if (nbytes == 0) {
-                mprServiceEvents(NULL, 50, MPR_SERVICE_ONE_THING);
+                mprServiceEvents(gp, NULL, 50, MPR_SERVICE_ONE_THING);
             }
         }
     }
@@ -256,7 +259,7 @@ static void testClientServer(MprTestGroup *gp, cchar *host)
 {
     MprTime mark = mprGetTime(gp);
     do {
-        mprServiceEvents(NULL, 50, MPR_SERVICE_ONE_THING);
+        mprServiceEvents(gp, NULL, 50, MPR_SERVICE_ONE_THING);
         if (mprWaitForTestToComplete(gp, MPR_TEST_SLEEP)) {
             break;
         }

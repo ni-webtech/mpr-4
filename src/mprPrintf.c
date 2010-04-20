@@ -333,9 +333,6 @@ static char *sprintfCore(MprCtx ctx, char *buf, int maxsize, cchar *spec, va_lis
     uint64      uValue;
     int         i, len, state;
 
-    if (ctx == 0) {
-        ctx = mprGetMpr();
-    }
     if (spec == 0) {
         spec = "";
     }
@@ -932,6 +929,7 @@ static int growBuf(MprCtx ctx, Format *fmt)
         return 0;
     }
 
+    mprAssert(ctx);
     newbuf = (uchar*) mprAlloc(ctx, buflen + fmt->growBy);
     if (newbuf == 0) {
         return MPR_ERR_NO_MEMORY;
@@ -962,11 +960,12 @@ static int growBuf(MprCtx ctx, Format *fmt)
  */
 int print(cchar *fmt, ...)
 {
+    int             len;
+    va_list         ap;
+#if UNUSED
     MprFileSystem   *fs;
     MprCtx          ctx;
-    va_list         ap;
     char            *buf;
-    int             len;
 
     ctx = mprGetMpr();
 
@@ -982,6 +981,12 @@ int print(cchar *fmt, ...)
     }
     mprFree(buf);
     return len;
+#else
+    va_start(ap, fmt);
+    len = vprintf(fmt, ap);
+    va_end(ap);
+    return len;
+#endif
 }
 
 /*

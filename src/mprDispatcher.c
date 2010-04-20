@@ -34,7 +34,7 @@ MprEventService *mprCreateEventService(MprCtx ctx)
     MprEventService     *es;
     Mpr                 *mpr;
 
-    mpr = mprGetMpr();
+    mpr = mprGetMpr(ctx);
     if ((es = mprAllocObjZeroed(ctx, MprEventService)) == 0) {
         return 0;
     }
@@ -144,7 +144,7 @@ static void serviceDispatcher(MprDispatcher *dispatcher)
     @param timeout Time in milliseconds to wait. Set to zero for no wait. Set to -1 to wait forever.
     @returns Zero if not events occurred. Otherwise returns non-zero.
  */
-int mprServiceEvents(MprDispatcher *dispatcher, int timeout, int flags)
+int mprServiceEvents(MprCtx ctx, MprDispatcher *dispatcher, int timeout, int flags)
 {
     MprEventService     *es;
     MprDispatcher       *dp;
@@ -152,7 +152,9 @@ int mprServiceEvents(MprDispatcher *dispatcher, int timeout, int flags)
     Mpr                 *mpr;
     int                 count, delay, wasRunning, beginEventCount, eventCount, justOne;
 
-    mpr = mprGetMpr();
+    mprAssert(ctx);
+    mpr = mprGetMpr(ctx);
+
     es = mpr->eventService;
     es->now = mprGetTime(es);
     expires = timeout < 0 ? (es->now + MPR_MAX_TIMEOUT) : (es->now + timeout);
@@ -237,7 +239,7 @@ MprDispatcher *mprCreateDispatcher(MprCtx ctx, cchar *name, int enable)
     }
     dispatcher->name = name;
     dispatcher->enabled = enable;
-    es = dispatcher->service = mprGetMpr()->eventService;
+    es = dispatcher->service = mprGetMpr(ctx)->eventService;
     mprInitEventQ(&dispatcher->eventQ);
     queueDispatcher(&es->idleQ, dispatcher);
     return dispatcher;
@@ -339,7 +341,7 @@ void mprScheduleDispatcher(MprDispatcher *dispatcher)
     mprAssert(dispatcher->enabled);
 
     es = dispatcher->service;
-    ws = mprGetMpr()->waitService;
+    ws = mprGetMpr(dispatcher)->waitService;
 
     lock(es);
     //  MOB - why awake if already running?
@@ -518,7 +520,10 @@ static void dequeueDispatcher(MprDispatcher *dispatcher)
  */
 MprDispatcher *mprGetDispatcher(MprCtx ctx)
 {
-    return mprGetMpr()->dispatcher;
+    Mpr     *mpr;
+    
+    mpr = mprGetMpr(ctx);
+    return mpr->dispatcher;
 }
 
 

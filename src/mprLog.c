@@ -193,14 +193,14 @@ int mprGetLogLevel(MprCtx ctx)
     /*
         Leave the code like this so debuggers can patch logLevel before returning.
      */
-    mpr = mprGetMpr();
+    mpr = mprGetMpr(ctx);
     return mpr->logLevel;
 }
 
 
 void mprSetLogLevel(MprCtx ctx, int level)
 {
-    mprGetMpr()->logLevel = level;
+    mprGetMpr(ctx)->logLevel = level;
 }
 
 
@@ -212,7 +212,7 @@ static void logOutput(MprCtx ctx, int flags, int level, cchar *msg)
     MprLogHandler   handler;
 
     mprAssert(ctx != 0);
-    handler = mprGetMpr()->logHandler;
+    handler = mprGetMpr(ctx)->logHandler;
     if (handler != 0) {
         (handler)(ctx, flags, level, msg);
         return;
@@ -226,7 +226,7 @@ static void defaultLogHandler(MprCtx ctx, int flags, int level, cchar *msg)
     Mpr     *mpr;
     char    *prefix;
 
-    mpr = mprGetMpr();
+    mpr = mprGetMpr(ctx);
     prefix = mpr->name;
 
     if (msg == 0) {

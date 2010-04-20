@@ -97,7 +97,7 @@ MprModule *mprCreateModule(MprCtx ctx, cchar *name, void *data)
     Mpr                 *mpr;
     int                 index;
 
-    mpr = mprGetMpr();
+    mpr = mprGetMpr(ctx);
     ms = mpr->moduleService;
     mprAssert(ms);
 
@@ -129,7 +129,7 @@ MprModule *mprLookupModule(MprCtx ctx, cchar *name)
 
     mprAssert(name && name);
 
-    ms = mprGetMpr()->moduleService;
+    ms = mprGetMpr(ctx)->moduleService;
     mprAssert(ms);
 
     for (next = 0; (mp = mprGetNextItem(ms->modules, &next)) != 0; ) {
@@ -153,7 +153,7 @@ void mprSetModuleSearchPath(MprCtx ctx, char *searchPath)
     mprAssert(ctx);
     mprAssert(searchPath && *searchPath);
 
-    mpr = mprGetMpr();
+    mpr = mprGetMpr(ctx);
     mprAssert(mpr);
     ms = mpr->moduleService;
 
@@ -183,7 +183,7 @@ cchar *mprGetModuleSearchPath(MprCtx ctx)
 
     mprAssert(ctx);
 
-    mpr = mprGetMpr();
+    mpr = mprGetMpr(ctx);
     mprAssert(mpr);
     ms = mpr->moduleService;
 

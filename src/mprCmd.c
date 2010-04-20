@@ -43,7 +43,8 @@ MprCmd *mprCreateCmd(MprCtx ctx, MprDispatcher *dispatcher)
     }
     cmd->timeoutPeriod = MPR_TIMEOUT_CMD;
     cmd->timestamp = mprGetTime(cmd);
-    cmd->dispatcher = dispatcher;
+    cmd->dispatcher = dispatcher ? dispatcher : mprGetDispatcher(ctx);
+    mprAssert(cmd->dispatcher);
 
 #if VXWORKS
     cmd->startCond = semCCreate(SEM_Q_PRIORITY, SEM_EMPTY);
@@ -602,9 +603,9 @@ int mprWaitForCmd(MprCmd *cmd, int timeout)
         if (cmd->pid == 0 || remaining <= 0) {
             break;
         }
-        mprServiceEvents(cmd->dispatcher, 10, MPR_SERVICE_ONE_THING);
+        mprServiceEvents(cmd, cmd->dispatcher, 10, MPR_SERVICE_ONE_THING);
 #else
-        mprServiceEvents(cmd->dispatcher, remaining, MPR_SERVICE_ONE_THING);
+        mprServiceEvents(cmd, cmd->dispatcher, remaining, MPR_SERVICE_ONE_THING);
 #endif
         remaining = (int) (expires - mprGetTime(cmd));
     } while (cmd->pid && remaining >= 0);

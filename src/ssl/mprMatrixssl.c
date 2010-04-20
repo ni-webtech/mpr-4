@@ -39,7 +39,7 @@ int mprCreateMatrixSslModule(MprCtx ctx, bool lazy)
 
     mprAssert(ctx);
 
-    mpr = mprGetMpr();
+    mpr = mprGetMpr(ctx);
     ss = mpr->socketService;
 
     /*
@@ -66,7 +66,7 @@ static MprSsl *getDefaultMatrixSsl(MprCtx ctx)
     MprSocketService    *ss;
     MprSsl              *ssl;
 
-    mpr = mprGetMpr();
+    mpr = mprGetMpr(ctx);
     ss = mpr->socketService;
 
     if (ss->secureProvider->defaultSsl) {
@@ -85,7 +85,7 @@ static MprSocketProvider *createMatrixSslProvider(MprCtx ctx)
     Mpr                 *mpr;
     MprSocketProvider   *provider;
 
-    mpr = mprGetMpr();
+    mpr = mprGetMpr(ctx);
     provider = mprAllocObjZeroed(mpr, MprSocketProvider);
     if (provider == 0) {
         return 0;
@@ -111,7 +111,7 @@ static int configureMss(MprSsl *ssl)
     MprSocketService    *ss;
     char                *password;
 
-    ss = mprGetMpr()->socketService;
+    ss = mprGetMpr(ssl)->socketService;
 
     mprSetDestructor(ssl, (MprDestructor) matrixSslDestructor);
 
@@ -172,7 +172,7 @@ static MprSocket *createMss(MprCtx ctx, MprSsl *ssl)
     /*
         First get a standard socket
      */
-    mpr = mprGetMpr();
+    mpr = mprGetMpr(ctx);
     ss = mpr->socketService;
     sp = ss->standardProvider->createSocket(mpr, ssl);
     if (sp == 0) {

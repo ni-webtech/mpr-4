@@ -287,7 +287,7 @@ void mprGlobalLock(MprCtx ctx)
 {
     Mpr *mpr;
 
-    mpr = mprGetMpr();
+    mpr = mprGetMpr(ctx);
     mprAssert(mpr);
 
     if (mpr && mpr->mutex) {
@@ -300,7 +300,7 @@ void mprGlobalUnlock(MprCtx ctx)
 {
     Mpr *mpr;
 
-    mpr = mprGetMpr();
+    mpr = mprGetMpr(ctx);
     mprAssert(mpr);
 
     if (mpr && mpr->mutex) {

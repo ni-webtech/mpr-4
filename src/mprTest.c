@@ -59,7 +59,7 @@ int mprParseTestArgs(MprTestService *sp, int argc, char *argv[])
     outputVersion = 0;
     logSpec = "stderr:1";
 
-    mpr = mprGetMpr();
+    mpr = mprGetMpr(sp);
     programName = mprGetPathBase(mpr, argv[0]);
 
     sp->name = BLD_PRODUCT;
@@ -334,7 +334,7 @@ int mprRunTests(MprTestService *sp)
         Wait for all the threads to complete (simple but effective)
      */
     while (sp->activeThreadCount > 0) {
-        mprServiceEvents(NULL, 250, 0);
+        mprServiceEvents(sp, NULL, 250, 0);
     }
     return (sp->totalFailedCount == 0) ? 0 : 1;
 }
@@ -845,7 +845,7 @@ static void logHandler(MprCtx ctx, int flags, int level, cchar *msg)
     MprFile     *file;
     char        *prefix;
 
-    mpr = mprGetMpr();
+    mpr = mprGetMpr(ctx);
     file = (MprFile*) mpr->logHandlerData;
     prefix = mpr->name;
 
@@ -873,7 +873,6 @@ static void logHandler(MprCtx ctx, int flags, int level, cchar *msg)
     } else if (flags & MPR_RAW) {
         mprFprintf(file, "%s", msg);
     }
-    
     if (flags & (MPR_ERROR_SRC | MPR_FATAL_SRC)) {
         mprBreakpoint();
     }

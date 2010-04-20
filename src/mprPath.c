@@ -847,7 +847,7 @@ static char *toCygPath(MprCtx ctx, cchar *path)
     char    *absPath, *result;
     int     len;
 
-    mpr = mprGetMpr();
+    mpr = mprGetMpr(ctx);
 
     absPath = NULL;
     if (!isFullPath(mpr, path)) {
@@ -895,7 +895,7 @@ static char *fromCygPath(MprCtx ctx, cchar *path)
     char    *buf, *result;
     int     len;
 
-    mpr = mprGetMpr();
+    mpr = mprGetMpr(ctx);
 
     if (isFullPath(mpr, path)) {
         return mprStrdup(ctx, path);
@@ -1448,7 +1448,7 @@ char *mprGetAppPath(MprCtx ctx)
 { 
     Mpr     *mpr;
 
-    mpr = mprGetMpr();
+    mpr = mprGetMpr(ctx);
     if (mpr->appPath) {
         return mprStrdup(ctx, mpr->appPath);
     }
@@ -1512,7 +1512,7 @@ char *mprGetAppDir(MprCtx ctx)
     Mpr     *mpr;
     char    *path;
 
-    mpr = mprGetMpr();
+    mpr = mprGetMpr(ctx);
     if (mpr->appDir == 0) {
         path = mprStrdup(ctx, mprGetAppPath(ctx));
         mpr->appDir = mprGetPathDir(mpr, path);

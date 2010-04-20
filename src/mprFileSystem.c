@@ -20,7 +20,7 @@ MprFileSystem *mprCreateFileSystem(MprCtx ctx, cchar *path)
     Mpr             *mpr;
     char            *cp;
 
-    mpr = mprGetMpr();
+    mpr = mprGetMpr(ctx);
     mprAssert(mpr);
     
     /*
@@ -71,7 +71,7 @@ void mprAddFileSystem(MprCtx ctx, MprFileSystem *fs)
     mprAssert(ctx);
     mprAssert(fs);
     
-    mprGetMpr()->fileSystem = fs;
+    mprGetMpr(ctx)->fileSystem = fs;
 }
 
 
@@ -82,7 +82,7 @@ MprFileSystem *mprLookupFileSystem(MprCtx ctx, cchar *path)
 {
     mprAssert(ctx);
     
-    return mprGetMpr()->fileSystem;
+    return mprGetMpr(ctx)->fileSystem;
 }
 
 

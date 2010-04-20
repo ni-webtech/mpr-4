@@ -19,7 +19,7 @@ static MprModule *loadSsl(MprCtx ctx, bool lazy)
     Mpr         *mpr;
     MprModule   *mp;
 
-    mpr = mprGetMpr();
+    mpr = mprGetMpr(ctx);
     if (mpr->flags & MPR_SSL_PROVIDER_LOADED) {
         return mprLookupModule(ctx, "sslModule");
     }
@@ -88,7 +88,7 @@ void mprConfigureSsl(MprSsl *ssl)
 {
     MprSocketProvider   *provider;
 
-    provider = mprGetMpr()->socketService->secureProvider;
+    provider = mprGetMpr(ssl)->socketService->secureProvider;
     if (provider) {
         provider->configureSsl(ssl);
     }

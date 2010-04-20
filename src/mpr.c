@@ -198,7 +198,7 @@ int mprStartEventsThread(Mpr *mpr)
 
 static void serviceEventsThread(void *data, MprThread *tp)
 {
-    mprServiceEvents(NULL, -1, 0);
+    mprServiceEvents(tp, NULL, -1, 0);
 }
 
 
@@ -218,7 +218,7 @@ bool mprIsExiting(MprCtx ctx)
 {
     Mpr *mpr;
 
-    mpr = mprGetMpr();
+    mpr = mprGetMpr(ctx);
     if (mpr == 0) {
         return 1;
     }
@@ -230,7 +230,7 @@ void mprSignalExit(MprCtx ctx)
 {
     Mpr     *mpr;
 
-    mpr = mprGetMpr();
+    mpr = mprGetMpr(ctx);
 
     mprSpinLock(mpr->spin);
     mpr->flags |= MPR_EXITING;
@@ -244,7 +244,7 @@ int mprSetAppName(MprCtx ctx, cchar *name, cchar *title, cchar *version)
     Mpr     *mpr;
     char    *cp;
 
-    mpr = mprGetMpr();
+    mpr = mprGetMpr(ctx);
 
     if (name) {
         mprFree(mpr->name);
@@ -273,13 +273,13 @@ int mprSetAppName(MprCtx ctx, cchar *name, cchar *title, cchar *version)
 
 cchar *mprGetAppName(MprCtx ctx)
 {
-    return mprGetMpr()->name;
+    return mprGetMpr(ctx)->name;
 }
 
 
 cchar *mprGetAppTitle(MprCtx ctx)
 {
-    return mprGetMpr()->title;
+    return mprGetMpr(ctx)->title;
 }
 
 
@@ -290,7 +290,7 @@ void mprSetHostName(MprCtx ctx, cchar *s)
 {
     Mpr     *mpr;
 
-    mpr = mprGetMpr();
+    mpr = mprGetMpr(ctx);
     mprLock(mpr->mutex);
     mprFree(mpr->hostName);
     mpr->hostName = mprStrdup(mpr, s);
@@ -304,7 +304,7 @@ void mprSetHostName(MprCtx ctx, cchar *s)
  */
 cchar *mprGetHostName(MprCtx ctx)
 {
-    return mprGetMpr()->hostName;
+    return mprGetMpr(ctx)->hostName;
 }
 
 
@@ -315,7 +315,7 @@ void mprSetServerName(MprCtx ctx, cchar *s)
 {
     Mpr     *mpr;
 
-    mpr = mprGetMpr();
+    mpr = mprGetMpr(ctx);
     if (mpr->serverName) {
         mprFree(mpr->serverName);
     }
@@ -329,7 +329,7 @@ void mprSetServerName(MprCtx ctx, cchar *s)
  */
 cchar *mprGetServerName(MprCtx ctx)
 {
-    return mprGetMpr()->serverName;
+    return mprGetMpr(ctx)->serverName;
 }
 
 
@@ -340,7 +340,7 @@ void mprSetDomainName(MprCtx ctx, cchar *s)
 {
     Mpr     *mpr;
 
-    mpr = mprGetMpr();
+    mpr = mprGetMpr(ctx);
     if (mpr->domainName) {
         mprFree(mpr->domainName);
     }
@@ -354,7 +354,7 @@ void mprSetDomainName(MprCtx ctx, cchar *s)
  */
 cchar *mprGetDomainName(MprCtx ctx)
 {
-    return mprGetMpr()->domainName;
+    return mprGetMpr(ctx)->domainName;
 }
 
 
@@ -365,7 +365,7 @@ void mprSetIpAddr(MprCtx ctx, cchar *s)
 {
     Mpr     *mpr;
 
-    mpr = mprGetMpr();
+    mpr = mprGetMpr(ctx);
     if (mpr->ip) {
         mprFree(mpr->ip);
     }
@@ -379,7 +379,7 @@ void mprSetIpAddr(MprCtx ctx, cchar *s)
  */
 cchar *mprGetIpAddr(MprCtx ctx)
 {
-    return mprGetMpr()->ip;
+    return mprGetMpr(ctx)->ip;
 }
 
 
@@ -387,20 +387,20 @@ cchar *mprGetAppVersion(MprCtx ctx)
 {
     Mpr *mpr;
 
-    mpr = mprGetMpr();
+    mpr = mprGetMpr(ctx);
     return mpr->version;
 }
 
 
 bool mprGetDebugMode(MprCtx ctx)
 {
-    return mprGetMpr()->debugMode;
+    return mprGetMpr(ctx)->debugMode;
 }
 
 
 void mprSetDebugMode(MprCtx ctx, bool on)
 {
-    mprGetMpr()->debugMode = on;
+    mprGetMpr(ctx)->debugMode = on;
 }
 
 
@@ -408,7 +408,7 @@ void mprSetLogHandler(MprCtx ctx, MprLogHandler handler, void *handlerData)
 {
     Mpr     *mpr;
 
-    mpr = mprGetMpr();
+    mpr = mprGetMpr(ctx);
 
     mpr->logHandler = handler;
     mpr->logHandlerData = handlerData;
@@ -417,7 +417,7 @@ void mprSetLogHandler(MprCtx ctx, MprLogHandler handler, void *handlerData)
 
 MprLogHandler mprGetLogHandler(MprCtx ctx)
 {
-    return mprGetMpr()->logHandler;
+    return mprGetMpr(ctx)->logHandler;
 }
 
 

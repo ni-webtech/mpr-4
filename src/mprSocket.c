@@ -133,13 +133,13 @@ static MprSocketProvider *createStandardProvider(MprSocketService *ss)
 
 void mprSetSecureProvider(MprCtx ctx, MprSocketProvider *provider)
 {
-    mprGetMpr()->socketService->secureProvider = provider;
+    mprGetMpr(ctx)->socketService->secureProvider = provider;
 }
 
 
 bool mprHasSecureSockets(MprCtx ctx)
 {
-    return (mprGetMpr()->socketService->secureProvider != 0);
+    return (mprGetMpr(ctx)->socketService->secureProvider != 0);
 }
 
 
@@ -150,7 +150,7 @@ int mprSetMaxSocketClients(MprCtx ctx, int max)
     mprAssert(ctx);
     mprAssert(max >= 0);
 
-    ss = mprGetMpr()->socketService;
+    ss = mprGetMpr(ctx)->socketService;
     ss->maxClients = max;
     return 0;
 }
@@ -171,8 +171,8 @@ static MprSocket *createSocket(MprCtx ctx, struct MprSsl *ssl)
     sp->fd = -1;
     sp->flags = 0;
 
-    sp->provider = mprGetMpr()->socketService->standardProvider;
-    sp->service = mprGetMpr()->socketService;
+    sp->provider = mprGetMpr(ctx)->socketService->standardProvider;
+    sp->service = mprGetMpr(ctx)->socketService;
     sp->mutex = mprCreateLock(sp);
     return sp;
 }
@@ -183,7 +183,7 @@ MprSocket *mprCreateSocket(MprCtx ctx, struct MprSsl *ssl)
     MprSocketService    *ss;
     MprSocket           *sp;
 
-    ss = mprGetMpr()->socketService;
+    ss = mprGetMpr(ctx)->socketService;
 
     if (ssl) {
 #if !BLD_FEATURE_SSL
@@ -544,8 +544,8 @@ static void closeSocket(MprSocket *sp, bool gracefully)
     MprTime             timesUp;
     char                buf[16];
 
-    service = mprGetMpr()->waitService;
-    ss = mprGetMpr()->socketService;
+    service = mprGetMpr(sp)->waitService;
+    ss = mprGetMpr(sp)->socketService;
 
     lock(sp);
 
@@ -610,7 +610,7 @@ static MprSocket *acceptSocket(MprSocket *listen)
     socklen_t                   addrlen, saddrlen;
     int                         fd, port, acceptPort;
 
-    ss = mprGetMpr()->socketService;
+    ss = mprGetMpr(listen)->socketService;
     addr = (struct sockaddr*) &addrStorage;
     addrlen = sizeof(addrStorage);
 
@@ -1191,7 +1191,7 @@ static int getSocketInfo(MprCtx ctx, cchar *ip, int port, int *family, struct so
     mprAssert(ip);
     mprAssert(addr);
 
-    ss = mprGetMpr()->socketService;
+    ss = mprGetMpr(ctx)->socketService;
 
     mprLock(ss->mutex);
     memset((char*) &hints, '\0', sizeof(hints));
@@ -1252,7 +1252,7 @@ static int getSocketInfo(MprCtx ctx, cchar *ip, int port, int *family, struct so
     int                 len, err;
 
     mprAssert(addr);
-    ss = mprGetMpr()->socketService;
+    ss = mprGetMpr(ctx)->socketService;
 
     mprLock(ss->mutex);
     len = sizeof(struct sockaddr_in);
@@ -1300,7 +1300,7 @@ static int getSocketInfo(MprCtx ctx, cchar *ip, int port, int *family, struct so
     MprSocketService    *ss;
     struct sockaddr_in  *sa;
 
-    ss = mprGetMpr()->socketService;
+    ss = mprGetMpr(ctx)->socketService;
 
     sa = mprAllocObjZeroed(ctx, struct sockaddr_in);
     if (sa == 0) {

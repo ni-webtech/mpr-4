@@ -93,7 +93,7 @@ int benchMain(int argc, char *argv[])
 
     mprCreateThread(mpr, "bench", (MprThreadProc) doBenchmark, (void*) mpr, 0);
     while (!testComplete) {
-        mprServiceEvents(mprGetDispatcher(mpr), 250, 0);
+        mprServiceEvents(mpr, mprGetDispatcher(mpr), 250, 0);
     }
     mprPrintf(mpr, "\n\n");
     return 0;

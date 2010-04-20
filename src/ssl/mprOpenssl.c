@@ -70,7 +70,7 @@ int mprCreateOpenSslModule(MprCtx ctx, bool lazy)
     RandBuf             randBuf;
     int                 i;
 
-    mpr = mprGetMpr();
+    mpr = mprGetMpr(ctx);
     ss = mpr->socketService;
 
     /*
@@ -124,7 +124,7 @@ static MprSsl *getDefaultOpenSsl(MprCtx ctx)
     MprSocketService    *ss;
     MprSsl              *ssl;
 
-    mpr = mprGetMpr();
+    mpr = mprGetMpr(ctx);
     ss = mpr->socketService;
 
     if (ss->secureProvider->defaultSsl) {
@@ -154,7 +154,7 @@ static MprSocketProvider *createOpenSslProvider(MprCtx ctx)
     Mpr                 *mpr;
     MprSocketProvider   *provider;
 
-    mpr = mprGetMpr();
+    mpr = mprGetMpr(ctx);
     provider = mprAllocObjZeroed(mpr, MprSocketProvider);
     if (provider == 0) {
         return 0;
@@ -185,7 +185,7 @@ static int configureOss(MprSsl *ssl)
     MprSsl              *defaultSsl;
     SSL_CTX             *context;
 
-    ss = mprGetMpr()->socketService;
+    ss = mprGetMpr(ssl)->socketService;
 
     mprSetDestructor(ssl, (MprDestructor) openSslDestructor);
 
@@ -379,7 +379,7 @@ static MprSocket *createOss(MprCtx ctx, MprSsl *ssl)
     /*
         First get a standard socket
      */
-    mpr = mprGetMpr();
+    mpr = mprGetMpr(ctx);
     ss = mpr->socketService;
     sp = ss->standardProvider->createSocket(mpr, ssl);
     if (sp == 0) {

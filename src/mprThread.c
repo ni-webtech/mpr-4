@@ -68,7 +68,7 @@ MprThreadService *mprCreateThreadService(Mpr *mpr)
 
 void mprSetThreadStackSize(MprCtx ctx, int size)
 {
-    mprGetMpr()->threadService->stackSize = size;
+    mprGetMpr(ctx)->threadService->stackSize = size;
 }
 
 
@@ -82,7 +82,7 @@ MprThread *mprGetCurrentThread(MprCtx ctx)
     MprOsThread         id;
     int                 i;
 
-    ts = mprGetMpr()->threadService;
+    ts = mprGetMpr(ctx)->threadService;
     mprLock(ts->mutex);
     id = mprGetCurrentOsThread();
     for (i = 0; i < ts->threads->length; i++) {
@@ -135,7 +135,7 @@ MprThread *mprCreateThread(MprCtx ctx, cchar *name, MprThreadProc entry, void *d
     MprThreadService    *ts;
     MprThread           *tp;
 
-    ts = mprGetMpr()->threadService;
+    ts = mprGetMpr(ctx)->threadService;
     if (ts) {
         ctx = ts;
     }
@@ -184,7 +184,7 @@ static int threadDestructor(MprThread *tp)
 
     mprLock(tp->mutex);
 
-    ts = mprGetMpr()->threadService;
+    ts = mprGetMpr(tp)->threadService;
     mprRemoveItem(ts->threads, tp);
 
 #if BLD_WIN_LIKE
@@ -606,7 +606,7 @@ void mprSetMinWorkers(MprCtx ctx, int n)
     MprWorker           *worker;
     MprWorkerService    *ws;
 
-    ws = mprGetMpr()->workerService;
+    ws = mprGetMpr(ctx)->workerService;
 
     mprLock(ws->mutex);
     ws->minThreads = n; 
@@ -630,7 +630,7 @@ void mprSetMaxWorkers(MprCtx ctx, int n)
 {
     MprWorkerService  *ws;
 
-    ws = mprGetMpr()->workerService;
+    ws = mprGetMpr(ctx)->workerService;
 
     mprLock(ws->mutex);
     ws->maxThreads = n; 
@@ -646,7 +646,7 @@ void mprSetMaxWorkers(MprCtx ctx, int n)
 
 int mprGetMaxWorkers(MprCtx ctx)
 {
-    return mprGetMpr()->workerService->maxThreads;
+    return mprGetMpr(ctx)->workerService->maxThreads;
 }
 
 
@@ -660,7 +660,7 @@ MprWorker *mprGetCurrentWorker(MprCtx ctx)
     MprThread           *thread;
     int                 next;
 
-    ws = mprGetMpr()->workerService;
+    ws = mprGetMpr(ctx)->workerService;
 
     mprLock(ws->mutex);
     thread = mprGetCurrentThread(ws);
@@ -715,7 +715,7 @@ int mprStartWorker(MprCtx ctx, MprWorkerProc proc, void *data)
     MprWorker           *worker;
     int                 next;
 
-    ws = mprGetMpr()->workerService;
+    ws = mprGetMpr(ctx)->workerService;
 
     mprLock(ws->mutex);
 
@@ -804,7 +804,7 @@ int mprGetAvailableWorkers(MprCtx ctx)
 {
     MprWorkerService  *ws;
 
-    ws = mprGetMpr()->workerService;
+    ws = mprGetMpr(ctx)->workerService;
     return ws->idleThreads->length + (ws->maxThreads - ws->numThreads); 
 }
 
@@ -827,7 +827,7 @@ void mprSetWorkerStackSize(MprCtx ctx, int n)
 {
     MprWorkerService  *ws;
 
-    ws = mprGetMpr()->workerService;
+    ws = mprGetMpr(ctx)->workerService;
     ws->stackSize = n; 
 }
 
@@ -892,7 +892,7 @@ static void workerMain(MprWorker *worker, MprThread *tp)
     MprWorkerService    *ws;
     int                 rc;
 
-    ws = mprGetMpr()->workerService;
+    ws = mprGetMpr(worker)->workerService;
     mprAssert(worker->state == MPR_WORKER_BUSY);
     mprAssert(!worker->idleCond->triggered);
 

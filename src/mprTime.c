@@ -196,7 +196,7 @@ int mprCreateTimeService(MprCtx ctx)
     struct timezone     tz;
     struct timeval      tv;
 
-    mpr = mprGetMpr();
+    mpr = mprGetMpr(ctx);
     mpr->timeTokens = mprCreateHash(mpr, -1);
     ctx = mpr->timeTokens;
 
@@ -868,7 +868,7 @@ int mprParseTime(MprCtx ctx, MprTime *time, cchar *dateString, int timezone, str
     int             kind, hour, min, negate, value1, value2, value3, alpha, alpha2, alpha3;
     int             dateSep, offset, zoneOffset, explicitZone;
 
-    mpr = mprGetMpr();
+    mpr = mprGetMpr(ctx);
 
     offset = 0;
     zoneOffset = 0;

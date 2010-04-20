@@ -84,7 +84,7 @@ MprModule *mprLoadModule(MprCtx ctx, cchar *name, cchar *fun, void *data)
     mprAssert(name && *name);
 
     mp = 0;
-    mpr = mprGetMpr();
+    mpr = mprGetMpr(ctx);
     moduleName = mprGetNormalizedPath(ctx, name);
 
     path = 0;
@@ -139,7 +139,7 @@ void mprUnloadModule(MprModule *mp)
     if (mp->handle) {
         dlclose(mp->handle);
     }
-    mprRemoveItem(mprGetMpr()->moduleService->modules, mp);
+    mprRemoveItem(mprGetMpr(mp)->moduleService->modules, mp);
 }
 
 
