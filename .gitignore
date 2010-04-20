@@ -26,3 +26,5 @@ extensions
 lib/*.so
 lib/*.so.*
 src/include/buildConfig.h
+mob.*
+projects/MACOSX/*/build
