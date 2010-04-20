@@ -28,3 +28,10 @@ lib/*.so.*
 src/include/buildConfig.h
 mob.*
 projects/MACOSX/*/build
+*.pdb
+*.obj
+*.exe
+*.dll
+*.exp
+*.lib
+bin/*.def
