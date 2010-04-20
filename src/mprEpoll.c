@@ -141,7 +141,7 @@ int mprWaitForSingleIO(MprCtx ctx, int fd, int mask, int timeout)
     struct epoll_event  ev, events[2];
     int                 epfd, rc, err;
 
-    ws = mprGetMpr()->waitService;
+    ws = mprGetMpr(ctx)->waitService;
     if (timeout < 0) {
         timeout = MAXINT;
     }
@@ -257,7 +257,7 @@ void mprWakeNotifier(MprCtx ctx)
     MprWaitService  *ws;
     int             c;
 
-    ws = mprGetMpr()->waitService;
+    ws = mprGetMpr(ctx)->waitService;
     if (!ws->wakeRequested) {
         ws->wakeRequested = 1;
         c = 0;

@@ -200,7 +200,7 @@ int mprSetRomFileSystem(MprCtx ctx, MprRomInode *inodeList)
     MprRomFileSystem     rfs;
     MprRomInode         *ri;
 
-    rfs = (MprRomFileSystem*) mprGetMpr()->fileSystem;
+    rfs = (MprRomFileSystem*) mprGetMpr(ctx)->fileSystem;
     rfs->romInodes = inodeList;
     rfs->fileIndex = mprCreateHash(rfs, MPR_FILES_HASH_SIZE);
 

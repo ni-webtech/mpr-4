@@ -93,7 +93,7 @@ MprModule *mprLoadModule(MprCtx ctx, cchar *name, cchar *initFunction, void *dat
                         mprError(ctx, "Can't find symbol %s when loading %s", initFunction, path);
 
                     } else {
-                        mp = mprCreateModule(mprGetMpr(), name, data);
+                        mp = mprCreateModule(mprGetMpr(ctx), name, data);
                         mp->handle = handle;
                         if ((fn)(ctx, mp) < 0) {
                             mprError(ctx, "Initialization for %s failed.", path);
@@ -128,7 +128,7 @@ void mprSleep(MprCtx ctx, int milliseconds)
 
 void mprUnloadModule(MprModule *mp)
 {
-    mprRemoveItem(mprGetMpr()->moduleService->modules, mp);
+    mprRemoveItem(mprGetMpr(mp)->moduleService->modules, mp);
     unldByModuleId((MODULE_ID) mp->handle, 0);
 }
 

@@ -249,7 +249,7 @@ void mprWakeNotifier(MprCtx ctx)
     MprWaitService  *ws;
     int             c;
 
-    ws = mprGetMpr()->waitService;
+    ws = mprGetMpr(ctx)->waitService;
     if (!ws->wakeRequested) {
         ws->wakeRequested = 1;
         c = 0;

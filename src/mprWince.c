@@ -236,7 +236,7 @@ void mprSetHwnd(MprCtx ctx, HWND h)
 {
     Mpr     *mpr;
 
-    mpr = mprGetMpr();
+    mpr = mprGetMpr(ctx);
     mpr->service->hwnd = h;
 }
 
@@ -245,7 +245,7 @@ void mprSetSocketMessage(MprCtx ctx, int socketMessage)
 {
     Mpr     *mpr;
 
-    mpr = mprGetMpr();
+    mpr = mprGetMpr(ctx);
     mpr->service->socketMessage = socketMessage;
 }
 #endif /* WINCE */
@@ -291,7 +291,7 @@ void mprUnloadModule(MprModule *mp)
     if (mp->stop) {
         mp->stop(mp);
     }
-    mprRemoveItem(mprGetMpr()->moduleService->modules, mp);
+    mprRemoveItem(mprGetMpr(mp)->moduleService->modules, mp);
     FreeLibrary((HINSTANCE) mp->handle);
 }
 

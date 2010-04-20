@@ -967,8 +967,7 @@ int print(cchar *fmt, ...)
     MprCtx          ctx;
     char            *buf;
 
-    ctx = mprGetMpr();
-
+    ctx = mprGetMpr(NULL);
     fs = mprLookupFileSystem(ctx, "/");
     va_start(ap, fmt);
     buf = mprVasprintf(ctx, -1, fmt, ap);

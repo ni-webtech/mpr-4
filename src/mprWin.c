@@ -51,7 +51,7 @@ HWND mprGetHwnd(MprCtx ctx)
 {
     Mpr     *mpr;
 
-    mpr = mprGetMpr();
+    mpr = mprGetMpr(ctx);
     return mpr->waitService->hwnd;
 }
 
@@ -177,7 +177,7 @@ void mprSetHwnd(MprCtx ctx, HWND h)
 {
     Mpr     *mpr;
 
-    mpr = mprGetMpr();
+    mpr = mprGetMpr(ctx);
     mpr->waitService->hwnd = h;
 }
 
@@ -186,7 +186,7 @@ void mprSetSocketMessage(MprCtx ctx, int socketMessage)
 {
     Mpr     *mpr;
 
-    mpr = mprGetMpr();
+    mpr = mprGetMpr(ctx);
     mpr->waitService->socketMessage = socketMessage;
 }
 
@@ -231,7 +231,7 @@ void mprUnloadModule(MprModule *mp)
     if (mp->stop) {
         mp->stop(mp);
     }
-    mprRemoveItem(mprGetMpr()->moduleService->modules, mp);
+    mprRemoveItem(mprGetMpr(mp)->moduleService->modules, mp);
     FreeLibrary((HINSTANCE) mp->handle);
 }
 
