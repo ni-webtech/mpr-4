@@ -23,3 +23,5 @@ bin/benchMpr
 bin/charGen
 bin/runProgram
 bin/testMpr
+*.so
+lib/*.so.*
