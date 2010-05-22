@@ -514,6 +514,12 @@ void mprDisableFileBuffering(MprFile *file)
     file->buf = 0;
 }
 
+
+int mprGetFileFd(MprFile *file)
+{
+    return file->fd;
+}
+
 /*
     @copy   default
     

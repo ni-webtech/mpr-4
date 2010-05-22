@@ -336,13 +336,11 @@ static char *sprintfCore(MprCtx ctx, char *buf, int maxsize, cchar *spec, va_lis
     if (spec == 0) {
         spec = "";
     }
-
     if (buf != 0) {
         mprAssert(maxsize > 0);
         fmt.buf = (uchar*) buf;
         fmt.endbuf = &fmt.buf[maxsize];
         fmt.growBy = -1;
-
     } else {
         if (maxsize <= 0) {
             maxsize = MAXINT;
@@ -553,6 +551,12 @@ static char *sprintfCore(MprCtx ctx, char *buf, int maxsize, cchar *spec, va_lis
 
             case 'X':
                 fmt.flags |= SPRINTF_UPPER_CASE;
+#if MPR_64_BIT
+                fmt.flags &= ~(SPRINTF_SHORT|SPRINTF_LONG);
+                fmt.flags |= SPRINTF_INT64;
+#else
+                fmt.flags &= ~(SPRINTF_INT64);
+#endif
                 /*  Fall through  */
             case 'o':
             case 'x':
@@ -757,7 +761,7 @@ int mprIsInfinite(double value) {
 #if WIN
     return _fpclass(value) & (_FPCLASS_PINF | _FPCLASS_NINF);
 #elif VXWORKS
-    return value == (1.0 / 0.0 || value == (-1.0 / 0.0));
+    return value == (1.0 / 0.0) || value == (-1.0 / 0.0);
 #else
     return fpclassify(value) == FP_INFINITE;
 #endif
@@ -775,7 +779,6 @@ int mprIsZero(double value) {
 
 /*
     Convert a double to ascii. Caller must free the result. This uses the JavaScript ECMA-262 spec for formatting rules.
-    Algorithm from Google V8. Used under license, see end of file.
 
     function dtoa(double value, int mode, int ndigits, int *periodOffset, int *sign, char **end)
  */
@@ -924,11 +927,10 @@ static int growBuf(MprCtx ctx, Format *fmt)
     }
     if (fmt->growBy <= 0) {
         /*
-         *  User supplied buffer
+            User supplied buffer
          */
         return 0;
     }
-
     mprAssert(ctx);
     newbuf = (uchar*) mprAlloc(ctx, buflen + fmt->growBy);
     if (newbuf == 0) {
@@ -1017,38 +1019,3 @@ int print(cchar *fmt, ...)
     
     @end
  */
-
-/*
-   Algorithm in mprDtoa from Google V8.
-
-   Copyright 2006-2008 the V8 project authors. All rights reserved.
-   Redistribution and use in source and binary forms, with or without
-   modification, are permitted provided that the following conditions are
-   met:
-  
-   Redistributions of source code must retain the above copyright
-   notice, this list of conditions and the following disclaimer.
-
-   Redistributions in binary form must reproduce the above
-   copyright notice, this list of conditions and the following
-   disclaimer in the documentation and/or other materials provided
-   with the distribution.
-
-   Neither the name of Google Inc. nor the names of its
-   contributors may be used to endorse or promote products derived
-   from this software without specific prior written permission.
-  
-   THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
-   "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT
-   LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR
-   A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT
-   OWNER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL,
-   SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT
-   LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE,
-   DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY
-   THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
-   (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
-   OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
-*/
-
-

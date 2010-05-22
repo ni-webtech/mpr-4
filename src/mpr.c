@@ -56,6 +56,7 @@ Mpr *mprCreateEx(int argc, char **argv, MprAllocFailure cback, void *shell)
 #endif
     mpr->argc = argc;
     mpr->argv = argv;
+    mpr->logFd = -1;
 
     mpr->name = mprStrdup(mpr, BLD_PRODUCT);
     mpr->title = mprStrdup(mpr, BLD_NAME);

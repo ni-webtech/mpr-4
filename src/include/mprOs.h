@@ -438,9 +438,9 @@ extern "C" {
 #endif
 
 #if BLD_CC_DOUBLE_BRACES
-    #define  VA_NULL    {{0}}
+    #define  NULL_INIT    {{0}}
 #else
-    #define  VA_NULL    {0}
+    #define  NULL_INIT    {0}
 #endif
 
 /******************************** Linux Defines *******************************/

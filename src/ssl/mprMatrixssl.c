@@ -245,8 +245,7 @@ static void closeMss(MprSocket *sp, bool gracefully)
 
 static int listenMss(MprSocket *sp, cchar *host, int port, int flags)
 {
-    sp->service->standardProvider->listenSocket(sp, host, port, flags);
-    return 0;
+    return sp->service->standardProvider->listenSocket(sp, host, port, flags);
 }
 
 

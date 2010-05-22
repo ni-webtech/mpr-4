@@ -438,8 +438,7 @@ static void closeOss(MprSocket *sp, bool gracefully)
  */
 static int listenOss(MprSocket *sp, cchar *host, int port, int flags)
 {
-    sp->service->standardProvider->listenSocket(sp, host, port, flags);
-    return 0;
+    return sp->service->standardProvider->listenSocket(sp, host, port, flags);
 }
 
 

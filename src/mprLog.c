@@ -232,12 +232,10 @@ static void defaultLogHandler(MprCtx ctx, int flags, int level, cchar *msg)
     if (msg == 0) {
         return;
     }
-
     while (*msg == '\n') {
         mprPrintfError(ctx, "\n");
         msg++;
     }
-
     if (flags & MPR_LOG_SRC) {
         mprPrintfError(ctx, "%s: %d: %s\n", prefix, level, msg);
 
@@ -257,9 +255,6 @@ static void defaultLogHandler(MprCtx ctx, int flags, int level, cchar *msg)
 
     } else if (flags & MPR_RAW) {
         mprPrintfError(ctx, "%s", msg);
-
-    } else {
-        return;
     }
 }
 
@@ -285,6 +280,18 @@ int mprGetOsError()
 #else
     return 0;
 #endif
+}
+
+
+int mprGetLogFd(MprCtx ctx)
+{
+    return mprGetMpr(ctx)->logFd;
+}
+
+
+int mprSetLogFd(MprCtx ctx, int fd)
+{
+    return mprGetMpr(ctx)->logFd = fd;
 }
 
 

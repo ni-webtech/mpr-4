@@ -280,8 +280,9 @@ cchar *mprLookupMimeType(MprCtx ctx, cchar *ext)
     char    **cp;
     cchar   *ep, *mtype;
 
-    mprAssert(ext);
-
+    if (ext == 0 || *ext == '\0') {
+        return "";
+    }
     if (mimeTable == 0) {
         mimeTable = mprCreateHash(mprGetMpr(ctx), 67);
         for (cp = mimeTypes; cp[0]; cp += 2) {

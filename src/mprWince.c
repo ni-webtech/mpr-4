@@ -770,6 +770,7 @@ struct tm *localtime_r(const time_t *when, struct tm *tp)
     mprAssert(when);
     mprAssert(tp);
 
+    //  MOB -- but this is setting if DST is enabled now, not at "when"
     rc = GetTimeZoneInformation(&tz);
     bias = tz.Bias;
     if (rc == TIME_ZONE_ID_DAYLIGHT) {
@@ -806,6 +807,7 @@ time_t mktime(struct tm *tp)
 
     mprAssert(tp);
 
+    //  MOB -- but this is setting if DST is enabled now, not at "when"
     rc = GetTimeZoneInformation(&tz);
     bias = tz.Bias;
     if (rc == TIME_ZONE_ID_DAYLIGHT) {
