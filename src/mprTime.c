@@ -467,7 +467,6 @@ static int getTimeZoneOffsetFromTm(MprCtx ctx, struct tm *tp)
     struct timeval      tv;
     gettimeofday(&tv, &tz);
     return -tz.tz_minuteswest * MS_PER_MIN;
-    return mprGetMpr(ctx)->timezone + (tp->tm_isdst * MS_PER_MIN);
 #endif
 }
 
