@@ -3653,6 +3653,7 @@ dtoa
         }
 #endif
 
+    mlo = 0;
     u.d = dd;
     if (word0(&u) & Sign_bit) {
         /* set sign for everything, including 0's and NaNs */

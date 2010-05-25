@@ -205,7 +205,7 @@ static MprTime makeTime(MprCtx ctx, struct tm *tp);
 static void validateTime(MprCtx ctx, struct tm *tm, struct tm *defaults);
 
 #if BLD_WIN_LIKE || VXWORKS
-static int gettimeofday(struct timeval *tv, struct timezone *tz);
+int gettimeofday(struct timeval *tv, struct timezone *tz);
 #endif
 
 /************************************ Code ************************************/
@@ -448,7 +448,7 @@ static int getTimeZoneOffsetFromTm(MprCtx ctx, struct tm *tp)
     return -offset * 60 * MS_PER_SEC;
 #elif VXWORKS
     char  *tze, *p;
-    int   offset;
+    int   offset = 0;
     if ((tze = getenv("TIMEZONE")) != 0) {
         if ((p = strchr(tze, ':')) != 0) {
             if ((p = strchr(tze, ':')) != 0) {
@@ -1626,7 +1626,7 @@ static void validateTime(MprCtx ctx, struct tm *tp, struct tm *defaults)
     Compatibility for windows and VxWorks
  */
 #if BLD_WIN_LIKE || VXWORKS
-static int gettimeofday(struct timeval *tv, struct timezone *tz)
+int gettimeofday(struct timeval *tv, struct timezone *tz)
 {
     #if BLD_WIN_LIKE
         FILETIME        fileTime;
