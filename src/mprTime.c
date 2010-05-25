@@ -204,10 +204,6 @@ static int localTime(MprCtx ctx, struct tm *timep, MprTime time);
 static MprTime makeTime(MprCtx ctx, struct tm *tp);
 static void validateTime(MprCtx ctx, struct tm *tm, struct tm *defaults);
 
-#if BLD_WIN_LIKE || VXWORKS
-int gettimeofday(struct timeval *tv, struct timezone *tz);
-#endif
-
 /************************************ Code ************************************/
 /*
     Initialize the time service

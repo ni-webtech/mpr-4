@@ -37,7 +37,7 @@ extern "C" {
 /*
     Event notification mechanism
  */
-#if LINUX
+#if LINUX || FREEBSD
 #define MPR_EVENT_EPOLL    1
 #elif MACOSX || SOLARIS
 #define MPR_EVENT_KQUEUE    1

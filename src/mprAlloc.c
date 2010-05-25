@@ -1296,7 +1296,7 @@ MprAlloc *mprGetAllocStats(MprCtx ctx)
         close(fd);
     }
 #endif
-#if MACOSX
+#if MACOSX || FREEBSD
     struct rusage   rusage;
     int64           ram, usermem;
     size_t          len;
@@ -1306,7 +1306,11 @@ MprAlloc *mprGetAllocStats(MprCtx ctx)
     mpr->alloc.rss = rusage.ru_maxrss;
 
     mib[0] = CTL_HW;
+#if FREEBSD
     mib[1] = HW_MEMSIZE;
+#else
+    mib[1] = HW_PHYSMEM;
+#endif
     len = sizeof(ram);
     sysctl(mib, 2, &ram, &len, NULL, 0);
     mpr->alloc.ram = ram;
@@ -1485,6 +1489,15 @@ static void sysinit(Mpr *mpr)
         ap->numCpu = 1;
     #endif
     ap->pageSize = sysconf(_SC_PAGESIZE);
+#elif SOLARIS
+{
+    FILE *ptr;
+    if  ((ptr = popen("psrinfo -p", "r")) != NULL) {
+        fscanf(ptr, "%d", &alloc.numCpu);
+        (void) pclose(ptr);
+    }
+    alloc.pageSize = sysconf(_SC_PAGESIZE);
+}
 #elif BLD_WIN_LIKE
 {
     SYSTEM_INFO     info;
