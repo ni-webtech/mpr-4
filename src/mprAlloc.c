@@ -49,6 +49,8 @@
     Set this address to break when this address is allocated or freed. This is a block address (not a user ptr).
  */
 static MprBlk *stopAlloc;
+static int stopSeqno = -1;
+static int allocCount = 1;
 
 #else
 #define VALID_BLK(bp)           (1)
@@ -167,6 +169,7 @@ Mpr *mprCreateAllocService(MprAllocFailure cback, MprDestructor destructor)
 
 #if BLD_FEATURE_MEMORY_DEBUG
     stopAlloc = 0;
+    allocCount = 1;
 #endif
     return mpr;
 }
@@ -490,7 +493,7 @@ int mprFree(void *ptr)
     mprAssert(bp->size > 0);
 
 #if BLD_FEATURE_MEMORY_DEBUG
-    if (bp == stopAlloc) {
+    if (bp == stopAlloc || bp->seqno == stopSeqno) {
         mprBreakpoint();
     }
     /*
@@ -510,7 +513,6 @@ int mprFree(void *ptr)
             /*
                 Destructor aborted the free. Re-parent to the top level.
              */
-            mprStealBlock(mpr, ptr);
             return 1;
         }
     }
@@ -903,9 +905,8 @@ static MprBlk *_mprAllocBlock(MprCtx ctx, MprHeap *heap, MprBlk *parent, uint us
     if (bp->flags == MPR_ALLOC_FROM_MALLOC) {
         memset(GET_PTR(bp), 0xf7, usize);
     }
-#endif
-#if BLD_FEATURE_MEMORY_DEBUG
-    if (bp == stopAlloc) {
+    bp->seqno = allocCount++;
+    if (bp == stopAlloc || bp->seqno == stopSeqno) {
         mprBreakpoint();
     }
 #endif
