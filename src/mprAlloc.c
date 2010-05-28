@@ -513,6 +513,7 @@ int mprFree(void *ptr)
             /*
                 Destructor aborted the free. Re-parent to the top level.
              */
+            mprStealBlock(mpr, ptr);
             return 1;
         }
     }
