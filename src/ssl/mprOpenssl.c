@@ -81,7 +81,7 @@ int mprCreateOpenSslModule(MprCtx ctx, bool lazy)
     randBuf.pid = getpid();
     RAND_seed((void*) &randBuf, sizeof(randBuf));
 
-#if SOLARIS || LINUX || MACOSX || FREEBSD
+#if BLD_UNIX_LIKE
     mprLog(mpr, 6, "OpenSsl: Before calling RAND_load_file");
     RAND_load_file("/dev/urandom", 256);
     mprLog(mpr, 6, "OpenSsl: After calling RAND_load_file");
