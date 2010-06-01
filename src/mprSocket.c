@@ -1403,6 +1403,9 @@ int mprParseIp(MprCtx ctx, cchar *ipAddrPort, char **ipAddrRef, int *port, int d
     if (defaultPort < 0) {
         defaultPort = 80;
     }
+    if ((cp = strstr(ipAddrPort, "://")) != 0) {
+        ipAddrPort = &cp[3];
+    }
 
     /*  
         First check if ipv6 or ipv4 address by looking for > 1 colons.
