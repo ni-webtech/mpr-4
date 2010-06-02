@@ -57,11 +57,12 @@ MprThreadService *mprCreateThreadService(Mpr *mpr)
     }
     ts->mainThread->isMain = 1;
     ts->mainThread->osThread = mprGetCurrentOsThread();
-
+#if UNUSED
     if (mprAddItem(ts->threads, ts->mainThread) < 0) {
         mprFree(ts);
         return 0;
     }
+#endif
     return ts;
 }
 
@@ -149,7 +150,6 @@ MprThread *mprCreateThread(MprCtx ctx, cchar *name, MprThreadProc entry, void *d
     if (ts) {
         ctx = ts;
     }
-
     tp = mprAllocObjWithDestructorZeroed(ctx, MprThread, threadDestructor);
     if (tp == 0) {
         return 0;
