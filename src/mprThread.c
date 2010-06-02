@@ -66,6 +66,16 @@ MprThreadService *mprCreateThreadService(Mpr *mpr)
 }
 
 
+bool mprStopThreadService(MprThreadService *ts, int timeout)
+{
+    while (timeout > 0 && ts->threads->length > 1) {
+        mprSleep(ts, 50);
+        timeout -= 10;
+    }
+    return ts->threads->length == 0;
+}
+
+
 void mprSetThreadStackSize(MprCtx ctx, int size)
 {
     mprGetMpr(ctx)->threadService->stackSize = size;
@@ -561,7 +571,7 @@ int mprStartWorkerService(MprWorkerService *ws)
 }
 
 
-void mprStopWorkerService(MprWorkerService *ws, int timeout)
+bool mprStopWorkerService(MprWorkerService *ws, int timeout)
 {
     MprWorker     *worker;
     int           next;
@@ -595,6 +605,7 @@ void mprStopWorkerService(MprWorkerService *ws, int timeout)
     mprAssert(ws->idleThreads->length == 0);
     mprAssert(ws->busyThreads->length == 0);
     mprUnlock(ws->mutex);
+    return ws->numThreads == 0;
 }
 
 

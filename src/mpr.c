@@ -130,7 +130,9 @@ error:
 static int mprDestructor(Mpr *mpr)
 {
     if ((mpr->flags & MPR_STARTED) && !(mpr->flags & MPR_STOPPED)) {
-        mprStop(mpr);
+        if (!mprStop(mpr)) {
+            return 1;
+        }
     }
     return 0;
 
@@ -159,12 +161,15 @@ int mprStart(Mpr *mpr)
 }
 
 
-void mprStop(Mpr *mpr)
+bool mprStop(Mpr *mpr)
 {
+    int     stopped;
+
+    stopped = 1;
     mprLock(mpr->mutex);
     if (! (mpr->flags & MPR_STARTED) || (mpr->flags & MPR_STOPPED)) {
         mprUnlock(mpr->mutex);
-        return;
+        return 0;
     }
     mpr->flags |= MPR_STOPPED;
 
@@ -174,9 +179,15 @@ void mprStop(Mpr *mpr)
     mprTerminate(mpr, 1);
 
     mprStopSocketService(mpr->socketService);
-    mprStopWorkerService(mpr->workerService, MPR_TIMEOUT_STOP_TASK);
+    if (!mprStopThreadService(mpr->threadService, MPR_TIMEOUT_STOP_TASK)) {
+        stopped = 0;
+    }
+    if (!mprStopWorkerService(mpr->workerService, MPR_TIMEOUT_STOP_TASK)) {
+        stopped = 0;
+    }
     mprStopModuleService(mpr->moduleService);
     mprStopOsService(mpr->osService);
+    return stopped;
 }
 
 
