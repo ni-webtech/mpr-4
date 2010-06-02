@@ -191,6 +191,8 @@ bool mprStop(Mpr *mpr)
 }
 
 
+//  MOB -- is this being used?
+//  MOB - problem on windows. Causes the message pump to run in a thread that does not own the HWND.
 /*
     Thread to service the event queue. Used if the user does not have their own main event loop.
  */

@@ -680,6 +680,7 @@ bool mprIsRelPath(MprCtx ctx, cchar *path)
 }
 
 
+//  MOB -- should take a list of paths
 /*
     Join paths. Returns a joined (normalized) path.
     If other is absolute, then return other. If other is null, empty or "." then return path.
@@ -1166,6 +1167,7 @@ bool mprPathExists(MprCtx ctx, cchar *path, int omode)
 }
 
 
+//  MOB -- should take a list of paths
 /*
     Resolve one path against another path. Returns a joined (normalized) path.
     If other is absolute, then return other. If other is null, empty or "." then return path.
