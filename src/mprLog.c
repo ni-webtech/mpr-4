@@ -156,9 +156,8 @@ void mprStaticError(MprCtx ctx, cchar *fmt, ...)
     char        buf[MPR_MAX_STRING];
 
     va_start(args, fmt);
-    mprVsprintf(buf, sizeof(buf), fmt, args);
+    mprVsprintf(ctx, buf, sizeof(buf), fmt, args);
     va_end(args);
-
     logOutput(ctx, MPR_ERROR_MSG | MPR_ERROR_SRC, 0, buf);
 }
 
@@ -171,7 +170,11 @@ void mprStaticAssert(cchar *loc, cchar *msg)
 #if BLD_DEBUG
     char    buf[MPR_MAX_STRING];
 
-    mprSprintf(buf, sizeof(buf), "Assertion %s, failed at %s\n", msg, loc);
+#if BLD_UNIX_LIKE
+    snprintf(buf, sizeof(buf), "Assertion %s, failed at %s\n", msg, loc);
+#else
+    sprintf(buf, "Assertion %s, failed at %s\n", msg, loc);
+#endif
     
 #if BLD_UNIX_LIKE || VXWORKS
     write(2, buf, strlen(buf));

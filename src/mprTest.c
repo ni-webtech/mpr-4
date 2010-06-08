@@ -260,12 +260,12 @@ static int loadModule(MprTestService *sp, cchar *fileName)
         return 0;
     }
                 
-    mprSprintf(entry, sizeof(entry), "%sInit", base);
+    mprSprintf(sp, entry, sizeof(entry), "%sInit", base);
 
     if (fileName[0] == '/' || (*fileName && fileName[1] == ':')) {
-        mprSprintf(path, sizeof(path), "%s%s", fileName, BLD_BUILD_SHOBJ);
+        mprSprintf(sp, path, sizeof(path), "%s%s", fileName, BLD_BUILD_SHOBJ);
     } else {
-        mprSprintf(path, sizeof(path), "./%s%s", fileName, BLD_BUILD_SHOBJ);
+        mprSprintf(sp, path, sizeof(path), "./%s%s", fileName, BLD_BUILD_SHOBJ);
     }
     if (mprLoadModule(sp, path, entry, (void*) sp) == 0) {
         mprError(sp, "Can't load module %s", path);
@@ -306,7 +306,7 @@ int mprRunTests(MprTestService *sp)
         MprList     *lp;
         char        tName[64];
 
-        mprSprintf(tName, sizeof(tName), "test.%d", i);
+        mprSprintf(sp, tName, sizeof(tName), "test.%d", i);
 
         lp = copyGroups(sp, sp->groups);
         if (lp == 0) {
@@ -750,7 +750,7 @@ static char *getErrorMessage(MprTestGroup *gp)
     errorMsg = mprStrdup(gp, "");
     fp = mprGetNextItem(gp->failures, &nextItem);
     while (fp) {
-        mprSprintf(msg, sizeof(msg), "Failure in %s\nAssertion: \"%s\"\n", fp->loc, fp->message);
+        mprSprintf(gp, msg, sizeof(msg), "Failure in %s\nAssertion: \"%s\"\n", fp->loc, fp->message);
         if ((errorMsg = mprStrcat(gp, -1, msg, NULL)) == NULL) {
             break;
         }

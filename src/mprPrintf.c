@@ -189,7 +189,7 @@ int mprStaticPrintf(MprCtx ctx, cchar *fmt, ...)
     fs = mprLookupFileSystem(ctx, "/");
 
     va_start(ap, fmt);
-    sprintfCore(NULL, buf, MPR_MAX_STRING, fmt, ap);
+    sprintfCore(ctx, buf, MPR_MAX_STRING, fmt, ap);
     va_end(ap);
     return mprWrite(fs->stdOutput, buf, strlen(buf));
 }
@@ -207,13 +207,13 @@ int mprStaticPrintfError(MprCtx ctx, cchar *fmt, ...)
     fs = mprLookupFileSystem(ctx, "/");
 
     va_start(ap, fmt);
-    sprintfCore(NULL, buf, MPR_MAX_STRING, fmt, ap);
+    sprintfCore(ctx, buf, MPR_MAX_STRING, fmt, ap);
     va_end(ap);
     return mprWrite(fs->stdError, buf, strlen(buf));
 }
 
 
-char *mprSprintf(char *buf, int bufsize, cchar *fmt, ...)
+char *mprSprintf(MprCtx ctx, char *buf, int bufsize, cchar *fmt, ...)
 {
     va_list     ap;
     char        *result;
@@ -223,19 +223,19 @@ char *mprSprintf(char *buf, int bufsize, cchar *fmt, ...)
     mprAssert(bufsize > 0);
 
     va_start(ap, fmt);
-    result = sprintfCore(NULL, buf, bufsize, fmt, ap);
+    result = sprintfCore(ctx, buf, bufsize, fmt, ap);
     va_end(ap);
     return result;
 }
 
 
-char *mprVsprintf(char *buf, int bufsize, cchar *fmt, va_list arg)
+char *mprVsprintf(MprCtx ctx, char *buf, int bufsize, cchar *fmt, va_list arg)
 {
     mprAssert(buf);
     mprAssert(fmt);
     mprAssert(bufsize > 0);
 
-    return sprintfCore(NULL, buf, bufsize, fmt, arg);
+    return sprintfCore(ctx, buf, bufsize, fmt, arg);
 }
 
 

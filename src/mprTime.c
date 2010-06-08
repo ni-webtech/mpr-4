@@ -712,7 +712,7 @@ char *mprFormatTime(MprCtx ctx, cchar *fmt, struct tm *tp)
             case '+':
                 if (tp->tm_mday < 10) {
                     /* Some platforms don't support 'e' so avoid it here. Put a double space before %d */
-                    mprSprintf(dp, size, "%s  %d %s", "a %b", tp->tm_mday, "%H:%M:%S %Z %Y");
+                    mprSprintf(ctx, dp, size, "%s  %d %s", "a %b", tp->tm_mday, "%H:%M:%S %Z %Y");
                 } else {
                     strcpy(dp, "a %b %d %H:%M:%S %Z %Y");
                 }
@@ -861,7 +861,7 @@ char *mprFormatTime(MprCtx ctx, cchar *fmt, struct tm *tp)
                 if (value < 0) {
                     value = -value;
                 }
-                mprSprintf(dp, size, "%s%02d%02d", sign, value / 60, value % 60);
+                mprSprintf(ctx, dp, size, "%s%02d%02d", sign, value / 60, value % 60);
                 dp += strlen(dp);
                 cp++;
                 break;
