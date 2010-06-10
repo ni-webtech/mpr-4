@@ -247,13 +247,13 @@ static void serviceIO(MprWaitService *ws, struct poll *fds, int count)
 void mprWakeNotifier(MprCtx ctx)
 {
     MprWaitService  *ws;
-    int             c;
+    int             c, rc;
 
     ws = mprGetMpr(ctx)->waitService;
     if (!ws->wakeRequested) {
         ws->wakeRequested = 1;
         c = 0;
-        write(ws->breakPipe[MPR_WRITE_PIPE], (char*) &c, 1);
+        rc = write(ws->breakPipe[MPR_WRITE_PIPE], (char*) &c, 1);
     }
 }
 
