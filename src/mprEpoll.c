@@ -215,7 +215,7 @@ static void serviceIO(MprWaitService *ws, int count)
 {
     MprWaitHandler      *wp;
     struct epoll_event  *ev;
-    int                 fd, i, mask;
+    int                 fd, i, mask, rc;
 
     lock(ws);
     for (i = 0; i < count; i++) {
@@ -225,7 +225,7 @@ static void serviceIO(MprWaitService *ws, int count)
         if ((wp = ws->handlerMap[fd]) == 0) {
             char    buf[128];
             if ((ev->events & (EPOLLIN | EPOLLERR | EPOLLHUP)) && (fd == ws->breakPipe[MPR_READ_PIPE])) {
-                read(fd, buf, sizeof(buf));
+                rc = read(fd, buf, sizeof(buf));
             }
             continue;
         }

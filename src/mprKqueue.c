@@ -240,7 +240,7 @@ static void serviceIO(MprWaitService *ws, int count)
 {
     MprWaitHandler      *wp;
     struct kevent       *kev;
-    int                 fd, i, mask, err;
+    int                 fd, i, mask, err, rc;
 
     lock(ws);
     for (i = 0; i < count; i++) {
@@ -250,7 +250,7 @@ static void serviceIO(MprWaitService *ws, int count)
         if ((wp = ws->handlerMap[fd]) == 0) {
             char    buf[128];
             if (kev->filter == EVFILT_READ && fd == ws->breakPipe[MPR_READ_PIPE]) {
-                read(fd, buf, sizeof(buf));
+                rc = read(fd, buf, sizeof(buf));
             }
             continue;
         }
