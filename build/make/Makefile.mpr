@@ -1,0 +1,26 @@
+# 
+#	Makefile.mpr -- Top level Makefile extensions MPR
+#
+#	Copyright (c) Embedthis Software LLC, 2003-2010. All Rights Reserved.
+#
+
+#
+#	Convenient configure targets
+#
+debug config:
+	./configure
+
+release:
+	./configure --defaults=release
+
+cross64:
+	./configure --host=x86_64-apple-darwin --without-ssl
+
+config64:
+	./configure --host=x86_64-apple-darwin --build=x86_64-apple-darwin
+
+config32:
+	./configure --host=i386-apple-darwin --build=i386-apple-darwin --without-ssl
+
+wince:
+	./configure --host=arm-ms-wince --shared --without-ssl
