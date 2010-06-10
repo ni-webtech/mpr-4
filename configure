@@ -2480,12 +2480,5 @@ createBuildConfig
 postGen
 showBuildConfig
 
-if [ `hostname` = "saturn.local" ] ; then
-    echo STDOUT FAILURE 
-    echo MORE STDOUT FAILURE 
-    echo STDERR FAILURE >&2
-    echo MORE STDERR FAILURE >&2
-    exit 255
-fi
 exit 0
 
