@@ -30,7 +30,7 @@ static MprSocketProvider *createStandardProvider(MprSocketService *ss);
 static void disconnectSocket(MprSocket *sp);
 static int  flushSocket(MprSocket *sp);
 static int  getSocketInfo(MprCtx ctx, cchar *ip, int port, int *family, struct sockaddr **addr, socklen_t *addrlen);
-static int  getSocketIpAddr(struct sockaddr *addr, int addrlen, char *ip, int size, int *port);
+static int  getSocketIpAddr(MprCtx ctx, struct sockaddr *addr, int addrlen, char *ip, int size, int *port);
 static int  listenSocket(MprSocket *sp, cchar *ip, int port, int initialFlags);
 static int  readSocket(MprSocket *sp, void *buf, int bufsize);
 static int  socketDestructor(MprSocket *sp);
@@ -654,7 +654,7 @@ static MprSocket *acceptSocket(MprSocket *listen)
     if (nsp->flags & MPR_SOCKET_NODELAY) {
         mprSetSocketNoDelay(nsp, 1);
     }
-    if (getSocketIpAddr(addr, addrlen, ip, sizeof(ip), &port) != 0) {
+    if (getSocketIpAddr(ss, addr, addrlen, ip, sizeof(ip), &port) != 0) {
         mprAssert(0);
         mprFree(nsp);
         return 0;
@@ -666,7 +666,7 @@ static MprSocket *acceptSocket(MprSocket *listen)
     saddrlen = sizeof(saddrStorage);
     getsockname(fd, saddr, &saddrlen);
     acceptPort = 0;
-    getSocketIpAddr(saddr, saddrlen, acceptIp, sizeof(acceptIp), &acceptPort);
+    getSocketIpAddr(ss, saddr, saddrlen, acceptIp, sizeof(acceptIp), &acceptPort);
     nsp->acceptIp = mprStrdup(nsp, acceptIp);
     nsp->acceptPort = acceptPort;
     return nsp;
@@ -1357,7 +1357,7 @@ static int getSocketInfo(MprCtx ctx, cchar *ip, int port, int *family, struct so
 /*  
     Return a numerical IP address and port for the given socket info
  */
-static int getSocketIpAddr(struct sockaddr *addr, int addrlen, char *ip, int ipLen, int *port)
+static int getSocketIpAddr(MprCtx ctx, struct sockaddr *addr, int addrlen, char *ip, int ipLen, int *port)
 {
 #if (BLD_UNIX_LIKE || WIN)
     char    service[NI_MAXSERV];
@@ -1377,7 +1377,7 @@ static int getSocketIpAddr(struct sockaddr *addr, int addrlen, char *ip, int ipL
     uchar   *cp;
     sa = (struct sockaddr_in*) addr;
     cp = (uchar*) &sa->sin_addr;
-    mprSprintf(ip, ipLen, "%d.%d.%d.%d", cp[0], cp[1], cp[2], cp[3]);
+    mprSprintf(ctx, ip, ipLen, "%d.%d.%d.%d", cp[0], cp[1], cp[2], cp[3]);
 #endif
     *port = ntohs(sa->sin_port);
 #endif
