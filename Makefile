@@ -18,10 +18,6 @@ include		build/make/Makefile.mpr
 
 testFinal:
 	killall testMpr >/dev/null 2>&1 ; true
-	if [ `hostname` = "saturn.local" ] ; then \
-		echo "BOOM @@@@@@@@@@@@@@@@@" ; \
-		exit 199 ; \
-	fi
 
 diff import sync:
 	@if [ ! -x $(BLD_TOOLS_DIR)/edep$(BLD_BUILD_EXE) -a "$(BUILDING_CROSS)" != 1 ] ; then \
