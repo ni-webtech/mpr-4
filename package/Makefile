@@ -23,7 +23,6 @@ MPR_SOURCES 	+= $(wildcard ../src/*.c ../src/deps/*.c)
 SSL_SOURCES 	+= ../src/include/mprSsl.h $(wildcard ../src/ssl/*.c) 
 
 packageExtra: 	prep $(TARGETS) $(ARCHIVE)
-	echo DONE
 
 prep:
 	rm -fr $(STAGING)
