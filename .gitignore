@@ -36,3 +36,5 @@ projects/MACOSX/*/build
 *.lib
 bin/*.def
 releases
+bin/i386*
+lib/i386*
