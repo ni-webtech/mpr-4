@@ -35,3 +35,4 @@ projects/MACOSX/*/build
 *.exp
 *.lib
 bin/*.def
+releases
