@@ -38,3 +38,4 @@ bin/*.def
 releases
 bin/i386*
 lib/i386*
+bin/*.manifest
