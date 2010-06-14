@@ -260,7 +260,7 @@ void mprWriteToOsLog(MprCtx ctx, cchar *message, int flags, int level)
     if (once == 0) {
         /*  Initialize the registry */
         once = 1;
-        mprSprintf(logName, sizeof(logName), "SYSTEM\\CurrentControlSet\\Services\\EventLog\\Application\\%s",
+        mprSprintf(ctx, logName, sizeof(logName), "SYSTEM\\CurrentControlSet\\Services\\EventLog\\Application\\%s",
             mprGetAppName(ctx));
         hkey = 0;
 
