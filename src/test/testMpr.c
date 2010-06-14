@@ -92,9 +92,6 @@ MAIN(testMain, int argc, char *argv[])
     }
 #endif
 
-    /*
-        Need a background event thread as we use the main thread to run the tests.
-     */
     if (mprStart(mpr)) {
         mprError(mpr, "Can't start mpr services");
         exit(4);

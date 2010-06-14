@@ -72,7 +72,6 @@ static int dispatchEvents(MprDispatcher *dispatcher)
 #if BLD_DEBUG
     lock(es);
     if (dispatcher->active && dispatcher->active != mprGetCurrentThread(es)) {
-        mprError(dispatcher, "WARNING: Calling dispatchEvents reentrantly. Check calls to mprServiceEvents");
         unlock(es);
         return 0;
     }
@@ -109,7 +108,6 @@ static int dispatchEvents(MprDispatcher *dispatcher)
         }
         unlock(es);
     }
-
 #if BLD_DEBUG
     dispatcher->active = 0;
 #endif
@@ -117,6 +115,9 @@ static int dispatchEvents(MprDispatcher *dispatcher)
 }
 
 
+/*
+    Service a single dispatcher. Runs in a worker thread.
+ */
 static void serviceDispatcher(MprDispatcher *dispatcher)
 {
     MprEventService     *es;
