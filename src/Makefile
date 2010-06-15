@@ -16,6 +16,7 @@ TARGETS			+= $(BLD_LIB_DIR)/libmpr$(BLD_LIB)
 ifeq ($(BLD_FEATURE_SSL),1)
 	TARGETS		+= $(BLD_LIB_DIR)/libmprssl$(BLD_LIB)
 endif
+TARGETS			+= $(BLD_BIN_DIR)/angel$(BLD_EXE)
 
 SSL_SOURCES		+= ssl/mprSsl.c
 ifeq ($(BLD_FEATURE_MATRIXSSL),1)
@@ -26,6 +27,7 @@ ifeq ($(BLD_FEATURE_OPENSSL),1)
 endif
 SSL_OBJECTS		+= $(patsubst %.c,$(BLD_OBJ_DIR)/%$(BLD_OBJ),$(notdir $(SSL_SOURCES)))
 DEP_OBJECTS		+= $(BLD_OBJ_DIR)/dtoa$(BLD_OBJ)
+SYSLIBS			+= shell32.lib
 
 #
 #	Build the targets in this directory first then the builtin packages (ssl and regexp)
@@ -40,3 +42,15 @@ $(BLD_LIB_DIR)/libmpr$(BLD_LIB): $(OBJECTS)
 
 $(BLD_LIB_DIR)/libmprssl$(BLD_LIB): $(SSL_OBJECTS) $(BLD_LIB_DIR)/libmpr$(BLD_LIB)
 	bld --library $(BLD_LIB_DIR)/libmprssl --libs "$(BLD_MPR_LIBS) $(BLD_SSL_WITHLIBS)" $(SSL_OBJECTS)
+
+ifeq ($(BLD_UNIX_LIKE),1)
+$(BLD_BIN_DIR)/angel$(BLD_EXE): $(OBJECTS) $(patsubst %,$(BLD_OBJ_DIR)/%$(BLD_OBJ),angel)
+	bld --exe $(BLD_BIN_DIR)/angel$(BLD_EXE) --libs "$(BLD_MPR_LIBS)" angel$(BLD_OBJ)
+endif
+
+ifeq ($(BLD_WIN_LIKE),1)
+$(BLD_BIN_DIR)/angel$(BLD_EXE): $(BLD_LIB_DIR)/libmpr$(BLD_LIB) $(OBJECTS)
+	@bld --graphical --exe $(BLD_BIN_DIR)/angel$(BLD_EXE) --rpath "$(BLD_LIB_PREFIX)" --rpath "../bin" \
+		--search "$(LIBPATH)" $(MODE) --libs "mpr" --syslibs "$(SYSLIBS)" angel$(BLD_OBJ) 
+endif
+
