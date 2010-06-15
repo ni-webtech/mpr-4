@@ -25,6 +25,7 @@ endif
 ifeq ($(BLD_FEATURE_OPENSSL),1)
 	SSL_SOURCES	+= ssl/mprOpenssl.c
 endif
+MPR_OBJECTS		+= $(patsubst %.c,$(BLD_OBJ_DIR)/%$(BLD_OBJ),$(shell ls -1 *.c | grep -v angel))
 SSL_OBJECTS		+= $(patsubst %.c,$(BLD_OBJ_DIR)/%$(BLD_OBJ),$(notdir $(SSL_SOURCES)))
 DEP_OBJECTS		+= $(BLD_OBJ_DIR)/dtoa$(BLD_OBJ)
 SYSLIBS			+= shell32.lib
@@ -37,20 +38,19 @@ compileExtra: $(TARGETS)
 #
 #	Build the mpr library
 #
-$(BLD_LIB_DIR)/libmpr$(BLD_LIB): $(OBJECTS)
-	bld --library $(BLD_LIB_DIR)/libmpr --search "$(BLD_MPR_LIBPATHS)" --libs "$(BLD_MPR_WITHLIBS)" $(OBJECTS) $(DEP_OBJECTS)
+$(BLD_LIB_DIR)/libmpr$(BLD_LIB): $(MPR_OBJECTS)
+	bld --library $(BLD_LIB_DIR)/libmpr --search "$(BLD_MPR_LIBPATHS)" --libs "$(BLD_MPR_WITHLIBS)" \
+		$(MPR_OBJECTS) $(DEP_OBJECTS)
 
 $(BLD_LIB_DIR)/libmprssl$(BLD_LIB): $(SSL_OBJECTS) $(BLD_LIB_DIR)/libmpr$(BLD_LIB)
 	bld --library $(BLD_LIB_DIR)/libmprssl --libs "$(BLD_MPR_LIBS) $(BLD_SSL_WITHLIBS)" $(SSL_OBJECTS)
 
+$(BLD_BIN_DIR)/angel$(BLD_EXE): $(BLD_LIB_DIR)/libmpr$(BLD_LIB) $(BLD_OBJ_DIR)/angel$(BLD_OBJ)
 ifeq ($(BLD_UNIX_LIKE),1)
-$(BLD_BIN_DIR)/angel$(BLD_EXE): $(OBJECTS) $(patsubst %,$(BLD_OBJ_DIR)/%$(BLD_OBJ),angel)
 	bld --exe $(BLD_BIN_DIR)/angel$(BLD_EXE) --libs "$(BLD_MPR_LIBS)" angel$(BLD_OBJ)
 endif
-
 ifeq ($(BLD_WIN_LIKE),1)
-$(BLD_BIN_DIR)/angel$(BLD_EXE): $(BLD_LIB_DIR)/libmpr$(BLD_LIB) $(OBJECTS)
-	@bld --graphical --exe $(BLD_BIN_DIR)/angel$(BLD_EXE) --rpath "$(BLD_LIB_PREFIX)" --rpath "../bin" \
+	bld --graphical --exe $(BLD_BIN_DIR)/angel$(BLD_EXE) --rpath "$(BLD_LIB_PREFIX)" --rpath "../bin" \
 		--search "$(LIBPATH)" $(MODE) --libs "mpr" --syslibs "$(SYSLIBS)" angel$(BLD_OBJ) 
 endif
 
