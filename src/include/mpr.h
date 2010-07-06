@@ -957,6 +957,7 @@ extern void mprSetBufRefillProc(MprBuf *buf, MprBufProc fn, void *arg);
  */
 #define MPR_RFC_DATE        "%a, %d %b %Y %T %Z"
 #define MPR_DEFAULT_DATE    "%a %b %d %T %Y %Z"
+#define MPR_HTTP_DATE       "%a, %d %b %Y %T GMT"
 
 /**
     Date and Time Service
@@ -2756,6 +2757,15 @@ extern void mprStopContinuousEvent(MprEvent *event);
     @ingroup MprEvent
  */
 extern void mprRestartContinuousEvent(MprEvent *event);
+
+/**
+    Enable or disable an event being continous
+    @description This call will modify the continuous property for an event. 
+    @param event Event object returned from #mprCreateEvent
+    @param enable Set to 1 to enable continous scheduling of the event
+    @ingroup MprEvent
+ */
+extern void mprEnableContinuousEvent(MprEvent *event, int enable);
 
 /**
     Create a timer event
@@ -4846,10 +4856,12 @@ extern int mprCalcDigest(MprCtx ctx, char **digest, cchar *userName, cchar *pass
 /*  
     Character encoding masks
  */
-#define MPR_ENCODE_HTML            0x1
-#define MPR_ENCODE_SHELL           0x2
-#define MPR_ENCODE_URI             0x4
-#define MPR_ENCODE_URI_COMPONENT   0x8
+#define MPR_ENCODE_HTML             0x1
+#define MPR_ENCODE_SHELL            0x2
+#define MPR_ENCODE_URI              0x4             /* Encode for ejs Uri.encode */
+#define MPR_ENCODE_URI_COMPONENT    0x8             /* Encode for ejs Uri.encodeComponent */
+#define MPR_ENCODE_JS_URI           0x10            /* Encode according to ECMA encodeUri() */
+#define MPR_ENCODE_JS_URI_COMPONENT 0x20            /* Encode according to ECMA encodeUriComponent */
 
 /** 
     Encode a string escaping typical command (shell) characters

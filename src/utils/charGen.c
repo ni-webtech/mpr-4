@@ -33,6 +33,8 @@ int main(int argc, char *argv[])
             flags |= MPR_ENCODE_SHELL;
         }
 #endif
+
+#if OLD && UNUSED
         /*
             RFC 1738 Reserved and unsafe chars in URIs are: 
                 0x00-0x1F, 0x7F, 0x80-0xFF, space, <>"#%{}|\^~[]`
@@ -50,7 +52,25 @@ int main(int argc, char *argv[])
         if (!(isalnum(c) || strchr("-_.!~*'()", c))) {
             flags |= MPR_ENCODE_URI_COMPONENT;
         }
-        if (strchr("<>&()#\"", c) != 0) {
+#else
+        if (isalnum(c) || strchr("-_.~", c)) {
+            /* Acceptable */
+        } else if (strchr("+", c)) {
+            flags |= MPR_ENCODE_URI_COMPONENT | MPR_ENCODE_JS_URI_COMPONENT;
+        } else if (strchr("#;,/?:@&=+$", c)) {
+            flags |= MPR_ENCODE_URI_COMPONENT | MPR_ENCODE_JS_URI_COMPONENT;
+        } else if (strchr("!'()*", c)) {
+            flags |= MPR_ENCODE_URI | MPR_ENCODE_URI_COMPONENT;
+        } else if (strchr("[]", c)) {
+            flags |= MPR_ENCODE_JS_URI | MPR_ENCODE_URI_COMPONENT | MPR_ENCODE_JS_URI_COMPONENT;
+        } else {
+            flags |= MPR_ENCODE_URI | MPR_ENCODE_URI_COMPONENT | MPR_ENCODE_JS_URI | MPR_ENCODE_JS_URI_COMPONENT;
+        }
+#endif
+#if UNUSED
+        if (strchr("<>&()#\"'\\", c)
+#endif
+        if (strchr("<>&\"'", c) != 0) {
             flags |= MPR_ENCODE_HTML;
         }
         mprPrintf(mpr, "0x%02x%c", flags, (c < 255) ? ',' : ' ');

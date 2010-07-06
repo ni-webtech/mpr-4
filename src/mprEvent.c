@@ -151,6 +151,12 @@ void mprRestartContinuousEvent(MprEvent *event)
 }
 
 
+void mprEnableContinuousEvent(MprEvent *event, int enable)
+{
+    event->continuous = enable;
+}
+
+
 /*
     Get the next due event from the front of the event queue.
  */
