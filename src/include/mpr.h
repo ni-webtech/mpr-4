@@ -65,7 +65,8 @@ struct  MprXml;
 
 /******************************************************* Error Codes *******************************************************/
 
-//  TODO - make these consistent: CANT vs NOT or NO
+//  MOB TODO - make these consistent: CANT vs NOT or NO
+//  MOB SORT 
 
 /**
     Standard MPR return and error codes
@@ -106,7 +107,8 @@ struct  MprXml;
 #define MPR_ERR_CANT_DELETE             -31
 #define MPR_ERR_CANT_CONNECT            -32
 #define MPR_ERR_CONNECTION              -33
-#define MPR_ERR_MAX                     -34
+#define MPR_ERR_CANT_LOAD               -34
+#define MPR_ERR_MAX                     -35
 
 /**
     Standard logging trace levels are 0 to 9 with 0 being the most verbose. These are ored with the error source
