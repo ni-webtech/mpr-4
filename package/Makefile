@@ -1,5 +1,5 @@
 #
-#	Makefile for the all-in-one MPR distribution
+#	Makefile for the all-in-one combined MPR distribution
 #
 #	Copyright (c) Embedthis Software LLC, 2003-2010. All Rights Reserved.
 #
@@ -22,7 +22,7 @@ HEADERS			+= $(patsubst %,../src/include/%, mprOs.h mprTune.h mpr.h mprTest.h)
 MPR_SOURCES 	+= $(shell find ../src/*.c ../src/deps/*.c | egrep -v angel)
 SSL_SOURCES 	+= ../src/include/mprSsl.h $(wildcard ../src/ssl/*.c) 
 
-packageExtra: 	prep $(TARGETS) $(ARCHIVE)
+combo packageExtra: prep $(TARGETS) $(ARCHIVE)
 
 prep:
 	rm -fr $(STAGING)
