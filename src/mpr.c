@@ -425,7 +425,7 @@ void mprSetLogHandler(MprCtx ctx, MprLogHandler handler, void *handlerData)
     mpr = mprGetMpr(ctx);
 
     mpr->logHandler = handler;
-    mpr->logHandlerData = handlerData;
+    mpr->logData = handlerData;
 }
 
 

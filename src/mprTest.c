@@ -846,7 +846,7 @@ static void logHandler(MprCtx ctx, int flags, int level, cchar *msg)
     char        *prefix;
 
     mpr = mprGetMpr(ctx);
-    file = (MprFile*) mpr->logHandlerData;
+    file = (MprFile*) mpr->logData;
     prefix = mpr->name;
 
     while (*msg == '\n') {

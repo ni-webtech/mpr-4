@@ -53,9 +53,6 @@ void mprLog(MprCtx ctx, int level, cchar *fmt, ...)
 }
 
 
-/*
-    Do raw output
- */
 void mprRawLog(MprCtx ctx, int level, cchar *fmt, ...)
 {
     va_list     args;
@@ -73,9 +70,6 @@ void mprRawLog(MprCtx ctx, int level, cchar *fmt, ...)
 }
 
 
-/*
-    Handle an error
- */
 void mprError(MprCtx ctx, cchar *fmt, ...)
 {
     va_list     args;
@@ -92,9 +86,6 @@ void mprError(MprCtx ctx, cchar *fmt, ...)
 }
 
 
-/*
-    Handle a memory allocation error
- */
 void mprMemoryError(MprCtx ctx, cchar *fmt, ...)
 {
     va_list     args;
@@ -112,9 +103,6 @@ void mprMemoryError(MprCtx ctx, cchar *fmt, ...)
 }
 
 
-/*
-    Handle an error that should be displayed to the user
- */
 void mprUserError(MprCtx ctx, cchar *fmt, ...)
 {
     va_list     args;
@@ -129,9 +117,6 @@ void mprUserError(MprCtx ctx, cchar *fmt, ...)
 }
 
 
-/*
-    Handle a fatal error. Forcibly shutdown the application.
- */
 void mprFatalError(MprCtx ctx, cchar *fmt, ...)
 {
     va_list     args;
