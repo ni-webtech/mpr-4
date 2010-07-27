@@ -35,7 +35,7 @@ typedef struct CRYPTO_dynlock_value DynLock;
 static MprSocket *acceptOss(MprSocket *sp);
 static void     closeOss(MprSocket *sp, bool gracefully);
 static MprSsl   *getDefaultOpenSsl(MprCtx ctx);
-static int      configureCertificates(MprSsl *ssl, SSL_CTX *ctx, char *key, char *cert);
+static int      configureCertificateFiles(MprSsl *ssl, SSL_CTX *ctx, char *key, char *cert);
 static int      configureOss(MprSsl *ssl);
 static int      connectOss(MprSocket *sp, cchar *host, int port, int flags);
 static MprSocketProvider *createOpenSslProvider(MprCtx ctx);
@@ -210,8 +210,16 @@ static int configureOss(MprSsl *ssl)
     /*
         Configure the certificates
      */
+#if FUTURE
+    if (ssl->key || ssl->cert) {
+        if (configureCertificates(ssl, context, ssl->key, ssl->cert) != 0) {
+            SSL_CTX_free(context);
+            return MPR_ERR_CANT_INITIALIZE;
+        }
+    } else 
+#endif
     if (ssl->keyFile || ssl->certFile) {
-        if (configureCertificates(ssl, context, ssl->keyFile, ssl->certFile) != 0) {
+        if (configureCertificateFiles(ssl, context, ssl->keyFile, ssl->certFile) != 0) {
             SSL_CTX_free(context);
             return MPR_ERR_CANT_INITIALIZE;
         }
@@ -338,10 +346,41 @@ static int openSslDestructor(MprSsl *ssl)
 }
 
 
+#if FUTURE
 /*
-    Configure the SSL certificate information configureOss
+    Configure the SSL certificate information using key and cert strings
  */
 static int configureCertificates(MprSsl *ssl, SSL_CTX *ctx, char *key, char *cert)
+{
+    mprAssert(ctx);
+
+    if (cert == 0) {
+        return 0;
+    }
+    if (cert && SSL_CTX_use_certificate(ctx, cert) <= 0) {
+        mprError(ssl, "OpenSSL: Can't define certificate file: %s", cert); 
+        return -1;
+    }
+    key = (key == 0) ? cert : key;
+    if (key) {
+        if (SSL_CTX_use_PrivateKey(ctx, key, SSL_FILETYPE_PEM) <= 0) {
+            mprError(ssl, "OpenSSL: Can't define private key file: %s", key); 
+            return -1;
+        }
+        if (!SSL_CTX_check_private_key(ctx)) {
+            mprError(ssl, "OpenSSL: Check of private key file failed: %s", key);
+            return -1;
+        }
+    }
+    return 0;
+}
+#endif
+
+
+/*
+    Configure the SSL certificate information using key and cert files
+ */
+static int configureCertificateFiles(MprSsl *ssl, SSL_CTX *ctx, char *key, char *cert)
 {
     mprAssert(ctx);
 
@@ -360,7 +399,6 @@ static int configureCertificates(MprSsl *ssl, SSL_CTX *ctx, char *key, char *cer
             mprError(ssl, "OpenSSL: Can't define private key file: %s", key); 
             return -1;
         }
-
         if (!SSL_CTX_check_private_key(ctx)) {
             mprError(ssl, "OpenSSL: Check of private key file failed: %s", key);
             return -1;

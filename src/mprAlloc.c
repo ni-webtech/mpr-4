@@ -663,6 +663,9 @@ int mprStealBlock(MprCtx ctx, cvoid *ptr)
     mprAssert(VALID_CTX(ctx));
     mprAssert(VALID_CTX(ptr));
     bp = GET_BLK(ptr);
+    if (bp->parent == ctx) {
+        return 0;
+    }
 
 #if BLD_FEATURE_MEMORY_VERIFY
     /*

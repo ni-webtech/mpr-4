@@ -91,6 +91,8 @@ void mprConfigureSsl(MprSsl *ssl)
     provider = mprGetMpr(ssl)->socketService->secureProvider;
     if (provider) {
         provider->configureSsl(ssl);
+    } else {
+        mprError(ssl, "Secure socket provider not loaded");
     }
 }
 

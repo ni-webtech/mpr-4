@@ -190,6 +190,7 @@ MprSocket *mprCreateSocket(MprCtx ctx, struct MprSsl *ssl)
         return 0;
 #endif
         if (ss->secureProvider == NULL || ss->secureProvider->createSocket == NULL) {
+            mprError(ctx, "Missing socket service provider");
             return 0;
         }
         sp = ss->secureProvider->createSocket(ctx, ssl);
@@ -654,6 +655,10 @@ static MprSocket *acceptSocket(MprSocket *listen)
     if (nsp->flags & MPR_SOCKET_NODELAY) {
         mprSetSocketNoDelay(nsp, 1);
     }
+
+    /*
+        Get the remote client address
+     */
     if (getSocketIpAddr(ss, addr, addrlen, ip, sizeof(ip), &port) != 0) {
         mprAssert(0);
         mprFree(nsp);
@@ -662,6 +667,9 @@ static MprSocket *acceptSocket(MprSocket *listen)
     nsp->ip = mprStrdup(nsp, ip);
     nsp->port = port;
 
+    /*
+        Get the server interface address accepting the connection
+     */
     saddr = (struct sockaddr*) &saddrStorage;
     saddrlen = sizeof(saddrStorage);
     getsockname(fd, saddr, &saddrlen);
@@ -674,8 +682,7 @@ static MprSocket *acceptSocket(MprSocket *listen)
 
 
 /*  
-    Read data. Return zero for EOF or no data if in non-blocking mode. Return -1 for errors. On success,
-    return the number of bytes read. Use getEof to tell if we are EOF or just no data (in non-blocking mode).
+    Read data. Return -1 for EOF and errors. On success, return the number of bytes read
  */
 int mprReadSocket(MprSocket *sp, void *buf, int bufsize)
 {
@@ -717,7 +724,6 @@ again:
     } else {
         bytes = recv(sp->fd, buf, bufsize, MSG_NOSIGNAL);
     }
-
     if (bytes < 0) {
         errCode = mprGetSocketError(sp);
         if (errCode == EINTR) {

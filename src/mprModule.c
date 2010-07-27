@@ -235,7 +235,7 @@ int mprSearchForModule(MprCtx ctx, cchar *name, char **path)
         Search for path directly
      */
     if (probe(ctx, name, path)) {
-        mprLog(ctx, 5, "Found native module %s at %s", name, *path);
+        mprLog(ctx, 6, "Found native module %s at %s", name, *path);
         return 0;
     }
 
@@ -250,7 +250,7 @@ int mprSearchForModule(MprCtx ctx, cchar *name, char **path)
         fileName = mprJoinPath(ctx, dir, name);
         if (probe(ctx, fileName, path)) {
             mprFree(fileName);
-            mprLog(ctx, 5, "Found native module %s at %s", name, *path);
+            mprLog(ctx, 6, "Found native module %s at %s", name, *path);
             return 0;
         }
         mprFree(fileName);

@@ -576,8 +576,7 @@ static int scanFor(MprXml *xp, char *pattern)
 static int getNextChar(MprXml *xp)
 {
     MprBuf  *inBuf;
-    char    c;
-    int     l;
+    int     l, c;
 
     inBuf = xp->inBuf;
     if (mprGetBufLength(inBuf) <= 0) {
@@ -592,7 +591,6 @@ static int getNextChar(MprXml *xp)
         mprAdjustBufEnd(inBuf, l);
     }
     c = mprGetCharFromBuf(inBuf);
-
     if (c == '\n') {
         xp->lineNumber++;
     }

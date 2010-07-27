@@ -95,7 +95,7 @@ MprModule *mprLoadModule(MprCtx ctx, cchar *name, cchar *fun, void *data)
     if (mprSearchForModule(ctx, moduleName, &path) < 0) {
         mprError(ctx, "Can't find module \"%s\" in search path \"%s\"", name, mprGetModuleSearchPath(ctx));
     } else {
-        mprLog(ctx, 5, "Loading native module %s from %s", moduleName, path);
+        mprLog(ctx, 6, "Loading native module %s from %s", moduleName, path);
         if ((handle = dlopen(path, RTLD_LAZY | RTLD_GLOBAL)) == 0) {
             mprError(ctx, "Can't load module %s\nReason: \"%s\"",  path, dlerror());
         } else if (fun) {
