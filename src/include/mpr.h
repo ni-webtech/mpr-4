@@ -3552,12 +3552,6 @@ typedef void *Type;
  */
 extern void *mprAlloc(MprCtx ctx, uint size);
 
-#if UNUSED
-/* Internal */
-//  MOB -- why public
-extern MprBlk *mprAllocBlock(MprHeap *heap, MprBlk *parent, uint size);
-#endif
-
 /**
     Allocate an object block of memory
     @description Allocates a block of memory using the supplied memory context \a ctx as the parent. #mprAllocWithDestructor
@@ -3754,9 +3748,6 @@ extern cchar *mprGetName(void *ptr);
     Internal memory allocation routines
  */
 extern void *_mprAlloc(MprCtx ctx, uint size);
-#if UNUSED
-extern MprBlk *_mprAllocBlock(MprHeap *heap, MprBlk *parent, uint size);
-#endif
 extern void *_mprAllocWithDestructor(MprCtx ctx, uint size, MprDestructor destructor);
 extern void *_mprAllocWithDestructorZeroed(MprCtx ctx, uint size, MprDestructor destructor);
 extern void *_mprAllocZeroed(MprCtx ctx, uint size);
@@ -3779,10 +3770,6 @@ extern char *_mprStrdup(MprCtx ctx, cchar *str);
 
 #define mprAlloc(ctx, size) \
     mprSetName(_mprAlloc(ctx, size), MPR_LOC)
-#if UNUSED
-#define mprAllocBlock(heap, parent, size) \
-    mprSetName(_mprAllocBlock(heap, parent, size), MPR_LOC)
-#endif
 #define mprAllocWithDestructor(ctx, size, destructor) \
     mprSetName(_mprAllocWithDestructor(ctx, size, destructor), MPR_LOC)
 #define mprAllocWithDestructorZeroed(ctx, size, destructor) \
@@ -4044,10 +4031,6 @@ typedef struct MprWaitService {
     struct pollfd   *fds;                   /* File descriptors to select on (linear index) */
     int             fdsCount;               /* Last used entry in the fds array */
     int             fdMax;                  /* Size of the fds array */
-#if UNUSED
-    struct pollfd   *stableFds;             /* Stable copy of fds used when polling */
-    int             stableFdsCount;         /* Last used entry in the stableFds array */
-#endif
     int             breakPipe[2];           /* Pipe to wakeup select */
 #elif MPR_EVENT_ASYNC
     struct MprWaitHandler **handlerMap;     /* Map of fds to handlers */
@@ -5300,9 +5283,6 @@ typedef struct Mpr {
     int             hasDedicatedService;    /**< Running a dedicated events thread */
     int             allocPolicy;            /**< Memory allocation depletion policy */
     int             logFd;                  /**< Logging file descriptor */
-#if UNUSED
-    int             timezone;               /**< Minutes west of Greenwich without DST */
-#endif
     /*
         Service pointers
      */
@@ -5633,7 +5613,7 @@ extern int mprGetRandomBytes(MprCtx ctx, char *buf, int size, int block);
  */
 extern int mprGetEndian(MprCtx ctx);
 
-//  MOB
+//  TODO DOC
 extern void mprNop();
 extern int mprGetLogFd(MprCtx ctx);
 extern int mprSetLogFd(MprCtx ctx, int fd);

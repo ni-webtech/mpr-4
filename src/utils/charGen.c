@@ -34,25 +34,6 @@ int main(int argc, char *argv[])
         }
 #endif
 
-#if OLD && UNUSED
-        /*
-            RFC 1738 Reserved and unsafe chars in URIs are: 
-                0x00-0x1F, 0x7F, 0x80-0xFF, space, <>"#%{}|\^~[]`
-            Reserved chars in the scheme (protocol) portion of a URI are:
-                ;/?: @=&
-            For extra security, we also encode: 
-                ' \t, \r, \n
-         */
-        if (c <= 0x1f || c >= 0x7f || isspace(c) || strchr(" !\"#$%\'&(),/:;<=>?@[\\]^{|}~", c) != 0) {
-            flags |= MPR_ENCODE_URI;
-        }
-        if (!(isalnum(c) || strchr("-_.!~*'()", c) != 0) || strchr(";/?:@&=+$,#", c)) {
-            flags |= MPR_ENCODE_URI;
-        }
-        if (!(isalnum(c) || strchr("-_.!~*'()", c))) {
-            flags |= MPR_ENCODE_URI_COMPONENT;
-        }
-#else
         if (isalnum(c) || strchr("-_.~", c)) {
             /* Acceptable */
         } else if (strchr("+", c)) {
@@ -66,10 +47,6 @@ int main(int argc, char *argv[])
         } else {
             flags |= MPR_ENCODE_URI | MPR_ENCODE_URI_COMPONENT | MPR_ENCODE_JS_URI | MPR_ENCODE_JS_URI_COMPONENT;
         }
-#endif
-#if UNUSED
-        if (strchr("<>&()#\"'\\", c)
-#endif
         if (strchr("<>&\"'", c) != 0) {
             flags |= MPR_ENCODE_HTML;
         }

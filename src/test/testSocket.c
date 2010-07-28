@@ -319,7 +319,6 @@ MprTestDef testSocket = {
     {
         MPR_TEST(0, testCreateSocket),
         MPR_TEST(0, testClient),
-        //  MOB -- temp for build farm
 #if !WIN
         MPR_TEST(0, testClientServerIPv4),
         MPR_TEST(0, testClientServerIPv6),

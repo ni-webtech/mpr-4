@@ -418,9 +418,6 @@ static char *sprintfCore(MprCtx ctx, char *buf, int maxsize, cchar *spec, va_lis
 
         case STATE_DOT:
             fmt.precision = 0;
-#if UNUSED
-            fmt.flags &= ~SPRINTF_LEAD_ZERO;
-#endif
             break;
 
         case STATE_PRECISION:
@@ -990,30 +987,10 @@ int print(cchar *fmt, ...)
 {
     int             len;
     va_list         ap;
-#if UNUSED
-    MprFileSystem   *fs;
-    MprCtx          ctx;
-    char            *buf;
-
-    ctx = mprGetMpr(NULL);
-    fs = mprLookupFileSystem(ctx, "/");
-    va_start(ap, fmt);
-    buf = mprVasprintf(ctx, -1, fmt, ap);
-    va_end(ap);
-    if (buf != 0 && fs->stdOutput) {
-        len = mprWriteString(fs->stdOutput, buf);
-        len += mprWriteString(fs->stdOutput, "\n");
-    } else {
-        len = -1;
-    }
-    mprFree(buf);
-    return len;
-#else
     va_start(ap, fmt);
     len = vprintf(fmt, ap);
     va_end(ap);
     return len;
-#endif
 }
 
 /*
