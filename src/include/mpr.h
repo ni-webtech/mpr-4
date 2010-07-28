@@ -5579,6 +5579,7 @@ extern void mprSetDebugMode(MprCtx ctx, bool on);
     @ingroup MprLog
  */
 extern void mprSetLogLevel(MprCtx ctx, int level);
+extern void mprSetAltLogData(MprCtx ctx, void *data);
 
 /**
     Sleep for a while

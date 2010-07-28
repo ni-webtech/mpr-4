@@ -192,6 +192,12 @@ void mprSetLogLevel(MprCtx ctx, int level)
 }
 
 
+void mprSetAltLogData(MprCtx ctx, void *data)
+{
+    mprGetMpr(ctx)->altLogData = data;
+}
+
+
 /*
     Output a log message to the log handler
  */
