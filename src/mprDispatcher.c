@@ -253,7 +253,6 @@ static int dispatcherDestructor(MprDispatcher *dispatcher)
 
     es = dispatcher->service;
     lock(es);
-    mprAssert(!isReady(dispatcher));
     dequeueDispatcher(dispatcher);
     dispatcher->deleted = 1;
     if (dispatcher->inUse) {
@@ -307,7 +306,7 @@ void mprRelayEvent(MprDispatcher *dispatcher, MprEventProc proc, void *data, Mpr
     }
     lock(es);
     wasRunning = isRunning(dispatcher);
-    if (!isRunning(dispatcher)) {
+    if (!wasRunning) {
         queueDispatcher(&es->runQ, dispatcher);
     }
     unlock(es);
@@ -319,6 +318,7 @@ void mprRelayEvent(MprDispatcher *dispatcher, MprEventProc proc, void *data, Mpr
     if (--dispatcher->inUse == 0 && dispatcher->deleted) {
         mprFree(dispatcher);
     } else if (!wasRunning) {
+        //  MOB -- why reschedule?
         lock(es);
         dequeueDispatcher(dispatcher);
         mprScheduleDispatcher(dispatcher);
