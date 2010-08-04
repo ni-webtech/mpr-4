@@ -133,6 +133,7 @@ void mprRemoveNotifier(MprWaitHandler *wp)
 
     ws = wp->service;
     fd = wp->fd;
+    mprAssert(fd >= 0);
     lock(ws);
     if ((ws->interestCount + 2) >= ws->interestMax) {
         growEvents(ws);

@@ -52,6 +52,7 @@ void mprRemoveNotifier(MprWaitHandler *wp)
 
     ws = wp->service;
     lock(ws);
+    mprAssert(wp->fd >= 0);
     WSAAsyncSelect(wp->fd, ws->hwnd, ws->socketMessage, 0);
     wp->desiredMask = 0;
     unlock(ws);

@@ -141,6 +141,7 @@ void mprDisconnectCmd(MprCmd *cmd)
     for (i = 0; i < MPR_CMD_MAX_PIPE; i++) {
         if (cmd->handlers[i]) {
             mprRemoveWaitHandler(cmd->handlers[i]);
+            cmd->handlers[i] = 0;
         }
     }
     unlock(cmd);
@@ -159,6 +160,7 @@ void mprCloseCmdFd(MprCmd *cmd, int channel)
      */
     if (cmd->handlers[channel]) {
         mprRemoveWaitHandler(cmd->handlers[channel]);
+        cmd->handlers[channel] = 0;
     }
     if (cmd->files[channel].fd != -1) {
         close(cmd->files[channel].fd);

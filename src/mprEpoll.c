@@ -122,6 +122,7 @@ void mprRemoveNotifier(MprWaitHandler *wp)
 
     ws = wp->service;
     fd = wp->fd;
+    mprAssert(fd >= 0);
     lock(ws);
     epoll_ctl(ws->epoll, EPOLL_CTL_DEL, fd, NULL);
     mprAssert(ws->handlerMap[fd] == 0 || ws->handlerMap[fd] == wp);

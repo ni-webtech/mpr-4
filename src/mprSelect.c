@@ -128,6 +128,7 @@ void mprRemoveNotifier(MprWaitHandler *wp)
 
     ws = wp->service;
     fd = wp->fd;
+    mprAssert(fd >= 0);
 
     lock(ws);
     FD_CLR(fd, &ws->readMask);

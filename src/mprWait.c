@@ -112,8 +112,10 @@ void mprRemoveWaitHandler(MprWaitHandler *wp)
         Lock the service to stabilize the list, then lock the handler to prevent callbacks. 
      */
     lock(ws);
+    mprAssert(wp->fd >= 0);
     mprRemoveNotifier(wp);
     mprRemoveItem(ws->handlers, wp);
+    wp->fd = -1;
     mprWakeWaitService(ws);
     unlock(ws);
 }
