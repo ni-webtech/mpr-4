@@ -62,7 +62,7 @@ static int condDestructor(MprCond *cp)
 /*
     Wait for the event to be triggered. Should only be used when there are single waiters. If the event is already
     triggered, then it will return immediately. Timeout of -1 means wait forever. Timeout of 0 means no wait.
-    Returns 0 if the event was signalled. Returns < 0 if the timeout.
+    Returns 0 if the event was signalled. Returns < 0 for a timeout.
  */
 int mprWaitForCond(MprCond *cp, int timeout)
 {
@@ -77,15 +77,14 @@ int mprWaitForCond(MprCond *cp, int timeout)
     expire = now + timeout;
 
 #if BLD_UNIX_LIKE
-        struct timespec     waitTill;
-        struct timeval      current;
-        int                 usec;
-        gettimeofday(&current, NULL);
-        usec = current.tv_usec + (timeout % 1000) * 1000;
-        waitTill.tv_sec = current.tv_sec + (timeout / 1000) + (usec / 1000000);
-        waitTill.tv_nsec = (usec % 1000000) * 1000;
+    struct timespec     waitTill;
+    struct timeval      current;
+    int                 usec;
+    gettimeofday(&current, NULL);
+    usec = current.tv_usec + (timeout % 1000) * 1000;
+    waitTill.tv_sec = current.tv_sec + (timeout / 1000) + (usec / 1000000);
+    waitTill.tv_nsec = (usec % 1000000) * 1000;
 #endif
-
     mprLock(cp->mutex);
     if (!cp->triggered) {
         /*
@@ -131,7 +130,6 @@ int mprWaitForCond(MprCond *cp, int timeout)
 #endif
         } while (!cp->triggered && rc == 0 && (now = mprGetTime(cp)) < expire);
     }
-
     if (cp->triggered) {
         cp->triggered = 0;
         rc = 0;
@@ -182,6 +180,91 @@ void mprResetCond(MprCond *cp)
 #endif
     mprUnlock(cp->mutex);
 }
+
+
+/*
+    Wait for the event to be triggered when there may be multiple waiters. This routine may return early due to
+    other signals or events. The caller must verify if the signalled condition truly exists. If the event is already
+    triggered, then it will return immediately. This call will not reset cp->triggered and must be reset manually.
+    A timeout of -1 means wait forever. Timeout of 0 means no wait.  Returns 0 if the event was signalled. 
+    Returns < 0 for a timeout.
+ */
+int mprWaitForMultiCond(MprCond *cp, int timeout)
+{
+    MprTime     now, expire;
+    int         rc;
+
+    rc = 0;
+    if (timeout < 0) {
+        timeout = MAXINT;
+    }
+    now = mprGetTime(cp);
+    expire = now + timeout;
+
+#if BLD_UNIX_LIKE
+    struct timespec     waitTill;
+    struct timeval      current;
+    int                 usec;
+    gettimeofday(&current, NULL);
+    usec = current.tv_usec + (timeout % 1000) * 1000;
+    waitTill.tv_sec = current.tv_sec + (timeout / 1000) + (usec / 1000000);
+    waitTill.tv_nsec = (usec % 1000000) * 1000;
+#endif
+
+#if BLD_WIN_LIKE
+    rc = WaitForSingleObject(cp->cv, (int) (expire - now));
+    if (rc == WAIT_OBJECT_0) {
+        rc = 0;
+    } else if (rc == WAIT_TIMEOUT) {
+        rc = MPR_ERR_TIMEOUT;
+    } else {
+        rc = MPR_ERR_GENERAL;
+    }
+#elif VXWORKS
+    rc = semTake(cp->cv, (int) (expire - now));
+    if (rc != 0) {
+        if (errno == S_objLib_OBJ_UNAVAILABLE) {
+            rc = MPR_ERR_TIMEOUT;
+        } else {
+            rc = MPR_ERR_GENERAL;
+        }
+    }
+#elif BLD_UNIX_LIKE
+    mprLock(cp->mutex);
+    rc = pthread_cond_timedwait(&cp->cv, &cp->mutex->cs,  &waitTill);
+    if (rc == ETIMEDOUT) {
+        rc = MPR_ERR_TIMEOUT;
+    } else if (rc != 0) {
+        mprAssert(rc == 0);
+        rc = MPR_ERR_GENERAL;
+    }
+    mprUnlock(cp->mutex);
+#endif
+    return rc;
+}
+
+
+/*
+    Signal a condition and wakeup the all the waiters. Note: this may be called before or after to the waiter waiting.
+ */
+void mprSignalMultiCond(MprCond *cp)
+{
+    mprLock(cp->mutex);
+#if BLD_WIN_LIKE
+    /* Pulse event */
+    SetEvent(cp->cv);
+    ResetEvent(cp->cv);
+#elif VXWORKS
+    /* Reset sem count and then give once. Prevents accumulation */
+    while (semTake(cp->cv, 0) == OK) ;
+    semGive(cp->cv);
+    semFlush(cp->cv);
+#else
+    pthread_cond_broadcast(&cp->cv);
+#endif
+    mprUnlock(cp->mutex);
+}
+
 
 /*
     @copy   default

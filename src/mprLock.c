@@ -25,20 +25,16 @@ MprMutex *mprCreateLock(MprCtx ctx)
     if (lock == 0) {
         return 0;
     }
-
 #if BLD_UNIX_LIKE
     pthread_mutexattr_t attr;
     pthread_mutexattr_init(&attr);
     pthread_mutexattr_settype(&attr, PTHREAD_MUTEX_RECURSIVE_NP);
     pthread_mutex_init(&lock->cs, &attr);
     pthread_mutexattr_destroy(&attr);
-
 #elif WINCE
     InitializeCriticalSection(&lock->cs);
-
 #elif BLD_WIN_LIKE
     InitializeCriticalSectionAndSpinCount(&lock->cs, 5000);
-
 #elif VXWORKS
     /* Removed SEM_INVERSION_SAFE */
     lock->cs = semMCreate(SEM_Q_PRIORITY | SEM_DELETE_SAFE);
@@ -62,13 +58,10 @@ MprMutex *mprInitLock(MprCtx ctx, MprMutex *lock)
     pthread_mutexattr_settype(&attr, PTHREAD_MUTEX_RECURSIVE_NP);
     pthread_mutex_init(&lock->cs, &attr);
     pthread_mutexattr_destroy(&attr);
-
 #elif WINCE
     InitializeCriticalSection(&lock->cs);
-
 #elif BLD_WIN_LIKE
     InitializeCriticalSectionAndSpinCount(&lock->cs, 5000);
-
 #elif VXWORKS
     /* Removed SEM_INVERSION_SAFE */
     lock->cs = semMCreate(SEM_Q_PRIORITY | SEM_DELETE_SAFE);
@@ -91,10 +84,8 @@ static int destroyLock(MprMutex *lock)
 #if BLD_UNIX_LIKE
     pthread_mutex_unlock(&lock->cs);
     pthread_mutex_destroy(&lock->cs);
-
 #elif BLD_WIN_LIKE
     DeleteCriticalSection(&lock->cs);
-
 #elif VXWORKS
     semDelete(lock->cs);
 #endif
@@ -110,10 +101,8 @@ bool mprTryLock(MprMutex *lock)
     int     rc;
 #if BLD_UNIX_LIKE
     rc = pthread_mutex_trylock(&lock->cs) != 0;
-
 #elif BLD_WIN_LIKE
     rc = TryEnterCriticalSection(&lock->cs) == 0;
-
 #elif VXWORKS
     rc = semTake(lock->cs, NO_WAIT) != OK;
 #endif
@@ -131,29 +120,22 @@ MprSpin *mprCreateSpinLock(MprCtx ctx)
     if (lock == 0) {
         return 0;
     }
-
 #if USE_MPR_LOCK
     mprInitLock(ctx, &lock->cs);
-
 #elif MACOSX
     lock->cs = OS_SPINLOCK_INIT;
-
 #elif BLD_UNIX_LIKE && BLD_HAS_SPINLOCK
     pthread_spin_init(&lock->cs, 0);
-
 #elif BLD_UNIX_LIKE
     pthread_mutexattr_t attr;
     pthread_mutexattr_init(&attr);
     pthread_mutexattr_settype(&attr, PTHREAD_MUTEX_RECURSIVE_NP);
     pthread_mutex_init(&lock->cs, &attr);
     pthread_mutexattr_destroy(&attr);
-
 #elif WINCE
     InitializeCriticalSection(&lock->cs);
-
 #elif BLD_WIN_LIKE
     InitializeCriticalSectionAndSpinCount(&lock->cs, 5000);
-
 #elif VXWORKS
     /* Removed SEM_INVERSION_SAFE */
     lock->cs = semMCreate(SEM_Q_PRIORITY | SEM_DELETE_SAFE);
@@ -163,7 +145,6 @@ MprSpin *mprCreateSpinLock(MprCtx ctx)
         return 0;
     }
 #endif
-
 #if BLD_DEBUG
     lock->owner = 0;
 #endif
@@ -180,26 +161,20 @@ MprSpin *mprInitSpinLock(MprCtx ctx, MprSpin *lock)
 
 #if USE_MPR_LOCK
     mprInitLock(ctx, &lock->cs);
-
 #elif MACOSX
     lock->cs = OS_SPINLOCK_INIT;
-
 #elif BLD_UNIX_LIKE && BLD_HAS_SPINLOCK
     pthread_spin_init(&lock->cs, 0);
-
 #elif BLD_UNIX_LIKE
     pthread_mutexattr_t attr;
     pthread_mutexattr_init(&attr);
     pthread_mutexattr_settype(&attr, PTHREAD_MUTEX_RECURSIVE_NP);
     pthread_mutex_init(&lock->cs, &attr);
     pthread_mutexattr_destroy(&attr);
-
 #elif WINCE
     InitializeCriticalSection(&lock->cs);
-
 #elif BLD_WIN_LIKE
     InitializeCriticalSectionAndSpinCount(&lock->cs, 5000);
-
 #elif VXWORKS
     /* Removed SEM_INVERSION_SAFE */
     lock->cs = semMCreate(SEM_Q_PRIORITY | SEM_DELETE_SAFE);
@@ -225,16 +200,12 @@ static int destroySpinLock(MprSpin *lock)
     mprAssert(lock);
 #if USE_MPR_LOCK || MACOSX
     ;
-
 #elif BLD_UNIX_LIKE && BLD_HAS_SPINLOCK
     pthread_spin_destroy(&lock->cs);
-
 #elif BLD_UNIX_LIKE
     pthread_mutex_destroy(&lock->cs);
-
 #elif BLD_WIN_LIKE
     DeleteCriticalSection(&lock->cs);
-
 #elif VXWORKS
     semDelete(lock->cs);
 #endif
@@ -253,22 +224,16 @@ bool mprTrySpinLock(MprSpin *lock)
 
 #if USE_MPR_LOCK
     mprTryLock(&lock->cs);
-
 #elif MACOSX
     rc = !OSSpinLockTry(&lock->cs);
-
 #elif BLD_UNIX_LIKE && BLD_HAS_SPINLOCK
     rc = pthread_spin_trylock(&lock->cs) != 0;
-
 #elif BLD_UNIX_LIKE
     rc = pthread_mutex_trylock(&lock->cs) != 0;
-
 #elif BLD_WIN_LIKE
     rc = TryEnterCriticalSection(&lock->cs) == 0;
-
 #elif VXWORKS
     rc = semTake(lock->cs, NO_WAIT) != OK;
-
 #endif
 #if BLD_DEBUG
     if (rc == 0) {
@@ -326,10 +291,8 @@ void mprLock(MprMutex *lock)
 {
 #if BLD_UNIX_LIKE
     pthread_mutex_lock(&lock->cs);
-
 #elif BLD_WIN_LIKE
     EnterCriticalSection(&lock->cs);
-
 #elif VXWORKS
     semTake(lock->cs, WAIT_FOREVER);
 #endif
@@ -340,10 +303,8 @@ void mprUnlock(MprMutex *lock)
 {
 #if BLD_UNIX_LIKE
     pthread_mutex_unlock(&lock->cs);
-
 #elif BLD_WIN_LIKE
     LeaveCriticalSection(&lock->cs);
-
 #elif VXWORKS
     semGive(lock->cs);
 #endif
@@ -367,23 +328,17 @@ void mprSpinLock(MprSpin *lock)
 
 #if USE_MPR_LOCK
     mprLock(&lock->cs);
-
 #elif MACOSX
     OSSpinLockLock(&lock->cs);
-
 #elif BLD_UNIX_LIKE && BLD_HAS_SPINLOCK
     pthread_spin_lock(&lock->cs);
-
 #elif BLD_UNIX_LIKE
     pthread_mutex_lock(&lock->cs);
-
 #elif BLD_WIN_LIKE
     EnterCriticalSection(&lock->cs);
-
 #elif VXWORKS
     semTake(lock->cs, WAIT_FOREVER);
 #endif
-
 #if BLD_DEBUG
     mprAssert(lock->owner != mprGetCurrentOsThread());
     lock->owner = mprGetCurrentOsThread();
@@ -399,19 +354,14 @@ void mprSpinUnlock(MprSpin *lock)
 
 #if USE_MPR_LOCK
     mprUnlock(&lock->cs);
-
 #elif MACOSX
     OSSpinLockUnlock(&lock->cs);
-
 #elif BLD_UNIX_LIKE && BLD_HAS_SPINLOCK
     pthread_spin_unlock(&lock->cs);
-
 #elif BLD_UNIX_LIKE
     pthread_mutex_unlock(&lock->cs);
-
 #elif BLD_WIN_LIKE
     LeaveCriticalSection(&lock->cs);
-
 #elif VXWORKS
     semGive(lock->cs);
 #endif

@@ -1055,6 +1055,8 @@ int mprGetSocketFd(MprSocket *sp)
  */
 bool mprGetSocketBlockingMode(MprSocket *sp)
 {
+    mprAssert(sp);
+
     return sp->flags & MPR_SOCKET_BLOCK;
 }
 
@@ -1074,6 +1076,8 @@ int mprGetSocketFlags(MprSocket *sp)
 int mprSetSocketBlockingMode(MprSocket *sp, bool on)
 {
     int     flag, oldMode;
+
+    mprAssert(sp);
 
     lock(sp);
     oldMode = sp->flags & MPR_SOCKET_BLOCK;

@@ -151,7 +151,7 @@ int mprServiceEvents(MprCtx ctx, MprDispatcher *dispatcher, int timeout, int fla
     MprDispatcher       *dp;
     MprTime             expires;
     Mpr                 *mpr;
-    int                 count, delay, wasRunning, beginEventCount, eventCount, justOne;
+    int                 count, delay, wasRunning, beginEventCount, eventCount, justOne, idle;
 
     mprAssert(ctx);
     mpr = mprGetMpr(ctx);
@@ -181,6 +181,11 @@ int mprServiceEvents(MprCtx ctx, MprDispatcher *dispatcher, int timeout, int fla
                 break;
             }
         }
+        delay = (int) (expires - es->now);
+        if (delay > 0 && dispatcher) {
+            idle = getIdleTime(es, dispatcher);
+            delay = min(delay, idle);
+        }
         while ((dp = getNextReadyDispatcher(es)) != NULL && !mprIsExiting(mpr)) {
             mprAssert(isRunning(dp));
             if (dp->requiredWorker) {
@@ -195,21 +200,18 @@ int mprServiceEvents(MprCtx ctx, MprDispatcher *dispatcher, int timeout, int fla
                 break;
             }
         } 
-        
         lock(es);
-        delay = dispatcher ? getIdleTime(es, dispatcher) : MPR_MAX_TIMEOUT;
-        delay = (int) min((expires - es->now), delay);
         if (delay > 0) {
             if (es->eventCount == eventCount && isIdle(es, dispatcher)) {
                 if (es->waiting) {
                     unlock(es);
-                    mprWaitForCond(es->waitCond, delay);
+                    mprWaitForMultiCond(es->waitCond, delay);
                 } else {
                     es->waiting = 1;
                     unlock(es);
                     mprWaitForIO(mpr->waitService, delay);
                     es->waiting = 0;
-                    mprSignalCond(es->waitCond);
+                    mprSignalMultiCond(es->waitCond);
                 }
             } else unlock(es);
         } else unlock(es);
