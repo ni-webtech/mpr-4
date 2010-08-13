@@ -304,6 +304,9 @@ static int listenSocket(MprSocket *sp, cchar *ip, int port, int initialFlags)
     rc = bind(sp->fd, addr, addrlen);
     if (rc < 0) {
         rc = errno;
+        if (rc == EADDRINUSE) {
+            mprLog(sp, 3, "Can't bind, address %s:%d already in use", ip, port);
+        }
         mprFree(addr);
         closesocket(sp->fd);
         sp->fd = -1;

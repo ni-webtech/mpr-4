@@ -561,7 +561,7 @@ char *mprGetPortablePath(MprCtx ctx, cchar *path)
 char *mprGetRelPath(MprCtx ctx, cchar *pathArg)
 {
     MprFileSystem   *fs;
-    char            home[MPR_MAX_FNAME], *hp, *cp, *result, *tmp, *path, *mark;
+    char            home[MPR_MAX_FNAME], *hp, *cp, *result, *tmp, *path;
     int             homeSegments, len, i, commonSegments, sep;
 
     fs = mprLookupFileSystem(ctx, pathArg);
@@ -611,11 +611,10 @@ char *mprGetRelPath(MprCtx ctx, cchar *pathArg)
         Find portion of path that matches the home directory, if any. Start at -1 because matching root doesn't count.
      */
     commonSegments = -1;
-    for (hp = home, mark = cp = path; *hp && *cp; hp++, cp++) {
+    for (hp = home, cp = path; *hp && *cp; hp++, cp++) {
         if (isSep(fs, *hp)) {
             if (isSep(fs, *cp)) {
                 commonSegments++;
-                mark = cp + 1;
             }
         } else if (fs->caseSensitive) {
             if (tolower((int) *hp) != tolower((int) *cp)) {
@@ -634,7 +633,6 @@ char *mprGetRelPath(MprCtx ctx, cchar *pathArg)
      */
     if ((isSep(fs, *hp) || *hp == '\0') && (isSep(fs, *cp) || *cp == '\0')) {
         commonSegments++;
-        mark = cp;
     }
     if (isSep(fs, *cp)) {
         cp++;
