@@ -1761,7 +1761,7 @@ static void printMprHeaps(MprCtx ctx)
     MprHeap     *heap;
     MprRegion   *region;
     cchar       *kind;
-    int         available, total, remaining;
+    int64       available, total, remaining;
 
     bp = MPR_GET_BLK(ctx);
 
@@ -1798,10 +1798,10 @@ static void printMprHeaps(MprCtx ctx)
         mprLog(ctx, 0, "    Alloc calls              %,10d",            heap->totalAllocCalls);
 
         if (heap->flags & (MPR_ALLOC_PAGE_HEAP | MPR_ALLOC_ARENA_HEAP | MPR_ALLOC_SLAB_HEAP)) {
-            mprLog(ctx, 0, "    Heap Regions             %,10d K",      total / 1024);
-            mprLog(ctx, 0, "    Depleted regions         %,10d K",      available / 1024);
+            mprLog(ctx, 0, "    Heap Regions             %,10d K",      (int) (total / 1024));
+            mprLog(ctx, 0, "    Depleted regions         %,10d K",      (int) (available / 1024));
             if (heap->region) {
-                mprLog(ctx, 0, "    Unallocated memory       %,10d K",  remaining / 1024);
+                mprLog(ctx, 0, "    Unallocated memory       %,10d K",  (int) (remaining / 1024));
             }            
         }
             

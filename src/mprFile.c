@@ -167,7 +167,7 @@ int mprWrite(MprFile *file, cvoid *buf, uint count)
 
 int mprWriteString(MprFile *file, cchar *str)
 {
-    return mprWrite(file, str, strlen(str));
+    return mprWrite(file, str, (int) strlen(str));
 }
 
 
@@ -356,7 +356,7 @@ int mprPuts(MprFile *file, cchar *str)
     int     total, bytes, count;
 
     mprAssert(file);
-    count = strlen(str);
+    count = (int) strlen(str);
 
     /*
         Buffer output and flush when full.

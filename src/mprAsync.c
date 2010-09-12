@@ -95,7 +95,6 @@ int mprWaitForSingleIO(MprCtx ctx, int fd, int desiredMask, int timeout)
 void mprWaitForIO(MprWaitService *ws, int timeout)
 {
     MSG     msg;
-    int     rc;
 
     mprAssert(ws->hwnd);
 
@@ -110,8 +109,7 @@ void mprWaitForIO(MprWaitService *ws, int timeout)
             return;
         }
         ws->willAwake = mprGetMpr(ws)->eventService->now + timeout;
-        rc = SetTimer(ws->hwnd, 0, timeout, NULL);
-        mprAssert(rc != 0);
+        SetTimer(ws->hwnd, 0, timeout, NULL);
 
         if (GetMessage(&msg, NULL, 0, 0) == 0) {
             mprTerminate(ws, 1);

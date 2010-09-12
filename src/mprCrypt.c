@@ -145,7 +145,7 @@ char *mprDecode64(MprCtx ctx, cchar *s)
     char        *buffer, *bp;
     int         len, c, i, j, shift;
 
-    len = strlen(s);
+    len = (int) strlen(s);
     if ((buffer = mprAlloc(ctx, len + 1)) == 0) {
         return NULL;
     }
@@ -180,7 +180,7 @@ char *mprEncode64(MprCtx ctx, cchar *s)
     char    *buffer, *bp;
     int     len, x, i, j, shift;
 
-    len = strlen(s) * 2;
+    len = (int) strlen(s) * 2;
     if ((buffer = mprAlloc(ctx, len + 1)) == 0) {
         return NULL;
     }

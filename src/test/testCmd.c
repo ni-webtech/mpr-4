@@ -160,7 +160,7 @@ static void testWithData(MprTestGroup *gp)
 
     for (i = 0; i < 10; i++) {
         mprSprintf(gp, line, sizeof(line), "line %d\n", i);
-        len = strlen(line);
+        len = (int) strlen(line);
         rc = write(fd, line, len);
         assert(rc == len);
     }

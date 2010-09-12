@@ -121,7 +121,7 @@ char *mprStealBuf(MprCtx ctx, MprBuf *bp)
  */
 void mprAddNullToBuf(MprBuf *bp)
 {
-    int     space;
+    size_t      space;
 
     space = bp->endbuf - bp->end;
     if (space < (int) sizeof(char)) {
@@ -354,7 +354,7 @@ int mprPutSubStringToBuf(MprBuf *bp, cchar *str, int count)
     int     len;
 
     if (str) {
-        len = strlen(str);
+        len = (int) strlen(str);
         len = min(len, count);
         if (len > 0) {
             return mprPutBlockToBuf(bp, str, len);

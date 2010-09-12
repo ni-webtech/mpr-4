@@ -327,7 +327,7 @@
 /*
     Word size and conversions between integer and pointer.
  */
-#if __WORDSIZE == 64 || __amd64 || __x86_64 || __x86_64__
+#if __WORDSIZE == 64 || __amd64 || __x86_64 || __x86_64__ || _WIN64
     #define MPR_64_BIT 1
     #define ITOP(i)         ((void*) ((int64) i))
     #define PTOI(i)         ((int) ((int64) i))

@@ -946,7 +946,7 @@ char *mprGetNormalizedPath(MprCtx ctx, cchar *pathArg)
         Allocate one spare byte incase we need to break into segments. If so, will add a trailing "/" to make 
         parsing easier later.
      */
-    len = strlen(pathArg);
+    len = (int) strlen(pathArg);
     if ((path = mprAlloc(ctx, len + 2)) == 0) {
         return NULL;
     }
@@ -1031,7 +1031,7 @@ char *mprGetNormalizedPath(MprCtx ctx, cchar *pathArg)
                 continue;
             }
             segments[i++] = mark;
-            len += sp - mark;
+            len += (int) (sp - mark);
 #if KEEP
             if (i == 1 && segmentCount == 1 && fs->hasDriveSpecs && strchr(mark, ':') != 0) {
                 /*
@@ -1047,7 +1047,7 @@ char *mprGetNormalizedPath(MprCtx ctx, cchar *pathArg)
 
     if (--sp > mark) {
         segments[i++] = mark;
-        len += sp - mark;
+        len += (int) (sp - mark);
     }
     mprAssert(i <= segmentCount);
     segmentCount = i;

@@ -196,7 +196,7 @@ char *mprReallocStrcat(MprCtx ctx, int destMax, char *buf, cchar *src, ...)
         destMax = INT_MAX;
     }
 
-    existingLen = (buf) ? strlen(buf) : 0;
+    existingLen = (buf) ? (int) strlen(buf) : 0;
     required = existingLen + 1;
 
     str = (char*) src;
