@@ -73,7 +73,11 @@ setWinEnv()
     #
     bldPath="$bldPath:$winsdk/bin"
     bldInclude="$bldInclude;$WINSDK/include"
-    bldLib="$bldLib;$WINSDK/LIB"
+    if [ "$KIND" = HOST -a "$BLD_HOST_CPU" = x86_64 ] ; then
+        bldLib="$WINSDK/LIB/x64;$bldLib"
+    else
+        bldLib="$WINSDK/LIB;$bldLib"
+    fi
 
     eval ${KIND}_MSCL_VERSION="$version"
     eval ${KIND}_HAS_MSCL=1
