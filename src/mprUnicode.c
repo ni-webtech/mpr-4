@@ -495,7 +495,7 @@ int mprScanUs(uni *us, cchar *fmt, ...)
 
 /******************************************************************************/
 #else
-void __mprDummyUnicode() {}
+void stubMprUnicode() {}
 #endif
 
 /*

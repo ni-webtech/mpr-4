@@ -299,7 +299,7 @@ static void readPipe(MprWaitService *ws)
 }
 
 #else
-void __dummyMprSelectWait() {}
+void stubMprSelectWait() {}
 #endif /* MPR_EVENT_SELECT */
 
 /*

@@ -267,7 +267,7 @@ void mprWakeNotifier(MprCtx ctx)
 }
 
 #else
-void __mprDummyEpoll() {}
+void stubMmprEpoll() {}
 #endif /* MPR_EVENT_EPOLL */
 
 /*

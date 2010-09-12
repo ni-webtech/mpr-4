@@ -1340,7 +1340,7 @@ static void mapPathDelim(char *s)
 }
 
 #else
-void __dummyAngel() {
+void stubAngel() {
     fprintf(stderr, "Angel not supported on this architecture");
 }
 #endif /* BLD_WIN_LIKE */

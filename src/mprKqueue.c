@@ -304,7 +304,7 @@ void mprWakeNotifier(MprCtx ctx)
 }
 
 #else
-void __mprDummyKqueue() {}
+void stubMprKqueue() {}
 #endif /* MPR_EVENT_KQUEUE */
 
 /*

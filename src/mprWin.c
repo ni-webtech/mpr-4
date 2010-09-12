@@ -379,7 +379,7 @@ static cchar *getHive(cchar *keyPath, HKEY *hive)
 }
 
 #else
-void __dummyMprWin() {}
+void stubMprWin() {}
 #endif /* BLD_WIN_LIKE */
 
 /*
