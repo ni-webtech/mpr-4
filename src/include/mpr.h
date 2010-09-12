@@ -4303,7 +4303,7 @@ extern int mprSetMaxSocketClients(MprCtx ctx, int max);
 #define MPR_SOCKET_BLOCK        0x1         /**< Use blocking I/O */
 #define MPR_SOCKET_BROADCAST    0x2         /**< Broadcast mode */
 #define MPR_SOCKET_CLOSED       0x4         /**< MprSocket has been closed */
-#define MPR_SOCKET_CONNECTING   0x8         /**< MprSocket has been closed */
+#define MPR_SOCKET_CONNECTING   0x8         /**< MprSocket is connecting */
 #define MPR_SOCKET_DATAGRAM     0x10        /**< Use datagrams */
 #define MPR_SOCKET_EOF          0x20        /**< Seen end of file */
 #define MPR_SOCKET_LISTENER     0x40        /**< MprSocket is server listener */
