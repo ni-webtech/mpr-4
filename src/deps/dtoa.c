@@ -1691,7 +1691,7 @@ rshift(Bigint *b, int k)
             while(x < xe)
                 *x1++ = *x++;
         }
-    if ((b->wds = x1 - b->x) == 0)
+    if ((b->wds = (int) (x1 - b->x)) == 0)
         b->x[0] = 0;
     }
 
@@ -1940,7 +1940,7 @@ gethex( CONST char **sp, U *rvp, int rounding, int sign)
         word1(rvp) = Big1;
         return;
         }
-    n = s1 - s0 - 1;
+    n = (int) (s1 - s0) - 1;
     for(k = 0; n > (1 << (kshift-2)) - 1; n >>= 1)
         k++;
     b = Balloc(k);
@@ -1969,7 +1969,7 @@ gethex( CONST char **sp, U *rvp, int rounding, int sign)
         n += 4;
         }
     *x++ = L;
-    b->wds = n = x - b->x;
+    b->wds = n = (int) (x - b->x);
     n = ULbits*n - hi0bits(L);
     nbits = Nbits;
     lostbits = 0;
@@ -2566,7 +2566,7 @@ strtod
         else if (nd < 16)
             z = 10*z + c - '0';
     nd0 = nd;
-    bc.dp0 = bc.dp1 = s - s0;
+    bc.dp0 = bc.dp1 = (int) (s - s0);
 #ifdef USE_LOCALE
     s1 = localeconv()->decimal_point;
     if (c == *s1) {
@@ -2588,7 +2588,7 @@ strtod
 #endif
     if (c == '.') {
         c = *++s;
-        bc.dp1 = s - s0;
+        bc.dp1 = (int) (s - s0);
         bc.dplen = bc.dp1 - bc.dp0;
         if (!nd) {
             for(; c == '0'; c = *++s)
