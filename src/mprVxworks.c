@@ -167,7 +167,7 @@ int usleep(uint msec)
 
 
 #else
-void __dummyMprVxWorks() {}
+void stubMprVxWorks() {}
 #endif /* VXWORKS */
 
 /*

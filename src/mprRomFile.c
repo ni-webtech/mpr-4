@@ -266,7 +266,7 @@ MprRomFileSystem *mprCreateRomFileSystem(MprCtx ctx, cchar *path)
 
 
 #else /* BLD_FEATURE_ROMFS */
-void __dummy_romfs() {}
+void stubRomfs() {}
 #endif /* BLD_FEATURE_ROMFS */
 
 /*

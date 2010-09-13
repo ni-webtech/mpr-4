@@ -990,7 +990,7 @@ void mprWriteToOsLog(MprCtx ctx, cchar *message, int flags, int level)
 }
 
 #else
-void __dummyMprWince() {}
+void stubMprWince() {}
 #endif /* WINCE */
 
 /*

@@ -849,7 +849,6 @@ static int flushMss(MprSocket *sp)
 
 #else
 int mprCreateMatrixSslModule(MprCtx ctx, bool lazy) { return -1; }
-void mprMatrixSslModuleDummy() {}
 #endif /* BLD_FEATURE_MATRIXSSL */
 
 /*

@@ -3751,43 +3751,43 @@ extern cchar *mprGetName(void *ptr);
 /*
     Internal memory allocation routines
  */
-extern void *_mprAlloc(MprCtx ctx, uint size);
-extern void *_mprAllocWithDestructor(MprCtx ctx, uint size, MprDestructor destructor);
-extern void *_mprAllocWithDestructorZeroed(MprCtx ctx, uint size, MprDestructor destructor);
-extern void *_mprAllocZeroed(MprCtx ctx, uint size);
-extern void *_mprRealloc(MprCtx ctx, void *ptr, uint size);
-extern void *_mprMemdup(MprCtx ctx, cvoid *ptr, uint size);
-extern char *_mprStrndup(MprCtx ctx, cchar *str, uint size);
-extern char *_mprStrdup(MprCtx ctx, cchar *str);
+extern void *mprAllocInternal(MprCtx ctx, uint size);
+extern void *mprAllocWithDestructorInternal(MprCtx ctx, uint size, MprDestructor destructor);
+extern void *mprAllocWithDestructorZeroedInternal(MprCtx ctx, uint size, MprDestructor destructor);
+extern void *mprAllocZeroedInternal(MprCtx ctx, uint size);
+extern void *mprReallocInternal(MprCtx ctx, void *ptr, uint size);
+extern void *mprMemdupInternal(MprCtx ctx, cvoid *ptr, uint size);
+extern char *mprStrndupInternal(MprCtx ctx, cchar *str, uint size);
+extern char *mprStrdupInternal(MprCtx ctx, cchar *str);
 
 /*
     Macros for typed based allocations
  */
 #define mprAllocObj(ctx, type) \
-    ((type*) mprSetName(_mprAlloc(ctx, sizeof(type)), MPR_LOC))
+    ((type*) mprSetName(mprAllocInternal(ctx, sizeof(type)), MPR_LOC))
 #define mprAllocObjZeroed(ctx, type) \
-    ((type*) mprSetName(_mprAllocZeroed(ctx, sizeof(type)), MPR_LOC))
+    ((type*) mprSetName(mprAllocZeroedInternal(ctx, sizeof(type)), MPR_LOC))
 #define mprAllocObjWithDestructor(ctx, type, destructor) \
-    ((type*) mprSetName(_mprAllocWithDestructor(ctx, sizeof(type), (MprDestructor) destructor), MPR_LOC))
+    ((type*) mprSetName(mprAllocWithDestructorInternal(ctx, sizeof(type), (MprDestructor) destructor), MPR_LOC))
 #define mprAllocObjWithDestructorZeroed(ctx, type, destructor) \
-    ((type*) mprSetName(_mprAllocWithDestructorZeroed(ctx, sizeof(type), (MprDestructor) destructor), MPR_LOC))
+    ((type*) mprSetName(mprAllocWithDestructorZeroedInternal(ctx, sizeof(type), (MprDestructor) destructor), MPR_LOC))
 
 #define mprAlloc(ctx, size) \
-    mprSetName(_mprAlloc(ctx, size), MPR_LOC)
+    mprSetName(mprAllocInternal(ctx, size), MPR_LOC)
 #define mprAllocWithDestructor(ctx, size, destructor) \
-    mprSetName(_mprAllocWithDestructor(ctx, size, destructor), MPR_LOC)
+    mprSetName(mprAllocWithDestructorInternal(ctx, size, destructor), MPR_LOC)
 #define mprAllocWithDestructorZeroed(ctx, size, destructor) \
-    mprSetName(_mprAllocWithDestructorZeroed(ctx, size, destructor), MPR_LOC)
+    mprSetName(mprAllocWithDestructorZeroedInternal(ctx, size, destructor), MPR_LOC)
 #define mprAllocZeroed(ctx, size) \
-    mprSetName(_mprAllocZeroed(ctx, size), MPR_LOC)
+    mprSetName(mprAllocZeroedInternal(ctx, size), MPR_LOC)
 #define mprRealloc(ctx, ptr, size) \
-    mprSetName(_mprRealloc(ctx, ptr, size), MPR_LOC)
+    mprSetName(mprReallocInternal(ctx, ptr, size), MPR_LOC)
 #define mprMemdup(ctx, ptr, size) \
-    mprSetName(_mprMemdup(ctx, ptr, size), MPR_LOC)
+    mprSetName(mprMemdupInternal(ctx, ptr, size), MPR_LOC)
 #define mprStrndup(ctx, str, size) \
-    mprSetName(_mprStrndup(ctx, str, size), MPR_LOC)
+    mprSetName(mprStrndupInternal(ctx, str, size), MPR_LOC)
 #define mprStrdup(ctx, str) \
-    mprSetName(_mprStrdup(ctx, str), MPR_LOC)
+    mprSetName(mprStrdupInternal(ctx, str), MPR_LOC)
 
 extern MprHeap *mprGetHeap(MprBlk *bp);
 #endif

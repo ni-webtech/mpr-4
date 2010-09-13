@@ -1022,7 +1022,6 @@ static DH *get_dh1024()
 
 #else
 int mprCreateOpenSslModule(MprCtx ctx, bool lazy) { return -1; }
-void __mprOpenSslModuleDummy() {}
 #endif /* BLD_FEATURE_OPENSSL */
 
 /*

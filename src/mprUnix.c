@@ -171,7 +171,7 @@ void mprWriteToOsLog(MprCtx ctx, cchar *message, int flags, int level)
 }
 
 #else
-void __dummyMprUnix() {}
+void stubMprUnix() {}
 #endif /* BLD_UNIX_LIKE */
 
 /*

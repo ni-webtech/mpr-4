@@ -255,7 +255,7 @@ void mprSetWinMsgCallback(MprWaitService *ws, MprMsgCallback callback)
 
 
 #else
-void __mprAsyncDummy() {}
+void stubMprAsync() {}
 #endif /* MPR_EVENT_ASYNC */
 
 /*
