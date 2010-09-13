@@ -973,6 +973,12 @@ extern "C" {
 }
 #endif
 
+#if MPR_64_BIT
+typedef int64 psize;
+#else
+typedef int psize;
+#endif
+
 #endif /* _h_MPR_OS_HDRS */
 
 /*
