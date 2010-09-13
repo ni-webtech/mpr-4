@@ -25,9 +25,15 @@ $(BLD_BIN_DIR)/benchMpr$(BLD_EXE): $(OBJECTS) $(BLD_LIB_DIR)/libmpr$(BLD_LIB)
 ifneq	($(BUILDING_CROSS),1)
 testExtra: 
 	testMpr -v -i 2 --depth $(BUILD_DEPTH)
-	if [ $(BUILD_DEPTH) -gt 2 ] ; then \
-		testMpr -v -i 400 --depth $(BUILD_DEPTH) ; \
-		for t in 2 4 8 16 ; do \
+	if [ $(BUILD_DEPTH) -ge 3 ] ; then \
+		testMpr -v -i 20 --depth $(BUILD_DEPTH) ; \
+		for t in 2 4 ; do \
+			testMpr -v -i 2 --threads $$t --depth $(BUILD_DEPTH) ; \
+		done ; \
+	fi ; \
+	if [ $(BUILD_DEPTH) -ge 4 ] ; then \
+		testMpr -v -i 100 --depth $(BUILD_DEPTH) ; \
+		for t in 8 16 ; do \
 			testMpr -v -i 2 --threads $$t --depth $(BUILD_DEPTH) ; \
 		done ; \
 	fi
