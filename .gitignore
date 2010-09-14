@@ -42,3 +42,6 @@ bin/*.manifest
 staging
 bin/angel*
 */x86_64-pc-win
+bin/i686-*
+bin/*.sln
+bin/*.suo
