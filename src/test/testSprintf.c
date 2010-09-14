@@ -115,7 +115,7 @@ static void testTypeOptions(MprTestGroup *gp)
     mprSprintf(gp, buf, sizeof(buf), "%x", 0xffffffff);
     assert(strcmp(buf, "ffffffff") == 0);
 
-    mprSprintf(gp, buf, sizeof(buf), "%X", 0xffffffff);
+    mprSprintf(gp, buf, sizeof(buf), "%X", (int64) 0xffffffff);
     assert(strcmp(buf, "FFFFFFFF") == 0);
 }
 
