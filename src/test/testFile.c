@@ -1,7 +1,7 @@
 /**
- *  testFile.c - Unit tests for the mprFile module
- *
- *  Copyright (c) All Rights Reserved. See details at the end of the file.
+    testFile.c - Unit tests for the mprFile module
+  
+    Copyright (c) All Rights Reserved. See details at the end of the file.
  */
 
 /********************************** Includes **********************************/
@@ -19,7 +19,7 @@ typedef struct MprTestFile {
 
 /************************************ Code ************************************/
 /*
- *  Make a unique filename for a given thread
+    Make a unique filename for a given thread
  */
 static char *makePath(MprCtx ctx, cchar *name)
 {
@@ -33,7 +33,7 @@ static char *makePath(MprCtx ctx, cchar *name)
 
 
 /*
- *  Initialization for this test module
+    Initialization for this test module
  */
 static int initFile(MprTestGroup *gp)
 {
@@ -53,7 +53,7 @@ static int initFile(MprTestGroup *gp)
     }
 
     /*
-     *  Don't mind if these fail. We are just making sure they don't exist before we start the tests.
+        Don't mind if these fail. We are just making sure they don't exist before we start the tests.
      */
     mprDeletePath(gp, ts->name);
     return 0;
@@ -94,7 +94,7 @@ static void testBasicIO(MprTestGroup *gp)
     assert(rc == 0);
 
     /*
-     *  TODO windows seems to delay setting this
+        TODO windows seems to delay setting this
      */
     if (info.size != 6) {
         mprSleep(gp, 2000);
@@ -166,7 +166,7 @@ static void testBufferedIO(MprTestGroup *gp)
     assert(mprPathExists(ts, ts->name, R_OK));
     
     /*
-     *  No data flushed yet so the length should be zero
+        No data flushed yet so the length should be zero
      */
     rc = mprGetPathInfo(gp, ts->name, &info);
     assert(rc == 0);
@@ -177,12 +177,13 @@ static void testBufferedIO(MprTestGroup *gp)
     mprFree(file);
     
     /*
-     *  Now the length should be set
+        Now the length should be set
      */
     rc = mprGetPathInfo(gp, ts->name, &info);
     assert(rc == 0);
+
     /*
-     *  TODO windows seems to delay setting this
+        TODO windows seems to delay setting this
      */
     if (info.size != 7) {
         mprSleep(gp, 2000);
@@ -199,7 +200,7 @@ static void testBufferedIO(MprTestGroup *gp)
     assert(c == 'a');
     str = mprGets(file, buf, sizeof(buf));
     assert(str != 0);
-    len = strlen(str);
+    len = (int) strlen(str);
     
     assert(len == 5);
     buf[len] = '\0';
@@ -223,31 +224,31 @@ MprTestDef testFile = {
 
 
 /*
- *  @copy   default
- *  
- *  Copyright (c) Embedthis Software LLC, 2003-2010. All Rights Reserved.
- *  Copyright (c) Michael O'Brien, 1993-2010. All Rights Reserved.
- *  
- *  This software is distributed under commercial and open source licenses.
- *  You may use the GPL open source license described below or you may acquire 
- *  a commercial license from Embedthis Software. You agree to be fully bound 
- *  by the terms of either license. Consult the LICENSE.TXT distributed with 
- *  this software for full details.
- *  
- *  This software is open source; you can redistribute it and/or modify it 
- *  under the terms of the GNU General Public License as published by the 
- *  Free Software Foundation; either version 2 of the License, or (at your 
- *  option) any later version. See the GNU General Public License for more 
- *  details at: http://www.embedthis.com/downloads/gplLicense.html
- *  
- *  This program is distributed WITHOUT ANY WARRANTY; without even the 
- *  implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. 
- *  
- *  This GPL license does NOT permit incorporating this software into 
- *  proprietary programs. If you are unable to comply with the GPL, you must
- *  acquire a commercial license to use this software. Commercial licenses 
- *  for this software and support services are available from Embedthis 
- *  Software at http://www.embedthis.com 
- *  
- *  @end
+    @copy   default
+    
+    Copyright (c) Embedthis Software LLC, 2003-2010. All Rights Reserved.
+    Copyright (c) Michael O'Brien, 1993-2010. All Rights Reserved.
+    
+    This software is distributed under commercial and open source licenses.
+    You may use the GPL open source license described below or you may acquire 
+    a commercial license from Embedthis Software. You agree to be fully bound 
+    by the terms of either license. Consult the LICENSE.TXT distributed with 
+    this software for full details.
+    
+    This software is open source; you can redistribute it and/or modify it 
+    under the terms of the GNU General Public License as published by the 
+    Free Software Foundation; either version 2 of the License, or (at your 
+    option) any later version. See the GNU General Public License for more 
+    details at: http://www.embedthis.com/downloads/gplLicense.html
+    
+    This program is distributed WITHOUT ANY WARRANTY; without even the 
+    implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. 
+    
+    This GPL license does NOT permit incorporating this software into 
+    proprietary programs. If you are unable to comply with the GPL, you must
+    acquire a commercial license to use this software. Commercial licenses 
+    for this software and support services are available from Embedthis 
+    Software at http://www.embedthis.com 
+    
+    @end
  */

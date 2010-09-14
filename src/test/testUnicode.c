@@ -1,6 +1,6 @@
 /**
     testUnicode.c - Unit tests for Unicode
- *
+
     Copyright (c) All Rights Reserved. See details at the end of the file.
  */
 
@@ -25,7 +25,7 @@ static void testBasicUnicode(MprTestGroup *gp)
     assert(strcmp(buf, "-12345678") == 0);
 
     str = mprAsprintf(gp, 4, "%d", 12345678);
-    count = strlen(str);
+    count = (int) strlen(str);
     assert(count == 3);
     assert(strcmp(str, "123") == 0);
     mprFree(str);

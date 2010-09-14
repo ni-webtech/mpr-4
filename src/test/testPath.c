@@ -1,7 +1,7 @@
 /**
- *  testPath.c - Unit tests for the mprPath module
+    testPath.c - Unit tests for the mprPath module
  *
- *  Copyright (c) All Rights Reserved. See details at the end of the file.
+    Copyright (c) All Rights Reserved. See details at the end of the file.
  */
 
 /********************************** Includes **********************************/
@@ -21,7 +21,7 @@ typedef struct MprTestPath {
 
 /************************************ Code ************************************/
 /*
- *  Make a unique filename for a given thread
+    Make a unique filename for a given thread
  */
 static char *makePath(MprCtx ctx, cchar *name)
 {
@@ -30,7 +30,7 @@ static char *makePath(MprCtx ctx, cchar *name)
 
 
 /*
- *  Initialization for this test module
+    Initialization for this test module
  */
 static int initPath(MprTestGroup *gp)
 {
@@ -51,7 +51,7 @@ static int initPath(MprTestGroup *gp)
     }
 
     /*
-     *  Don't mind if these fail. We are just making sure they don't exist before we start the tests.
+        Don't mind if these fail. We are just making sure they don't exist before we start the tests.
      */
     rmdir(ts->dir2);
     rmdir(ts->dir1);
@@ -126,7 +126,7 @@ static void testAbsPath(MprTestGroup *gp)
     assert(mprIsAbsPath(ctx, mprGetAbsPath(ctx, "Makefile")));
 
     /*
-     *  Manually check incase mprIsAbs gets it wrong
+        Manually check incase mprIsAbs gets it wrong
      */
     path = mprGetAbsPath(ctx, "Makefile");
     assert(path && *path);
@@ -189,12 +189,12 @@ static void testMakeDir(MprTestGroup *gp)
     rmdir(ts->dir1);
 
     /*
-     *  Dir should not exist before test
+        Dir should not exist before test
      */
     assert(access(ts->dir1, X_OK) < 0);
 
     /*
-     *  Make directory path
+        Make directory path
      */
     rc = mprMakeDir(gp, ts->dir2, DIRMODE, 1);
     assert(rc == 0);
@@ -314,7 +314,7 @@ static void testSame(MprTestGroup *gp)
     assert(mprSamePath(ctx, "testFile", "./testFile"));
 #if AVOID
     /*
-     *  This forces the tests to be run in a specific directory
+        This forces the tests to be run in a specific directory
      */
     assert(mprSamePath(ctx, "testFile", "../test/api/testFile"));
     assert(mprSamePath(ctx, mprGetAbsPath(ctx, "testFile"), "../test/api/testFile"));
@@ -411,31 +411,31 @@ MprTestDef testPath = {
 
 
 /*
- *  @copy   default
- *  
- *  Copyright (c) Embedthis Software LLC, 2003-2010. All Rights Reserved.
- *  Copyright (c) Michael O'Brien, 1993-2010. All Rights Reserved.
- *  
- *  This software is distributed under commercial and open source licenses.
- *  You may use the GPL open source license described below or you may acquire 
- *  a commercial license from Embedthis Software. You agree to be fully bound 
- *  by the terms of either license. Consult the LICENSE.TXT distributed with 
- *  this software for full details.
- *  
- *  This software is open source; you can redistribute it and/or modify it 
- *  under the terms of the GNU General Public License as published by the 
- *  Free Software Foundation; either version 2 of the License, or (at your 
- *  option) any later version. See the GNU General Public License for more 
- *  details at: http://www.embedthis.com/downloads/gplLicense.html
- *  
- *  This program is distributed WITHOUT ANY WARRANTY; without even the 
- *  implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. 
- *  
- *  This GPL license does NOT permit incorporating this software into 
- *  proprietary programs. If you are unable to comply with the GPL, you must
- *  acquire a commercial license to use this software. Commercial licenses 
- *  for this software and support services are available from Embedthis 
- *  Software at http://www.embedthis.com 
- *  
- *  @end
+    @copy   default
+    
+    Copyright (c) Embedthis Software LLC, 2003-2010. All Rights Reserved.
+    Copyright (c) Michael O'Brien, 1993-2010. All Rights Reserved.
+    
+    This software is distributed under commercial and open source licenses.
+    You may use the GPL open source license described below or you may acquire 
+    a commercial license from Embedthis Software. You agree to be fully bound 
+    by the terms of either license. Consult the LICENSE.TXT distributed with 
+    this software for full details.
+    
+    This software is open source; you can redistribute it and/or modify it 
+    under the terms of the GNU General Public License as published by the 
+    Free Software Foundation; either version 2 of the License, or (at your 
+    option) any later version. See the GNU General Public License for more 
+    details at: http://www.embedthis.com/downloads/gplLicense.html
+    
+    This program is distributed WITHOUT ANY WARRANTY; without even the 
+    implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. 
+    
+    This GPL license does NOT permit incorporating this software into 
+    proprietary programs. If you are unable to comply with the GPL, you must
+    acquire a commercial license to use this software. Commercial licenses 
+    for this software and support services are available from Embedthis 
+    Software at http://www.embedthis.com 
+    
+    @end
  */

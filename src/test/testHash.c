@@ -1,6 +1,6 @@
 /**
     testHash.c - Unit tests for the Hash class
- *
+
     Copyright (c) All Rights Reserved. See details at the end of the file.
  */
 

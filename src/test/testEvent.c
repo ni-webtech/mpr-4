@@ -1,6 +1,6 @@
 /**
     testEvent.c - Unit tests for Events
- *
+
     Copyright (c) All Rights Reserved. See details at the end of the file.
  */
 

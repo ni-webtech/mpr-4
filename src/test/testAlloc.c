@@ -1,7 +1,7 @@
 /**
- *  testAlloc.c - Unit tests for the mprAlloc module
- *
- *  Copyright (c) All Rights Reserved. See details at the end of the file.
+    testAlloc.c - Unit tests for the mprAlloc module
+
+    Copyright (c) All Rights Reserved. See details at the end of the file.
  */ 
 
 /********************************** Includes **********************************/
@@ -35,7 +35,7 @@ static void testBasicAlloc(MprTestGroup *gp)
     mprFree(cp);
 
     /*
-     *  Test special MR allowances
+        Test special MR allowances
      */
     mprFree(0);
     cp = mprStrdup(gp, 0);
@@ -81,8 +81,8 @@ static void testAllocIntegrityChecks(MprTestGroup *gp)
     int     i, j, size, count;
 
     /*
-     *  Basic integrity test. Allocate blocks of 64 bytes and fill and test
-     *  each block
+        Basic integrity test. Allocate blocks of 64 bytes and fill and test
+        each block
      */
     size = 64;
     count = sizeof(blocks) / sizeof(void*);
@@ -100,7 +100,7 @@ static void testAllocIntegrityChecks(MprTestGroup *gp)
     }
 
     /*
-     *  Now do with bigger blocks and also free some before testing
+        Now do with bigger blocks and also free some before testing
      */
     count = sizeof(blocks) / sizeof(void*);
     for (i = 1; i < count; i++) {
@@ -128,10 +128,10 @@ static void testAllocIntegrityChecks(MprTestGroup *gp)
 
 
 /*
- *  TODO missing tests for:
- *  - triggering memoryFailure callbacks
- *  - Memory redline limits
- *  - Slab memory usage
+    TODO missing tests for:
+    - triggering memoryFailure callbacks
+    - Memory redline limits
+    - Slab memory usage
  */
 MprTestDef testAlloc = {
     "alloc", 0, 0, 0,
@@ -145,31 +145,31 @@ MprTestDef testAlloc = {
 };
 
 /*
- *  @copy   default
- *  
- *  Copyright (c) Embedthis Software LLC, 2003-2010. All Rights Reserved.
- *  Copyright (c) Michael O'Brien, 1993-2010. All Rights Reserved.
- *  
- *  This software is distributed under commercial and open source licenses.
- *  You may use the GPL open source license described below or you may acquire 
- *  a commercial license from Embedthis Software. You agree to be fully bound 
- *  by the terms of either license. Consult the LICENSE.TXT distributed with 
- *  this software for full details.
- *  
- *  This software is open source; you can redistribute it and/or modify it 
- *  under the terms of the GNU General Public License as published by the 
- *  Free Software Foundation; either version 2 of the License, or (at your 
- *  option) any later version. See the GNU General Public License for more 
- *  details at: http://www.embedthis.com/downloads/gplLicense.html
- *  
- *  This program is distributed WITHOUT ANY WARRANTY; without even the 
- *  implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. 
- *  
- *  This GPL license does NOT permit incorporating this software into 
- *  proprietary programs. If you are unable to comply with the GPL, you must
- *  acquire a commercial license to use this software. Commercial licenses 
- *  for this software and support services are available from Embedthis 
- *  Software at http://www.embedthis.com 
- *  
- *  @end
+    @copy   default
+    
+    Copyright (c) Embedthis Software LLC, 2003-2010. All Rights Reserved.
+    Copyright (c) Michael O'Brien, 1993-2010. All Rights Reserved.
+    
+    This software is distributed under commercial and open source licenses.
+    You may use the GPL open source license described below or you may acquire 
+    a commercial license from Embedthis Software. You agree to be fully bound 
+    by the terms of either license. Consult the LICENSE.TXT distributed with 
+    this software for full details.
+    
+    This software is open source; you can redistribute it and/or modify it 
+    under the terms of the GNU General Public License as published by the 
+    Free Software Foundation; either version 2 of the License, or (at your 
+    option) any later version. See the GNU General Public License for more 
+    details at: http://www.embedthis.com/downloads/gplLicense.html
+    
+    This program is distributed WITHOUT ANY WARRANTY; without even the 
+    implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. 
+    
+    This GPL license does NOT permit incorporating this software into 
+    proprietary programs. If you are unable to comply with the GPL, you must
+    acquire a commercial license to use this software. Commercial licenses 
+    for this software and support services are available from Embedthis 
+    Software at http://www.embedthis.com 
+    
+    @end
  */

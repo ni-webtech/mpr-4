@@ -1,7 +1,7 @@
 /**
- *  testBuf.c - Unit tests for the Buf class
+    testBuf.c - Unit tests for the Buf class
  *
- *  Copyright (c) All Rights Reserved. See details at the end of the file.
+    Copyright (c) All Rights Reserved. See details at the end of the file.
  */
 
 /********************************** Includes **********************************/
@@ -76,7 +76,7 @@ static void testFlushBuf(MprTestGroup *gp)
     assert(bp != 0);
 
     /*
-     *  Do multiple times to test that flush resets the buffer pointers correctly
+        Do multiple times to test that flush resets the buffer pointers correctly
      */
     for (i = 0; i < 100; i++) {
         rc = mprPutStringToBuf(bp, "Hello World");
@@ -98,7 +98,7 @@ static void testGrowBuf(MprTestGroup *gp)
     int     size, i, rc, bytes, c;
 
     /*
-     *  Put more data than the initial size to force the buffer to grow
+        Put more data than the initial size to force the buffer to grow
      */
     size = 512;
     bp = mprCreateBuf(gp, size, -1);
@@ -122,7 +122,7 @@ static void testGrowBuf(MprTestGroup *gp)
     mprFree(bp);
 
     /*
-     *  Test a fixed buffer (should not grow) 
+        Test a fixed buffer (should not grow) 
      */
     size = 2;                       /* Can only ever fit in 1 byte */
     bp = mprCreateBuf(gp, size, size);
@@ -152,14 +152,14 @@ static void testMiscBuf(MprTestGroup *gp)
     assert(bp != 0);
 
     /*
-     *  Test insert char
+        Test insert char
      */
     rc = mprPutStringToBuf(bp, " big dog");
     assert(rc == 8);
     assert(mprGetBufLength(bp) == 8);
 
     /*
-     *  Test add null
+        Test add null
      */
     mprFlushBuf(bp);
     assert(mprGetBufLength(bp) == 0);
@@ -189,7 +189,7 @@ static void testBufLoad(MprTestGroup *gp)
     int     rc, count, i, j, len, bytes, sofar, size;
 
     /*
-     *  Pick an odd size to guarantee put blocks are sometimes partial.
+        Pick an odd size to guarantee put blocks are sometimes partial.
      */
     len = 981;
     bp = mprCreateBuf(gp, len, 0);
@@ -220,7 +220,7 @@ static void testBufLoad(MprTestGroup *gp)
     }
 
     /*
-     *  Now do a similar load test but using the start / end pointer directly 
+        Now do a similar load test but using the start / end pointer directly 
      */
     for (j = 0; j < 1000; j++) {
         bytes = sizeof(ibuf);
@@ -253,13 +253,13 @@ static void testBufLoad(MprTestGroup *gp)
 
 
 /*
- *  TODO -- missing explicit thread interlock tests
- *  Missing:
- *      - length tests
- *      - Fmt String tests
- *      - Buf refill
- *      - Copy down
- *      - Adjust start / end
+    TODO -- missing explicit thread interlock tests
+    Missing:
+        - length tests
+        - Fmt String tests
+        - Buf refill
+        - Copy down
+        - Adjust start / end
  */
 
 MprTestDef testBuf = {
@@ -277,31 +277,31 @@ MprTestDef testBuf = {
 };
 
 /*
- *  @copy   default
- *  
- *  Copyright (c) Embedthis Software LLC, 2003-2010. All Rights Reserved.
- *  Copyright (c) Michael O'Brien, 1993-2010. All Rights Reserved.
- *  
- *  This software is distributed under commercial and open source licenses.
- *  You may use the GPL open source license described below or you may acquire 
- *  a commercial license from Embedthis Software. You agree to be fully bound 
- *  by the terms of either license. Consult the LICENSE.TXT distributed with 
- *  this software for full details.
- *  
- *  This software is open source; you can redistribute it and/or modify it 
- *  under the terms of the GNU General Public License as published by the 
- *  Free Software Foundation; either version 2 of the License, or (at your 
- *  option) any later version. See the GNU General Public License for more 
- *  details at: http://www.embedthis.com/downloads/gplLicense.html
- *  
- *  This program is distributed WITHOUT ANY WARRANTY; without even the 
- *  implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. 
- *  
- *  This GPL license does NOT permit incorporating this software into 
- *  proprietary programs. If you are unable to comply with the GPL, you must
- *  acquire a commercial license to use this software. Commercial licenses 
- *  for this software and support services are available from Embedthis 
- *  Software at http://www.embedthis.com 
- *  
- *  @end
+    @copy   default
+    
+    Copyright (c) Embedthis Software LLC, 2003-2010. All Rights Reserved.
+    Copyright (c) Michael O'Brien, 1993-2010. All Rights Reserved.
+    
+    This software is distributed under commercial and open source licenses.
+    You may use the GPL open source license described below or you may acquire 
+    a commercial license from Embedthis Software. You agree to be fully bound 
+    by the terms of either license. Consult the LICENSE.TXT distributed with 
+    this software for full details.
+    
+    This software is open source; you can redistribute it and/or modify it 
+    under the terms of the GNU General Public License as published by the 
+    Free Software Foundation; either version 2 of the License, or (at your 
+    option) any later version. See the GNU General Public License for more 
+    details at: http://www.embedthis.com/downloads/gplLicense.html
+    
+    This program is distributed WITHOUT ANY WARRANTY; without even the 
+    implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. 
+    
+    This GPL license does NOT permit incorporating this software into 
+    proprietary programs. If you are unable to comply with the GPL, you must
+    acquire a commercial license to use this software. Commercial licenses 
+    for this software and support services are available from Embedthis 
+    Software at http://www.embedthis.com 
+    
+    @end
  */
