@@ -178,6 +178,14 @@ struct  MprXml;
     #define MAIN(name, argc, argv) int main(argc, argv)
 #endif
 
+#if BLD_UNIX_LIKE
+    typedef pthread_t   MprOsThread;
+#elif BLD_CPU_ARCH == MPR_CPU_IX64
+    typedef int64       MprOsThread;
+#else
+    typedef int         MprOsThread;
+#endif
+
 /********************************************************** Debug **********************************************************/
 /**
     Trigger a breakpoint.
