@@ -13,6 +13,7 @@
 static int      iterations = 1;         /* Benchmark iterations */
 static int      workers = 0;            /* Number of worker threads */
 
+static Mpr      *mpr;
 static MprCond  *complete;              /* Condition set when benchmark complete */
 static int      markCount;              /* Flag set when benchmark complete */
 static MprMutex *mutex;                 /* Test synchronization */
@@ -22,18 +23,17 @@ static MprMutex *mutex;                 /* Test synchronization */
 static void     doBenchmark(Mpr *mpr, void *thread);
 static void     endMark(MprCtx ctx, MprTime start, int count, char *msg);
 static void     eventCallback(void *data, MprEvent *ep);
+static size_t   memsize();
 static MprTime  startMark(MprCtx ctx);
+static void     testMalloc();
 static void     timerCallback(void *data, MprEvent *ep);
 volatile int    testComplete;
 
 /*********************************** Code *************************************/
-/*
-    Initialize the library
- */
 
 int benchMain(int argc, char *argv[])
 {
-    Mpr             *mpr;
+    MprThread       *thread;
     char            *argp;
     int             err, i, nextArg;
 
@@ -46,6 +46,7 @@ int benchMain(int argc, char *argv[])
     mprMakeArgv(mpr, "http", (char*) argc, &argc, &argv);
 #endif
 
+    iterations = 5;
     err = 0;
 
     for (nextArg = 1; nextArg < argc; nextArg++) {
@@ -53,8 +54,7 @@ int benchMain(int argc, char *argv[])
         if (*argp != '-') {
             break;
         }
-
-        if (strcmp(argp, "--iterations") == 0) {
+        if (strcmp(argp, "--iterations") == 0 || strcmp(argp, "-i") == 0) {
             if (nextArg >= argc) {
                 err++;
             } else {
@@ -91,7 +91,9 @@ int benchMain(int argc, char *argv[])
     mprSetMaxWorkers(mpr, workers);
     mprStart(mpr);
 
-    mprCreateThread(mpr, "bench", (MprThreadProc) doBenchmark, (void*) mpr, 0);
+    thread = mprCreateThread(mpr, "bench", (MprThreadProc) doBenchmark, (void*) mpr, 0);
+    mprStartThread(thread);
+
     while (!testComplete) {
         mprServiceEvents(mpr, mprGetDispatcher(mpr), 250, 0);
     }
@@ -119,7 +121,6 @@ int main(int argc, char **argv)
  */ 
 static void doBenchmark(Mpr *mpr, void *thread)
 {
-    MprEvent        *event;
     MprTime         start;
     MprList         *list;
     MprDispatcher   *dispatcher;
@@ -130,18 +131,7 @@ static void doBenchmark(Mpr *mpr, void *thread)
     complete = mprCreateCond(mpr);
     mprPrintf(mpr, "Group\t%-30s\t%13s\t%12s\n", "Benchmark", "Microsec", "Elapsed-sec");
 
-    /*
-        Malloc (1K)
-     */
-    mprPrintf(mpr, "Malloc Benchmarks\n");
-    count = 2000000 * iterations;
-    start = startMark(mpr);
-    for (i = 0; i < count; i++) {
-        mp = mprAlloc(mpr, 1024);
-        mprFree(mp);
-    }
-    endMark(mpr, start, count, "Alloc mprAlloc(1K)|mprFree");
-    start = startMark(mpr);
+    testMalloc();
 
     /*
         Locking primitives
@@ -194,8 +184,7 @@ static void doBenchmark(Mpr *mpr, void *thread)
     start = startMark(mpr);
     dispatcher = mprGetDispatcher(mpr);
     for (i = 0; i < count; i++) {
-        event = mprCreateEvent(dispatcher, "eventBenchmark", 0, eventCallback, (void*) (long) i, 0);
-        mprQueueEvent(dispatcher, event);
+        mprCreateEvent(dispatcher, "eventBenchmark", 0, eventCallback, (void*) (long) i, 0);
     }
     endMark(mpr, start, count, "Event (create)");
     mprWaitForCond(complete, -1);
@@ -216,7 +205,52 @@ static void doBenchmark(Mpr *mpr, void *thread)
     endMark(mpr, start, count, "Timer (create)");
     mprWaitForCond(complete, -1);
     endMark(mpr, start, count, "Timer (delete)");
+
+    /*
+        Malloc (1K)
+     */
+    mprPrintf(mpr, "Malloc 1K Benchmarks\n");
+    count = 2000000 * iterations;
+    start = startMark(mpr);
+    for (i = 0; i < count; i++) {
+        mp = mprAlloc(mpr, 1024);
+        mprFree(mp);
+    }
+    endMark(mpr, start, count, "Alloc mprAlloc(1K)|mprFree");
+
     testComplete = 1;
+}
+
+
+static void testMalloc()
+{
+    MprTime     start;
+    size_t      base;
+    char        *ptr;
+    int         count, i;
+
+    mprPrintf(mpr, "Alloc/Malloc overhead\n");
+    count = 2000000 * iterations;
+    base = memsize();
+
+    start = startMark(mpr);
+    for (i = 0; i < count; i++) {
+        ptr = malloc(1);
+        *ptr = 0;
+    }
+    endMark(mpr, start, count, "Alloc malloc(1)|mprFree");
+    start = startMark(mpr);
+    mprPrintf(mpr, "\tMalloc overhead per block %d\n", (memsize() - base) / count);
+
+    base = memsize();
+    start = startMark(mpr);
+    for (i = 0; i < count; i++) {
+        ptr = mprAlloc(mpr, 1);
+        *ptr = 0;
+    }
+    endMark(mpr, start, count, "Alloc mprAlloc(1)|mprFree");
+    start = startMark(mpr);
+    mprPrintf(mpr, "\tMpr overhead per block %d\n", (memsize() - base) / count);
 }
 
 
@@ -263,10 +297,24 @@ static void endMark(MprCtx ctx, MprTime start, int count, char *msg)
 {
     MprTime     elapsed;
 
-    elapsed = mprGetRemainingTime(ctx, start, 0);
+    elapsed = mprGetElapsedTime(ctx, start);
     mprPrintf(ctx, "\t%-30s\t%13.2f\t%12.2f\n", 
         msg, elapsed * 1000.0 / count, elapsed / 1000.0);
 }
+
+
+static size_t memsize() 
+{
+#if MACOSX || FREEBSD
+    struct rusage   rusage;
+
+    getrusage(RUSAGE_SELF, &rusage);
+    return rusage.ru_maxrss;
+#else
+    return 1;
+#endif
+}
+
 
 /*
     @copy   default

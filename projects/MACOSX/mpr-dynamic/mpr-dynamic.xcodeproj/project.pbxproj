@@ -16,6 +16,7 @@
 				C90A1A050FD6DCF6006A9E86 /* PBXTargetDependency */,
 				C90A1A090FD6DCF6006A9E86 /* PBXTargetDependency */,
 				C90A1ADB0FD6E2B3006A9E86 /* PBXTargetDependency */,
+				C9FA8F8F1249070000FEAFE2 /* PBXTargetDependency */,
 			);
 			name = All;
 			productName = All;
@@ -84,6 +85,9 @@
 		C9EAE70A110A61D00062863F /* dtoa.c in Sources */ = {isa = PBXBuildFile; fileRef = C9EAE709110A61D00062863F /* dtoa.c */; };
 		C9F8E4B9102B659C00492AB2 /* libmatrixsslstatic.a in Frameworks */ = {isa = PBXBuildFile; fileRef = C9F8E4B6102B659C00492AB2 /* libmatrixsslstatic.a */; };
 		C9F8E4FC102B673200492AB2 /* libmpr.dylib in Frameworks */ = {isa = PBXBuildFile; fileRef = C90A19EE0FD6DCAD006A9E86 /* libmpr.dylib */; };
+		C9FA8F88124906CE00FEAFE2 /* libmpr.dylib in Frameworks */ = {isa = PBXBuildFile; fileRef = C90A19EE0FD6DCAD006A9E86 /* libmpr.dylib */; };
+		C9FA8F89124906CE00FEAFE2 /* libmprssl.dylib in Frameworks */ = {isa = PBXBuildFile; fileRef = C90A19FE0FD6DCD8006A9E86 /* libmprssl.dylib */; };
+		C9FA8F8B124906F000FEAFE2 /* benchMpr.c in Sources */ = {isa = PBXBuildFile; fileRef = C9FA8F8A124906F000FEAFE2 /* benchMpr.c */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -128,6 +132,13 @@
 			proxyType = 1;
 			remoteGlobalIDString = C90A19ED0FD6DCAD006A9E86;
 			remoteInfo = libmpr;
+		};
+		C9FA8F8E1249070000FEAFE2 /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = C90A19DC0FD6DC5E006A9E86 /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = C9FA8F821249069800FEAFE2 /* benchMpr */;
+			remoteInfo = benchMpr;
 		};
 /* End PBXContainerItemProxy section */
 
@@ -203,6 +214,8 @@
 		C9EAE706110A61C10062863F /* mprEpoll.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; name = mprEpoll.c; path = ../../../src/mprEpoll.c; sourceTree = SOURCE_ROOT; };
 		C9EAE709110A61D00062863F /* dtoa.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; name = dtoa.c; path = ../../../src/deps/dtoa.c; sourceTree = SOURCE_ROOT; };
 		C9F8E4B6102B659C00492AB2 /* libmatrixsslstatic.a */ = {isa = PBXFileReference; lastKnownFileType = archive.ar; name = libmatrixsslstatic.a; path = ../../../lib/libmatrixsslstatic.a; sourceTree = SOURCE_ROOT; };
+		C9FA8F831249069800FEAFE2 /* benchMpr */ = {isa = PBXFileReference; explicitFileType = "compiled.mach-o.executable"; includeInIndex = 0; path = benchMpr; sourceTree = BUILT_PRODUCTS_DIR; };
+		C9FA8F8A124906F000FEAFE2 /* benchMpr.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; name = benchMpr.c; path = ../../../src/test/benchMpr.c; sourceTree = SOURCE_ROOT; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -228,6 +241,15 @@
 			files = (
 				C90A1B060FD6E32E006A9E86 /* libmpr.dylib in Frameworks */,
 				C90A1B080FD6E32E006A9E86 /* libmprssl.dylib in Frameworks */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		C9FA8F811249069800FEAFE2 /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				C9FA8F88124906CE00FEAFE2 /* libmpr.dylib in Frameworks */,
+				C9FA8F89124906CE00FEAFE2 /* libmprssl.dylib in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -312,6 +334,7 @@
 				C90A19EE0FD6DCAD006A9E86 /* libmpr.dylib */,
 				C90A19FE0FD6DCD8006A9E86 /* libmprssl.dylib */,
 				C90A1ACE0FD6E2A4006A9E86 /* testMpr */,
+				C9FA8F831249069800FEAFE2 /* benchMpr */,
 			);
 			name = Products;
 			sourceTree = "<group>";
@@ -329,6 +352,7 @@
 		C90A1A8C0FD6DF51006A9E86 /* test */ = {
 			isa = PBXGroup;
 			children = (
+				C9FA8F8A124906F000FEAFE2 /* benchMpr.c */,
 				C9B21F641011D0DD001053BB /* testThread.c */,
 				C90A1AE30FD6E319006A9E86 /* testAlloc.c */,
 				C90A1AE40FD6E319006A9E86 /* testBuf.c */,
@@ -440,6 +464,22 @@
 			productReference = C90A1ACE0FD6E2A4006A9E86 /* testMpr */;
 			productType = "com.apple.product-type.tool";
 		};
+		C9FA8F821249069800FEAFE2 /* benchMpr */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = C9FA8F87124906B700FEAFE2 /* Build configuration list for PBXNativeTarget "benchMpr" */;
+			buildPhases = (
+				C9FA8F801249069800FEAFE2 /* Sources */,
+				C9FA8F811249069800FEAFE2 /* Frameworks */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+			);
+			name = benchMpr;
+			productName = benchMpr;
+			productReference = C9FA8F831249069800FEAFE2 /* benchMpr */;
+			productType = "com.apple.product-type.tool";
+		};
 /* End PBXNativeTarget section */
 
 /* Begin PBXProject section */
@@ -457,6 +497,7 @@
 				C90A19ED0FD6DCAD006A9E86 /* libmpr */,
 				C90A19FD0FD6DCD8006A9E86 /* libmprssl */,
 				C90A1ACD0FD6E2A4006A9E86 /* testMpr */,
+				C9FA8F821249069800FEAFE2 /* benchMpr */,
 			);
 		};
 /* End PBXProject section */
@@ -540,6 +581,14 @@
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
+		C9FA8F801249069800FEAFE2 /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				C9FA8F8B124906F000FEAFE2 /* benchMpr.c in Sources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
 /* End PBXSourcesBuildPhase section */
 
 /* Begin PBXTargetDependency section */
@@ -572,6 +621,11 @@
 			isa = PBXTargetDependency;
 			target = C90A19ED0FD6DCAD006A9E86 /* libmpr */;
 			targetProxy = C9F8E4EC102B66A200492AB2 /* PBXContainerItemProxy */;
+		};
+		C9FA8F8F1249070000FEAFE2 /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			target = C9FA8F821249069800FEAFE2 /* benchMpr */;
+			targetProxy = C9FA8F8E1249070000FEAFE2 /* PBXContainerItemProxy */;
 		};
 /* End PBXTargetDependency section */
 
@@ -746,6 +800,36 @@
 			};
 			name = Release;
 		};
+		C9FA8F851249069900FEAFE2 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ALWAYS_SEARCH_USER_PATHS = NO;
+				COPY_PHASE_STRIP = NO;
+				GCC_DYNAMIC_NO_PIC = NO;
+				GCC_ENABLE_FIX_AND_CONTINUE = YES;
+				GCC_MODEL_TUNING = G5;
+				GCC_OPTIMIZATION_LEVEL = 0;
+				INSTALL_PATH = /usr/local/bin;
+				PREBINDING = NO;
+				PRODUCT_NAME = benchMpr;
+			};
+			name = Debug;
+		};
+		C9FA8F861249069900FEAFE2 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ALWAYS_SEARCH_USER_PATHS = NO;
+				COPY_PHASE_STRIP = YES;
+				DEBUG_INFORMATION_FORMAT = "dwarf-with-dsym";
+				GCC_ENABLE_FIX_AND_CONTINUE = NO;
+				GCC_MODEL_TUNING = G5;
+				INSTALL_PATH = /usr/local/bin;
+				PREBINDING = NO;
+				PRODUCT_NAME = benchMpr;
+				ZERO_LINK = NO;
+			};
+			name = Release;
+		};
 /* End XCBuildConfiguration section */
 
 /* Begin XCConfigurationList section */
@@ -790,6 +874,15 @@
 			buildConfigurations = (
 				C90A1AD00FD6E2A5006A9E86 /* Debug */,
 				C90A1AD10FD6E2A5006A9E86 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+		C9FA8F87124906B700FEAFE2 /* Build configuration list for PBXNativeTarget "benchMpr" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				C9FA8F851249069900FEAFE2 /* Debug */,
+				C9FA8F861249069900FEAFE2 /* Release */,
 			);
 			defaultConfigurationIsVisible = 0;
 			defaultConfigurationName = Release;

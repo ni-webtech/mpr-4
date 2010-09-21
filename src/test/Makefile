@@ -9,7 +9,7 @@ BUILD_DEPTH	?= 2
 include 	.makedep
 
 TARGETS		= $(BLD_BIN_DIR)/benchMpr$(BLD_EXE) $(BLD_BIN_DIR)/testMpr$(BLD_EXE) $(BLD_BIN_DIR)/runProgram$(BLD_EXE)
-OBJECTS		= $(patsubst %.c,$(BLD_OBJ_DIR)/%$(BLD_OBJ),$(wildcard test*.c))
+OBJECTS     = $(patsubst %.c,$(BLD_OBJ_DIR)/%$(BLD_OBJ),$(wildcard test*.c))
 
 compileTargets:	$(TARGETS)
 
@@ -19,7 +19,7 @@ $(BLD_BIN_DIR)/testMpr$(BLD_EXE): $(OBJECTS) $(BLD_LIB_DIR)/libmpr$(BLD_LIB)
 $(BLD_BIN_DIR)/runProgram$(BLD_EXE): runProgram.c $(BLD_LIB_DIR)/libmpr$(BLD_LIB)
 	bld --exe $(BLD_BIN_DIR)/runProgram$(BLD_EXE) --libs "$(BLD_MPR_LIBS)" runProgram
 
-$(BLD_BIN_DIR)/benchMpr$(BLD_EXE): $(OBJECTS) $(BLD_LIB_DIR)/libmpr$(BLD_LIB)
+$(BLD_BIN_DIR)/benchMpr$(BLD_EXE): $(OBJECTS) $(BLD_LIB_DIR)/libmpr$(BLD_LIB) $(BLD_OBJ_DIR)/benchMpr$(BLD_OBJ)
 	bld --exe $(BLD_BIN_DIR)/benchMpr$(BLD_EXE) --search "$(BLD_MPR_LIBPATHS)" --libs "$(BLD_MPR_LIBS)" benchMpr
 
 ifneq	($(BUILDING_CROSS),1)

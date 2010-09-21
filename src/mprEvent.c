@@ -96,6 +96,11 @@ void mprQueueEvent(MprDispatcher *dispatcher, MprEvent *event)
             break;
         }
     }
+    mprAssert(event->next == 0);
+    mprAssert(event->prev == 0);
+    mprAssert(prior->next);
+    mprAssert(prior->prev);
+    
     queueEvent(prior, event);
     es->eventCount++;
     if (dispatcher->enabled) {
