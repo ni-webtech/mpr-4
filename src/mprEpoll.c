@@ -51,7 +51,7 @@ int mprCreateNotifierService(MprWaitService *ws)
     ev.data.fd = ws->breakPipe[MPR_READ_PIPE];
     epoll_ctl(ws->epoll, EPOLL_CTL_ADD, ws->breakPipe[MPR_READ_PIPE], &ev);
 
-    if (mprAllocObjWithDestructor(ws, char*, epollNotifierDestructor) == 0) {
+    if (mprAllocObj(ws, char*, epollNotifierDestructor) == 0) {
         return MPR_ERR_NO_MEMORY;
     }
     return 0;

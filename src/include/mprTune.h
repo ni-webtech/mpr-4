@@ -69,8 +69,9 @@ extern "C" {
     #define MPR_XML_BUFSIZE         4096        /**< XML read buffer size */
     #define MPR_SSL_BUFSIZE         4096        /**< SSL has 16K max*/
     #define MPR_LIST_INCR           8           /**< Default list growth inc */
-    #define MPR_FILES_HASH_SIZE     29          /** Hash size for rom file system */
-    #define MPR_TIME_HASH_SIZE      67          /** Hash size for time token lookup */
+    #define MPR_FILES_HASH_SIZE     29          /**< Hash size for rom file system */
+    #define MPR_TIME_HASH_SIZE      67          /**< Hash size for time token lookup */
+    #define MPR_MEM_CHUNK_SIZE      (32 * 1024) /**< Memory allocation chunk size */
     
 #elif BLD_TUNE == MPR_TUNE_BALANCED
     
@@ -95,6 +96,7 @@ extern "C" {
     #define MPR_LIST_INCR           16
     #define MPR_FILES_HASH_SIZE     61
     #define MPR_TIME_HASH_SIZE      89
+    #define MPR_MEM_CHUNK_SIZE      (64 * 1024)
     
 #else
     /*
@@ -118,6 +120,7 @@ extern "C" {
     #define MPR_BUF_INCR            1024
     #define MPR_FILES_HASH_SIZE     61
     #define MPR_TIME_HASH_SIZE      97
+    #define MPR_MEM_CHUNK_SIZE      (256 * 1024)
 #endif
 
 /*

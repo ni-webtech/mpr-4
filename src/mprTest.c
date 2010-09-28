@@ -32,7 +32,7 @@ MprTestService *mprCreateTestService(MprCtx ctx)
 {
     MprTestService      *sp;
 
-    sp = mprAllocObjZeroed(ctx, MprTestService);
+    sp = mprAllocCtx(ctx, sizeof(MprTestService));
     if (sp == 0) {
         return 0;
     }
@@ -473,7 +473,7 @@ static MprTestGroup *createTestGroup(MprTestService *sp, MprTestDef *def, MprTes
     MprTestDef      **dp;
     MprTestCase     *tc;
 
-    gp = mprAllocObjZeroed(sp, MprTestGroup);
+    gp = mprAllocCtx(sp, sizeof(MprTestGroup));
     if (gp == 0) {
         return 0;
     }
@@ -485,19 +485,16 @@ static MprTestGroup *createTestGroup(MprTestService *sp, MprTestDef *def, MprTes
         mprFree(gp);
         return 0;
     }
-
     gp->cases = mprCreateList(sp);
     if (gp->cases == 0) {
         mprFree(gp);
         return 0;
     }
-
     gp->groups = mprCreateList(sp);
     if (gp->groups == 0) {
         mprFree(gp);
         return 0;
     }
-
     gp->def = def;
     gp->name = mprStrdup(sp, def->name);
     gp->success = 1;
@@ -508,7 +505,6 @@ static MprTestGroup *createTestGroup(MprTestService *sp, MprTestDef *def, MprTes
             return 0;
         }
     }
-
     if (def->groupDefs) {
         for (dp = &def->groupDefs[0]; *dp && (*dp)->name; dp++) {
             child = createTestGroup(sp, *dp, gp);
@@ -778,7 +774,7 @@ static MprTestFailure *createFailure(MprTestGroup *gp, cchar *loc, cchar *messag
 {
     MprTestFailure  *fp;
 
-    fp = mprAllocObj(gp, MprTestFailure);
+    fp = mprAllocCtx(gp, sizeof(MprTestFailure));
     if (fp == 0) {
         return 0;
     }

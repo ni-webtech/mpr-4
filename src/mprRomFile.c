@@ -29,7 +29,7 @@ static MprFile *openFile(MprCtx ctx, MprFileSystem *fileSystem, cchar *path, int
     mprAssert(path && *path);
 
     rfs = (MprRomFileSystem*) fileSystem;
-    file = mprAllocObjWithDestructorZeroed(ctx, MprFile, closeFile);
+    file = mprAllocObj(ctx, MprFile, closeFile);
     file->fileSystem = fileSystem;
     file->mode = omode;
     file->fd = -1;
@@ -218,11 +218,10 @@ MprRomFileSystem *mprCreateRomFileSystem(MprCtx ctx, cchar *path)
     MprFileSystem      *fs;
     MprRomFileSystem   *rfs;
 
-    rfs = mprAllocObjZeroed(ctx, MprRomFileSystem);
+    rfs = mprAlloc(ctx, sizeof(MprRomFileSystem));
     if (rfs == 0) {
         return rfs;
     }
-
     fs = &rfs->fileSystem;
     fs->accessPath = (MprAccessFileProc) accessPath;
     fs->deletePath = (MprDeleteFileProc) deletePath;
@@ -237,7 +236,7 @@ MprRomFileSystem *mprCreateRomFileSystem(MprCtx ctx, cchar *path)
     fs->writeFile = writeFile;
 
 #if !WINCE
-    fs->stdError = mprAllocObjZeroed(fs, MprFile);
+    fs->stdError = mprAllocZeroed(fs, sizeof(MprFile));
     if (fs->stdError == 0) {
         mprFree(fs);
     }
@@ -245,7 +244,7 @@ MprRomFileSystem *mprCreateRomFileSystem(MprCtx ctx, cchar *path)
     fs->stdError->fileSystem = fs;
     fs->stdError->mode = O_WRONLY;
 
-    fs->stdInput = mprAllocObjZeroed(fs, MprFile);
+    fs->stdInput = mprAllocZeroed(fs, sizeof(MprFile));
     if (fs->stdInput == 0) {
         mprFree(fs);
     }
@@ -253,7 +252,7 @@ MprRomFileSystem *mprCreateRomFileSystem(MprCtx ctx, cchar *path)
     fs->stdInput->fileSystem = fs;
     fs->stdInput->mode = O_RDONLY;
 
-    fs->stdOutput = mprAllocObjZeroed(fs, MprFile);
+    fs->stdOutput = mprAllocZeroed(fs, sizeof(MprFile));
     if (fs->stdOutput == 0) {
         mprFree(fs);
     }

@@ -15,11 +15,10 @@ MprOsService *mprCreateOsService(MprCtx ctx)
 {
     MprOsService    *os;
 
-    os = mprAllocObj(ctx, MprOsService);
+    os = mprAllocObj(ctx, MprOsService, NULL);
     if (os == 0) {
         return 0;
     }
-
     umask(022);
 
     /*

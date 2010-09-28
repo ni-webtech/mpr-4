@@ -29,7 +29,7 @@ MprThreadService *mprCreateThreadService(Mpr *mpr)
 
     mprAssert(mpr);
 
-    ts = mprAllocObjZeroed(mpr, MprThreadService);
+    ts = mprAllocObj(mpr, MprThreadService, NULL);
     if (ts == 0) {
         return 0;
     }
@@ -144,7 +144,7 @@ MprThread *mprCreateThread(MprCtx ctx, cchar *name, MprThreadProc entry, void *d
     if (ts) {
         ctx = ts;
     }
-    tp = mprAllocObjWithDestructorZeroed(ctx, MprThread, threadDestructor);
+    tp = mprAllocObj(ctx, MprThread, threadDestructor);
     if (tp == 0) {
         return 0;
     }
@@ -355,7 +355,7 @@ MprThreadLocal *mprCreateThreadLocal(MprCtx ctx)
 {
     MprThreadLocal      *tls;
 
-    tls = mprAllocObjWithDestructorZeroed(ctx, MprThreadLocal, threadLocalDestructor);
+    tls = mprAllocObj(ctx, MprThreadLocal, threadLocalDestructor);
     if (tls == 0) {
         return 0;
     }
@@ -533,11 +533,10 @@ MprWorkerService *mprCreateWorkerService(MprCtx ctx)
 {
     MprWorkerService      *ws;
 
-    ws = mprAllocObjZeroed(ctx, MprWorkerService);
+    ws = mprAllocObj(ctx, MprWorkerService, NULL);
     if (ws == 0) {
         return 0;
     }
-
     ws->mutex = mprCreateLock(ws);
     ws->minThreads = MPR_DEFAULT_MIN_THREADS;
     ws->maxThreads = MPR_DEFAULT_MAX_THREADS;
@@ -860,11 +859,10 @@ static MprWorker *createWorker(MprWorkerService *ws, int stackSize)
 
     char    name[16];
 
-    worker = mprAllocObjWithDestructorZeroed(ws, MprWorker, workerDestructor);
+    worker = mprAllocObj(ws, MprWorker, workerDestructor);
     if (worker == 0) {
         return 0;
     }
-
     worker->flags = 0;
     worker->proc = 0;
     worker->cleanup = 0;

@@ -47,7 +47,7 @@ int mprCreateNotifierService(MprWaitService *ws)
     EV_SET(&ws->interest[ws->interestCount], ws->breakPipe[MPR_READ_PIPE], EVFILT_READ, EV_ADD, 0, 0, 0);
     ws->interestCount++;
 
-    if (mprAllocObjWithDestructor(ws, char*, keventNotifierDestructor) == 0) {
+    if (mprAllocObj(ws, char*, keventNotifierDestructor) == 0) {
         return MPR_ERR_NO_MEMORY;
     }
     return 0;

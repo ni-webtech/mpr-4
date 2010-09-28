@@ -26,7 +26,7 @@ static MprFile *openFile(MprCtx ctx, MprFileSystem *fileSystem, cchar *path, int
     mprAssert(path);
 
     dfs = (MprDiskFileSystem*) fileSystem;
-    file = mprAllocObjWithDestructorZeroed(ctx, MprFile, closeFile);
+    file = mprAllocObj(ctx, MprFile, closeFile);
     
     file->fd = open(path, omode, perms);
     if (file->fd < 0) {
@@ -282,7 +282,7 @@ MprDiskFileSystem *mprCreateDiskFileSystem(MprCtx ctx, cchar *path)
     MprFileSystem       *fs;
     MprDiskFileSystem   *dfs;
 
-    dfs = mprAllocObjZeroed(ctx, MprDiskFileSystem);
+    dfs = mprAllocCtx(ctx, sizeof(MprDiskFileSystem));
     if (dfs == 0) {
         return 0;
     }
@@ -305,7 +305,7 @@ MprDiskFileSystem *mprCreateDiskFileSystem(MprCtx ctx, cchar *path)
     dfs->writeFile = writeFile;
 
 #if !WINCE
-    dfs->stdError = mprAllocObjZeroed(dfs, MprFile);
+    dfs->stdError = mprAllocCtx(dfs, sizeof(MprFile));
     if (dfs->stdError == 0) {
         mprFree(dfs);
     }
@@ -313,7 +313,7 @@ MprDiskFileSystem *mprCreateDiskFileSystem(MprCtx ctx, cchar *path)
     dfs->stdError->fileSystem = fs;
     dfs->stdError->mode = O_WRONLY;
 
-    dfs->stdInput = mprAllocObjZeroed(dfs, MprFile);
+    dfs->stdInput = mprAllocCtx(dfs, sizeof(MprFile));
     if (dfs->stdInput == 0) {
         mprFree(dfs);
     }
@@ -321,7 +321,7 @@ MprDiskFileSystem *mprCreateDiskFileSystem(MprCtx ctx, cchar *path)
     dfs->stdInput->fileSystem = fs;
     dfs->stdInput->mode = O_RDONLY;
 
-    dfs->stdOutput = mprAllocObjZeroed(dfs, MprFile);
+    dfs->stdOutput = mprAllocCtx(dfs, sizeof(MprFile));
     if (dfs->stdOutput == 0) {
         mprFree(dfs);
     }

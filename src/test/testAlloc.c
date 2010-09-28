@@ -35,10 +35,10 @@ static void testBasicAlloc(MprTestGroup *gp)
     mprFree(cp);
 
     /*
-        Test special MR allowances
+        Test special MPR allowances
      */
     mprFree(0);
-    cp = mprStrdup(gp, 0);
+    cp = mprStrdup(gp, NULL);
     assert(cp != 0);
     assert(cp[0] == '\0');
     mprFree(cp);

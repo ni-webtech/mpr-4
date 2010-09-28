@@ -139,6 +139,7 @@ int mprPrintfError(MprCtx ctx, cchar *fmt, ...)
     /* No asserts here as this is used as part of assert reporting */
 
     fs = mprLookupFileSystem(ctx, "/");
+    mprAssert(fs);
 
     va_start(ap, fmt);
     buf = mprVasprintf(ctx, -1, fmt, ap);
@@ -808,7 +809,7 @@ int mprIsZero(double value) {
 char *mprDtoa(MprCtx ctx, double value, int ndigits, int mode, int flags)
 {
     MprBuf  *buf;
-    char    *intermediate, *ip;
+    char    *intermediate, *ip, *result;
     int     period, sign, len, exponentForm, fixedForm, exponent, count, totalDigits;
 
     buf = mprCreateBuf(ctx, MPR_MAX_STRING, -1);
@@ -931,7 +932,9 @@ char *mprDtoa(MprCtx ctx, double value, int ndigits, int mode, int flags)
     if (intermediate) {
         freedtoa(intermediate);
     }
-    return mprStealBuf(ctx, buf);
+    result = mprStrdup(ctx, mprGetBufStart(buf));
+    mprFree(buf);
+    return result;
 }
 
 

@@ -378,7 +378,7 @@ MprList *mprGetPathFiles(MprCtx ctx, cchar *dir, bool enumDirs)
             continue;
         }
         if (enumDirs || !(findData.dwFileAttributes & FILE_ATTRIBUTE_DIRECTORY)) {
-            dp = mprAllocObjZeroed(list, MprDirEntry);
+            dp = mprAlloc(list, sizeof(MprDirEntry));
             if (dp == 0) {
                 mprFree(path);
                 return 0;
@@ -398,6 +398,7 @@ MprList *mprGetPathFiles(MprCtx ctx, cchar *dir, bool enumDirs)
                 dp->lastModified = fileInfo.mtime;
             }
             dp->isDir = (findData.dwFileAttributes & FILE_ATTRIBUTE_DIRECTORY) ? 1 : 0;
+            dp->isLink = 0;
 
 #if FUTURE_64_BIT
             if (findData.nFileSizeLow < 0) {
@@ -447,7 +448,7 @@ MprList *mprGetPathFiles(MprCtx ctx, cchar *path, bool enumDirs)
         rc = mprGetPathInfo(ctx, fileName, &fileInfo);
         mprFree(fileName);
         if (enumDirs || (rc == 0 && !fileInfo.isDir)) { 
-            dp = mprAllocObjZeroed(list, MprDirEntry);
+            dp = mprAlloc(list, sizeof(MprDirEntry));
             if (dp == 0) {
                 return 0;
             }

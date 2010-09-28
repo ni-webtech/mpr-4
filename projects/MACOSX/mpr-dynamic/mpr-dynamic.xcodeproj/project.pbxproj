@@ -17,6 +17,7 @@
 				C90A1A090FD6DCF6006A9E86 /* PBXTargetDependency */,
 				C90A1ADB0FD6E2B3006A9E86 /* PBXTargetDependency */,
 				C9FA8F8F1249070000FEAFE2 /* PBXTargetDependency */,
+				C9F3AB021252465600183E33 /* PBXTargetDependency */,
 			);
 			name = All;
 			productName = All;
@@ -72,8 +73,6 @@
 		C90A1B020FD6E319006A9E86 /* testSprintf.c in Sources */ = {isa = PBXBuildFile; fileRef = C90A1AF10FD6E319006A9E86 /* testSprintf.c */; };
 		C90A1B030FD6E319006A9E86 /* testTime.c in Sources */ = {isa = PBXBuildFile; fileRef = C90A1AF20FD6E319006A9E86 /* testTime.c */; };
 		C90A1B040FD6E319006A9E86 /* testUnicode.c in Sources */ = {isa = PBXBuildFile; fileRef = C90A1AF30FD6E319006A9E86 /* testUnicode.c */; };
-		C90A1B060FD6E32E006A9E86 /* libmpr.dylib in Frameworks */ = {isa = PBXBuildFile; fileRef = C90A19EE0FD6DCAD006A9E86 /* libmpr.dylib */; };
-		C90A1B080FD6E32E006A9E86 /* libmprssl.dylib in Frameworks */ = {isa = PBXBuildFile; fileRef = C90A19FE0FD6DCD8006A9E86 /* libmprssl.dylib */; };
 		C9B21F651011D0DD001053BB /* testThread.c in Sources */ = {isa = PBXBuildFile; fileRef = C9B21F641011D0DD001053BB /* testThread.c */; };
 		C9E1001B10D833E40085D594 /* mprAsync.c in Sources */ = {isa = PBXBuildFile; fileRef = C9E1001610D833E30085D594 /* mprAsync.c */; };
 		C9E1001C10D833E40085D594 /* mprDispatcher.c in Sources */ = {isa = PBXBuildFile; fileRef = C9E1001710D833E40085D594 /* mprDispatcher.c */; };
@@ -83,10 +82,15 @@
 		C9EAE707110A61C10062863F /* mprEncode.c in Sources */ = {isa = PBXBuildFile; fileRef = C9EAE705110A61C10062863F /* mprEncode.c */; };
 		C9EAE708110A61C10062863F /* mprEpoll.c in Sources */ = {isa = PBXBuildFile; fileRef = C9EAE706110A61C10062863F /* mprEpoll.c */; };
 		C9EAE70A110A61D00062863F /* dtoa.c in Sources */ = {isa = PBXBuildFile; fileRef = C9EAE709110A61D00062863F /* dtoa.c */; };
-		C9F8E4B9102B659C00492AB2 /* libmatrixsslstatic.a in Frameworks */ = {isa = PBXBuildFile; fileRef = C9F8E4B6102B659C00492AB2 /* libmatrixsslstatic.a */; };
-		C9F8E4FC102B673200492AB2 /* libmpr.dylib in Frameworks */ = {isa = PBXBuildFile; fileRef = C90A19EE0FD6DCAD006A9E86 /* libmpr.dylib */; };
-		C9FA8F88124906CE00FEAFE2 /* libmpr.dylib in Frameworks */ = {isa = PBXBuildFile; fileRef = C90A19EE0FD6DCAD006A9E86 /* libmpr.dylib */; };
-		C9FA8F89124906CE00FEAFE2 /* libmprssl.dylib in Frameworks */ = {isa = PBXBuildFile; fileRef = C90A19FE0FD6DCD8006A9E86 /* libmprssl.dylib */; };
+		C9F3AA711252431200183E33 /* libmatrixsslstatic.a in Frameworks */ = {isa = PBXBuildFile; fileRef = C9F8E4B6102B659C00492AB2 /* libmatrixsslstatic.a */; };
+		C9F3AAA61252447B00183E33 /* libmpr.dylib in Frameworks */ = {isa = PBXBuildFile; fileRef = C90A19EE0FD6DCAD006A9E86 /* libmpr.dylib */; };
+		C9F3AAA91252449F00183E33 /* libmpr.dylib in Frameworks */ = {isa = PBXBuildFile; fileRef = C90A19EE0FD6DCAD006A9E86 /* libmpr.dylib */; };
+		C9F3AAAA1252449F00183E33 /* libmprssl.dylib in Frameworks */ = {isa = PBXBuildFile; fileRef = C90A19FE0FD6DCD8006A9E86 /* libmprssl.dylib */; };
+		C9F3AAAB125244AB00183E33 /* libmpr.dylib in Frameworks */ = {isa = PBXBuildFile; fileRef = C90A19EE0FD6DCAD006A9E86 /* libmpr.dylib */; };
+		C9F3AAAC125244AB00183E33 /* libmprssl.dylib in Frameworks */ = {isa = PBXBuildFile; fileRef = C90A19FE0FD6DCD8006A9E86 /* libmprssl.dylib */; };
+		C9F3AAFA1252462A00183E33 /* libmpr.dylib in Frameworks */ = {isa = PBXBuildFile; fileRef = C90A19EE0FD6DCAD006A9E86 /* libmpr.dylib */; };
+		C9F3AAFB1252462A00183E33 /* libmprssl.dylib in Frameworks */ = {isa = PBXBuildFile; fileRef = C90A19FE0FD6DCD8006A9E86 /* libmprssl.dylib */; };
+		C9F3AAFD1252464800183E33 /* runProgram.c in Sources */ = {isa = PBXBuildFile; fileRef = C9F3AAFC1252464800183E33 /* runProgram.c */; };
 		C9FA8F8B124906F000FEAFE2 /* benchMpr.c in Sources */ = {isa = PBXBuildFile; fileRef = C9FA8F8A124906F000FEAFE2 /* benchMpr.c */; };
 /* End PBXBuildFile section */
 
@@ -105,20 +109,6 @@
 			remoteGlobalIDString = C90A19FD0FD6DCD8006A9E86;
 			remoteInfo = libmprssl;
 		};
-		C90A1AD20FD6E2AC006A9E86 /* PBXContainerItemProxy */ = {
-			isa = PBXContainerItemProxy;
-			containerPortal = C90A19DC0FD6DC5E006A9E86 /* Project object */;
-			proxyType = 1;
-			remoteGlobalIDString = C90A19ED0FD6DCAD006A9E86;
-			remoteInfo = libmpr;
-		};
-		C90A1AD60FD6E2AC006A9E86 /* PBXContainerItemProxy */ = {
-			isa = PBXContainerItemProxy;
-			containerPortal = C90A19DC0FD6DC5E006A9E86 /* Project object */;
-			proxyType = 1;
-			remoteGlobalIDString = C90A19FD0FD6DCD8006A9E86;
-			remoteInfo = libmprssl;
-		};
 		C90A1ADA0FD6E2B3006A9E86 /* PBXContainerItemProxy */ = {
 			isa = PBXContainerItemProxy;
 			containerPortal = C90A19DC0FD6DC5E006A9E86 /* Project object */;
@@ -126,18 +116,18 @@
 			remoteGlobalIDString = C90A1ACD0FD6E2A4006A9E86;
 			remoteInfo = testMpr;
 		};
-		C9F8E4EC102B66A200492AB2 /* PBXContainerItemProxy */ = {
+		C9F3AB011252465600183E33 /* PBXContainerItemProxy */ = {
 			isa = PBXContainerItemProxy;
 			containerPortal = C90A19DC0FD6DC5E006A9E86 /* Project object */;
 			proxyType = 1;
-			remoteGlobalIDString = C90A19ED0FD6DCAD006A9E86;
-			remoteInfo = libmpr;
+			remoteGlobalIDString = C9F3AAF51252462100183E33 /* runProgram */;
+			remoteInfo = runProgram;
 		};
 		C9FA8F8E1249070000FEAFE2 /* PBXContainerItemProxy */ = {
 			isa = PBXContainerItemProxy;
 			containerPortal = C90A19DC0FD6DC5E006A9E86 /* Project object */;
 			proxyType = 1;
-			remoteGlobalIDString = C9FA8F821249069800FEAFE2 /* benchMpr */;
+			remoteGlobalIDString = C9FA8F821249069800FEAFE2;
 			remoteInfo = benchMpr;
 		};
 /* End PBXContainerItemProxy section */
@@ -213,6 +203,8 @@
 		C9EAE705110A61C10062863F /* mprEncode.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; name = mprEncode.c; path = ../../../src/mprEncode.c; sourceTree = SOURCE_ROOT; };
 		C9EAE706110A61C10062863F /* mprEpoll.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; name = mprEpoll.c; path = ../../../src/mprEpoll.c; sourceTree = SOURCE_ROOT; };
 		C9EAE709110A61D00062863F /* dtoa.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; name = dtoa.c; path = ../../../src/deps/dtoa.c; sourceTree = SOURCE_ROOT; };
+		C9F3AAF61252462100183E33 /* runProgram */ = {isa = PBXFileReference; explicitFileType = "compiled.mach-o.executable"; includeInIndex = 0; path = runProgram; sourceTree = BUILT_PRODUCTS_DIR; };
+		C9F3AAFC1252464800183E33 /* runProgram.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; name = runProgram.c; path = ../../../src/test/runProgram.c; sourceTree = SOURCE_ROOT; };
 		C9F8E4B6102B659C00492AB2 /* libmatrixsslstatic.a */ = {isa = PBXFileReference; lastKnownFileType = archive.ar; name = libmatrixsslstatic.a; path = ../../../lib/libmatrixsslstatic.a; sourceTree = SOURCE_ROOT; };
 		C9FA8F831249069800FEAFE2 /* benchMpr */ = {isa = PBXFileReference; explicitFileType = "compiled.mach-o.executable"; includeInIndex = 0; path = benchMpr; sourceTree = BUILT_PRODUCTS_DIR; };
 		C9FA8F8A124906F000FEAFE2 /* benchMpr.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; name = benchMpr.c; path = ../../../src/test/benchMpr.c; sourceTree = SOURCE_ROOT; };
@@ -230,8 +222,8 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				C9F8E4B9102B659C00492AB2 /* libmatrixsslstatic.a in Frameworks */,
-				C9F8E4FC102B673200492AB2 /* libmpr.dylib in Frameworks */,
+				C9F3AA711252431200183E33 /* libmatrixsslstatic.a in Frameworks */,
+				C9F3AAA61252447B00183E33 /* libmpr.dylib in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -239,8 +231,17 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				C90A1B060FD6E32E006A9E86 /* libmpr.dylib in Frameworks */,
-				C90A1B080FD6E32E006A9E86 /* libmprssl.dylib in Frameworks */,
+				C9F3AAA91252449F00183E33 /* libmpr.dylib in Frameworks */,
+				C9F3AAAA1252449F00183E33 /* libmprssl.dylib in Frameworks */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		C9F3AAF41252462100183E33 /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				C9F3AAFA1252462A00183E33 /* libmpr.dylib in Frameworks */,
+				C9F3AAFB1252462A00183E33 /* libmprssl.dylib in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -248,8 +249,8 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				C9FA8F88124906CE00FEAFE2 /* libmpr.dylib in Frameworks */,
-				C9FA8F89124906CE00FEAFE2 /* libmprssl.dylib in Frameworks */,
+				C9F3AAAB125244AB00183E33 /* libmpr.dylib in Frameworks */,
+				C9F3AAAC125244AB00183E33 /* libmprssl.dylib in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -259,6 +260,7 @@
 		C90A19DA0FD6DC5E006A9E86 = {
 			isa = PBXGroup;
 			children = (
+				C9F3AAFC1252464800183E33 /* runProgram.c */,
 				C9F8E4B1102B647A00492AB2 /* Libraries */,
 				C90A19E50FD6DC67006A9E86 /* Headers */,
 				C90A19E60FD6DC6C006A9E86 /* Source */,
@@ -335,6 +337,7 @@
 				C90A19FE0FD6DCD8006A9E86 /* libmprssl.dylib */,
 				C90A1ACE0FD6E2A4006A9E86 /* testMpr */,
 				C9FA8F831249069800FEAFE2 /* benchMpr */,
+				C9F3AAF61252462100183E33 /* runProgram */,
 			);
 			name = Products;
 			sourceTree = "<group>";
@@ -439,7 +442,6 @@
 			buildRules = (
 			);
 			dependencies = (
-				C9F8E4ED102B66A200492AB2 /* PBXTargetDependency */,
 			);
 			name = libmprssl;
 			productName = libmprssl;
@@ -456,12 +458,26 @@
 			buildRules = (
 			);
 			dependencies = (
-				C90A1AD30FD6E2AC006A9E86 /* PBXTargetDependency */,
-				C90A1AD70FD6E2AC006A9E86 /* PBXTargetDependency */,
 			);
 			name = testMpr;
 			productName = testMpr;
 			productReference = C90A1ACE0FD6E2A4006A9E86 /* testMpr */;
+			productType = "com.apple.product-type.tool";
+		};
+		C9F3AAF51252462100183E33 /* runProgram */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = C9F3AAFE1252464800183E33 /* Build configuration list for PBXNativeTarget "runProgram" */;
+			buildPhases = (
+				C9F3AAF31252462100183E33 /* Sources */,
+				C9F3AAF41252462100183E33 /* Frameworks */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+			);
+			name = runProgram;
+			productName = runProgram;
+			productReference = C9F3AAF61252462100183E33 /* runProgram */;
 			productType = "com.apple.product-type.tool";
 		};
 		C9FA8F821249069800FEAFE2 /* benchMpr */ = {
@@ -498,6 +514,7 @@
 				C90A19FD0FD6DCD8006A9E86 /* libmprssl */,
 				C90A1ACD0FD6E2A4006A9E86 /* testMpr */,
 				C9FA8F821249069800FEAFE2 /* benchMpr */,
+				C9F3AAF51252462100183E33 /* runProgram */,
 			);
 		};
 /* End PBXProject section */
@@ -581,6 +598,14 @@
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
+		C9F3AAF31252462100183E33 /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				C9F3AAFD1252464800183E33 /* runProgram.c in Sources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
 		C9FA8F801249069800FEAFE2 /* Sources */ = {
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
@@ -602,25 +627,15 @@
 			target = C90A19FD0FD6DCD8006A9E86 /* libmprssl */;
 			targetProxy = C90A1A080FD6DCF6006A9E86 /* PBXContainerItemProxy */;
 		};
-		C90A1AD30FD6E2AC006A9E86 /* PBXTargetDependency */ = {
-			isa = PBXTargetDependency;
-			target = C90A19ED0FD6DCAD006A9E86 /* libmpr */;
-			targetProxy = C90A1AD20FD6E2AC006A9E86 /* PBXContainerItemProxy */;
-		};
-		C90A1AD70FD6E2AC006A9E86 /* PBXTargetDependency */ = {
-			isa = PBXTargetDependency;
-			target = C90A19FD0FD6DCD8006A9E86 /* libmprssl */;
-			targetProxy = C90A1AD60FD6E2AC006A9E86 /* PBXContainerItemProxy */;
-		};
 		C90A1ADB0FD6E2B3006A9E86 /* PBXTargetDependency */ = {
 			isa = PBXTargetDependency;
 			target = C90A1ACD0FD6E2A4006A9E86 /* testMpr */;
 			targetProxy = C90A1ADA0FD6E2B3006A9E86 /* PBXContainerItemProxy */;
 		};
-		C9F8E4ED102B66A200492AB2 /* PBXTargetDependency */ = {
+		C9F3AB021252465600183E33 /* PBXTargetDependency */ = {
 			isa = PBXTargetDependency;
-			target = C90A19ED0FD6DCAD006A9E86 /* libmpr */;
-			targetProxy = C9F8E4EC102B66A200492AB2 /* PBXContainerItemProxy */;
+			target = C9F3AAF51252462100183E33 /* runProgram */;
+			targetProxy = C9F3AB011252465600183E33 /* PBXContainerItemProxy */;
 		};
 		C9FA8F8F1249070000FEAFE2 /* PBXTargetDependency */ = {
 			isa = PBXTargetDependency;
@@ -633,15 +648,14 @@
 		C90A19DD0FD6DC5E006A9E86 /* Debug */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
-				ARCHS = "$(ARCHS_STANDARD_64_BIT_PRE_XCODE_3_1)";
-				ARCHS_STANDARD_64_BIT_PRE_XCODE_3_1 = x86_64;
+				ARCHS = "$(ONLY_ACTIVE_ARCH_PRE_XCODE_3_1)";
 				COPY_PHASE_STRIP = NO;
 				GCC_C_LANGUAGE_STANDARD = gnu99;
 				GCC_PREPROCESSOR_DEFINITIONS = (
 					"DEBUG_IDE=1",
 					"STATIC_OVERRIDE=0",
 				);
-				ONLY_ACTIVE_ARCH = NO;
+				ONLY_ACTIVE_ARCH_PRE_XCODE_3_1 = "$(NATIVE_ARCH_64)";
 				OTHER_LDFLAGS = (
 					"-lcrypto",
 					"-lssl",
@@ -721,8 +735,10 @@
 				LIBRARY_SEARCH_PATHS = (
 					"$(inherited)",
 					"$(LIBRARY_SEARCH_PATHS_QUOTED_FOR_TARGET_1)",
+					"$(LIBRARY_SEARCH_PATHS_QUOTED_FOR_TARGET_2)",
 				);
 				LIBRARY_SEARCH_PATHS_QUOTED_FOR_TARGET_1 = "\"$(SRCROOT)/../../../lib\"";
+				LIBRARY_SEARCH_PATHS_QUOTED_FOR_TARGET_2 = "\"$(SRCROOT)/../../../lib\"";
 				PREBINDING = NO;
 				PRODUCT_NAME = libmprssl;
 			};
@@ -741,8 +757,10 @@
 				LIBRARY_SEARCH_PATHS = (
 					"$(inherited)",
 					"$(LIBRARY_SEARCH_PATHS_QUOTED_FOR_TARGET_1)",
+					"$(LIBRARY_SEARCH_PATHS_QUOTED_FOR_TARGET_2)",
 				);
 				LIBRARY_SEARCH_PATHS_QUOTED_FOR_TARGET_1 = "\"$(SRCROOT)/../../../lib\"";
+				LIBRARY_SEARCH_PATHS_QUOTED_FOR_TARGET_2 = "\"$(SRCROOT)/../../../lib\"";
 				PREBINDING = NO;
 				PRODUCT_NAME = libmprssl;
 				ZERO_LINK = NO;
@@ -796,6 +814,36 @@
 				INSTALL_PATH = /usr/local/bin;
 				PREBINDING = NO;
 				PRODUCT_NAME = testMpr;
+				ZERO_LINK = NO;
+			};
+			name = Release;
+		};
+		C9F3AAF81252462200183E33 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ALWAYS_SEARCH_USER_PATHS = NO;
+				COPY_PHASE_STRIP = NO;
+				GCC_DYNAMIC_NO_PIC = NO;
+				GCC_ENABLE_FIX_AND_CONTINUE = YES;
+				GCC_MODEL_TUNING = G5;
+				GCC_OPTIMIZATION_LEVEL = 0;
+				INSTALL_PATH = /usr/local/bin;
+				PREBINDING = NO;
+				PRODUCT_NAME = runProgram;
+			};
+			name = Debug;
+		};
+		C9F3AAF91252462200183E33 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ALWAYS_SEARCH_USER_PATHS = NO;
+				COPY_PHASE_STRIP = YES;
+				DEBUG_INFORMATION_FORMAT = "dwarf-with-dsym";
+				GCC_ENABLE_FIX_AND_CONTINUE = NO;
+				GCC_MODEL_TUNING = G5;
+				INSTALL_PATH = /usr/local/bin;
+				PREBINDING = NO;
+				PRODUCT_NAME = runProgram;
 				ZERO_LINK = NO;
 			};
 			name = Release;
@@ -874,6 +922,15 @@
 			buildConfigurations = (
 				C90A1AD00FD6E2A5006A9E86 /* Debug */,
 				C90A1AD10FD6E2A5006A9E86 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+		C9F3AAFE1252464800183E33 /* Build configuration list for PBXNativeTarget "runProgram" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				C9F3AAF81252462200183E33 /* Debug */,
+				C9F3AAF91252462200183E33 /* Release */,
 			);
 			defaultConfigurationIsVisible = 0;
 			defaultConfigurationName = Release;

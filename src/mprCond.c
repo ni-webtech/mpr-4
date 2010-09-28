@@ -19,7 +19,7 @@ MprCond *mprCreateCond(MprCtx ctx)
 {
     MprCond     *cp;
 
-    cp = mprAllocObjWithDestructor(ctx, MprCond, condDestructor);
+    cp = mprAllocObj(ctx, MprCond, condDestructor);
     if (cp == 0) {
         return 0;
     }

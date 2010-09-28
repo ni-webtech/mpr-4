@@ -37,7 +37,7 @@ MprCmd *mprCreateCmd(MprCtx ctx, MprDispatcher *dispatcher)
     MprCmdFile      *files;
     int             i;
     
-    cmd = mprAllocObjWithDestructorZeroed(ctx, MprCmd, cmdDestructor);
+    cmd = mprAllocObj(ctx, MprCmd, cmdDestructor);
     if (cmd == 0) {
         return 0;
     }

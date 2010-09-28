@@ -73,7 +73,7 @@ MprSsl *mprCreateSsl(MprCtx ctx)
     /*
         Create with a null destructor so the provider can install one if required
      */
-    ssl =  mprAllocObjWithDestructorZeroed(ctx, MprSsl, NULL);
+    ssl =  mprAllocCtx(ctx, sizeof(MprSsl));
     if (ssl == 0) {
         return 0;
     }

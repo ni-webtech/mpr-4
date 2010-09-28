@@ -10,7 +10,7 @@
 
 /**************************** Forward Declarations ****************************/
 
-static void memoryFailure(MprCtx ctx, int64 size, int64 total, bool granted);
+static void memoryFailure(MprCtx ctx, size_t size, size_t total, bool granted);
 static int  mprDestructor(Mpr *mpr);
 static void serviceEventsThread(void *data, MprThread *tp);
 
@@ -456,7 +456,7 @@ int mprGetEndian(MprCtx ctx)
 /*
     Default memory handler
  */
-static void memoryFailure(MprCtx ctx, int64 size, int64 total, bool granted)
+static void memoryFailure(MprCtx ctx, size_t size, size_t total, bool granted)
 {
     if (!granted) {
         mprPrintfError(ctx, "Can't allocate memory block of size %d\n", size);
@@ -468,7 +468,7 @@ static void memoryFailure(MprCtx ctx, int64 size, int64 total, bool granted)
 }
 
 
-void mprNop() {}
+void mprNop(void *ptr) {}
 
 /*
     @copy   default

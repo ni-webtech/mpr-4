@@ -39,7 +39,7 @@ static int initFile(MprTestGroup *gp)
 {
     MprTestFile     *ts;
 
-    gp->data = mprAllocObjZeroed(gp, MprTestFile);
+    gp->data = mprAllocZeroed(gp, sizeof(MprTestFile));
     if (gp->data == 0) {
         return MPR_ERR_NO_MEMORY;
     }

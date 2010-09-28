@@ -655,6 +655,7 @@ extern MprBuf *mprDupBuf(MprCtx ctx, MprBuf *orig);
  */
 extern void mprSetBufMax(MprBuf *buf, int maxSize);
 
+#if UNUSED
 /**
     Steal the buffer memory from a buffer
     @description Steal ownership of the buffer memory from the buffer structure. All MPR memory is owned by a 
@@ -667,6 +668,7 @@ extern void mprSetBufMax(MprBuf *buf, int maxSize);
     @ingroup MprBuf
  */
 extern char *mprStealBuf(MprCtx ctx, MprBuf *buf);
+#endif
 
 /**
     Add a null character to the buffer contents.
@@ -3317,22 +3319,89 @@ extern void *mprGetThreadData(MprThreadLocal *tls);
 extern MprThreadLocal *mprCreateThreadLocal(MprCtx ctx);
 
 /********************************************************* Memory **********************************************************/
+
+#if BLD_DEBUG
+    #define BLD_MEMORY_DEBUG        1                   /* Fill blocks, verifies block integrity. */
+    #define BLD_MEMORY_STATS        1                   /* Include memory stats routines */
+#else
+    #define BLD_MEMORY_DEBUG        0
+    #define BLD_MEMORY_STATS        0
+#endif
+
+#define MPR_ALLOC_MAGIC             0xe814ecab
+#define MPR_ALLOC_MIN_SPLIT         (32 + MPR_ALLOC_HDR_SIZE)
+
+#if MPR_64_BIT
+    #define MPR_ALIGN               16
+    #define MPR_ALIGN_SHIFT         4
+#else
+    #define MPR_ALIGN               8
+    #define MPR_ALIGN_SHIFT         3
+#endif
+
+#define MPR_ALLOC_ALIGN(x)          (((x) + MPR_ALIGN - 1) & ~(MPR_ALIGN - 1))
+#define MPR_ALLOC_HDR_SIZE          (MPR_ALLOC_ALIGN(sizeof(struct MprBlk)))
+#define MPR_ALLOC_MAX_STEPS         16
+#define MPR_ALLOC_MAP_BITS          64
+#define MPR_PAGE_ALIGN(x, psize)    (((x) + (psize) - 1) & ~(psize - 1))
+#define MPR_PAGE_ALIGNED(x, psize)  (((x) % psize) == 0)
+
+#define MPR_ALLOC_BIG_BLOCK         (64 * 1024)
+#define MPR_ALLOC_BUCKET_SHIFT      4
+#define MPR_ALLOC_NUM_BITS          (sizeof(void*) * 8)
+#define MPR_ALLOC_NUM_GROUPS        (MPR_ALLOC_NUM_BITS - MPR_ALLOC_BUCKET_SHIFT - MPR_ALIGN_SHIFT - 1)
+#define MPR_ALLOC_NUM_BUCKETS       (1 << MPR_ALLOC_BUCKET_SHIFT)
+
 /*
-    Magic number to identify blocks. Only used in debug mode.
+    Max/min O/S allocation chunk sizes
  */
-#define MPR_ALLOC_MAGIC     0xe814ecab
+#define MPR_REGION_MIN_SIZE         MPR_MEM_CHUNK_SIZE
+#if BLD_TUNE == MPR_TUNE_SPEED
+    #define MPR_REGION_MAX_SIZE     (4 * 1024 * 1024)
+#else
+    #define MPR_REGION_MAX_SIZE     MPR_REGION_MIN_SIZE
+#endif
+#define MPR_ALLOC_RETURN            MPR_REGION_MIN_SIZE
+
+/*
+    MprBlk flags stored in the low bits of size
+ */
+#define MPR_ALLOC_FREE              0x1     /* Block is free */
+#define MPR_ALLOC_MASK              0x1     /* Select bits above */
+
+/*  
+    Flags stored in prior 
+ */
+#define MPR_ALLOC_PAD_MASK          0x7     /* Mask out pad words */
+#define MPR_ALLOC_MAX_PAD           4       /* Max pad words */
+
+/**
+    Memory Block Header
+    @ingroup MprMem
+ */
+typedef struct MprBlk {
+    struct MprBlk   *next;              /* Next sibling */
+    struct MprBlk   *prev;              /* Previous sibling */
+    struct MprBlk   *prior;             /* Size of block prior to this block in memory */
+    size_t          size;               /* Block length (including header) | flags */
+#if BLD_MEMORY_DEBUG
+    uint            magic;              /* Unique signature */
+    int             seqno;              /* Allocation sequence number */
+#endif
+} MprBlk;
+
 
 /**
     Memory allocation error callback. Notifiers are called if mprSetNotifier has been called on a context and a 
     memory allocation fails. All notifiers up the parent context chain are called in order.
-    @param ctx Any memory context allocated by the MPR.
+    @param ctx Memory context defined via mprSetAllocCallback. Defaults to MPR.
     @param size Size of memory allocation request that failed
-    @param total Total memory allocations so far
+    @param total Total bytes allocated.
     @param granted Set to true if the request was actually granted, but the application is now exceeding its redline
         memory limit.
     @ingroup MprMem
  */
-typedef void (*MprAllocFailure)(MprCtx ctx, int64 size, int64 total, bool granted);
+typedef void (*MprAllocFailure)(MprCtx ctx, size_t size, size_t total, bool granted);
 
 /**
     Mpr memory block destructors prototype
@@ -3342,136 +3411,91 @@ typedef void (*MprAllocFailure)(MprCtx ctx, int64 size, int64 total, bool grante
  */
 typedef int (*MprDestructor)(MprCtx ctx);
 
-#if BLD_DEBUG
-    #define BLD_FEATURE_MEMORY_DEBUG    1   /* Enable memory debug assist. Fill blocks, verifies block integrity. */
-    #define BLD_FEATURE_MEMORY_STATS    1   /* Include memory stats routines */
-#else
-    #define BLD_FEATURE_MEMORY_STATS    1
+typedef struct MprTrailer {
+    MprDestructor   destructor;
+    MprBlk          *parent;            /* Next sibling */
+    MprBlk          *prev;              /* Pointer to children */
+#if BLD_MEMORY_DEBUG
+    uint            magic;              /* Unique signature */
 #endif
-
-/*
-    MprBlk flags
- */
-#define MPR_ALLOC_HAS_DESTRUCTOR    0x1     /* Block has a destructor to be called when freed */
-#define MPR_ALLOC_HAS_ERROR         0x2     /* Memory context has had allocation errors */
-#define MPR_ALLOC_IS_HEAP           0x4     /* Block is a heap context */
-#define MPR_ALLOC_FROM_MALLOC       0x8     /* Block allocated from a malloc heap */
-#define MPR_ALLOC_BIGGEST           0x0FFFFFFF /* Largest block that can be allocated */
-
-/*
-    Align blocks on 8 byte boundaries.
- */
-#define MPR_ALLOC_ALIGN(x)  (((x) + 7 ) & ~7)
-#define MPR_PAGE_ALIGN(x, pagesize) (((x) + (pagesize) - 1) & ~(pagesize - 1))
-
-
-/**
-    Memory Allocation Block Header.
-    @ingroup MprMem
- */
-typedef struct MprBlk {
-#if BLD_DEBUG
-    char            *name;                  /* Debug Name */
-    int             seqno;                  /* Allocation sequence number */
-#endif
-    struct MprBlk   *parent;                /* Parent block */
-    struct MprBlk   *children;              /* First child block. Flags stored in low order bits. */
-    struct MprBlk   *next;                  /* Next sibling */
-    struct MprBlk   *prev;                  /* Prior sibling */
-    uint            size: 28;               /* Size of the block (not counting header) */
-    uint            flags: 4;               /* Flags */
-#if BLD_FEATURE_MEMORY_DEBUG
-    uint            magic;                  /* Unique signature */
-#endif
-} MprBlk;
-
-#define MPR_ALLOC_HDR_SIZE      (MPR_ALLOC_ALIGN(sizeof(struct MprBlk)))
-#define MPR_GET_BLK(ptr)        ((MprBlk*) (((char*) (ptr)) - MPR_ALLOC_HDR_SIZE))
-#define MPR_GET_PTR(bp)         ((void*) (((char*) (bp)) + MPR_ALLOC_HDR_SIZE))
-#define MPR_GET_BLK_SIZE(bp)    ((bp)->size)
-#define MPR_SET_SIZE(bp, len)   ((bp)->size = (len))
-#define mprGetBlockSize(ptr)    ((ptr) ? (MPR_GET_BLK_SIZE(MPR_GET_BLK(ptr)) - MPR_ALLOC_HDR_SIZE): 0)
-#define MPR_HEAP_OVERHEAD       (MPR_ALLOC_HDR_SIZE + MPR_ALLOC_ALIGN(sizeof(MprRegion) + sizeof(MprHeap) + \
-                                  sizeof(MprDestructor)))
-#define mprGetFirstChild(ctx)   (void*) (MPR_GET_BLK(ctx)->children)
-
-/*
-    Region of memory. Regions are used to describe chunks of memory used by Heaps.
- */
-typedef struct MprRegion {
-    struct MprRegion *next;                 /* Next region in chain */
-    char            *memory;                /* Region memory data */
-    char            *nextMem;               /* Pointer to next free byte in memory */
-    int             vmSize;                 /* Size of virtual memory containing the region struct plus region memory */
-    int             size;                   /* Original size of region */
-} MprRegion;
-
-/*
-    Heap flags
- */
-#define MPR_ALLOC_PAGE_HEAP     0x1         /* Page based heap. Used for allocating arenas and slabs */
-#define MPR_ALLOC_ARENA_HEAP    0x2         /* Heap is an arena. All allocations are done from one or more regions */
-#define MPR_ALLOC_SLAB_HEAP     0x4         /* Heap is a slab. Constant sized objects use slab heaps */
-#define MPR_ALLOC_MALLOC_HEAP   0x8         /* Heap is a standard malloc heap */
-#define MPR_ALLOC_FREE_CHILDREN 0x10        /* Heap must be accessed in a thread safe fashion */
-#define MPR_ALLOC_THREAD_SAFE   0x20        /* Heap must be accessed in a thread safe fashion */
-
-/*
-    The heap context supports arena and slab based allocations. Layout of allocated heap blocks:
-        HDR
-        MprHeap
-        MprRegion
-        Heap Data
-        Destructor
- */
-typedef struct MprHeap {
-    cchar           *name;                  /* Debugging name of the heap */
-    MprDestructor   destructor;             /* Heap destructor routine */
-    MprRegion       *region;                /* Current region of memory for allocation */
-    MprRegion       *depleted;              /* Depleted regions. All useful memory has been allocated */
-    MprSpin         spin;
-
-    int             flags;                  /* Heap flags */
-
-    /* Slab allocation object information and free list */
-    int             objSize;                /* Size of each heap object */
-    MprBlk          *freeList;              /* Linked list of free objects */
-
-    /* Stats */
-    int            allocBytes;              /* Number of bytes allocated for this heap */
-    int            peakAllocBytes;          /* Peak allocated (max allocBytes) */
-    int            allocBlocks;             /* Number of alloced blocks for this heap */
-    int            peakAllocBlocks;         /* Peak allocated blocks */
-    int            totalAllocCalls;         /* Total count of allocation calls */
-    int            freeListCount;           /* Count of objects on freeList */
-    int            peakFreeListCount;       /* Peak count of blocks on the free list */
-    int            reuseCount;              /* Count of allocations from the freelist */
-    int            reservedBytes;           /* Virtual allocations for page heaps */
-
-    MprAllocFailure notifier;              /* Memory allocation failure callback */
-    MprCtx         notifierCtx;             /* Memory block context for the notifier */
-} MprHeap;
+} MprTrailer;
 
 
 /*
     Memory allocation control
  */
-typedef struct MprAlloc {
-    MprHeap         pageHeap;               /* Page based heap for Arena allocations */
+typedef struct MprAllocStats {
     int             inAllocException;       /* Recursive protect */
     uint            pageSize;               /* System page size */
     uint            errors;                 /* Allocation errors */
     uint            numCpu;                 /* Number of CPUs */
-    int64           bytesAllocated;         /* Bytes currently allocated */
-    int64           peakAllocated;          /* Peak bytes allocated */
-    int64           peakStack;              /* Peak stack usage */
-    int64           redLine;                /* Warn if allocation exceeds this level */
-    int64           maxMemory;              /* Max memory to allocate */
-    int64           rss;                    /* OS calculated resident stack size in bytes */
-    int64           ram;                    /* System RAM size in bytes */
-    int64           user;                   /* System user RAM size in bytes (excludes kernel) */
-    void            *stackStart;            /* Start of app stack */
-} MprAlloc;
+    size_t          bytesAllocated;         /* Bytes currently allocated */
+    size_t          bytesFree;              /* Bytes currently allocated */
+    size_t          redLine;                /* Warn if allocation exceeds this level */
+    size_t          maxMemory;              /* Max memory that can be allocated */
+    size_t          rss;                    /* OS calculated resident stack size in bytes */
+    size_t          ram;                    /* System RAM size in bytes */
+    size_t          user;                   /* System user RAM size in bytes (excludes kernel) */
+#if BLD_MEMORY_STATS
+    uint64          allocs;                 /* Count of times a block was split Calls to allocate memory from the O/S */
+    uint64          groupsScanned;          /* Count of times a queue group was searched looking for a free block */
+    uint64          joins;                  /* Count of times a block was joined (coalesced) with its neighbours */
+    uint64          requests;               /* Count of memory requests */
+    uint64          reuse;                  /* Count of times a block was reused from a free queue */
+    uint64          splits;                 /* Count of times a block was split */
+    uint64          scans;                  /* Count of times a queue was searched looking for a free block */
+    uint64          queuesScanned;          /* Count of times a queue was searched looking for a free block */
+    uint64          unpins;                 /* Count of times a block was unpinned and released back to the O/S */
+#endif
+#if UNUSED && BLD_MEMORY_DEBUG
+    uint            parentFound;            /* Count of times a direct parent was found */
+    uint            prevFound;              /* Count of times a direct prev was found */
+    uint            siblings;               /* Total count of siblings stepped over */
+    uint            parentLinks;            /* Total count of parent links */
+    uint            prevLinks;              /* Total count of prev links */
+    uint            links;                  /* Total calls to link */
+    uint            unlinks;                /* Total calls to unlink */
+#endif
+} MprAllocStats;
+
+
+/**
+    Block structure when on a free list. This overlays MprBlk and replaces sibling and children with forw/back
+ */
+typedef struct MprFreeBlk {
+    struct MprFreeBlk *forw;                /* Free list forward chain */
+    struct MprFreeBlk *back;                /* Free list backward chain */
+#if BLD_MEMORY_STATS
+    size_t          size;                   /* Min size of block in queue */
+    uint            count;                  /* Number of blocks on the queue */
+    uint            reuse;                  /* Count of allocations from the free list */
+#endif
+} MprFreeBlk;
+
+
+/*
+    Heap control structure
+ */
+typedef struct MprHeap {
+    MprFreeBlk      free[MPR_ALLOC_NUM_GROUPS * MPR_ALLOC_NUM_BUCKETS];
+    MprFreeBlk      *freeEnd;
+    size_t          freeMap;
+
+    char            *memory;                /* Heap memory data */
+    char            *nextMem;               /* Pointer to next free byte in memory */
+    char            *end;                   /* Pointer to one past last free byte */
+
+    MprSpin         spin;
+    MprAllocStats   stats;
+    MprAllocFailure notifier;               /* Memory allocation failure callback */
+    MprCtx          notifierCtx;            /* Memory block context for the notifier */
+    int             allocPolicy;            /* Memory allocation depletion policy */
+    int             hasError;               /* Memory allocation error */
+#if BLD_MEMORY_DEBUG
+    int             nextSeqno;              /* Next sequence number */
+#endif
+} MprHeap;
+
 
 #if BLD_WIN_LIKE || VXWORKS
     #define MPR_MAP_READ        0x1
@@ -3486,50 +3510,6 @@ typedef struct MprAlloc {
 extern struct Mpr *mprCreateAllocService(MprAllocFailure cback, MprDestructor destructor);
 
 /**
-    Allocate a memory arena
-    @description Memory arenas are virtual allocations. When subsequent allocations are done via mprAlloc, the memory
-        will be pinned. On systems without virtual memory, the memory is physically allocated at the time of this call.
-    @param ctx Any memory context allocated by mprAlloc or mprCreate.
-    @param name Name to give the arena. Name must be persistent.
-    @param arenaSize Size of the virtual arena.
-    @param threadSafe If true, allocations for memory from the arena will be thread safe. Allocations are faster if
-        threadSafe is false.
-    @param destructor Destructor function to invoke when the allocation is freed via #mprFree.
-    @return Returns a pointer to the reserved arena.
-    @ingroup MprMem
- */
-extern MprHeap *mprAllocArena(MprCtx ctx, cchar *name, uint arenaSize, bool threadSafe, MprDestructor destructor);
-
-/**
-    Allocate a memory heap
-    @description Memory heaps map onto the standard system malloc() system.
-    @param ctx Any memory context allocated by mprAlloc or mprCreate.
-    @param name Name to give the heap. Name must be persistent.
-    @param heapSize Size of the memory heap.
-    @param threadSafe If true, allocations for memory from the heap will be thread safe. Allocations are faster if
-        threadSafe is false.
-    @param destructor Destructor function to invoke when the allocation is freed via #mprFree.
-    @return Returns a pointer to the reserved heap.
-    @ingroup MprMem
- */
-extern MprHeap *mprAllocHeap(MprCtx ctx, cchar *name, uint heapSize, bool threadSafe, MprDestructor destructor);
-
-/**
-    Allocate a memory slab heap
-    @description Memory slab heaps are heaps for constant sized object allocations.
-    @param ctx Any memory context allocated by mprAlloc or mprCreate.
-    @param name Name to give the heap. Name must be persistent.
-    @param objSize Size of the virtual heap.
-    @param count Count of objects in slab
-    @param threadSafe If true, allocations for memory from the heap will be thread safe. Allocations are faster if
-        threadSafe is false.
-    @param destructor Destructor function to invoke when the allocation is freed via #mprFree.
-    @return Returns a pointer to the reserved heap.
-    @ingroup MprMem
- */
-extern MprHeap  *mprAllocSlab(MprCtx ctx, cchar *name, uint objSize, uint count, bool threadSafe, MprDestructor destructor);
-
-/**
     Define a notifier callback
     @description A notifier callback will be invoked for memory allocation errors for the given memory context.
     @param ctx Any memory context allocated by mprAlloc or mprCreate.
@@ -3537,6 +3517,7 @@ extern MprHeap  *mprAllocSlab(MprCtx ctx, cchar *name, uint objSize, uint count,
  */
 extern void mprSetAllocCallback(MprCtx ctx, MprAllocFailure cback);
 
+#if UNUSED
 /**
     Initialize a block of memory
     @description This call initializes a static block of memory so it can be used as a memory context for subseqent
@@ -3545,7 +3526,12 @@ extern void mprSetAllocCallback(MprCtx ctx, MprAllocFailure cback);
     @param ptr Pointer to the memory block
     @param size Size of the memory block
  */
-extern void mprInitBlock(MprCtx ctx, void *ptr, uint size);
+extern void mprInitBlock(MprCtx ctx, void *ptr, size_t size);
+#endif
+
+#define MPR_ALLOC_CHILDREN      0x1         /* Allocate a context that can contain children */
+#define MPR_ALLOC_DESTRUCTOR    0x2         /* Reserve room for a destructor */
+#define MPR_ALLOC_ZERO          0x4         /* Zero memory */
 
 #if DOXYGEN
 typedef void *Type;
@@ -3553,6 +3539,35 @@ typedef void *Type;
 /**
     Allocate a block of memory
     @description Allocates a block of memory using the supplied memory context \a ctx as the parent. #mprAlloc 
+        manages a tree structure of memory blocks. This allocates a memory block that is not capable of having children.
+        Use mprAllocCtx or mprAllocBlock to create a parent memory context. 
+    @param ctx Any memory context allocated by mprAlloc or mprCreate.
+    @param size Size of the memory block to allocate.
+    @return Returns a pointer to the allocated block. If memory is not available the memory exhaustion handler 
+        specified via mprCreate will be called to allow global recovery.
+    @remarks Do not mix calls to malloc and mprAlloc.
+    @ingroup MprMem
+ */
+extern void *mprAlloc(MprCtx ctx, size_t size);
+
+/**
+    Allocate a block of memory.
+    @description This is the lowest level of memory allocation. It Allocates a block of memory using the supplied memory 
+        context \a ctx as the parent. #mprAllocBlock manages a tree structure of memory blocks. Freeing a block via 
+        mprFree will release the allocated block and all child blocks.
+    @param ctx Any memory context allocated by mprAlloc or mprCreate.
+    @param size Size of the memory block to allocate.
+    @param flags Allocation flags
+    @return Returns a pointer to the allocated block. If memory is not available the memory exhaustion handler 
+        specified via mprCreate will be called to allow global recovery.
+    @remarks Do not mix calls to malloc and mprAlloc.
+    @ingroup MprMem
+ */
+extern void *mprAllocBlock(MprCtx ctx, size_t size, int flags);
+
+/**
+    Allocate a zeroed block of memory
+    @description Allocates a zeroed block of memory using the supplied memory context \a ctx as the parent. #mprAlloc 
         manages a tree structure of memory blocks. Freeing a block via mprFree will release the allocated block
         and all child blocks.
     @param ctx Any memory context allocated by mprAlloc or mprCreate.
@@ -3562,7 +3577,7 @@ typedef void *Type;
     @remarks Do not mix calls to malloc and mprAlloc.
     @ingroup MprMem
  */
-extern void *mprAlloc(MprCtx ctx, uint size);
+extern void *mprAllocZeroed(MprCtx ctx, size_t size);
 
 /**
     Allocate an object block of memory
@@ -3579,7 +3594,7 @@ extern void *mprAlloc(MprCtx ctx, uint size);
     @stability Prototype. This function names are highly likely to be refactored.
     @ingroup MprMem
  */
-extern void *mprAllocWithDestructor(MprCtx ctx, uint size, MprDestructor destructor);
+extern void *mprAllocWithDestructor(MprCtx ctx, size_t size, MprDestructor destructor);
 
 /**
     Allocate an object block of memory and zero it.
@@ -3596,21 +3611,7 @@ extern void *mprAllocWithDestructor(MprCtx ctx, uint size, MprDestructor destruc
     @stability Prototype. This function names are highly likely to be refactored.
     @ingroup MprMem
  */
-extern void *mprAllocWithDestructorZeroed(MprCtx ctx, uint size, MprDestructor destructor);
-
-/**
-    Allocate a zeroed block of memory
-    @description Allocates a zeroed block of memory using the supplied memory context \a ctx as the parent. #mprAlloc 
-        manages a tree structure of memory blocks. Freeing a block via mprFree will release the allocated block
-        and all child blocks.
-    @param ctx Any memory context allocated by mprAlloc or mprCreate.
-    @param size Size of the memory block to allocate.
-    @return Returns a pointer to the allocated block. If memory is not available the memory exhaustion handler 
-        specified via mprCreate will be called to allow global recovery.
-    @remarks Do not mix calls to malloc and mprAlloc.
-    @ingroup MprMem
- */
-extern void *mprAllocZeroed(MprCtx ctx, uint size);
+extern void *mprAllocWithDestructorZeroed(MprCtx ctx, size_t size, MprDestructor destructor);
 
 /**
     Reallocate a block
@@ -3624,28 +3625,34 @@ extern void *mprAllocZeroed(MprCtx ctx, uint size);
     @remarks Do not mix calls to realloc and mprRealloc.
     @ingroup MprMem
  */
-extern void *mprRealloc(MprCtx ctx, void *ptr, uint size);
+extern void *mprRealloc(MprCtx ctx, void *ptr, size_t size);
 
 /**
-    Allocate an object of a given type
-    @description Allocates a block of memory large enough to hold an instance of the specified type. This uses the 
-        supplied memory context \a ctx as the parent. This is implemented as a macro
+    Allocate an object of a given type.
+    @description Allocates a zeroed block of memory large enough to hold an instance of the specified type with a 
+        destructor. This uses the supplied memory context \a ctx as the parent. This is implemented as a macro.
+        this call associates a destructor function with an object. This function will be invoked when the object is freed. 
+        Freeing a block will first call the destructor and if that returns zero, mprFree will release the allocated 
+        block and all child blocks.
     @param ctx Any memory context allocated by mprAlloc or mprCreate.
     @param type Type of the object to allocate
+    @param destructor Destructor function to invoke when the allocation is freed via #mprFree.
     @return Returns a pointer to the allocated block. If memory is not available the memory exhaustion handler 
         specified via mprCreate will be called to allow global recovery.
     @remarks Do not mix calls to malloc and mprAlloc.
     @stability Prototype. This function names are highly likely to be refactored.
     @ingroup MprMem
  */
-extern void *mprAllocObj(MprCtx ctx, Type type) { return 0; }
+extern void *mprAllocObj(MprCtx ctx, Type type, MprDestructor destructor) { return 0;}
 
+#if UNUSED
 /**
     Allocate a zeroed object of a given type
     @description Allocates a zeroed block of memory large enough to hold an instance of the specified type. This uses the 
         supplied memory context \a ctx as the parent. This is implemented as a macro
     @param ctx Any memory context allocated by mprAlloc or mprCreate.
     @param type Type of the object to allocate
+    @param flags Allocation flags
     @return Returns a pointer to the allocated block. If memory is not available the memory exhaustion handler 
         specified via mprCreate will be called to allow global recovery.
     @remarks Do not mix calls to malloc and mprAlloc.
@@ -3671,24 +3678,7 @@ extern void *mprAllocObjZeroed(MprCtx ctx, Type type) { return 0; }
     @ingroup MprMem
  */
 extern void *mprAllocObjWithDestructor(MprCtx ctx, Type type, MprDestructor destructor)
-
-/**
-    Allocate a zeroed object of a given type with a destructor
-    @description Allocates a zeroed block of memory large enough to hold an instance of the specified type with a 
-        destructor. This uses the supplied memory context \a ctx as the parent. This is implemented as a macro.
-        this call associates a destructor function with an object. This function will be invoked when the object is freed. 
-        Freeing a block will first call the destructor and if that returns zero, mprFree will release the allocated 
-        block and all child blocks.
-    @param ctx Any memory context allocated by mprAlloc or mprCreate.
-    @param type Type of the object to allocate
-    @param destructor Destructor function to invoke when the allocation is freed via #mprFree.
-    @return Returns a pointer to the allocated block. If memory is not available the memory exhaustion handler 
-        specified via mprCreate will be called to allow global recovery.
-    @remarks Do not mix calls to malloc and mprAlloc.
-    @stability Prototype. This function names are highly likely to be refactored.
-    @ingroup MprMem
- */
-extern void *mprAllocObjWithDestructorZeroed(MprCtx ctx, Type type, MprDestructor destructor) { return 0;}
+#endif /* UNUSED */
 
 /**
     Duplicate a block of memory.
@@ -3699,7 +3689,7 @@ extern void *mprAllocObjWithDestructorZeroed(MprCtx ctx, Type type, MprDestructo
     @return Returns an allocated block. Caller must free via #mprFree.
     @ingroup MprMem
  */
-extern void *mprMemdup(MprCtx ctx, cvoid *ptr, uint size);
+extern void *mprMemdup(MprCtx ctx, cvoid *ptr, size_t size);
 
 /**
     Duplicate a string.
@@ -3711,15 +3701,14 @@ extern void *mprMemdup(MprCtx ctx, cvoid *ptr, uint size);
     @return Returns an allocated block. Caller must free via #mprFree.
     @ingroup MprMem
  */
-extern char *mprStrndup(MprCtx ctx, cchar *str, uint size);
+extern char *mprStrndup(MprCtx ctx, cchar *str, size_t size);
 
 /**
     Safe replacement for strdup
     @param ctx Any memory context allocated by mprAlloc or mprCreate.
-    @description mprStrdup() should be used as a replacement for \b strdup wherever possible. It allows the 
-        strdup to be copied to be NULL, in which case it will allocate an empty string. 
-    @param str Pointer to string to duplicate. If \b str is NULL, allocate a new string containing only a 
-        trailing NULL character.
+    @description mprStrdup() should be used as a replacement for \b strdup wherever possible. It allows NULL arguments 
+        in which case it will allocate an empty string. 
+    @param str Pointer to string to duplicate. If \b str is NULL, allocate a new string containing a null character.
     @return Returns an allocated string including trailing null.
     @remarks Memory allocated via mprStrdup() must be freed via mprFree().
     @ingroup MprMem
@@ -3727,78 +3716,24 @@ extern char *mprStrndup(MprCtx ctx, cchar *str, uint size);
 extern char *mprStrdup(MprCtx ctx, cchar *str);
 #else /* !DOXYGEN */
 
-
-#if BLD_DEBUG
-/**
-    Set a static debug name for the memory object
-    @param ptr The memory object
-    @param name Static memory name. Must be persistant.
-    @returns the memory object so this call can be chained.
- */
-extern void *mprSetName(void *ptr, cchar *name);
-
-/**
-    Set a dynamic debug name for the memory object
-    @param ptr The memory object
-    @param name Memory name. This call will duplicate the name so the name may be transient.
-    @returns the memory object so this call can be chained.
- */
-extern void *mprSetDynamicName(void *ptr, cchar *name);
-
-/*
-    Get the debug memory name for a memory object
-    @returns the debug name
- */
-extern cchar *mprGetName(void *ptr);
-#else
-#define mprSetName(ptr, name) ptr
-#define mprSetDynamicName(ptr, name) ptr
-#define mprGetName(ptr) ""
+extern void *mprAllocBlock(MprCtx ctx, size_t size, int flags);
+extern void *mprRealloc(MprCtx ctx, void *ptr, size_t size);
+extern void *mprMemdup(MprCtx ctx, cvoid *ptr, size_t size);
+extern char *mprStrndup(MprCtx ctx, cchar *str, size_t size);
+extern char *mprStrdup(MprCtx ctx, cchar *str);
 #endif
 
-/*
-    Internal memory allocation routines
- */
-extern void *mprAllocInternal(MprCtx ctx, uint size);
-extern void *mprAllocWithDestructorInternal(MprCtx ctx, uint size, MprDestructor destructor);
-extern void *mprAllocWithDestructorZeroedInternal(MprCtx ctx, uint size, MprDestructor destructor);
-extern void *mprAllocZeroedInternal(MprCtx ctx, uint size);
-extern void *mprReallocInternal(MprCtx ctx, void *ptr, uint size);
-extern void *mprMemdupInternal(MprCtx ctx, cvoid *ptr, uint size);
-extern char *mprStrndupInternal(MprCtx ctx, cchar *str, uint size);
-extern char *mprStrdupInternal(MprCtx ctx, cchar *str);
+#define mprAllocObj(ctx, type, destructor) \
+    ((type*) mprUpdateDestructor(\
+        mprAllocBlock(ctx, sizeof(type), MPR_ALLOC_DESTRUCTOR | MPR_ALLOC_CHILDREN | MPR_ALLOC_ZERO), \
+        (MprDestructor) destructor))
 
-/*
-    Macros for typed based allocations
- */
-#define mprAllocObj(ctx, type) \
-    ((type*) mprSetName(mprAllocInternal(ctx, sizeof(type)), MPR_LOC))
-#define mprAllocObjZeroed(ctx, type) \
-    ((type*) mprSetName(mprAllocZeroedInternal(ctx, sizeof(type)), MPR_LOC))
-#define mprAllocObjWithDestructor(ctx, type, destructor) \
-    ((type*) mprSetName(mprAllocWithDestructorInternal(ctx, sizeof(type), (MprDestructor) destructor), MPR_LOC))
-#define mprAllocObjWithDestructorZeroed(ctx, type, destructor) \
-    ((type*) mprSetName(mprAllocWithDestructorZeroedInternal(ctx, sizeof(type), (MprDestructor) destructor), MPR_LOC))
-
-#define mprAlloc(ctx, size) \
-    mprSetName(mprAllocInternal(ctx, size), MPR_LOC)
 #define mprAllocWithDestructor(ctx, size, destructor) \
-    mprSetName(mprAllocWithDestructorInternal(ctx, size, destructor), MPR_LOC)
-#define mprAllocWithDestructorZeroed(ctx, size, destructor) \
-    mprSetName(mprAllocWithDestructorZeroedInternal(ctx, size, destructor), MPR_LOC)
-#define mprAllocZeroed(ctx, size) \
-    mprSetName(mprAllocZeroedInternal(ctx, size), MPR_LOC)
-#define mprRealloc(ctx, ptr, size) \
-    mprSetName(mprReallocInternal(ctx, ptr, size), MPR_LOC)
-#define mprMemdup(ctx, ptr, size) \
-    mprSetName(mprMemdupInternal(ctx, ptr, size), MPR_LOC)
-#define mprStrndup(ctx, str, size) \
-    mprSetName(mprStrndupInternal(ctx, str, size), MPR_LOC)
-#define mprStrdup(ctx, str) \
-    mprSetName(mprStrdupInternal(ctx, str), MPR_LOC)
+    mprUpdateDestructor(mprAllocBlock(ctx, size, MPR_ALLOC_DESTRUCTOR | MPR_ALLOC_CHILDREN), (MprDestructor) destructor)
 
-extern MprHeap *mprGetHeap(MprBlk *bp);
-#endif
+#define mprAlloc(ctx, size) mprAllocBlock(ctx, size, 0)
+#define mprAllocZeroed(ctx, size) mprAllocBlock(ctx, size, MPR_ALLOC_ZERO)
+#define mprAllocCtx(ctx, size) mprAllocBlock(ctx, size, MPR_ALLOC_CHILDREN | MPR_ALLOC_ZERO)
 
 /**
     Format a string into an allocated buffer.
@@ -3858,22 +3793,25 @@ extern int mprFree(void *ptr);
     @description This call updates the destructor for a block of memory allocated via mprAllocWithDestructor.
     @param ptr Memory to free. If NULL, take no action.
     @param destructor Destructor function to invoke when #mprFree is called.
+    @return Returns the original object
     @ingroup MprMem
  */
-extern void mprSetDestructor(void *ptr, MprDestructor destructor);
+extern void *mprUpdateDestructor(void *ptr, MprDestructor destructor);
 
 /**
     Free all the children blocks allocated of a block
     @param ctx Any memory context allocated by mprAlloc or mprCreate.
  */
-extern void mprFreeChildren(MprCtx ctx);
+//MOB extern void mprFreeChildren(MprCtx ctx);
 
+#if UNUSED
 /**
     Reassign a block from its current parent context to a new context.
     @param ctx Any memory context allocated by mprAlloc or mprCreate. This will be the new owning context of the ptr.
     @param ptr Pointer to a block to reassign.
  */
 extern int mprStealBlock(MprCtx ctx, cvoid *ptr);
+#endif
 
 /**
     Reparent a block
@@ -3892,29 +3830,27 @@ extern void mprValidateBlock(MprCtx ctx);
 
 /**
     Print a memory usage report to stdout
-    @param ctx New memory context for the block. Any memory context allocated by the MPR.
     @param msg Prefix message to the report
+    @param detail If true, print free queue detail report
  */
-extern void mprPrintAllocReport(MprCtx ctx, cchar *msg);
+extern void mprPrintAllocReport(cchar *msg, int detail);
 
 /**
     Determine if the MPR has encountered memory allocation errors.
     @description Returns true if the MPR has had a memory allocation error. Allocation errors occur if any
         memory allocation would cause the application to exceed the configured redline limit, or if any O/S memory
         allocation request fails.
-    @param ctx Any memory context allocated by the MPR.
     @return TRUE if a memory allocation error has occurred. Otherwise returns FALSE.
     @ingroup MprMem
  */
-extern bool mprHasAllocError(MprCtx ctx);
+extern bool mprHasAllocError();
 
 /**
     Reset the memory allocation error flag
     @description Reset the alloc error flag triggered.
-    @param ctx Any memory context allocated by the MPR.
     @ingroup MprMem
  */
-extern void mprResetAllocError(MprCtx ctx);
+extern void mprResetAllocError();
 
 /**
     Set an memory allocation error condition on a memory context. This will set an allocation error condition on the
@@ -3965,17 +3901,17 @@ extern void mprSetAllocPolicy(MprCtx ctx, int policy);
 
 /**
     Return the current allocation memory statistics block
-    @param ctx Any memory context allocated by mprAlloc or mprCreate.
     @returns a reference to the allocation memory statistics. Do not modify its contents.
  */
-extern MprAlloc *mprGetAllocStats(MprCtx ctx);
+extern MprAllocStats *mprGetAllocStats();
 
 /**
-    Return the amount of memory currently used by the application. This only reports heap memory.
-    @param ctx Any memory context allocated by mprAlloc or mprCreate.
-    @returns the amount of heap memory used by the application in bytes.
+    Return the amount of memory currently used by the application. On Unix, this returns the total application memory
+    size including code, stack, data and heap. On Windows, VxWorks and other operatings systems, it returns the
+    amount of allocated heap memory.
+    @returns the amount of memory used by the application in bytes.
  */
-extern int64 mprGetUsedMemory(MprCtx ctx);
+extern size_t mprGetUsedMemory();
 
 /**
     Memory virtual memory into the applications address space.
@@ -3983,21 +3919,21 @@ extern int64 mprGetUsedMemory(MprCtx ctx);
     @param size of virtual memory to map. This size will be rounded up to the nearest page boundary.
     @param mode Mask set to MPR_MAP_READ | MPR_MAP_WRITE
  */
-extern void *mprMapAlloc(MprCtx ctx, uint size, int mode);
+extern void *mprVirtAlloc(size_t size, int mode);
 
 /**
     Free (unpin) a mapped section of virtual memory
     @param ptr Virtual address to free. Should be page aligned
     @param size Size of memory to free in bytes
  */
-extern void mprMapFree(void *ptr, uint size);
+extern void mprVirtFree(void *ptr, size_t size);
 
 /**
     Get the current O/S virtual page size
     @param ctx Any memory context allocated by mprAlloc or mprCreate.
     @returns the page size in bytes
  */
-extern int mprGetPageSize(MprCtx ctx);
+extern int mprGetPageSize();
 
 /******************************************************** I/O Wait *********************************************************/
 /*
@@ -5272,8 +5208,7 @@ extern int mprWriteCmdPipe(MprCmd *cmd, int channel, char *buf, int bufsize);
  */
 typedef struct Mpr {
     MprHeap         heap;                   /**< Top level memory pool */
-    MprHeap         pageHeap;               /**< Heap for arenas and slabs. Always page oriented */
-    MprAlloc        alloc;                  /**< Memory allocation statistics */
+    MprCtx          ctx;                    /**< Temporary memory context */
     bool            debugMode;              /**< Run in debug mode (no timers) */
     int             logLevel;               /**< Log trace level */
     MprLogHandler   logHandler;             /**< Current log handler callback */
@@ -5293,7 +5228,6 @@ typedef struct Mpr {
     char            *appDir;                /**< Path of directory containing app executable */
     int             flags;                  /**< Processing state */
     int             hasDedicatedService;    /**< Running a dedicated events thread */
-    int             allocPolicy;            /**< Memory allocation depletion policy */
     int             logFd;                  /**< Logging file descriptor */
     /*
         Service pointers
@@ -5318,9 +5252,10 @@ typedef struct Mpr {
 #endif
 } Mpr;
 
+extern void mprNop(void *ptr);
 
 #if BLD_WIN_LIKE || BLD_UNIX_LIKE
-#define BLD_HAS_GLOBAL_MPR 0
+#define BLD_HAS_GLOBAL_MPR 1
 #else
 #define BLD_HAS_GLOBAL_MPR 0
 #endif
@@ -5338,9 +5273,8 @@ extern struct Mpr *mprGetMpr(MprCtx ctx);
 #define MPR(ctx) mprGetMpr(ctx)
 #else
 
-extern Mpr  *_globalMpr;                /* Mpr singleton */
-#define mprGetMpr(ctx) _globalMpr
-#define MPR(ctx) _globalMpr
+extern Mpr *MPR;
+#define mprGetMpr(ctx) MPR
 #endif
 
 /**
@@ -5626,7 +5560,6 @@ extern int mprGetRandomBytes(MprCtx ctx, char *buf, int size, int block);
 extern int mprGetEndian(MprCtx ctx);
 
 //  TODO DOC
-extern void mprNop();
 extern int mprGetLogFd(MprCtx ctx);
 extern int mprSetLogFd(MprCtx ctx, int fd);
 

@@ -23,7 +23,7 @@ MprBuf *mprCreateBuf(MprCtx ctx, int initialSize, int maxSize)
     if (initialSize <= 0) {
         initialSize = MPR_DEFAULT_ALLOC;
     }
-    if ((bp = mprAllocObjZeroed(ctx, MprBuf)) == 0) {
+    if ((bp = mprAllocCtx(ctx, sizeof(MprBuf))) == 0) {
         return 0;
     }
     bp->growBy = MPR_BUFSIZE;
@@ -79,10 +79,6 @@ int mprSetBufSize(MprBuf *bp, int initialSize, int maxSize)
         bp->maxsize = maxSize;
         return 0;
     }
-
-    /*
-        New buffer - create storage for the data
-     */
     if ((bp->data = mprAlloc(bp, initialSize)) == 0) {
         return MPR_ERR_NO_MEMORY;
     }
@@ -103,6 +99,7 @@ void mprSetBufMax(MprBuf *bp, int max)
 }
 
 
+#if UNUSED
 char *mprStealBuf(MprCtx ctx, MprBuf *bp)
 {
     char    *str;
@@ -114,6 +111,7 @@ char *mprStealBuf(MprCtx ctx, MprBuf *bp)
     bp->buflen = 0;
     return str;
 }
+#endif
 
 
 /*
@@ -419,7 +417,6 @@ int mprGrowBuf(MprBuf *bp, int need)
     } else {
         growBy = bp->growBy;
     }
-    
     if ((newbuf = mprAlloc(bp, bp->buflen + growBy)) == 0) {
         return MPR_ERR_NO_MEMORY;
     }

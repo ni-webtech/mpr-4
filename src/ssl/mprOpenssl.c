@@ -91,7 +91,8 @@ int mprCreateOpenSslModule(MprCtx ctx, bool lazy)
         Configure the global locks
      */
     numLocks = CRYPTO_num_locks();
-    locks = (MprMutex**) mprAllocWithDestructor(mpr, numLocks * sizeof(MprMutex*), lockDestructor);
+    locks = (MprMutex**) mprAllocBlock(mpr, numLocks * sizeof(MprMutex*), MPR_ALLOC_DESTRUCTOR);
+    mprUpdateDestructor(locks, lockDestructor);
     for (i = 0; i < numLocks; i++) {
         locks[i] = mprCreateLock(mpr);
     }
@@ -163,11 +164,10 @@ static MprSocketProvider *createOpenSslProvider(MprCtx ctx)
     MprSocketProvider   *provider;
 
     mpr = mprGetMpr(ctx);
-    provider = mprAllocObjZeroed(mpr, MprSocketProvider);
+    provider = mprAlloc(mpr, sizeof(MprSocketProvider));
     if (provider == 0) {
         return 0;
     }
-
     provider->name = "OpenSsl";
     provider->acceptSocket = acceptOss;
     provider->closeSocket = closeOss;
@@ -195,7 +195,7 @@ static int configureOss(MprSsl *ssl)
 
     ss = mprGetMpr(ssl)->socketService;
 
-    mprSetDestructor(ssl, (MprDestructor) openSslDestructor);
+    mprUpdateDestructor(ssl, (MprDestructor) openSslDestructor);
 
     context = SSL_CTX_new(SSLv23_method());
     if (context == 0) {
@@ -437,7 +437,7 @@ static MprSocket *createOss(MprCtx ctx, MprSsl *ssl)
     /*
         Create a SslSocket object for ssl state. This logically extends MprSocket.
      */
-    osp = (MprSslSocket*) mprAllocObjWithDestructorZeroed(sp, MprSslSocket, openSslSocketDestructor);
+    osp = (MprSslSocket*) mprAllocObj(sp, MprSslSocket, openSslSocketDestructor);
     if (osp == 0) {
         mprFree(sp);
         return 0;
@@ -880,7 +880,7 @@ static DynLock *sslCreateDynLock(const char *file, int line)
 {
     DynLock     *dl;
 
-    dl = mprAllocObjZeroed(0, DynLock);
+    dl = mprAllocZeroed(0, sizeof(DynLock));
     dl->mutex = mprCreateLock(dl);
     return dl;
 }

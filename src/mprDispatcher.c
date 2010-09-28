@@ -35,7 +35,7 @@ MprEventService *mprCreateEventService(MprCtx ctx)
     Mpr                 *mpr;
 
     mpr = mprGetMpr(ctx);
-    if ((es = mprAllocObjZeroed(ctx, MprEventService)) == 0) {
+    if ((es = mprAllocObj(ctx, MprEventService, NULL)) == 0) {
         return 0;
     }
     mpr->eventService = es;
@@ -237,7 +237,7 @@ MprDispatcher *mprCreateDispatcher(MprCtx ctx, cchar *name, int enable)
     MprEventService     *es;
     MprDispatcher       *dispatcher;
 
-    if ((dispatcher = mprAllocObjWithDestructorZeroed(ctx, MprDispatcher, dispatcherDestructor)) == 0) {
+    if ((dispatcher = mprAllocObj(ctx, MprDispatcher, dispatcherDestructor)) == 0) {
         return 0;
     }
     dispatcher->name = name;

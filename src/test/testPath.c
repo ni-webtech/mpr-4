@@ -36,7 +36,7 @@ static int initPath(MprTestGroup *gp)
 {
     MprTestPath     *ts;
 
-    gp->data = mprAllocObjZeroed(gp, MprTestPath);
+    gp->data = mprAllocZeroed(gp, sizeof(MprTestPath));
     if (gp->data == 0) {
         return MPR_ERR_NO_MEMORY;
     }
@@ -97,7 +97,7 @@ static void testAbsPath(MprTestGroup *gp)
     MprCtx      ctx;
     char        *path;
 
-    ctx = mprAlloc(gp, 1);
+    ctx = mprAllocCtx(gp, 1);
 
 #if MANUAL_TESTING
     path = mprGetNormalizedPath(ctx, "/");
@@ -146,7 +146,8 @@ static void testJoinPath(MprTestGroup *gp)
 {
     MprCtx  ctx;
 
-    ctx = mprAlloc(gp, 1);
+    ctx = mprAllocCtx(gp, 1);
+    
 #if BLD_WIN_LIKE
     assert(strcmp(mprJoinPath(ctx, "\\tmp", "Makefile"), "\\tmp\\Makefile") == 0);
     assert(strcmp(mprJoinPath(ctx, "\\tmp", "\\Makefile"), "\\Makefile") == 0);
@@ -216,7 +217,7 @@ static void testNormalize(MprTestGroup *gp)
     MprCtx      ctx;
     char        *path;
 
-    ctx = mprAlloc(gp, 1);
+    ctx = mprAllocCtx(gp, 1);
     assert(strcmp(mprGetNormalizedPath(ctx, ""), "") == 0);
     assert(strcmp(mprGetNormalizedPath(ctx, "/"), "/") == 0);
     assert(strcmp(mprGetNormalizedPath(ctx, "."), ".") == 0);
@@ -256,7 +257,7 @@ static void testRelPath(MprTestGroup *gp)
     MprCtx  ctx;
     char    *path, *absPath;
     
-    ctx = mprAlloc(gp, 1);
+    ctx = mprAllocCtx(gp, 1);
 
     path = mprGetRelPath(ctx, "Makefile");
     assert(strcmp(path, "Makefile") == 0);
@@ -308,7 +309,7 @@ static void testSame(MprTestGroup *gp)
 {
     MprCtx  ctx;
 
-    ctx = mprAlloc(gp, 1);
+    ctx = mprAllocCtx(gp, 1);
 
     /* Assumes running in test/utest/api */
     assert(mprSamePath(ctx, "testFile", "./testFile"));
@@ -327,10 +328,12 @@ static void testSearch(MprTestGroup *gp)
 {
     MprCtx  ctx;
 
-    ctx = mprAlloc(gp, 1);
+    ctx = mprAllocCtx(gp, 1);
 
+#if !DEBUG_IDE
     assert(mprSearchPath(ctx, "Makefile", 0, "../.." MPR_SEARCH_SEP ".", NULL) != 0);
     assert(mprSearchPath(ctx, "Makefile", 0, "../..", ".", NULL) != 0);
+#endif
     assert(!mprSearchPath(ctx, "Unfounded", 0, "../..", ".", "/", NULL) != 0);
 }
 
@@ -353,7 +356,7 @@ static void testTransform(MprTestGroup *gp)
     MprCtx  ctx;
     char    *path;
 
-    ctx = mprAlloc(gp, 1);
+    ctx = mprAllocCtx(gp, 1);
     path = mprGetTransformedPath(ctx, "/", MPR_PATH_ABS);
     assert(mprIsAbsPath(ctx, path));
 

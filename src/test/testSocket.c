@@ -48,7 +48,7 @@ static MprTestSocket *openServer(MprTestGroup *gp, cchar *host)
             if (mprListenOnSocket(listen) < 0) {
                 continue;
             }
-            ts = mprAllocObjZeroed(gp, MprTestSocket);
+            ts = mprAllocObj(gp, MprTestSocket, NULL);
             if (ts == 0) {
                 return 0;
             }
@@ -74,7 +74,7 @@ static int initSocket(MprTestGroup *gp)
     MprSocket       *sock;
     MprTestSocket   *ts;
 
-    ts = mprAllocObjZeroed(gp, MprTestSocket);
+    ts = mprAllocObj(gp, MprTestSocket, NULL);
     if (ts == 0) {
         return MPR_ERR_NO_MEMORY;
     }

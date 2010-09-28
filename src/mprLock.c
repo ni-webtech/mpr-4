@@ -21,7 +21,7 @@ MprMutex *mprCreateLock(MprCtx ctx)
 
     mprAssert(ctx);
 
-    lock = mprAllocObjWithDestructor(ctx, MprMutex, destroyLock);
+    lock = mprAllocObj(ctx, MprMutex, destroyLock);
     if (lock == 0) {
         return 0;
     }
@@ -76,7 +76,7 @@ MprMutex *mprInitLock(MprCtx ctx, MprMutex *lock)
 
 
 /*
-    Destroy a lock. Must be locked on entrance.
+    Destroy a lock. Should be locked on entrance.
  */
 static int destroyLock(MprMutex *lock)
 {
@@ -116,7 +116,7 @@ MprSpin *mprCreateSpinLock(MprCtx ctx)
 
     mprAssert(ctx);
 
-    lock = mprAllocObjWithDestructor(ctx, MprSpin, destroySpinLock);
+    lock = mprAllocObj(ctx, MprSpin, destroySpinLock);
     if (lock == 0) {
         return 0;
     }

@@ -25,7 +25,7 @@ MprWaitService *mprCreateWaitService(Mpr *mpr)
 {
     MprWaitService  *ws;
 
-    ws = mprAllocObjZeroed(mpr, MprWaitService);
+    ws = mprAllocObj(mpr, MprWaitService, NULL);
     if (ws == 0) {
         return 0;
     }
@@ -84,7 +84,7 @@ MprWaitHandler *mprCreateWaitHandler(MprCtx ctx, int fd, int mask, MprDispatcher
     mprAssert(fd >= 0);
 
     ws = mprGetMpr(ctx)->waitService;
-    wp = mprAllocObjWithDestructorZeroed(ws, MprWaitHandler, handlerDestructor);
+    wp = mprAllocObj(ws, MprWaitHandler, handlerDestructor);
     if (wp == 0) {
         return 0;
     }

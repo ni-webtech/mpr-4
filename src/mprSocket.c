@@ -47,7 +47,7 @@ MprSocketService *mprCreateSocketService(MprCtx ctx)
 
     mprAssert(ctx);
 
-    ss = mprAllocObjZeroed(ctx, MprSocketService);
+    ss = mprAllocObj(ctx, MprSocketService, NULL);
     if (ss == 0) {
         return 0;
     }
@@ -113,7 +113,7 @@ static MprSocketProvider *createStandardProvider(MprSocketService *ss)
 {
     MprSocketProvider   *provider;
 
-    provider = mprAllocObj(ss, MprSocketProvider);
+    provider = mprAlloc(ss, sizeof(MprSocketProvider));
     if (provider == 0) {
         return 0;
     }
@@ -163,7 +163,7 @@ static MprSocket *createSocket(MprCtx ctx, struct MprSsl *ssl)
 {
     MprSocket       *sp;
 
-    sp = mprAllocObjWithDestructorZeroed(ctx, MprSocket, socketDestructor);
+    sp = mprAllocObj(ctx, MprSocket, socketDestructor);
     if (sp == 0) {
         return 0;
     }
@@ -1243,7 +1243,7 @@ static int getSocketInfo(MprCtx ctx, cchar *ip, int port, int *family, struct so
             return MPR_ERR_CANT_OPEN;
         }
     }
-    *addr = (struct sockaddr*) mprAllocObjZeroed(ctx, struct sockaddr_storage);
+    *addr = (struct sockaddr*) mprAlloc(ctx, sizeof(struct sockaddr_storage));
     mprMemcpy((char*) *addr, sizeof(struct sockaddr_storage), (char*) res->ai_addr, (int) res->ai_addrlen);
 
     *addrlen = (int) res->ai_addrlen;

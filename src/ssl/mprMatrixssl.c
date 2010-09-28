@@ -86,11 +86,10 @@ static MprSocketProvider *createMatrixSslProvider(MprCtx ctx)
     MprSocketProvider   *provider;
 
     mpr = mprGetMpr(ctx);
-    provider = mprAllocObjZeroed(mpr, MprSocketProvider);
+    provider = mprAlloc(mpr, sizeof(MprSocketProvider));
     if (provider == 0) {
         return 0;
     }
-
     provider->name = "MatrixSsl";
     provider->acceptSocket = acceptMss;
     provider->closeSocket = closeMss;
@@ -113,7 +112,7 @@ static int configureMss(MprSsl *ssl)
 
     ss = mprGetMpr(ssl)->socketService;
 
-    mprSetDestructor(ssl, (MprDestructor) matrixSslDestructor);
+    mprUpdateDestructor(ssl, (MprDestructor) matrixSslDestructor);
 
     /*
         Read the certificate and the key file for this server. FUTURE - If using encrypted private keys, 
@@ -181,7 +180,7 @@ static MprSocket *createMss(MprCtx ctx, MprSsl *ssl)
     lock(sp);
     sp->provider = ss->secureProvider;
 
-    msp = (MprSslSocket*) mprAllocObjWithDestructorZeroed(sp, MprSslSocket, matrixSslSocketDestructor);
+    msp = (MprSslSocket*) mprAllocObj(sp, MprSslSocket, matrixSslSocketDestructor);
     if (msp == 0) {
         mprFree(sp);
         return 0;

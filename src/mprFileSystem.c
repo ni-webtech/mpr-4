@@ -53,7 +53,7 @@ MprFileSystem *mprCreateFileSystem(MprCtx ctx, cchar *path)
     if (mpr->fileSystem == NULL) {
         mpr->fileSystem = fs;
     }
-    fs->root = mprGetAbsPath(ctx, path);
+    fs->root = mprGetAbsPath(fs, path);
     if ((cp = strpbrk(fs->root, fs->separators)) != 0) {
         *++cp = '\0';
     }

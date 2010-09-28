@@ -27,7 +27,7 @@ MprList *mprCreateList(MprCtx ctx)
 {
     MprList     *lp;
 
-    lp = mprAllocObj(ctx, MprList);
+    lp = mprAllocCtx(ctx, sizeof(MprList));
     if (lp == 0) {
         return 0;
     }
@@ -67,11 +67,12 @@ int mprSetListLimits(MprList *lp, int initialSize, int maxSize)
     size = initialSize * sizeof(void*);
 
     if (lp->items == 0) {
-        lp->items = (void**) mprAllocZeroed(lp, size);
+        lp->items = (void**) mprAllocCtx(lp, size);
         if (lp->items == 0) {
             mprFree(lp);
             return MPR_ERR_NO_MEMORY;
         }
+        memset(lp->items, 0, size);
         lp->capacity = initialSize;
     }
     lp->maxSize = maxSize;
@@ -505,18 +506,21 @@ static int growList(MprList *lp, int incr)
     }
     memsize = len * sizeof(void*);
 
+#if MEMZZ
     /*
         Grow the list of items. Use the existing context for lp->items if it already exists. Otherwise use the list as the
         memory context owner.
      */
     lp->items = (void**) mprRealloc((lp->items) ? mprGetParent(lp->items): lp, lp->items, memsize);
+#else
+    lp->items = (void**) mprRealloc(lp, lp->items, memsize);
+#endif
 
     /*
         Zero the new portion (required for no-compact lists)
      */
     memset(&lp->items[lp->capacity], 0, sizeof(void*) * (len - lp->capacity));
     lp->capacity = len;
-
     return 0;
 }
 
@@ -531,7 +535,7 @@ MprKeyValue *mprCreateKeyPair(MprCtx ctx, cchar *key, cchar *value)
 {
     MprKeyValue     *pair;
     
-    pair = mprAllocObj(ctx, MprKeyValue);
+    pair = mprAlloc(ctx, sizeof(MprKeyValue));
     if (pair == 0) {
         return 0;
     }
