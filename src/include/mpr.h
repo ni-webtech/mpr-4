@@ -3360,6 +3360,7 @@ extern MprThreadLocal *mprCreateThreadLocal(MprCtx ctx);
 #endif
 #define MPR_ALLOC_RETURN            (32 * 1024)
 
+#if UNUSED
 /*
     MprBlk flags stored in the low bits of size
  */
@@ -3371,7 +3372,8 @@ extern MprThreadLocal *mprCreateThreadLocal(MprCtx ctx);
     Flags stored in prior 
  */
 #define MPR_ALLOC_PAD_MASK          0x7     /* Mask out pad words */
-#define MPR_ALLOC_MAX_PAD           4       /* Max pad words */
+#define MPR_ALLOC_MAX_PAD           4       /* Max pad words: trailer, children.forw, children.back, debug-trailer */
+#endif
 
 /**
     Memory Block Header
@@ -3381,7 +3383,10 @@ typedef struct MprBlk {
     struct MprBlk   *next;              /* Next sibling */
     struct MprBlk   *prev;              /* Previous sibling */
     struct MprBlk   *prior;             /* Size of block prior to this block in memory */
-    size_t          size;               /* Block length (including header) | flags */
+    size_t          size: 27;           /* Internal block length including header (max size 134217728) */
+    uint            pad:   3;           /* Max pad words: destructor, children.forw, children.back, debug-trailer */
+    uint            free:  1;           /* Block is free */
+    uint            last:  1;           /* Block is last in memory region chunk */
 #if BLD_MEMORY_DEBUG
     uint            magic;              /* Unique signature */
     int             seqno;              /* Allocation sequence number */

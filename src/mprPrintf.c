@@ -355,7 +355,6 @@ static char *sprintfCore(MprCtx ctx, char *buf, int maxsize, cchar *spec, va_lis
         fmt.endbuf = &fmt.buf[len];
         fmt.growBy = min(MPR_DEFAULT_ALLOC * 2, maxsize - len);
     }
-
     fmt.maxsize = maxsize;
     fmt.start = fmt.buf;
     fmt.end = fmt.buf;

@@ -10,23 +10,25 @@
 
 /******************************* Local Defines ********************************/
 
-#define IS_FREE(bp)             ((bp)->size & MPR_ALLOC_FREE)
-#define IS_LAST(bp)             ((bp)->size & MPR_ALLOC_LAST)
+#define IS_FREE(bp)             ((bp)->free)
+#define CLEAR_FREE(bp)          if (1) { (bp)->free = 0; } else
+#define SET_FREE(bp)            if (1) { (bp)->free = 1; } else
+
+#define IS_LAST(bp)             ((bp)->last)
+#define SET_LAST(bp)            if (1) { (bp)->last = 1; } else
 
 #define GET_BLK(ptr)            ((MprBlk*) (((char*) (ptr)) - MPR_ALLOC_HDR_SIZE))
 #define GET_PTR(bp)             ((char*) (((char*) (bp)) + MPR_ALLOC_HDR_SIZE))
-#define GET_SIZE(bp)            ((bp)->size & ~MPR_ALLOC_MASK)
+
+#define GET_SIZE(bp)            ((bp)->size)
 #define GET_USIZE(bp)           (GET_SIZE(bp) - MPR_ALLOC_HDR_SIZE - (GET_PAD(bp) * sizeof(void*)))
-#define GET_PRIOR(bp)           ((MprBlk*) (((size_t) (bp)->prior) & ~MPR_ALLOC_PAD_MASK))
+#define SET_SIZE(bp, len)       if (1) { (bp)->size = len; } else
 
-#define CLEAR_FREE(bp)          if (1) { (bp)->size &= ~MPR_ALLOC_FREE; } else
-#define SET_FREE(bp)            if (1) { (bp)->size |= MPR_ALLOC_FREE; } else
-#define SET_LAST(bp)            if (1) { (bp)->size |= MPR_ALLOC_LAST; } else
-#define SET_SIZE(bp, len)       if (1) { (bp)->size = ((bp)->size & MPR_ALLOC_MASK) | (len); } else
-
-#define GET_PAD(bp)             (((size_t) ((bp)->prior)) & MPR_ALLOC_PAD_MASK)
-#define SET_PAD(bp, padWords)   if (1) { (bp)->prior = (MprBlk*) (((size_t) (bp)->prior) | padWords); } else
-#define SET_PRIOR_REF(bp, ref)  if (1) { (bp)->prior = (MprBlk*) (((size_t) (ref)) | GET_PAD(bp)); } else
+//  MOB - loose the size_t
+#define GET_PAD(bp)             (((size_t) ((bp)->pad)))
+#define SET_PAD(bp, padWords)   if (1) { (bp)->pad = padWords; } else
+#define GET_PRIOR(bp)           ((bp)->prior)
+#define SET_PRIOR_REF(bp, ref)  if (1) { (bp)->prior = (MprBlk*) (ref); } else
 
 /*
     Trailing block. This is optional and will look like:
@@ -34,7 +36,7 @@
         Children
         Trailer
  */
-#define PAD_PTR(bp, offset) (((char*) bp) + GET_SIZE(bp) - ((offset) * sizeof(void*)))
+#define PAD_PTR(bp, offset)     (((char*) bp) + GET_SIZE(bp) - ((offset) * sizeof(void*)))
 #define INIT_LIST(bp)           if (1) { bp->next = bp->prev = bp; } else
 
 #if BLD_MEMORY_DEBUG
@@ -682,10 +684,7 @@ static void enq(MprBlk *bp)
     size_t      size;
     int         index;
 
-    /*
-        Clean pad words in prior
-     */
-    bp->prior = GET_PRIOR(bp);
+    bp->pad = 0;
     SET_FREE(bp);
     
     size = GET_SIZE(bp);
@@ -797,7 +796,6 @@ static MprBlk *allocBlockFromHeap(size_t size)
         if ((heap->nextMem + size) >= heap->end) {
             gap = heap->end - heap->nextMem;
             if (gap >= (MPR_ALLOC_HDR_SIZE + MPR_ALIGN)) {
-                //  MOB -- need a convenience routine for creating blocks. Search for SET_MAGIC.
                 bp = (MprBlk*) heap->nextMem;
                 bp->size = gap;
                 SET_MAGIC(bp);
@@ -952,7 +950,7 @@ static void freeBlock(MprBlk *bp)
             heap->stats.joins++;
 #endif
         }
-#if BLD_CC_MMU
+#if BLD_CC_MMU && 0
         if (size > 25000)
         printf("Size %d / %d, free %d\n", (int) GET_SIZE(bp), MPR_ALLOC_RETURN, (int) heap->stats.bytesFree);
         if (GET_SIZE(bp) >= MPR_ALLOC_RETURN && heap->stats.bytesFree > (MPR_REGION_MIN_SIZE * 4)) {
@@ -996,7 +994,8 @@ static MprBlk *splitBlock(MprBlk *bp, size_t required, int swap)
         Save pointer to block after the split-block in memory so prior can be updated to maintain the chain
      */
     secondHalf = (MprBlk*) ((char*) bp + required);
-    secondHalf->size = spare | (IS_LAST(bp) ? MPR_ALLOC_LAST : 0);;
+    secondHalf->last = bp->last;
+    secondHalf->size = spare;
     secondHalf->next = NULL;
     secondHalf->prev = NULL;
     secondHalf->prior = bp;
@@ -1012,19 +1011,18 @@ static MprBlk *splitBlock(MprBlk *bp, size_t required, int swap)
         SET_PRIOR_REF(after, secondHalf);
     }
     bp->size = required;
+    bp->last = 0;
     mprAssert(!IS_LAST(bp));
 
 #if BLD_MEMORY_STATS
     heap->stats.splits++;
 #endif
     if (swap) {
-        mprAssert(size < MPR_ALLOC_BIG_BLOCK);
         RESET_MEM(bp);
         enq(bp);
         unlockHeap(heap);
         return secondHalf;
     } else {
-        mprAssert(size < MPR_ALLOC_BIG_BLOCK);
         RESET_MEM(secondHalf);
         enq(secondHalf);
         unlockHeap(heap);
@@ -1415,11 +1413,11 @@ static void printQueueStats()
     MprFreeBlk  *freeq;
     int         i, index, total;
 
-    mprLog(MPR, 0, "\nFree Queue Stats\n Bucket                     Size   Count        Reuse\n");
+    mprLog(MPR, 0, "\nFree Queue Stats\n Bucket                     Size   Count        Reuse");
     for (i = 0, freeq = heap->free; freeq != heap->freeEnd; freeq++, i++) {
         total += freeq->size * freeq->count;
         index = (freeq - heap->free);
-        mprLog(MPR, 0, "%7d %24lu %7d %12d\n", i, freeq->size, freeq->count, freeq->reuse);
+        mprLog(MPR, 0, "%7d %24lu %7d %12d", i, freeq->size, freeq->count, freeq->reuse);
     }
 }
 #endif /* BLD_MEMORY_STATS */
@@ -1444,13 +1442,13 @@ void mprPrintAllocReport(cchar *msg, int detail)
        percent(ap->bytesAllocated / 1024, ap->redLine / 1024));
 
     mprLog(MPR, 0, "  Memory requests        %,14Ld",                ap->requests);
-    mprLog(MPR, 0, "  O/S allocations        %d %%)",                percent(ap->allocs, ap->requests));
-    mprLog(MPR, 0, "  Block unpinns          %d %%)",                percent(ap->unpins, ap->requests));
-    mprLog(MPR, 0, "  Block reuse            %d %%)",                percent(ap->reuse, ap->requests));
-    mprLog(MPR, 0, "  Joins                  %d %%)",                percent(ap->joins, ap->requests));
-    mprLog(MPR, 0, "  Splits                 %d %%)",                percent(ap->splits, ap->requests));
-    mprLog(MPR, 0, "  Queues scanned         %d %%)",                percent(ap->queuesScanned, ap->requests));
-    mprLog(MPR, 0, "  Groups scanned         %d %%)",                percent(ap->groupsScanned, ap->requests));
+    mprLog(MPR, 0, "  O/S allocations        %d %%",                 percent(ap->allocs, ap->requests));
+    mprLog(MPR, 0, "  Block unpinns          %d %%",                 percent(ap->unpins, ap->requests));
+    mprLog(MPR, 0, "  Block reuse            %d %%",                 percent(ap->reuse, ap->requests));
+    mprLog(MPR, 0, "  Joins                  %d %%",                 percent(ap->joins, ap->requests));
+    mprLog(MPR, 0, "  Splits                 %d %%",                 percent(ap->splits, ap->requests));
+    mprLog(MPR, 0, "  Queues scanned         %d %%",                 percent(ap->queuesScanned, ap->requests));
+    mprLog(MPR, 0, "  Groups scanned         %d %%",                 percent(ap->groupsScanned, ap->requests));
 
     if (detail) {
         printQueueStats();

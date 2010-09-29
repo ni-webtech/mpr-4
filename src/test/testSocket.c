@@ -195,7 +195,7 @@ static void testClient(MprTestGroup *gp)
         mprFree(sp);
         
     } else if (warnNoInternet++ == 0) {
-        mprPrintf(gp, "%12s Skipping test %s.testClient: no internet connection.\n", "[Notice]", gp->fullName);
+        mprPrintf(gp, "\n%12s Skipping test %s.testClient: no internet connection.\n", "[Notice]", gp->fullName);
     }
 }
 
@@ -309,7 +309,7 @@ static void testClientSslv4(MprTestGroup *gp)
         }
         
     } else if (warnNoInternet++ == 0) {
-        mprPrintf(gp, "%12s Skipping test %s.testClientSslv4: no internet connection.\n", "[Notice]", gp->fullName);
+        mprPrintf(gp, "\n%12s Skipping test %s.testClientSslv4: no internet connection.\n", "[Notice]", gp->fullName);
     }
 }
 
