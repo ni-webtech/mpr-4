@@ -93,7 +93,7 @@ int benchMain(int argc, char *argv[])
 
     thread = mprCreateThread(mpr, "bench", (MprThreadProc) doBenchmark, (void*) mpr, 0);
     mprStartThread(thread);
-
+    
     while (!testComplete) {
         mprServiceEvents(mpr, mprGetDispatcher(mpr), 250, 0);
     }
@@ -299,6 +299,13 @@ static void testMalloc()
     endMark(ctx, start, count, "Alloc malloc+free(8)");
     mprPrintf(ctx, "\n");
 
+#if TEmP || 1
+    ctx1 = mprAllocCtx(ctx, 0);
+    for (i = 0; i < count; i++) {
+        ptr = mprAlloc(ctx1, 1024);
+        memset(ptr, 0, 1024);
+    }
+#endif
     /*
         mprAlloc(1)
      */

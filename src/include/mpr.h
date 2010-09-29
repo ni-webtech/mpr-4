@@ -3325,9 +3325,6 @@ extern MprThreadLocal *mprCreateThreadLocal(MprCtx ctx);
     #define BLD_MEMORY_STATS        0
 #endif
 
-#define MPR_ALLOC_MAGIC             0xe814ecab
-#define MPR_ALLOC_MIN_SPLIT         (32 + MPR_ALLOC_HDR_SIZE)
-
 #if MPR_64_BIT
     #define MPR_ALIGN               16
     #define MPR_ALIGN_SHIFT         4
@@ -3336,6 +3333,9 @@ extern MprThreadLocal *mprCreateThreadLocal(MprCtx ctx);
     #define MPR_ALIGN_SHIFT         3
 #endif
 
+#define MPR_ALLOC_MAGIC             0xe814ecab
+#define MPR_ALLOC_MIN_SPLIT         (32 + MPR_ALLOC_HDR_SIZE)
+
 #define MPR_ALLOC_ALIGN(x)          (((x) + MPR_ALIGN - 1) & ~(MPR_ALIGN - 1))
 #define MPR_ALLOC_HDR_SIZE          (MPR_ALLOC_ALIGN(sizeof(struct MprBlk)))
 #define MPR_ALLOC_MAX_STEPS         16
@@ -3343,7 +3343,6 @@ extern MprThreadLocal *mprCreateThreadLocal(MprCtx ctx);
 #define MPR_PAGE_ALIGN(x, psize)    (((x) + (psize) - 1) & ~(psize - 1))
 #define MPR_PAGE_ALIGNED(x, psize)  (((x) % psize) == 0)
 
-#define MPR_ALLOC_BIG_BLOCK         (64 * 1024)
 #define MPR_ALLOC_BUCKET_SHIFT      4
 #define MPR_ALLOC_NUM_BITS          (sizeof(void*) * 8)
 #define MPR_ALLOC_NUM_GROUPS        (MPR_ALLOC_NUM_BITS - MPR_ALLOC_BUCKET_SHIFT - MPR_ALIGN_SHIFT - 1)
@@ -3427,7 +3426,7 @@ typedef struct MprTrailer {
 /*
     Memory allocation control
  */
-typedef struct MprAlloc {
+typedef struct MprAllocStats {
     int             inAllocException;       /* Recursive protect */
     uint            pageSize;               /* System page size */
     uint            errors;                 /* Allocation errors */
@@ -3441,25 +3440,14 @@ typedef struct MprAlloc {
     size_t          user;                   /* System user RAM size in bytes (excludes kernel) */
 #if BLD_MEMORY_STATS
     uint64          allocs;                 /* Count of times a block was split Calls to allocate memory from the O/S */
-    uint64          groupsScanned;          /* Count of times a queue group was searched looking for a free block */
     uint64          joins;                  /* Count of times a block was joined (coalesced) with its neighbours */
     uint64          requests;               /* Count of memory requests */
     uint64          reuse;                  /* Count of times a block was reused from a free queue */
     uint64          splits;                 /* Count of times a block was split */
     uint64          scans;                  /* Count of times a queue was searched looking for a free block */
-    uint64          queuesScanned;          /* Count of times a queue was searched looking for a free block */
     uint64          unpins;                 /* Count of times a block was unpinned and released back to the O/S */
 #endif
-#if UNUSED && BLD_MEMORY_DEBUG
-    uint            parentFound;            /* Count of times a direct parent was found */
-    uint            prevFound;              /* Count of times a direct prev was found */
-    uint            siblings;               /* Total count of siblings stepped over */
-    uint            parentLinks;            /* Total count of parent links */
-    uint            prevLinks;              /* Total count of prev links */
-    uint            links;                  /* Total calls to link */
-    uint            unlinks;                /* Total calls to unlink */
-#endif
-} MprAlloc;
+} MprAllocStats;
 
 
 /**
@@ -3482,21 +3470,24 @@ typedef struct MprFreeBlk {
 typedef struct MprHeap {
     MprFreeBlk      free[MPR_ALLOC_NUM_GROUPS * MPR_ALLOC_NUM_BUCKETS];
     MprFreeBlk      *freeEnd;
-    size_t          freeMap;
+    size_t          groupMap;
+    size_t          bucketMap[MPR_ALLOC_NUM_GROUPS];
+    uint            pageSize;               /* System page size */
 
+#if UNUSED
     char            *memory;                /* Heap memory data */
     char            *nextMem;               /* Pointer to next free byte in memory */
     char            *end;                   /* Pointer to one past last free byte */
+#endif
 
     MprSpin         spin;
-    MprAlloc        stats;
+    MprAllocStats   stats;
     MprAllocFailure notifier;               /* Memory allocation failure callback */
     MprCtx          notifierCtx;            /* Memory block context for the notifier */
     int             allocPolicy;            /* Memory allocation depletion policy */
+    int             chunkSize;              /* O/S memory allocation chunk size */
     int             hasError;               /* Memory allocation error */
-#if BLD_MEMORY_DEBUG
     int             nextSeqno;              /* Next sequence number */
-#endif
 } MprHeap;
 
 
@@ -3535,6 +3526,7 @@ extern void mprInitBlock(MprCtx ctx, void *ptr, size_t size);
 #define MPR_ALLOC_CHILDREN      0x1         /* Allocate a context that can contain children */
 #define MPR_ALLOC_DESTRUCTOR    0x2         /* Reserve room for a destructor */
 #define MPR_ALLOC_ZERO          0x4         /* Zero memory */
+#define MPR_ALLOC_PAD_MASK      0x3         /* Flags that impact padding */
 
 #if DOXYGEN
 typedef void *Type;
@@ -3907,7 +3899,7 @@ extern void mprSetAllocPolicy(MprCtx ctx, int policy);
     Return the current allocation memory statistics block
     @returns a reference to the allocation memory statistics. Do not modify its contents.
  */
-extern MprAlloc *mprGetAllocStats();
+extern MprAllocStats *mprGetAllocStats();
 
 /**
     Return the amount of memory currently used by the application. On Unix, this returns the total application memory

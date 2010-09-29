@@ -26,6 +26,7 @@ manageFeatures()
         echo "Disabling --enable-rom"
         BLD_FEATURE_ROMFS=0
     fi
+    BLD_FEATURE_ASSERT=$BLD_DEBUG
 }
 
 
