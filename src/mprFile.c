@@ -24,7 +24,7 @@ MprFile *mprAttachFd(MprCtx ctx, int fd, cchar *name, int omode)
 
     fs = mprLookupFileSystem(ctx, "/");
 
-    file = mprAllocZeroed(ctx, sizeof(MprFile));
+    file = mprAllocObj(ctx, MprFile, NULL);
     if (file) {
         file->fd = fd;
         file->fileSystem = fs;

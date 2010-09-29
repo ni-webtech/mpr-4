@@ -30,8 +30,7 @@ MprHashTable *mprCreateHash(MprCtx ctx, int hashSize)
 {
     MprHashTable    *table;
 
-    table = mprAllocCtx(ctx, sizeof(MprHashTable));
-    if (table == 0) {
+    if ((table = mprAllocObj(ctx, MprHashTable, NULL)) == 0) {
         return 0;
     }
     /*  TODO -- should support rehashing */
@@ -43,7 +42,6 @@ MprHashTable *mprCreateHash(MprCtx ctx, int hashSize)
     table->count = 0;
     table->hashSize = hashSize;
     table->buckets = (MprHash**) mprAllocZeroed(table, sizeof(MprHash*) * hashSize);
-
     if (table->buckets == 0) {
         mprFree(table);
         return 0;
@@ -96,7 +94,7 @@ MprHash *mprAddHash(MprHashTable *table, cchar *key, cvoid *ptr)
     /*
         New entry
      */
-    sp = mprAllocCtx(table, sizeof(MprHash));
+    sp = mprAllocObj(table, MprHash, NULL);
     if (sp == 0) {
         return 0;
     }
@@ -120,7 +118,7 @@ MprHash *mprAddDuplicateHash(MprHashTable *table, cchar *key, cvoid *ptr)
     MprHash     *sp;
     int         index;
 
-    sp = mprAllocCtx(table, sizeof(MprHash));
+    sp = mprAllocObj(table, MprHash, NULL);
     if (sp == 0) {
         return 0;
     }

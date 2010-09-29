@@ -99,7 +99,6 @@ void mprSetBufMax(MprBuf *bp, int max)
 }
 
 
-#if UNUSED
 char *mprStealBuf(MprCtx ctx, MprBuf *bp)
 {
     char    *str;
@@ -111,7 +110,6 @@ char *mprStealBuf(MprCtx ctx, MprBuf *bp)
     bp->buflen = 0;
     return str;
 }
-#endif
 
 
 /*

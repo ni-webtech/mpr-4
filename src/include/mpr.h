@@ -203,21 +203,20 @@ extern void mprBreakpoint();
 /***************************************************** Memory Contexts *****************************************************/
 /**
     Memory Allocation Service.
-    @description The MPR provides a memory manager that sits above malloc. This layer provides arena and slab 
-    based allocations with a tree structured allocation mechanism. The goal of the layer is to provide 
-    a fast, secure, scalable memory allocator suited for embedded applications in multithreaded environments. 
+    @description The MPR provides a memory allocator to replace malloc. This allocator is a faster than most mallocs
+    and provides deterministic constant time O(1) allocation and free services. It provides very low fragmentation, 
+    and immediate accurate coalescing. 
     \n\n
-    By using a tree structured network of memory contexts, error recovery in applications and memory freeing becomes
-    much easier and more reliable. When a memory block is allocated a parent memory block must be specified. When
-    the parent block is freed, all its children are automatically freed. 
+    Memory is allocated using a tree structured network of memory contexts -- all blocks have a parent. Freeing the
+    parent will free all children automatically. 
     \n\n
-    The MPR handles memory allocation errors globally. The application can configure a memory limits and redline
+    The allocator handles memory allocation errors globally. The application can configure a memory limits and redline
     so that memory depletion can be proactively detected and handled. This relieves most cost from detecting and
     handling allocation errors. 
     @stability Evolving
     @defgroup MprMem MprMem
     @see MprCtx, mprFree, mprRealloc, mprAlloc, mprAllocWithDestructor, mprAllocWithDestructorZeroed, mprAllocZeroed, 
-        mprGetParent, mprCreate, mprSetAllocLimits, mprAllocObjWithDestructor, mprAllocObjWithDestructorZeroed,
+        mprIsParent, mprCreate, mprSetAllocLimits, mprAllocObjWithDestructor, mprAllocObjWithDestructorZeroed,
         mprHasAllocError mprResetAllocError, mprMemdup, mprStrndup, mprMemcpy, 
  */
 typedef struct MprMem { int dummy; } MprMem;
@@ -655,7 +654,6 @@ extern MprBuf *mprDupBuf(MprCtx ctx, MprBuf *orig);
  */
 extern void mprSetBufMax(MprBuf *buf, int maxSize);
 
-#if UNUSED
 /**
     Steal the buffer memory from a buffer
     @description Steal ownership of the buffer memory from the buffer structure. All MPR memory is owned by a 
@@ -668,7 +666,6 @@ extern void mprSetBufMax(MprBuf *buf, int maxSize);
     @ingroup MprBuf
  */
 extern char *mprStealBuf(MprCtx ctx, MprBuf *buf);
-#endif
 
 /**
     Add a null character to the buffer contents.
@@ -3367,7 +3364,8 @@ extern MprThreadLocal *mprCreateThreadLocal(MprCtx ctx);
     MprBlk flags stored in the low bits of size
  */
 #define MPR_ALLOC_FREE              0x1     /* Block is free */
-#define MPR_ALLOC_MASK              0x1     /* Select bits above */
+#define MPR_ALLOC_LAST              0x2     /* Last block in region */
+#define MPR_ALLOC_MASK              0x3     /* Select bits above */
 
 /*  
     Flags stored in prior 
@@ -3424,7 +3422,7 @@ typedef struct MprTrailer {
 /*
     Memory allocation control
  */
-typedef struct MprAllocStats {
+typedef struct MprAlloc {
     int             inAllocException;       /* Recursive protect */
     uint            pageSize;               /* System page size */
     uint            errors;                 /* Allocation errors */
@@ -3456,7 +3454,7 @@ typedef struct MprAllocStats {
     uint            links;                  /* Total calls to link */
     uint            unlinks;                /* Total calls to unlink */
 #endif
-} MprAllocStats;
+} MprAlloc;
 
 
 /**
@@ -3486,7 +3484,7 @@ typedef struct MprHeap {
     char            *end;                   /* Pointer to one past last free byte */
 
     MprSpin         spin;
-    MprAllocStats   stats;
+    MprAlloc        stats;
     MprAllocFailure notifier;               /* Memory allocation failure callback */
     MprCtx          notifierCtx;            /* Memory block context for the notifier */
     int             allocPolicy;            /* Memory allocation depletion policy */
@@ -3724,9 +3722,11 @@ extern char *mprStrdup(MprCtx ctx, cchar *str);
 #endif
 
 #define mprAllocObj(ctx, type, destructor) \
-    ((type*) mprUpdateDestructor(\
-        mprAllocBlock(ctx, sizeof(type), MPR_ALLOC_DESTRUCTOR | MPR_ALLOC_CHILDREN | MPR_ALLOC_ZERO), \
-        (MprDestructor) destructor))
+    ((destructor != NULL) ? \
+        ((type*) mprUpdateDestructor( \
+            mprAllocBlock(ctx, sizeof(type), MPR_ALLOC_DESTRUCTOR | MPR_ALLOC_CHILDREN | MPR_ALLOC_ZERO), \
+            (MprDestructor) destructor)) : \
+        (type*) mprAllocBlock(ctx, sizeof(type), MPR_ALLOC_CHILDREN | MPR_ALLOC_ZERO))
 
 #define mprAllocWithDestructor(ctx, size, destructor) \
     mprUpdateDestructor(mprAllocBlock(ctx, size, MPR_ALLOC_DESTRUCTOR | MPR_ALLOC_CHILDREN), (MprDestructor) destructor)
@@ -3804,15 +3804,14 @@ extern void *mprUpdateDestructor(void *ptr, MprDestructor destructor);
  */
 //MOB extern void mprFreeChildren(MprCtx ctx);
 
-#if UNUSED
 /**
     Reassign a block from its current parent context to a new context.
     @param ctx Any memory context allocated by mprAlloc or mprCreate. This will be the new owning context of the ptr.
     @param ptr Pointer to a block to reassign.
  */
-extern int mprStealBlock(MprCtx ctx, cvoid *ptr);
-#endif
+extern void mprStealBlock(MprCtx ctx, cvoid *ptr);
 
+#if UNUSED
 /**
     Reparent a block
     @description Moves a block from one memory context to another within a single memory heap or arena. This call
@@ -3821,6 +3820,7 @@ extern int mprStealBlock(MprCtx ctx, cvoid *ptr);
     @param ptr Pointer to memory block.
  */
 extern int mprReparent(MprCtx ctx, cvoid *ptr);
+#endif
 
 /**
     Validate a memory block and issue asserts if the memory block or any children blocks do not validate
@@ -3856,18 +3856,17 @@ extern void mprResetAllocError();
     Set an memory allocation error condition on a memory context. This will set an allocation error condition on the
     given context and all its parents. This way, you can test the ultimate parent and detect if any memory allocation
     errors have occurred.
-    @param ctx Any memory context allocated by the MPR.
  */
-extern void mprSetAllocError(MprCtx ctx);
+extern void mprSetAllocError();
 
 /**
-    Get the memory parent of a block.
+    Test if the given context is the parent of a block.
     @description Return the parent memory context for a block
     @param ctx Any memory context allocated by mprAlloc or mprCreate.
-    @return Return the memory owning this block
+    @return Return true if ctx is the parent of ptr
     @ingroup MprMem
  */
-extern void *mprGetParent(cvoid *);
+bool mprIsParent(MprCtx ctx, cvoid *ptr);
 
 /**
     Test is a pointer is a valid memory context. This is used to test if a block has been dynamically allocated.
@@ -3903,7 +3902,7 @@ extern void mprSetAllocPolicy(MprCtx ctx, int policy);
     Return the current allocation memory statistics block
     @returns a reference to the allocation memory statistics. Do not modify its contents.
  */
-extern MprAllocStats *mprGetAllocStats();
+extern MprAlloc *mprGetAllocStats();
 
 /**
     Return the amount of memory currently used by the application. On Unix, this returns the total application memory
@@ -3934,6 +3933,21 @@ extern void mprVirtFree(void *ptr, size_t size);
     @returns the page size in bytes
  */
 extern int mprGetPageSize();
+
+/**
+    Get the allocated size of a memory block
+    @param ptr Any memory allocated by mprAlloc
+    @returns the block size in bytes
+ */
+extern int mprGetBlockSize(cvoid *ptr);
+
+
+//  MOB -- temp
+extern MprBlk *mprGetEndChildren(cvoid *ptr);
+extern MprBlk *mprGetFirstChild(cvoid *ptr);
+extern MprBlk *mprGetNextChild(cvoid *ptr);
+#define MPR_GET_PTR(bp) ((void*) (((char*) (bp)) + MPR_ALLOC_HDR_SIZE))
+#define MPR_GET_BLK(ptr) ((MprBlk*) (((char*) (ptr)) - MPR_ALLOC_HDR_SIZE))
 
 /******************************************************** I/O Wait *********************************************************/
 /*

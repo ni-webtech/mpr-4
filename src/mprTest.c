@@ -32,8 +32,7 @@ MprTestService *mprCreateTestService(MprCtx ctx)
 {
     MprTestService      *sp;
 
-    sp = mprAllocCtx(ctx, sizeof(MprTestService));
-    if (sp == 0) {
+    if ((sp = mprAllocObj(ctx, MprTestService, NULL)) == 0) {
         return 0;
     }
     sp->iterations = 1;
@@ -329,6 +328,7 @@ int mprRunTests(MprTestService *sp)
             return MPR_ERR_CANT_INITIALIZE;
         }
     }
+    // mprSleep(sp, 999999);
 
     /*
         Wait for all the threads to complete (simple but effective)

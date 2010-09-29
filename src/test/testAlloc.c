@@ -81,8 +81,7 @@ static void testAllocIntegrityChecks(MprTestGroup *gp)
     int     i, j, size, count;
 
     /*
-        Basic integrity test. Allocate blocks of 64 bytes and fill and test
-        each block
+        Basic integrity test. Allocate blocks of 64 bytes and fill and test each block
      */
     size = 64;
     count = sizeof(blocks) / sizeof(void*);
@@ -127,6 +126,39 @@ static void testAllocIntegrityChecks(MprTestGroup *gp)
 }
 
 
+static void testAllocLongevity(MprTestGroup *gp)
+{
+    void    *blocks[256];
+    uchar   *cp;
+    int     i, j, k, size, count, len, actual, iter;
+
+    /*
+        Basic integrity test. Allocate blocks of 64 bytes and fill and test each block
+     */
+    size = 16 * 1024;
+    count = sizeof(blocks) / sizeof(void*);
+    memset(blocks, 0, sizeof(blocks));
+
+    iter = (gp->service->testDepth * 8 + 1) * 8192;
+    for (i = 0; i < iter; i++) {
+        k = random() % count;
+        // print("%d - %d\n", i, k);
+        if ((cp = blocks[k]) != NULL) {
+            len = mprGetBlockSize(cp);
+            for (j = 0; j < len; j++) {
+                mprAssert(cp[j] == k);
+            }
+            mprFree(cp);
+        }
+        len = random() % size;
+        cp = blocks[k] = mprAlloc(gp, len);
+        actual = mprGetBlockSize(cp);
+        mprAssert(actual >= len);
+        memset(cp, k, actual);
+    }
+}
+
+
 /*
     TODO missing tests for:
     - triggering memoryFailure callbacks
@@ -136,6 +168,7 @@ static void testAllocIntegrityChecks(MprTestGroup *gp)
 MprTestDef testAlloc = {
     "alloc", 0, 0, 0,
     {
+        MPR_TEST(0, testAllocLongevity),
         MPR_TEST(0, testBasicAlloc),
         MPR_TEST(1, testLotsOfAlloc),
         MPR_TEST(2, testBigAlloc),

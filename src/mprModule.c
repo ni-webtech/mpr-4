@@ -17,7 +17,7 @@ MprModuleService *mprCreateModuleService(MprCtx ctx)
     MprModuleService    *ms;
     cchar               *searchPath;
 
-    ms = mprAllocCtx(ctx, sizeof(MprModuleService));
+    ms = mprAllocObj(ctx, MprModuleService, NULL);
     if (ms == 0) {
         return 0;
     }
@@ -101,8 +101,7 @@ MprModule *mprCreateModule(MprCtx ctx, cchar *name, void *data)
     ms = mpr->moduleService;
     mprAssert(ms);
 
-    mp = mprAllocCtx(mpr, sizeof(MprModule));
-    if (mp == 0) {
+    if ((mp = mprAllocObj(mpr, MprModule, NULL)) == 0) {
         return 0;
     }
     index = mprAddItem(ms->modules, mp);

@@ -25,9 +25,10 @@ MprEvent *mprCreateEvent(MprDispatcher *dispatcher, cchar *name, int period, Mpr
 {
     MprEvent    *event;
 
-    if ((event = mprAllocObj(dispatcher, MprEvent, eventDestructor)) != 0) {
-        mprInitEvent(dispatcher, event, name, period, proc, data, flags);
+    if ((event = mprAllocObj(dispatcher, MprEvent, eventDestructor)) == 0) {
+        return 0;
     }
+    mprInitEvent(dispatcher, event, name, period, proc, data, flags);
     mprQueueEvent(dispatcher, event);
     return event;
 }

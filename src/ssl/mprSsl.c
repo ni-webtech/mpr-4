@@ -63,6 +63,8 @@ MprModule *mprSslInit(MprCtx ctx, cchar *path)
 }
 
 
+static int dummySslDestructor() { return 0; }
+
 /*
     Create a new Ssl context object
  */
@@ -71,10 +73,9 @@ MprSsl *mprCreateSsl(MprCtx ctx)
     MprSsl      *ssl;
 
     /*
-        Create with a null destructor so the provider can install one if required
+        Create with a dummy destructor. Providers will can install one if required.
      */
-    ssl =  mprAllocCtx(ctx, sizeof(MprSsl));
-    if (ssl == 0) {
+    if ((ssl = mprAllocObj(ctx, MprSsl, dummySslDestructor)) == 0) {
         return 0;
     }
     ssl->ciphers = mprStrdup(ssl, MPR_DEFAULT_CIPHER_SUITE);

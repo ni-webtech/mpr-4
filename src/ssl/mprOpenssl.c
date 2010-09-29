@@ -164,8 +164,7 @@ static MprSocketProvider *createOpenSslProvider(MprCtx ctx)
     MprSocketProvider   *provider;
 
     mpr = mprGetMpr(ctx);
-    provider = mprAlloc(mpr, sizeof(MprSocketProvider));
-    if (provider == 0) {
+    if ((provider = mprAllocObj(mpr, MprSocketProvider, NULL)) == NULL) {
         return 0;
     }
     provider->name = "OpenSsl";

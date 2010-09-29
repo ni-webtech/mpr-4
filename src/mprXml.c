@@ -28,7 +28,7 @@ MprXml *mprXmlOpen(MprCtx ctx, int initialSize, int maxSize)
 {
     MprXml  *xp;
 
-    xp = mprAllocZeroed(ctx, sizeof(MprXml));
+    xp = mprAllocObj(ctx, MprXml, NULL);
     
     xp->inBuf = mprCreateBuf(xp, MPR_XML_BUFSIZE, MPR_XML_BUFSIZE);
     xp->tokBuf = mprCreateBuf(xp, initialSize, maxSize);

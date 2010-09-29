@@ -27,7 +27,7 @@ MprList *mprCreateList(MprCtx ctx)
 {
     MprList     *lp;
 
-    lp = mprAllocCtx(ctx, sizeof(MprList));
+    lp = mprAllocObj(ctx, MprList, NULL);
     if (lp == 0) {
         return 0;
     }

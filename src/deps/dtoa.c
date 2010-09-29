@@ -186,7 +186,7 @@
 
 #if EMBEDTHIS || 1
     #include    "mpr.h"
-    #if WIN
+    #if WIN || WINCE
         typedef int int32_t;
         typedef unsigned int uint32_t;
     #endif
