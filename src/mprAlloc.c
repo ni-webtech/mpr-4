@@ -104,7 +104,8 @@ static int          padding[] = { TRAILER_SIZE, CHILDREN_SIZE, DESTRUCTOR_SIZE, 
 
 #if !MACOSX && !FREEBSD
     #define NEED_FFSL 1
-    #if BLD_HOST_CPU_ARCH == MPR_CPU_IX86 || BLD_HOST_CPU_ARCH == MPR_CPU_IX64
+    #if WIN
+    #elif BLD_HOST_CPU_ARCH == MPR_CPU_IX86 || BLD_HOST_CPU_ARCH == MPR_CPU_IX64
         #define USE_FFSL_ASM_X86 1
     #endif
     static inline int ffsl(ulong word);
@@ -524,7 +525,7 @@ int mprIsValid(cvoid *ptr)
 }
 
 
-static int dummyAllocDestructor() { return 0; }
+static int dummyAllocDestructor(MprCtx ctx) { return 0; }
 
 
 void *mprUpdateDestructor(void *ptr, MprDestructor destructor)
@@ -586,7 +587,7 @@ static int initFree()
 static int getQueueIndex(size_t size, int roundup)
 {   
     size_t      usize, asize;
-    int         aligned;
+    int         aligned, bucket, group, index, msb;
     
     mprAssert(MPR_ALLOC_ALIGN(size) == size);
 
@@ -598,15 +599,15 @@ static int getQueueIndex(size_t size, int roundup)
     asize = usize >> MPR_ALIGN_SHIFT;
 
     //  Zero based most significant bit
-    int msb = flsl(asize) - 1;
+    msb = flsl(asize) - 1;
 
-    int group = max(0, msb - MPR_ALLOC_BUCKET_SHIFT + 1);
+    group = max(0, msb - MPR_ALLOC_BUCKET_SHIFT + 1);
     mprAssert(group < MPR_ALLOC_NUM_GROUPS);
 
-    int bucket = (asize >> max(0, group - 1)) & (MPR_ALLOC_NUM_BUCKETS - 1);
+    bucket = (asize >> max(0, group - 1)) & (MPR_ALLOC_NUM_BUCKETS - 1);
     mprAssert(bucket < MPR_ALLOC_NUM_BUCKETS);
 
-    int index = (group * MPR_ALLOC_NUM_BUCKETS) + bucket;
+    index = (group * MPR_ALLOC_NUM_BUCKETS) + bucket;
     mprAssert(index < (heap->freeEnd - heap->free));
     
 #if BLD_MEMORY_STATS
@@ -726,10 +727,12 @@ static void deq(MprBlk *bp)
 
     fb = (MprFreeBlk*) bp;
 #if BLD_MEMORY_STATS
+{
     MprFreeBlk *freeq = getQueue(bp->size);
     freeq->reuse++;
     freeq->count--;
     mprAssert(freeq->count >= 0);
+}
 #endif
     fb->back->forw = fb->forw;
     fb->forw->back = fb->back;
