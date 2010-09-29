@@ -10,13 +10,6 @@
 
 /******************************* Local Defines ********************************/
 
-#define IS_FREE(bp)             ((bp)->free)
-#define CLEAR_FREE(bp)          if (1) { (bp)->free = 0; } else
-#define SET_FREE(bp)            if (1) { (bp)->free = 1; } else
-
-#define IS_LAST(bp)             ((bp)->last)
-#define SET_LAST(bp)            if (1) { (bp)->last = 1; } else
-
 #define GET_BLK(ptr)            ((MprBlk*) (((char*) (ptr)) - MPR_ALLOC_HDR_SIZE))
 #define GET_PTR(bp)             ((char*) (((char*) (bp)) + MPR_ALLOC_HDR_SIZE))
 
@@ -72,7 +65,6 @@
 #define CHECK_PTR(ptr)          CHECK_BLK(GET_BLK(ptr))
 
 /*
-    Must have low bit clear so that IS_FREE can work on reset memory
     WARN: this will reset pad words too.
  */
 #define RESET_MEM(bp)           if (bp != GET_BLK(MPR)) { \
@@ -235,7 +227,7 @@ int mprFree(void *ptr)
     if (likely(ptr)) {
         bp = GET_BLK(ptr);
         CHECK_BLK(bp);
-        mprAssert(!IS_FREE(bp));
+        mprAssert(!bp->free);
 
         if (unlikely(HAS_DESTRUCTOR(bp)) && (GET_DESTRUCTOR(bp))(ptr) != 0) {
             /* Destructor aborted the free */
@@ -685,7 +677,7 @@ static void enq(MprBlk *bp)
     int         index;
 
     bp->pad = 0;
-    SET_FREE(bp);
+    bp->free = 1;
     
     size = GET_SIZE(bp);
     index = getQueueIndex(size, 0);
@@ -724,7 +716,7 @@ static void deq(MprBlk *bp)
 #if BLD_MEMORY_DEBUG
     fb->forw = fb->back = NULL;
 #endif
-    CLEAR_FREE(bp);
+    bp->free = 0;
     heap->stats.bytesFree -= size;
     mprAssert(heap->stats.bytesFree >= 0);
 }
@@ -790,7 +782,7 @@ static MprBlk *allocBlockFromHeap(size_t size)
         if ((bp = (MprBlk*) virtAlloc(size)) == 0) {
             return 0;
         }
-        SET_LAST(bp);
+        bp->last = 1;
     } else {
         lockHeap(heap);
         if ((heap->nextMem + size) >= heap->end) {
@@ -799,7 +791,7 @@ static MprBlk *allocBlockFromHeap(size_t size)
                 bp = (MprBlk*) heap->nextMem;
                 bp->size = gap;
                 SET_MAGIC(bp);
-                SET_LAST(bp);
+                bp->last = 1;
                 enq(bp);
             }
             if (growHeap(size) < 0) {
@@ -814,7 +806,7 @@ static MprBlk *allocBlockFromHeap(size_t size)
             The second and subsequent blocks point back to their prior allocation.
          */
         if ((heap->end - heap->nextMem) < sizeof(MprBlk)) {
-            SET_LAST(bp);
+            bp->last = 1;
         } else {
             ((MprBlk*) heap->nextMem)->prior = bp;
         }
@@ -875,7 +867,7 @@ static MprBlk *getBlock(size_t usize, int padWords, int flags)
 
 static MprBlk *getNextBlockInMemory(MprBlk *bp) 
 {
-    if (!IS_LAST(bp)) {
+    if (!bp->last) {
         return (MprBlk*) ((char*) bp + GET_SIZE(bp));
     }
     return 0;
@@ -915,14 +907,14 @@ static void freeBlock(MprBlk *bp)
          */
         lockHeap(heap);
         next = getNextBlockInMemory(bp);
-        if (next && IS_FREE(next)) {
+        if (next && next->free) {
             BREAKPOINT(next);
             deq(next);
             if ((after = getNextBlockInMemory(next)) != 0) {
                 mprAssert(GET_PRIOR(after) == next);
                 SET_PRIOR_REF(after, bp);
             } else {
-                SET_LAST(bp);
+                bp->last = 1;
             }
             size += GET_SIZE(next);
             SET_SIZE(bp, size);
@@ -934,14 +926,14 @@ static void freeBlock(MprBlk *bp)
             Coalesce with previous if it is also free.
          */
         prev = getPrevBlockInMemory(bp);
-        if (prev && IS_FREE(prev)) {
+        if (prev && prev->free) {
             BREAKPOINT(prev);
             deq(prev);
             if ((after = getNextBlockInMemory(bp)) != 0) {
                 mprAssert(GET_PRIOR(after) == bp);
                 SET_PRIOR_REF(after, prev);
             } else {
-                SET_LAST(prev);
+                prev->last = 1;
             }
             size += GET_SIZE(prev);
             SET_SIZE(prev, size);
@@ -1012,7 +1004,6 @@ static MprBlk *splitBlock(MprBlk *bp, size_t required, int swap)
     }
     bp->size = required;
     bp->last = 0;
-    mprAssert(!IS_LAST(bp));
 
 #if BLD_MEMORY_STATS
     heap->stats.splits++;

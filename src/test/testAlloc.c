@@ -132,12 +132,13 @@ static void testAllocLongevity(MprTestGroup *gp)
     uchar   *cp;
     int     i, j, k, size, count, len, actual, iter;
 
+#if UNUSED & MOB
     void *p1 = mprAlloc(gp, 60 * 1024);
     void *p2 = mprAlloc(gp, 60 * 1024);
     mprFree(p1);
     mprFree(p2);
-    mprPrintAllocReport("", 1);
-
+#endif
+    
     /*
         Basic integrity test. Allocate blocks of 64 bytes and fill and test each block
      */
