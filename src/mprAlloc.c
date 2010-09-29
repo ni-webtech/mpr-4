@@ -82,7 +82,7 @@
     Set this address to break when this address is allocated or freed
  */
 static MprBlk *stopAlloc;
-static int stopSeqno = -1;      // MOB - 5953;
+static int stopSeqno = -1;
 
 #else
 #define BREAKPOINT(bp)
@@ -118,10 +118,7 @@ static MprBlk *splitBlock(MprBlk *bp, size_t required, int swap);
 static void getSystemInfo();
 static void unlinkChild(MprBlk *bp);
 static void *virtAlloc(size_t size);
-
-#if FUTURE
 static void virtFree(MprBlk *bp);
-#endif
 
 #if BLD_WIN_LIKE
 static int winPageModes(int flags);
@@ -785,6 +782,7 @@ static void unlinkChild(MprBlk *bp)
 static MprBlk *allocBlockFromHeap(size_t size)
 {
     MprBlk  *bp;
+    size_t  gap;
 
     mprAssert(size > 0);
 
@@ -797,6 +795,15 @@ static MprBlk *allocBlockFromHeap(size_t size)
     } else {
         lockHeap(heap);
         if ((heap->nextMem + size) >= heap->end) {
+            gap = heap->end - heap->nextMem;
+            if (gap >= (MPR_ALLOC_HDR_SIZE + MPR_ALIGN)) {
+                //  MOB -- need a convenience routine for creating blocks. Search for SET_MAGIC.
+                bp = (MprBlk*) heap->nextMem;
+                bp->size = gap;
+                SET_MAGIC(bp);
+                SET_LAST(bp);
+                enq(bp);
+            }
             if (growHeap(size) < 0) {
                 unlockHeap(heap);
                 return 0;
@@ -818,7 +825,8 @@ static MprBlk *allocBlockFromHeap(size_t size)
 #endif
         unlockHeap(heap);
     }
-    SET_SIZE(bp, size);
+    bp->size = size;
+    SET_MAGIC(bp);
     return bp;
 }
 
@@ -857,7 +865,7 @@ static MprBlk *getBlock(size_t usize, int padWords, int flags)
             memset(PAD_PTR(bp, padWords), 0, padWords * sizeof(void*));
             SET_TRAILER(bp, MPR_ALLOC_MAGIC);
         }
-        SET_MAGIC(bp);
+        //MOB  SET_MAGIC(bp);
         mprAssert(GET_PAD(bp) == padWords);
     }
 #if BLD_MEMORY_STATS
@@ -944,7 +952,9 @@ static void freeBlock(MprBlk *bp)
             heap->stats.joins++;
 #endif
         }
-#if BLD_CC_MMU && 0
+#if BLD_CC_MMU
+        if (size > 25000)
+        printf("Size %d / %d, free %d\n", (int) GET_SIZE(bp), MPR_ALLOC_RETURN, (int) heap->stats.bytesFree);
         if (GET_SIZE(bp) >= MPR_ALLOC_RETURN && heap->stats.bytesFree > (MPR_REGION_MIN_SIZE * 4)) {
             virtFree(bp);
         }
@@ -1003,23 +1013,26 @@ static MprBlk *splitBlock(MprBlk *bp, size_t required, int swap)
     }
     bp->size = required;
     mprAssert(!IS_LAST(bp));
-    unlockHeap(heap);
 
 #if BLD_MEMORY_STATS
     heap->stats.splits++;
 #endif
     if (swap) {
-        //  MOB -- should just call enq here ****** 
-        freeBlock(bp);
+        mprAssert(size < MPR_ALLOC_BIG_BLOCK);
+        RESET_MEM(bp);
+        enq(bp);
+        unlockHeap(heap);
         return secondHalf;
+    } else {
+        mprAssert(size < MPR_ALLOC_BIG_BLOCK);
+        RESET_MEM(secondHalf);
+        enq(secondHalf);
+        unlockHeap(heap);
+        return bp;
     }
-    //  MOB -- should just call enq here
-    freeBlock(secondHalf);
-    return bp;
 }
 
 
-#if FUTURE
 static void virtFree(MprBlk *bp)
 {
     MprBlk      *after, *tail;
@@ -1043,7 +1056,7 @@ static void virtFree(MprBlk *bp)
         }
         ptr = aligned;
         size -= gap;
-        SET_SIZE(bp, gap);
+        bp->size = gap;
         enq(bp);
     }
     gap = size % pageSize;
@@ -1053,7 +1066,7 @@ static void virtFree(MprBlk *bp)
         }
         size -= gap;
         tail = (MprBlk*) (ptr + size);
-        SET_SIZE(tail, gap);
+        tail->size = gap;
         enq(tail);
     }
 
@@ -1070,7 +1083,6 @@ static void virtFree(MprBlk *bp)
     heap->stats.bytesAllocated -= size;
 #endif
 }
-#endif
 
 
 /*

@@ -3358,7 +3358,7 @@ extern MprThreadLocal *mprCreateThreadLocal(MprCtx ctx);
 #else
     #define MPR_REGION_MAX_SIZE     MPR_REGION_MIN_SIZE
 #endif
-#define MPR_ALLOC_RETURN            MPR_REGION_MIN_SIZE
+#define MPR_ALLOC_RETURN            (32 * 1024)
 
 /*
     MprBlk flags stored in the low bits of size

@@ -328,7 +328,7 @@ int mprRunTests(MprTestService *sp)
             return MPR_ERR_CANT_INITIALIZE;
         }
     }
-    // mprSleep(sp, 999999);
+    mprSleep(sp, 999999);
 
     /*
         Wait for all the threads to complete (simple but effective)
