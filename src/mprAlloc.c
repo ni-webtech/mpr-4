@@ -930,78 +930,9 @@ static void virtFree(MprBlk *bp)
     heap->stats.bytesAllocated -= bp->size;
     mprAssert(heap->stats.bytesAllocated >= 0);
     unlockHeap(heap);
+
     mprVirtFree((void*) bp, bp->size);
 }
-
-
-#if SAVE
-static void virtFree(MprBlk *bp)
-{
-    MprBlk      *tail;
-    size_t      size, ptr, aligned, gap;
-
-    ptr = (size_t) bp;
-    aligned = MPR_PAGE_ALIGN(ptr, heap->pageSize);
-    gap = aligned - ptr;
-    size = bp->size;
-size_t osize = bp->size;
-size_t optr = (size_t) bp;
-
-    lockHeap(heap);
-    after = GET_NEXT(tail);
-
-    if (gap) {
-        if (gap < (MPR_ALLOC_HDR_SIZE + MPR_ALIGN)) {
-            /* Gap must be useful -- If too small, preserve one page with it */
-            aligned += heap->pageSize;
-            gap += heap->pageSize;
-        }
-        ptr = aligned;
-        size -= gap;
-        mprAssert(ptr == (size_t) bp + gap);
-        mprAssert(size + gap == bp->size);
-        if (bp->prior) mprAssert(!bp->last);
-        bp->size = gap;
-        bp->last = 1;
-        bp->pad = 0;
-        enq(bp);
-    } else {
-        if ((prev = bp->prior) != NULL) {
-            mprAssert(!prev->last);
-            prev->last = 1;
-        }
-        bp = NULL;
-    }
-    gap = size % heap->pageSize;
-    if (gap) {
-        if (gap < (MPR_ALLOC_HDR_SIZE + MPR_ALIGN)) {
-            gap += heap->pageSize;
-        }
-        size -= gap;
-        tail = (MprBlk*) (ptr + size);
-        INIT_BLK(tail, gap);
-        //  MOB -- just for check below
-        tail->pad = 0;
-        tail->last = 1;
-        tail->prior = NULL;
-        enq(tail);
-    } else {
-        if (after) {
-            mprAssert(after->prior);
-            after->prior = NULL;
-        }
-        tail = NULL;
-    }
-    mprAssert(size <= osize);
-    mprAssert(ptr >= optr);
-
-    mprVirtFree((void*) ptr, size);
-    if (bp) CHECK_BLK(bp);
-    if (tail) CHECK_BLK(tail);
-//  MOB -- move before virt free and delete these checks
-    unlock(heap);
-}
-#endif
 
 
 /*
@@ -1088,7 +1019,7 @@ static void allocException(size_t size, bool granted)
             break;
         case MPR_ALLOC_POLICY_RESTART:
             mprError(MPR, "Application restarting due to memory allocation failure.");
-            //  MOB - Other systems
+            //  TODO - Other systems
 #if BLD_UNIX_LIKE
             execv(MPR->argv[0], MPR->argv);
 #endif
