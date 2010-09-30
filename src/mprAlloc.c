@@ -900,7 +900,11 @@ static void freeBlock(MprBlk *bp)
         mprAssert(after->prior == bp);
     }
 #endif
-#if BLD_CC_MMU
+#if BLD_CC_MMU && !BLD_WIN_LIKE
+    /*
+        Windows can't easily release portions of a prior virtual allocation. You can decommit memory on windows, 
+        but the pages are still part of the virtual address space -- so this will result in a loss of virtual space.
+     */
     if (bp->size >= MPR_ALLOC_RETURN && heap->stats.bytesFree > (MPR_REGION_MIN_SIZE * 4)) {
         INC(unpins);
         unlockHeap(heap);
@@ -962,7 +966,7 @@ static void virtFree(MprBlk *bp)
     size_t      gap;
 
     /*
-        If block is non-aligned, split the portion off the front sand save
+        If block is non-aligned, split the front portion and save
      */
     gap = MPR_PAGE_ALIGN(bp, heap->pageSize) - (size_t) bp;
     if (gap) {
