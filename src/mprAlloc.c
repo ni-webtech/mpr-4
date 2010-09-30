@@ -461,10 +461,12 @@ MprBlk *mprGetEndChildren(cvoid *ptr)
 }
 
 
+#if BLD_WIN_LIKE
 Mpr *mprGetMpr(MprCtx ctx)
 {
     return MPR;
 }
+#endif
 
 
 int mprGetPageSize()
