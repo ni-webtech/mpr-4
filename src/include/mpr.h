@@ -3487,17 +3487,16 @@ extern struct Mpr *mprCreateAllocService(MprAllocFailure cback, MprDestructor de
  */
 extern void mprSetAllocCallback(MprCtx ctx, MprAllocFailure cback);
 
-#if UNUSED
 /**
     Initialize a block of memory
     @description This call initializes a static block of memory so it can be used as a memory context for subseqent
         allocations.
-    @param ctx Any memory context allocated by mprAlloc or mprCreate.
+    @param ctx Any memory context allocated by mprAlloc or mprCreate. This will become the parent of the block
     @param ptr Pointer to the memory block
     @param size Size of the memory block
+    @param flags Allocation flags
  */
-extern void mprInitBlock(MprCtx ctx, void *ptr, size_t size);
-#endif
+extern void mprInitBlock(MprCtx ctx, void *ptr, size_t size, int flags);
 
 #define MPR_ALLOC_CHILDREN      0x1         /* Allocate a context that can contain children */
 #define MPR_ALLOC_DESTRUCTOR    0x2         /* Reserve room for a destructor */

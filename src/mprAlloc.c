@@ -53,8 +53,8 @@
 
 #if BLD_MEMORY_DEBUG
 #define BREAKPOINT(bp)          breakpoint(bp);
-#define CHECK_BLK(bp)           check(bp)
-#define CHECK_PTR(ptr)          CHECK_BLK(GET_BLK(ptr))
+#define CHECK(bp)           check(bp)
+#define CHECK_PTR(ptr)          CHECK(GET_BLK(ptr))
 
 /*
     WARN: this will reset pad words too.
@@ -74,7 +74,7 @@ static int stopSeqno = -1;
 
 #else
 #define BREAKPOINT(bp)
-#define CHECK_BLK(bp)           
+#define CHECK(bp)           
 #define CHECK_PTR(bp)           
 #define RESET_MEM(bp)           
 #define SET_MAGIC(bp)
@@ -84,11 +84,11 @@ static int stopSeqno = -1;
 #endif
 
 #if BLD_MEMORY_STATS
-#define INC(field)              if (1) { heap->stats.field++; } else 
-#define LOCKED_INC(field)       if (1) { lockHeap(heap); heap->stats.field++; unlockHeap(heap);} else 
+    #define INC(field)          if (1) { heap->stats.field++; } else 
+    #define LOCKED_INC(field)   if (1) { lockHeap(heap); heap->stats.field++; unlockHeap(heap);} else 
 #else
-#define INC(field)              
-#define LOCKED_INC(field)
+    #define INC(field)              
+    #define LOCKED_INC(field)
 #endif
 
 #define lockHeap(heap)          mprSpinLock(&heap->spin);
@@ -101,6 +101,24 @@ static int stopSeqno = -1;
 Mpr                 *MPR;
 static MprHeap      *heap;
 static int          padding[] = { TRAILER_SIZE, CHILDREN_SIZE, DESTRUCTOR_SIZE, DESTRUCTOR_SIZE };
+
+#if !MACOSX && !FREEBSD
+    static inline ffsl(long word);
+    static inline flsl(long word);
+    #define NEED_FFSL 1
+    #if BLD_HOST_CPU_ARCH == MPR_CPU_IX86 || BLD_HOST_CPU_ARCH == MPR_CPU_IX64
+        #define USE_FFSL_ASM_X86 1
+    #endif
+    static inline int ffsl(ulong word);
+    static inline int ffsl(ulong word);
+#elif BSD_EMULATION
+    #define ffsl FFSL
+    #define flsl FLSL
+    #define NEED_FFSL 1
+    #define USE_FFSL_ASM_X86 1
+    static inline int ffsl(ulong word);
+    static inline int flsl(ulong word);
+#endif
 
 /***************************** Forward Declarations ***************************/
 
@@ -193,6 +211,23 @@ Mpr *mprCreateAllocService(MprAllocFailure cback, MprDestructor destructor)
 }
 
 
+void mprInitBlock(MprCtx ctx, void *ptr, size_t size, int flags)
+{
+    MprBlk      *bp, *parent;
+
+    parent = GET_BLK(ctx);
+    CHECK(parent);
+
+    bp = GET_BLK(ptr);
+    INIT_BLK(bp, size);
+
+    memset(ptr, 0, size);
+    bp->last = 1;
+    bp->prior = NULL;
+    linkChild(parent, bp);
+}
+
+
 void *mprAllocBlock(MprCtx ctx, size_t usize, int flags)
 {
     MprBlk      *bp, *parent, *children;
@@ -203,7 +238,7 @@ void *mprAllocBlock(MprCtx ctx, size_t usize, int flags)
         ctx = MPR->ctx;
     }
     parent = GET_BLK(ctx);
-    CHECK_BLK(parent);
+    CHECK(parent);
     
     if ((bp = getBlock(usize, padding[flags & MPR_ALLOC_PAD_MASK], flags)) != 0) {
         if (flags & MPR_ALLOC_CHILDREN) {
@@ -228,7 +263,7 @@ int mprFree(void *ptr)
 
     if (likely(ptr)) {
         bp = GET_BLK(ptr);
-        CHECK_BLK(bp);
+        CHECK(bp);
         mprAssert(!bp->free);
 
         if (unlikely(HAS_DESTRUCTOR(bp)) && (GET_DESTRUCTOR(bp))(ptr) != 0) {
@@ -250,7 +285,7 @@ static void freeChildren(MprBlk *bp)
     MprBlk      *children, *child, *next;
     int         count;
 
-    CHECK_BLK(bp);
+    CHECK(bp);
     if ((children = GET_CHILDREN(bp)) != NULL) {
         count = 0;
         for (child = children->next; child != children; child = next) {
@@ -639,7 +674,7 @@ static MprBlk *searchFree(size_t size)
                     deq(bp);
                     INC(reuse);
                     unlockHeap(heap);
-                    CHECK_BLK(bp);
+                    CHECK(bp);
                     return bp;
                 }
                 bucketMap &= ~(((size_t) 1) << bucket);
@@ -713,7 +748,7 @@ static void linkChild(MprBlk *parent, MprBlk *bp)
 {
     MprBlk  *children;
 
-    CHECK_BLK(bp);
+    CHECK(bp);
     mprAssert(bp != parent);
 
     if (!HAS_CHILDREN(parent)) {
@@ -733,7 +768,7 @@ static void linkChild(MprBlk *parent, MprBlk *bp)
 
 static void unlinkChild(MprBlk *bp)
 {
-    CHECK_BLK(bp);
+    CHECK(bp);
 
     lockHeap(heap);
     bp->prev->next = bp->next;
@@ -772,7 +807,7 @@ static MprBlk *getBlock(size_t usize, int padWords, int flags)
         SET_TRAILER(bp, MPR_ALLOC_MAGIC);
     }
     LOCKED_INC(requests);
-    CHECK_BLK(bp);
+    CHECK(bp);
     return bp;
 }
 
@@ -857,7 +892,7 @@ static MprBlk *splitBlock(MprBlk *bp, size_t required, int qspare)
     mprAssert(bp);
     mprAssert(required > 0);
 
-    CHECK_BLK(bp);
+    CHECK(bp);
     BREAKPOINT(bp);
 
     size = bp->size;
@@ -880,8 +915,8 @@ static MprBlk *splitBlock(MprBlk *bp, size_t required, int qspare)
     if (qspare) {
         enq(spare);
     }
-    CHECK_BLK(spare);
-    CHECK_BLK(bp);
+    CHECK(spare);
+    CHECK(bp);
     unlockHeap(heap);
     return (qspare) ? NULL : spare;
 }
@@ -986,7 +1021,7 @@ static MprBlk *growHeap(size_t required)
     }
     INIT_BLK(bp, size);
     bp->last = 1;
-    CHECK_BLK(bp);
+    CHECK(bp);
     return bp;
 }
 
@@ -1235,6 +1270,63 @@ size_t mprGetUsedMemory()
     return heap->stats.bytesAllocated;
 #endif
 }
+
+
+#if NEED_FFSL
+#if USE_FFSL_ASM_X86 1
+
+static inline int ffsl(ulong x)
+{
+    long    r;
+
+    asm("bsf %1,%0\n\t"
+        "jnz 1f\n\t"
+        "mov $-1,%0\n"
+        "1:" : "=r" (r) : "rm" (x));
+    return (int) r + 1;
+}
+
+static inline int flsl(ulong x)
+{
+    long r;
+
+    asm("bsr %1,%0\n\t"
+        "jnz 1f\n\t"
+        "mov $-1,%0\n"
+        "1:" : "=r" (r) : "rm" (x));
+    return (int) r + 1;
+}
+#else /* USE_FFSL_ASM_X86 */ 
+
+/* 
+    Find first bit set in word 
+ */
+static inline int ffsl(ulong word)
+{
+    int     b;
+
+    for (b = 0; word; word >>= 1, b++) {
+        if (word & 0x1) {
+            b++;
+            break;
+        }
+    }
+    return b;
+}
+
+
+/* 
+    Find last bit set in word 
+ */
+static inline int flsl(ulong word)
+{
+    int     b;
+
+    for (b = 0; word; word >>= 1, b++) ;
+    return b;
+}
+#endif /* !USE_FFSL_ASM_X86 */
+#endif /* NEED_FFSL */
 
 
 #if BLD_MEMORY_STATS

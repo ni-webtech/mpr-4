@@ -238,7 +238,7 @@ static void testMalloc()
     mprPrintf(ctx, "Alloc/Malloc overhead\n");
     count = 200000 * iterations;
 
-#if MALLOC || 1
+#if MALLOC 
     /*
         malloc(1)
      */

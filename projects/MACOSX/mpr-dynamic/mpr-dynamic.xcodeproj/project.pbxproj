@@ -135,7 +135,6 @@
 /* Begin PBXFileReference section */
 		C90A19EE0FD6DCAD006A9E86 /* libmpr.dylib */ = {isa = PBXFileReference; explicitFileType = "compiled.mach-o.dylib"; includeInIndex = 0; path = libmpr.dylib; sourceTree = BUILT_PRODUCTS_DIR; };
 		C90A19FE0FD6DCD8006A9E86 /* libmprssl.dylib */ = {isa = PBXFileReference; explicitFileType = "compiled.mach-o.dylib"; includeInIndex = 0; path = libmprssl.dylib; sourceTree = BUILT_PRODUCTS_DIR; };
-		C90A1A0A0FD6DD14006A9E86 /* buildConfig.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = buildConfig.h; path = ../../../buildConfig.h; sourceTree = SOURCE_ROOT; };
 		C90A1A0F0FD6DD2D006A9E86 /* mpr.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = mpr.h; path = ../../../src/include/mpr.h; sourceTree = SOURCE_ROOT; };
 		C90A1A100FD6DD2D006A9E86 /* mprOs.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = mprOs.h; path = ../../../src/include/mprOs.h; sourceTree = SOURCE_ROOT; };
 		C90A1A110FD6DD2D006A9E86 /* mprSsl.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = mprSsl.h; path = ../../../src/include/mprSsl.h; sourceTree = SOURCE_ROOT; };
@@ -177,7 +176,6 @@
 		C90A1A8F0FD6DFC2006A9E86 /* pcre.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = pcre.h; path = ../../../src/include/pcre.h; sourceTree = SOURCE_ROOT; };
 		C90A1ACE0FD6E2A4006A9E86 /* testMpr */ = {isa = PBXFileReference; explicitFileType = "compiled.mach-o.executable"; includeInIndex = 0; path = testMpr; sourceTree = BUILT_PRODUCTS_DIR; };
 		C90A1ADF0FD6E2EF006A9E86 /* charGen.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; name = charGen.c; path = ../../../src/utils/charGen.c; sourceTree = SOURCE_ROOT; };
-		C90A1AE00FD6E2EF006A9E86 /* http.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; name = http.c; path = ../../../src/utils/http.c; sourceTree = SOURCE_ROOT; };
 		C90A1AE10FD6E2EF006A9E86 /* makerom.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; name = makerom.c; path = ../../../src/utils/makerom.c; sourceTree = SOURCE_ROOT; };
 		C90A1AE30FD6E319006A9E86 /* testAlloc.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; name = testAlloc.c; path = ../../../src/test/testAlloc.c; sourceTree = SOURCE_ROOT; };
 		C90A1AE40FD6E319006A9E86 /* testBuf.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; name = testBuf.c; path = ../../../src/test/testBuf.c; sourceTree = SOURCE_ROOT; };
@@ -277,7 +275,6 @@
 				C90A1A110FD6DD2D006A9E86 /* mprSsl.h */,
 				C90A1A120FD6DD2D006A9E86 /* mprTest.h */,
 				C90A1A130FD6DD2D006A9E86 /* mprTune.h */,
-				C90A1A0A0FD6DD14006A9E86 /* buildConfig.h */,
 			);
 			name = Headers;
 			sourceTree = "<group>";
@@ -380,7 +377,6 @@
 			isa = PBXGroup;
 			children = (
 				C90A1ADF0FD6E2EF006A9E86 /* charGen.c */,
-				C90A1AE00FD6E2EF006A9E86 /* http.c */,
 				C90A1AE10FD6E2EF006A9E86 /* makerom.c */,
 			);
 			name = utils;
