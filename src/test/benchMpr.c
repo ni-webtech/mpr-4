@@ -10,6 +10,7 @@
 
 /********************************** Locals ************************************/
 
+static int      testAllocOnly = 0;      /* Test alloc only  */
 static int      iterations = 1;         /* Benchmark iterations */
 static int      workers = 0;            /* Number of worker threads */
 
@@ -61,6 +62,8 @@ int benchMain(int argc, char *argv[])
                 iterations = atoi(argv[++nextArg]);
             }
 
+        } else if (strcmp(argp, "--alloc") == 0 || strcmp(argp, "-a") == 0) {
+            testAllocOnly++;
         } else if (strcmp(argp, "--workers") == 0 || strcmp(argp, "-w") == 0) {
             if (nextArg >= argc) {
                 err++;
@@ -133,94 +136,95 @@ static void doBenchmark(Mpr *mpr, void *thread)
     MprMutex        *lock;
 
     ctx = mprAllocCtx(mpr, 0);
-    complete = mprCreateCond(ctx);
     mprPrintf(ctx, "Group\t%-30s\t%13s\t%12s\n", "Benchmark", "Microsec", "Elapsed-sec");
+    complete = mprCreateCond(ctx);
 
     testMalloc();
 
-    /*
-        Locking primitives
-     */
-    mprPrintf(ctx, "Lock Benchmarks\n");
-    lock = mprCreateLock(ctx);
-    count = 5000000 * iterations;
-    start = startMark(ctx);
-    for (i = 0; i < count; i++) {
-        mprLock(lock);
-        mprUnlock(lock);
-    }
-    endMark(ctx, start, count, "Mutex lock|unlock");
-    mprFree(lock);
+    if (!testAllocOnly) {
+        /*
+            Locking primitives
+         */
+        mprPrintf(ctx, "Lock Benchmarks\n");
+        lock = mprCreateLock(ctx);
+        count = 5000000 * iterations;
+        start = startMark(ctx);
+        for (i = 0; i < count; i++) {
+            mprLock(lock);
+            mprUnlock(lock);
+        }
+        endMark(ctx, start, count, "Mutex lock|unlock");
+        mprFree(lock);
 
-    /*
-        Condition signal / wait
-     */
-    mprPrintf(ctx, "Cond Benchmarks\n");
-    count = 1000000 * iterations;
-    start = startMark(ctx);
-    mprResetCond(complete);
-    for (i = 0; i < count; i++) {
-        mprSignalCond(complete);
+        /*
+            Condition signal / wait
+         */
+        mprPrintf(ctx, "Cond Benchmarks\n");
+        count = 1000000 * iterations;
+        start = startMark(ctx);
+        mprResetCond(complete);
+        for (i = 0; i < count; i++) {
+            mprSignalCond(complete);
+            mprWaitForCond(complete, -1);
+        }
+        endMark(ctx, start, count, "Cond signal|wait");
+
+        /*
+            List
+         */
+        mprPrintf(ctx, "List Benchmarks\n");
+        count = 20000000 * iterations;
+        list = mprCreateList(ctx);
+        start = startMark(ctx);
+        for (i = 0; i < count; i++) {
+            mprAddItem(list, (void*) (long) i);
+            mprRemoveItem(list, (void*) (long) i);
+        }
+        endMark(ctx, start, count, "Link insert|remove");
+        mprFree(list);
+
+        /*
+            Events
+         */
+        mprPrintf(ctx, "Event Benchmarks\n");
+        mprResetCond(complete);
+        count = 100000 * iterations;
+        markCount = count;
+        start = startMark(ctx);
+        dispatcher = mprGetDispatcher(ctx);
+        for (i = 0; i < count; i++) {
+            mprCreateEvent(dispatcher, "eventBenchmark", 0, eventCallback, (void*) (long) i, 0);
+        }
         mprWaitForCond(complete, -1);
+        endMark(ctx, start, count, "Event (create|run|delete)");
+
+
+        /*
+            Test timer creation, run and delete (make a million timers!)
+         */
+        mprPrintf(ctx, "Timer\n");
+        mprResetCond(complete);
+        count = 50000 * iterations;
+        markCount = count;
+        start = startMark(ctx);
+        for (i = 0; i < count; i++) {
+            mprCreateTimerEvent(mprGetDispatcher(ctx), "timerBenchmark", 0, timerCallback, (void*) (long) i, 0);
+        }
+        mprWaitForCond(complete, -1);
+        endMark(ctx, start, count, "Timer (create|delete)");
+
+        /*
+            Malloc (1K)
+         */
+        mprPrintf(ctx, "Malloc 1K Benchmarks\n");
+        count = 2000000 * iterations;
+        start = startMark(ctx);
+        for (i = 0; i < count; i++) {
+            mp = mprAlloc(ctx, 1024);
+            mprFree(mp);
+        }
+        endMark(ctx, start, count, "Alloc mprAlloc(1K)|mprFree");
     }
-    endMark(ctx, start, count, "Cond signal|wait");
-
-    /*
-        List
-     */
-    mprPrintf(ctx, "List Benchmarks\n");
-    count = 20000000 * iterations;
-    list = mprCreateList(ctx);
-    start = startMark(ctx);
-    for (i = 0; i < count; i++) {
-        mprAddItem(list, (void*) (long) i);
-        mprRemoveItem(list, (void*) (long) i);
-    }
-    endMark(ctx, start, count, "Link insert|remove");
-    mprFree(list);
-
-    /*
-        Events
-     */
-    mprPrintf(ctx, "Event Benchmarks\n");
-    mprResetCond(complete);
-    count = 100000 * iterations;
-    markCount = count;
-    start = startMark(ctx);
-    dispatcher = mprGetDispatcher(ctx);
-    for (i = 0; i < count; i++) {
-        mprCreateEvent(dispatcher, "eventBenchmark", 0, eventCallback, (void*) (long) i, 0);
-    }
-    mprWaitForCond(complete, -1);
-    endMark(ctx, start, count, "Event (create|run|delete)");
-
-
-    /*
-        Test timer creation, run and delete (make a million timers!)
-     */
-    mprPrintf(ctx, "Timer\n");
-    mprResetCond(complete);
-    count = 50000 * iterations;
-    markCount = count;
-    start = startMark(ctx);
-    for (i = 0; i < count; i++) {
-        mprCreateTimerEvent(mprGetDispatcher(ctx), "timerBenchmark", 0, timerCallback, (void*) (long) i, 0);
-    }
-    mprWaitForCond(complete, -1);
-    endMark(ctx, start, count, "Timer (create|delete)");
-
-    /*
-        Malloc (1K)
-     */
-    mprPrintf(ctx, "Malloc 1K Benchmarks\n");
-    count = 2000000 * iterations;
-    start = startMark(ctx);
-    for (i = 0; i < count; i++) {
-        mp = mprAlloc(ctx, 1024);
-        mprFree(mp);
-    }
-    endMark(ctx, start, count, "Alloc mprAlloc(1K)|mprFree");
-
     testComplete = 1;
     mprFree(ctx);
 }
@@ -233,6 +237,16 @@ static void testMalloc()
     size_t      base;
     char        *ptr;
     int         count, i;
+
+#if UNUSED && KEEP
+    /*
+        Demonstrate validation checking if end of block is overwritten. 
+        Must build with debug on and MPR_ALLOC_VERIFY enabled in mpr.h
+     */
+    ptr = mprAlloc(mpr, 1024);
+    memset(ptr, 0, 1024 + (2 * sizeof(void*)));
+    mprFree(ptr);
+#endif
 
     ctx = mprAllocCtx(mpr, 0);
     mprPrintf(ctx, "Alloc/Malloc overhead\n");

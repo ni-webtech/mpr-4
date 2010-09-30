@@ -799,7 +799,9 @@ static MprBlk *getBlock(size_t usize, int padWords, int flags)
     size_t      maxBlock, size;
     int         bucket, group, index;
 
+	int mob = MPR_ALLOC_HDR_SIZE;
     mprAssert(usize >= 0);
+	mob = usize + MPR_ALLOC_HDR_SIZE + (padWords * sizeof(void*));
     size = MPR_ALLOC_ALIGN(usize + MPR_ALLOC_HDR_SIZE + (padWords * sizeof(void*)));
     
     if ((bp = searchFree(size, &index)) == NULL) {
@@ -829,6 +831,10 @@ static MprBlk *getBlock(size_t usize, int padWords, int flags)
         bp->pad = padWords;
         memset(PAD_PTR(bp, padWords), 0, padWords * sizeof(void*));
         SET_TRAILER(bp, MPR_ALLOC_MAGIC);
+		{ int *mp;
+		mp = PAD_PTR(bp, TRAILER_OFFSET);
+		mp = PAD_PTR(bp, TRAILER_OFFSET);
+		}
     }
     CHECK(bp);
 #if BLD_MEMORY_STATS
@@ -1412,6 +1418,12 @@ static int validBlk(MprBlk *bp)
     mprAssert(bp->magic == MPR_ALLOC_MAGIC);
     mprAssert(bp->size > 0);
     mprAssert(GET_TRAILER(bp) == MPR_ALLOC_MAGIC);
+	{
+	int m = GET_TRAILER(bp);
+	int *mp = PAD_PTR(bp, TRAILER_OFFSET);
+	int x = *mp;
+	}
+
     return (bp->magic == MPR_ALLOC_MAGIC) && (bp->size > 0) && (GET_TRAILER(bp) == MPR_ALLOC_MAGIC);
 }
 

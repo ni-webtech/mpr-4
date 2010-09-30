@@ -3328,7 +3328,8 @@ extern MprThreadLocal *mprCreateThreadLocal(MprCtx ctx);
 #if BLD_DEBUG
     #define BLD_MEMORY_DEBUG        1                   /* Fill blocks, verifies block integrity. */
     #define BLD_MEMORY_STATS        1                   /* Include memory stats routines */
-    #define BLD_MEMORY_VERIFY       0                   /* Add trailer magic word */
+    //  MOB -- reverse this
+    #define BLD_MEMORY_VERIFY       1                   /* Add trailer magic word */
 #else
     #define BLD_MEMORY_DEBUG        0
     #define BLD_MEMORY_STATS        0
