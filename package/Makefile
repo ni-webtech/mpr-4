@@ -53,7 +53,7 @@ $(ARCHIVE): Makefile $(TARGETS)
 	cp Makefile.all $(DEST)/Makefile
 	@$(call log) "[Generate]" "tar cfz $(ARCHIVE) -C $(STAGING) ."
 	tar cfz $(ARCHIVE) -C $(STAGING) .
-	rm -fr $(STAGING)
+	echo MOB - disabled for now rm -fr $(STAGING)
 
 cleanExtra:
 	rm -rf $(STAGING)
