@@ -24,7 +24,7 @@ MprOsService *mprCreateOsService(MprCtx ctx)
     /*
         Cleanup the environment. IFS is often a security hole
      */
-     putenv("IFS=\t ");
+    putenv("IFS=\t ");
     return os;
 }
 

@@ -38,6 +38,7 @@ Mpr *mprCreateEx(int argc, char **argv, MprAllocFailure cback, void *shell)
     if (cback == 0) {
         cback = memoryFailure;
     }
+    srand((uint) time(NULL));
     mpr = (Mpr*) mprCreateAllocService(cback, (MprDestructor) mprDestructor);
 
     if (mpr == 0) {

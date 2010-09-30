@@ -98,16 +98,6 @@ static int stopSeqno = -1;
 
 #define percent(a,b) ((int) ((a) * 100 / (b)))
 
-/********************************** Globals ***********************************/
-
-#if BLD_WIN_LIKE
-    __declspec(dllexport) Mpr *MPR = NULL;
-#else
-    Mpr *MPR = NULL;
-#endif
-static MprHeap      *heap;
-static int          padding[] = { TRAILER_SIZE, CHILDREN_SIZE, DESTRUCTOR_SIZE, DESTRUCTOR_SIZE };
-
 #if !MACOSX && !FREEBSD
     #define NEED_FFSL 1
     #if WIN
@@ -124,6 +114,12 @@ static int          padding[] = { TRAILER_SIZE, CHILDREN_SIZE, DESTRUCTOR_SIZE, 
     static inline int ffsl(ulong word);
     static inline int flsl(ulong word);
 #endif
+
+/********************************** Data **************************************/
+
+Mpr             *MPR;
+static MprHeap  *heap;
+static int      padding[] = { TRAILER_SIZE, CHILDREN_SIZE, DESTRUCTOR_SIZE, DESTRUCTOR_SIZE };
 
 /***************************** Forward Declarations ***************************/
 
@@ -462,6 +458,12 @@ MprBlk *mprGetEndChildren(cvoid *ptr)
         return children->prev;
     }
     return NULL;
+}
+
+
+Mpr *mprGetMpr(MprCtx ctx)
+{
+    return MPR;
 }
 
 

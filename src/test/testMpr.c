@@ -69,23 +69,19 @@ MAIN(testMain, int argc, char *argv[])
      */
     mprMakeArgv(mpr, "testMpr", (char*) argc, &argc, &argv);
 #endif
-
     ts = mprCreateTestService(mpr);
     if (ts == 0) {
         mprError(mpr, "Can't create test service");
         exit(2);
     }
-    
     if (mprParseTestArgs(ts, argc, argv) < 0) {
         mprFree(mpr);
         exit(3);
-    }
-    
+    }  
     gp = mprAddTestGroup(ts, &master);
     if (gp == 0) {
         exit(4);
     }
-
 #if BLD_FEATURE_SSL && (BLD_FEATURE_MATRIXSSL || BLD_FEATURE_OPENSSL)
     if (!mprLoadSsl(mpr, 0)) {
         exit(5);

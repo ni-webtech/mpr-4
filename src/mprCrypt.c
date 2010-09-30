@@ -142,8 +142,7 @@ static void update(MD5CONTEXT *context, uchar *input, uint inputLen);
 int mprRandom()
 {
 #if WIN
-    int x = rand_s();
-    return rand_s();
+	return rand();
 #else
     return random();
 #endif

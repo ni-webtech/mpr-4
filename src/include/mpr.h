@@ -5246,7 +5246,7 @@ typedef struct Mpr {
 
 extern void mprNop(void *ptr);
 
-#if DOXYGEN
+#if DOXYGEN || BLD_WIN_LIKE
 /**
     Return the MPR control instance.
     @description Return the MPR singleton control object. 
@@ -5256,17 +5256,6 @@ extern void mprNop(void *ptr);
     @ingroup Mpr
  */
 extern Mpr *mprGetMpr(ctx);
-#endif
-
-#if BLD_WIN_LIKE
-    #define mprGetMpr(ctx) MPR
-    #if !MPR_IN_ALLOC
-        #if BLD_MPRLIB
-            extern Mpr *MPR;
-        #else
-            __declspec(dllimport) Mpr *MPR;
-        #endif
-    #endif
 #else
     #define mprGetMpr(ctx) MPR
     extern Mpr *MPR;
