@@ -6,20 +6,18 @@
 
 /**
     @file mpr.h
-    Multithreaded Portable Runtime (MPR) is a portable runtime core for embedded applications.
+    The Multithreaded Portable Runtime (MPR) is a portable runtime core for embedded applications.
     The MPR provides management for logging, error handling, events, files, http, memory, ssl, sockets, strings, 
     xml parsing, and date/time functions. It also provides a foundation of safe routines for secure programming, 
-    that help to prevent buffer overflows and other security threats. It is correctly handles null arguments without
-    crashing. The MPR is a library and a C API that can be used in both C and C++ programs.
+    that help to prevent buffer overflows and other security threats.  The MPR is a library and a C API that can 
+    be used in both C and C++ programs.
     \n\n
-    The MPR uses by convention a set extended typedefs for common types. These include: bool, cchar, cvoid, uchar, 
-    short, ushort, int, uint, long, ulong, int64, uint64, float, and double. The cchar type is a const char, 
-    cvoid is const void, and several types have "u" prefixes to denote unsigned qualifiers.
+    The MPR uses a set extended typedefs for common types. These include: bool, cchar, cvoid, uchar, short, ushort, 
+    int, uint, long, ulong, int64, uint64, float, and double. The cchar type is a const char, cvoid is const void, 
+    and several types have "u" prefixes to denote unsigned qualifiers.
     \n\n
-    The MPR includes a memory manager to minimize memory leaks and maximize allocation efficiency. It utilizes 
-    a heap and slab allocators with tree links. All memory allocated is connected to a parent memory block thus forming a
-    tree. When any block is freed, all child blocks are also freed. Most MPR APIs take a memory parent context 
-    as the first parameter.
+    The allocator is a fast, immediate coalescing allocator that will return memory back to the O/S if not required.
+    It is optimized for frequent allocations of small blocks (< 4K) and uses a scheme of free queues for fast allocation. 
     \n\n
     Many of these APIs are not thread-safe. 
  */
@@ -217,6 +215,7 @@ extern void mprBreakpoint();
     The allocator handles memory allocation errors globally. The application can configure a memory limits and redline
     so that memory depletion can be proactively detected and handled. This relieves most cost from detecting and
     handling allocation errors. 
+
     @stability Evolving
     @defgroup MprMem MprMem
     @see MprCtx, mprFree, mprRealloc, mprAlloc, mprAllocWithDestructor, mprAllocWithDestructorZeroed, mprAllocZeroed, 
