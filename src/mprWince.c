@@ -41,7 +41,7 @@ MprOsService *mprCreateOsService(MprCtx ctx)
 {
     files = mprCreateList(ctx);
     currentDir = mprStrdup(ctx, "/");
-    return mprAllocObj(ctx, MprOsService);
+    return mprAllocObj(ctx, MprOsService, NULL);
 }
 
 

@@ -13,7 +13,7 @@
 
 MprOsService *mprCreateOsService(MprCtx ctx)
 {
-    return mprAllocObj(ctx, MprOsService);
+    return mprAllocObj(ctx, MprOsService, NULL);
 }
 
 
