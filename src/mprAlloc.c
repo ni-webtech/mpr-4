@@ -796,8 +796,8 @@ static void unlinkChild(MprBlk *bp)
 static MprBlk *getBlock(size_t usize, int padWords, int flags)
 {
     MprBlk      *bp;
-    size_t      maxBlock;
-    int         bucket, group, size, index;
+    size_t      maxBlock, size;
+    int         bucket, group, index;
 
     mprAssert(usize >= 0);
     size = MPR_ALLOC_ALIGN(usize + MPR_ALLOC_HDR_SIZE + (padWords * sizeof(void*)));
@@ -1045,7 +1045,7 @@ static MprBlk *growHeap(size_t required)
 
     mprAssert(required > 0);
 
-    size = max(required, heap->chunkSize);
+    size = max(required, (size_t) heap->chunkSize);
     size = MPR_PAGE_ALIGN(size, heap->pageSize);
 
     if ((bp = (MprBlk*) virtAlloc(size)) == NULL) {
@@ -1363,11 +1363,10 @@ static inline int flsl(ulong word)
 static void printQueueStats() 
 {
     MprFreeBlk  *freeq;
-    int         i, index, total;
+    int         i, index;
 
     mprRawLog(MPR, 0, "\nFree Queue Stats\n Bucket                     Size   Count        Reuse\n");
     for (i = 0, freeq = heap->free; freeq != heap->freeEnd; freeq++, i++) {
-        total += freeq->size * freeq->count;
         index = (freeq - heap->free);
         mprRawLog(MPR, 0, "%7d %24lu %7d %12d\n", i, freeq->size, freeq->count, freeq->reuse);
     }
