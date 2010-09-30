@@ -38,15 +38,15 @@ extern "C" {
     Event notification mechanism
  */
 #if LINUX || FREEBSD
-#define MPR_EVENT_EPOLL    1
+    #define MPR_EVENT_EPOLL     1
 #elif MACOSX || SOLARIS
-#define MPR_EVENT_KQUEUE    1
+    #define MPR_EVENT_KQUEUE    1
 #elif VXWORKS || WINCE || CYGWIN
-#define MPR_EVENT_SELECT    1
+    #define MPR_EVENT_SELECT    1
 #elif WIN
-#define MPR_EVENT_ASYNC     1
+    #define MPR_EVENT_ASYNC     1
 #else
-#define MPR_EVENT_POLL      1
+    #define MPR_EVENT_POLL      1
 #endif
 
 #if BLD_TUNE == MPR_TUNE_SIZE || DOXYGEN
@@ -71,7 +71,7 @@ extern "C" {
     #define MPR_LIST_INCR           8           /**< Default list growth inc */
     #define MPR_FILES_HASH_SIZE     29          /**< Hash size for rom file system */
     #define MPR_TIME_HASH_SIZE      67          /**< Hash size for time token lookup */
-    #define MPR_MEM_CHUNK_SIZE      (32 * 1024) /**< Memory allocation chunk size */
+    #define MPR_MEM_CHUNK_SIZE      (128 * 1024) /**< Memory allocation chunk size */
     
 #elif BLD_TUNE == MPR_TUNE_BALANCED
     
@@ -96,7 +96,7 @@ extern "C" {
     #define MPR_LIST_INCR           16
     #define MPR_FILES_HASH_SIZE     61
     #define MPR_TIME_HASH_SIZE      89
-    #define MPR_MEM_CHUNK_SIZE      (64 * 1024)
+    #define MPR_MEM_CHUNK_SIZE      (256 * 1024)
     
 #else
     /*
@@ -120,7 +120,7 @@ extern "C" {
     #define MPR_BUF_INCR            1024
     #define MPR_FILES_HASH_SIZE     61
     #define MPR_TIME_HASH_SIZE      97
-    #define MPR_MEM_CHUNK_SIZE      (256 * 1024)
+    #define MPR_MEM_CHUNK_SIZE      (1024 * 1024)
 #endif
 
 /*

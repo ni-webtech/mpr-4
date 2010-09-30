@@ -238,6 +238,7 @@ static void testMalloc()
     mprPrintf(ctx, "Alloc/Malloc overhead\n");
     count = 200000 * iterations;
 
+#if MALLOC || 1
     /*
         malloc(1)
      */
@@ -298,20 +299,15 @@ static void testMalloc()
     }
     endMark(ctx, start, count, "Alloc malloc+free(8)");
     mprPrintf(ctx, "\n");
-
-#if TEmP || 1
-    ctx1 = mprAllocCtx(ctx, 0);
-    for (i = 0; i < count; i++) {
-        ptr = mprAlloc(ctx1, 1024);
-        memset(ptr, 0, 1024);
-    }
 #endif
+
     /*
         mprAlloc(1)
      */
     base = memsize();
     start = startMark(ctx);
     ctx1 = mprAllocCtx(ctx, 0);
+#if MOB || 1
     for (i = 0; i < count; i++) {
         ptr = mprAlloc(ctx1, 1);
         memset(ptr, 0, 1);
@@ -342,6 +338,7 @@ static void testMalloc()
     }
     endMark(ctx, start, count, "Alloc mprAlloc(16)");
     mprPrintf(ctx, "\tMpr overhead per block %d (approx)\n\n", ((memsize() - base) / count) - 16);
+#endif
 
     /*
         mprAlloc(32)

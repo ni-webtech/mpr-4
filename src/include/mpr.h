@@ -3340,7 +3340,7 @@ extern MprThreadLocal *mprCreateThreadLocal(MprCtx ctx);
 #define MPR_ALLOC_HDR_SIZE          (MPR_ALLOC_ALIGN(sizeof(struct MprBlk)))
 #define MPR_ALLOC_MAX_STEPS         16
 #define MPR_ALLOC_MAP_BITS          64
-#define MPR_PAGE_ALIGN(x, psize)    (((x) + (psize) - 1) & ~(psize - 1))
+#define MPR_PAGE_ALIGN(x, psize)    (((x) + ((size_t) (psize)) - 1) & ~(((size_t) (psize)) - 1))
 #define MPR_PAGE_ALIGNED(x, psize)  (((x) % psize) == 0)
 
 #define MPR_ALLOC_BUCKET_SHIFT      4
@@ -3428,9 +3428,9 @@ typedef struct MprTrailer {
  */
 typedef struct MprAllocStats {
     int             inAllocException;       /* Recursive protect */
-    uint            pageSize;               /* System page size */
     uint            errors;                 /* Allocation errors */
     uint            numCpu;                 /* Number of CPUs */
+    size_t          pageSize;               /* System page size */
     size_t          bytesAllocated;         /* Bytes currently allocated */
     size_t          bytesFree;              /* Bytes currently allocated */
     size_t          redLine;                /* Warn if allocation exceeds this level */

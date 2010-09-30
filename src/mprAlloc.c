@@ -65,6 +65,7 @@
 #define INIT_BLK(bp, len)       if (1) { SET_MAGIC(bp); SET_SEQ(bp); bp->size = len; } else
 #define VALID_BLK(bp)           validBlk(bp)
 
+#define GET_NEXT(bp)            ((bp)->last) ? NULL : ((MprBlk*) ((char*) bp + bp->size))
 /*
     Set this address to break when this address is allocated or freed
  */
@@ -637,6 +638,7 @@ static MprBlk *searchFree(size_t size)
                     bp = (MprBlk*) freeq->forw;
                     deq(bp);
                     unlockHeap(heap);
+                    INC(reuse);
                     return bp;
                 }
                 bucketMap &= ~(((size_t) 1) << bucket);
@@ -750,32 +752,30 @@ static MprBlk *getBlock(size_t usize, int padWords, int flags)
     mprAssert(usize >= 0);
     size = MPR_ALLOC_ALIGN(usize + MPR_ALLOC_HDR_SIZE + (padWords * sizeof(void*)));
     
-    bp = searchFree(size);
-    if (bp) {
-        mprAssert(bp->size >= size);
-        if (bp->size >= (size + MPR_ALLOC_MIN_SPLIT)) {
-            splitBlock(bp, size);
+    if ((bp = searchFree(size)) == NULL) {
+        if ((bp = growHeap(size)) == NULL) {
+            return NULL;
         }
-        if (flags & MPR_ALLOC_ZERO) {
-            memset(GET_PTR(bp), 0, usize);
-        }
-        INC(reuse);
-    } else {
-        bp = growHeap(size);
     }
-    if (bp) {
-        BREAKPOINT(bp);
+    BREAKPOINT(bp);
+    mprAssert(bp->size >= size);
+    if (bp->size >= (size + MPR_ALLOC_MIN_SPLIT)) {
+        splitBlock(bp, size);
+    }
+    if (flags & MPR_ALLOC_ZERO) {
+        memset(GET_PTR(bp), 0, usize);
+    }
+    if (padWords) {
         bp->pad = padWords;
-        if (padWords) {
-            memset(PAD_PTR(bp, padWords), 0, padWords * sizeof(void*));
-            SET_TRAILER(bp, MPR_ALLOC_MAGIC);
-        }
+        memset(PAD_PTR(bp, padWords), 0, padWords * sizeof(void*));
+        SET_TRAILER(bp, MPR_ALLOC_MAGIC);
     }
     INC(requests);
     return bp;
 }
 
 
+//  MOB -- change to GET_NEXT
 static MprBlk *getNextBlockInMemory(MprBlk *bp) 
 {
     if (!bp->last) {
@@ -834,22 +834,20 @@ static void freeBlock(MprBlk *bp)
         INC(joins);
     }
 #if BLD_CC_MMU && 0
-    if (size > 25000)
-        printf("Size %d / %d, free %d\n", (int) bp->size, MPR_ALLOC_RETURN, (int) heap->stats.bytesFree);
+    int ret = MPR_ALLOC_RETURN;
+    int water = MPR_REGION_MIN_SIZE * 4;
     if (bp->size >= MPR_ALLOC_RETURN && heap->stats.bytesFree > (MPR_REGION_MIN_SIZE * 4)) {
         virtFree(bp);
-    }
+    } else
 #endif
-    /*
-        Return block to the appropriate free queue
-     */
-    enq(bp);
-
+    {
+        enq(bp);
 #if BLD_MEMORY_DEBUG
-    if ((after = getNextBlockInMemory(bp)) != 0) {
-        mprAssert(after->prior == bp);
-    }
+        if ((after = getNextBlockInMemory(bp)) != 0) {
+            mprAssert(after->prior == bp);
+        }
 #endif
+    }
     unlockHeap(heap);
 }
 
@@ -873,9 +871,6 @@ static MprBlk *splitBlock(MprBlk *bp, size_t required)
     extra = size - required;
     mprAssert(extra >= MPR_ALLOC_MIN_SPLIT);
 
-    /*
-        Save pointer to block after the split-block in memory so prior can be updated to maintain the chain
-     */
     spare = (MprBlk*) ((char*) bp + required);
     INIT_BLK(spare, extra);
     spare->last = bp->last;
@@ -889,7 +884,6 @@ static MprBlk *splitBlock(MprBlk *bp, size_t required)
         after->prior = spare;
     }
     INC(splits);
-    RESET_MEM(spare);
     enq(spare);
     unlockHeap(heap);
     return bp;
@@ -900,50 +894,42 @@ static void virtFree(MprBlk *bp)
 {
     MprBlk      *after, *tail;
     size_t      size, ptr, aligned;
-    int         gap, pageSize;
+    int         gap;
 
-    size = bp->size;
+    if ((after = getNextBlockInMemory(bp)) != NULL) {
+        after->prior = NULL;
+    }
     ptr = (size_t) bp;
-    pageSize = heap->pageSize;
-
-    //  MOB -- DEBUG this routine
-    lockHeap(heap);
-    after = getNextBlockInMemory(bp);
-
-    aligned = MPR_PAGE_ALIGN(ptr, pageSize);
+    aligned = MPR_PAGE_ALIGN(ptr, heap->pageSize);
     gap = aligned - ptr;
+    size = bp->size;
 
     //  MOB -- should try to use split?
     if (gap) {
         if (gap < (MPR_ALLOC_HDR_SIZE + MPR_ALIGN)) {
-            /* Gap must be useful. If too small, preserve one page with it */
-            aligned += pageSize;
-            gap += pageSize;
+            /* Gap must be useful -- If too small, preserve one page with it */
+            aligned += heap->pageSize;
+            gap += heap->pageSize;
         }
         ptr = aligned;
         size -= gap;
         bp->size = gap;
+        bp->last = 1;
         enq(bp);
     }
-    gap = size % pageSize;
+    gap = size % heap->pageSize;
     if (gap) {
         if (gap < (MPR_ALLOC_HDR_SIZE + MPR_ALIGN)) {
-            gap += pageSize;
+            gap += heap->pageSize;
         }
         size -= gap;
         tail = (MprBlk*) (ptr + size);
         tail->size = gap;
+        tail->last = 1;
         enq(tail);
     }
-
     mprVirtFree((void*) ptr, size);
 
-   //  MOB -- problem after unpinning, getNextBlockInMemory will segfault.
-
-    if (after) {
-        after->prior = NULL;
-    }
-    unlockHeap(heap);
     INC(unpins);
     heap->stats.bytesAllocated -= size;
 }
@@ -1000,9 +986,6 @@ static MprBlk *growHeap(size_t required)
     }
     INIT_BLK(bp, size);
     bp->last = 1;
-    if ((size - required) >= MPR_ALLOC_MIN_SPLIT) {
-        splitBlock(bp, required);
-    }
     return bp;
 }
 
