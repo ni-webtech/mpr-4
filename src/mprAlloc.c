@@ -137,7 +137,10 @@ static MprBlk *splitBlock(MprBlk *bp, size_t required, int qspare);
 static void getSystemInfo();
 static void unlinkChild(MprBlk *bp);
 static void *virtAlloc(size_t size);
+
+#if BLD_CC_MMU && !BLD_WIN_LIKE
 static void virtFree(MprBlk *bp);
+#endif
 
 #if BLD_WIN_LIKE
     static int winPageModes(int flags);
@@ -962,6 +965,7 @@ static MprBlk *splitBlock(MprBlk *bp, size_t required, int qspare)
 }
 
 
+#if BLD_CC_MMU && !BLD_WIN_LIKE
 static void virtFree(MprBlk *bp)
 {
     MprBlk      *spare, *after;
@@ -1008,6 +1012,7 @@ static void virtFree(MprBlk *bp)
 
     mprVirtFree((void*) bp, bp->size);
 }
+#endif
 
 
 /*

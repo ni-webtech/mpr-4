@@ -1315,11 +1315,9 @@ static int getSocketInfo(MprCtx ctx, cchar *ip, int port, int *family, struct so
 
     ss = mprGetMpr(ctx)->socketService;
 
-    sa = mprAllocObjZeroed(ctx, struct sockaddr_in);
-    if (sa == 0) {
+    if ((sa = mprAllocObj(ctx, struct sockaddr_in, NULL)) == NULL) {
         return MPR_ERR_NO_MEMORY;
     }
-
     memset((char*) sa, '\0', sizeof(struct sockaddr_in));
     sa->sin_family = AF_INET;
     sa->sin_port = htons((short) (port & 0xFFFF));
