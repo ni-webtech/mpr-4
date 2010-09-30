@@ -103,14 +103,12 @@ static MprHeap      *heap;
 static int          padding[] = { TRAILER_SIZE, CHILDREN_SIZE, DESTRUCTOR_SIZE, DESTRUCTOR_SIZE };
 
 #if !MACOSX && !FREEBSD
-    static inline ffsl(long word);
-    static inline flsl(long word);
     #define NEED_FFSL 1
     #if BLD_HOST_CPU_ARCH == MPR_CPU_IX86 || BLD_HOST_CPU_ARCH == MPR_CPU_IX64
         #define USE_FFSL_ASM_X86 1
     #endif
     static inline int ffsl(ulong word);
-    static inline int ffsl(ulong word);
+    static inline int flsl(ulong word);
 #elif BSD_EMULATION
     #define ffsl FFSL
     #define flsl FLSL
@@ -164,7 +162,6 @@ Mpr *mprCreateAllocService(MprAllocFailure cback, MprDestructor destructor)
 
     heap = &initHeap;
     memset(heap, 0, sizeof(MprHeap));
-    mprInitSpinLock(heap, &heap->spin);
 
     padWords = DESTRUCTOR_SIZE;
     usize = sizeof(Mpr) + (padWords * sizeof(void*));
@@ -197,6 +194,7 @@ Mpr *mprCreateAllocService(MprAllocFailure cback, MprDestructor destructor)
     heap->stats.maxMemory = INT_MAX;
     heap->stats.redLine = INT_MAX / 100 * 99;
     heap->stats.bytesAllocated += size;
+    mprInitSpinLock(heap, &heap->spin);
     getSystemInfo();
 
     if (initFree() < 0) {
@@ -1028,8 +1026,6 @@ static MprBlk *growHeap(size_t required)
 
 static void allocException(size_t size, bool granted)
 {
-    MprHeap     *hp;
-
     heap->hasError = 1;
 
     lockHeap(heap);
@@ -1040,8 +1036,8 @@ static void allocException(size_t size, bool granted)
     }
     heap->stats.inAllocException = 1;
 
-    if (hp->notifier) {
-        (hp->notifier)(hp->notifierCtx, size, heap->stats.bytesAllocated, granted);
+    if (heap->notifier) {
+        (heap->notifier)(heap->notifierCtx, size, heap->stats.bytesAllocated, granted);
     }
     heap->stats.inAllocException = 0;
     unlockHeap(heap);
@@ -1273,7 +1269,7 @@ size_t mprGetUsedMemory()
 
 
 #if NEED_FFSL
-#if USE_FFSL_ASM_X86 1
+#if USE_FFSL_ASM_X86
 
 static inline int ffsl(ulong x)
 {
