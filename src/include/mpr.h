@@ -203,12 +203,16 @@ extern void mprBreakpoint();
 /***************************************************** Memory Contexts *****************************************************/
 /**
     Memory Allocation Service.
-    @description The MPR provides a memory allocator to replace malloc. This allocator is a faster than most mallocs
-    and provides deterministic constant time O(1) allocation and free services. It provides very low fragmentation, 
-    and immediate accurate coalescing. 
+    @description The MPR provides a memory allocator to replace malloc. This allocator is a faster than most allocators
+    and provides deterministic constant time O(1) for allocation and free services. It provides very low fragmentation, 
+    and immediate accurate coalescing. It will return chunks unused memory back to the O/S.
+    \n\n
+    The allocator is optimized for frequent allocations of small blocks (< 4K) and uses a scheme of free queues for 
+    fast allocation.  Allocations are aligned on 16 byte boundaries on 64-bit systems and on 8 byte boundaries otherwise.
     \n\n
     Memory is allocated using a tree structured network of memory contexts -- all blocks have a parent. Freeing the
-    parent will free all children automatically. 
+    parent will free all children automatically. Blocks can also have a destructor function that will be invoked before
+    freeing the memory.
     \n\n
     The allocator handles memory allocation errors globally. The application can configure a memory limits and redline
     so that memory depletion can be proactively detected and handled. This relieves most cost from detecting and
@@ -3316,7 +3320,12 @@ extern void *mprGetThreadData(MprThreadLocal *tls);
 extern MprThreadLocal *mprCreateThreadLocal(MprCtx ctx);
 
 /********************************************************* Memory **********************************************************/
-
+/*
+    Replacement for malloc to support memory allocations with a parent context.
+    The allocator is a fast, immediate coalescing allocator that will return memory back to the O/S if not required.
+    It is optimized for frequent allocations of small blocks (< 4K) and uses a scheme of free queues for fast allocation. 
+    Allocations are aligned on 16 byte boundaries on 64-bit systems and on 8 byte boundaries otherwise.
+ */
 #if BLD_DEBUG
     #define BLD_MEMORY_DEBUG        1                   /* Fill blocks, verifies block integrity. */
     #define BLD_MEMORY_STATS        1                   /* Include memory stats routines */
@@ -3340,8 +3349,8 @@ extern MprThreadLocal *mprCreateThreadLocal(MprCtx ctx);
 #define MPR_ALLOC_HDR_SIZE          (MPR_ALLOC_ALIGN(sizeof(struct MprBlk)))
 #define MPR_ALLOC_MAX_STEPS         16
 #define MPR_ALLOC_MAP_BITS          64
-#define MPR_PAGE_ALIGN(x, psize)    (((x) + ((size_t) (psize)) - 1) & ~(((size_t) (psize)) - 1))
-#define MPR_PAGE_ALIGNED(x, psize)  (((x) % psize) == 0)
+#define MPR_PAGE_ALIGN(x, psize)    ((((size_t) (x)) + ((size_t) (psize)) - 1) & ~(((size_t) (psize)) - 1))
+#define MPR_PAGE_ALIGNED(x, psize)  ((((size_t) (x)) % ((size_t) (psize))) == 0)
 
 #define MPR_ALLOC_BUCKET_SHIFT      4
 #define MPR_ALLOC_NUM_BITS          (sizeof(void*) * 8)
@@ -3358,21 +3367,6 @@ extern MprThreadLocal *mprCreateThreadLocal(MprCtx ctx);
     #define MPR_REGION_MAX_SIZE     MPR_REGION_MIN_SIZE
 #endif
 #define MPR_ALLOC_RETURN            (32 * 1024)
-
-#if UNUSED
-/*
-    MprBlk flags stored in the low bits of size
- */
-#define MPR_ALLOC_FREE              0x1     /* Block is free */
-#define MPR_ALLOC_LAST              0x2     /* Last block in region */
-#define MPR_ALLOC_MASK              0x3     /* Select bits above */
-
-/*  
-    Flags stored in prior 
- */
-#define MPR_ALLOC_PAD_MASK          0x7     /* Mask out pad words */
-#define MPR_ALLOC_MAX_PAD           4       /* Max pad words: trailer, children.forw, children.back, debug-trailer */
-#endif
 
 /**
     Memory Block Header
@@ -3412,16 +3406,6 @@ typedef void (*MprAllocFailure)(MprCtx ctx, size_t size, size_t total, bool gran
     @ingroup MprMem
  */
 typedef int (*MprDestructor)(MprCtx ctx);
-
-typedef struct MprTrailer {
-    MprDestructor   destructor;
-    MprBlk          *parent;            /* Next sibling */
-    MprBlk          *prev;              /* Pointer to children */
-#if BLD_MEMORY_DEBUG
-    uint            magic;              /* Unique signature */
-#endif
-} MprTrailer;
-
 
 /*
     Memory allocation control
@@ -3472,14 +3456,6 @@ typedef struct MprHeap {
     MprFreeBlk      *freeEnd;
     size_t          groupMap;
     size_t          bucketMap[MPR_ALLOC_NUM_GROUPS];
-    uint            pageSize;               /* System page size */
-
-#if UNUSED
-    char            *memory;                /* Heap memory data */
-    char            *nextMem;               /* Pointer to next free byte in memory */
-    char            *end;                   /* Pointer to one past last free byte */
-#endif
-
     MprSpin         spin;
     MprAllocStats   stats;
     MprAllocFailure notifier;               /* Memory allocation failure callback */
@@ -3488,6 +3464,7 @@ typedef struct MprHeap {
     int             chunkSize;              /* O/S memory allocation chunk size */
     int             hasError;               /* Memory allocation error */
     int             nextSeqno;              /* Next sequence number */
+    uint            pageSize;               /* System page size */
 } MprHeap;
 
 

@@ -97,8 +97,8 @@ int benchMain(int argc, char *argv[])
     while (!testComplete) {
         mprServiceEvents(mpr, mprGetDispatcher(mpr), 250, 0);
     }
-    mprPrintf(mpr, "\n\n");
     mprPrintAllocReport("Memory Report", 0);
+    mprFree(mpr);
     return 0;
 }
 
@@ -307,7 +307,6 @@ static void testMalloc()
     base = memsize();
     start = startMark(ctx);
     ctx1 = mprAllocCtx(ctx, 0);
-#if MOB || 1
     for (i = 0; i < count; i++) {
         ptr = mprAlloc(ctx1, 1);
         memset(ptr, 0, 1);
@@ -338,7 +337,6 @@ static void testMalloc()
     }
     endMark(ctx, start, count, "Alloc mprAlloc(16)");
     mprPrintf(ctx, "\tMpr overhead per block %d (approx)\n\n", ((memsize() - base) / count) - 16);
-#endif
 
     /*
         mprAlloc(32)

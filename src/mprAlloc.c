@@ -12,6 +12,7 @@
 
 #define GET_BLK(ptr)            ((MprBlk*) (((char*) (ptr)) - MPR_ALLOC_HDR_SIZE))
 #define GET_PTR(bp)             ((char*) (((char*) (bp)) + MPR_ALLOC_HDR_SIZE))
+#define GET_NEXT(bp)            ((bp)->last) ? NULL : ((MprBlk*) ((char*) bp + bp->size))
 #define GET_USIZE(bp)           (bp->size - MPR_ALLOC_HDR_SIZE - (bp->pad * sizeof(void*)))
 #define INIT_LIST(bp)           if (1) { bp->next = bp->prev = bp; } else
 
@@ -62,10 +63,9 @@
                                     memset(GET_PTR(bp), 0xFE, bp->size - MPR_ALLOC_HDR_SIZE); } else
 #define SET_MAGIC(bp)           if (1) { (bp)->magic = MPR_ALLOC_MAGIC; } else
 #define SET_SEQ(bp)             if (1) { (bp)->seqno = heap->nextSeqno++; } else
-#define INIT_BLK(bp, len)       if (1) { SET_MAGIC(bp); SET_SEQ(bp); bp->size = len; } else
+#define INIT_BLK(bp, len)       if (1) { SET_MAGIC(bp); SET_SEQ(bp); bp->size = len; bp->pad = 0; } else
 #define VALID_BLK(bp)           validBlk(bp)
 
-#define GET_NEXT(bp)            ((bp)->last) ? NULL : ((MprBlk*) ((char*) bp + bp->size))
 /*
     Set this address to break when this address is allocated or freed
  */
@@ -79,14 +79,16 @@ static int stopSeqno = -1;
 #define RESET_MEM(bp)           
 #define SET_MAGIC(bp)
 #define SET_SEQ(bp)           
-#define INIT_BLK(bp, len)       if (1) { bp->size = len; } else
+#define INIT_BLK(bp, len)       if (1) { bp->size = len; bp->pad = 0; } else
 #define VALID_BLK(bp)           1
 #endif
 
 #if BLD_MEMORY_STATS
 #define INC(field)              if (1) { heap->stats.field++; } else 
+#define LOCKED_INC(field)       if (1) { lockHeap(heap); heap->stats.field++; unlockHeap(heap);} else 
 #else
 #define INC(field)              
+#define LOCKED_INC(field)
 #endif
 
 #define lockHeap(heap)          mprSpinLock(&heap->spin);
@@ -112,7 +114,7 @@ static int getQueueIndex(size_t size, int roundup);
 static MprBlk *growHeap(size_t size);
 static int initFree();
 static void linkChild(MprBlk *parent, MprBlk *bp);
-static MprBlk *splitBlock(MprBlk *bp, size_t required);
+static MprBlk *splitBlock(MprBlk *bp, size_t required, int qspare);
 static void getSystemInfo();
 static void unlinkChild(MprBlk *bp);
 static void *virtAlloc(size_t size);
@@ -257,6 +259,7 @@ static void freeChildren(MprBlk *bp)
                 if (HAS_CHILDREN(child)) {
                     freeChildren(child);
                 }
+                unlinkChild(child);
                 freeBlock(child);
             }
             count++;
@@ -543,9 +546,6 @@ static int initFree()
 #endif
         freeq->forw = freeq->back = freeq;
     }
-#if BLD_MEMORY_STATS && UNUSED && KEEP
-    printQueueStats();
-#endif
     return 0;
 }
 
@@ -637,8 +637,9 @@ static MprBlk *searchFree(size_t size)
                 if (freeq->forw != freeq) {
                     bp = (MprBlk*) freeq->forw;
                     deq(bp);
-                    unlockHeap(heap);
                     INC(reuse);
+                    unlockHeap(heap);
+                    CHECK_BLK(bp);
                     return bp;
                 }
                 bucketMap &= ~(((size_t) 1) << bucket);
@@ -760,7 +761,7 @@ static MprBlk *getBlock(size_t usize, int padWords, int flags)
     BREAKPOINT(bp);
     mprAssert(bp->size >= size);
     if (bp->size >= (size + MPR_ALLOC_MIN_SPLIT)) {
-        splitBlock(bp, size);
+        splitBlock(bp, size, 1);
     }
     if (flags & MPR_ALLOC_ZERO) {
         memset(GET_PTR(bp), 0, usize);
@@ -770,18 +771,9 @@ static MprBlk *getBlock(size_t usize, int padWords, int flags)
         memset(PAD_PTR(bp, padWords), 0, padWords * sizeof(void*));
         SET_TRAILER(bp, MPR_ALLOC_MAGIC);
     }
-    INC(requests);
+    LOCKED_INC(requests);
+    CHECK_BLK(bp);
     return bp;
-}
-
-
-//  MOB -- change to GET_NEXT
-static MprBlk *getNextBlockInMemory(MprBlk *bp) 
-{
-    if (!bp->last) {
-        return (MprBlk*) ((char*) bp + bp->size);
-    }
-    return 0;
 }
 
 
@@ -796,16 +788,17 @@ static void freeBlock(MprBlk *bp)
     RESET_MEM(bp);
     
     size = bp->size;
+    bp->pad = 0;
 
     /*
         Coalesce with next if it is also free.
      */
     lockHeap(heap);
-    next = getNextBlockInMemory(bp);
+    next = GET_NEXT(bp);
     if (next && next->free) {
         BREAKPOINT(next);
         deq(next);
-        if ((after = getNextBlockInMemory(next)) != NULL) {
+        if ((after = GET_NEXT(next)) != NULL) {
             mprAssert(after->prior == next);
             after->prior = bp;
         } else {
@@ -822,7 +815,7 @@ static void freeBlock(MprBlk *bp)
     if (prev && prev->free) {
         BREAKPOINT(prev);
         deq(prev);
-        if ((after = getNextBlockInMemory(bp)) != NULL) {
+        if ((after = GET_NEXT(bp)) != NULL) {
             mprAssert(after->prior == bp);
             after->prior = prev;
         } else {
@@ -833,22 +826,22 @@ static void freeBlock(MprBlk *bp)
         bp = prev;
         INC(joins);
     }
-#if BLD_CC_MMU && 0
-    int ret = MPR_ALLOC_RETURN;
-    int water = MPR_REGION_MIN_SIZE * 4;
+#if BLD_MEMORY_DEBUG
+    if ((after = GET_NEXT(bp)) != 0) {
+        mprAssert(after->prior == bp);
+    }
+#endif
+#if BLD_CC_MMU
     if (bp->size >= MPR_ALLOC_RETURN && heap->stats.bytesFree > (MPR_REGION_MIN_SIZE * 4)) {
+        INC(unpins);
+        unlockHeap(heap);
         virtFree(bp);
     } else
 #endif
     {
         enq(bp);
-#if BLD_MEMORY_DEBUG
-        if ((after = getNextBlockInMemory(bp)) != 0) {
-            mprAssert(after->prior == bp);
-        }
-#endif
+        unlockHeap(heap);
     }
-    unlockHeap(heap);
 }
 
 
@@ -856,7 +849,7 @@ static void freeBlock(MprBlk *bp)
     Split a block. Required specifies the number of bytes needed in the block. If swap, then put bp back on the free
     queue instead of the second half.
  */
-static MprBlk *splitBlock(MprBlk *bp, size_t required)
+static MprBlk *splitBlock(MprBlk *bp, size_t required, int qspare)
 {
     MprBlk      *spare, *after;
     size_t      size, extra;
@@ -880,31 +873,83 @@ static MprBlk *splitBlock(MprBlk *bp, size_t required)
     lockHeap(heap);
     bp->size = required;
     bp->last = 0;
-    if ((after = getNextBlockInMemory(spare)) != NULL) {
+    if ((after = GET_NEXT(spare)) != NULL) {
         after->prior = spare;
     }
     INC(splits);
-    enq(spare);
+    if (qspare) {
+        enq(spare);
+    }
+    CHECK_BLK(spare);
+    CHECK_BLK(bp);
     unlockHeap(heap);
-    return bp;
+    return (qspare) ? NULL : spare;
 }
 
 
 static void virtFree(MprBlk *bp)
 {
-    MprBlk      *after, *tail;
-    size_t      size, ptr, aligned;
-    int         gap;
+    MprBlk      *spare, *after;
+    size_t      gap;
 
-    if ((after = getNextBlockInMemory(bp)) != NULL) {
+    /*
+        If block is non-aligned, split the portion off the front sand save
+     */
+    gap = MPR_PAGE_ALIGN(bp, heap->pageSize) - (size_t) bp;
+    if (gap) {
+        if (gap < MPR_ALLOC_MIN_SPLIT) {
+            /* Gap must be useful -- If too small, preserve one extra page with it */
+            gap += heap->pageSize;
+        }
+        spare = splitBlock(bp, gap, 0);
+        bp->last = 1;
+        lockHeap(heap);
+        enq(bp);
+        unlockHeap(heap);
+        bp = spare;
+    }
+
+    /*
+        If non-aligned tail, then split the tail and save
+     */
+    gap = bp->size % heap->pageSize;
+    if (gap) {
+        if (gap < MPR_ALLOC_MIN_SPLIT) {
+            gap += heap->pageSize;
+        }
+        splitBlock(bp, bp->size - gap, 1);
+    }
+
+    lockHeap(heap);
+    if (bp->prior) {
+        bp->prior->last = 1;
+    }
+    if ((after = GET_NEXT(bp)) != NULL) {
         after->prior = NULL;
     }
+    heap->stats.bytesAllocated -= bp->size;
+    mprAssert(heap->stats.bytesAllocated >= 0);
+    unlockHeap(heap);
+    mprVirtFree((void*) bp, bp->size);
+}
+
+
+#if SAVE
+static void virtFree(MprBlk *bp)
+{
+    MprBlk      *tail;
+    size_t      size, ptr, aligned, gap;
+
     ptr = (size_t) bp;
     aligned = MPR_PAGE_ALIGN(ptr, heap->pageSize);
     gap = aligned - ptr;
     size = bp->size;
+size_t osize = bp->size;
+size_t optr = (size_t) bp;
 
-    //  MOB -- should try to use split?
+    lockHeap(heap);
+    after = GET_NEXT(tail);
+
     if (gap) {
         if (gap < (MPR_ALLOC_HDR_SIZE + MPR_ALIGN)) {
             /* Gap must be useful -- If too small, preserve one page with it */
@@ -913,9 +958,19 @@ static void virtFree(MprBlk *bp)
         }
         ptr = aligned;
         size -= gap;
+        mprAssert(ptr == (size_t) bp + gap);
+        mprAssert(size + gap == bp->size);
+        if (bp->prior) mprAssert(!bp->last);
         bp->size = gap;
         bp->last = 1;
+        bp->pad = 0;
         enq(bp);
+    } else {
+        if ((prev = bp->prior) != NULL) {
+            mprAssert(!prev->last);
+            prev->last = 1;
+        }
+        bp = NULL;
     }
     gap = size % heap->pageSize;
     if (gap) {
@@ -924,15 +979,29 @@ static void virtFree(MprBlk *bp)
         }
         size -= gap;
         tail = (MprBlk*) (ptr + size);
-        tail->size = gap;
+        INIT_BLK(tail, gap);
+        //  MOB -- just for check below
+        tail->pad = 0;
         tail->last = 1;
+        tail->prior = NULL;
         enq(tail);
+    } else {
+        if (after) {
+            mprAssert(after->prior);
+            after->prior = NULL;
+        }
+        tail = NULL;
     }
-    mprVirtFree((void*) ptr, size);
+    mprAssert(size <= osize);
+    mprAssert(ptr >= optr);
 
-    INC(unpins);
-    heap->stats.bytesAllocated -= size;
+    mprVirtFree((void*) ptr, size);
+    if (bp) CHECK_BLK(bp);
+    if (tail) CHECK_BLK(tail);
+//  MOB -- move before virt free and delete these checks
+    unlock(heap);
 }
+#endif
 
 
 /*
@@ -960,10 +1029,10 @@ static void *virtAlloc(size_t size)
         allocException(size, 0);
         return 0;
     }
-#if BLD_MEMORY_STATS
+    lockHeap(heap);
     INC(allocs);
-#endif
     heap->stats.bytesAllocated += size;
+    unlockHeap(heap);
     return mem;
 }
 
@@ -986,6 +1055,7 @@ static MprBlk *growHeap(size_t required)
     }
     INIT_BLK(bp, size);
     bp->last = 1;
+    CHECK_BLK(bp);
     return bp;
 }
 
@@ -998,17 +1068,18 @@ static void allocException(size_t size, bool granted)
 
     lockHeap(heap);
     INC(errors);
-    if (heap->stats.inAllocException == 0) {
-        heap->stats.inAllocException = 1;
+    if (heap->stats.inAllocException) {
         unlockHeap(heap);
-
-        if (hp->notifier) {
-            (hp->notifier)(hp->notifierCtx, size, heap->stats.bytesAllocated, granted);
-        }
-        heap->stats.inAllocException = 0;
-    } else {
-        unlockHeap(heap);
+        return;
     }
+    heap->stats.inAllocException = 1;
+
+    if (hp->notifier) {
+        (hp->notifier)(hp->notifierCtx, size, heap->stats.bytesAllocated, granted);
+    }
+    heap->stats.inAllocException = 0;
+    unlockHeap(heap);
+
     if (!granted) {
         switch (heap->allocPolicy) {
         case MPR_ALLOC_POLICY_EXIT:
@@ -1035,9 +1106,6 @@ void *mprVirtAlloc(size_t size, int mode)
         size = MPR_PAGE_ALIGN(size, heap->pageSize);
     }
 #if BLD_CC_MMU
-    /*
-        Has virtual memory
-     */
     #if BLD_UNIX_LIKE
         ptr = mmap(0, size, mode, MAP_PRIVATE | MAP_ANON, -1, 0);
         if (ptr == (void*) -1) {
@@ -1061,9 +1129,6 @@ void *mprVirtAlloc(size_t size, int mode)
 void mprVirtFree(void *ptr, size_t size)
 {
 #if BLD_CC_MMU
-    /*
-        Has virtual memory
-     */
     #if BLD_UNIX_LIKE
         if (munmap(ptr, size) != 0) {
             mprAssert(0);
