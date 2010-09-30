@@ -148,7 +148,7 @@ static void testAllocLongevity(MprTestGroup *gp)
 
     iter = (gp->service->testDepth * 8 + 1) * 8192;
     for (i = 0; i < iter; i++) {
-        k = random() % count;
+        k = mprRandom() % count;
         // print("%d - %d\n", i, k);
         if ((cp = blocks[k]) != NULL) {
             len = mprGetBlockSize(cp);
@@ -157,7 +157,7 @@ static void testAllocLongevity(MprTestGroup *gp)
             }
             mprFree(cp);
         }
-        len = random() % size;
+        len = mprRandom() % size;
         cp = blocks[k] = mprAlloc(gp, len);
         actual = mprGetBlockSize(cp);
         mprAssert(actual >= len);

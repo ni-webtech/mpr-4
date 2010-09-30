@@ -139,6 +139,16 @@ static void update(MD5CONTEXT *context, uchar *input, uint inputLen);
 
 /*********************************** Code *************************************/
 
+int mprRandom()
+{
+#if WIN
+    return rand_s();
+#else
+    return random();
+#endif
+}
+
+
 char *mprDecode64(MprCtx ctx, cchar *s)
 {
     uint        bitBuf;
