@@ -101,9 +101,9 @@ static int stopSeqno = -1;
 /********************************** Globals ***********************************/
 
 #if BLD_WIN_LIKE
-    __declspec(dllexport) Mpr *MPR;
+    __declspec(dllexport) Mpr *MPR = NULL;
 #else
-    Mpr *MPR;
+    Mpr *MPR = NULL;
 #endif
 static MprHeap      *heap;
 static int          padding[] = { TRAILER_SIZE, CHILDREN_SIZE, DESTRUCTOR_SIZE, DESTRUCTOR_SIZE };

@@ -5259,9 +5259,13 @@ extern Mpr *mprGetMpr(ctx);
 #endif
 
 #if BLD_WIN_LIKE
-#define mprGetMpr(ctx) MPR
+    #define mprGetMpr(ctx) MPR
     #if !MPR_IN_ALLOC
-        __declspec(dllimport) Mpr *MPR;
+        #if BLD_MPRLIB
+            extern Mpr *MPR;
+        #else
+            __declspec(dllimport) Mpr *MPR;
+        #endif
     #endif
 #else
     #define mprGetMpr(ctx) MPR
