@@ -73,7 +73,7 @@ Mpr *mprCreateEx(int argc, char **argv, MprAllocFailure cback, void *shell)
         See if any of the preceeding allocations failed and mark all blocks allocated so far as required.
         They will then be omitted from leak reports.
      */
-    if (mprHasAllocError(mpr)) {
+    if (mprHasAllocError()) {
         goto error;
     }
     if ((mpr->threadService = mprCreateThreadService(mpr)) == 0) {
@@ -113,7 +113,7 @@ Mpr *mprCreateEx(int argc, char **argv, MprAllocFailure cback, void *shell)
     /*
         Now catch all memory allocation errors up to this point. Should be none.
      */
-    if (mprHasAllocError(mpr)) {
+    if (mprHasAllocError()) {
         goto error;
     }
     return mpr;

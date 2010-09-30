@@ -312,7 +312,7 @@ static void testMalloc()
         memset(ptr, 0, 1);
     }
     endMark(ctx, start, count, "Alloc mprAlloc(1)");
-    mprPrintf(ctx, "\tMpr overhead per block %d (approx)\n\n", ((memsize() - base) / count) - 1);
+    // mprPrintf(ctx, "\tMpr overhead per block %d (approx)\n\n", ((memsize() - base) / count) - 1);
 
     /*
         mprAlloc(8)
@@ -324,7 +324,7 @@ static void testMalloc()
         memset(ptr, 0, 8);
     }
     endMark(ctx, start, count, "Alloc mprAlloc(8)");
-    mprPrintf(ctx, "\tMpr overhead per block %d (approx)\n\n", ((memsize() - base) / count) - 8);
+    // mprPrintf(ctx, "\tMpr overhead per block %d (approx)\n\n", ((memsize() - base) / count) - 8);
 
     /*
         mprAlloc(16)
@@ -336,7 +336,7 @@ static void testMalloc()
         memset(ptr, 0, 16);
     }
     endMark(ctx, start, count, "Alloc mprAlloc(16)");
-    mprPrintf(ctx, "\tMpr overhead per block %d (approx)\n\n", ((memsize() - base) / count) - 16);
+    // mprPrintf(ctx, "\tMpr overhead per block %d (approx)\n\n", ((memsize() - base) / count) - 16);
 
     /*
         mprAlloc(32)
@@ -348,7 +348,7 @@ static void testMalloc()
         memset(ptr, 0, 32);
     }
     endMark(ctx, start, count, "Alloc mprAlloc(32)");
-    mprPrintf(ctx, "\tMpr overhead per block %d (approx)\n\n", ((memsize() - base) / count) - 32);
+    // mprPrintf(ctx, "\tMpr overhead per block %d (approx)\n\n", ((memsize() - base) / count) - 32);
 
     /*
         mprAlloc + mprFree(8)
