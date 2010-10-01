@@ -19,7 +19,7 @@ ARCHIVE			+= $(BLD_TOP)/releases/mpr-all.tgz
 #	Order of headers matters
 #
 HEADERS			+= $(patsubst %,../src/include/%, mprOs.h mprTune.h mpr.h mprTest.h)
-MPR_SOURCES 	+= $(shell find ../src/*.c ../src/deps/*.c | egrep -v angel)
+MPR_SOURCES 	+= ../src/mprAlloc.c $(shell find ../src/*.c ../src/deps/*.c | egrep -v 'angel|mprAlloc')
 SSL_SOURCES 	+= ../src/include/mprSsl.h $(wildcard ../src/ssl/*.c) 
 
 combo packageExtra: prep $(TARGETS) $(ARCHIVE)
@@ -35,7 +35,7 @@ $(INC_DEST)/mprSsl.h: Makefile $(HEADERS)
 	cp ../src/include/mprSsl.h $(INC_DEST)/mprSsl.h
 
 $(DEST)/mprLib.c: Makefile $(HEADERS) $(MPR_SOURCES)
-	echo -e '#define BLD_MPRLIB\n#include "mpr.h"' >$(DEST)/mprLib.c
+	echo -e '#define BLD_MPRLIB 1\n#include "mpr.h"' >$(DEST)/mprLib.c
 	all-in-one $(MPR_SOURCES) | egrep -v '#inc.*mpr' >>$(DEST)/mprLib.c
 
 $(DEST)/makerom.c: Makefile ../src/utils/makerom.c
