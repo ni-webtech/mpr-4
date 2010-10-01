@@ -6,6 +6,7 @@
 
 include			.makedep
 
+MAKE_DFLAGS		= -DBLD_MPRLIB
 PRE_DIRS		+= deps
 ifeq ($(BLD_FEATURE_SSL),1)
 	PRE_DIRS	+= ssl
@@ -29,6 +30,9 @@ MPR_OBJECTS		+= $(patsubst %.c,$(BLD_OBJ_DIR)/%$(BLD_OBJ),$(shell ls -1 *.c | gr
 SSL_OBJECTS		+= $(patsubst %.c,$(BLD_OBJ_DIR)/%$(BLD_OBJ),$(notdir $(SSL_SOURCES)))
 DEP_OBJECTS		+= $(BLD_OBJ_DIR)/dtoa$(BLD_OBJ)
 SYSLIBS			+= shell32.lib
+
+x:
+	echo $(MAKE_DFLAGS)
 
 #
 #	Build the targets in this directory first then the builtin packages (ssl and regexp)

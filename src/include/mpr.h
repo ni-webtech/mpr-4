@@ -4768,6 +4768,12 @@ extern MprWorker *mprGetCurrentWorker(MprCtx ctx);
 
 /********************************************************* Crypto **********************************************************/
 /**
+    Return a random number
+    @returns A random integer
+ */
+extern int mprRandom();
+
+/**
     Deocde buffer using base-46 encoding.
     @param str String to decode
     @returns Buffer containing the decoded string. Caller must free.
@@ -5240,13 +5246,7 @@ typedef struct Mpr {
 
 extern void mprNop(void *ptr);
 
-#if BLD_WIN_LIKE || BLD_UNIX_LIKE
-#define BLD_HAS_GLOBAL_MPR 1
-#else
-#define BLD_HAS_GLOBAL_MPR 0
-#endif
-
-#if DOXYGEN || !BLD_HAS_GLOBAL_MPR || BLD_WIN_LIKE
+#if DOXYGEN
 /**
     Return the MPR control instance.
     @description Return the MPR singleton control object. 
@@ -5255,12 +5255,21 @@ extern void mprNop(void *ptr);
     @stability Evolving.
     @ingroup Mpr
  */
-extern struct Mpr *mprGetMpr(MprCtx ctx);
-#define MPR(ctx) mprGetMpr(ctx)
-#else
+extern Mpr *mprGetMpr(ctx);
+#endif
 
-extern Mpr *MPR;
-#define mprGetMpr(ctx) MPR
+#if BLD_WIN_LIKE
+    #define mprGetMpr(ctx) MPR
+    #if !MPR_IN_ALLOC
+        #if BLD_MPRLIB
+            extern Mpr *MPR;
+        #else
+            __declspec(dllimport) Mpr *MPR;
+        #endif
+    #endif
+#else
+    #define mprGetMpr(ctx) MPR
+    extern Mpr *MPR;
 #endif
 
 /**

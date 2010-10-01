@@ -131,13 +131,6 @@ static void testAllocLongevity(MprTestGroup *gp)
     void    *blocks[256];
     uchar   *cp;
     int     i, j, k, size, count, len, actual, iter;
-
-#if UNUSED & MOB
-    void *p1 = mprAlloc(gp, 60 * 1024);
-    void *p2 = mprAlloc(gp, 60 * 1024);
-    mprFree(p1);
-    mprFree(p2);
-#endif
     
     /*
         Basic integrity test. Allocate blocks of 64 bytes and fill and test each block
@@ -148,7 +141,7 @@ static void testAllocLongevity(MprTestGroup *gp)
 
     iter = (gp->service->testDepth * 8 + 1) * 8192;
     for (i = 0; i < iter; i++) {
-        k = random() % count;
+        k = mprRandom() % count;
         // print("%d - %d\n", i, k);
         if ((cp = blocks[k]) != NULL) {
             len = mprGetBlockSize(cp);
@@ -157,7 +150,7 @@ static void testAllocLongevity(MprTestGroup *gp)
             }
             mprFree(cp);
         }
-        len = random() % size;
+        len = mprRandom() % size;
         cp = blocks[k] = mprAlloc(gp, len);
         actual = mprGetBlockSize(cp);
         mprAssert(actual >= len);

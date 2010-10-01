@@ -6,6 +6,8 @@
 
 /********************************* Includes ***********************************/
 
+#define MPR_IN_ALLOC 1
+
 #include    "mpr.h"
 
 /******************************* Local Defines ********************************/
@@ -98,7 +100,11 @@ static int stopSeqno = -1;
 
 /********************************** Globals ***********************************/
 
-Mpr                 *MPR;
+#if BLD_WIN_LIKE
+    __declspec(dllexport) Mpr *MPR = NULL;
+#else
+    Mpr *MPR = NULL;
+#endif
 static MprHeap      *heap;
 static int          padding[] = { TRAILER_SIZE, CHILDREN_SIZE, DESTRUCTOR_SIZE, DESTRUCTOR_SIZE };
 
