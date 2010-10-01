@@ -94,6 +94,8 @@ int benchMain(int argc, char *argv[])
     thread = mprCreateThread(mpr, "bench", (MprThreadProc) doBenchmark, (void*) mpr, 0);
     mprStartThread(thread);
     
+    // mprSleep(mpr, 999999);
+    
     while (!testComplete) {
         mprServiceEvents(mpr, mprGetDispatcher(mpr), 250, 0);
     }
@@ -167,7 +169,7 @@ static void doBenchmark(Mpr *mpr, void *thread)
         List
      */
     mprPrintf(ctx, "List Benchmarks\n");
-    count = 500000 * iterations;
+    count = 20000000 * iterations;
     list = mprCreateList(ctx);
     start = startMark(ctx);
     for (i = 0; i < count; i++) {
@@ -175,23 +177,22 @@ static void doBenchmark(Mpr *mpr, void *thread)
         mprRemoveItem(list, (void*) (long) i);
     }
     endMark(ctx, start, count, "Link insert|remove");
-    mprFree(list);;
+    mprFree(list);
 
     /*
         Events
      */
     mprPrintf(ctx, "Event Benchmarks\n");
     mprResetCond(complete);
-    count = 200000 * iterations;
+    count = 100000 * iterations;
     markCount = count;
     start = startMark(ctx);
     dispatcher = mprGetDispatcher(ctx);
     for (i = 0; i < count; i++) {
         mprCreateEvent(dispatcher, "eventBenchmark", 0, eventCallback, (void*) (long) i, 0);
     }
-    endMark(ctx, start, count, "Event (create)");
     mprWaitForCond(complete, -1);
-    endMark(ctx, start, count, "Event (run|delete)");
+    endMark(ctx, start, count, "Event (create|run|delete)");
 
 
     /*
@@ -205,9 +206,8 @@ static void doBenchmark(Mpr *mpr, void *thread)
     for (i = 0; i < count; i++) {
         mprCreateTimerEvent(mprGetDispatcher(ctx), "timerBenchmark", 0, timerCallback, (void*) (long) i, 0);
     }
-    endMark(ctx, start, count, "Timer (create)");
     mprWaitForCond(complete, -1);
-    endMark(ctx, start, count, "Timer (delete)");
+    endMark(ctx, start, count, "Timer (create|delete)");
 
     /*
         Malloc (1K)
@@ -238,7 +238,7 @@ static void testMalloc()
     mprPrintf(ctx, "Alloc/Malloc overhead\n");
     count = 200000 * iterations;
 
-#if MALLOC 
+#if MALLOC
     /*
         malloc(1)
      */

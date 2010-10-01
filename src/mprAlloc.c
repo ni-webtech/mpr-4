@@ -24,7 +24,7 @@
  */
 #define PAD_PTR(bp, offset)     (((char*) bp) + bp->size - ((offset) * sizeof(void*)))
 
-#if BLD_MEMORY_DEBUG
+#if BLD_MEMORY_VERIFY
 #define TRAILER_SIZE            1
 #define TRAILER_OFFSET          1
 #define HAS_TRAILER(bp)         (bp->pad >= TRAILER_OFFSET)
@@ -53,7 +53,7 @@
 
 #if BLD_MEMORY_DEBUG
 #define BREAKPOINT(bp)          breakpoint(bp);
-#define CHECK(bp)           check(bp)
+#define CHECK(bp)               check(bp)
 #define CHECK_PTR(ptr)          CHECK(GET_BLK(ptr))
 
 /*
@@ -573,7 +573,7 @@ static int initFree()
 
         bit = (group != 0);
         groupBits = bit << (group + MPR_ALLOC_BUCKET_SHIFT - 1);
-        bucketBits = ((int64) bucket) << (max(0, group - 1));
+        bucketBits = ((size_t) bucket) << (max(0, group - 1));
 
         size = groupBits | bucketBits;
         freeq->size = size << MPR_ALIGN_SHIFT;
@@ -616,13 +616,18 @@ static int getQueueIndex(size_t size, int roundup)
     
     if (roundup) {
         /*
-            Check if the requested size is the smallest possible size in a queue. If not the smallest,
+            Good-fit strategy: check if the requested size is the smallest possible size in a queue. If not the smallest,
             must look at the next queue higher up to guarantee a block of sufficient size.
-            This is part of the "good-fit" strategy.
+            Blocks of of size <= 512 bytes (0x20 shifted) are mapped directly to queues. ie. There is only one block size
+            per queue. Otherwise, get a mask of the bits below the group and bucket bits. If any are set, then not the 
+            lowest size in the queue.
          */
-        aligned = (asize & ((((size_t) 1) << (group + MPR_ALLOC_BUCKET_SHIFT - 1)) - 1)) == 0;
-        if (!aligned) {
-            index++;
+        if (asize > 0x20) {
+            size_t mask = (((size_t) 1) << (msb - MPR_ALLOC_BUCKET_SHIFT)) - 1;
+            aligned = (asize & mask) == 0;
+            if (!aligned) {
+                index++;
+            }
         }
     }
     return index;
@@ -642,14 +647,14 @@ static MprFreeBlk *getQueue(size_t size)
 #endif
 
 
-static MprBlk *searchFree(size_t size)
+static MprBlk *searchFree(size_t size, int *indexp)
 {
     MprFreeBlk  *freeq;
     MprBlk      *bp;
     size_t      groupMap, bucketMap;
     int         bucket, baseGroup, group, index;
     
-    index = getQueueIndex(size, 1);
+    *indexp = index = getQueueIndex(size, 1);
     baseGroup = index / MPR_ALLOC_NUM_BUCKETS;
     bucket = index % MPR_ALLOC_NUM_BUCKETS;
 
@@ -726,14 +731,6 @@ static void deq(MprBlk *bp)
     MprFreeBlk  *fb;
 
     fb = (MprFreeBlk*) bp;
-#if BLD_MEMORY_STATS
-{
-    MprFreeBlk *freeq = getQueue(bp->size);
-    freeq->reuse++;
-    freeq->count--;
-    mprAssert(freeq->count >= 0);
-}
-#endif
     fb->back->forw = fb->forw;
     fb->forw->back = fb->back;
 #if BLD_MEMORY_DEBUG
@@ -742,6 +739,13 @@ static void deq(MprBlk *bp)
     bp->free = 0;
     heap->stats.bytesFree -= bp->size;
     mprAssert(heap->stats.bytesFree >= 0);
+#if BLD_MEMORY_STATS
+{
+    MprFreeBlk *freeq = getQueue(bp->size);
+    freeq->count--;
+    mprAssert(freeq->count >= 0);
+}
+#endif
 }
 
 
@@ -784,21 +788,32 @@ static void unlinkChild(MprBlk *bp)
 static MprBlk *getBlock(size_t usize, int padWords, int flags)
 {
     MprBlk      *bp;
-    int         size;
+    size_t      maxBlock;
+    int         bucket, group, size, index;
 
     mprAssert(usize >= 0);
     size = MPR_ALLOC_ALIGN(usize + MPR_ALLOC_HDR_SIZE + (padWords * sizeof(void*)));
     
-    if ((bp = searchFree(size)) == NULL) {
+    if ((bp = searchFree(size, &index)) == NULL) {
         if ((bp = growHeap(size)) == NULL) {
             return NULL;
         }
+        index = getQueueIndex(size, 1);
     }
     BREAKPOINT(bp);
     mprAssert(bp->size >= size);
+
     if (bp->size >= (size + MPR_ALLOC_MIN_SPLIT)) {
-        splitBlock(bp, size, 1);
+        group = index / MPR_ALLOC_NUM_BUCKETS;
+        bucket = index % MPR_ALLOC_NUM_BUCKETS;
+        maxBlock = (((size_t) 1 ) << group | (((size_t) bucket) << (max(0, group - 1)))) << MPR_ALIGN_SHIFT;
+        maxBlock += MPR_ALLOC_HDR_SIZE;
+        if (bp->size > maxBlock) {
+            int gap = bp->size - maxBlock;
+            splitBlock(bp, size, 1);
+        }
     }
+
     if (flags & MPR_ALLOC_ZERO) {
         memset(GET_PTR(bp), 0, usize);
     }
@@ -807,8 +822,16 @@ static MprBlk *getBlock(size_t usize, int padWords, int flags)
         memset(PAD_PTR(bp, padWords), 0, padWords * sizeof(void*));
         SET_TRAILER(bp, MPR_ALLOC_MAGIC);
     }
-    LOCKED_INC(requests);
     CHECK(bp);
+#if BLD_MEMORY_STATS
+{
+    MprFreeBlk *freeq = getQueue(bp->size);
+    lockHeap(heap)
+    INC(requests);
+    freeq->reuse++;
+    unlockHeap(heap);
+}
+#endif
     return bp;
 }
 
@@ -1334,11 +1357,11 @@ static void printQueueStats()
     MprFreeBlk  *freeq;
     int         i, index, total;
 
-    mprLog(MPR, 0, "\nFree Queue Stats\n Bucket                     Size   Count        Reuse");
+    mprRawLog(MPR, 0, "\nFree Queue Stats\n Bucket                     Size   Count        Reuse\n");
     for (i = 0, freeq = heap->free; freeq != heap->freeEnd; freeq++, i++) {
         total += freeq->size * freeq->count;
         index = (freeq - heap->free);
-        mprLog(MPR, 0, "%7d %24lu %7d %12d", i, freeq->size, freeq->count, freeq->reuse);
+        mprRawLog(MPR, 0, "%7d %24lu %7d %12d\n", i, freeq->size, freeq->count, freeq->reuse);
     }
 }
 #endif /* BLD_MEMORY_STATS */
@@ -1351,23 +1374,23 @@ void mprPrintAllocReport(cchar *msg, int detail)
 
     ap = mprGetAllocStats();
 
-    mprLog(MPR, 0, "\n\n\nMPR Memory Report %s", msg);
-    mprLog(MPR, 0, "------------------------------------------------------------------------------------------\n");
-    mprLog(MPR, 0, "  Total memory           %,14d K",              mprGetUsedMemory());
-    mprLog(MPR, 0, "  Current heap memory    %,14d K",              ap->bytesAllocated / 1024);
-    mprLog(MPR, 0, "  Free heap memory       %,14d K",              ap->bytesFree / 1024);
-    mprLog(MPR, 0, "  Allocation errors      %,14d",                ap->errors);
-    mprLog(MPR, 0, "  Memory limit           %,14d MB (%d %%)",     ap->maxMemory / (1024 * 1024), 
+    mprRawLog(MPR, 0, "\n\nMPR Memory Report %s\n", msg);
+    mprRawLog(MPR, 0, "------------------------------------------------------------------------------------------\n");
+    mprRawLog(MPR, 0, "  Total memory           %,14d K\n",              mprGetUsedMemory());
+    mprRawLog(MPR, 0, "  Current heap memory    %,14d K\n",              ap->bytesAllocated / 1024);
+    mprRawLog(MPR, 0, "  Free heap memory       %,14d K\n",              ap->bytesFree / 1024);
+    mprRawLog(MPR, 0, "  Allocation errors      %,14d\n",                ap->errors);
+    mprRawLog(MPR, 0, "  Memory limit           %,14d MB (%d %%)\n",     ap->maxMemory / (1024 * 1024), 
        percent(ap->bytesAllocated / 1024, ap->maxMemory / 1024));
-    mprLog(MPR, 0, "  Memory redline         %,14d MB (%d %%)",     ap->redLine / (1024 * 1024), 
+    mprRawLog(MPR, 0, "  Memory redline         %,14d MB (%d %%)\n",     ap->redLine / (1024 * 1024), 
        percent(ap->bytesAllocated / 1024, ap->redLine / 1024));
 
-    mprLog(MPR, 0, "  Memory requests        %,14Ld",                ap->requests);
-    mprLog(MPR, 0, "  O/S allocations        %d %%",                 percent(ap->allocs, ap->requests));
-    mprLog(MPR, 0, "  Block unpinns          %d %%",                 percent(ap->unpins, ap->requests));
-    mprLog(MPR, 0, "  Block reuse            %d %%",                 percent(ap->reuse, ap->requests));
-    mprLog(MPR, 0, "  Joins                  %d %%",                 percent(ap->joins, ap->requests));
-    mprLog(MPR, 0, "  Splits                 %d %%",                 percent(ap->splits, ap->requests));
+    mprRawLog(MPR, 0, "  Memory requests        %,14Ld\n",                ap->requests);
+    mprRawLog(MPR, 0, "  O/S allocations        %d %%\n",                 percent(ap->allocs, ap->requests));
+    mprRawLog(MPR, 0, "  Block unpinns          %d %%\n",                 percent(ap->unpins, ap->requests));
+    mprRawLog(MPR, 0, "  Block reuse            %d %%\n",                 percent(ap->reuse, ap->requests));
+    mprRawLog(MPR, 0, "  Joins                  %d %%\n",                 percent(ap->joins, ap->requests));
+    mprRawLog(MPR, 0, "  Splits                 %d %%\n",                 percent(ap->splits, ap->requests));
 
     if (detail) {
         printQueueStats();

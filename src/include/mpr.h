@@ -3328,9 +3328,11 @@ extern MprThreadLocal *mprCreateThreadLocal(MprCtx ctx);
 #if BLD_DEBUG
     #define BLD_MEMORY_DEBUG        1                   /* Fill blocks, verifies block integrity. */
     #define BLD_MEMORY_STATS        1                   /* Include memory stats routines */
+    #define BLD_MEMORY_VERIFY       0                   /* Add trailer magic word */
 #else
     #define BLD_MEMORY_DEBUG        0
     #define BLD_MEMORY_STATS        0
+    #define BLD_MEMORY_VERIFY       0
 #endif
 
 #if MPR_64_BIT
@@ -3346,8 +3348,6 @@ extern MprThreadLocal *mprCreateThreadLocal(MprCtx ctx);
 
 #define MPR_ALLOC_ALIGN(x)          (((x) + MPR_ALIGN - 1) & ~(MPR_ALIGN - 1))
 #define MPR_ALLOC_HDR_SIZE          (MPR_ALLOC_ALIGN(sizeof(struct MprBlk)))
-#define MPR_ALLOC_MAX_STEPS         16
-#define MPR_ALLOC_MAP_BITS          64
 #define MPR_PAGE_ALIGN(x, psize)    ((((size_t) (x)) + ((size_t) (psize)) - 1) & ~(((size_t) (psize)) - 1))
 #define MPR_PAGE_ALIGNED(x, psize)  ((((size_t) (x)) % ((size_t) (psize))) == 0)
 
