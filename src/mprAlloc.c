@@ -815,7 +815,7 @@ static MprBlk *getBlock(size_t usize, int padWords, int flags)
         maxBlock = (((size_t) 1 ) << group | (((size_t) bucket) << (max(0, group - 1)))) << MPR_ALIGN_SHIFT;
         maxBlock += MPR_ALLOC_HDR_SIZE;
         if (bp->size > maxBlock) {
-            int gap = bp->size - maxBlock;
+            // int gap = bp->size - maxBlock;
             splitBlock(bp, size, 1);
         }
     }
