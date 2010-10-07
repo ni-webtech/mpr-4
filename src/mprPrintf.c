@@ -329,7 +329,8 @@ static int getState(char c, int state)
 static char *sprintfCore(MprCtx ctx, char *buf, int maxsize, cchar *spec, va_list arg)
 {
     Format      fmt;
-    char        *cp, *sValue, c, *tmpBuf;
+    MprUni      *us;
+    char        *cp, *str, c, *tmpBuf;
     int64       iValue;
     uint64      uValue;
     int         i, len, state;
@@ -461,7 +462,10 @@ static char *sprintfCore(MprCtx ctx, char *buf, int maxsize, cchar *spec, va_lis
                 BPUT(ctx, &fmt, (char) va_arg(arg, int));
                 break;
 
-#if FUTURE
+#if UNUSED
+            /*
+                Name
+             */
             case 'N':
                 qualifier = va_arg(arg, char*);
                 len = strlen(qualifier);
@@ -473,44 +477,99 @@ static char *sprintfCore(MprCtx ctx, char *buf, int maxsize, cchar *spec, va_lis
                 strcpy(tmpBuf, qualifier);
                 tmpBuf[len++] = ':';
                 strcpy(&tmpBuf[len], name);
-                sValue = tmpBuf;
+                str = tmpBuf;
                 goto emitString;
 #endif
 
-            case 's':
-            case 'S':
-                sValue = va_arg(arg, char*);
-                tmpBuf = 0;
-
-#if FUTURE
-            emitString:
+            case 'U':
+                /* MprUni */
+                us = va_arg(arg, MprUni*);
+#if BLD_UNICODE_LEN == 1
+                str = us->value;
+                goto thin;
+#else
+                wstr = us->value;
+                goto wide:
 #endif
-                if (sValue == 0) {
-                    sValue = "null";
-                    len = (int) strlen(sValue);
+
+            case 'S':
+#if BLD_UNICODE_LEN > 1
+            {
+                wchar_t     *wstr, *wp;
+                /* Wide string */
+                //  MOB -- functionalize
+                wstr = va_arg(arg, wchar_t*);
+        wide:
+                tmpBuf = 0;
+                if (wstr == 0) {
+                    wstr = L"null";
+                    len = (int) wcslen(wstr);
                 } else if (fmt.flags & SPRINTF_ALTERNATE) {
-                    sValue++;
-                    len = (int) *sValue;
+                    wstr++;
+                    len = (int) *wstr;
                 } else if (fmt.precision >= 0) {
-                    /*
-                     *  Can't use strlen(), the string may not have a null
-                     */
-                    cp = sValue;
+                    wp = wstr;
                     for (len = 0; len < fmt.precision; len++) {
-                        if (*cp++ == '\0') {
+                        if (*wp++ == 0) {
                             break;
                         }
                     }
                 } else {
-                    len = (int) strlen(sValue);
+                    len = (int) wcslen(wstr);
                 }
                 if (!(fmt.flags & SPRINTF_LEFT)) {
                     for (i = len; i < fmt.width; i++) {
                         BPUT(ctx, &fmt, (char) ' ');
                     }
                 }
-                for (i = 0; i < len && *sValue; i++) {
-                    BPUT(ctx, &fmt, *sValue++);
+                for (i = 0; i < len && *wstr; i++) {
+                    BPUT(ctx, &fmt, *wstr++);
+                }
+                if (fmt.flags & SPRINTF_LEFT) {
+                    for (i = len; i < fmt.width; i++) {
+                        BPUT(ctx, &fmt, (char) ' ');
+                    }
+                }
+                if (tmpBuf) {
+                    mprFree(tmpBuf);
+                }
+                break;
+            }
+#endif
+                /* Fall through */
+
+            case 's':
+#if BLD_UNICODE_LEN == 1
+        thin:
+#endif
+                str = va_arg(arg, char*);
+                tmpBuf = 0;
+                if (str == 0) {
+                    str = "null";
+                    len = (int) strlen(str);
+                } else if (fmt.flags & SPRINTF_ALTERNATE) {
+                    str++;
+                    len = (int) *str;
+                } else if (fmt.precision >= 0) {
+                    /*
+                        Can't use strlen(), the string may not have a null
+                     */
+                    cp = str;
+                    for (len = 0; len < fmt.precision; len++) {
+                        if (*cp++ == '\0') {
+                            break;
+                        }
+                    }
+                } else {
+                    len = (int) strlen(str);
+                }
+                if (!(fmt.flags & SPRINTF_LEFT)) {
+                    for (i = len; i < fmt.width; i++) {
+                        BPUT(ctx, &fmt, (char) ' ');
+                    }
+                }
+                for (i = 0; i < len && *str; i++) {
+                    BPUT(ctx, &fmt, *str++);
                 }
                 if (fmt.flags & SPRINTF_LEFT) {
                     for (i = len; i < fmt.width; i++) {

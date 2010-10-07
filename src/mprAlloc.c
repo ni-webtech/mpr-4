@@ -61,8 +61,7 @@
 /*
     WARN: this will reset pad words too.
  */
-#define RESET_MEM(bp)           if (bp != GET_BLK(MPR)) { \
-                                    memset(GET_PTR(bp), 0xFE, bp->size - MPR_ALLOC_HDR_SIZE); } else
+#define RESET_MEM(bp)           if (bp != GET_BLK(MPR)) { memset(GET_PTR(bp), 0xFE, bp->size - MPR_ALLOC_HDR_SIZE); } else
 #define SET_MAGIC(bp)           if (1) { (bp)->magic = MPR_ALLOC_MAGIC; } else
 #define SET_SEQ(bp)             if (1) { (bp)->seqno = heap->nextSeqno++; } else
 #define INIT_BLK(bp, len)       if (1) { SET_MAGIC(bp); SET_SEQ(bp); bp->size = len; bp->pad = 0; } else
@@ -136,7 +135,6 @@ static void linkChild(MprBlk *parent, MprBlk *bp);
 static MprBlk *splitBlock(MprBlk *bp, size_t required, int qspare);
 static void getSystemInfo();
 static void unlinkChild(MprBlk *bp);
-static void *virtAlloc(size_t size);
 
 #if BLD_CC_MMU && !BLD_WIN_LIKE
 static void virtFree(MprBlk *bp);
@@ -168,6 +166,8 @@ Mpr *mprCreateAllocService(MprAllocFailure cback, MprDestructor destructor)
 
     heap = &initHeap;
     memset(heap, 0, sizeof(MprHeap));
+    heap->stats.maxMemory = INT_MAX;
+    heap->stats.redLine = INT_MAX / 100 * 99;
 
     padWords = DESTRUCTOR_SIZE;
     usize = sizeof(Mpr) + (padWords * sizeof(void*));
@@ -176,7 +176,7 @@ Mpr *mprCreateAllocService(MprAllocFailure cback, MprDestructor destructor)
     size = max(required, MPR_REGION_MIN_SIZE);
     extra = size - required;
     if ((bp = (MprBlk*) mprVirtAlloc(size, MPR_MAP_READ | MPR_MAP_WRITE)) == NULL) {
-        return 0;
+        return NULL;
     }
     INIT_BLK(bp, required);
     bp->pad = padWords;
@@ -478,7 +478,7 @@ int mprGetPageSize()
 }
 
 
-int mprGetBlockSize(cvoid *ptr)
+size_t mprGetBlockSize(cvoid *ptr)
 {
     MprBlk      *bp;
 
@@ -804,9 +804,7 @@ static MprBlk *getBlock(size_t usize, int padWords, int flags)
     size_t      maxBlock, size;
     int         bucket, group, index;
 
-	int mob = MPR_ALLOC_HDR_SIZE;
     mprAssert(usize >= 0);
-	mob = usize + MPR_ALLOC_HDR_SIZE + (padWords * sizeof(void*));
     size = MPR_ALLOC_ALIGN(usize + MPR_ALLOC_HDR_SIZE + (padWords * sizeof(void*)));
     
     if ((bp = searchFree(size, &index)) == NULL) {
@@ -1016,39 +1014,6 @@ static void virtFree(MprBlk *bp)
 
 
 /*
-    Allocate virtual memory and check a memory allocation request against configured maximums and redlines. 
-    Do this so that the application does not need to check the result of every little memory allocation. Rather, an 
-    application-wide memory allocation failure can be invoked proactively when a memory redline is exceeded. 
-    It is the application's responsibility to set the red-line value suitable for the system.
- */
-static void *virtAlloc(size_t size)
-{
-    void        *mem;
-    size_t      used;
-
-    used = mprGetUsedMemory();
-    if ((size + used) > heap->stats.maxMemory) {
-        allocException(size, 0);
-        /* Prevent allocation as over the maximum memory limit.  */
-        return 0;
-
-    } else if ((size + used) > heap->stats.redLine) {
-        /* Warn if allocation puts us over the red line. Then continue to grant the request.  */
-        allocException(size, 1);
-    }
-    if ((mem = mprVirtAlloc(size, MPR_MAP_READ | MPR_MAP_WRITE)) == 0) {
-        allocException(size, 0);
-        return 0;
-    }
-    lockHeap(heap);
-    INC(allocs);
-    heap->stats.bytesAllocated += size;
-    unlockHeap(heap);
-    return mem;
-}
-
-
-/*
     Grow the heap and return a block of the required size (unqueued)
  */
 static MprBlk *growHeap(size_t required)
@@ -1061,7 +1026,7 @@ static MprBlk *growHeap(size_t required)
     size = max(required, (size_t) heap->chunkSize);
     size = MPR_PAGE_ALIGN(size, heap->pageSize);
 
-    if ((bp = (MprBlk*) virtAlloc(size)) == NULL) {
+    if ((bp = (MprBlk*) mprVirtAlloc(size, MPR_MAP_READ | MPR_MAP_WRITE)) == NULL) {
         return 0;
     }
     INIT_BLK(bp, size);
@@ -1107,12 +1072,29 @@ static void allocException(size_t size, bool granted)
 }
 
 
+/*
+    Allocate virtual memory and check a memory allocation request against configured maximums and redlines. 
+    Do this so that the application does not need to check the result of every little memory allocation. Rather, 
+    an application-wide memory allocation failure can be invoked proactively when a memory redline is exceeded. 
+    It is the application's responsibility to set the red-line value suitable for the system.
+ */
 void *mprVirtAlloc(size_t size, int mode)
 {
+    size_t      used;
     void        *ptr;
 
+    used = mprGetUsedMemory();
     if (heap->pageSize) {
         size = MPR_PAGE_ALIGN(size, heap->pageSize);
+    }
+    if ((size + used) > heap->stats.maxMemory) {
+        allocException(size, 0);
+        /* Prevent allocation as over the maximum memory limit.  */
+        return NULL;
+
+    } else if ((size + used) > heap->stats.redLine) {
+        /* Warn if allocation puts us over the red line. Then continue to grant the request.  */
+        allocException(size, 1);
     }
 #if BLD_CC_MMU
     #if BLD_UNIX_LIKE
@@ -1128,9 +1110,14 @@ void *mprVirtAlloc(size_t size, int mode)
 #else
     ptr = malloc(size);
 #endif
-    if (ptr == 0) {
+    if (ptr == NULL) {
+        allocException(size, 0);
         return 0;
     }
+    lockHeap(heap);
+    INC(allocs);
+    heap->stats.bytesAllocated += size;
+    unlockHeap(heap);
     return ptr;
 }
 

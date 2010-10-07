@@ -162,7 +162,7 @@ void mprStaticAssert(cchar *loc, cchar *msg)
 #endif
     
 #if BLD_UNIX_LIKE || VXWORKS
-    write(2, buf, strlen(buf));
+    (void) write(2, buf, strlen(buf));
 #elif BLD_WIN_LIKE
     /*
         Only time we use printf. We can't get an alloc context so we have to use real print

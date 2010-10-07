@@ -87,6 +87,7 @@
     #include    <sys/uio.h>
     #include    <sys/wait.h>
     #include    <unistd.h>
+    #include    <wchar.h>
 #if LINUX && !__UCLIBC__
     #include    <sys/sendfile.h>
 #endif
@@ -201,6 +202,7 @@
     #include    <sys/utsname.h>
     #include    <sys/wait.h>
     #include    <unistd.h>
+    #include    <wchar.h>
     #include    <libkern/OSAtomic.h>
     #include    <float.h>
     #define __USE_ISOC99 1
@@ -398,7 +400,7 @@ extern "C" {
 #endif
 
 #ifndef PRINTF_ATTRIBUTE
-    #if (__GNUC__ >= 3) && !DOXYGEN && BLD_DEBUG
+    #if (__GNUC__ >= 3) && !DOXYGEN && BLD_DEBUG && UNUSED
         /** 
             Use gcc attribute to check printf fns.  a1 is the 1-based index of the parameter containing the format, 
             and a2 the index of the first argument. Note that some gcc 2.x versions don't handle this properly 

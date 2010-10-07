@@ -12,7 +12,7 @@
 /*
     TODO - need a join and split function
     TODO - need a routine that supplies a length of bytes to copy out of str. Like:
-        int mprMemcpy(void *dest, int destMax, const void *src, int nbytes)   but adding a null.
+        int mprMemcpy(void *dest, int destMax, cvoid *src, int nbytes)   but adding a null.
  */
 /********************************** Includes **********************************/
 
@@ -70,7 +70,7 @@ int mprStrcpyCount(char *dest, int destMax, cchar *src, int count)
 }
 
 
-int mprMemcmp(const void *s1, int s1Len, const void *s2, int s2Len)
+int mprMemcmp(cvoid *s1, int s1Len, cvoid *s2, int s2Len)
 {
     int     len, rc;
 
@@ -96,7 +96,7 @@ int mprMemcmp(const void *s1, int s1Len, const void *s2, int s2Len)
 /*
     Supports insitu copy where src and destination overlap
  */
-int mprMemcpy(void *dest, int destMax, const void *src, int nbytes)
+int mprMemcpy(void *dest, int destMax, cvoid *src, int nbytes)
 {
     mprAssert(dest);
     mprAssert(destMax <= 0 || destMax >= nbytes);
