@@ -290,7 +290,7 @@ cchar *mprLookupMimeType(MprCtx ctx, cchar *ext)
         return "";
     }
     if (mimeTable == 0) {
-        mimeTable = mprCreateHash(mprGetMpr(ctx), 67);
+        mimeTable = mprCreateHash(mprGetMpr(ctx), 67, 0);
         for (cp = mimeTypes; cp[0]; cp += 2) {
             mprAddHash(mimeTable, cp[0], cp[1]);
         }

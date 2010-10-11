@@ -18,15 +18,15 @@ static void testCreateTable(MprTestGroup *gp)
 {
     MprHashTable    *table;
 
-    table = mprCreateHash(gp, 211);
+    table = mprCreateHash(gp, 211, 0);
     assert(table != 0);
     mprFree(table);
 
-    table = mprCreateHash(gp, 0);
+    table = mprCreateHash(gp, 0, 0);
     assert(table != 0);
     mprFree(table);
 
-    table = mprCreateHash(gp, 1);
+    table = mprCreateHash(gp, 1, 0);
     assert(table != 0);
     mprFree(table);
 }
@@ -36,7 +36,7 @@ static void testIsTableEmpty(MprTestGroup *gp)
 {
     MprHashTable    *table;
 
-    table = mprCreateHash(gp, 0);
+    table = mprCreateHash(gp, 0, 0);
     assert(table != 0);
 
     assert(mprGetHashCount(table) == 0);
@@ -54,7 +54,7 @@ static void testInsertAndRemoveHash(MprTestGroup *gp)
     cchar           *str;
     int             rc;
 
-    table = mprCreateHash(gp, 0);
+    table = mprCreateHash(gp, 0, 0);
     assert(table != 0);
 
     /*
@@ -99,7 +99,7 @@ static void testHashScale(MprTestGroup *gp)
     char            address[80], name[80];
     int             i;
 
-    table = mprCreateHash(gp, 0);
+    table = mprCreateHash(gp, 0, 0);
     assert(mprGetHashCount(table) == 0);
 
     /*
@@ -137,7 +137,7 @@ static void testIterateHash(MprTestGroup *gp)
     const char      *who, *where;
     int             count, i, check[HASH_COUNT];
 
-    table = mprCreateHash(gp, 0);
+    table = mprCreateHash(gp, 0, 0);
 
     memset(check, 0, sizeof(check));
 
@@ -180,6 +180,7 @@ static void testIterateHash(MprTestGroup *gp)
     mprFree(table);
 }
 
+//  MOB -- test caseless nad unicode
 
 MprTestDef testHash = {
     "symbol", 0, 0, 0,

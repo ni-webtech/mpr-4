@@ -198,7 +198,7 @@ int mprCreateTimeService(MprCtx ctx)
     TimeToken           *tt;
 
     mpr = mprGetMpr(ctx);
-    mpr->timeTokens = mprCreateHash(mpr, -1);
+    mpr->timeTokens = mprCreateHash(mpr, -1, 0);
     ctx = mpr->timeTokens;
 
     for (tt = days; tt->name; tt++) {

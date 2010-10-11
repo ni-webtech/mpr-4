@@ -1,10 +1,9 @@
 /*
     mprHash.c - Fast hashing table lookup module
 
-    This hash table uses a fast key lookup mechanism. Keys are strings and the value entries are arbitrary pointers.
-    The keys are hashed into a series of buckets which then have a chain of hash entries using the standard doubly
-    linked list classes (List/Link). The chain in in collating sequence so search time through the chain is on
-    average (N/hashSize)/2.
+    This hash table uses a fast key lookup mechanism. Keys may be C strings or unicode strings. The hash value entries 
+    are arbitrary pointers. The keys are hashed into a series of buckets which then have a chain of hash entries.
+    The chain in in collating sequence so search time through the chain is on average (N/hashSize)/2.
 
     This module is not thread-safe. It is the callers responsibility to perform all thread synchronization.
 
@@ -17,8 +16,8 @@
 
 /**************************** Forward Declarations ****************************/
 
-static int hashIndex(MprHashTable *table, cchar *key, int size);
-static MprHash  *lookupInner(int *bucketIndex, MprHash **prevSp, MprHashTable *table, cchar *key);
+static int hashIndex(MprHashTable *table, cvoid *key, int size);
+static MprHash  *lookupHash(int *bucketIndex, MprHash **prevSp, MprHashTable *table, cvoid *key);
 
 /*********************************** Code *************************************/
 /*
@@ -26,7 +25,7 @@ static MprHash  *lookupInner(int *bucketIndex, MprHash **prevSp, MprHashTable *t
     efficiency. Caller should use mprFree to free the hash table.
  */
 
-MprHashTable *mprCreateHash(MprCtx ctx, int hashSize)
+MprHashTable *mprCreateHash(MprCtx ctx, int hashSize, int flags)
 {
     MprHashTable    *table;
 
@@ -38,7 +37,7 @@ MprHashTable *mprCreateHash(MprCtx ctx, int hashSize)
         hashSize = MPR_DEFAULT_HASH_SIZE;
     }
     table->hashSize = hashSize;
-
+    table->flags = flags;
     table->count = 0;
     table->hashSize = hashSize;
     table->buckets = (MprHash**) mprAllocZeroed(table, sizeof(MprHash*) * hashSize);
@@ -50,18 +49,12 @@ MprHashTable *mprCreateHash(MprCtx ctx, int hashSize)
 }
 
 
-void mprSetHashCase(MprHashTable *table, int caseMatters)
-{
-    table->caseless = !caseMatters;
-}
-
-
 MprHashTable *mprCopyHash(MprCtx ctx, MprHashTable *master)
 {
     MprHash         *hp;
     MprHashTable    *table;
 
-    table = mprCreateHash(ctx, master->hashSize);
+    table = mprCreateHash(ctx, master->hashSize, master->flags);
     if (table == 0) {
         return 0;
     }
@@ -75,15 +68,15 @@ MprHashTable *mprCopyHash(MprCtx ctx, MprHashTable *master)
 
 
 /*
-    Insert an entry into the hash table. If the entry already exists, update its value. Order of insertion is not preserved.
+    Insert an entry into the hash table. If the entry already exists, update its value. 
+    Order of insertion is not preserved.
  */
-MprHash *mprAddHash(MprHashTable *table, cchar *key, cvoid *ptr)
+MprHash *mprAddHash(MprHashTable *table, cvoid *key, cvoid *ptr)
 {
     MprHash     *sp, *prevSp;
     int         index;
 
-    sp = lookupInner(&index, &prevSp, table, key);
-
+    sp = lookupHash(&index, &prevSp, table, key);
     if (sp != 0) {
         /*
             Already exists. Just update the data.
@@ -113,7 +106,7 @@ MprHash *mprAddHash(MprHashTable *table, cchar *key, cvoid *ptr)
     Order of insertion is not preserved. Lookup cannot be used to retrieve all duplicate keys, some will be shadowed. 
     Use enumeration to retrieve the keys.
  */
-MprHash *mprAddDuplicateHash(MprHashTable *table, cchar *key, cvoid *ptr)
+MprHash *mprAddDuplicateHash(MprHashTable *table, cvoid *key, cvoid *ptr)
 {
     MprHash     *sp;
     int         index;
@@ -137,12 +130,12 @@ MprHash *mprAddDuplicateHash(MprHashTable *table, cchar *key, cvoid *ptr)
 /*
     Remove an entry from the table
  */
-int mprRemoveHash(MprHashTable *table, cchar *key)
+int mprRemoveHash(MprHashTable *table, cvoid *key)
 {
     MprHash     *sp, *prevSp;
     int         index;
 
-    if ((sp = lookupInner(&index, &prevSp, table, key)) == 0) {
+    if ((sp = lookupHash(&index, &prevSp, table, key)) == 0) {
         return MPR_ERR_NOT_FOUND;
     }
     if (prevSp) {
@@ -159,24 +152,24 @@ int mprRemoveHash(MprHashTable *table, cchar *key)
 /*
     Lookup a key and return the hash entry
  */
-MprHash *mprLookupHashEntry(MprHashTable *table, cchar *key)
+MprHash *mprLookupHashEntry(MprHashTable *table, cvoid *key)
 {
     mprAssert(key);
 
-    return lookupInner(0, 0, table, key);
+    return lookupHash(0, 0, table, key);
 }
 
 
 /*
     Lookup a key and return the hash entry data
  */
-cvoid *mprLookupHash(MprHashTable *table, cchar *key)
+cvoid *mprLookupHash(MprHashTable *table, cvoid *key)
 {
     MprHash     *sp;
 
     mprAssert(key);
 
-    sp = lookupInner(0, 0, table, key);
+    sp = lookupHash(0, 0, table, key);
     if (sp == 0) {
         return 0;
     }
@@ -184,10 +177,11 @@ cvoid *mprLookupHash(MprHashTable *table, cchar *key)
 }
 
 
-static MprHash *lookupInner(int *bucketIndex, MprHash **prevSp, MprHashTable *table, cchar *key)
+static MprHash *lookupHash(int *bucketIndex, MprHash **prevSp, MprHashTable *table, cvoid *key)
 {
     MprHash     *sp, *prev;
-    int         index, rc;
+    MprUni      *u1, *u2;
+    int         index, rc, i;
 
     mprAssert(key);
 
@@ -199,7 +193,16 @@ static MprHash *lookupInner(int *bucketIndex, MprHash **prevSp, MprHashTable *ta
     prev = 0;
 
     while (sp) {
-        if (table->caseless) {
+        if (table->flags & MPR_HASH_UNICODE) {
+            u1 = (MprUni*) sp->key;
+            u2 = (MprUni*) key;
+            rc = -1;
+            if (u1->length == u2->length) {
+                for (i = 0; i < u1->length; i++) {
+                    rc = u1->value[i] == u2->value[i];
+                }
+            }
+        } else if (table->flags & MPR_HASH_CASELESS) {
             rc = mprStrcmpAnyCase(sp->key, key);
         } else {
             rc = strcmp(sp->key, key);
@@ -272,18 +275,35 @@ MprHash *mprGetNextHash(MprHashTable *table, MprHash *last)
 /*
     Hash the key to produce a hash index.
  */
-static int hashIndex(MprHashTable *table, cchar *key, int size)
+static int hashIndex(MprHashTable *table, cvoid *vkey, int size)
 {
-    int     c;
+    MprUni  *ukey;
+    cchar   *key;
     uint    sum;
+    int     c, i;
 
-    if (table->caseless) {
+    if (table->flags & MPR_HASH_UNICODE) {
+        ukey = (MprUni*) vkey;
+        sum = 0;
+        if (table->flags & MPR_HASH_CASELESS) {
+            for (i = 0; i < ukey->length; i++) {
+                c = ukey->value[i];
+                sum += (sum * 33) + tolower(c);
+            }
+        } else {
+            for (i = 0; i < ukey->length; i++) {
+                sum += (sum * 33) + ukey->value[i];
+            }
+        }
+    } if (table->flags & MPR_HASH_CASELESS) {
+        key = (char*) vkey;
         sum = 0;
         while (*key) {
             c = *key++;
             sum += (sum * 33) + tolower(c);
         }
     } else {
+        key = (char*) vkey;
         sum = 0;
         while (*key) {
             sum += (sum * 33) + *key++;

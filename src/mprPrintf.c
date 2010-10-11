@@ -102,6 +102,10 @@ static int  growBuf(MprCtx ctx, Format *fmt);
 static char *sprintfCore(MprCtx ctx, char *buf, int maxsize, cchar *fmt, va_list arg);
 static void outNum(MprCtx ctx, Format *fmt, cchar *prefix, uint64 val);
 static void outFloat(MprCtx ctx, Format *fmt, char specChar, double value);
+static void outString(MprCtx ctx, Format *fmt, cchar *str, int len);
+#if BLD_CHAR_LEN > 1
+static void outWideString(MprCtx ctx, Format *fmt, MprChar *str, int len);
+#endif
 
 /************************************* Code ***********************************/
 
@@ -330,10 +334,10 @@ static char *sprintfCore(MprCtx ctx, char *buf, int maxsize, cchar *spec, va_lis
 {
     Format      fmt;
     MprUni      *us;
-    char        *cp, *str, c, *tmpBuf;
+    char        c;
     int64       iValue;
     uint64      uValue;
-    int         i, len, state;
+    int         len, state;
 
     if (spec == 0) {
         spec = "";
@@ -462,127 +466,55 @@ static char *sprintfCore(MprCtx ctx, char *buf, int maxsize, cchar *spec, va_lis
                 BPUT(ctx, &fmt, (char) va_arg(arg, int));
                 break;
 
-#if UNUSED
-            /*
-                Name
-             */
             case 'N':
-                qualifier = va_arg(arg, char*);
-                len = strlen(qualifier);
-                name = va_arg(arg, char*);
-                tmpBuf = mprAlloc(ctx, len + strlen(name) + 2);
-                if (tmpBuf == 0) {
-                    return NULL;
-                }
-                strcpy(tmpBuf, qualifier);
-                tmpBuf[len++] = ':';
-                strcpy(&tmpBuf[len], name);
-                str = tmpBuf;
-                goto emitString;
-#endif
-
-            case 'U':
-                /* MprUni */
+                /* Name */
                 us = va_arg(arg, MprUni*);
-#if BLD_UNICODE_LEN == 1
-                str = us->value;
-                goto thin;
+#if BLD_CHAR_LEN == 1
+                outString(ctx, &fmt, us->value, us->length);
+                BPUT(ctx, &fmt, ':');
+                BPUT(ctx, &fmt, ':');
+                us = va_arg(arg, MprUni*);
+                outString(ctx, &fmt, us->value, us->length);
 #else
-                wstr = us->value;
-                goto wide:
+                outWideString(ctx, &fmt, us->value, us->length);
+                BPUT(ctx, &fmt, ':');
+                us = va_arg(arg, MprUni*);
+                outWideString(ctx, &fmt, us->value, us->length);
 #endif
+                break;
 
             case 'S':
-#if BLD_UNICODE_LEN > 1
-            {
-                wchar_t     *wstr, *wp;
-                /* Wide string */
-                //  MOB -- functionalize
-                wstr = va_arg(arg, wchar_t*);
-        wide:
-                tmpBuf = 0;
-                if (wstr == 0) {
-                    wstr = L"null";
-                    len = (int) wcslen(wstr);
-                } else if (fmt.flags & SPRINTF_ALTERNATE) {
-                    wstr++;
-                    len = (int) *wstr;
-                } else if (fmt.precision >= 0) {
-                    wp = wstr;
-                    for (len = 0; len < fmt.precision; len++) {
-                        if (*wp++ == 0) {
-                            break;
-                        }
-                    }
-                } else {
-                    len = (int) wcslen(wstr);
-                }
-                if (!(fmt.flags & SPRINTF_LEFT)) {
-                    for (i = len; i < fmt.width; i++) {
-                        BPUT(ctx, &fmt, (char) ' ');
-                    }
-                }
-                for (i = 0; i < len && *wstr; i++) {
-                    BPUT(ctx, &fmt, *wstr++);
-                }
-                if (fmt.flags & SPRINTF_LEFT) {
-                    for (i = len; i < fmt.width; i++) {
-                        BPUT(ctx, &fmt, (char) ' ');
-                    }
-                }
-                if (tmpBuf) {
-                    mprFree(tmpBuf);
-                }
-                break;
-            }
+                /* MprUni */
+                us = va_arg(arg, MprUni*);
+#if BLD_CHAR_LEN == 1
+                outString(ctx, &fmt, us->value, us->length);
+#else
+                outWideString(ctx, &fmt, us->value, us->length);
 #endif
+                break;
+
+            case 'w':
+                /* Wide string of MprChar characters. Null terminated. */
+#if BLD_CHAR_LEN > 1
+                outWideString(ctx, &fmt, va_arg(arg, MprChar*), -1);
+                break;
+#else
                 /* Fall through */
+#endif
 
             case 's':
-#if BLD_UNICODE_LEN == 1
-        thin:
+                /* Standard string */
+#if BLD_CHAR_LEN > 1
+                if (fmt.flags & SPRINTF_LONG) {
+                    outWideString(ctx, &fmt, va_arg(arg, MprChar*), -1);
+                } else
 #endif
-                str = va_arg(arg, char*);
-                tmpBuf = 0;
-                if (str == 0) {
-                    str = "null";
-                    len = (int) strlen(str);
-                } else if (fmt.flags & SPRINTF_ALTERNATE) {
-                    str++;
-                    len = (int) *str;
-                } else if (fmt.precision >= 0) {
-                    /*
-                        Can't use strlen(), the string may not have a null
-                     */
-                    cp = str;
-                    for (len = 0; len < fmt.precision; len++) {
-                        if (*cp++ == '\0') {
-                            break;
-                        }
-                    }
-                } else {
-                    len = (int) strlen(str);
-                }
-                if (!(fmt.flags & SPRINTF_LEFT)) {
-                    for (i = len; i < fmt.width; i++) {
-                        BPUT(ctx, &fmt, (char) ' ');
-                    }
-                }
-                for (i = 0; i < len && *str; i++) {
-                    BPUT(ctx, &fmt, *str++);
-                }
-                if (fmt.flags & SPRINTF_LEFT) {
-                    for (i = len; i < fmt.width; i++) {
-                        BPUT(ctx, &fmt, (char) ' ');
-                    }
-                }
-                if (tmpBuf) {
-                    mprFree(tmpBuf);
-                }
+                    outString(ctx, &fmt, va_arg(arg, char*), -1);
                 break;
 
             case 'i':
                 ;
+
             case 'd':
                 fmt.radix = 10;
                 if (fmt.flags & SPRINTF_SHORT) {
@@ -685,9 +617,83 @@ static char *sprintfCore(MprCtx ctx, char *buf, int maxsize, cchar *spec, va_lis
 }
 
 
-/*
-    Output a number according to the given format. 
- */
+static void outString(MprCtx ctx, Format *fmt, cchar *str, int len)
+{
+    cchar   *cp;
+    int     i;
+
+    if (str == NULL) {
+        str = "null";
+        len = 4;
+    } else if (fmt->flags & SPRINTF_ALTERNATE) {
+        str++;
+        len = (int) *str;
+    } else if (fmt->precision >= 0) {
+        for (cp = str, len = 0; len < fmt->precision; len++) {
+            if (*cp++ == '\0') {
+                break;
+            }
+        }
+    } else if (len < 0) {
+        len = (int) strlen(str);
+    }
+    if (!(fmt->flags & SPRINTF_LEFT)) {
+        for (i = len; i < fmt->width; i++) {
+            BPUT(ctx, fmt, (char) ' ');
+        }
+    }
+    for (i = 0; i < len && *str; i++) {
+        BPUT(ctx, fmt, *str++);
+    }
+    if (fmt->flags & SPRINTF_LEFT) {
+        for (i = len; i < fmt->width; i++) {
+            BPUT(ctx, fmt, (char) ' ');
+        }
+    }
+}
+
+
+#if BLD_CHAR_LEN > 1
+static void outWideString(MprCtx ctx, Format *fmt, MprChar *str, int len)
+{
+    MprChar     *cp;
+    int         i;
+
+    if (str == 0) {
+        BPUT(ctx, fmt, (char) 'n');
+        BPUT(ctx, fmt, (char) 'u');
+        BPUT(ctx, fmt, (char) 'l');
+        BPUT(ctx, fmt, (char) 'l');
+        return;
+    } else if (fmt->flags & SPRINTF_ALTERNATE) {
+        str++;
+        len = (int) *str;
+    } else if (fmt->precision >= 0) {
+        for (cp = str, len = 0; len < fmt->precision; len++) {
+            if (*cp++ == 0) {
+                break;
+            }
+        }
+    } else if (len < 0) {
+        for (cp = str, len = 0; *cp++ == 0; len++) ;
+    }
+    if (!(fmt->flags & SPRINTF_LEFT)) {
+        for (i = len; i < fmt->width; i++) {
+            BPUT(ctx, fmt, (char) ' ');
+        }
+    }
+    for (i = 0; i < len && *str; i++) {
+        BPUT(ctx, fmt, *str++);
+    }
+    if (fmt->flags & SPRINTF_LEFT) {
+        for (i = len; i < fmt->width; i++) {
+            BPUT(ctx, fmt, (char) ' ');
+        }
+    }
+}
+#endif
+
+
 static void outNum(MprCtx ctx, Format *fmt, cchar *prefix, uint64 value)
 {
     char    numBuf[64];

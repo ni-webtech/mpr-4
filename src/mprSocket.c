@@ -14,7 +14,6 @@
 
 #if !VXWORKS && !WINCE
 /*
-    Set this to 0 to disable the IPv6 address service. You can do this if you only need IPv4.
     On MAC OS X, getaddrinfo is not thread-safe and crashes when called by a 2nd thread at any time. ie. locking wont help.
  */
 #define BLD_HAS_GETADDRINFO 1
@@ -29,7 +28,8 @@ static MprSocket *createSocket(MprCtx ctx, struct MprSsl *ssl);
 static MprSocketProvider *createStandardProvider(MprSocketService *ss);
 static void disconnectSocket(MprSocket *sp);
 static int  flushSocket(MprSocket *sp);
-static int  getSocketInfo(MprCtx ctx, cchar *ip, int port, int *family, struct sockaddr **addr, socklen_t *addrlen);
+static int  getSocketInfo(MprCtx ctx, cchar *ip, int port, int *family, int *protocol, struct sockaddr **addr, 
+        socklen_t *addrlen);
 static int  getSocketIpAddr(MprCtx ctx, struct sockaddr *addr, int addrlen, char *ip, int size, int *port);
 static int  listenSocket(MprSocket *sp, cchar *ip, int port, int initialFlags);
 static int  readSocket(MprSocket *sp, void *buf, int bufsize);
@@ -255,7 +255,7 @@ static int listenSocket(MprSocket *sp, cchar *ip, int port, int initialFlags)
 {
     struct sockaddr     *addr;
     socklen_t           addrlen;
-    int                 datagram, family, rc;
+    int                 datagram, family, protocol, rc;
 
     lock(sp);
 
@@ -273,7 +273,7 @@ static int listenSocket(MprSocket *sp, cchar *ip, int port, int initialFlags)
          MPR_SOCKET_LISTENER | MPR_SOCKET_NOREUSE | MPR_SOCKET_NODELAY | MPR_SOCKET_THREAD));
 
     datagram = sp->flags & MPR_SOCKET_DATAGRAM;
-    if (getSocketInfo(sp, ip, port, &family, &addr, &addrlen) < 0) {
+    if (getSocketInfo(sp, ip, port, &family, &protocol, &addr, &addrlen) < 0) {
         unlock(sp);
         return MPR_ERR_NOT_FOUND;
     }
@@ -281,7 +281,7 @@ static int listenSocket(MprSocket *sp, cchar *ip, int port, int initialFlags)
     /*
         Create the O/S socket
      */
-    sp->fd = (int) socket(family, datagram ? SOCK_DGRAM: SOCK_STREAM, 0);
+    sp->fd = (int) socket(family, datagram ? SOCK_DGRAM: SOCK_STREAM, protocol);
     if (sp->fd < 0) {
         unlock(sp);
         return MPR_ERR_CANT_OPEN;
@@ -377,7 +377,7 @@ static int connectSocket(MprSocket *sp, cchar *ip, int port, int initialFlags)
 {
     struct sockaddr     *addr;
     socklen_t           addrlen;
-    int                 broadcast, datagram, family, rc, err;
+    int                 broadcast, datagram, family, protocol, rc, err;
 
     lock(sp);
 
@@ -400,7 +400,7 @@ static int connectSocket(MprSocket *sp, cchar *ip, int port, int initialFlags)
     }
     datagram = sp->flags & MPR_SOCKET_DATAGRAM;
 
-    if (getSocketInfo(sp, ip, port, &family, &addr, &addrlen) < 0) {
+    if (getSocketInfo(sp, ip, port, &family, &protocol, &addr, &addrlen) < 0) {
         err = mprGetSocketError(sp);
         closesocket(sp->fd);
         sp->fd = -1;
@@ -410,7 +410,7 @@ static int connectSocket(MprSocket *sp, cchar *ip, int port, int initialFlags)
     /*
         Create the O/S socket
      */
-    sp->fd = (int) socket(family, datagram ? SOCK_DGRAM: SOCK_STREAM, 0);
+    sp->fd = (int) socket(family, datagram ? SOCK_DGRAM: SOCK_STREAM, protocol);
     if (sp->fd < 0) {
         err = mprGetSocketError(sp);
         unlock(sp);
@@ -789,7 +789,7 @@ static int writeSocket(MprSocket *sp, void *buf, int bufsize)
 {
     struct sockaddr     *addr;
     socklen_t           addrlen;
-    int                 family, sofar, errCode, len, written;
+    int                 family, protocol, sofar, errCode, len, written;
 
     mprAssert(buf);
     mprAssert(bufsize >= 0);
@@ -797,7 +797,7 @@ static int writeSocket(MprSocket *sp, void *buf, int bufsize)
 
     lock(sp);
     if (sp->flags & (MPR_SOCKET_BROADCAST | MPR_SOCKET_DATAGRAM)) {
-        if (getSocketInfo(sp, sp->ip, sp->port, &family, &addr, &addrlen) < 0) {
+        if (getSocketInfo(sp, sp->ip, sp->port, &family, &protocol, &addr, &addrlen) < 0) {
             unlock(sp);
             return MPR_ERR_NOT_FOUND;
         }
@@ -1193,7 +1193,8 @@ int mprGetSocketError(MprSocket *sp)
     Get a socket address from a host/port combination. If a host provides both IPv4 and IPv6 addresses, 
     prefer the IPv4 address.
  */
-static int getSocketInfo(MprCtx ctx, cchar *ip, int port, int *family, struct sockaddr **addr, socklen_t *addrlen)
+static int getSocketInfo(MprCtx ctx, cchar *ip, int port, int *family, int *protocol, 
+    struct sockaddr **addr, socklen_t *addrlen)
 {
     MprSocketService    *ss;
     struct addrinfo     hints, *res;
@@ -1239,6 +1240,7 @@ static int getSocketInfo(MprCtx ctx, cchar *ip, int port, int *family, struct so
         hints.ai_family = AF_INET6;
         rc = getaddrinfo(ip, portBuf, &hints, &res);
         if (rc != 0) {
+            freeaddrinfo(res);
             mprUnlock(ss->mutex);
             return MPR_ERR_CANT_OPEN;
         }
@@ -1248,6 +1250,7 @@ static int getSocketInfo(MprCtx ctx, cchar *ip, int port, int *family, struct so
 
     *addrlen = (int) res->ai_addrlen;
     *family = res->ai_family;
+    *protocol = res->ai_protocol;
 
     freeaddrinfo(res);
     mprUnlock(ss->mutex);
@@ -1256,7 +1259,8 @@ static int getSocketInfo(MprCtx ctx, cchar *ip, int port, int *family, struct so
 
 
 #elif MACOSX
-static int getSocketInfo(MprCtx ctx, cchar *ip, int port, int *family, struct sockaddr **addr, socklen_t *addrlen)
+static int getSocketInfo(MprCtx ctx, cchar *ip, int port, int *family, int *protocol, 
+        struct sockaddr **addr, socklen_t *addrlen)
 {
     MprSocketService    *ss;
     struct hostent      *hostent;
@@ -1300,6 +1304,7 @@ static int getSocketInfo(MprCtx ctx, cchar *ip, int port, int *family, struct so
     mprAssert(hostent);
     *addrlen = len;
     *family = hostent->h_addrtype;
+    *protocol = 0;
     freehostent(hostent);
     mprUnlock(ss->mutex);
     return 0;
@@ -1308,7 +1313,8 @@ static int getSocketInfo(MprCtx ctx, cchar *ip, int port, int *family, struct so
 
 #else
 
-static int getSocketInfo(MprCtx ctx, cchar *ip, int port, int *family, struct sockaddr **addr, socklen_t *addrlen)
+static int getSocketInfo(MprCtx ctx, cchar *ip, int port, int *family, int *protocol,
+        struct sockaddr **addr, socklen_t *addrlen)
 {
     MprSocketService    *ss;
     struct sockaddr_in  *sa;
@@ -1359,6 +1365,7 @@ static int getSocketInfo(MprCtx ctx, cchar *ip, int port, int *family, struct so
     *addr = (struct sockaddr*) sa;
     *addrlen = sizeof(struct sockaddr_in);
     *family = sa->sin_family;
+    *protocol = 0;
     mprUnlock(ss->mutex);
     return 0;
 }
