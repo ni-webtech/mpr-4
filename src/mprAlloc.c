@@ -168,6 +168,7 @@ Mpr *mprCreateAllocService(MprAllocFailure cback, MprDestructor destructor)
     memset(heap, 0, sizeof(MprHeap));
     heap->stats.maxMemory = INT_MAX;
     heap->stats.redLine = INT_MAX / 100 * 99;
+    mprInitSpinLock(heap, &heap->spin);
 
     padWords = DESTRUCTOR_SIZE;
     usize = sizeof(Mpr) + (padWords * sizeof(void*));

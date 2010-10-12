@@ -45,3 +45,4 @@ bin/angel*
 bin/i686-*
 bin/*.sln
 bin/*.suo
+bin/.kdbgrc.*
