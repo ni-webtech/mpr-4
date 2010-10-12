@@ -1590,8 +1590,9 @@ typedef struct MprHashTable {
     int             flags;              /**< Hash control flags */
 } MprHashTable;
 
-#define MPR_HASH_CASELESS   0x1         /**< Key comparisons ignore case */
-#define MPR_HASH_UNICODE    0x2         /**< Hash keys are unicode strings */
+#define MPR_HASH_CASELESS       0x1     /**< Key comparisons ignore case */
+#define MPR_HASH_UNICODE        0x2     /**< Hash keys are unicode strings */
+#define MPR_HASH_PERM_KEYS      0x4     /**< Keys are permanent - don't need to dup */
 
 /**
     Add a symbol value into the hash table

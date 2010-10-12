@@ -259,6 +259,7 @@ int mprRemoveLastItem(MprList *lp)
 
 /*
     Remove an index from the list. Return the index where the item resided.
+    The list is compacted.
  */
 int mprRemoveItemAtPos(MprList *lp, int index)
 {

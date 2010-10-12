@@ -16,6 +16,7 @@
 
 /**************************** Forward Declarations ****************************/
 
+static inline void *dupKey(MprHashTable *table, MprHash *sp, cvoid *key);
 static int hashIndex(MprHashTable *table, cvoid *key, int size);
 static MprHash  *lookupHash(int *bucketIndex, MprHash **prevSp, MprHashTable *table, cvoid *key);
 
@@ -92,7 +93,11 @@ MprHash *mprAddHash(MprHashTable *table, cvoid *key, cvoid *ptr)
         return 0;
     }
     sp->data = ptr;
-    sp->key = mprStrdup(sp, key);
+    if (!(table->flags & MPR_HASH_PERM_KEYS)) {
+        sp->key = dupKey(table, sp, key);
+    } else {
+        sp->key = (void*) key;
+    }
     sp->bucket = index;
     sp->next = table->buckets[index];
     table->buckets[index] = sp;
@@ -118,7 +123,11 @@ MprHash *mprAddDuplicateHash(MprHashTable *table, cvoid *key, cvoid *ptr)
     index = hashIndex(table, key, table->hashSize);
 
     sp->data = ptr;
-    sp->key = mprStrdup(sp, key);
+    if (!(table->flags & MPR_HASH_PERM_KEYS)) {
+        sp->key = dupKey(table, sp, key);
+    } else {
+        sp->key = (void*) key;
+    }
     sp->bucket = index;
     sp->next = table->buckets[index];
     table->buckets[index] = sp;
@@ -271,7 +280,6 @@ MprHash *mprGetNextHash(MprHashTable *table, MprHash *last)
 }
 
 
-//  TODO OPT - Get a better hash. See Ejscript
 /*
     Hash the key to produce a hash index.
  */
@@ -281,6 +289,8 @@ static int hashIndex(MprHashTable *table, cvoid *vkey, int size)
     cchar   *key;
     uint    sum;
     int     c, i;
+
+    //  MOB TODO OPT - Get a better hash. See Ejscript
 
     if (table->flags & MPR_HASH_UNICODE) {
         ukey = (MprUni*) vkey;
@@ -295,21 +305,40 @@ static int hashIndex(MprHashTable *table, cvoid *vkey, int size)
                 sum += (sum * 33) + ukey->value[i];
             }
         }
-    } if (table->flags & MPR_HASH_CASELESS) {
-        key = (char*) vkey;
-        sum = 0;
-        while (*key) {
-            c = *key++;
-            sum += (sum * 33) + tolower(c);
-        }
     } else {
-        key = (char*) vkey;
-        sum = 0;
-        while (*key) {
-            sum += (sum * 33) + *key++;
+        if (table->flags & MPR_HASH_CASELESS) {
+            key = (char*) vkey;
+            sum = 0;
+            while (*key) {
+                c = *key++;
+                sum += (sum * 33) + tolower(c);
+            }
+        } else {
+            key = (char*) vkey;
+            sum = 0;
+            while (*key) {
+                sum += (sum * 33) + *key++;
+            }
         }
     }
     return sum % size;
+}
+
+
+static inline void *dupKey(MprHashTable *table, MprHash *sp, cvoid *key)
+{
+    char    *ptr;
+    int     len;
+
+    if (table->flags & MPR_HASH_UNICODE) {
+        MprUni  *ukey;
+        len = ((ukey->length + 1) * sizeof(MprChar));
+        ptr = mprAlloc(sp, len);
+        memcpy(ptr, ukey->value, len);
+        return ptr;
+    } else {
+        return mprStrdup(sp, key);
+    }
 }
 
 
