@@ -3403,8 +3403,8 @@ extern MprThreadLocal *mprCreateThreadLocal(MprCtx ctx);
     @ingroup MprMem
  */
 typedef struct MprBlk {
-    struct MprBlk   *next;                  /* Next sibling */
-    struct MprBlk   *prev;                  /* Previous sibling */
+    struct MprBlk   *next;                  /* Next sibling or block in freeq */
+    struct MprBlk   *prev;                  /* Previous sibling or block in freeq */
     struct MprBlk   *prior;                 /* Size of block prior to this block in memory */
     size_t          size:  MPR_SIZE_BITS;   /* Internal block length including header (max size 134217728) */
     uint            pad:  3;                /* Max pad words: destructor, children.forw, children.back, debug-trailer */
@@ -3508,6 +3508,44 @@ typedef struct MprHeap {
     #define MPR_MAP_EXECUTE     PROT_EXEC
 #endif
 
+#if MPR_GC
+extern void *mprAllocBlock(size_t size, int flags);
+
+/* Allocate - no manager */
+extern void *mprAlloc(size_t size);
+extern void *mprAllocZeroed(size_t size);
+
+/* Allocate structure and define manager */
+extern void *mprAllocObj(Type type, MprManager manager);
+
+/* Free. Invoke any manager */
+extern int  mprFree(void *ptr);
+
+/* Realloc. Preserve manager */
+extern void *mprRealloc(void *ptr, size_t size);
+
+/* Allocate, but no manager */
+extern char *mprAsprintf(int maxSize, cchar *fmt, ...);
+extern char *mprStrdup(cchar *str);
+extern char *mprStrndup(cchar *str, size_t size);
+
+//  Removed
+extern void *mprAllocCtx(ctx, size); 
+
+//  OLD
+extern void *mprAllocBlock(MprCtx ctx, size_t size, int flags);
+extern void *mprAlloc(MprCtx ctx, size_t size);
+extern int mprFree(void *ptr);
+extern void *mprAllocZeroed(MprCtx ctx, size_t size);
+extern void *mprAllocCtx(ctx, size); 
+extern void *mprAllocWithDestructor(MprCtx ctx, size_t size, MprDestructor destructor);
+extern void *mprRealloc(MprCtx ctx, void *ptr, size_t size);
+extern char *mprAsprintf(MprCtx ctx, int maxSize, cchar *fmt, ...);
+extern char *mprStrdup(MprCtx ctx, cchar *str);
+extern char *mprStrndup(MprCtx ctx, cchar *str, size_t size);
+extern void *mprAllocObj(MprCtx ctx, Type type, MprDestructor destructor);
+#endif
+
 extern struct Mpr *mprCreateAllocService(MprAllocFailure cback, MprDestructor destructor);
 
 /**
@@ -3580,6 +3618,7 @@ extern void *mprAllocBlock(MprCtx ctx, size_t size, int flags);
  */
 extern void *mprAllocZeroed(MprCtx ctx, size_t size);
 
+#if UNUSED
 /**
     Allocate an object block of memory
     @description Allocates a block of memory using the supplied memory context \a ctx as the parent. #mprAllocWithDestructor
@@ -3613,6 +3652,7 @@ extern void *mprAllocWithDestructor(MprCtx ctx, size_t size, MprDestructor destr
     @ingroup MprMem
  */
 extern void *mprAllocWithDestructorZeroed(MprCtx ctx, size_t size, MprDestructor destructor);
+#endif
 
 /**
     Reallocate a block
@@ -3734,6 +3774,7 @@ extern char *mprStrdup(MprCtx ctx, cchar *str);
 #define mprAllocWithDestructor(ctx, size, destructor) \
     mprUpdateDestructor(mprAllocBlock(ctx, size, MPR_ALLOC_DESTRUCTOR | MPR_ALLOC_CHILDREN), (MprDestructor) destructor)
 
+//  MOB -- doc
 #define mprAlloc(ctx, size) mprAllocBlock(ctx, size, 0)
 #define mprAllocZeroed(ctx, size) mprAllocBlock(ctx, size, MPR_ALLOC_ZERO)
 #define mprAllocCtx(ctx, size) mprAllocBlock(ctx, size, MPR_ALLOC_CHILDREN | MPR_ALLOC_ZERO)

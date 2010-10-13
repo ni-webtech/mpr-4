@@ -2303,8 +2303,8 @@ while [ "${1#--}" != "$1" ] ; do
         ;;
     char=*)
         BLD_CHAR_LEN="${ARG}"
-        if [ "$BLD_CHAR_LEN" != 1 -a "$BLD_CHAR_LEN" != 2 -a "$BLD_CHAR_LEN" != 4 ] ; then
-            echo "Invalid char size (Valid sizes: 1, 2 or 4)"
+        if [ "$BLD_CHAR_LEN" != 1 -a "$BLD_CHAR_LEN" != 2 ] ; then
+            echo "Invalid char size (Valid sizes: 1 or 2)"
             exit 255
         fi
         ;;
