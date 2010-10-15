@@ -359,7 +359,7 @@ typedef const uni cuni;
 extern "C" {
 #else
     #if !MACOSX
-        typedef int bool;
+        typedef char bool;
     #endif
 #endif
 
