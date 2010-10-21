@@ -719,7 +719,6 @@ static int writeOss(MprSocket *sp, void *buf, int len)
         unlock(sp);
         return -1;
     }
-
     totalWritten = 0;
     ERR_clear_error();
 
