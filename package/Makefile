@@ -1,23 +1,27 @@
 #
-#	Makefile for the combo MPR distribution
+#	Makefile for the combo and flat MPR distributions
 #
 #	Copyright (c) Embedthis Software LLC, 2003-2010. All Rights Reserved.
 #
 
 include			.makedep
 
-# COMPILE			=
-STAGING		:= $(PWD)/staging
-DIR			:= $(STAGING)/mpr-$(BLD_VERSION)
-REL_DIR		:= ../releases
-RELEASE		:= mpr-$(BLD_VERSION)-combo.tgz
-LATEST		:= mpr-combo.tgz
-ARCHIVE		:= $(REL_DIR)/$(RELEASE)
-DEST		:= $(DIR)/src/deps/mpr
-INC_DEST	:= $(DIR)/src/include
-DOC_DEST	:= $(DIR)/doc
-TARGETS		+= $(patsubst %,$(INC_DEST)/%, mpr.h mprSsl.h)
-TARGETS		+= $(patsubst %,$(DEST)/%, mprLib.c makerom.c mprSsl.c angel.c)
+STAGING			:= $(PWD)/staging
+TDIR			:= $(STAGING)/mpr-$(BLD_VERSION)
+REL_DIR			:= ../releases
+COMBO_VER_NAME	:= mpr-$(BLD_VERSION)-combo.tgz
+COMBO_PERM_NAME	:= mpr-combo.tgz
+COMBO_VER		:= $(REL_DIR)/$(COMBO_VER_NAME)
+COMBO_PERM		:= $(REL_DIR)/$(COMBO_PERM_NAME)
+FLAT_VER_NAME	:= mpr-$(BLD_VERSION)-flat.tgz
+FLAT_PERM_NAME	:= mpr-flat.tgz
+FLAT_VER		:= $(REL_DIR)/$(FLAT_VER_NAME)
+FLAT_PERM		:= $(REL_DIR)/$(FLAT_PERM_NAME)
+DEST			:= $(TDIR)/src/deps/mpr
+INC_DEST		:= $(TDIR)/src/include
+DOC_DEST		:= $(TDIR)/doc
+TARGETS			+= $(patsubst %,$(INC_DEST)/%, mpr.h mprSsl.h)
+TARGETS			+= $(patsubst %,$(DEST)/%, mprLib.c makerom.c mprSsl.c angel.c)
 
 #
 #	Order of headers matters
@@ -26,10 +30,10 @@ HEADERS			+= $(patsubst %,../src/include/%, mprOs.h mprTune.h mpr.h mprTest.h)
 MPR_SOURCES 	+= ../src/mprAlloc.c $(shell find ../src/*.c ../src/deps/*.c | egrep -v 'angel|mprAlloc')
 SSL_SOURCES 	+= ../src/include/mprSsl.h $(wildcard ../src/ssl/*.c) 
 
-combo packageExtra: prep $(TARGETS) $(ARCHIVE) cleanExtra
+combo packageExtra: prep $(TARGETS) $(COMBO_VER) $(FLAT_VER) cleanExtra
 
 prep:
-	rm -fr $(DIR)
+	rm -fr $(STAGING) $(COMBO_VER) $(COMBO_PERM) $(FLAT_VER) $(FLAT_PERM)
 	mkdir -p $(DEST) $(INC_DEST) $(DOC_DEST)/man $(DOC_DEST)/api
 
 $(INC_DEST)/mpr.h: Makefile $(HEADERS)
@@ -51,14 +55,20 @@ $(DEST)/mprSsl.c: Makefile ../src/include/mprSsl.h $(HEADERS) $(SSL_SOURCES)
 $(DEST)/angel.c: Makefile ../src/angel.c
 	cp ../src/angel.c $(DEST)/angel.c
 
-$(ARCHIVE): Makefile $(TARGETS)
-	cp $(BLD_TOP)/doc/api/mprBare.html $(DIR)/doc/api
-	cp $(BLD_TOP)/doc/man/*.1 $(DIR)/doc/man
+$(COMBO_VER): 
+	cp $(BLD_TOP)/doc/api/mprBare.html $(TDIR)/doc/api
+	cp $(BLD_TOP)/doc/man/*.1 $(TDIR)/doc/man
 	cp Makefile.combo $(DEST)/Makefile
-	rm -f $(REL_DIR)/$(RELEASE) $(REL_DIR)/$(LATEST)
-	@$(call log) "[Generate]" "tar cfz $(ARCHIVE) -C $(STAGING) ."
-	tar cfz $(REL_DIR)/$(RELEASE) -C $(STAGING) .
-	cd $(REL_DIR) ; ln -s $(RELEASE) $(LATEST)
+	@$(call log) "[Generate]" "tar cfz $(COMBO_VER) -C $(STAGING) ."
+	tar cfz $(COMBO_VER) -C $(STAGING) .
+	cd $(REL_DIR) ; ln -s $(COMBO_VER_NAME) $(COMBO_PERM_NAME)
+
+flat $(FLAT_VER):
+	find $(TDIR)/src -type f | xargs -I % mv % $(TDIR) 
+	rm -fr $(TDIR)/doc $(TDIR)/src $(TDIR)/Makefile
+	$(call log) "[Generate]" "tar cfz $(FLAT_VER) -C $(STAGING) ."
+	tar cfz $(FLAT_VER) -C $(STAGING) .
+	cd $(REL_DIR) ; ln -s $(FLAT_VER_NAME) $(FLAT_PERM_NAME)
 
 cleanExtra:
 	rm -rf $(STAGING)
