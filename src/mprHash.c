@@ -331,7 +331,7 @@ static inline void *dupKey(MprHashTable *table, MprHash *sp, cvoid *key)
     int     len;
 
     if (table->flags & MPR_HASH_UNICODE) {
-        MprUni  *ukey;
+        MprUni  *ukey = (MprUni*) key;
         len = ((ukey->length + 1) * sizeof(MprChar));
         ptr = mprAlloc(sp, len);
         memcpy(ptr, ukey->value, len);
