@@ -45,11 +45,14 @@ int mprCreateNotifierService(MprWaitService *ws)
         fcntl(breakSock, F_SETFD, FD_CLOEXEC);
 #endif
         ws->breakAddress.sin_family = AF_INET;
+#if CYGWIN
         /*
             Cygwin doesn't work with INADDR_ANY
          */
-        // ws->breakAddress.sin_addr.s_addr = INADDR_ANY;
         ws->breakAddress.sin_addr.s_addr = inet_addr("127.0.0.1");
+#else
+        ws->breakAddress.sin_addr.s_addr = INADDR_ANY;
+#endif
         ws->breakAddress.sin_port = htons((short) breakPort);
         rc = bind(breakSock, (struct sockaddr *) &ws->breakAddress, sizeof(ws->breakAddress));
         if (breakSock >= 0 && rc == 0) {
@@ -76,6 +79,16 @@ int mprCreateNotifierService(MprWaitService *ws)
 }
 
 
+static void mprManageSelect(MprWaitService *ws, int flags)
+{
+    if (flags & MPR_MANAGE_FREE) {
+        if (ws->breakSock >= 0) {
+            close(ws->breakSock);
+        }
+    }
+}
+
+
 static int growFds(MprWaitService *ws)
 {
     growFds(ws);
@@ -83,7 +96,7 @@ static int growFds(MprWaitService *ws)
     ws->handlerMap = mprRealloc(ws, ws->handlerMap, sizeof(MprWaitHandler*) * ws->handlerMax);
     if (ws->handlerMap) {
         unlock(ws);
-        return MPR_ERR_NO_MEMORY;
+        return MPR_ERR_MEMORY;
     }
     memset(&ws->handlerMap[ws->handlerMax / 2], 0, sizeof(MprWaitHandler*) * ws->handlerMax / 2);
     return 0;
@@ -103,7 +116,7 @@ int mprAddNotifier(MprWaitService *ws, MprWaitHandler *wp, int mask)
     if (wp->desiredMask != mask) {
         if (fd >= ws->handlerMax && growFds(ws) < 0) {
             unlock(ws);
-            return MPR_ERR_NO_MEMORY;
+            return MPR_ERR_MEMORY;
         }
         if (mask & MPR_READABLE) {
             FD_SET(fd, &ws->readMask);

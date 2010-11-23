@@ -15,7 +15,7 @@
 /********************************** Forwards **********************************/
 
 static int growEvents(MprWaitService *ws);
-static int epollNotifierDestructor(MprWaitService *ws);
+static void manageEpoll(MprWaitService *ws, int flags);
 static void serviceIO(MprWaitService *ws, int count);
 
 /************************************ Code ************************************/
@@ -51,19 +51,23 @@ int mprCreateNotifierService(MprWaitService *ws)
     ev.data.fd = ws->breakPipe[MPR_READ_PIPE];
     epoll_ctl(ws->epoll, EPOLL_CTL_ADD, ws->breakPipe[MPR_READ_PIPE], &ev);
 
-    if (mprAllocObj(ws, char*, epollNotifierDestructor) == 0) {
-        return MPR_ERR_NO_MEMORY;
+    if (mprAllocObj(ws, char*, manageEpoll) == 0) {
+        return MPR_ERR_MEMORY;
     }
     return 0;
 }
 
 
-static int epollNotifierDestructor(MprWaitService *ws)
+static void manageEpoll(MprWaitService *ws, int flags)
 {
-    if (ws->epoll) {
-        close(ws->epoll);
+    if (flags & MPR_MANAGE_MARK) {
+        ;
+    } else if (flags & MPR_MANAGE_FREE) {
+        if (ws->epoll) {
+            close(ws->epoll);
+            ws->epoll = 0;
+        }
     }
-    return 0;
 }
 
 
@@ -72,7 +76,7 @@ static int growEvents(MprWaitService *ws)
     ws->eventsMax *= 2;
     ws->events = mprRealloc(ws, ws->events, sizeof(struct epoll_event) * ws->eventsMax);
     if (ws->events == 0) {
-        return MPR_ERR_NO_MEMORY;
+        return MPR_ERR_MEMORY;
     }
     return 0;
 }
@@ -102,7 +106,7 @@ int mprAddNotifier(MprWaitService *ws, MprWaitHandler *wp, int mask)
             oldlen = ws->handlerMax;
             ws->handlerMax = fd + 32;
             if ((ws->handlerMap = mprRealloc(ws, ws->handlerMap, sizeof(MprWaitHandler*) * ws->handlerMax)) == 0) {
-                return MPR_ERR_NO_MEMORY;
+                return MPR_ERR_MEMORY;
             }
             memset(&ws->handlerMap[oldlen], 0, sizeof(MprWaitHandler*) * (ws->handlerMax - oldlen));
         }

@@ -32,7 +32,10 @@ DEP_OBJECTS		+= $(BLD_OBJ_DIR)/dtoa$(BLD_OBJ)
 SYSLIBS			+= shell32.lib
 
 x:
-	echo $(MAKE_DFLAGS)
+	echo BLD_TOP $(BLD_TOP)
+	echo BLD_OUT_DIR $(BLD_OUT_DIR)
+	echo BLD_BIN_DIR $(BLD_BIN_DIR)
+	echo BLD_LIB_DIR $(BLD_LIB_DIR)
 
 #
 #	Build the targets in this directory first then the builtin packages (ssl and regexp)

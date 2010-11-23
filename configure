@@ -24,9 +24,9 @@ CONFIG_SH=build/bin/buildConfig.sh
 CONFIG_MAKE=./buildConfig.make
 
 if [ -d src/include ] ; then
-	CONFIG_H=src/include/buildConfig.h
+    CONFIG_H=src/include/buildConfig.h
 else
-	CONFIG_H=buildConfig.h
+    CONFIG_H=buildConfig.h
 fi
 
 #
@@ -113,6 +113,7 @@ checkSetup() {
     #
     BLD_TOP=`canonPath .`
     BLD_TOOLS_DIR=${BLD_TOP}/build/bin
+    BLD_OUT_DIR=${BLD_TOP}
 
     #
     #   Sleuth the product. By convention products put a configure.PRODUCT file under the build directory.
@@ -394,7 +395,6 @@ parseSystemConfiguration() {
     elif [ $os = WINCE ] ; then
         dist="wince"
     fi
-
     eval BLD_${kind}_DIST=\"${dist}\"
     eval BLD_${kind}_DIST_VER=\"`echo ${version}`\"
 }
@@ -1334,7 +1334,7 @@ createBuildConfig() {
     #
     cp $CONFIG_H config.sav
 
-    egrep -v '^	#$|^	#	|^	# |^# |^#$|^# |^    # ' < config.sav | egrep -v '^export ' | \
+    egrep -v '^ #$|^    #   |^  # |^# |^#$|^# |^    # ' < config.sav | egrep -v '^export ' | \
         sed 's/\([^=]*\)=\(.*\)/#define \1 \2/' | sed 's/'\''/"/g' | \
         sed 's/^#define/    #define/' | sed 's/^ #/#/' >$CONFIG_H
     addScripts
@@ -1506,6 +1506,7 @@ BLD_VERSION="$BLD_VERSION"
 BLD_NUMBER="$BLD_NUMBER"
 BLD_TUNE=$BLD_TUNE
 BLD_CHAR_LEN=$BLD_CHAR_LEN
+BLD_CHAR=$BLD_CHAR
 BLD_DEFAULTS="$BLD_DEFAULTS"
 BLD_COMPONENTS="$BLD_COMPONENTS"
 BLD_EMBEDTHIS=$BLD_EMBEDTHIS
@@ -1612,17 +1613,17 @@ BLD_FEATURE_DEVICE=$BLD_FEATURE_DEVICE
 BLD_FEATURE_LEGACY_API=$BLD_FEATURE_LEGACY_API
 !EOF_STANDARD_FEATURES
 
-	if [ $NAME = $CONFIG_H ] ; then
+    if [ $NAME = $CONFIG_H ] ; then
         echo ''   >>$NAME
-		echo '    #ifdef STATIC_OVERRIDE' >>$NAME
-		echo '        BLD_FEATURE_STATIC=STATIC_OVERRIDE' >>$NAME
-		echo '    #else' >>$NAME
-		echo "        BLD_FEATURE_STATIC=$BLD_FEATURE_STATIC" >>$NAME
-		echo '    #endif' >>$NAME
-	else
-		echo "BLD_FEATURE_STATIC=$BLD_FEATURE_STATIC" >>$NAME
-	fi
-	echo >>$NAME
+        echo '    #ifdef STATIC_OVERRIDE' >>$NAME
+        echo '        BLD_FEATURE_STATIC=STATIC_OVERRIDE' >>$NAME
+        echo '    #else' >>$NAME
+        echo "        BLD_FEATURE_STATIC=$BLD_FEATURE_STATIC" >>$NAME
+        echo '    #endif' >>$NAME
+    else
+        echo "BLD_FEATURE_STATIC=$BLD_FEATURE_STATIC" >>$NAME
+    fi
+    echo >>$NAME
 
     createFeatureConfig $NAME
 
@@ -1725,25 +1726,25 @@ createCrossConfig()
     eval os=\$BLD_${kind}_OS
 
     if [ $kind = "HOST" ] ; then
-        echo -e "\n    #\n	#	Configuration for Cross-Compilation for the Target\n    #\n"
+        echo -e "\n    #\n  #   Configuration for Cross-Compilation for the Target\n    #\n"
     else
-        echo -e "\n    #\n	#	Configuration for Native Compilation on the Build System\n    #\n"
+        echo -e "\n    #\n  #   Configuration for Native Compilation on the Build System\n    #\n"
     fi
 
     if [ $NAME = $CONFIG_MAKE -a $BLD_CROSS = 1 ] ; then
         if [ $kind = "HOST" ] ; then
-            echo -e "	BUILD_NATIVE_OR_COMPLETE_CROSS=$BLD_FEATURE_COMPLETE_CROSS"
-            echo -e "	BUILD_CROSS_OR_COMPLETE_NATIVE=1"
+            echo -e "   BUILD_NATIVE_OR_COMPLETE_CROSS=$BLD_FEATURE_COMPLETE_CROSS"
+            echo -e "   BUILD_CROSS_OR_COMPLETE_NATIVE=1"
         else
-            echo -e "	BUILD_NATIVE_OR_COMPLETE_CROSS=1"
-            echo -e "	BUILD_CROSS_OR_COMPLETE_NATIVE=$BLD_FEATURE_COMPLETE_NATIVE"
+            echo -e "   BUILD_NATIVE_OR_COMPLETE_CROSS=1"
+            echo -e "   BUILD_CROSS_OR_COMPLETE_NATIVE=$BLD_FEATURE_COMPLETE_NATIVE"
         fi
     else
-        echo -e "	BUILD_NATIVE_OR_COMPLETE_CROSS=1"
-        echo -e "	BUILD_CROSS_OR_COMPLETE_NATIVE=1"
+        echo -e "   BUILD_NATIVE_OR_COMPLETE_CROSS=1"
+        echo -e "   BUILD_CROSS_OR_COMPLETE_NATIVE=1"
     fi
 
-    echo -e "\n	#\n	#   O/S and CPU settings\n	#"
+    echo -e "\n #\n #   O/S and CPU settings\n  #"
     eval v=\$BLD_${kind}_OS ;           echo -e "\t$v=1"
     eval v=\$BLD_${kind}_OS ;           echo -e "\tBLD_OS=\"$v\""
     eval v=\$BLD_${kind}_CPU_ARCH ;     echo -e "\tBLD_CPU_ARCH=$v"
@@ -1780,29 +1781,33 @@ createCrossConfig()
         eval v=\$BLD_${kind}_PIOBJ ;    echo -e "\tBLD_PIOBJ=\"${v}\""            
     fi
 
-    echo -e "\n\t#\n\t#   Output directories \n\t#" >>$NAME
+    echo -e "\n\t#\n\t#   Output directories \n\t#"
 
+    echo "    BLD_OUT_DIR=\"${BLD_OUT_DIR}\""
+    echo -e '\tBLD_TOOLS_DIR="${BLD_TOP}/build/bin"'
+    echo
     for d in BIN LIB OBJ MOD INC
     do
         eval dir=\$BLD_${kind}_${d}_DIR
-        dir=${dir/\${BLD_TOP\}\/}
+        dir=${dir/\${BLD_OUT_DIR\}\/}
         echo "    BLD_${d}_NAME=\"${dir}\""
     done
 
-    echo -e '\tBLD_TOOLS_DIR="${BLD_TOP}/build/bin"' >>$NAME
-    eval v=\$BLD_${kind}_BIN_DIR ;      echo -e "\tBLD_BIN_DIR=${v}"
-    eval v=\$BLD_${kind}_OBJ_DIR ;      echo -e "\tBLD_OBJ_DIR=${v}"
-    eval v=\$BLD_${kind}_MOD_DIR ;      echo -e "\tBLD_MOD_DIR=${v}"
-    eval v=\$BLD_${kind}_JEM_DIR ;      echo -e "\tBLD_JEM_DIR=${v}"
-    eval v=\$BLD_${kind}_LIB_DIR ;      echo -e "\tBLD_LIB_DIR=${v}"
-    eval v=\$BLD_${kind}_INC_DIR ;      echo -e "\tBLD_INC_DIR=${v}"
+    echo
+    eval v=\$BLD_${kind}_BIN_DIR ;      echo -e "\tBLD_BIN_DIR=\"${v}\""
+    eval v=\$BLD_${kind}_OBJ_DIR ;      echo -e "\tBLD_OBJ_DIR=\"${v}\""
+    eval v=\$BLD_${kind}_MOD_DIR ;      echo -e "\tBLD_MOD_DIR=\"${v}\""
+    eval v=\$BLD_${kind}_JEM_DIR ;      echo -e "\tBLD_JEM_DIR=\"${v}\""
+    eval v=\$BLD_${kind}_LIB_DIR ;      echo -e "\tBLD_LIB_DIR=\"${v}\""
+    eval v=\$BLD_${kind}_INC_DIR ;      echo -e "\tBLD_INC_DIR=\"${v}\""
 
-    eval v=\${BLD_${kind}_BIN_DIR} ;    v=`eval canonPath "${v}"` ;  echo -e "\tBLD_ABS_BIN_DIR=\"${v}\""
-    eval v=\${BLD_${kind}_LIB_DIR} ;    v=`eval canonPath "${v}"` ;  echo -e "\tBLD_ABS_LIB_DIR=\"${v}\""
-    eval v=\${BLD_${kind}_OBJ_DIR} ;    v=`eval canonPath "${v}"` ;  echo -e "\tBLD_ABS_OBJ_DIR=\"${v}\""
-    eval v=\${BLD_${kind}_MOD_DIR} ;    v=`eval canonPath "${v}"` ;  echo -e "\tBLD_ABS_MOD_DIR=\"${v}\""
-    eval v=\${BLD_${kind}_JEM_DIR} ;    v=`eval canonPath "${v}"` ;  echo -e "\tBLD_ABS_JEM_DIR=\"${v}\""
-    eval v=\${BLD_${kind}_INC_DIR} ;    v=`eval canonPath "${v}"` ;  echo -e "\tBLD_ABS_INC_DIR=\"${v}\""
+    echo
+    eval v=\${BLD_${kind}_BIN_DIR} ;    v=`eval canonPath "${v}"` ;  echo -e "\tBLD_ABS_BIN_DIR=\"${v}\"" ; mkdir -p "${v}"
+    eval v=\${BLD_${kind}_LIB_DIR} ;    v=`eval canonPath "${v}"` ;  echo -e "\tBLD_ABS_LIB_DIR=\"${v}\"" ; mkdir -p "${v}"
+    eval v=\${BLD_${kind}_OBJ_DIR} ;    v=`eval canonPath "${v}"` ;  echo -e "\tBLD_ABS_OBJ_DIR=\"${v}\"" ; mkdir -p "${v}"
+    eval v=\${BLD_${kind}_MOD_DIR} ;    v=`eval canonPath "${v}"` ;  echo -e "\tBLD_ABS_MOD_DIR=\"${v}\"" ; mkdir -p "${v}"
+    eval v=\${BLD_${kind}_JEM_DIR} ;    v=`eval canonPath "${v}"` ;  echo -e "\tBLD_ABS_JEM_DIR=\"${v}\"" ; mkdir -p "${v}"
+    eval v=\${BLD_${kind}_INC_DIR} ;    v=`eval canonPath "${v}"` ;  echo -e "\tBLD_ABS_INC_DIR=\"${v}\"" ; mkdir -p "${v}"
 
     if [ $kind = "HOST" ] ; then
         echo -e "\n\t#\n\t#   Cross Compilation Features\n\t#"
@@ -1907,7 +1912,7 @@ emitComponents() {
 
 
 showBuildConfig() {
-    local p
+    local p where
 
     [ $quiet = 1 ] && return 0
 
@@ -1945,11 +1950,24 @@ showBuildConfig() {
         done
         echo
     fi
-    echo -e "  #   Directories:"
+    echo -e "  # Installation Directories:"
     for p in PRD VER CFG BIN JEM LIB MOD WEB INC
     do
         eval dir=\$BLD_${p}_PREFIX
         echo -e "  #   ${p}   ${dir}"
+    done
+    echo
+    echo -e "  # Output Directories:"
+    eval where=${BLD_OUT_DIR}
+    printf "  #   %-15s %s\n" "BLD_OUT_DIR" ${where}
+    for kind in BUILD HOST ; do
+        for p in BIN LIB MOD OBJ
+        do
+            eval dir=\$BLD_${kind}_${p}_DIR
+            eval where=${dir}
+            eval where=${where}
+            printf "  #   %-15s %s\n" BLD_${kind}_${p} ${where}
+        done
     done
     echo
 }
@@ -2038,6 +2056,7 @@ Standard options that are ignored but provided for compatibility with autoconf.
   --sbindir
   --sharedstatedir
   --infodir
+  --outdir=PATH            Directory for intermediate objects, files and binaries.
   --program-prefix
   --program-suffix
   --program-transform-name
@@ -2216,10 +2235,6 @@ while [ "${1#--}" != "$1" -o "${1#-}" != "$1" ] ; do
     diab)
         BLD_CC_DIAB=1
         ;;
-    help|-\?)
-        emitHelp
-        exit 0
-        ;;
     host=*|target=*)
         system=`bash build/bin/config.sub "${ARG}"`
         if [ $? != 0 -o "$system" = "" ] ; then
@@ -2303,9 +2318,16 @@ while [ "${1#--}" != "$1" ] ; do
         ;;
     char=*)
         BLD_CHAR_LEN="${ARG}"
-        if [ "$BLD_CHAR_LEN" != 1 -a "$BLD_CHAR_LEN" != 2 ] ; then
-            echo "Invalid char size (Valid sizes: 1 or 2)"
+        if [ "$BLD_CHAR_LEN" != 1 -a "$BLD_CHAR_LEN" != 2 -a "$BLD_CHAR_LEN" != 4 ] ; then
+            echo "Invalid char size (Valid sizes: 1, 2 or 4)"
             exit 255
+        fi
+        if [ "$BLD_CHAR_LEN" = 2 ] ; then
+            BLD_CHAR=short
+        elif [ "$BLD_CHAR_LEN" = 4 ] ; then
+            BLD_CHAR=int32
+        else
+            BLD_CHAR=char
         fi
         ;;
     debug)
@@ -2368,6 +2390,10 @@ while [ "${1#--}" != "$1" ] ; do
         BLD_DOC_PREFIX=`canonPath "${ARG}"/${BLD_PRODUCT}`
         BLD_SAM_PREFIX=`canonPath "${ARG}"/${BLD_PRODUCT}/samples`
         ;;
+    help|-\?)
+        emitHelp
+        exit 0
+        ;;
     incdir=*|includedir=*|oldincludedir=*)
         BLD_INC_PREFIX=`canonPath "${ARG}"`
         ;;
@@ -2393,6 +2419,10 @@ while [ "${1#--}" != "$1" ] ; do
 #       ;;
     name=*)
         BLD_NAME="${ARG}"
+        ;;
+    outdir=*)
+        BLD_OUT_DIR=`canonPath "${ARG}"`
+        mkdir -p $BLD_OUT_DIR
         ;;
     prefix=*)
         BLD_BIN_PREFIX=`remapDir "$BLD_BIN_PREFIX" "$BLD_PREFIX" "$ARG"`

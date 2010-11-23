@@ -8,6 +8,10 @@
 
 #include    "mpr.h"
 
+/********************************** Forwards **********************************/
+
+static void manageModuleService(MprModuleService *ms, int flags);
+
 /************************************* Code ***********************************/
 /*
     Open the module service
@@ -17,7 +21,7 @@ MprModuleService *mprCreateModuleService(MprCtx ctx)
     MprModuleService    *ms;
     cchar               *searchPath;
 
-    ms = mprAllocObj(ctx, MprModuleService, NULL);
+    ms = mprAllocObj(ctx, MprModuleService, manageModuleService);
     if (ms == 0) {
         return 0;
     }
@@ -39,9 +43,19 @@ MprModuleService *mprCreateModuleService(MprCtx ctx)
     } else {
         searchPath = ms->searchPath;
     }
-    ms->searchPath = mprStrdup(ms, (searchPath) ? searchPath : (cchar*) ".");
+    ms->searchPath = sclone(ms, (searchPath) ? searchPath : (cchar*) ".");
     ms->mutex = mprCreateLock(ms);
     return ms;
+}
+
+
+static void manageModuleService(MprModuleService *ms, int flags)
+{
+    if (flags & MPR_MANAGE_MARK) {
+        mprMarkList(ms->modules);
+        mprMark(ms->searchPath);
+        mprMark(ms->mutex);
+    }
 }
 
 
@@ -105,7 +119,7 @@ MprModule *mprCreateModule(MprCtx ctx, cchar *name, void *data)
         return 0;
     }
     index = mprAddItem(ms->modules, mp);
-    mp->name = mprStrdup(mp, name);
+    mp->name = sclone(mp, name);
     mp->moduleData = data;
     mp->handle = 0;
     mp->start = 0;
@@ -143,9 +157,17 @@ MprModule *mprLookupModule(MprCtx ctx, cchar *name)
 }
 
 
-/*
-    Update the module search path
- */
+MprAny mprLookupModuleData(MprCtx ctx, cchar *name)
+{
+    MprModule   *module;
+
+    if ((module = mprLookupModule(ctx, name)) == NULL) {
+        return NULL;
+    }
+    return module->moduleData;
+}
+
+
 void mprSetModuleSearchPath(MprCtx ctx, char *searchPath)
 {
     MprModuleService    *ms;
@@ -159,7 +181,7 @@ void mprSetModuleSearchPath(MprCtx ctx, char *searchPath)
     ms = mpr->moduleService;
 
     mprFree(ms->searchPath);
-    ms->searchPath = mprStrdup(ms, searchPath);
+    ms->searchPath = sclone(ms, searchPath);
 
 #if BLD_WIN_LIKE && !WINCE
     {
@@ -168,7 +190,7 @@ void mprSetModuleSearchPath(MprCtx ctx, char *searchPath)
         /*
             So dependent DLLs can be loaded by LoadLibrary
          */
-        path = mprStrcat(mpr, -1, "PATH=", searchPath, ";", getenv("PATH"), NULL);
+        path = sjoin(mpr, NULL, "PATH=", searchPath, ";", getenv("PATH"), NULL);
         mprMapSeparators(mpr, path, '\\');
         putenv(path);
         mprFree(path);
@@ -208,12 +230,12 @@ static int probe(MprCtx ctx, cchar *filename, char **pathp)
     *pathp = 0;
     mprLog(ctx, 6, "Probe for native module %s", filename);
     if (mprPathExists(ctx, filename, R_OK)) {
-        *pathp = mprStrdup(ctx, filename);
+        *pathp = sclone(ctx, filename);
         return 1;
     }
 
     if (strstr(filename, BLD_SHOBJ) == 0) {
-        path = mprStrcat(ctx, -1, filename, BLD_SHOBJ, NULL);
+        path = sjoin(ctx, NULL, filename, BLD_SHOBJ, NULL);
         mprLog(ctx, 6, "Probe for native module %s", path);
         if (mprPathExists(ctx, path, R_OK)) {
             *pathp = path;
@@ -243,10 +265,10 @@ int mprSearchForModule(MprCtx ctx, cchar *name, char **path)
     /*
         Search in the searchPath
      */
-    searchPath = mprStrdup(ctx, mprGetModuleSearchPath(ctx));
+    searchPath = sclone(ctx, mprGetModuleSearchPath(ctx));
 
     tok = 0;
-    dir = mprStrTok(searchPath, MPR_SEARCH_SEP, &tok);
+    dir = stok(searchPath, MPR_SEARCH_SEP, &tok);
     while (dir && *dir) {
         fileName = mprJoinPath(ctx, dir, name);
         if (probe(ctx, fileName, path)) {
@@ -255,10 +277,10 @@ int mprSearchForModule(MprCtx ctx, cchar *name, char **path)
             return 0;
         }
         mprFree(fileName);
-        dir = mprStrTok(0, MPR_SEARCH_SEP, &tok);
+        dir = stok(0, MPR_SEARCH_SEP, &tok);
     }
     mprFree(searchPath);
-    return MPR_ERR_NOT_FOUND;
+    return MPR_ERR_CANT_FIND;
 }
 #endif
 

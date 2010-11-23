@@ -13,7 +13,7 @@
 #if !BLD_FEATURE_ROMFS
 /********************************** Forwards **********************************/
 
-static int closeFile(MprFile *file);
+static void manageDiskFile(MprFile *file, int flags);
 static int getPathInfo(MprDiskFileSystem *fileSystem, cchar *path, MprPath *info);
 
 /************************************ Code ************************************/
@@ -26,8 +26,12 @@ static MprFile *openFile(MprCtx ctx, MprFileSystem *fileSystem, cchar *path, int
     mprAssert(path);
 
     dfs = (MprDiskFileSystem*) fileSystem;
-    file = mprAllocObj(ctx, MprFile, closeFile);
+    file = mprAllocObj(ctx, MprFile, manageDiskFile);
+    if (file == 0) {
+        return 0;
+    }
     
+    file->path = sclone(file, path);
     file->fd = open(path, omode, perms);
     if (file->fd < 0) {
         mprFree(file);
@@ -37,7 +41,19 @@ static MprFile *openFile(MprCtx ctx, MprFileSystem *fileSystem, cchar *path, int
 }
 
 
-static int closeFile(MprFile *file)
+static void manageDiskFile(MprFile *file, int flags)
+{
+    if (flags & MPR_MANAGE_MARK) {
+        mprMark(file->buf);
+        mprMark(file->path);
+
+    } else if (flags & MPR_MANAGE_FREE) {
+        mprCloseFile(file);
+    }
+}
+
+
+int mprCloseFile(MprFile *file)
 {
     MprBuf  *bp;
 
@@ -58,7 +74,7 @@ static int closeFile(MprFile *file)
 }
 
 
-static int readFile(MprFile *file, void *buf, uint size)
+static size_t readFile(MprFile *file, void *buf, size_t size)
 {
     mprAssert(file);
     mprAssert(buf);
@@ -67,7 +83,7 @@ static int readFile(MprFile *file, void *buf, uint size)
 }
 
 
-static int writeFile(MprFile *file, cvoid *buf, uint count)
+static size_t writeFile(MprFile *file, cvoid *buf, size_t count)
 {
     mprAssert(file);
     mprAssert(buf);
@@ -80,14 +96,14 @@ static int writeFile(MprFile *file, cvoid *buf, uint count)
 }
 
 
-static long seekFile(MprFile *file, int seekType, long distance)
+static MprOffset seekFile(MprFile *file, int seekType, MprOffset distance)
 {
     mprAssert(file);
 
     if (file == 0) {
         return MPR_ERR_BAD_HANDLE;
     }
-    return lseek(file->fd, distance, seekType);
+    return (MprOffset) lseek(file->fd, distance, seekType);
 }
 
 
@@ -270,9 +286,63 @@ static char *getPathLink(MprDiskFileSystem *fileSystem, cchar *path)
         return NULL;
     }
     pbuf[len] = '\0';
-    return mprStrdup(fileSystem, pbuf);
+    return sclone(fileSystem, pbuf);
 #else
     return NULL;
+#endif
+}
+
+
+static int truncateFile(MprDiskFileSystem *fileSystem, cchar *path, MprOffset size)
+{
+    if (!mprPathExists(NULL, path, F_OK)) {
+        return MPR_ERR_CANT_ACCESS;
+    }
+#if BLD_WIN_LIKE
+{
+    HANDLE  h;
+
+    h = CreateFile(path, GENERIC_WRITE, 0, NULL, OPEN_EXISTING, 0, NULL);
+    SetFilePointer(h, size, 0, FILE_BEGIN);
+    if (h == INVALID_HANDLE_VALUE || SetEndOfFile(h) == 0) {
+        CloseHandle(h);
+        return MPR_ERR_CANT_WRITE;
+    }
+    CloseHandle(h);
+}
+#elif VXWORKS
+{
+#if FUTURE
+    int     fd;
+
+    fd = open(path, O_WRONLY, 0664);
+    if (fd < 0 || ftruncate(fd, size) < 0) {
+        return MPR_ERR_CANT_WRITE;
+    }
+    close(fd);
+#endif
+    return MPR_ERR_CANT_WRITE;
+}
+#else
+    if (truncate(path, size) < 0) {
+        return MPR_ERR_CANT_WRITE;
+    }
+#endif
+    return 0;
+}
+
+
+static void manageDiskFileSystem(MprDiskFileSystem *dfs, int flags)
+{
+#if !WINCE
+    if (flags & MPR_MANAGE_MARK) {
+        mprMark(dfs->stdError);
+        mprMark(dfs->stdInput);
+        mprMark(dfs->stdOutput);
+        mprMark(dfs->separators);
+        mprMark(dfs->newline);
+        mprMark(dfs->root);
+    }
 #endif
 }
 
@@ -282,10 +352,10 @@ MprDiskFileSystem *mprCreateDiskFileSystem(MprCtx ctx, cchar *path)
     MprFileSystem       *fs;
     MprDiskFileSystem   *dfs;
 
-    if ((dfs = mprAllocObj(ctx, MprDiskFileSystem, NULL)) == 0) {
+    if ((dfs = mprAllocObj(ctx, MprDiskFileSystem, manageDiskFileSystem)) == 0) {
         return 0;
     }
-    
+
     /*
         Temporary
      */
@@ -298,9 +368,10 @@ MprDiskFileSystem *mprCreateDiskFileSystem(MprCtx ctx, cchar *path)
     dfs->makeDir = makeDir;
     dfs->makeLink = makeLink;
     dfs->openFile = openFile;
-    dfs->closeFile = closeFile;
+    dfs->closeFile = mprCloseFile;
     dfs->readFile = readFile;
     dfs->seekFile = seekFile;
+    dfs->truncateFile = truncateFile;
     dfs->writeFile = writeFile;
 
 #if !WINCE
@@ -308,6 +379,7 @@ MprDiskFileSystem *mprCreateDiskFileSystem(MprCtx ctx, cchar *path)
     if (dfs->stdError == 0) {
         mprFree(dfs);
     }
+    mprSetName(dfs->stdError, "stderr");
     dfs->stdError->fd = 2;
     dfs->stdError->fileSystem = fs;
     dfs->stdError->mode = O_WRONLY;
@@ -316,6 +388,7 @@ MprDiskFileSystem *mprCreateDiskFileSystem(MprCtx ctx, cchar *path)
     if (dfs->stdInput == 0) {
         mprFree(dfs);
     }
+    mprSetName(dfs->stdInput, "stdin");
     dfs->stdInput->fd = 0;
     dfs->stdInput->fileSystem = fs;
     dfs->stdInput->mode = O_RDONLY;
@@ -324,6 +397,7 @@ MprDiskFileSystem *mprCreateDiskFileSystem(MprCtx ctx, cchar *path)
     if (dfs->stdOutput == 0) {
         mprFree(dfs);
     }
+    mprSetName(dfs->stdOutput, "stdout");
     dfs->stdOutput->fd = 1;
     dfs->stdOutput->fileSystem = fs;
     dfs->stdOutput->mode = O_WRONLY;

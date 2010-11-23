@@ -1,59 +1,77 @@
 #
-#	Makefile for the all-in-one combined MPR distribution
+#	Makefile for the MPR distributionss
 #
 #	Copyright (c) Embedthis Software LLC, 2003-2010. All Rights Reserved.
 #
 
 include			.makedep
 
-COMPILE			=
-STAGING			:= staging
-DEST			:= $(STAGING)/src/deps/mpr
-INC_DEST		:= $(STAGING)/src/include
-DOC_DEST		:= $(STAGING)/doc
+STAGING			:= $(PWD)/staging
+TDIR			:= $(STAGING)/mpr-$(BLD_VERSION)
+REL_DIR			:= ../releases
+DIST_VER_NAME	:= mpr-$(BLD_VERSION)-dist.tgz
+DIST_PERM_NAME	:= mpr-dist.tgz
+DIST_VER		:= $(REL_DIR)/$(DIST_VER_NAME)
+DIST_PERM		:= $(REL_DIR)/$(DIST_PERM_NAME)
+FLAT_VER_NAME	:= mpr-$(BLD_VERSION)-flat.tgz
+FLAT_PERM_NAME	:= mpr-flat.tgz
+FLAT_VER		:= $(REL_DIR)/$(FLAT_VER_NAME)
+FLAT_PERM		:= $(REL_DIR)/$(FLAT_PERM_NAME)
+DEST			:= $(TDIR)/src/deps/mpr
+INC_DEST		:= $(TDIR)/src/include
+DOC_DEST		:= $(TDIR)/doc
 TARGETS			+= $(patsubst %,$(INC_DEST)/%, mpr.h mprSsl.h)
 TARGETS			+= $(patsubst %,$(DEST)/%, mprLib.c makerom.c mprSsl.c angel.c)
-ARCHIVE			+= $(BLD_TOP)/releases/mpr-all.tgz
 
 #
 #	Order of headers matters
 #
 HEADERS			+= $(patsubst %,../src/include/%, mprOs.h mprTune.h mpr.h mprTest.h)
-MPR_SOURCES 	+= ../src/mprAlloc.c $(shell find ../src/*.c ../src/deps/*.c | egrep -v 'angel|mprAlloc')
+MPR_SOURCES 	+= ../src/mprMem.c $(shell find ../src/*.c ../src/deps/*.c | egrep -v 'angel|mprMem')
 SSL_SOURCES 	+= ../src/include/mprSsl.h $(wildcard ../src/ssl/*.c) 
 
-combo packageExtra: prep $(TARGETS) $(ARCHIVE)
+dist packageExtra: prep $(TARGETS) $(DIST_VER) $(FLAT_VER) cleanup
 
 prep:
-	rm -fr $(STAGING)
+	rm -fr $(STAGING) $(DIST_VER) $(DIST_PERM) $(FLAT_VER) $(FLAT_PERM)
 	mkdir -p $(DEST) $(INC_DEST) $(DOC_DEST)/man $(DOC_DEST)/api
 
 $(INC_DEST)/mpr.h: Makefile $(HEADERS)
-	all-in-one $(HEADERS) | egrep -v '#include.*mpr|#inc.*config.h|#inc.*ucp.*\.h|#inc.*pcre' >$(INC_DEST)/mpr.h
+	dist $(HEADERS) | egrep -v '#include.*mpr|#inc.*config.h|#inc.*ucp.*\.h|#inc.*pcre' >$(INC_DEST)/mpr.h
 
 $(INC_DEST)/mprSsl.h: Makefile $(HEADERS)
 	cp ../src/include/mprSsl.h $(INC_DEST)/mprSsl.h
 
 $(DEST)/mprLib.c: Makefile $(HEADERS) $(MPR_SOURCES)
-	echo -e '#define BLD_MPRLIB 1\n#define MPR_IN_ALLOC 1\n#include "mpr.h"' >$(DEST)/mprLib.c
-	all-in-one $(MPR_SOURCES) | egrep -v '#inc.*mpr' >>$(DEST)/mprLib.c
+	echo -e '#define BLD_MPRLIB 1\n#define MPR_IN_MEM 1\n#include "mpr.h"' >$(DEST)/mprLib.c
+	dist $(MPR_SOURCES) | egrep -v '#inc.*mpr' >>$(DEST)/mprLib.c
 
 $(DEST)/makerom.c: Makefile ../src/utils/makerom.c
 	cp ../src/utils/makerom.c $(DEST)/makerom.c
 
 $(DEST)/mprSsl.c: Makefile ../src/include/mprSsl.h $(HEADERS) $(SSL_SOURCES)
-	all-in-one $(HEADERS) $(SSL_SOURCES) | egrep -v '#inc.*mpr' >$(DEST)/mprSsl.c
+	dist $(HEADERS) $(SSL_SOURCES) | egrep -v '#inc.*mpr' >$(DEST)/mprSsl.c
 
 $(DEST)/angel.c: Makefile ../src/angel.c
 	cp ../src/angel.c $(DEST)/angel.c
 
-$(ARCHIVE): Makefile $(TARGETS)
-	cp $(BLD_TOP)/doc/api/mprBare.html $(STAGING)/doc/api
-	cp $(BLD_TOP)/doc/man/*.1 $(STAGING)/doc/man
-	cp Makefile.all $(DEST)/Makefile
-	@$(call log) "[Generate]" "tar cfz $(ARCHIVE) -C $(STAGING) ."
-	tar cfz $(ARCHIVE) -C $(STAGING) .
-	rm -fr $(STAGING)
+$(DIST_VER): 
+	cp $(BLD_TOP)/doc/api/mprBare.html $(TDIR)/doc/api
+	cp $(BLD_TOP)/doc/man/*.1 $(TDIR)/doc/man
+	cp Makefile.dist $(DEST)/Makefile
+	@$(call log) "[Generate]" "tar cfz $(DIST_VER) -C $(STAGING) ."
+	tar cfz $(DIST_VER) -C $(STAGING) .
+	cd $(REL_DIR) ; ln -s $(DIST_VER_NAME) $(DIST_PERM_NAME)
+
+flat $(FLAT_VER):
+	find $(TDIR)/src -type f | xargs -I % mv % $(TDIR) 
+	rm -fr $(TDIR)/doc $(TDIR)/src $(TDIR)/Makefile
+	$(call log) "[Generate]" "tar cfz $(FLAT_VER) -C $(STAGING) ."
+	tar cfz $(FLAT_VER) -C $(STAGING) .
+	cd $(REL_DIR) ; ln -s $(FLAT_VER_NAME) $(FLAT_PERM_NAME)
+
+cleanup:
+	rm -rf $(STAGING)
 
 cleanExtra:
-	rm -rf $(STAGING)
+	rm -rf $(STAGING) $(REL_DIR)/*.tgz

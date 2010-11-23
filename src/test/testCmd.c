@@ -43,7 +43,7 @@ static void testRunCmd(MprTestGroup *gp)
     /*
         runProgram reads from the input, so it requires stdin to be connected
      */
-    mprSprintf(gp, command, sizeof(command), "%s 0", program);
+    mprSprintf(command, sizeof(command), "%s 0", program);
     status = mprRunCmd(cmd, command, &result, NULL, MPR_CMD_IN);
     assert(result != NULL);
     assert(status == 0);
@@ -159,7 +159,7 @@ static void testWithData(MprTestGroup *gp)
     assert(fd > 0);
 
     for (i = 0; i < 10; i++) {
-        mprSprintf(gp, line, sizeof(line), "line %d\n", i);
+        mprSprintf(line, sizeof(line), "line %d\n", i);
         len = (int) strlen(line);
         rc = write(fd, line, len);
         assert(rc == len);
@@ -175,21 +175,21 @@ static void testWithData(MprTestGroup *gp)
     if (mprGetBufLength(buf) > 0) {
         data = mprGetBufStart(buf);
         // print("GOT %s", data);
-        s = mprStrTok(data, "\n\r", &tok);
+        s = stok(data, "\n\r", &tok);
         assert(s != 0);
         assert(match(s, "a b c") == 0);
 
-        s = mprStrTok(0, "\n\r", &tok);
+        s = stok(0, "\n\r", &tok);
         assert(s != 0);
         assert(match(s, "CMD_ENV=xyz") == 0);
 
         for (i = 0; i < 10; i++) { 
-            mprSprintf(gp, line, sizeof(line), "line %d", i);
-            s = mprStrTok(0, "\n\r", &tok);
+            mprSprintf(line, sizeof(line), "line %d", i);
+            s = stok(0, "\n\r", &tok);
             assert(s != 0);
             assert(match(s, line) == 0);
         }
-        s = mprStrTok(0, "\n\r", &tok);
+        s = stok(0, "\n\r", &tok);
         assert(match(s, "END") == 0);
     }
 
@@ -210,7 +210,7 @@ static void testExitCode(MprTestGroup *gp)
     assert(cmd != 0);
 
     for (i = 0; i < 1; i++) {
-        mprSprintf(gp, command, sizeof(command), "%s %d", program, i);
+        mprSprintf(command, sizeof(command), "%s %d", program, i);
         status = mprRunCmd(cmd, command, &result, NULL, MPR_CMD_IN);
         assert(result != NULL);
         assert(status == i);
@@ -234,7 +234,7 @@ static void testNoCapture(MprTestGroup *gp)
     cmd = mprCreateCmd(gp, NULL);
     assert(cmd != 0);
 
-    mprSprintf(gp, command, sizeof(command), "%s 99", program);
+    mprSprintf(command, sizeof(command), "%s 99", program);
     status = mprRunCmd(cmd, command, NULL, NULL, MPR_CMD_IN);
     assert(status == 99);
 

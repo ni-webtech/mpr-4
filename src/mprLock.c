@@ -10,8 +10,8 @@
 
 /***************************** Forward Declarations ***************************/
 
-static int destroyLock(MprMutex *lock);
-static int destroySpinLock(MprSpin *lock);
+static void manageLock(MprMutex *lock, int flags);
+static void manageSpinLock(MprSpin *lock, int flags);
 
 /************************************ Code ************************************/
 
@@ -21,7 +21,7 @@ MprMutex *mprCreateLock(MprCtx ctx)
 
     mprAssert(ctx);
 
-    lock = mprAllocObj(ctx, MprMutex, destroyLock);
+    lock = mprAllocObj(ctx, MprMutex, manageLock);
     if (lock == 0) {
         return 0;
     }
@@ -45,6 +45,24 @@ MprMutex *mprCreateLock(MprCtx ctx)
     }
 #endif
     return lock;
+}
+
+
+static void manageLock(MprMutex *lock, int flags)
+{
+    if (flags & MPR_MANAGE_MARK) {
+        ;
+    } else if (flags & MPR_MANAGE_FREE) {
+        mprAssert(lock);
+#if BLD_UNIX_LIKE
+        pthread_mutex_unlock(&lock->cs);
+        pthread_mutex_destroy(&lock->cs);
+#elif BLD_WIN_LIKE
+        DeleteCriticalSection(&lock->cs);
+#elif VXWORKS
+        semDelete(lock->cs);
+#endif
+    }
 }
 
 
@@ -76,24 +94,6 @@ MprMutex *mprInitLock(MprCtx ctx, MprMutex *lock)
 
 
 /*
-    Destroy a lock. Should be locked on entrance.
- */
-static int destroyLock(MprMutex *lock)
-{
-    mprAssert(lock);
-#if BLD_UNIX_LIKE
-    pthread_mutex_unlock(&lock->cs);
-    pthread_mutex_destroy(&lock->cs);
-#elif BLD_WIN_LIKE
-    DeleteCriticalSection(&lock->cs);
-#elif VXWORKS
-    semDelete(lock->cs);
-#endif
-    return 0;
-}
-
-
-/*
     Try to attain a lock. Do not block! Returns true if the lock was attained.
  */
 bool mprTryLock(MprMutex *lock)
@@ -116,7 +116,7 @@ MprSpin *mprCreateSpinLock(MprCtx ctx)
 
     mprAssert(ctx);
 
-    lock = mprAllocObj(ctx, MprSpin, destroySpinLock);
+    lock = mprAllocObj(ctx, MprSpin, manageSpinLock);
     if (lock == 0) {
         return 0;
     }
@@ -149,6 +149,27 @@ MprSpin *mprCreateSpinLock(MprCtx ctx)
     lock->owner = 0;
 #endif
     return lock;
+}
+
+
+static void manageSpinLock(MprSpin *lock, int flags)
+{
+    if (flags & MPR_MANAGE_MARK) {
+        ;
+    } else if (flags & MPR_MANAGE_FREE) {
+        mprAssert(lock);
+#if USE_MPR_LOCK || MACOSX
+        ;
+#elif BLD_UNIX_LIKE && BLD_HAS_SPINLOCK
+        pthread_spin_destroy(&lock->cs);
+#elif BLD_UNIX_LIKE
+        pthread_mutex_destroy(&lock->cs);
+#elif BLD_WIN_LIKE
+        DeleteCriticalSection(&lock->cs);
+#elif VXWORKS
+        semDelete(lock->cs);
+#endif
+    }
 }
 
 
@@ -184,35 +205,11 @@ MprSpin *mprInitSpinLock(MprCtx ctx, MprSpin *lock)
         return 0;
     }
 #endif
-
 #if BLD_DEBUG
     lock->owner = 0;
 #endif
     return lock;
 }
-
-
-/*
-    Destroy a lock. Must be locked on entrance.
- */
-static int destroySpinLock(MprSpin *lock)
-{
-    mprAssert(lock);
-#if USE_MPR_LOCK || MACOSX
-    ;
-#elif BLD_UNIX_LIKE && BLD_HAS_SPINLOCK
-    pthread_spin_destroy(&lock->cs);
-#elif BLD_UNIX_LIKE
-    pthread_mutex_destroy(&lock->cs);
-#elif BLD_WIN_LIKE
-    DeleteCriticalSection(&lock->cs);
-#elif VXWORKS
-    semDelete(lock->cs);
-#endif
-    return 0;
-}
-
-
 
 
 /*

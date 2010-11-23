@@ -29,7 +29,7 @@ static void testBasicAlloc(MprTestGroup *gp)
     assert(cp != 0);
     mprFree(cp);
 
-    cp = mprStrdup(gp, "Hello World");
+    cp = sclone(gp, "Hello World");
     assert(cp != 0);
     assert(strcmp(cp, "Hello World") == 0);
     mprFree(cp);
@@ -38,7 +38,7 @@ static void testBasicAlloc(MprTestGroup *gp)
         Test special MPR allowances
      */
     mprFree(0);
-    cp = mprStrdup(gp, NULL);
+    cp = sclone(gp, NULL);
     assert(cp != 0);
     assert(cp[0] == '\0');
     mprFree(cp);

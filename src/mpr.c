@@ -10,8 +10,8 @@
 
 /**************************** Forward Declarations ****************************/
 
-static void memoryFailure(MprCtx ctx, size_t size, size_t total, bool granted);
-static int  mprDestructor(Mpr *mpr);
+static void memoryNotifier(int flags, size_t size);
+static void manageMpr(Mpr *mpr, int flags);
 static void serviceEventsThread(void *data, MprThread *tp);
 
 /************************************* Code ***********************************/
@@ -19,39 +19,27 @@ static void serviceEventsThread(void *data, MprThread *tp);
     Create the MPR service. This routine is the first call an MPR application must do. It creates the top 
     level memory context.
  */
-
-Mpr *mprCreate(int argc, char **argv, MprAllocFailure cback)
-{
-    return mprCreateEx(argc, argv, cback, NULL);
-}
-
-
-/*
-    Add a shell parameter then do the regular init
- */
-Mpr *mprCreateEx(int argc, char **argv, MprAllocFailure cback, void *shell)
+Mpr *mprCreate(int argc, char **argv, MprMemNotifier cback)
 {
     MprFileSystem   *fs;
     Mpr             *mpr;
     char            *cp;
 
     if (cback == 0) {
-        cback = memoryFailure;
+        cback = memoryNotifier;
     }
     srand((uint) time(NULL));
-    mpr = (Mpr*) mprCreateAllocService(cback, (MprDestructor) mprDestructor);
 
-    if (mpr == 0) {
+    if ((mpr = (Mpr*) mprCreateMemService(cback, (MprManager) manageMpr)) == 0) {
         mprAssert(mpr);
         return 0;
     }
-    
     /*
         Wince and Vxworks passes an arg via argc, and the program name in argv. NOTE: this will only work on 32-bit systems.
         TODO - refactor this
      */
 #if WINCE
-    mprMakeArgv(mpr, (char*) argv, mprToAsc(mpr, (uni*) argc), &argc, &argv);
+    mprMakeArgv(mpr, (char*) argv, mprToMulti(mpr, (uni*) argc), &argc, &argv);
 #elif VXWORKS
     mprMakeArgv(mpr, NULL, (char*) argc, &argc, &argv);
 #endif
@@ -59,14 +47,22 @@ Mpr *mprCreateEx(int argc, char **argv, MprAllocFailure cback, void *shell)
     mpr->argv = argv;
     mpr->logFd = -1;
 
-    mpr->name = mprStrdup(mpr, BLD_PRODUCT);
-    mpr->title = mprStrdup(mpr, BLD_NAME);
-    mpr->version = mprStrdup(mpr, BLD_VERSION);
+    mpr->title = sclone(mpr, BLD_NAME);
+    mpr->version = sclone(mpr, BLD_VERSION);
+    mpr->idleCallback = mprServicesAreIdle;
 
+    if (mpr->argv && mpr->argv[0] && *mpr->argv[0]) {
+        mpr->name = sclone(mpr, basename(mpr->argv[0]));
+        if ((cp = strchr(mpr->name, '.')) != 0) {
+            *cp = '\0';
+        }
+    } else {
+        mpr->name = sclone(mpr, BLD_PRODUCT);
+    }
     if (mprCreateTimeService(mpr) < 0) {
         goto error;
     }
-    if ((mpr->osService = mprCreateOsService(mpr)) < 0) {
+    if (mprCreateOsService() < 0) {
         goto error;
     }
 
@@ -74,7 +70,7 @@ Mpr *mprCreateEx(int argc, char **argv, MprAllocFailure cback, void *shell)
         See if any of the preceeding allocations failed and mark all blocks allocated so far as required.
         They will then be omitted from leak reports.
      */
-    if (mprHasAllocError()) {
+    if (mprHasMemError()) {
         goto error;
     }
     if ((mpr->threadService = mprCreateThreadService(mpr)) == 0) {
@@ -94,6 +90,9 @@ Mpr *mprCreateEx(int argc, char **argv, MprAllocFailure cback, void *shell)
     if ((mpr->eventService = mprCreateEventService(mpr)) == 0) {
         goto error;
     }
+    if ((mpr->cmdService = mprCreateCmdService(mpr)) == 0) {
+        goto error;
+    }
     if ((mpr->workerService = mprCreateWorkerService(mpr)) == 0) {
         goto error;
     }
@@ -103,46 +102,61 @@ Mpr *mprCreateEx(int argc, char **argv, MprAllocFailure cback, void *shell)
     if ((mpr->socketService = mprCreateSocketService(mpr)) == 0) {
         goto error;
     }
-    if (mpr->argv && mpr->argv[0] && *mpr->argv[0]) {
-        mprFree(mpr->name);
-        mpr->name = mprGetPathBase(mpr, mpr->argv[0]);
-        if ((cp = strchr(mpr->name, '.')) != 0) {
-            *cp = '\0';
-        }
-    }
-
     /*
         Now catch all memory allocation errors up to this point. Should be none.
      */
-    if (mprHasAllocError()) {
+    if (mprHasMemError()) {
         goto error;
     }
     return mpr;
 
-/*
-    Error return
- */
 error:
     mprFree(mpr);
     return 0;
 }
 
 
-static int mprDestructor(Mpr *mpr)
+static void manageMpr(Mpr *mpr, int flags)
 {
-    if ((mpr->flags & MPR_STARTED) && !(mpr->flags & MPR_STOPPED)) {
-        if (!mprStop(mpr)) {
-            return 1;
-        }
-    }
-    return 0;
+    if (flags & MPR_MANAGE_MARK) {
+        mprMark(mpr->altLogData);
+        mprMark(mpr->appDir);
+        mprMark(mpr->appPath);
+        mprMark(mpr->cmdService);
+        mprMark(mpr->dispatcher);
+        mprMark(mpr->domainName);
+        mprMark(mpr->ejsService);
+        mprMark(mpr->eventService);
+        mprMark(mpr->fileSystem);
+        mprMark(mpr->hostName);
+        mprMark(mpr->ip);
+        mprMark(mpr->logData);
+        mprMark(mpr->moduleService);
+        mprMark(mpr->mutex);
+        mprMark(mpr->name);
+        mprMark(mpr->osService);
+        mprMark(mpr->serverName);
+        mprMark(mpr->spin);
+        mprMark(mpr->socketService);
+        mprMark(mpr->threadService);
+        mprMark(mpr->timeTokens);
+        mprMark(mpr->title);
+        mprMark(mpr->version);
+        mprMark(mpr->waitService);
+        mprMark(mpr->workerService);
+#if UNUSED
+        mprMark(mpr->heap.cond);
+#endif
 
+    } else if (flags & MPR_MANAGE_FREE) {
+        if ((mpr->flags & MPR_STARTED) && !(mpr->flags & MPR_STOPPED)) {
+            mprStop(mpr);
+        }
+        mprDestroyMemService();
+    }
 }
 
 
-/*
-    Start the Mpr and all services
- */
 int mprStart(Mpr *mpr)
 {
     int     rc;
@@ -151,7 +165,6 @@ int mprStart(Mpr *mpr)
     rc += mprStartModuleService(mpr->moduleService);
     rc += mprStartWorkerService(mpr->workerService);
     rc += mprStartSocketService(mpr->socketService);
-
     if (rc != 0) {
         mprUserError(mpr, "Can't start MPR services");
         return MPR_ERR_CANT_INITIALIZE;
@@ -168,7 +181,7 @@ bool mprStop(Mpr *mpr)
 
     stopped = 1;
     mprLock(mpr->mutex);
-    if (! (mpr->flags & MPR_STARTED) || (mpr->flags & MPR_STOPPED)) {
+    if ((!(mpr->flags & MPR_STARTED)) || (mpr->flags & MPR_STOPPED)) {
         mprUnlock(mpr->mutex);
         return 0;
     }
@@ -178,7 +191,6 @@ bool mprStop(Mpr *mpr)
         Trigger graceful termination. This will prevent further tasks and events being created.
      */
     mprTerminate(mpr, 1);
-
     mprStopSocketService(mpr->socketService);
     if (!mprStopWorkerService(mpr->workerService, MPR_TIMEOUT_STOP_TASK)) {
         stopped = 0;
@@ -241,6 +253,124 @@ bool mprIsExiting(MprCtx ctx)
 }
 
 
+bool mprIsComplete(MprCtx ctx)
+{
+    Mpr *mpr;
+
+    mpr = mprGetMpr(ctx);
+    if (mpr == 0) {
+        return 1;
+    }
+    return (mpr->flags & MPR_EXITING) && mprIsIdle(ctx);
+}
+
+
+//  MOB - order file
+
+/*
+    Make an argv array. Caller must free by calling mprFree(argv) to free everything.
+ */
+int mprMakeArgv(MprCtx ctx, cchar *program, cchar *cmd, int *argcp, char ***argvp)
+{
+    char        *cp, **argv, *buf, *args;
+    int         size, argc;
+
+    /*
+        Allocate one buffer for argv and the actual args themselves
+     */
+    size = strlen(cmd) + 1;
+
+    buf = (char*) mprAlloc(ctx, (MPR_MAX_ARGC * sizeof(char*)) + size);
+    if (buf == 0) {
+        return MPR_ERR_MEMORY;
+    }
+    args = &buf[MPR_MAX_ARGC * sizeof(char*)];
+    strcpy(args, cmd);
+    argv = (char**) buf;
+
+    argc = 0;
+    if (program) {
+        argv[argc++] = (char*) sclone(ctx, program);
+    }
+
+    for (cp = args; cp && *cp != '\0'; argc++) {
+        if (argc >= MPR_MAX_ARGC) {
+            mprAssert(argc < MPR_MAX_ARGC);
+            mprFree(buf);
+            *argvp = 0;
+            if (argcp) {
+                *argcp = 0;
+            }
+            return MPR_ERR_TOO_MANY;
+        }
+        while (isspace((int) *cp)) {
+            cp++;
+        }
+        if (*cp == '\0')  {
+            break;
+        }
+        if (*cp == '"') {
+            cp++;
+            argv[argc] = cp;
+            while ((*cp != '\0') && (*cp != '"')) {
+                cp++;
+            }
+        } else {
+            argv[argc] = cp;
+            while (*cp != '\0' && !isspace((int) *cp)) {
+                cp++;
+            }
+        }
+        if (*cp != '\0') {
+            *cp++ = '\0';
+        }
+    }
+    argv[argc] = 0;
+
+    if (argcp) {
+        *argcp = argc;
+    }
+    *argvp = argv;
+
+    return argc;
+}
+
+
+/*
+    Just the Mpr services are idle. Use mprIsIdle to determine if the entire process is idle
+ */
+bool mprServicesAreIdle(MprCtx ctx)
+{
+#if MOB
+    Mpr     *mpr;
+    
+    mpr = mprGetMpr(ctx);
+    return mprGetListCount(mpr->workerService->busyThreads) == 0 && mprGetListCount(mpr->cmdService->cmds) == 0 && 
+        //MOB -- dispatcher here not right
+       !(mpr->dispatcher->flags & MPR_DISPATCHER_DO_EVENT);
+#endif
+    return 1;
+}
+
+
+bool mprIsIdle(MprCtx ctx)
+{
+    return (mprGetMpr(ctx)->idleCallback)(ctx);
+}
+
+
+MprIdleCallback mprSetIdleCallback(MprCtx ctx, MprIdleCallback idleCallback)
+{
+    MprIdleCallback old;
+    Mpr             *mpr;
+    
+    mpr = mprGetMpr(ctx);
+    old = mpr->idleCallback;
+    mpr->idleCallback = idleCallback;
+    return old;
+}
+
+
 void mprSignalExit(MprCtx ctx)
 {
     Mpr     *mpr;
@@ -272,13 +402,13 @@ int mprSetAppName(MprCtx ctx, cchar *name, cchar *title, cchar *version)
     }
     if (title) {
         mprFree(mpr->title);
-        if ((mpr->title = mprStrdup(ctx, title)) == 0) {
+        if ((mpr->title = sclone(mpr, title)) == 0) {
             return MPR_ERR_CANT_ALLOCATE;
         }
     }
     if (version) {
         mprFree(mpr->version);
-        if ((mpr->version = mprStrdup(ctx, version)) == 0) {
+        if ((mpr->version = sclone(mpr, version)) == 0) {
             return MPR_ERR_CANT_ALLOCATE;
         }
     }
@@ -308,7 +438,7 @@ void mprSetHostName(MprCtx ctx, cchar *s)
     mpr = mprGetMpr(ctx);
     mprLock(mpr->mutex);
     mprFree(mpr->hostName);
-    mpr->hostName = mprStrdup(mpr, s);
+    mpr->hostName = sclone(mpr, s);
     mprUnlock(mpr->mutex);
     return;
 }
@@ -334,7 +464,7 @@ void mprSetServerName(MprCtx ctx, cchar *s)
     if (mpr->serverName) {
         mprFree(mpr->serverName);
     }
-    mpr->serverName = mprStrdup(mpr, s);
+    mpr->serverName = sclone(mpr, s);
     return;
 }
 
@@ -356,10 +486,8 @@ void mprSetDomainName(MprCtx ctx, cchar *s)
     Mpr     *mpr;
 
     mpr = mprGetMpr(ctx);
-    if (mpr->domainName) {
-        mprFree(mpr->domainName);
-    }
-    mpr->domainName = mprStrdup(mpr, s);
+    mprFree(mpr->domainName);
+    mpr->domainName = sclone(mpr, s);
     return;
 }
 
@@ -384,7 +512,7 @@ void mprSetIpAddr(MprCtx ctx, cchar *s)
     if (mpr->ip) {
         mprFree(mpr->ip);
     }
-    mpr->ip = mprStrdup(mpr, s);
+    mpr->ip = sclone(mpr, s);
     return;
 }
 
@@ -457,15 +585,16 @@ int mprGetEndian(MprCtx ctx)
 /*
     Default memory handler
  */
-static void memoryFailure(MprCtx ctx, size_t size, size_t total, bool granted)
+static void memoryNotifier(int flags, size_t size)
 {
-    if (!granted) {
-        mprPrintfError(ctx, "Can't allocate memory block of size %d\n", size);
-        mprPrintfError(ctx, "Total memory used %d\n", total);
+    if (flags & MPR_ALLOC_DEPLETED) {
+        mprPrintfError(NULL, "Can't allocate memory block of size %d\n", size);
+        mprPrintfError(NULL, "Total memory used %d\n", mprGetUsedMemory());
         exit(255);
+    } else if (flags & MPR_ALLOC_LOW) {
+        mprPrintfError(NULL, "Memory request for %d bytes exceeds memory red-line\n", size);
+        mprPrintfError(NULL, "Total memory used %d\n", mprGetUsedMemory());
     }
-    mprPrintfError(ctx, "Memory request for %d bytes exceeds memory red-line\n", size);
-    mprPrintfError(ctx, "Total memory used %d\n", total);
 }
 
 

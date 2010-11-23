@@ -34,44 +34,32 @@ extern "C" {
 #define BLD_TUNE MPR_TUNE_BALANCED
 #endif
 
-/*
-    Event notification mechanism
- */
-#if LINUX || FREEBSD
-    #define MPR_EVENT_EPOLL     1
-#elif MACOSX || SOLARIS
-    #define MPR_EVENT_KQUEUE    1
-#elif VXWORKS || WINCE || CYGWIN
-    #define MPR_EVENT_SELECT    1
-#elif WIN
-    #define MPR_EVENT_ASYNC     1
-#else
-    #define MPR_EVENT_POLL      1
-#endif
-
 #if BLD_TUNE == MPR_TUNE_SIZE || DOXYGEN
     /*
         Squeeze mode optimizes to reduce memory usage
      */
-    #define MPR_MAX_FNAME           256         /**< Reasonable filename size */
-    #define MPR_MAX_PATH            512         /**< Reasonable path name size */
-    #define MPR_MAX_URL             512         /**< Max URL size. Also request URL size. */
-    #define MPR_DEFAULT_STACK       (64 * 1024) /**< Default thread stack size (64K) */
-    #define MPR_MAX_STRING          1024        /**< Maximum (stack) string size */
-    #define MPR_DEFAULT_ALLOC       64          /**< Default small alloc size */
-    #define MPR_DEFAULT_HASH_SIZE   23          /**< Default size of hash table */ 
-    #define MPR_MAX_ARGC            128         /**< Reasonable max of args */
-    #define MPR_MAX_LOG_STRING      512         /**< Maximum log message */
-    #define MPR_BUFSIZE             4096        /**< Reasonable size for buffers */
-    #define MPR_BUF_INCR            4096        /**< Default buffer growth inc */
-    #define MPR_EPOLL_SIZE          32          /**< Epoll backlog */
-    #define MPR_MAX_BUF             4194304     /**< Max buffer size */
-    #define MPR_XML_BUFSIZE         4096        /**< XML read buffer size */
-    #define MPR_SSL_BUFSIZE         4096        /**< SSL has 16K max*/
-    #define MPR_LIST_INCR           8           /**< Default list growth inc */
-    #define MPR_FILES_HASH_SIZE     29          /**< Hash size for rom file system */
-    #define MPR_TIME_HASH_SIZE      67          /**< Hash size for time token lookup */
-    #define MPR_MEM_CHUNK_SIZE      (128 * 1024) /**< Memory allocation chunk size */
+    #define MPR_MAX_FNAME           256           /**< Reasonable filename size */
+    #define MPR_MAX_PATH            512           /**< Reasonable path name size */
+    #define MPR_MAX_URL             512           /**< Max URL size. Also request URL size. */
+    #define MPR_DEFAULT_STACK       (64 * 1024)   /**< Default thread stack size (64K) */
+    #define MPR_MAX_STRING          1024          /**< Maximum (stack) string size */
+    #define MPR_DEFAULT_ALLOC       64            /**< Default small alloc size */
+    #define MPR_DEFAULT_HASH_SIZE   23            /**< Default size of hash table */ 
+    #define MPR_MAX_ARGC            128           /**< Reasonable max of args */
+    #define MPR_MAX_LOG_STRING      512           /**< Maximum log message */
+    #define MPR_BUFSIZE             4096          /**< Reasonable size for buffers */
+    #define MPR_BUF_INCR            4096          /**< Default buffer growth inc */
+    #define MPR_EPOLL_SIZE          32            /**< Epoll backlog */
+    #define MPR_MAX_BUF             4194304       /**< Max buffer size */
+    #define MPR_XML_BUFSIZE         4096          /**< XML read buffer size */
+    #define MPR_SSL_BUFSIZE         4096          /**< SSL has 16K max*/
+    #define MPR_LIST_INCR           8             /**< Default list growth inc */
+    #define MPR_FILES_HASH_SIZE     29            /**< Hash size for rom file system */
+    #define MPR_TIME_HASH_SIZE      67            /**< Hash size for time token lookup */
+    #define MPR_MEM_CHUNK_SIZE      (128 * 1024)  /**< Memory allocation chunk size */
+    #define MPR_GC_LOW_MEM          (32 * 1024)   /**< Free memory low water mark before invoking GC */
+    #define MPR_NEW_QUOTA           500           /**< new allocations before a GC is worthwhile */
+    #define MPR_GC_WORKERS          0             /**< Run garbage collection non-concurrently */
     
 #elif BLD_TUNE == MPR_TUNE_BALANCED
     
@@ -97,6 +85,9 @@ extern "C" {
     #define MPR_FILES_HASH_SIZE     61
     #define MPR_TIME_HASH_SIZE      89
     #define MPR_MEM_CHUNK_SIZE      (256 * 1024)
+    #define MPR_GC_LOW_MEM          (64 * 1024)
+    #define MPR_NEW_QUOTA           500 
+    #define MPR_GC_WORKERS          1
     
 #else
     /*
@@ -121,6 +112,9 @@ extern "C" {
     #define MPR_FILES_HASH_SIZE     61
     #define MPR_TIME_HASH_SIZE      97
     #define MPR_MEM_CHUNK_SIZE      (1024 * 1024)
+    #define MPR_GC_LOW_MEM          (128 * 1024)
+    #define MPR_NEW_QUOTA           500 
+    #define MPR_GC_WORKERS          2
 #endif
 
 /*
@@ -157,8 +151,6 @@ extern "C" {
 #define MPR_WORKER_PRIORITY     50          /**< Normal priority */
 #define MPR_REQUEST_PRIORITY    50          /**< Normal priority */
 
-#define MPR_TICKS_PER_SEC       1000        /**< Time ticks per second */
-
 /* 
     Timeouts
  */
@@ -173,7 +165,8 @@ extern "C" {
 #define MPR_TIMEOUT_LINGER      2000        /**< Close socket linger timeout */
 #define MPR_TIMEOUT_HANDLER     10000       /**< Wait period when removing a wait handler */
 
-#define MPR_MAX_TIMEOUT         (INT_MAX / MPR_TICKS_PER_SEC)
+#define MPR_TICKS_PER_SEC       1000        /**< Time ticks per second */
+#define MPR_MAX_TIMEOUT         (MAXINT / MPR_TICKS_PER_SEC)
 
 
 /*
@@ -203,6 +196,27 @@ extern "C" {
  */
 #define MPR_MAX_FILE            256
 
+/*
+    Event notification mechanism
+ */
+#if LINUX || FREEBSD
+    #define MPR_EVENT_EPOLL     1
+#elif MACOSX || SOLARIS
+    #define MPR_EVENT_KQUEUE    1
+#elif VXWORKS || WINCE || CYGWIN
+    #define MPR_EVENT_SELECT    1
+#elif WIN
+    #define MPR_EVENT_ASYNC     1
+#else
+    #define MPR_EVENT_POLL      1
+#endif
+
+/*
+    Garbage collector tuning
+ */
+#define MPR_MIN_TIME_FOR_GC     2               /**< Wait till 2 milliseconds of idle time possible */
+#define MPR_GC_TIMEOUT          50              /**< Cond var timeout */
+    
 #ifdef __cplusplus
 }
 #endif

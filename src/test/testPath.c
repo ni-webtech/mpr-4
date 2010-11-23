@@ -25,7 +25,7 @@ typedef struct MprTestPath {
  */
 static char *makePath(MprCtx ctx, cchar *name)
 {
-    return mprAsprintf(ctx, -1, "%s-%d-%s", name, getpid(), mprGetCurrentThreadName(ctx));
+    return mprAsprintf(ctx, "%s-%d-%s", name, getpid(), mprGetCurrentThreadName(ctx));
 }
 
 
@@ -38,16 +38,16 @@ static int initPath(MprTestGroup *gp)
 
     gp->data = mprAllocZeroed(gp, sizeof(MprTestPath));
     if (gp->data == 0) {
-        return MPR_ERR_NO_MEMORY;
+        return MPR_ERR_MEMORY;
     }
     ts = (MprTestPath*) gp->data;
 
     ts->dir1 = makePath(gp, DIR1);
-    ts->dir2 = mprAsprintf(gp, -1, "%s%s", ts->dir1, DIR2);
+    ts->dir2 = mprAsprintf(gp, "%s%s", ts->dir1, DIR2);
     if (ts->dir1 == 0 || ts->dir2 == 0) {
         mprFree(gp->data);
         gp->data = 0;
-        return MPR_ERR_NO_MEMORY;
+        return MPR_ERR_MEMORY;
     }
 
     /*
@@ -75,14 +75,14 @@ static void testCopyPath(MprTestGroup *gp)
 
     ts = (MprTestPath*) gp->data;
 
-    from = mprAsprintf(gp, -1, "copyTest-%s.tmp", mprGetCurrentThreadName(gp));
+    from = mprAsprintf(gp, "copyTest-%s.tmp", mprGetCurrentThreadName(gp));
     assert(from != 0);
     file = mprOpen(gp, from, O_CREAT | O_TRUNC | O_WRONLY, 0664);
     assert(file != 0);
     mprWriteString(file, "Hello World");
     mprFree(file);
 
-    to = mprAsprintf(gp, -1, "newTest-%s.tmp", mprGetCurrentThreadName(gp));
+    to = mprAsprintf(gp, "newTest-%s.tmp", mprGetCurrentThreadName(gp));
     assert(mprPathExists(gp, from, F_OK));
     assert(!mprPathExists(gp, to, F_OK));
     mprCopyPath(gp, from, to, 0664);
@@ -97,7 +97,7 @@ static void testAbsPath(MprTestGroup *gp)
     MprCtx      ctx;
     char        *path;
 
-    ctx = mprAllocCtx(gp, 1);
+    ctx = mprAlloc(gp, 1);
 
 #if MANUAL_TESTING
     path = mprGetNormalizedPath(ctx, "/");
@@ -146,7 +146,7 @@ static void testJoinPath(MprTestGroup *gp)
 {
     MprCtx  ctx;
 
-    ctx = mprAllocCtx(gp, 1);
+    ctx = mprAlloc(gp, 1);
     
 #if BLD_WIN_LIKE
     assert(strcmp(mprJoinPath(ctx, "\\tmp", "Makefile"), "\\tmp\\Makefile") == 0);
@@ -217,7 +217,7 @@ static void testNormalize(MprTestGroup *gp)
     MprCtx      ctx;
     char        *path;
 
-    ctx = mprAllocCtx(gp, 1);
+    ctx = mprAlloc(gp, 1);
     assert(strcmp(mprGetNormalizedPath(ctx, ""), "") == 0);
     assert(strcmp(mprGetNormalizedPath(ctx, "/"), "/") == 0);
     assert(strcmp(mprGetNormalizedPath(ctx, "."), ".") == 0);
@@ -257,7 +257,7 @@ static void testRelPath(MprTestGroup *gp)
     MprCtx  ctx;
     char    *path, *absPath;
     
-    ctx = mprAllocCtx(gp, 1);
+    ctx = mprAlloc(gp, 1);
 
     path = mprGetRelPath(ctx, "Makefile");
     assert(strcmp(path, "Makefile") == 0);
@@ -309,7 +309,7 @@ static void testSame(MprTestGroup *gp)
 {
     MprCtx  ctx;
 
-    ctx = mprAllocCtx(gp, 1);
+    ctx = mprAlloc(gp, 1);
 
     /* Assumes running in test/utest/api */
     assert(mprSamePath(ctx, "testFile", "./testFile"));
@@ -328,7 +328,7 @@ static void testSearch(MprTestGroup *gp)
 {
     MprCtx  ctx;
 
-    ctx = mprAllocCtx(gp, 1);
+    ctx = mprAlloc(gp, 1);
 
 #if !DEBUG_IDE
     assert(mprSearchPath(ctx, "Makefile", 0, "../.." MPR_SEARCH_SEP ".", NULL) != 0);
@@ -356,7 +356,7 @@ static void testTransform(MprTestGroup *gp)
     MprCtx  ctx;
     char    *path;
 
-    ctx = mprAllocCtx(gp, 1);
+    ctx = mprAlloc(gp, 1);
     path = mprGetTransformedPath(ctx, "/", MPR_PATH_ABS);
     assert(mprIsAbsPath(ctx, path));
 
@@ -379,13 +379,13 @@ static void testTransform(MprTestGroup *gp)
 #endif
 
     /* Test MapSeparators */
-    path = mprStrdup(ctx, "\\a\\b\\c\\d");
+    path = sclone(ctx, "\\a\\b\\c\\d", -1);
     mprMapSeparators(ctx, path, '/');
     assert(*path == '/');
     assert(strchr(path, '\\') == 0);
 
     /* Test PortablePath */
-    path = mprStrdup(ctx, "\\a\\b\\c\\d");
+    path = sclone(ctx, "\\a\\b\\c\\d", -1);
     path = mprGetPortablePath(ctx, path);
     mprAssert(*path == '/');
     assert(strchr(path, '\\') == 0);

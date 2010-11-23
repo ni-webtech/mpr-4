@@ -74,7 +74,9 @@ typedef struct MprTestService {
     int             workers;                /* Count of worker threads */
     MprTime         start;                  /* When testing began */
     int             testDepth;              /* Depth of entire test */
+#if UNUSED
     MprList         *perThreadGroups;       /* Per thread copy of groups */
+#endif
     int             totalFailedCount;       /* Total count of failing tests */
     int             totalTestCount;         /* Total count of all tests */
     MprList         *testFilter;            /* Test groups to run */

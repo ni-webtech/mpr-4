@@ -15,10 +15,12 @@
 static int changeState(MprWorker *worker, int state);
 static MprWorker *createWorker(MprWorkerService *ws, int stackSize);
 static int getNextThreadNum(MprWorkerService *ws);
-static int workerDestructor(MprWorker *worker);
-static void  pruneWorkers(MprWorkerService *ws, MprEvent *timer);
+static void manageThreadService(MprThreadService *ts, int flags);
+static void manageThread(MprThread *tp, int flags);
+static void manageWorker(MprWorker *worker, int flags);
+static void manageWorkerService(MprWorkerService *ws, int flags);
+static void pruneWorkers(MprWorkerService *ws, MprEvent *timer);
 static void threadProc(MprThread *tp);
-static int threadDestructor(MprThread *tp);
 static void workerMain(MprWorker *worker, MprThread *tp);
 
 /************************************ Code ***********************************/
@@ -29,18 +31,17 @@ MprThreadService *mprCreateThreadService(Mpr *mpr)
 
     mprAssert(mpr);
 
-    ts = mprAllocObj(mpr, MprThreadService, NULL);
+    ts = mprAllocObj(mpr, MprThreadService, manageThreadService);
     if (ts == 0) {
         return 0;
     }
-    ts->mutex = mprCreateLock(ts);
-    if (ts->mutex == 0) {
-        mprFree(ts);
+    if ((ts->mutex = mprCreateLock(ts)) == 0) {
         return 0;
     }
-    ts->threads = mprCreateList(ts);
-    if (ts->threads == 0) {
-        mprFree(ts);
+    if ((ts->cond = mprCreateCond(ts)) == 0) {
+        return 0;
+    }
+    if ((ts->threads = mprCreateList(ts)) == 0) {
         return 0;
     }
     mpr->mainOsThread = mprGetCurrentOsThread();
@@ -50,14 +51,22 @@ MprThreadService *mprCreateThreadService(Mpr *mpr)
     /*
         Don't actually create the thread. Just create a thread object for this main thread.
      */
-    ts->mainThread = mprCreateThread(ts, "main", NULL, NULL, 0);
-    if (ts->mainThread == 0) {
-        mprFree(ts);
+    if ((ts->mainThread = mprCreateThread(ts, "main", NULL, NULL, 0)) == 0) {
         return 0;
     }
     ts->mainThread->isMain = 1;
     ts->mainThread->osThread = mprGetCurrentOsThread();
     return ts;
+}
+
+
+static void manageThreadService(MprThreadService *ts, int flags)
+{
+    if (flags & MPR_MANAGE_MARK) {
+        mprMarkList(ts->threads);
+        mprMark(ts->cond);
+        mprMark(ts->mutex);
+    }
 }
 
 
@@ -67,7 +76,88 @@ bool mprStopThreadService(MprThreadService *ts, int timeout)
         mprSleep(ts, 50);
         timeout -= 50;
     }
-    return ts->threads->length == 0;
+    return ts->threads->length <= 1;
+}
+
+
+/*
+    Called by worker thread code to signify that it is safe for GC. If GC is pending, this call will block at
+    the GC sync point (should be brief).
+ */
+void mprYieldThread(MprThread *tp)
+{
+    if (tp == NULL) {
+        tp = mprGetCurrentThread(NULL);
+    }
+    tp->yielded = 1;
+    //  MOB -- who is this signalling?
+    mprSignalCond(mprGetMpr()->threadService->cond);
+    while (tp->yielded && mprGCPending()) {
+        mprWaitForCond(tp->cond, -1);
+    }
+}
+
+
+/*
+    Called by worker thread code to signify that it is working and may have local object references that the marker
+    can't see. i.e. Can't do GC.
+ */
+void mprResumeThread(MprThread *tp)
+{
+    if (tp == NULL) {
+        tp = mprGetCurrentThread(NULL);
+    }
+    tp->yielded = 0;
+}
+
+
+int mprPauseForGCSync(int timeout)
+{
+    MprThreadService    *ts;
+    MprThread           *tp;
+    int                 i, allYielded;
+
+    ts = mprGetMpr()->threadService;
+
+    //  MOB timeout
+    do {
+        allYielded = 1;
+        mprLock(ts->mutex);
+        for (i = 0; i < ts->threads->length; i++) {
+            tp = (MprThread*) mprGetItem(ts->threads, i);
+            if (!tp->yielded) {
+                allYielded = 0;
+                break;
+            }
+        }
+        mprUnlock(ts->mutex);
+        if (allYielded) {
+            break;
+        }
+        mprWaitForCond(ts->cond, MPR_GC_TIMEOUT);
+    } while (!allYielded);
+
+    //  MOB -- return if timeout failed
+    return (allYielded) ? 1 : 0;
+}
+
+
+void mprResumeThreadsAfterGC()
+{
+    MprThreadService    *ts;
+    MprThread           *tp;
+    int                 i;
+
+    ts = mprGetMpr()->threadService;
+
+    mprLock(ts->mutex);
+    for (i = 0; i < ts->threads->length; i++) {
+        tp = (MprThread*) mprGetItem(ts->threads, i);
+        if (tp->yielded) {
+            mprSignalCond(tp->cond);
+        }
+    }
+    mprUnlock(ts->mutex);
 }
 
 
@@ -144,13 +234,13 @@ MprThread *mprCreateThread(MprCtx ctx, cchar *name, MprThreadProc entry, void *d
     if (ts) {
         ctx = ts;
     }
-    tp = mprAllocObj(ctx, MprThread, threadDestructor);
+    tp = mprAllocObj(ctx, MprThread, manageThread);
     if (tp == 0) {
         return 0;
     }
     tp->data = data;
     tp->entry = entry;
-    tp->name = mprStrdup(tp, name);
+    tp->name = sclone(tp, name);
     tp->mutex = mprCreateLock(tp);
     tp->cond = mprCreateCond(tp);
     tp->pid = getpid();
@@ -161,7 +251,6 @@ MprThread *mprCreateThread(MprCtx ctx, cchar *name, MprThreadProc entry, void *d
     } else {
         tp->stackSize = stackSize;
     }
-
 #if BLD_WIN_LIKE
     tp->threadHandle = 0;
 #endif
@@ -179,24 +268,22 @@ MprThread *mprCreateThread(MprCtx ctx, cchar *name, MprThreadProc entry, void *d
 }
 
 
-/*
-    Destroy a thread
- */
-static int threadDestructor(MprThread *tp)
+static void manageThread(MprThread *tp, int flags)
 {
-    MprThreadService    *ts;
+    if (flags & MPR_MANAGE_MARK) {
+        mprMark(tp->name);
+        mprMark(tp->cond);
+        mprMark(tp->mutex);
 
-    mprLock(tp->mutex);
-
-    ts = mprGetMpr(tp)->threadService;
-    mprRemoveItem(ts->threads, tp);
-
+    } else if (flags & MPR_MANAGE_FREE) {
+        mprLock(tp->mutex);
+        mprRemoveItem(MPR->threadService->threads, tp);
 #if BLD_WIN_LIKE
-    if (tp->threadHandle) {
-        CloseHandle(tp->threadHandle);
-    }
+        if (tp->threadHandle) {
+            CloseHandle(tp->threadHandle);
+        }
 #endif
-    return 0;
+    }
 }
 
 
@@ -336,18 +423,21 @@ void mprSetThreadPriority(MprThread *tp, int newPriority)
 }
 
 
-static int threadLocalDestructor(MprThreadLocal *tls)
+static void manageThreadLocal(MprThreadLocal *tls, int flags)
 {
+    if (flags & MPR_MANAGE_MARK) {
+        ;
+    } else if (flags & MPR_MANAGE_FREE) {
 #if BLD_UNIX_LIKE
-    if (tls->key) {
-        pthread_key_delete(tls->key);
-    }
+        if (tls->key) {
+            pthread_key_delete(tls->key);
+        }
 #elif BLD_WIN_LIKE
-    if (tls->key >= 0) {
-        TlsFree(tls->key);
-    }
+        if (tls->key >= 0) {
+            TlsFree(tls->key);
+        }
 #endif
-    return 0;
+    }
 }
 
 
@@ -355,7 +445,7 @@ MprThreadLocal *mprCreateThreadLocal(MprCtx ctx)
 {
     MprThreadLocal      *tls;
 
-    tls = mprAllocObj(ctx, MprThreadLocal, threadLocalDestructor);
+    tls = mprAllocObj(ctx, MprThreadLocal, manageThreadLocal);
     if (tls == 0) {
         return 0;
     }
@@ -533,7 +623,7 @@ MprWorkerService *mprCreateWorkerService(MprCtx ctx)
 {
     MprWorkerService      *ws;
 
-    ws = mprAllocObj(ctx, MprWorkerService, NULL);
+    ws = mprAllocObj(ctx, MprWorkerService, manageWorkerService);
     if (ws == 0) {
         return 0;
     }
@@ -549,6 +639,16 @@ MprWorkerService *mprCreateWorkerService(MprCtx ctx)
     ws->busyThreads = mprCreateList(ws);
     mprSetListLimits(ws->busyThreads, ws->maxThreads, -1);
     return ws;
+}
+
+
+static void manageWorkerService(MprWorkerService *ws, int flags)
+{
+    if (flags & MPR_MANAGE_MARK) {
+        mprMark(ws->busyThreads);
+        mprMark(ws->idleThreads);
+        mprMark(ws->mutex);
+    }
 }
 
 
@@ -575,26 +675,23 @@ bool mprStopWorkerService(MprWorkerService *ws, int timeout)
         mprFree(ws->pruneTimer);
         ws->pruneTimer = 0;
     }
-
-    /*
-        Wake up all idle threads. Busy threads take care of themselves. An idle thread will wakeup, exit and be 
-        removed from the busy list and then delete the thread. We progressively remove the last thread in the idle
-        list. ChangeState will move the threads to the busy queue.
-     */
-    for (next = -1; (worker = (MprWorker*) mprGetPrevItem(ws->idleThreads, &next)) != 0; ) {
-        changeState(worker, MPR_WORKER_BUSY);
-    }
-
     /*
         Wait until all tasks and threads have exited
      */
     while (timeout > 0 && ws->numThreads > 0) {
+        /*
+            Wake up all idle threads. Busy threads take care of themselves. An idle thread will wakeup, exit and be 
+            removed from the busy list and then delete the thread. We progressively remove the last thread in the idle
+            list. ChangeState will move the threads to the busy queue.
+         */
+        for (next = -1; (worker = (MprWorker*) mprGetPrevItem(ws->idleThreads, &next)) != 0; ) {
+            changeState(worker, MPR_WORKER_BUSY);
+        }
         mprUnlock(ws->mutex);
         mprSleep(ws, 50);
         timeout -= 50;
         mprLock(ws->mutex);
     }
-
     mprAssert(ws->idleThreads->length == 0);
     mprAssert(ws->busyThreads->length == 0);
     mprUnlock(ws->mutex);
@@ -720,7 +817,6 @@ int mprStartWorker(MprCtx ctx, MprWorkerProc proc, void *data)
     int                 next;
 
     ws = mprGetMpr(ctx)->workerService;
-
     mprLock(ws->mutex);
 
     /*
@@ -733,7 +829,6 @@ int mprStartWorker(MprCtx ctx, MprWorkerProc proc, void *data)
             break;
         }
     }
-
     if (worker) {
         worker->proc = proc;
         worker->data = data;
@@ -781,13 +876,11 @@ static void pruneWorkers(MprWorkerService *ws, MprEvent *timer)
     MprWorker     *worker;
     int           index, toTrim;
 
-    if (mprIsExiting(ws) || mprGetDebugMode(ws)) {
+    if (mprGetDebugMode(ws)) {
         return;
     }
-
     /*
-        Prune half of what we could prune. This gives exponentional decay. We use the high water mark seen in 
-        the last period.
+        Prune half the idle threads for exponentional decay. Use the high water mark seen in the last period.
      */
     mprLock(ws->mutex);
     toTrim = (ws->pruneHighWater - ws->minThreads) / 2;
@@ -859,7 +952,7 @@ static MprWorker *createWorker(MprWorkerService *ws, int stackSize)
 
     char    name[16];
 
-    worker = mprAllocObj(ws, MprWorker, workerDestructor);
+    worker = mprAllocObj(ws, MprWorker, manageWorker);
     if (worker == 0) {
         return 0;
     }
@@ -871,25 +964,26 @@ static MprWorker *createWorker(MprWorkerService *ws, int stackSize)
     worker->workerService = ws;
     worker->idleCond = mprCreateCond(worker);
 
-    mprSprintf(ws, name, sizeof(name), "worker.%u", getNextThreadNum(ws));
+    mprSprintf(name, sizeof(name), "worker.%u", getNextThreadNum(ws));
     worker->thread = mprCreateThread(ws, name, (MprThreadProc) workerMain, (void*) worker, 0);
     return worker;
 }
 
 
-static int workerDestructor(MprWorker *worker)
+static void manageWorker(MprWorker *worker, int flags)
 {
-    if (worker->thread != 0) {
-        mprAssert(worker->thread);
-        return 1;
+    if (flags & MPR_MANAGE_MARK) {
+        mprMark(worker->thread);
+        mprMark(worker->idleCond);
+
+    } else if (flags & MPR_MANAGE_FREE) {
+        if (worker->thread != 0) {
+            mprAssert(worker->thread);
+        }
     }
-    return 0;
 }
 
 
-/*
-    Worker thread main service routine
- */
 static void workerMain(MprWorker *worker, MprThread *tp)
 {
     MprWorkerService    *ws;
@@ -901,7 +995,7 @@ static void workerMain(MprWorker *worker, MprThread *tp)
 
     mprLock(ws->mutex);
 
-    while (!mprIsExiting(worker) && !(worker->state & MPR_WORKER_PRUNED)) {
+    while (!(worker->state & MPR_WORKER_PRUNED) && !mprIsExiting(worker)) {
         if (worker->proc) {
             mprUnlock(ws->mutex);
             (*worker->proc)(worker->data, worker);
@@ -910,6 +1004,7 @@ static void workerMain(MprWorker *worker, MprThread *tp)
         }
         changeState(worker, MPR_WORKER_SLEEPING);
 
+        //  MOB -- is this used?
         if (worker->cleanup) {
             (*worker->cleanup)(worker->data, worker);
             worker->cleanup = NULL;
@@ -919,14 +1014,12 @@ static void workerMain(MprWorker *worker, MprThread *tp)
         /*
             Sleep till there is more work to do
          */
-        if (!mprIsExiting(worker)) {
-            rc = mprWaitForCond(worker->idleCond, -1);
-        }
+        mprYieldThread(NULL);
+        rc = mprWaitForCond(worker->idleCond, -1);
+        mprResumeThread(NULL);
         mprLock(ws->mutex);
     }
-
     changeState(worker, 0);
-
     worker->thread = 0;
     ws->numThreads--;
     mprUnlock(ws->mutex);
@@ -981,19 +1074,23 @@ static int changeState(MprWorker *worker, int state)
         if (!(worker->flags & MPR_WORKER_DEDICATED)) {
             lp = ws->idleThreads;
         }
+#if UNUSED
+        if (mprGetListCount(ws->busyThreads) == 0) {
+            print("NOW IDLE");
+        }
+#endif
         break;
 
     case MPR_WORKER_PRUNED:
         /* Don't put on a queue and the thread will exit */
         break;
     }
-    
     worker->state = state;
 
     if (lp) {
         if (mprAddItem(lp, worker) < 0) {
             mprUnlock(ws->mutex);
-            return MPR_ERR_NO_MEMORY;
+            return MPR_ERR_MEMORY;
         }
     }
     mprUnlock(ws->mutex);

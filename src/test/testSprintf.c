@@ -20,42 +20,42 @@ static void testBasicSprintf(MprTestGroup *gp)
     char    *str;
     int     count;
 
-    mprSprintf(gp, buf, sizeof(buf), "%d", 12345678);
+    mprSprintf(buf, sizeof(buf), "%d", 12345678);
     assert(strlen(buf) == 8);
     assert(strcmp(buf, "12345678") == 0);
 
-    mprSprintf(gp, buf, sizeof(buf), "%d", -12345678);
+    mprSprintf(buf, sizeof(buf), "%d", -12345678);
     assert(strlen(buf) == 9);
     assert(strcmp(buf, "-12345678") == 0);
 
-    str = mprAsprintf(gp, 4, "%d", 12345678);
+    str = mprAsprintf(gp, "%d", 12345678);
     count = (int) strlen(str);
-    assert(count == 3);
-    assert(strcmp(str, "123") == 0);
+    assert(count == 8);
+    assert(strcmp(str, "12345678") == 0);
     mprFree(str);
 }
 
 
-static void testItoa(MprTestGroup *gp)
+static void testItos(MprTestGroup *gp)
 {
     char    buf[256];
 
-    mprItoa(buf, sizeof(buf), 0, 10);
+    itos(buf, sizeof(buf), 0, 10);
     assert(strcmp(buf, "0") == 0);
 
-    mprItoa(buf, sizeof(buf), 1, 10);
+    itos(buf, sizeof(buf), 1, 10);
     assert(strcmp(buf, "1") == 0);
 
-    mprItoa(buf, sizeof(buf), -1, 10);
+    itos(buf, sizeof(buf), -1, 10);
     assert(strcmp(buf, "-1") == 0);
 
-    mprItoa(buf, sizeof(buf), 12345678, 10);
+    itos(buf, sizeof(buf), 12345678, 10);
     assert(strcmp(buf, "12345678") == 0);
 
-    mprItoa(buf, sizeof(buf), -12345678, 10);
+    itos(buf, sizeof(buf), -12345678, 10);
     assert(strcmp(buf, "-12345678") == 0);
 
-    mprItoa(buf, sizeof(buf), 0x1234, 16);
+    itos(buf, sizeof(buf), 0x1234, 16);
     assert(strcmp(buf, "1234") == 0);
 }
 
@@ -82,42 +82,42 @@ static void testTypeOptions(MprTestGroup *gp)
     char    buf[256];
     int     count;
 
-    mprSprintf(gp, buf, sizeof(buf), "Hello %c World", 'X');
+    mprSprintf(buf, sizeof(buf), "Hello %c World", 'X');
     assert(strcmp(buf, "Hello X World") == 0);
 
-    mprSprintf(gp, buf, sizeof(buf), "%d", 12345678);
+    mprSprintf(buf, sizeof(buf), "%d", 12345678);
     assert(strcmp(buf, "12345678") == 0);
 
-    mprSprintf(gp, buf, sizeof(buf), "%3.2f", 1.77);
+    mprSprintf(buf, sizeof(buf), "%3.2f", 1.77);
     assert(strcmp(buf, "1.77") == 0);
 
-    mprSprintf(gp, buf, sizeof(buf), "%i", 12345678);
+    mprSprintf(buf, sizeof(buf), "%i", 12345678);
     assert(strcmp(buf, "12345678") == 0);
 
-    mprSprintf(gp, buf, sizeof(buf), "%s%n", "Hello World", &count);
+    mprSprintf(buf, sizeof(buf), "%s%n", "Hello World", &count);
     assert(count == 11);
 
-    mprSprintf(gp, buf, sizeof(buf), "%o", 077);
+    mprSprintf(buf, sizeof(buf), "%o", 077);
     assert(strcmp(buf, "77") == 0);
 
-    mprSprintf(gp, buf, sizeof(buf), "%p", (void*) 0xdeadbeef);
+    mprSprintf(buf, sizeof(buf), "%p", (void*) 0xdeadbeef);
     assert(strcmp(buf, "0xdeadbeef") == 0);
 
-    mprSprintf(gp, buf, sizeof(buf), "%s", "Hello World");
+    mprSprintf(buf, sizeof(buf), "%s", "Hello World");
     assert(strcmp(buf, "Hello World") == 0);
 
 #if UNUSED
-    mprSprintf(gp, buf, sizeof(buf), "%S", "Hello World");
+    mprSprintf(buf, sizeof(buf), "%S", "Hello World");
     assert(strcmp(buf, "Hello World") == 0);
 #endif
 
-    mprSprintf(gp, buf, sizeof(buf), "%u", 0xffffffff);
+    mprSprintf(buf, sizeof(buf), "%u", 0xffffffff);
     assert(strcmp(buf, "4294967295") == 0);
 
-    mprSprintf(gp, buf, sizeof(buf), "%x", 0xffffffff);
+    mprSprintf(buf, sizeof(buf), "%x", 0xffffffff);
     assert(strcmp(buf, "ffffffff") == 0);
 
-    mprSprintf(gp, buf, sizeof(buf), "%X", (int64) 0xffffffff);
+    mprSprintf(buf, sizeof(buf), "%X", (int64) 0xffffffff);
     assert(strcmp(buf, "FFFFFFFF") == 0);
 }
 
@@ -126,32 +126,32 @@ static void testModifierOptions(MprTestGroup *gp)
 {
     char    buf[256];
 
-    mprSprintf(gp, buf, sizeof(buf), "%-4d", 23);
+    mprSprintf(buf, sizeof(buf), "%-4d", 23);
     assert(strcmp(buf, "23  ") == 0);
-    mprSprintf(gp, buf, sizeof(buf), "%-4d", -23);
+    mprSprintf(buf, sizeof(buf), "%-4d", -23);
     assert(strcmp(buf, "-23 ") == 0);
 
-    mprSprintf(gp, buf, sizeof(buf), "%+4d", 23);
+    mprSprintf(buf, sizeof(buf), "%+4d", 23);
     assert(strcmp(buf, " +23") == 0);
-    mprSprintf(gp, buf, sizeof(buf), "%+4d", -23);
+    mprSprintf(buf, sizeof(buf), "%+4d", -23);
     assert(strcmp(buf, " -23") == 0);
 
-    mprSprintf(gp, buf, sizeof(buf), "% 4d", 23);
+    mprSprintf(buf, sizeof(buf), "% 4d", 23);
     assert(strcmp(buf, "  23") == 0);
-    mprSprintf(gp, buf, sizeof(buf), "% 4d", -23);
+    mprSprintf(buf, sizeof(buf), "% 4d", -23);
     assert(strcmp(buf, " -23") == 0);
 
-    mprSprintf(gp, buf, sizeof(buf), "%-+4d", 23);
+    mprSprintf(buf, sizeof(buf), "%-+4d", 23);
     assert(strcmp(buf, "+23 ") == 0);
-    mprSprintf(gp, buf, sizeof(buf), "%-+4d", -23);
+    mprSprintf(buf, sizeof(buf), "%-+4d", -23);
     assert(strcmp(buf, "-23 ") == 0);
-    mprSprintf(gp, buf, sizeof(buf), "%- 4d", 23);
+    mprSprintf(buf, sizeof(buf), "%- 4d", 23);
     assert(strcmp(buf, " 23 ") == 0);
 
-    mprSprintf(gp, buf, sizeof(buf), "%#6x", 0x23);
+    mprSprintf(buf, sizeof(buf), "%#6x", 0x23);
     assert(strcmp(buf, "  0x23") == 0);
 
-    mprSprintf(gp, buf, sizeof(buf), "%,d", 12345678);
+    mprSprintf(buf, sizeof(buf), "%,d", 12345678);
     assert(strcmp(buf, "12,345,678") == 0);
 }
 
@@ -160,19 +160,19 @@ static void testWidthOptions(MprTestGroup *gp)
 {
     char    buf[256];
 
-    mprSprintf(gp, buf, sizeof(buf), "%2d", 1234);
+    mprSprintf(buf, sizeof(buf), "%2d", 1234);
     assert(strcmp(buf, "1234") == 0);
 
-    mprSprintf(gp, buf, sizeof(buf), "%8d", 1234);
+    mprSprintf(buf, sizeof(buf), "%8d", 1234);
     assert(strcmp(buf, "    1234") == 0);
 
-    mprSprintf(gp, buf, sizeof(buf), "%-8d", 1234);
+    mprSprintf(buf, sizeof(buf), "%-8d", 1234);
     assert(strcmp(buf, "1234    ") == 0);
 
-    mprSprintf(gp, buf, sizeof(buf), "%*d", 8, 1234);
+    mprSprintf(buf, sizeof(buf), "%*d", 8, 1234);
     assert(strcmp(buf, "    1234") == 0);
 
-    mprSprintf(gp, buf, sizeof(buf), "%*d", -8, 1234);
+    mprSprintf(buf, sizeof(buf), "%*d", -8, 1234);
     assert(strcmp(buf, "1234    ") == 0);
 }
 
@@ -181,25 +181,25 @@ static void testPrecisionOptions(MprTestGroup *gp)
 {
     char    buf[256];
 
-    mprSprintf(gp, buf, sizeof(buf), "%.2d", 1234);
+    mprSprintf(buf, sizeof(buf), "%.2d", 1234);
     assert(strcmp(buf, "1234") == 0);
 
-    mprSprintf(gp, buf, sizeof(buf), "%.8d", 1234);
+    mprSprintf(buf, sizeof(buf), "%.8d", 1234);
     assert(strcmp(buf, "00001234") == 0);
 
-    mprSprintf(gp, buf, sizeof(buf), "%8.6d", 1234);
+    mprSprintf(buf, sizeof(buf), "%8.6d", 1234);
     assert(strcmp(buf, "  001234") == 0);
 
-    mprSprintf(gp, buf, sizeof(buf), "%6.3d", 12345);
+    mprSprintf(buf, sizeof(buf), "%6.3d", 12345);
     assert(strcmp(buf, " 12345") == 0);
 
-    mprSprintf(gp, buf, sizeof(buf), "%6.3s", "ABCDEFGHIJ");
+    mprSprintf(buf, sizeof(buf), "%6.3s", "ABCDEFGHIJ");
     assert(strcmp(buf, "   ABC") == 0);
 
-    mprSprintf(gp, buf, sizeof(buf), "%6.2f", 12.789);
+    mprSprintf(buf, sizeof(buf), "%6.2f", 12.789);
     assert(strcmp(buf, " 12.79") == 0);
 
-    mprSprintf(gp, buf, sizeof(buf), "%8.2f", 1234.789);
+    mprSprintf(buf, sizeof(buf), "%8.2f", 1234.789);
     assert(strcmp(buf, " 1234.79") == 0);
 }
 
@@ -208,16 +208,16 @@ static void testBitOptions(MprTestGroup *gp)
 {
     char    buf[256];
 
-    mprSprintf(gp, buf, sizeof(buf), "%hd %hd", (short) 23, (short) 78);
+    mprSprintf(buf, sizeof(buf), "%hd %hd", (short) 23, (short) 78);
     assert(strcmp(buf, "23 78") == 0);
 
-    mprSprintf(gp, buf, sizeof(buf), "%ld %ld", (long) 12, (long) 89);
+    mprSprintf(buf, sizeof(buf), "%ld %ld", (long) 12, (long) 89);
     assert(strcmp(buf, "12 89") == 0);
 
-    mprSprintf(gp, buf, sizeof(buf), "%Ld %Ld", (int64) 66, (int64) 41);
+    mprSprintf(buf, sizeof(buf), "%Ld %Ld", (int64) 66, (int64) 41);
     assert(strcmp(buf, "66 41") == 0);
 
-    mprSprintf(gp, buf, sizeof(buf), "%hd %Ld %hd %Ld", 
+    mprSprintf(buf, sizeof(buf), "%hd %Ld %hd %Ld", 
         (short) 123, (int64) 789, (short) 441, (int64) 558);
     assert(strcmp(buf, "123 789 441 558") == 0);
 }
@@ -227,11 +227,11 @@ static void testSprintf64(MprTestGroup *gp)
 {
     char    buf[256];
 
-    mprSprintf(gp, buf, sizeof(buf), "%Ld", INT64(9012345678));
+    mprSprintf(buf, sizeof(buf), "%Ld", INT64(9012345678));
     assert(strlen(buf) == 10);
     assert(strcmp(buf, "9012345678") == 0);
 
-    mprSprintf(gp, buf, sizeof(buf), "%Ld", INT64(-9012345678));
+    mprSprintf(buf, sizeof(buf), "%Ld", INT64(-9012345678));
     assert(strlen(buf) == 11);
     assert(strcmp(buf, "-9012345678") == 0);
 }
@@ -250,7 +250,7 @@ MprTestDef testSprintf = {
     "sprintf", 0, 0, 0,
     {
         MPR_TEST(0, testBasicSprintf),
-        MPR_TEST(0, testItoa),
+        MPR_TEST(0, testItos),
         MPR_TEST(0, testTypeOptions),
         MPR_TEST(0, testModifierOptions),
         MPR_TEST(0, testWidthOptions),

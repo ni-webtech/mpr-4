@@ -45,7 +45,7 @@ void mprLog(MprCtx ctx, int level, cchar *fmt, ...)
         return;
     }
     va_start(args, fmt);
-    buf = mprVasprintf(ctx, -1, fmt, args);
+    buf = mprAsprintfv(ctx, fmt, args);
     va_end(args);
 
     logOutput(ctx, MPR_LOG_SRC, level, buf);
@@ -62,7 +62,7 @@ void mprRawLog(MprCtx ctx, int level, cchar *fmt, ...)
         return;
     }
     va_start(args, fmt);
-    buf = mprVasprintf(ctx, -1, fmt, args);
+    buf = mprAsprintfv(ctx, fmt, args);
     va_end(args);
     
     logOutput(ctx, MPR_RAW, 0, buf);
@@ -76,7 +76,7 @@ void mprError(MprCtx ctx, cchar *fmt, ...)
     char        *buf;
 
     va_start(args, fmt);
-    buf = mprVasprintf(ctx, -1, fmt, args);
+    buf = mprAsprintfv(ctx, fmt, args);
     va_end(args);
     
     logOutput(ctx, MPR_ERROR_MSG | MPR_ERROR_SRC, 0, buf);
@@ -95,7 +95,7 @@ void mprMemoryError(MprCtx ctx, cchar *fmt, ...)
         logOutput(ctx, MPR_ERROR_MSG | MPR_ERROR_SRC, 0, "Memory allocation error");
     } else {
         va_start(args, fmt);
-        buf = mprVasprintf(ctx, -1, fmt, args);
+        buf = mprAsprintfv(ctx, fmt, args);
         va_end(args);
         logOutput(ctx, MPR_ERROR_MSG | MPR_ERROR_SRC, 0, buf);
         mprFree(buf);
@@ -109,7 +109,7 @@ void mprUserError(MprCtx ctx, cchar *fmt, ...)
     char        *buf;
 
     va_start(args, fmt);
-    buf = mprVasprintf(ctx, -1, fmt, args);
+    buf = mprAsprintfv(ctx, fmt, args);
     va_end(args);
     
     logOutput(ctx, MPR_USER_MSG | MPR_ERROR_SRC, 0, buf);
@@ -123,7 +123,7 @@ void mprFatalError(MprCtx ctx, cchar *fmt, ...)
     char        *buf;
 
     va_start(args, fmt);
-    buf = mprVasprintf(ctx, -1, fmt, args);
+    buf = mprAsprintfv(ctx, fmt, args);
     va_end(args);
     
     logOutput(ctx, MPR_USER_MSG | MPR_FATAL_SRC, 0, buf);
@@ -132,25 +132,27 @@ void mprFatalError(MprCtx ctx, cchar *fmt, ...)
 }
 
 
+#if UNUSED
 /*
     Handle an error without allocating memory.
  */
-void mprStaticError(MprCtx ctx, cchar *fmt, ...)
+void mprStaticError(cchar *fmt, ...)
 {
     va_list     args;
     char        buf[MPR_MAX_STRING];
 
     va_start(args, fmt);
-    mprVsprintf(ctx, buf, sizeof(buf), fmt, args);
+    mprSprintfv(buf, sizeof(buf), fmt, args);
     va_end(args);
-    logOutput(ctx, MPR_ERROR_MSG | MPR_ERROR_SRC, 0, buf);
+    logOutput(NULL, MPR_ERROR_MSG | MPR_ERROR_SRC, 0, buf);
 }
+#endif
 
 
 /*
     Direct output to the standard error. Does not hook into the logging system and does not allocate memory.
  */
-void mprStaticAssert(cchar *loc, cchar *msg)
+void mprAssertError(cchar *loc, cchar *msg)
 {
 #if BLD_DEBUG
     char    buf[MPR_MAX_STRING];
@@ -232,21 +234,10 @@ static void defaultLogHandler(MprCtx ctx, int flags, int level, cchar *msg)
     }
     if (flags & MPR_LOG_SRC) {
         mprPrintfError(ctx, "%s: %d: %s\n", prefix, level, msg);
-
     } else if (flags & MPR_ERROR_SRC) {
-        /*
-            Use static printing to avoid malloc when the messages are small.
-            This is important for memory allocation errors.
-         */
-        if (strlen(msg) < (MPR_MAX_STRING - 32)) {
-            mprStaticPrintfError(ctx, "%s: Error: %s\n", prefix, msg);
-        } else {
-            mprPrintfError(ctx, "%s: Error: %s\n", prefix, msg);
-        }
-
+        mprPrintfError(ctx, "%s: Error: %s\n", prefix, msg);
     } else if (flags & MPR_FATAL_SRC) {
         mprPrintfError(ctx, "%s: Fatal: %s\n", prefix, msg);
-
     } else if (flags & MPR_RAW) {
         mprPrintfError(ctx, "%s", msg);
     }

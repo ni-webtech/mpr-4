@@ -16,18 +16,18 @@ static void testBasicUnicode(MprTestGroup *gp)
     char    *str;
     int     count;
 
-    mprSprintf(gp, buf, sizeof(buf), "%d", 12345678);
+    mprSprintf(buf, sizeof(buf), "%d", 12345678);
     assert(strlen(buf) == 8);
     assert(strcmp(buf, "12345678") == 0);
 
-    mprSprintf(gp, buf, sizeof(buf), "%d", -12345678);
+    mprSprintf(buf, sizeof(buf), "%d", -12345678);
     assert(strlen(buf) == 9);
     assert(strcmp(buf, "-12345678") == 0);
 
-    str = mprAsprintf(gp, 4, "%d", 12345678);
+    str = mprAsprintf(gp, "%d", 12345678);
     count = (int) strlen(str);
-    assert(count == 3);
-    assert(strcmp(str, "123") == 0);
+    assert(count == 8);
+    assert(strcmp(str, "12345678") == 0);
     mprFree(str);
 }
 

@@ -15,7 +15,8 @@
 
 /***************************** Forward Declarations ***************************/
 
-static int handlerDestructor(MprWaitHandler *wp);
+static void manageWaitService(MprWaitService *ws, int flags);
+static void manageWaitHandler(MprWaitHandler *wp, int flags);
 
 /************************************ Code ************************************/
 /*
@@ -25,7 +26,7 @@ MprWaitService *mprCreateWaitService(Mpr *mpr)
 {
     MprWaitService  *ws;
 
-    ws = mprAllocObj(mpr, MprWaitService, NULL);
+    ws = mprAllocObj(mpr, MprWaitService, manageWaitService);
     if (ws == 0) {
         return 0;
     }
@@ -35,6 +36,26 @@ MprWaitService *mprCreateWaitService(Mpr *mpr)
     ws->spin = mprCreateSpinLock(ws);
     mprCreateNotifierService(ws);
     return ws;
+}
+
+
+static void manageWaitService(MprWaitService *ws, int flags)
+{
+    if (flags & MPR_MANAGE_MARK) {
+        mprMarkList(ws->handlers);
+        mprMark(ws->handlerMap);
+        mprMark(ws->mutex);
+        mprMark(ws->spin);
+    }
+#if MPR_EVENT_KQUEUE
+    mprManageKqueue(ws, flags);
+#endif
+#if MPR_EVENT_POLL
+    mprManagePoll(ws, flags);
+#endif
+#if MPR_EVENT_SELECT
+    mprManageSelect(ws, flags);
+#endif
 }
 
 
@@ -84,7 +105,7 @@ MprWaitHandler *mprCreateWaitHandler(MprCtx ctx, int fd, int mask, MprDispatcher
     mprAssert(fd >= 0);
 
     ws = mprGetMpr(ctx)->waitService;
-    wp = mprAllocObj(ws, MprWaitHandler, handlerDestructor);
+    wp = mprAllocObj(ws, MprWaitHandler, manageWaitHandler);
     if (wp == 0) {
         return 0;
     }
@@ -92,13 +113,13 @@ MprWaitHandler *mprCreateWaitHandler(MprCtx ctx, int fd, int mask, MprDispatcher
 }
 
 
-/*
-    Wait handler Destructor. Called from mprFree.
- */
-static int handlerDestructor(MprWaitHandler *wp)
+static void manageWaitHandler(MprWaitHandler *wp, int flags)
 {
-    mprRemoveWaitHandler(wp);
-    return 0;
+    if (flags & MPR_MANAGE_MARK) {
+        ;
+    } else if (flags & MPR_MANAGE_FREE) {
+        mprRemoveWaitHandler(wp);
+    }
 }
 
 

@@ -2,397 +2,333 @@
     mprString.c - String routines safe for embedded programming
 
     This module provides safe replacements for the standard string library. 
-
-    Most routines in this file are not thread-safe. It is the callers responsibility to perform all thread 
-    synchronization.
+    Most routines in this file are not thread-safe. It is the callers responsibility to perform all thread synchronization.
 
     Copyright (c) All Rights Reserved. See details at the end of the file.
  */
 
-/*
-    TODO - need a join and split function
-    TODO - need a routine that supplies a length of bytes to copy out of str. Like:
-        int mprMemcpy(void *dest, int destMax, cvoid *src, int nbytes)   but adding a null.
- */
 /********************************** Includes **********************************/
 
 #include    "mpr.h"
 
 /************************************ Code ************************************/
-
-int mprStrcpy(char *dest, int destMax, cchar *src)
-{
-    int     len;
-
-    mprAssert(dest);
-    mprAssert(destMax >= 0);
-    mprAssert(src);
-    mprAssert(src != dest);
-
-    len = (int) strlen(src);
-    if (destMax > 0 && len >= destMax && len > 0) {
-        return MPR_ERR_WONT_FIT;
-    }
-    if (len > 0) {
-        memcpy(dest, src, len);
-        dest[len] = '\0';
-    } else {
-        *dest = '\0';
-        len = 0;
-    } 
-    return len;
-}
-
-
-int mprStrcpyCount(char *dest, int destMax, cchar *src, int count)
-{
-    int     len;
-
-    mprAssert(dest);
-    mprAssert(destMax >= 0);
-    mprAssert(src);
-    mprAssert(src != dest);
-
-    len = (int) strlen(src);
-    len = min(len, count);
-
-    if (destMax > 0 && len >= destMax && len > 0) {
-        return MPR_ERR_WONT_FIT;
-    }
-    if (len > 0) {
-        memcpy(dest, src, len);
-        dest[len] = '\0';
-    } else {
-        *dest = '\0';
-        len = 0;
-    } 
-    return len;
-}
-
-
-int mprMemcmp(cvoid *s1, int s1Len, cvoid *s2, int s2Len)
-{
-    int     len, rc;
-
-    mprAssert(s1);
-    mprAssert(s2);
-    mprAssert(s1Len >= 0);
-    mprAssert(s2Len >= 0);
-
-    len = min(s1Len, s2Len);
-
-    rc = memcmp(s1, s2, len);
-    if (rc == 0) {
-        if (s1Len < s2Len) {
-            return -1;
-        } else if (s1Len > s2Len) {
-            return 1;
-        }
-    }
-    return rc;
-}
-
-
 /*
-    Supports insitu copy where src and destination overlap
+    Format a number as a string. Support radix 10 and 16.
  */
-int mprMemcpy(void *dest, int destMax, cvoid *src, int nbytes)
+char *itos(char *buf, int count, int64 value, int radix)
 {
-    mprAssert(dest);
-    mprAssert(destMax <= 0 || destMax >= nbytes);
-    mprAssert(src);
-    mprAssert(nbytes >= 0);
+    char    numBuf[32];
+    char    *cp, *dp, *endp;
+    char    digits[] = "0123456789ABCDEF";
+    int     negative;
 
-    if (destMax > 0 && nbytes > destMax) {
-        mprAssert(0);
-        return MPR_ERR_WONT_FIT;
+    if (radix != 10 && radix != 16) {
+        return 0;
     }
-    if (nbytes > 0) {
-        memmove(dest, src, nbytes);
-        return nbytes;
+    cp = &numBuf[sizeof(numBuf)];
+    *--cp = '\0';
+
+    if (value < 0) {
+        negative = 1;
+        value = -value;
+        count--;
     } else {
-        return 0;
+        negative = 0;
     }
-}
+    do {
+        *--cp = digits[value % radix];
+        value /= radix;
+    } while (value > 0);
 
-
-char *mprStrcatV(MprCtx ctx, int destMax, cchar *src, va_list args)
-{
-    va_list     ap;
-    char        *dest, *str, *dp;
-    int         required;
-
-    mprAssert(ctx);
-    mprAssert(src);
-
-    if (destMax <= 0) {
-        destMax = INT_MAX;
+    if (negative) {
+        *--cp = '-';
     }
-
-#ifdef __va_copy
-    __va_copy(ap, args);
-#else
-    ap = args;
-#endif
-
-    required = 1;
-    str = (char*) src;
-
-    while (str) {
-        required += (int) strlen(str);
-        str = va_arg(ap, char*);
+    dp = buf;
+    endp = &buf[count];
+    while (dp < endp && *cp) {
+        *dp++ = *cp++;
     }
-    if (required >= destMax) {
-        return 0;
-    }
-
-    if ((dest = (char*) mprAlloc(ctx, required)) == 0) {
-        return 0;
-    }
-
-    dp = dest;
-#ifdef __va_copy
-    __va_copy(ap, args);
-#else
-    ap = args;
-#endif
-    str = (char*) src;
-    while (str) {
-        strcpy(dp, str);
-        dp += (int) strlen(str);
-        str = va_arg(ap, char*);
-    }
-    *dp = '\0';
-    return dest;
-}
-
-
-char *mprStrcat(MprCtx ctx, int destMax, cchar *src, ...)
-{
-    va_list     ap;
-    char        *result;
-
-    mprAssert(ctx);
-    mprAssert(src);
-
-    va_start(ap, src);
-    result = mprStrcatV(ctx, destMax, src, ap);
-    va_end(ap);
-    return result;
-}
-
-
-char *mprReallocStrcat(MprCtx ctx, int destMax, char *buf, cchar *src, ...)
-{
-    va_list     ap;
-    char        *str, *dp;
-    int         required, existingLen;
-
-    mprAssert(ctx);
-    mprAssert(src);
-
-    va_start(ap, src);
-    if (destMax <= 0) {
-        destMax = INT_MAX;
-    }
-
-    existingLen = (buf) ? (int) strlen(buf) : 0;
-    required = existingLen + 1;
-
-    str = (char*) src;
-    while (str) {
-        required += (int) strlen(str);
-        str = va_arg(ap, char*);
-    }
-    if (required >= destMax) {
-        return 0;
-    }
-    if ((buf = mprRealloc(ctx, (char*) buf, required)) == 0) {
-        return 0;
-    }
-    dp = &buf[existingLen];
-
-    va_end(ap);
-    va_start(ap, src);
-
-    str = (char*) src;
-    while (str) {
-        strcpy(dp, str);
-        dp += (int) strlen(str);
-        str = va_arg(ap, char*);
-    }
-    *dp = '\0';
-    va_end(ap);
+    *dp++ = '\0';
     return buf;
 }
 
 
-int mprStrlen(cchar *src, int max)
+char *schr(cchar *s, int c)
 {
-    int     len;
-
-    len = (int) strlen(src);
-    if (len >= max) {
-        mprAssert(0);
-        return MPR_ERR_WONT_FIT;
-    }
-    return len;
-}
-
-
-//  TODO - would be good to have a trim from only the end
-char *mprStrTrim(char *str, cchar *set)
-{
-    int     len, i;
-
-    if (str == 0 || set == 0) {
-        return str;
-    }
-
-    i = (int) strspn(str, set);
-    str += i;
-
-    len = (int) strlen(str);
-    while (len > 0 && strspn(&str[len - 1], set) > 0) {
-        str[len - 1] = '\0';
-        len--;
-    }
-    return str;
-}
-
-
-/*  
-    Map a string to lower case (overwrites original string)
- */
-char *mprStrLower(char *str)
-{
-    char    *cp;
-
-    mprAssert(str);
-
-    if (str == 0) {
-        return 0;
-    }
-
-    for (cp = str; *cp; cp++) {
-        if (isupper((int) *cp)) {
-            *cp = (char) tolower((int) *cp);
-        }
-    }
-    return str;
-}
-
-
-/*  
-    Map a string to upper case (overwrites buffer)
- */
-char *mprStrUpper(char *str)
-{
-    char    *cp;
-
-    mprAssert(str);
-    if (str == 0) {
-        return 0;
-    }
-
-    for (cp = str; *cp; cp++) {
-        if (islower((int) *cp)) {
-            *cp = (char) toupper((int) *cp);
-        }
-    }
-    return str;
-}
-
-
-/*
-    Case sensitive string comparison.
- */
-int mprStrcmp(cchar *str1, cchar *str2)
-{
-    int     rc;
-
-    if (str1 == 0) {
-        return -1;
-    }
-    if (str2 == 0) {
-        return 1;
-    }
-    if (str1 == str2) {
-        return 0;
-    }
-
-    for (rc = 0; *str1 && *str2 && rc == 0; str1++, str2++) {
-        rc = *str1 - *str2;
-    }
-    if (rc) {
-        return rc < 0 ? -1 : 1;
-    }
-    if (*str1 == '\0' && *str2) {
-        return -1;
-    }
-    if (*str2 == '\0' && *str1) {
-        return 1;
-    }
-    return rc;
-}
-
-
-/*
-    Case insensitive string comparison. Stop at the end of str1.
- */
-int mprStrcmpAnyCase(cchar *str1, cchar *str2)
-{
-    int     rc;
-
-    if (str1 == 0) {
-        return -1;
-    }
-    if (str2 == 0) {
-        return 1;
-    }
-    if (str1 == str2) {
-        return 0;
-    }
-    for (rc = 0; *str1 && *str2 && rc == 0; str1++, str2++) {
-        rc = tolower((int) *str1) - tolower((int) *str2);
-    }
-    if (rc) {
-        return rc < 0 ? -1 : 1;
-    } else if (*str1 == '\0' && *str2 == '\0') {
-        return 0;
-    } else if (*str1 == '\0') {
-        return -1;
-    } else if (*str2 == '\0') {
-        return 1;
-    }
-    return 0;
+    return strchr(s, c);
 }
 
 
 /*
     Case insensitive string comparison. Limited by length
  */
-int mprStrcmpAnyCaseCount(cchar *str1, cchar *str2, int len)
+int scasecmp(cchar *s1, cchar *s2)
+{
+    if (s1 == 0 || s2 == 0) {
+        return -1;
+    } else if (s1 == 0) {
+        return -1;
+    } else if (s2 == 0) {
+        return 1;
+    }
+    return sncasecmp(s1, s2, max(strlen(s1), strlen(s2)));
+}
+
+
+size_t scopy(char *dest, size_t destMax, cchar *src)
+{
+    size_t      len;
+
+    mprAssert(src);
+    mprAssert(dest);
+    mprAssert(0 < dest && destMax < MAXINT);
+
+    len = strlen(src);
+    if (destMax <= len) {
+        mprAssert(!MPR_ERR_WONT_FIT);
+        return MPR_ERR_WONT_FIT;
+    }
+    strcpy(dest, src);
+    return len;
+}
+
+
+char *sclone(MprCtx ctx, cchar *str)
+{
+    char    *ptr;
+    size_t  size, len;
+
+    if (str == NULL) {
+        str = "";
+    }
+    len = strlen(str);
+    size = len + 1;
+    if ((ptr = mprAlloc(ctx, size)) != NULL) {
+        memcpy(ptr, str, len);
+    }
+    ptr[len] = '\0';
+    return ptr;
+}
+
+
+int scmp(cchar *s1, cchar *s2)
+{
+    if (s1 == 0 || s2 == 0) {
+        return -1;
+    } else if (s1 == 0) {
+        return -1;
+    } else if (s2 == 0) {
+        return 1;
+    }
+    return sncmp(s1, s2, max(strlen(s1), strlen(s2)));
+}
+
+
+int sends(cchar *str, cchar *suffix)
+{
+    if (str == NULL || suffix == NULL) {
+        return 0;
+    }
+    if (strcmp(&str[strlen(str) - strlen(suffix) - 1], suffix) == 0) {
+        return 1;
+    }
+    return 0;
+}
+
+
+char *sfmt(MprCtx ctx, cchar *fmt, ...)
+{
+    va_list     ap;
+    char        *buf;
+
+    mprAssert(fmt);
+
+    va_start(ap, fmt);
+    buf = mprAsprintfv(ctx, fmt, ap);
+    va_end(ap);
+    return buf;
+}
+
+
+char *sfmtv(MprCtx ctx, cchar *fmt, va_list arg)
+{
+    mprAssert(fmt);
+    return mprAsprintfv(ctx, fmt, arg);
+}
+
+
+/*
+    Compute a hash for a C string
+    (Based on work by Paul Hsieh (c) 2004-2008, see http://www.azillionmonkeys.com/qed/hash.html)
+ */
+uint shash(cchar *cname, size_t len)
+{
+    uchar   *name;
+    uint    hash, rem, tmp;
+
+    mprAssert(cname);
+    mprAssert(0 <= len && len < MAXINT);
+
+    if (cname == NULL) {
+        return 0;
+    }
+    hash = len;
+    rem = len & 3;
+    name = (uchar*) cname;
+    for (len >>= 2; len > 0; len--, name += 4) {
+        hash  += name[0] | (name[1] << 8);
+        tmp   =  ((name[2] | (name[3] << 8)) << 11) ^ hash;
+        hash  =  (hash << 16) ^ tmp;
+        hash  += hash >> 11;
+    }
+    switch (rem) {
+    case 3: 
+        hash += name[0] + (name[1] << 8);
+        hash ^= hash << 16;
+        hash ^= name[2] << 18;
+        hash += hash >> 11;
+        break;
+    case 2: 
+        hash += name[0] + (name[1] << 8);
+        hash ^= hash << 11;
+        hash += hash >> 17;
+        break;
+    case 1: 
+        hash += name[0];
+        hash ^= hash << 10;
+        hash += hash >> 1;
+    }
+    hash ^= hash << 3;
+    hash += hash >> 5;
+    hash ^= hash << 4;
+    hash += hash >> 17;
+    hash ^= hash << 25;
+    hash += hash >> 6;
+    return hash;
+}
+
+
+/*
+    Hash the lower case name
+ */
+uint shashlower(cchar *cname, size_t len)
+{
+    uchar   *name;
+    uint    hash, rem, tmp;
+
+    mprAssert(cname);
+    mprAssert(0 <= len && len < MAXINT);
+
+    if (cname == NULL) {
+        return 0;
+    }
+    hash = len;
+    rem = len & 3;
+    name = (uchar*) cname;
+
+    for (len >>= 2; len > 0; len--, name += 4) {
+        hash  += tolower(name[0]) | (tolower(name[1]) << 8);
+        tmp   =  ((tolower(name[2]) | (tolower(name[3]) << 8)) << 11) ^ hash;
+        hash  =  (hash << 16) ^ tmp;
+        hash  += hash >> 11;
+    }
+    switch (rem) {
+    case 3: 
+        hash += tolower(name[0]) + (tolower(name[1]) << 8);
+        hash ^= hash << 16;
+        hash ^= tolower(name[2]) << 18;
+        hash += hash >> 11;
+        break;
+    case 2: 
+        hash += tolower(name[0]) + tolower((name[1]) << 8);
+        hash ^= hash << 11;
+        hash += hash >> 17;
+        break;
+    case 1: 
+        hash += tolower(name[0]);
+        hash ^= hash << 10;
+        hash += hash >> 1;
+    }
+    hash ^= hash << 3;
+    hash += hash >> 5;
+    hash ^= hash << 4;
+    hash += hash >> 17;
+    hash ^= hash << 25;
+    hash += hash >> 6;
+    return hash;
+}
+
+
+char *sjoin(MprCtx ctx, cchar *sep, ...)
+{
+    va_list     ap;
+    char        *result;
+
+    mprAssert(ctx);
+
+    va_start(ap, sep);
+    result = srejoinv(ctx, NULL, sep, ap);
+    va_end(ap);
+    return result;
+}
+
+
+char *sjoinv(MprCtx ctx, cchar *sep, va_list args)
+{
+    return srejoin(ctx, NULL, sep, args);
+}
+
+
+size_t slen(cchar *s)
+{
+    return strlen(s);
+}
+
+
+/*  
+    Map a string to lower case (overwrites original string)
+ */
+void slower(char *str)
+{
+    char    *cp;
+
+    mprAssert(str);
+
+    if (str) {
+        for (cp = str; *cp; cp++) {
+            if (isupper((int) *cp)) {
+                *cp = (char) tolower((int) *cp);
+            }
+        }
+    }
+}
+
+
+int sncasecmp(cchar *s1, cchar *s2, size_t n)
 {
     int     rc;
 
-    if (str1 == 0 || str2 == 0) {
-        return -1;
-    }
-    if (str1 == str2) {
-        return 0;
-    }
+    mprAssert(0 <= n && n < MAXINT);
 
-    for (rc = 0; len-- > 0 && *str1 && rc == 0; str1++, str2++) {
-        rc = tolower((int) *str1) - tolower((int) *str2);
-    }
-    if (rc || len < 0) {
-        return rc;
-    } else if (*str1 == '\0' && *str2 == '\0') {
-        return 0;
-    } else if (*str1 == '\0') {
+    if (s1 == 0 || s2 == 0) {
         return -1;
-    } else if (*str2 == '\0') {
+    } else if (s1 == 0) {
+        return -1;
+    } else if (s2 == 0) {
+        return 1;
+    }
+    for (rc = 0; n > 0 && *s1 && rc == 0; s1++, s2++, n--) {
+        rc = tolower((int) *s1) - tolower((int) *s2);
+    }
+    if (rc) {
+        return (rc > 0) ? 1 : -1;
+    } else if (n == 0) {
+        return 0;
+    } else if (*s1 == '\0' && *s2 == '\0') {
+        return 0;
+    } else if (*s1 == '\0') {
+        return -1;
+    } else if (*s2 == '\0') {
         return 1;
     }
     return 0;
@@ -400,9 +336,318 @@ int mprStrcmpAnyCaseCount(cchar *str1, cchar *str2, int len)
 
 
 /*
-    Thread-safe wrapping of strtok. Note "str" is modifed as per strtok()
+    Case sensitive string comparison. Limited by length
  */
-char *mprStrTok(char *str, cchar *delim, char **last)
+int sncmp(cchar *s1, cchar *s2, size_t n)
+{
+    int     rc;
+
+    mprAssert(0 <= n && n < MAXINT);
+
+    if (s1 == 0 && s2 == 0) {
+        return 0;
+    } else if (s1 == 0) {
+        return -1;
+    } else if (s2 == 0) {
+        return 1;
+    }
+    for (rc = 0; n > 0 && *s1 && rc == 0; s1++, s2++, n--) {
+        rc = *s1 - *s2;
+    }
+    if (rc) {
+        return (rc > 0) ? 1 : -1;
+    } else if (n == 0) {
+        return 0;
+    } else if (*s1 == '\0' && *s2 == '\0') {
+        return 0;
+    } else if (*s1 == '\0') {
+        return -1;
+    } else if (*s2 == '\0') {
+        return 1;
+    }
+    return 0;
+}
+
+
+/*
+    This routine copies at most "count" characters from a string. It ensures the result is always null terminated and 
+    the buffer does not overflow. Returns MPR_ERR_WONT_FIT if the buffer is too small.
+ */
+size_t sncopy(char *dest, size_t destMax, cchar *src, size_t count)
+{
+    size_t      len;
+
+    mprAssert(dest);
+    mprAssert(src);
+    mprAssert(src != dest);
+    mprAssert(0 <= count && count < MAXINT);
+    mprAssert(0 < destMax && destMax < MAXINT);
+
+    len = strlen(src);
+    len = min(len, count);
+    if (destMax <= len) {
+        mprAssert(!MPR_ERR_WONT_FIT);
+        return MPR_ERR_WONT_FIT;
+    }
+    if (len > 0) {
+        memcpy(dest, src, len);
+        dest[len] = '\0';
+    } else {
+        *dest = '\0';
+        len = 0;
+    } 
+    return len;
+}
+
+
+char *spbrk(cchar *str, cchar *set)
+{
+    cchar       *sp;
+    int         count;
+
+    if (str == NULL || set == NULL) {
+        return 0;
+    }
+    for (count = 0; *str; count++) {
+        for (sp = set; *sp; sp++) {
+            if (*str == *sp) {
+                return (char*) str;
+            }
+        }
+    }
+    return 0;
+}
+
+
+char *srchr(cchar *s, int c)
+{
+    return strrchr(s, c);
+}
+
+
+char *srejoin(MprCtx ctx, char *buf, cchar *sep, ...)
+{
+    va_list     ap;
+    char        *result;
+
+    mprAssert(ctx);
+
+    va_start(ap, sep);
+    result = srejoinv(ctx, buf, sep, ap);
+    va_end(ap);
+    return result;
+}
+
+
+char *srejoinv(MprCtx ctx, char *buf, cchar *sep, va_list args)
+{
+    va_list     ap;
+    char        *dest, *str, *dp;
+    int         required, seplen;
+
+    mprAssert(ctx);
+
+    if (sep == 0) {
+        sep = "";
+    } 
+    seplen = strlen(sep);
+    va_copy(ap, args);
+    required = 1;
+    seplen = strlen(sep);
+    str = va_arg(ap, char*);
+    while (str) {
+        required += strlen(str);
+        required += seplen;
+        str = va_arg(ap, char*);
+    }
+    if (buf && *buf) {
+        required += seplen;
+    }
+    if ((dest = (char*) mprRealloc(ctx, buf, required)) == 0) {
+        return 0;
+    }
+    dp = dest;
+    va_copy(ap, args);
+    str = va_arg(ap, char*);
+    if (str && *sep) {
+        strcpy(dp, sep);
+        dp += seplen;
+    }
+    while (str) {
+        strcpy(dp, str);
+        dp += strlen(str);
+        str = va_arg(ap, char*);
+        if (str) {
+            strcpy(dp, sep);
+            dp += seplen;
+        }
+    }
+    *dp = '\0';
+    return dest;
+}
+
+
+size_t sspn(cchar *str, cchar *set)
+{
+#if KEEP
+    cchar       *sp;
+    int         count;
+
+    if (str == NULL || set == NULL) {
+        return 0;
+    }
+    for (count = 0; *str; count++, str++) {
+        for (sp = set; *sp; sp++) {
+            if (*str == *sp) {
+                break;
+            }
+        }
+        if (*str != *sp) {
+            break;
+        }
+    }
+    return count;
+#else
+    if (str == NULL || set == NULL) {
+        return 0;
+    }
+    return strspn(str, set);
+#endif
+}
+ 
+
+int sstarts(cchar *str, cchar *prefix)
+{
+    if (str == NULL || prefix == NULL) {
+        return 0;
+    }
+    if (strncmp(str, prefix, strlen(prefix)) == 0) {
+        return 1;
+    }
+    return 0;
+}
+
+
+char *scontains(cchar *str, cchar *pattern, size_t limit)
+{
+    cchar   *cp, *s1, *s2;
+    size_t  lim;
+
+    mprAssert(0 <= limit && limit < MAXINT);
+    
+    if (str == 0) {
+        return 0;
+    }
+    if (pattern == 0 || *pattern == '\0') {
+        return 0;
+    }
+    for (cp = str; *cp; cp++) {
+        s1 = cp;
+        s2 = pattern;
+        for (lim = limit; *s1 && *s2 && (*s1 == *s2) && lim > 0; lim--) {
+            s1++;
+            s2++;
+        }
+        if (*s2 == '\0') {
+            return (char*) cp;
+        }
+    }
+    return 0;
+}
+
+
+/*
+    Parse a number and check for parse errors. Supports radix 8, 10 or 16. 
+    If radix is <= 0, then the radix is sleuthed from the input.
+    Supports formats:
+        [(+|-)][0][OCTAL_DIGITS]
+        [(+|-)][0][(x|X)][HEX_DIGITS]
+        [(+|-)][DIGITS]
+
+ */
+int64 stoi(cchar *str, int radix, int *err)
+{
+    cchar   *start;
+    int64   val;
+    int     n, c, negative;
+
+    if (err) {
+        *err = 0;
+    }
+    if (str == 0) {
+        if (err) {
+            *err = MPR_ERR_BAD_SYNTAX;
+        }
+        return 0;
+    }
+    while (isspace((int) *str)) {
+        str++;
+    }
+    val = 0;
+    if (*str == '-') {
+        negative = 1;
+        str++;
+    } else {
+        negative = 0;
+    }
+    start = str;
+    if (radix <= 0) {
+        radix = 10;
+        if (*str == '0') {
+            if (tolower((int) str[1]) == 'x') {
+                radix = 16;
+                str += 2;
+            } else {
+                radix = 8;
+                str++;
+            }
+        }
+
+    } else if (radix == 16) {
+        if (*str == '0' && tolower((int) str[1]) == 'x') {
+            str += 2;
+        }
+
+    } else if (radix > 10) {
+        radix = 10;
+    }
+    if (radix == 16) {
+        while (*str) {
+            c = tolower((int) *str);
+            if (isdigit(c)) {
+                val = (val * radix) + c - '0';
+            } else if (c >= 'a' && c <= 'f') {
+                val = (val * radix) + c - 'a' + 10;
+            } else {
+                break;
+            }
+            str++;
+        }
+    } else {
+        while (*str && isdigit((int) *str)) {
+            n = *str - '0';
+            if (n >= radix) {
+                break;
+            }
+            val = (val * radix) + n;
+            str++;
+        }
+    }
+    if (str == start) {
+        /* No data */
+        if (err) {
+            *err = MPR_ERR_BAD_SYNTAX;
+        }
+        return 0;
+    }
+    return (negative) ? -val: val;
+}
+
+
+/*
+    Note "str" is modifed as per strtok()
+ */
+char *stok(char *str, cchar *delim, char **last)
 {
     char    *start, *end;
     int     i;
@@ -430,282 +675,67 @@ char *mprStrTok(char *str, cchar *delim, char **last)
 }
 
 
-/*
-    Split the buffer into word tokens
- */
-char *mprGetWordTok(char *buf, int bufsize, cchar *str, cchar *delim, cchar **tok)
+char *ssub(MprCtx ctx, char *str, size_t offset, size_t len)
 {
-    cchar       *start, *end;
-    int         i, len;
+    char    *result;
+    size_t  size;
 
-    start = str ? str : *tok;
+    mprAssert(str);
+    mprAssert(offset >= 0);
+    mprAssert(0 <= len && len < MAXINT);
 
-    if (start == 0) {
-        return 0;
+    if (str == NULL) {
+        return NULL;
     }
-    
-    i = (int) strspn(start, delim);
-    start += i;
-    if (*start =='\0') {
-        *tok = 0;
-        return 0;
+    size = len + 1;
+    if ((result = mprAlloc(ctx, size)) == NULL) {
+        return NULL;
     }
-    end = strpbrk(start, delim);
-    if (end) {
-        len = min((int) (end - start), bufsize - 1);
-        mprMemcpy(buf, bufsize, start, len);
-        buf[len] = '\0';
+    sncopy(result, size, &str[offset], len);
+    return result;
+}
+
+
+char *strim(char *str, cchar *set, int where)
+{
+    int     len, i;
+
+    if (str == NULL || set == NULL) {
+        return str;
+    }
+    if (where & MPR_TRIM_START) {
+        i = (int) strspn(str, set);
     } else {
-        if (mprStrcpy(buf, bufsize, start) < 0) {
-            buf[bufsize - 1] = '\0';
-            return 0;
-        }
-        buf[bufsize - 1] = '\0';
+        i = 0;
     }
-    *tok = end;
-    return buf;
+    str += i;
+    if (where & MPR_TRIM_END) {
+        len = strlen(str);
+        while (len > 0 && strspn(&str[len - 1], set) > 0) {
+            str[len - 1] = '\0';
+            len--;
+        }
+    }
+    return str;
 }
 
 
-/*
-    Format a number as a string. Support radix 10 and 16.
+
+/*  
+    Map a string to upper case (overwrites buffer)
  */
-char *mprItoa(char *buf, int size, int64 value, int radix)
+void supper(char *str)
 {
-    char    numBuf[32];
-    char    *cp, *dp, *endp;
-    char    digits[] = "0123456789ABCDEF";
-    int     negative;
+    char    *cp;
 
-    if (radix != 10 && radix != 16) {
-        return 0;
-    }
-
-    cp = &numBuf[sizeof(numBuf)];
-    *--cp = '\0';
-
-    if (value < 0) {
-        negative = 1;
-        value = -value;
-        size--;
-    } else {
-        negative = 0;
-    }
-
-    do {
-        *--cp = digits[value % radix];
-        value /= radix;
-    } while (value > 0);
-
-    if (negative) {
-        *--cp = '-';
-    }
-
-    dp = buf;
-    endp = &buf[size];
-    while (dp < endp && *cp) {
-        *dp++ = *cp++;
-    }
-    *dp++ = '\0';
-    return buf;
-}
-
-
-/*
-    Parse a number and check for parse errors. Supports radix 8, 10 or 16. 
-    If radix is <= 0, then the radix is sleuthed from the input.
-    Supports formats:
-        [(+|-)][0][OCTAL_DIGITS]
-        [(+|-)][0][(x|X)][HEX_DIGITS]
-        [(+|-)][DIGITS]
-
- */
-int64 mprParseNumber(cchar *str, int radix, int *err)
-{
-    cchar   *start;
-    int64   val;
-    int     n, c, negative;
-
-    mprAssert(err);
-
-    if (str == 0) {
-        *err = 1;
-        return 0;
-    }
-    *err = 0;
-
-    while (isspace((int) *str)) {
-        str++;
-    }
-    val = 0;
-    if (*str == '-') {
-        negative = 1;
-        str++;
-    } else {
-        negative = 0;
-    }
-
-    start = str;
-    if (radix <= 0) {
-        radix = 10;
-        if (*str == '0') {
-            if (tolower((int) str[1]) == 'x') {
-                radix = 16;
-                str += 2;
-            } else {
-                radix = 8;
-                str++;
-            }
-        }
-
-    } else if (radix == 16) {
-        if (*str == '0' && tolower((int) str[1]) == 'x') {
-            str += 2;
-        }
-
-    } else if (radix > 10) {
-        radix = 10;
-    }
-
-    if (radix == 16) {
-        while (*str) {
-            c = tolower((int) *str);
-            if (isdigit(c)) {
-                val = (val * radix) + c - '0';
-            } else if (c >= 'a' && c <= 'f') {
-                val = (val * radix) + c - 'a' + 10;
-            } else {
-                break;
-            }
-            str++;
-        }
-    } else {
-        while (*str && isdigit((int) *str)) {
-            n = *str - '0';
-            if (n >= radix) {
-                break;
-            }
-            val = (val * radix) + n;
-            str++;
-        }
-    }
-    if (str == start) {
-        /* No data */
-        *err = 1;
-    }
-    return (negative) ? -val: val;
-}
-
-
-/*
-    Parse a ascii. Supports radix 8, 10 or 16. If radix is <= 0, then the radix is sleuthed from the input.
-    Supports formats:
-        [(+|-)][0][OCTAL_DIGITS]
-        [(+|-)][0][(x|X)][HEX_DIGITS]
-        [(+|-)][DIGITS]
-
- */
-int64 mprAtoi(cchar *str, int radix)
-{
-    int     junk;
-
-    return mprParseNumber(str, radix, &junk);
-}
-
-
-/*
-    Make an argv array. Caller must free by calling mprFree(argv) to free everything.
- */
-int mprMakeArgv(MprCtx ctx, cchar *program, cchar *cmd, int *argcp, char ***argvp)
-{
-    char        *cp, **argv, *buf, *args;
-    int         size, argc;
-
-    /*
-     *  Allocate one buffer for argv and the actual args themselves
-     */
-    size = (int) strlen(cmd) + 1;
-
-    buf = (char*) mprAlloc(ctx, (MPR_MAX_ARGC * sizeof(char*)) + size);
-    if (buf == 0) {
-        return MPR_ERR_NO_MEMORY;
-    }
-
-    args = &buf[MPR_MAX_ARGC * sizeof(char*)];
-    strcpy(args, cmd);
-    argv = (char**) buf;
-
-    argc = 0;
-    if (program) {
-        argv[argc++] = (char*) mprStrdup(ctx, program);
-    }
-
-    for (cp = args; cp && *cp != '\0'; argc++) {
-        if (argc >= MPR_MAX_ARGC) {
-            mprAssert(argc < MPR_MAX_ARGC);
-            mprFree(buf);
-            *argvp = 0;
-            if (argcp) {
-                *argcp = 0;
-            }
-            return MPR_ERR_TOO_MANY;
-        }
-        while (isspace((int) *cp)) {
-            cp++;
-        }
-        if (*cp == '\0')  {
-            break;
-        }
-        if (*cp == '"') {
-            cp++;
-            argv[argc] = cp;
-            while ((*cp != '\0') && (*cp != '"')) {
-                cp++;
-            }
-        } else {
-            argv[argc] = cp;
-            while (*cp != '\0' && !isspace((int) *cp)) {
-                cp++;
-            }
-        }
-        if (*cp != '\0') {
-            *cp++ = '\0';
-        }
-    }
-    argv[argc] = 0;
-
-    if (argcp) {
-        *argcp = argc;
-    }
-    *argvp = argv;
-
-    return argc;
-}
-
-
-char *mprStrnstr(cchar *str, cchar *pattern, int len)
-{
-    cchar   *start, *p;
-    int     i;
-
-    if (str == 0 || pattern == 0 || len == 0) {
-        return 0;
-    }
-
-    while (*str && len-- > 0) {
-        if (*str++ == *pattern) {
-            start = str - 1;
-            for (p = pattern + 1, i = len; *p && *str && i >= 0; i--, p++) {
-                if (*p != *str++) {
-                    break;
-                }
-            }
-            if (*p == '\0') {
-                return (char*) start;
+    mprAssert(str);
+    if (str) {
+        for (cp = str; *cp; cp++) {
+            if (islower((int) *cp)) {
+                *cp = (char) toupper((int) *cp);
             }
         }
     }
-    return 0;
 }
 
 

@@ -13,7 +13,7 @@
 /***************************** Forward Declarations ***************************/
 
 static void dequeueEvent(MprEvent *event);
-static int  eventDestructor(MprEvent *event);
+static void manageEvent(MprEvent *event, int flags);
 static void queueEvent(MprEvent *prior, MprEvent *event);
 
 /************************************* Code ***********************************/
@@ -25,7 +25,7 @@ MprEvent *mprCreateEvent(MprDispatcher *dispatcher, cchar *name, int period, Mpr
 {
     MprEvent    *event;
 
-    if ((event = mprAllocObj(dispatcher, MprEvent, eventDestructor)) == 0) {
+    if ((event = mprAllocObj(dispatcher, MprEvent, manageEvent)) == 0) {
         return 0;
     }
     mprInitEvent(dispatcher, event, name, period, proc, data, flags);
@@ -34,12 +34,16 @@ MprEvent *mprCreateEvent(MprDispatcher *dispatcher, cchar *name, int period, Mpr
 }
 
 
-static int eventDestructor(MprEvent *event)
+static void manageEvent(MprEvent *event, int flags)
 {
-    if (event->next) {
-        mprRemoveEvent(event);
+    if (flags & MPR_MANAGE_MARK) {
+        ;
+
+    } else if (flags & MPR_MANAGE_FREE) {
+        if (event->next) {
+            mprRemoveEvent(event);
+        }
     }
-    return 0;
 }
 
 

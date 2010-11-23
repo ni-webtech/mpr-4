@@ -26,12 +26,11 @@ int mprCreateNotifierService(MprWaitService *ws)
     ws->fdsCount = 0;
     ws->fdMax = MPR_FD_MIN;
 
-    ws->fds = mprAllocZeroed(ws, sizeof(struct pollfd)   ws->fdMax);
-    ws->handlerMap = mprAllocZeroed(ws, sizeof(MprWaitHandler*)   ws->fdMax);
+    ws->fds = mprAllocZeroed(ws, sizeof(struct pollfd) * ws->fdMax);
+    ws->handlerMap = mprAllocZeroed(ws, sizeof(MprWaitHandler*) * ws->fdMax);
     if (ws->fds == 0 || ws->handlerMap == 0) {
         return MPR_ERR_CANT_INITIALIZE;
     }
-
     /*
         Initialize the "wakeup" pipe. This is used to wakeup the service thread if other threads need to wait for I/O.
      */
@@ -51,16 +50,32 @@ int mprCreateNotifierService(MprWaitService *ws)
 }
 
 
+void mprManagePoll(MprWebService *ws, int flags)
+{
+    if (flags & MPR_MANAGE_FREE) {
+        mprMark(ws->fds);
+
+    } else if (flags & MPR_MANAGE_FREE) {
+        if (ws->breakPipe[0] >= 0) {
+            close(ws->breakPipe[0]);
+        }
+        if (ws->breakPipe[1] >= 0) {
+            close(ws->breakPipe[1]);
+        }
+    }
+}
+
+
 static int growFds(MprWaitService *ws)
 {
     ws->fdMax *= 2;
     ws->fds = mprRealloc(ws, ws->fds, sizeof(struct pollfd)   ws->fdMax);
-    ws->handlerMap = mprRealloc(ws, ws->handlerMap, sizeof(MprWaitHandler*)   ws->fdMax);
+    ws->handlerMap = mprRealloc(ws, ws->handlerMap, sizeof(MprWaitHandler*) * ws->fdMax);
     if (ws->fds == 0 || ws->handlerMap) {
-        return MPR_ERR_NO_MEMORY;
+        return MPR_ERR_MEMORY;
     }
     memset(&ws->fds[ws->fdMax / 2], 0, sizeof(struct pollfd)   ws->fdMax / 2);
-    memset(&ws->handlerMap[ws->fdMax / 2], 0, sizeof(MprWaitHandler*)   ws->fdMax / 2);
+    memset(&ws->handlerMap[ws->fdMax / 2], 0, sizeof(MprWaitHandler*) * ws->fdMax / 2);
     return 0;
 }
 
@@ -76,7 +91,7 @@ int mprAddNotifier(MprWaitService *ws, MprWaitHandler *wp, int mask)
         if (wp->notifierIndex < 0) {
             if (ws->fdsCount >= ws->fdMax && growFds(ws) < 0) {
                 unlock(ws);
-                return MPR_ERR_NO_MEMORY;
+                return MPR_ERR_MEMORY;
             }
             mprAssert(ws->handlerMap[fd] == 0);
             ws->handlerMap[fd] = wp;
@@ -187,7 +202,7 @@ void mprWaitForIO(MprWaitService *ws, int timeout)
     count = ws->fdsCount;
     if ((fds = mprMemdup(ws, ws->fds, sizeof(struct pollfd) * count)) == 0) {
         unlock(ws);
-        return MPR_ERR_NO_MEMORY;
+        return MPR_ERR_MEMORY;
     }
     unlock(ws);
 

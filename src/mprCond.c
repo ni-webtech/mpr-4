@@ -8,7 +8,7 @@
 
 /***************************** Forward Declarations ***************************/
 
-static int condDestructor(MprCond *cp);
+static void manageCond(MprCond *cp, int flags);
 
 /************************************ Code ************************************/
 /*
@@ -19,7 +19,7 @@ MprCond *mprCreateCond(MprCtx ctx)
 {
     MprCond     *cp;
 
-    cp = mprAllocObj(ctx, MprCond, condDestructor);
+    cp = mprAllocObj(ctx, MprCond, manageCond);
     if (cp == 0) {
         return 0;
     }
@@ -37,25 +37,24 @@ MprCond *mprCreateCond(MprCtx ctx)
 }
 
 
-/*
-    Condition variable destructor
- */
-static int condDestructor(MprCond *cp)
+static void manageCond(MprCond *cp, int flags)
 {
     mprAssert(cp);
     
-    mprAssert(cp->mutex);
-    mprLock(cp->mutex);
+    if (flags & MPR_MANAGE_MARK) {
+        mprMark(cp->mutex);
 
+    } else if (flags & MPR_MANAGE_FREE) {
+        mprAssert(cp->mutex);
+        mprLock(cp->mutex);
 #if BLD_WIN_LIKE
-    CloseHandle(cp->cv);
+        CloseHandle(cp->cv);
 #elif VXWORKS
-    semDelete(cp->cv);
+        semDelete(cp->cv);
 #else
-    pthread_cond_destroy(&cp->cv);
+        pthread_cond_destroy(&cp->cv);
 #endif
-    /* mprFree will call the mutex lock destructor */
-    return 0;
+    }
 }
 
 
@@ -101,7 +100,7 @@ int mprWaitForCond(MprCond *cp, int timeout)
             } else if (rc == WAIT_TIMEOUT) {
                 rc = MPR_ERR_TIMEOUT;
             } else {
-                rc = MPR_ERR_GENERAL;
+                rc = MPR_ERR;
             }
 #elif VXWORKS
             mprUnlock(cp->mutex);
@@ -111,7 +110,7 @@ int mprWaitForCond(MprCond *cp, int timeout)
                 if (errno == S_objLib_OBJ_UNAVAILABLE) {
                     rc = MPR_ERR_TIMEOUT;
                 } else {
-                    rc = MPR_ERR_GENERAL;
+                    rc = MPR_ERR;
                 }
             }
             
@@ -125,7 +124,7 @@ int mprWaitForCond(MprCond *cp, int timeout)
                 rc = MPR_ERR_TIMEOUT;
             } else if (rc != 0) {
                 mprAssert(rc == 0);
-                rc = MPR_ERR_GENERAL;
+                rc = MPR_ERR;
             }
 #endif
         } while (!cp->triggered && rc == 0 && (now = mprGetTime(cp)) < expire);
@@ -218,7 +217,7 @@ int mprWaitForMultiCond(MprCond *cp, int timeout)
     } else if (rc == WAIT_TIMEOUT) {
         rc = MPR_ERR_TIMEOUT;
     } else {
-        rc = MPR_ERR_GENERAL;
+        rc = MPR_ERR;
     }
 #elif VXWORKS
     rc = semTake(cp->cv, (int) (expire - now));
@@ -226,7 +225,7 @@ int mprWaitForMultiCond(MprCond *cp, int timeout)
         if (errno == S_objLib_OBJ_UNAVAILABLE) {
             rc = MPR_ERR_TIMEOUT;
         } else {
-            rc = MPR_ERR_GENERAL;
+            rc = MPR_ERR;
         }
     }
 #elif BLD_UNIX_LIKE
@@ -236,7 +235,7 @@ int mprWaitForMultiCond(MprCond *cp, int timeout)
         rc = MPR_ERR_TIMEOUT;
     } else if (rc != 0) {
         mprAssert(rc == 0);
-        rc = MPR_ERR_GENERAL;
+        rc = MPR_ERR;
     }
     mprUnlock(cp->mutex);
 #endif

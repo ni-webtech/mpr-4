@@ -15,7 +15,6 @@
 /********************************** Forwards **********************************/
 
 static int growEvents(MprWaitService *ws);
-static int keventNotifierDestructor(MprWaitService *ws);
 static void serviceIO(MprWaitService *ws, int count);
 
 /************************************ Code ************************************/
@@ -46,20 +45,29 @@ int mprCreateNotifierService(MprWaitService *ws)
     fcntl(ws->breakPipe[1], F_SETFL, fcntl(ws->breakPipe[1], F_GETFL) | O_NONBLOCK);
     EV_SET(&ws->interest[ws->interestCount], ws->breakPipe[MPR_READ_PIPE], EVFILT_READ, EV_ADD, 0, 0, 0);
     ws->interestCount++;
-
-    if (mprAllocObj(ws, char*, keventNotifierDestructor) == 0) {
-        return MPR_ERR_NO_MEMORY;
-    }
     return 0;
 }
 
 
-static int keventNotifierDestructor(MprWaitService *ws)
+void mprManageKqueue(MprWaitService *ws, int flags)
 {
-    if (ws->kq) {
-        close(ws->kq);
+    if (flags & MPR_MANAGE_MARK) {
+        mprMark(ws->events);
+        mprMark(ws->interest);
+        mprMark(ws->stableInterest);
+
+    } else if (flags & MPR_MANAGE_FREE) {
+        if (ws->kq) {
+            close(ws->kq);
+            ws->kq = 0;
+        }
+        if (ws->breakPipe[0] >= 0) {
+            close(ws->breakPipe[0]);
+        }
+        if (ws->breakPipe[1] >= 0) {
+            close(ws->breakPipe[1]);
+        }
     }
-    return 0;
 }
 
 
@@ -70,7 +78,7 @@ static int growEvents(MprWaitService *ws)
     ws->interest = mprRealloc(ws, ws->interest, sizeof(struct kevent) * ws->interestMax);
     ws->events = mprRealloc(ws, ws->events, sizeof(struct kevent) * ws->eventsMax);
     if (ws->interest == 0 || ws->events == 0) {
-        return MPR_ERR_NO_MEMORY;
+        return MPR_ERR_MEMORY;
     }
     memset(&ws->events[ws->eventsMax / 2], 0, sizeof(struct kevent) * ws->eventsMax / 2);
     return 0;
@@ -113,7 +121,7 @@ int mprAddNotifier(MprWaitService *ws, MprWaitHandler *wp, int mask)
             oldlen = ws->handlerMax;
             ws->handlerMax = fd + 32;
             if ((ws->handlerMap = mprRealloc(ws, ws->handlerMap, sizeof(MprWaitHandler*) * ws->handlerMax)) == 0) {
-                return MPR_ERR_NO_MEMORY;
+                return MPR_ERR_MEMORY;
             }
             memset(&ws->handlerMap[oldlen], 0, sizeof(MprWaitHandler*) * (ws->handlerMax - oldlen));
         }

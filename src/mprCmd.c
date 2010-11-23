@@ -10,9 +10,11 @@
 
 /******************************* Forward Declarations *************************/
 
+static void closeFiles(MprCmd *cmd);
 static void cmdCallback(MprCmd *cmd, int channel, void *data);
-static int cmdDestructor(MprCmd *cmd);
 static int makeChannel(MprCmd *cmd, int index);
+static void manageCmdService(MprCmdService *cmd, int flags);
+static void manageCmd(MprCmd *cmd, int flags);
 static void resetCmd(MprCmd *cmd);
 static int sanitizeArgs(MprCmd *cmd, int argc, char **argv, char **env);
 static int startProcess(MprCmd *cmd);
@@ -25,24 +27,50 @@ static char **fixenv(MprCmd *cmd);
 #if VXWORKS
 typedef int (*MprCmdTaskFn)(int argc, char **argv, char **envp);
 static void cmdTaskEntry(char *program, MprCmdTaskFn entry, int cmdArg);
+static void vxCmdManager(MprCmd *cmd);
 #endif
 
 /************************************* Code ***********************************/
+
+MprCmdService *mprCreateCmdService(Mpr *mpr)
+{
+    MprCmdService   *cs;
+
+    if ((cs = (MprCmdService*) mprAllocObj(mpr, MprCmd, manageCmdService)) == 0) {
+        return 0;
+    }
+    cs->cmds = mprCreateList(cs);
+    cs->mutex = mprCreateLock(cs);
+    return cs;
+}
+
+
+static void manageCmdService(MprCmdService *cs, int flags)
+{
+    if (flags & MPR_MANAGE_MARK) {
+        mprMark(cs->cmds);
+        mprMark(cs->mutex);
+    }
+}
+
+
 /*
     Create a new command object
  */
 MprCmd *mprCreateCmd(MprCtx ctx, MprDispatcher *dispatcher)
 {
+    MprCmdService   *cs;
     MprCmd          *cmd;
     MprCmdFile      *files;
     int             i;
     
-    cmd = mprAllocObj(ctx, MprCmd, cmdDestructor);
+    cmd = mprAllocObj(ctx, MprCmd, manageCmd);
     if (cmd == 0) {
         return 0;
     }
     cmd->timeoutPeriod = MPR_TIMEOUT_CMD;
     cmd->timestamp = mprGetTime(cmd);
+    cmd->forkCallback = (MprForkCallback) closeFiles;
     cmd->dispatcher = dispatcher ? dispatcher : mprGetDispatcher(ctx);
     mprAssert(cmd->dispatcher);
 
@@ -56,12 +84,44 @@ MprCmd *mprCreateCmd(MprCtx ctx, MprDispatcher *dispatcher)
         files[i].fd = -1;
     }
     cmd->mutex = mprCreateLock(cmd);
+    cs = mprGetMpr(ctx)->cmdService;
+    mprLock(cs->mutex);
+    mprAddItem(cs->cmds, cmd);
+    mprUnlock(cs->mutex);
     return cmd;
 }
 
 
+static void manageCmd(MprCmd *cmd, int flags)
+{
+    MprCmdService   *cs;
+
+    if (flags & MPR_MANAGE_MARK) {
+        mprMark(cmd->dir);
+        mprMark(cmd->env);
+        mprMark(cmd->program);
+        mprMark(cmd->stdoutBuf);
+        mprMark(cmd->stderrBuf);
+        mprMark(cmd->mutex);
+#if BLD_WIN_LIKE
+        mprMark(cmd->command);
+        mprMark(cmd->arg0);
+#endif
+    } else if (flags & MPR_MANAGE_FREE) {
+        resetCmd(cmd);
 #if VXWORKS
-static void vxCmdDestructor(MprCmd *cmd)
+        vxCmdManager(cmd);
+#endif
+        cs = mprGetMpr(ctx)->cmdService;
+        mprLock(cs->mutex);
+        mprAddItem(cs->cmds, cmd);
+        mprUnlock(cs->mutex);
+    }
+}
+
+
+#if VXWORKS
+static void vxCmdManager(MprCmd *cmd)
 {
     MprCmdFile      *files;
     int             i;
@@ -88,16 +148,6 @@ static void vxCmdDestructor(MprCmd *cmd)
     }
 }
 #endif
-
-
-static int cmdDestructor(MprCmd *cmd)
-{
-    resetCmd(cmd);
-#if VXWORKS
-    vxCmdDestructor(cmd);
-#endif
-    return 0;
-}
 
 
 static void resetCmd(MprCmd *cmd)
@@ -240,11 +290,11 @@ int mprRunCmdV(MprCmd *cmd, int argc, char **argv, char **out, char **err, int f
     if (rc < 0) {
         if (err) {
             if (rc == MPR_ERR_CANT_ACCESS) {
-                *err = mprAsprintf(cmd, -1, "Can't access command %s", cmd->program);
+                *err = mprAsprintf(cmd, "Can't access command %s", cmd->program);
             } else if (MPR_ERR_CANT_OPEN) {
-                *err = mprAsprintf(cmd, -1, "Can't open standard I/O for command %s", cmd->program);
+                *err = mprAsprintf(cmd, "Can't open standard I/O for command %s", cmd->program);
             } else if (rc == MPR_ERR_CANT_CREATE) {
-                *err = mprAsprintf(cmd, -1, "Can't create process for %s", cmd->program);
+                *err = mprAsprintf(cmd, "Can't create process for %s", cmd->program);
             }
         }
         unlock(cmd);
@@ -298,11 +348,12 @@ int mprStartCmd(MprCmd *cmd, int argc, char **argv, char **envp, int flags)
     }
     resetCmd(cmd);
     program = argv[0];
-    cmd->program = program;
+    cmd->program = sclone(cmd, program);
     cmd->flags = flags;
 
+//MOB MARK all sanitized args
     if (sanitizeArgs(cmd, argc, argv, envp) < 0) {
-        return MPR_ERR_NO_MEMORY;
+        return MPR_ERR_MEMORY;
     }
     if (access(program, X_OK) < 0) {
         program = mprJoinPathExt(cmd, program, BLD_EXE);
@@ -823,7 +874,7 @@ void mprSetCmdDir(MprCmd *cmd, cchar *dir)
     mprAssert(dir && *dir);
 
     mprFree(cmd->dir);
-    cmd->dir = mprStrdup(cmd, dir);
+    cmd->dir = sclone(cmd, dir);
 }
 
 
@@ -851,7 +902,7 @@ static int sanitizeArgs(MprCmd *cmd, int argc, char **argv, char **env)
             mprLog(cmd, 6, "cmd: env[%d]: %s", i, env[i]);
         }
         if ((cmd->env = mprAlloc(cmd, (i + 3) * sizeof(char*))) == NULL) {
-            return MPR_ERR_NO_MEMORY;
+            return MPR_ERR_MEMORY;
         }
         hasPath = hasLibPath = 0;
         for (index = i = 0; env && env[i]; i++) {
@@ -868,10 +919,10 @@ static int sanitizeArgs(MprCmd *cmd, int argc, char **argv, char **env)
             Add PATH and LD_LIBRARY_PATH 
          */
         if (!hasPath && (cp = getenv("PATH")) != 0) {
-            cmd->env[index++] = mprAsprintf(cmd, MPR_MAX_STRING, "PATH=%s", cp);
+            cmd->env[index++] = mprAsprintf(cmd, "PATH=%s", cp);
         }
         if (!hasLibPath && (cp = getenv(LD_LIBRARY_PATH)) != 0) {
-            cmd->env[index++] = mprAsprintf(cmd, MPR_MAX_STRING, "%s=%s", LD_LIBRARY_PATH, cp);
+            cmd->env[index++] = mprAsprintf(cmd, "%s=%s", LD_LIBRARY_PATH, cp);
         }
         cmd->env[index++] = '\0';
         for (i = 0; i < argc; i++) {
@@ -884,7 +935,7 @@ static int sanitizeArgs(MprCmd *cmd, int argc, char **argv, char **env)
 #endif
 
 #if BLD_WIN_LIKE
-    char    *program, *SYSTEMROOT, **ep, **ap, *destp, *cp, *progBuf, *localArgv[2], *saveArg0, *PATH, *endp;
+    char    *program, *SYSTEMROOT, **ep, **ap, *destp, *cp, *localArgv[2], *saveArg0, *PATH, *endp;
     int     i, len, hasPath, hasSystemRoot;
 
     mprAssert(argc > 0 && argv[0] != NULL);
@@ -892,10 +943,8 @@ static int sanitizeArgs(MprCmd *cmd, int argc, char **argv, char **env)
     cmd->argv = argv;
     cmd->argc = argc;
 
-    program = argv[0];
-    progBuf = mprAlloc(cmd, (int) strlen(program) * 2 + 1);
-    strcpy(progBuf, program);
-    program = progBuf;
+    program = cmd->arg0 = mprAlloc(cmd, strlen(argv[0]) * 2 + 1);
+    strcpy(program, argv[0]);
 
     for (cp = program; *cp; cp++) {
         if (*cp == '/') {
@@ -909,7 +958,6 @@ static int sanitizeArgs(MprCmd *cmd, int argc, char **argv, char **env)
             *cp = '\0';
         }
     }
-
     if (argv == 0) {
         argv = localArgv;
         argv[1] = 0;
@@ -923,7 +971,7 @@ static int sanitizeArgs(MprCmd *cmd, int argc, char **argv, char **env)
     argv[0] = program;
     argc = 0;
     for (len = 0, ap = argv; *ap; ap++) {
-        len += (int) strlen(*ap) + 1 + 2;         /* Space and possible quotes */
+        len += strlen(*ap) + 1 + 2;         /* Space and possible quotes */
         argc++;
     }
     cmd->command = (char*) mprAlloc(cmd, len + 1);
@@ -961,7 +1009,7 @@ static int sanitizeArgs(MprCmd *cmd, int argc, char **argv, char **env)
     cmd->env = 0;
     if (env) {
         for (hasSystemRoot =  hasPath = len = 0, ep = env; ep && *ep; ep++) {
-            len += (int) strlen(*ep) + 1;
+            len += strlen(*ep) + 1;
             if (strncmp(*ep, "PATH=", 5) == 0) {
                 hasPath++;
             } else if (strncmp(*ep, "SYSTEMROOT=", 11) == 0) {
@@ -969,10 +1017,10 @@ static int sanitizeArgs(MprCmd *cmd, int argc, char **argv, char **env)
             }
         }
         if (!hasSystemRoot && (SYSTEMROOT = getenv("SYSTEMROOT")) != 0) {
-            len += 11 + (int) strlen(SYSTEMROOT) + 1;
+            len += 11 + strlen(SYSTEMROOT) + 1;
         }
         if (!hasPath && (PATH = getenv("PATH")) != 0) {
-            len += 5 + (int) strlen(PATH) + 1;
+            len += 5 + strlen(PATH) + 1;
         }
         len += 2;       /* Windows requires 2 nulls for the block end */
 
@@ -1238,9 +1286,7 @@ static int startProcess(MprCmd *cmd)
                 close(2);
             }
         }
-        for (i = 3; i < MPR_MAX_FILE; i++) {
-            close(i);
-        }
+        cmd->forkCallback(cmd->forkData);
         if (cmd->env) {
             rc = execve(cmd->program, cmd->argv, fixenv(cmd));
         } else {
@@ -1310,7 +1356,7 @@ int startProcess(MprCmd *cmd)
     if (cmd->env) {
         for (i = 0; cmd->env[i]; i++) {
             if (strncmp(cmd->env[i], "entryPoint=", 11) == 0) {
-                entryPoint = mprStrdup(cmd, cmd->env[i]);
+                entryPoint = sclone(cmd, cmd->env[i]);
             }
         }
     }
@@ -1318,9 +1364,9 @@ int startProcess(MprCmd *cmd)
     if (entryPoint == 0) {
         program = mprTrimPathExtension(cmd, program);
 #if BLD_HOST_CPU_ARCH == MPR_CPU_IX86 || BLD_HOST_CPU_ARCH == MPR_CPU_IX64
-        entryPoint = mprStrcat(cmd, -1, "_", program, "Main", NULL);
+        entryPoint = sjoin(cmd, NULL, "_", program, "Main", NULL);
 #else
-        entryPoint = mprStrcat(cmd, -1, program, "Main", NULL);
+        entryPoint = sjoin(cmd, NULL, program, "Main", NULL);
 #endif
     }
 
@@ -1470,6 +1516,15 @@ static int makeChannel(MprCmd *cmd, int index)
 #endif /* VXWORKS */
 
 
+static void closeFiles(MprCmd *cmd)
+{
+    int     i;
+    for (i = 3; i < MPR_MAX_FILE; i++) {
+        close(i);
+    }
+}
+
+
 #if BLD_UNIX_LIKE
 /*
     CYGWIN requires a PATH or else execve hangs in cygwin 1.7
@@ -1492,7 +1547,7 @@ static char **fixenv(MprCmd *cmd)
             return NULL;
         }
         i = 0;
-        env[i++] = mprStrcat(cmd, -1, "PATH=", getenv("PATH"), NULL);
+        env[i++] = sjoin(cmd, NULL, "PATH=", getenv("PATH"), NULL);
         for (envc = 0; cmd->env[envc]; envc++) {
             env[i++] = cmd->env[envc];
         }

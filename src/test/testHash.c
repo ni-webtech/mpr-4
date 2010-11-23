@@ -107,8 +107,8 @@ static void testHashScale(MprTestGroup *gp)
         deleting the table.
      */
     for (i = 0; i < HASH_COUNT; i++) {
-        mprSprintf(gp, name, sizeof(name), "name.%d", i);
-        mprSprintf(gp, address, sizeof(address), "%d Park Ave", i);
+        mprSprintf(name, sizeof(name), "name.%d", i);
+        mprSprintf(address, sizeof(address), "%d Park Ave", i);
         sp = mprAddHash(table, name, address);
         assert(sp != 0);
     }
@@ -118,10 +118,10 @@ static void testHashScale(MprTestGroup *gp)
         Check data entered into the hash
      */
     for (i = 0; i < HASH_COUNT; i++) {
-        mprSprintf(gp, name, sizeof(name), "name.%d", i);
+        mprSprintf(name, sizeof(name), "name.%d", i);
         str = mprLookupHash(table, name);
         assert(str != 0);
-        mprSprintf(gp, address, sizeof(address), "%d Park Ave", i);
+        mprSprintf(address, sizeof(address), "%d Park Ave", i);
         assert(strcmp(str, address) == 0);
     }
 
@@ -145,9 +145,9 @@ static void testIterateHash(MprTestGroup *gp)
         Fill the table
      */
     for (i = 0; i < HASH_COUNT; i++) {
-        mprSprintf(gp, name, sizeof(name), "Bit longer name.%d", i);
-        mprSprintf(gp, address, sizeof(address), "%d Park Ave", i);
-        sp = mprAddHash(table, name, mprStrdup(table, address));
+        mprSprintf(name, sizeof(name), "Bit longer name.%d", i);
+        mprSprintf(address, sizeof(address), "%d Park Ave", i);
+        sp = mprAddHash(table, name, sclone(table, address));
         assert(sp != 0);
     }
     assert(mprGetHashCount(table) == HASH_COUNT);

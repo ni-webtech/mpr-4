@@ -15,7 +15,7 @@
 #if BLD_FEATURE_ROMFS 
 /****************************** Forward Declarations **************************/
 
-static int closeFile(MprFile *file);
+static void manageRomFile(MprFile *file, int flags);
 static int getPathInfo(MprRomFileSystem *rfs, cchar *path, MprPath *info);
 static MprRomInode *lookup(MprRomFileSystem *rfs, cchar *path);
 
@@ -29,10 +29,11 @@ static MprFile *openFile(MprCtx ctx, MprFileSystem *fileSystem, cchar *path, int
     mprAssert(path && *path);
 
     rfs = (MprRomFileSystem*) fileSystem;
-    file = mprAllocObj(ctx, MprFile, closeFile);
+    file = mprAllocObj(ctx, MprFile, manageRomFile);
     file->fileSystem = fileSystem;
     file->mode = omode;
     file->fd = -1;
+    file->path = sclone(file, path);
 
     if ((file->inode = lookup(rfs, path)) == 0) {
         return 0;
@@ -41,9 +42,12 @@ static MprFile *openFile(MprCtx ctx, MprFileSystem *fileSystem, cchar *path, int
 }
 
 
-static int closeFile(MprFile *file)
+static void manageRomFile(MprFile *file, int flags)
 {
-    return 0;
+    if (flags & MPR_MANAGE_MARK) {
+        mprMark(file->path);
+        mprMark(file->buf);
+    }
 }
 
 
@@ -139,7 +143,7 @@ static int getPathInfo(MprRomFileSystem *rfs, cchar *path, MprPath *info)
     info->checked = 1;
 
     if ((ri = (MprRomInode*) lookup(rfs, path)) == 0) {
-        return MPR_ERR_NOT_FOUND;
+        return MPR_ERR_CANT_FIND;
     }
     memset(info, 0, sizeof(MprPath));
 
@@ -202,11 +206,11 @@ int mprSetRomFileSystem(MprCtx ctx, MprRomInode *inodeList)
 
     rfs = (MprRomFileSystem*) mprGetMpr(ctx)->fileSystem;
     rfs->romInodes = inodeList;
-    rfs->fileIndex = mprCreateHash(rfs, MPR_FILES_HASH_SIZE);
+    rfs->fileIndex = mprCreateHash(rfs, MPR_FILES_HASH_SIZE, MPR_HASH_PERM_KEYS);
 
     for (ri = inodeList; ri->path; ri++) {
         if (mprAddHash(rfs->fileIndex, ri->path, ri) < 0) {
-            return MPR_ERR_NO_MEMORY;
+            return MPR_ERR_MEMORY;
         }
     }
     return 0;

@@ -198,7 +198,7 @@ int mprCreateTimeService(MprCtx ctx)
     TimeToken           *tt;
 
     mpr = mprGetMpr(ctx);
-    mpr->timeTokens = mprCreateHash(mpr, -1, 0);
+    mpr->timeTokens = mprCreateHash(mpr, -1, MPR_HASH_PERM_KEYS);
     ctx = mpr->timeTokens;
 
     for (tt = days; tt->name; tt++) {
@@ -305,6 +305,7 @@ MprTime mprGetElapsedTime(MprCtx ctx, MprTime mark)
 
 /*
     Get the timezone offset including DST
+    Return the timezone offset (including DST) in msec. local == (UTC + offset)
  */
 int mprGetTimeZoneOffset(MprCtx ctx, MprTime when)
 {
@@ -421,7 +422,8 @@ static int getTimeZoneOffsetFromTm(MprCtx ctx, struct tm *tp)
     if ((tze = getenv("TIMEZONE")) != 0) {
         if ((p = strchr(tze, ':')) != 0) {
             if ((p = strchr(tze, ':')) != 0) {
-                offset = -mprAtoi(++p, 10) * MS_PER_MIN;
+                int64 value;
+                offset = - stoi(++p, 10, NULL) * MS_PER_MIN;
             }
         }
         if (tp->tm_isdst) {
@@ -702,7 +704,7 @@ char *mprFormatTime(MprCtx ctx, cchar *fmt, struct tm *tp)
             case '+':
                 if (tp->tm_mday < 10) {
                     /* Some platforms don't support 'e' so avoid it here. Put a double space before %d */
-                    mprSprintf(ctx, dp, size, "%s  %d %s", "a %b", tp->tm_mday, "%H:%M:%S %Z %Y");
+                    mprSprintf(dp, size, "%s  %d %s", "a %b", tp->tm_mday, "%H:%M:%S %Z %Y");
                 } else {
                     strcpy(dp, "a %b %d %H:%M:%S %Z %Y");
                 }
@@ -712,7 +714,7 @@ char *mprFormatTime(MprCtx ctx, cchar *fmt, struct tm *tp)
 
             case 'C':
                 dp--;
-                mprItoa(dp, size, (int64) (1900 + tp->tm_year) / 100, 10);
+                itos(dp, size, (int64) (1900 + tp->tm_year) / 100, 10);
                 dp += strlen(dp);
                 cp++;
                 break;
@@ -728,7 +730,7 @@ char *mprFormatTime(MprCtx ctx, cchar *fmt, struct tm *tp)
                 if (tp->tm_mday < 10) {
                     *dp++ = ' ';
                 }
-                mprItoa(dp, size - 1, (int64) tp->tm_mday, 10);
+                itos(dp, size - 1, (int64) tp->tm_mday, 10);
                 dp += strlen(dp);
                 cp++;
                 break;
@@ -754,7 +756,7 @@ char *mprFormatTime(MprCtx ctx, cchar *fmt, struct tm *tp)
                 if (tp->tm_hour < 10) {
                     *dp++ = ' ';
                 }
-                mprItoa(dp, size - 1, (int64) tp->tm_hour, 10);
+                itos(dp, size - 1, (int64) tp->tm_hour, 10);
                 dp += strlen(dp);
                 cp++;
                 break;
@@ -768,7 +770,7 @@ char *mprFormatTime(MprCtx ctx, cchar *fmt, struct tm *tp)
                 if (value > 12) {
                     value -= 12;
                 }
-                mprItoa(dp, size - 1, (int64) value, 10);
+                itos(dp, size - 1, (int64) value, 10);
                 dp += strlen(dp);
                 cp++;
                 break;
@@ -804,7 +806,7 @@ char *mprFormatTime(MprCtx ctx, cchar *fmt, struct tm *tp)
 
             case 's':
                 dp--;
-                mprItoa(dp, size, (int64) mprMakeTime(ctx, tp) / MS_PER_SEC, 10);
+                itos(dp, size, (int64) mprMakeTime(ctx, tp) / MS_PER_SEC, 10);
                 dp += strlen(dp);
                 cp++;
                 break;
@@ -826,7 +828,7 @@ char *mprFormatTime(MprCtx ctx, cchar *fmt, struct tm *tp)
                 if (value == 0) {
                     value = 7;
                 }
-                mprItoa(dp, size, (int64) value, 10);
+                itos(dp, size, (int64) value, 10);
                 dp += strlen(dp);
                 cp++;
                 break;
@@ -837,7 +839,7 @@ char *mprFormatTime(MprCtx ctx, cchar *fmt, struct tm *tp)
                 if (tp->tm_mday < 10) {
                     *dp++ = ' ';
                 }
-                mprItoa(dp, size - 1, (int64) tp->tm_mday, 10);
+                itos(dp, size - 1, (int64) tp->tm_mday, 10);
                 dp += strlen(dp);
                 cp++;
                 strcpy(dp, "-%b-%Y");
@@ -851,7 +853,7 @@ char *mprFormatTime(MprCtx ctx, cchar *fmt, struct tm *tp)
                 if (value < 0) {
                     value = -value;
                 }
-                mprSprintf(ctx, dp, size, "%s%02d%02d", sign, value / 60, value % 60);
+                mprSprintf(dp, size, "%s%02d%02d", sign, value / 60, value % 60);
                 dp += strlen(dp);
                 cp++;
                 break;
@@ -876,7 +878,7 @@ char *mprFormatTime(MprCtx ctx, cchar *fmt, struct tm *tp)
     }
     if (strftime(buf, sizeof(buf) - 1, fmt, tp) > 0) {
         buf[sizeof(buf) - 1] = '\0';
-        return mprStrdup(ctx, buf);
+        return sclone(ctx, buf);
     }
     return 0;
 }
@@ -917,10 +919,10 @@ static char *getTimeZoneName(MprCtx ctx, struct tm *tp)
     WCHAR                   *wzone;
     GetTimeZoneInformation(&tz);
     wzone = tp->tm_isdst ? tz.DaylightName : tz.StandardName;
-    return mprToAsc(ctx, wzone);
+    return mprToMulti(ctx, wzone);
 #else
     tzset();
-    return mprStrdup(ctx, tp->tm_zone);
+    return sclone(ctx, tp->tm_zone);
 #endif
 }
 
@@ -1340,8 +1342,8 @@ int mprParseTime(MprCtx ctx, MprTime *time, cchar *dateString, int zoneFlags, st
      */
     tm.tm_isdst = -1;
 
-    str = mprStrdup(ctx, dateString);
-    mprStrLower(str);
+    str = sclone(ctx, dateString);
+    slower(str);
 
     /*
         Handle ISO dates: "2009-05-21t16:06:05.000z
@@ -1355,14 +1357,14 @@ int mprParseTime(MprCtx ctx, MprTime *time, cchar *dateString, int zoneFlags, st
             }
         }
     }
-    token = mprStrTok(str, sep, &next);
+    token = stok(str, sep, &next);
 
     while (token && *token) {
         if (allDigits(token)) {
             /*
                 Parse either day of month or year. Priority to day of month. Format: <29> Jan <15> <2010>
              */ 
-            value = mprAtoi(token, 10);
+            value = stoi(token, 10, NULL);
             if (value > 3000) {
                 *time = value;
                 mprFree(str);
@@ -1481,7 +1483,7 @@ int mprParseTime(MprCtx ctx, MprTime *time, cchar *dateString, int zoneFlags, st
                 }
             }
         }
-        token = mprStrTok(NULL, sep, &next);
+        token = stok(NULL, sep, &next);
     }
     mprFree(str);
 
@@ -1657,7 +1659,7 @@ int gettimeofday(struct timeval *tv, struct timezone *tz)
             if ((tze = getenv("TIMEZONE")) != 0) {
                 if ((p = strchr(tze, ':')) != 0) {
                     if ((p = strchr(tze, ':')) != 0) {
-                        tz->tz_minuteswest = mprAtoi(++p, 10);
+                        tz->tz_minuteswest = stoi(++p, 10, NULL);
                     }
                 }
                 t = tickGet();

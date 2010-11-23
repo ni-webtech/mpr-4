@@ -64,7 +64,6 @@ typedef struct Format {
     uchar   *end;
     int     growBy;
     int     maxsize;
-
     int     precision;
     int     radix;
     int     width;
@@ -95,6 +94,17 @@ typedef struct Format {
         } \
     } else 
 
+/*
+    Just for Ejscript to be able to do %N and %S
+ */
+typedef struct MprEjsString {
+    void            *type;
+    void            *next;
+    void            *prev;
+    size_t          length;
+    MprChar         value[0];
+} MprEjsString;
+
 /***************************** Forward Declarations ***************************/
 
 static int  getState(char c, int state);
@@ -121,7 +131,7 @@ int mprPrintf(MprCtx ctx, cchar *fmt, ...)
     fs = mprLookupFileSystem(ctx, "/");
 
     va_start(ap, fmt);
-    buf = mprVasprintf(ctx, -1, fmt, ap);
+    buf = mprAsprintfv(ctx, fmt, ap);
     va_end(ap);
     if (buf != 0 && fs->stdOutput) {
         len = mprWriteString(fs->stdOutput, buf);
@@ -146,7 +156,7 @@ int mprPrintfError(MprCtx ctx, cchar *fmt, ...)
     mprAssert(fs);
 
     va_start(ap, fmt);
-    buf = mprVasprintf(ctx, -1, fmt, ap);
+    buf = mprAsprintfv(ctx, fmt, ap);
     va_end(ap);
     if (buf && fs->stdError) {
         len = mprWriteString(fs->stdError, buf);
@@ -167,11 +177,9 @@ int mprFprintf(MprFile *file, cchar *fmt, ...)
     if (file == 0) {
         return MPR_ERR_BAD_HANDLE;
     }
-
     va_start(ap, fmt);
-    buf = mprVasprintf(file, -1, fmt, ap);
+    buf = mprAsprintfv(file, fmt, ap);
     va_end(ap);
-
     if (buf) {
         len = mprWriteString(file, buf);
     } else {
@@ -182,6 +190,7 @@ int mprFprintf(MprFile *file, cchar *fmt, ...)
 }
 
 
+#if UNUSED && KEEP
 /*
     Printf with a static buffer. Used internally only. WILL NOT MALLOC.
  */
@@ -196,7 +205,7 @@ int mprStaticPrintf(MprCtx ctx, cchar *fmt, ...)
     va_start(ap, fmt);
     sprintfCore(ctx, buf, MPR_MAX_STRING, fmt, ap);
     va_end(ap);
-    return mprWrite(fs->stdOutput, buf, (int) strlen(buf));
+    return mprWrite(fs->stdOutput, buf, strlen(buf));
 }
 
 
@@ -214,11 +223,12 @@ int mprStaticPrintfError(MprCtx ctx, cchar *fmt, ...)
     va_start(ap, fmt);
     sprintfCore(ctx, buf, MPR_MAX_STRING, fmt, ap);
     va_end(ap);
-    return mprWrite(fs->stdError, buf, (int) strlen(buf));
+    return mprWrite(fs->stdError, buf, strlen(buf));
 }
+#endif
 
 
-char *mprSprintf(MprCtx ctx, char *buf, int bufsize, cchar *fmt, ...)
+char *mprSprintf(char *buf, int bufsize, cchar *fmt, ...)
 {
     va_list     ap;
     char        *result;
@@ -228,23 +238,23 @@ char *mprSprintf(MprCtx ctx, char *buf, int bufsize, cchar *fmt, ...)
     mprAssert(bufsize > 0);
 
     va_start(ap, fmt);
-    result = sprintfCore(ctx, buf, bufsize, fmt, ap);
+    result = sprintfCore(NULL, buf, bufsize, fmt, ap);
     va_end(ap);
     return result;
 }
 
 
-char *mprVsprintf(MprCtx ctx, char *buf, int bufsize, cchar *fmt, va_list arg)
+char *mprSprintfv(char *buf, int bufsize, cchar *fmt, va_list arg)
 {
     mprAssert(buf);
     mprAssert(fmt);
     mprAssert(bufsize > 0);
 
-    return sprintfCore(ctx, buf, bufsize, fmt, arg);
+    return sprintfCore(NULL, buf, bufsize, fmt, arg);
 }
 
 
-char *mprAsprintf(MprCtx ctx, int maxSize, cchar *fmt, ...)
+char *mprAsprintf(MprCtx ctx, cchar *fmt, ...)
 {
     va_list     ap;
     char        *buf;
@@ -252,16 +262,16 @@ char *mprAsprintf(MprCtx ctx, int maxSize, cchar *fmt, ...)
     mprAssert(fmt);
 
     va_start(ap, fmt);
-    buf = sprintfCore(ctx, NULL, maxSize, fmt, ap);
+    buf = sprintfCore(ctx, NULL, -1, fmt, ap);
     va_end(ap);
     return buf;
 }
 
 
-char *mprVasprintf(MprCtx ctx, int maxSize, cchar *fmt, va_list arg)
+char *mprAsprintfv(MprCtx ctx, cchar *fmt, va_list arg)
 {
     mprAssert(fmt);
-    return sprintfCore(ctx, NULL, maxSize, fmt, arg);
+    return sprintfCore(ctx, NULL, -1, fmt, arg);
 }
 
 
@@ -299,9 +309,9 @@ static int getState(char c, int state)
         /*  17   8     9     :     ;     <     =     >     ? */
                  5,    5,    0,    0,    0,    0,    0,    0,
         /*  20   @     A     B     C     D     E     F     G */
-                 0,    0,    0,    0,    0,    0,    0,    0,
+                 8,    0,    0,    0,    0,    0,    0,    0,
         /*  27   H     I     J     K     L     M     N     O */
-                 0,    0,    0,    0,    7,    0,    0,    0,
+                 0,    0,    0,    0,    7,    0,    8,    0,
         /*  30   P     Q     R     S     T     U     V     W */
                  0,    0,    0,    8,    0,    0,    0,    0,
         /*  37   X     Y     Z     [     \     ]     ^     _ */
@@ -311,7 +321,7 @@ static int getState(char c, int state)
         /*  47   h     i     j     k     l     m     n     o */
                  7,    8,    0,    0,    7,    0,    8,    8,
         /*  50   p     q     r     s     t     u     v     w */
-                 8,    0,    0,    8,    0,    8,    0,    0,
+                 8,    0,    0,    8,    0,    8,    0,    8,
         /*  57   x     y     z  */
                  8,    0,    0,
     };
@@ -332,12 +342,12 @@ static int getState(char c, int state)
 
 static char *sprintfCore(MprCtx ctx, char *buf, int maxsize, cchar *spec, va_list arg)
 {
-    Format      fmt;
-    MprUni      *us;
-    char        c;
-    int64       iValue;
-    uint64      uValue;
-    int         len, state;
+    Format        fmt;
+    MprEjsString  *es;
+    char          c;
+    int64         iValue;
+    uint64        uValue;
+    int           len, state;
 
     if (spec == 0) {
         spec = "";
@@ -468,33 +478,42 @@ static char *sprintfCore(MprCtx ctx, char *buf, int maxsize, cchar *spec, va_lis
 
             case 'N':
                 /* Name */
-                us = va_arg(arg, MprUni*);
+                es = va_arg(arg, MprEjsString*);
+                if (es) {
 #if BLD_CHAR_LEN == 1
-                outString(ctx, &fmt, us->value, us->length);
-                BPUT(ctx, &fmt, ':');
-                BPUT(ctx, &fmt, ':');
-                us = va_arg(arg, MprUni*);
-                outString(ctx, &fmt, us->value, us->length);
+                    outString(ctx, &fmt, es->value, es->length);
+                    BPUT(ctx, &fmt, ':');
+                    BPUT(ctx, &fmt, ':');
+                    es = va_arg(arg, MprEjsString*);
+                    outString(ctx, &fmt, es->value, es->length);
 #else
-                outWideString(ctx, &fmt, us->value, us->length);
-                BPUT(ctx, &fmt, ':');
-                us = va_arg(arg, MprUni*);
-                outWideString(ctx, &fmt, us->value, us->length);
+                    outWideString(ctx, &fmt, es->value, es->length);
+                    BPUT(ctx, &fmt, ':');
+                    es = va_arg(arg, MprEjsString*);
+                    outWideString(ctx, &fmt, es->value, es->length);
 #endif
+                } else {
+                    outString(ctx, &fmt, NULL, 0);
+                }
                 break;
 
+            case '@':
             case 'S':
-                /* MprUni */
-                us = va_arg(arg, MprUni*);
+                /* MprEjsString */
+                es = va_arg(arg, MprEjsString*);
+                if (es) {
 #if BLD_CHAR_LEN == 1
-                outString(ctx, &fmt, us->value, us->length);
+                    outString(ctx, &fmt, es->value, es->length);
 #else
-                outWideString(ctx, &fmt, us->value, us->length);
+                    outWideString(ctx, &fmt, es->value, es->length);
 #endif
+                } else {
+                    outString(ctx, &fmt, NULL, 0);
+                }
                 break;
 
             case 'w':
-                /* Wide string of MprChar characters. Null terminated. */
+                /* Wide string of MprChar characters (Same as %ls"). Null terminated. */
 #if BLD_CHAR_LEN > 1
                 outWideString(ctx, &fmt, va_arg(arg, MprChar*), -1);
                 break;
@@ -635,7 +654,7 @@ static void outString(MprCtx ctx, Format *fmt, cchar *str, int len)
             }
         }
     } else if (len < 0) {
-        len = (int) strlen(str);
+        len = strlen(str);
     }
     if (!(fmt->flags & SPRINTF_LEFT)) {
         for (i = len; i < fmt->width; i++) {
@@ -745,7 +764,7 @@ static void outNum(MprCtx ctx, Format *fmt, cchar *prefix, uint64 value)
     fill = fmt->width - len;
 
     if (prefix != 0) {
-        fill -= (int) strlen(prefix);
+        fill -= strlen(prefix);
     }
     leadingZeros = (fmt->precision > len) ? fmt->precision - len : 0;
     fill -= leadingZeros;
@@ -776,7 +795,6 @@ static void outNum(MprCtx ctx, Format *fmt, cchar *prefix, uint64 value)
 }
 
 
-
 static void outFloat(MprCtx ctx, Format *fmt, char specChar, double value)
 {
     char    result[MPR_MAX_STRING], *cp;
@@ -799,7 +817,7 @@ static void outFloat(MprCtx ctx, Format *fmt, char specChar, double value)
         // sprintf(result, "%*.*e", fmt->width, fmt->precision, value);
     }
 
-    len = (int) strlen(result);
+    len = strlen(result);
     fill = fmt->width - len;
     if (fmt->flags & SPRINTF_COMMA) {
         if (((len - 1) / 3) > 0) {
@@ -874,7 +892,7 @@ char *mprDtoa(MprCtx ctx, double value, int ndigits, int mode, int flags)
 {
     MprBuf  *buf;
     char    *intermediate, *ip, *result;
-    int     period, sign, len, exponentForm, fixedForm, exponent, count, totalDigits;
+    int     period, sign, len, exponentForm, fixedForm, exponent, count, totalDigits, npad;
 
     buf = mprCreateBuf(ctx, MPR_MAX_STRING, -1);
     intermediate = 0;
@@ -921,7 +939,7 @@ char *mprDtoa(MprCtx ctx, double value, int ndigits, int mode, int flags)
             Note: ndigits < 0 seems to trim N digits from the end with rounding.
          */
         ip = intermediate = dtoa(value, mode, ndigits, &period, &sign, NULL);
-        len = (int) strlen(intermediate);
+        len = strlen(intermediate);
         exponent = period - 1;
 
         if (mode == MPR_DTOA_ALL_DIGITS && ndigits == 0) {
@@ -953,20 +971,25 @@ char *mprDtoa(MprCtx ctx, double value, int ndigits, int mode, int flags)
                     mprPutStringToBuf(buf, "0.");
                     mprPutPadToBuf(buf, '0', -period);
                     mprPutStringToBuf(buf, ip);
-                    mprPutPadToBuf(buf, '0', ndigits - len + period);
+                    npad = ndigits - len + period;
+                    if (npad > 0) {
+                        mprPutPadToBuf(buf, '0', npad);
+                    }
 
                 } else {
                     count = min(len, period);
                     /* Leading integral digits */
                     mprPutSubStringToBuf(buf, ip, count);
                     /* Trailing zero pad */
-                    mprPutPadToBuf(buf, '0', period - len);
+                    if (period > len) {
+                        mprPutPadToBuf(buf, '0', period - len);
+                    }
                     totalDigits = count + ndigits;
                     if (period < totalDigits) {
                         count = totalDigits + sign - mprGetBufLength(buf);
                         mprPutCharToBuf(buf, '.');
                         mprPutSubStringToBuf(buf, &ip[period], count);
-                        mprPutPadToBuf(buf, '0', count - (int) strlen(&ip[period]));
+                        mprPutPadToBuf(buf, '0', count - strlen(&ip[period]));
                     }
                 }
 
@@ -996,7 +1019,7 @@ char *mprDtoa(MprCtx ctx, double value, int ndigits, int mode, int flags)
     if (intermediate) {
         freedtoa(intermediate);
     }
-    result = mprStrdup(ctx, mprGetBufStart(buf));
+    result = sclone(ctx, mprGetBufStart(buf));
     mprFree(buf);
     return result;
 }
@@ -1024,7 +1047,7 @@ static int growBuf(MprCtx ctx, Format *fmt)
     mprAssert(ctx);
     newbuf = (uchar*) mprAlloc(ctx, buflen + fmt->growBy);
     if (newbuf == 0) {
-        return MPR_ERR_NO_MEMORY;
+        return MPR_ERR_MEMORY;
     }
     if (fmt->buf) {
         memcpy(newbuf, fmt->buf, buflen);

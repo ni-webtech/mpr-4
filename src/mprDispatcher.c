@@ -13,11 +13,12 @@
 /***************************** Forward Declarations ***************************/
 
 static void dequeueDispatcher(MprDispatcher *dispatcher);
-static int  dispatcherDestructor(MprDispatcher *dispatcher);
 static int getIdleTime(MprEventService *ds, MprDispatcher *dispatcher);
 static MprDispatcher *getNextReadyDispatcher(MprEventService *es);
 static void initDispatcherQ(MprEventService *ds, MprDispatcher *q, cchar *name);
 static bool isIdle(MprEventService *es, MprDispatcher *dispatcher);
+static void manageDispatcher(MprDispatcher *dispatcher, int flags);
+static void manageEventService(MprEventService *es, int flags);
 static void queueDispatcher(MprDispatcher *prior, MprDispatcher *dispatcher);
 
 #define isRunning(dispatcher) (dispatcher->parent == &dispatcher->service->runQ)
@@ -35,7 +36,7 @@ MprEventService *mprCreateEventService(MprCtx ctx)
     Mpr                 *mpr;
 
     mpr = mprGetMpr(ctx);
-    if ((es = mprAllocObj(ctx, MprEventService, NULL)) == 0) {
+    if ((es = mprAllocObj(ctx, MprEventService, manageEventService)) == 0) {
         return 0;
     }
     mpr->eventService = es;
@@ -46,8 +47,38 @@ MprEventService *mprCreateEventService(MprCtx ctx)
     initDispatcherQ(es, &es->readyQ, "ready");
     initDispatcherQ(es, &es->idleQ, "idle");
     initDispatcherQ(es, &es->waitQ, "waiting");
-    mpr->dispatcher = mprCreateDispatcher(mpr, "mpr", 1);
+
+    //  MOB -- move this to MPR
+    mpr->dispatcher = mprCreateDispatcher(es, "mpr", 1);
     return es;
+}
+
+
+static void manageEventService(MprEventService *es, int flags)
+{
+    MprDispatcher   *dp, *q;
+
+    if (flags & MPR_MANAGE_MARK) {
+        mprMark(es->waitCond);
+        mprMark(es->mutex);
+
+        q = &es->runQ;
+        for (dp = q->next; dp != q; dp = dp->next) {
+            mprMark(dp);
+        }
+        q = &es->readyQ;
+        for (dp = q->next; dp != q; dp = dp->next) {
+            mprMark(dp);
+        }
+        q = &es->waitQ;
+        for (dp = q->next; dp != q; dp = dp->next) {
+            mprMark(dp);
+        }
+        q = &es->idleQ;
+        for (dp = q->next; dp != q; dp = dp->next) {
+            mprMark(dp);
+        }
+    }
 }
 
 
@@ -186,11 +217,12 @@ int mprServiceEvents(MprCtx ctx, MprDispatcher *dispatcher, int timeout, int fla
             idle = getIdleTime(es, dispatcher);
             delay = min(delay, idle);
         }
-        while ((dp = getNextReadyDispatcher(es)) != NULL && !mprIsExiting(mpr)) {
+        while ((dp = getNextReadyDispatcher(es)) != NULL && !mprIsComplete(mpr)) {
             mprAssert(isRunning(dp));
             if (dp->requiredWorker) {
                 mprActivateWorker(dp->requiredWorker, (MprWorkerProc) serviceDispatcher, dp);
             } else {
+//  MOB -- need option to run events without starting a worker
                 if (mprStartWorker(dp, (MprWorkerProc) serviceDispatcher, dp) < 0) {
                     /* Can't start a worker thread. Put back on the wait queue */
                     queueDispatcher(&es->waitQ, dp);
@@ -203,21 +235,28 @@ int mprServiceEvents(MprCtx ctx, MprDispatcher *dispatcher, int timeout, int fla
         lock(es);
         if (delay > 0) {
             if (es->eventCount == eventCount && isIdle(es, dispatcher)) {
+                mprYieldThread(NULL);
                 if (es->waiting) {
                     unlock(es);
                     mprWaitForMultiCond(es->waitCond, delay);
                 } else {
                     es->waiting = 1;
                     unlock(es);
+#if MPR_GC_WORKERS == 0
+                    if (mprIsTimeForGC(delay)) {
+                        mprCollectGarbage();
+                    }
+#endif
                     mprWaitForIO(mpr->waitService, delay);
                     es->waiting = 0;
                     mprSignalMultiCond(es->waitCond);
                 }
+                mprResumeThread(NULL);
             } else unlock(es);
         } else unlock(es);
 
         es->now = mprGetTime(mpr);
-    } while (es->now < expires && !justOne && !mprIsExiting(es));
+    } while (es->now < expires && !justOne && !mprIsComplete(es));
 
     if (dispatcher && !wasRunning) {
         lock(es);
@@ -237,9 +276,10 @@ MprDispatcher *mprCreateDispatcher(MprCtx ctx, cchar *name, int enable)
     MprEventService     *es;
     MprDispatcher       *dispatcher;
 
-    if ((dispatcher = mprAllocObj(ctx, MprDispatcher, dispatcherDestructor)) == 0) {
+    if ((dispatcher = mprAllocObj(ctx, MprDispatcher, manageDispatcher)) == 0) {
         return 0;
     }
+    //  MOB - cleanup. Requires name to be static. It is this way because some dispatchers are not allocated.
     dispatcher->name = name;
     dispatcher->enabled = enable;
     es = dispatcher->service = mprGetMpr(ctx)->eventService;
@@ -249,21 +289,27 @@ MprDispatcher *mprCreateDispatcher(MprCtx ctx, cchar *name, int enable)
 }
 
 
-static int dispatcherDestructor(MprDispatcher *dispatcher)
+static void manageDispatcher(MprDispatcher *dispatcher, int flags)
 {
-    MprEventService     *es;
+    MprEvent        *q, *event;
 
-    es = dispatcher->service;
-    lock(es);
-    dequeueDispatcher(dispatcher);
-    dispatcher->deleted = 1;
-    if (dispatcher->inUse) {
+    if (flags & MPR_MANAGE_MARK) {
+        q = &dispatcher->eventQ;
+        for (event = q->next; event != q; event = event->next) {
+            mprMark(event);
+        }
+    } else if (flags & MPR_MANAGE_FREE) {
+        MprEventService     *es;
+        es = dispatcher->service;
+        lock(es);
+        dequeueDispatcher(dispatcher);
+        dispatcher->deleted = 1;
+        if (dispatcher->inUse) {
+            mprAssert(!dispatcher->inUse);
+            unlock(es);
+        }
         unlock(es);
-        /* Abort the free */
-        return -1;
     }
-    unlock(es);
-    return 0;
 }
 
 

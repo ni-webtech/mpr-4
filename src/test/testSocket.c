@@ -76,7 +76,7 @@ static int initSocket(MprTestGroup *gp)
 
     ts = mprAllocObj(gp, MprTestSocket, NULL);
     if (ts == 0) {
-        return MPR_ERR_NO_MEMORY;
+        return MPR_ERR_MEMORY;
     }
     gp->data = (void*) ts;
 

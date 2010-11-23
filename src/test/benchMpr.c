@@ -97,12 +97,12 @@ int benchMain(int argc, char *argv[])
     thread = mprCreateThread(mpr, "bench", (MprThreadProc) doBenchmark, (void*) mpr, 0);
     mprStartThread(thread);
     
-    // mprSleep(mpr, 999999);
+    mprSleep(mpr, 999999);
     
     while (!testComplete) {
         mprServiceEvents(mpr, mprGetDispatcher(mpr), 250, 0);
     }
-    mprPrintAllocReport("Memory Report", 0);
+    mprPrintMemReport("Memory Report", 0);
     mprFree(mpr);
     return 0;
 }
@@ -135,11 +135,14 @@ static void doBenchmark(Mpr *mpr, void *thread)
     int             count, i;
     MprMutex        *lock;
 
-    ctx = mprAllocCtx(mpr, 0);
+    mprCollectGarbage();
+
+    ctx = mprAlloc(mpr, 0);
     mprPrintf(ctx, "Group\t%-30s\t%13s\t%12s\n", "Benchmark", "Microsec", "Elapsed-sec");
     complete = mprCreateCond(ctx);
 
     testMalloc();
+    mprCollectGarbage();
 
     if (!testAllocOnly) {
         /*
@@ -248,7 +251,7 @@ static void testMalloc()
     mprFree(ptr);
 #endif
 
-    ctx = mprAllocCtx(mpr, 0);
+    ctx = mprAlloc(mpr, 0);
     mprPrintf(ctx, "Alloc/Malloc overhead\n");
     count = 200000 * iterations;
 
@@ -320,7 +323,7 @@ static void testMalloc()
      */
     base = memsize();
     start = startMark(ctx);
-    ctx1 = mprAllocCtx(ctx, 0);
+    ctx1 = mprAlloc(ctx, 0);
     for (i = 0; i < count; i++) {
         ptr = mprAlloc(ctx1, 1);
         memset(ptr, 0, 1);
@@ -367,7 +370,7 @@ static void testMalloc()
     /*
         mprAlloc + mprFree(8)
      */
-    ctx2 = mprAllocCtx(ctx, 1);
+    ctx2 = mprAlloc(ctx, 1);
     start = startMark(ctx);
     for (i = 0; i < count; i++) {
         ptr = mprAlloc(ctx2, 8);

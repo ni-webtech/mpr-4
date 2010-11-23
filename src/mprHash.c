@@ -17,8 +17,8 @@
 /**************************** Forward Declarations ****************************/
 
 static inline void *dupKey(MprHashTable *table, MprHash *sp, cvoid *key);
-static int hashIndex(MprHashTable *table, cvoid *key, int size);
 static MprHash  *lookupHash(int *bucketIndex, MprHash **prevSp, MprHashTable *table, cvoid *key);
+static void manageHash(MprHashTable *table, int flags);
 
 /*********************************** Code *************************************/
 /*
@@ -30,7 +30,7 @@ MprHashTable *mprCreateHash(MprCtx ctx, int hashSize, int flags)
 {
     MprHashTable    *table;
 
-    if ((table = mprAllocObj(ctx, MprHashTable, NULL)) == 0) {
+    if ((table = mprAllocObj(ctx, MprHashTable, manageHash)) == 0) {
         return 0;
     }
     /*  TODO -- should support rehashing */
@@ -42,6 +42,22 @@ MprHashTable *mprCreateHash(MprCtx ctx, int hashSize, int flags)
     table->count = 0;
     table->hashSize = hashSize;
     table->buckets = (MprHash**) mprAllocZeroed(table, sizeof(MprHash*) * hashSize);
+#if BLD_CHAR_LEN > 1
+    if (table->flags & MPR_HASH_UNICODE) {
+        if (table->flags & MPR_HASH_CASELESS) {
+            table->hash = (MprHashProc) whashlower;
+        } else {
+            table->hash = (MprHashProc) whash;
+        }
+    } else 
+#endif
+    {
+        if (table->flags & MPR_HASH_CASELESS) {
+            table->hash = (MprHashProc) shashlower;
+        } else {
+            table->hash = (MprHashProc) shash;
+        }
+    }
     if (table->buckets == 0) {
         mprFree(table);
         return 0;
@@ -50,7 +66,26 @@ MprHashTable *mprCreateHash(MprCtx ctx, int hashSize, int flags)
 }
 
 
-MprHashTable *mprCopyHash(MprCtx ctx, MprHashTable *master)
+static void manageHash(MprHashTable *table, int flags)
+{
+    MprHash     *sp;
+    int         i;
+
+    if (flags & MPR_MANAGE_MARK) {
+        mprMark(table->buckets);
+        for (i = 0; i < table->hashSize; i++) {
+            for (sp = (MprHash*) table->buckets[i]; sp; sp = sp->next) {
+                mprMark(sp);
+                if (!(table->flags & MPR_HASH_PERM_KEYS)) {
+                    mprMark(sp->key);
+                }
+            }
+        }
+    }
+}
+
+
+MprHashTable *mprCloneHash(MprCtx ctx, MprHashTable *master)
 {
     MprHash         *hp;
     MprHashTable    *table;
@@ -120,7 +155,7 @@ MprHash *mprAddDuplicateHash(MprHashTable *table, cvoid *key, cvoid *ptr)
     if (sp == 0) {
         return 0;
     }
-    index = hashIndex(table, key, table->hashSize);
+    index = table->hash(key, -1) % table->hashSize;
 
     sp->data = ptr;
     if (!(table->flags & MPR_HASH_PERM_KEYS)) {
@@ -145,7 +180,7 @@ int mprRemoveHash(MprHashTable *table, cvoid *key)
     int         index;
 
     if ((sp = lookupHash(&index, &prevSp, table, key)) == 0) {
-        return MPR_ERR_NOT_FOUND;
+        return MPR_ERR_CANT_FIND;
     }
     if (prevSp) {
         prevSp->next = sp->next;
@@ -189,12 +224,14 @@ cvoid *mprLookupHash(MprHashTable *table, cvoid *key)
 static MprHash *lookupHash(int *bucketIndex, MprHash **prevSp, MprHashTable *table, cvoid *key)
 {
     MprHash     *sp, *prev;
-    MprUni      *u1, *u2;
-    int         index, rc, i;
+    int         index, rc;
 
     mprAssert(key);
 
-    index = hashIndex(table, key, table->hashSize);
+    if (key == 0 || table == 0) {
+        return 0;
+    }
+    index = table->hash(key, strlen(key)) % table->hashSize;
     if (bucketIndex) {
         *bucketIndex = index;
     }
@@ -202,17 +239,21 @@ static MprHash *lookupHash(int *bucketIndex, MprHash **prevSp, MprHashTable *tab
     prev = 0;
 
     while (sp) {
+#if BLD_CHAR_LEN > 1
         if (table->flags & MPR_HASH_UNICODE) {
-            u1 = (MprUni*) sp->key;
-            u2 = (MprUni*) key;
+            MprChar *u1, *u2;
+            u1 = (MprChar*) sp->key;
+            u2 = (MprChar*) key;
             rc = -1;
-            if (u1->length == u2->length) {
-                for (i = 0; i < u1->length; i++) {
-                    rc = u1->value[i] == u2->value[i];
-                }
+            if (table->flags & MPR_HASH_CASELESS) {
+                rc = wcasecmp(u1, u2);
+            } else {
+                rc = wcmp(u1, u2);
             }
-        } else if (table->flags & MPR_HASH_CASELESS) {
-            rc = mprStrcmpAnyCase(sp->key, key);
+        } else 
+#endif
+        if (table->flags & MPR_HASH_CASELESS) {
+            rc = scasecmp(sp->key, key);
         } else {
             rc = strcmp(sp->key, key);
         }
@@ -280,64 +321,29 @@ MprHash *mprGetNextHash(MprHashTable *table, MprHash *last)
 }
 
 
-/*
-    Hash the key to produce a hash index.
- */
-static int hashIndex(MprHashTable *table, cvoid *vkey, int size)
+static inline void *dupKey(MprHashTable *table, MprHash *sp, cvoid *key)
 {
-    MprUni  *ukey;
-    cchar   *key;
-    uint    sum;
-    int     c, i;
-
-    //  MOB TODO OPT - Get a better hash. See Ejscript
-
+#if BLD_CHAR_LEN > 1
     if (table->flags & MPR_HASH_UNICODE) {
-        ukey = (MprUni*) vkey;
-        sum = 0;
-        if (table->flags & MPR_HASH_CASELESS) {
-            for (i = 0; i < ukey->length; i++) {
-                c = ukey->value[i];
-                sum += (sum * 33) + tolower(c);
-            }
-        } else {
-            for (i = 0; i < ukey->length; i++) {
-                sum += (sum * 33) + ukey->value[i];
-            }
-        }
-    } else {
-        if (table->flags & MPR_HASH_CASELESS) {
-            key = (char*) vkey;
-            sum = 0;
-            while (*key) {
-                c = *key++;
-                sum += (sum * 33) + tolower(c);
-            }
-        } else {
-            key = (char*) vkey;
-            sum = 0;
-            while (*key) {
-                sum += (sum * 33) + *key++;
-            }
-        }
-    }
-    return sum % size;
+        return wclone(sp, (MprChar*) key, -1);
+    } else
+#endif
+        return sclone(sp, key);
 }
 
 
-static inline void *dupKey(MprHashTable *table, MprHash *sp, cvoid *key)
+void mprMarkHash(MprHashTable *table)
 {
-    char    *ptr;
-    int     len;
+    MprHash     *sp;
+    int         i;
 
-    if (table->flags & MPR_HASH_UNICODE) {
-        MprUni  *ukey;
-        len = ((ukey->length + 1) * sizeof(MprChar));
-        ptr = mprAlloc(sp, len);
-        memcpy(ptr, ukey->value, len);
-        return ptr;
-    } else {
-        return mprStrdup(sp, key);
+    if (table) {
+        for (i = 0; i < table->hashSize; i++) {
+            for (sp = (MprHash*) table->buckets[i]; sp; sp = sp->next) {
+                mprMark((void*) sp->data);
+            }
+        }
+        mprMark(table);
     }
 }
 

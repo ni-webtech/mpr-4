@@ -809,7 +809,7 @@ if [ "$BLD_WIN_LIKE" = 1 -o "$OS" = "BREW" -o "$OS" = "BREWSIM" ] ; then
                 DEF_SW=""
             fi
 
-            run "${LINKER}" ${DSO} "-out:${SHARED_LIBRARY}" ${ENTRY_SW} ${DEF_SW} ${MAKE_LDFLAGS} ${BLD_LDFLAGS} \
+            run "${LINKER}" ${DSO} "-out:${SHARED_LIBRARY}" ${ENTRY_SW} ${DEF_SW} ${MAKE_LDFLAGS} ${BLD_LDFLAGS} ${_LDFLAGS}\
                 ${LINK_SWITCHES} ${_LDFLAGS} ${LINK_LIBRARY_PATHS} "-libpath:${_LDPATH}" \
                 ${EXTRA_FLAGS} ${OBJECTS} ${LIB_LIST} ${STND_LIBS} >/tmp/link$$.tmp
             status=$?
@@ -945,8 +945,9 @@ else
             if [ "$OS" = MACOSX ] ; then
                 INSTALL_NAME="-install_name @rpath/`basename $SHARED_LIBRARY`"
             fi
-            run "${LINKER}" -o ${SHARED_LIBRARY} ${SONAME_SWITCH} ${INSTALL_NAME} ${DSO} ${LOBJS} ${MAKE_LDFLAGS} \
-                ${MAKE_CFLAGS} ${_CFLAGS} ${BLD_CFLAGS} ${_LDFLAGS} ${LINK_LIBRARY_PATHS} -L${_LDPATH} ${RPATH} ${LIB_LIST} \
+            run "${LINKER}" -o ${SHARED_LIBRARY} ${SONAME_SWITCH} ${INSTALL_NAME} ${DSO} ${LOBJS} \
+                ${MAKE_LDFLAGS} ${BLD_LDFLAGS} ${_LDFLAGS} ${MAKE_CFLAGS} ${BLD_CFLAGS} ${_CFLAGS} \
+                ${LINK_LIBRARY_PATHS} -L${_LDPATH} ${RPATH} ${LIB_LIST} \
                 ${STND_LIBS}
             if [ $? != 0 ] ; then
                 echo "bld: $LINKER failed"
@@ -972,7 +973,7 @@ else
 
     if [ "$EXECUTABLE" ] ; then
         run "${LINKER}" -o ${EXECUTABLE} ${OBJECTS} ${LINK_LIBRARY_PATHS} -L${_LDPATH} ${RPATH} ${LIB_LIST} ${MOD_LIST} \
-			${MAKE_LDFLAGS} ${_LDFLAGS} ${BLD_LDFLAGS} ${STND_LIBS}
+			${MAKE_LDFLAGS} ${BLD_LDFLAGS} ${_LDFLAGS} ${STND_LIBS}
         if [ $? != 0 ] ; then
             echo "bld: $LINKER failed"
             log "DETAILS" `traceArgs $ARGS`
@@ -1009,7 +1010,7 @@ else
             echo ${BLD_NM} ${ORIG} \| ${BLD_TCLSH} ${BLD_MUNCH} -asm ${BLD_BUILD_CPU_VX} \> ctdt.c
             ${BLD_NM} ${ORIG} | ${BLD_TCLSH} ${BLD_MUNCH} -asm ${BLD_BUILD_CPU_VX} > ctdt.c
 
-            run "${LINKER}" -c ${MAKE_CFLAGS} ${_CFLAGS} ${BLD_CFLAGS} ${MAKE_IFLAGS} ${BLD_IFLAGS} ${_IFLAGS} \
+            run "${LINKER}" -c ${MAKE_CFLAGS} ${BLD_CFLAGS} ${_CFLAGS} ${MAKE_IFLAGS} ${BLD_IFLAGS} ${_IFLAGS} \
                 ctdt.c -o ctdt.o
             if [ $? != 0 ] ; then
                 echo "bld: $LINKER failed"

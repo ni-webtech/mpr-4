@@ -18,6 +18,7 @@ static MprTestGroup *createTestGroup(MprTestService *sp, MprTestDef *def, MprTes
 static bool     filterTestGroup(MprTestGroup *gp);
 static bool     filterTestCast(MprTestGroup *gp, MprTestCase *tc);
 static char     *getErrorMessage(MprTestGroup *gp);
+static void     manageTestService(MprTestService *ts, int flags);
 static int      parseFilter(MprTestService *sp, cchar *str);
 static void     runTestGroup(MprTestGroup *gp);
 static void     runTestProc(MprTestGroup *gp, MprTestCase *test);
@@ -32,7 +33,7 @@ MprTestService *mprCreateTestService(MprCtx ctx)
 {
     MprTestService      *sp;
 
-    if ((sp = mprAllocObj(ctx, MprTestService, NULL)) == 0) {
+    if ((sp = mprAllocObj(ctx, MprTestService, manageTestService)) == 0) {
         return 0;
     }
     sp->iterations = 1;
@@ -43,6 +44,17 @@ MprTestService *mprCreateTestService(MprCtx ctx)
     sp->start = mprGetTime(sp);
     sp->mutex = mprCreateLock(sp);
     return sp;
+}
+
+
+static void manageTestService(MprTestService *ts, int flags)
+{
+    if (flags & MPR_MANAGE_MARK) {
+        mprMark(ts->commandLine);
+        mprMark(ts->groups);
+        mprMark(ts->mutex);
+        mprMark(ts->testFilter);
+    }
 }
 
 
@@ -60,15 +72,14 @@ int mprParseTestArgs(MprTestService *sp, int argc, char *argv[])
 
     mpr = mprGetMpr(sp);
     programName = mprGetPathBase(mpr, argv[0]);
-
     sp->name = BLD_PRODUCT;
 
     /*
         Save the command line
      */
-    sp->commandLine = mprStrcat(sp, -1, mprGetPathBase(mpr, argv[i++]), NULL);
+    sp->commandLine = sjoin(sp, NULL, mprGetPathBase(mpr, argv[i++]), NULL);
     for (; i < argc; i++) {
-        sp->commandLine = mprReallocStrcat(sp, -1, sp->commandLine, " ", argv[i], NULL);
+        sp->commandLine = sjoin(sp, sp->commandLine, " ", argv[i], NULL);
     }
 
     for (nextArg = 1; nextArg < argc; nextArg++) {
@@ -230,13 +241,13 @@ static int parseFilter(MprTestService *sp, cchar *filter)
     }
 
     tok = 0;
-    str = mprStrdup(sp, filter);
-    word = mprStrTok(str, " \t\r\n", &tok);
+    str = sclone(sp, filter);
+    word = stok(str, " \t\r\n", &tok);
     while (word) {
-        if (mprAddItem(sp->testFilter, mprStrdup(sp, word)) < 0) {
-            return MPR_ERR_NO_MEMORY;
+        if (mprAddItem(sp->testFilter, sclone(sp, word)) < 0) {
+            return MPR_ERR_MEMORY;
         }
-        word = mprStrTok(0, " \t\r\n", &tok);
+        word = stok(0, " \t\r\n", &tok);
     }
     mprFree(str);
     return 0;
@@ -259,12 +270,12 @@ static int loadModule(MprTestService *sp, cchar *fileName)
         return 0;
     }
                 
-    mprSprintf(sp, entry, sizeof(entry), "%sInit", base);
+    mprSprintf(entry, sizeof(entry), "%sInit", base);
 
     if (fileName[0] == '/' || (*fileName && fileName[1] == ':')) {
-        mprSprintf(sp, path, sizeof(path), "%s%s", fileName, BLD_BUILD_SHOBJ);
+        mprSprintf(path, sizeof(path), "%s%s", fileName, BLD_BUILD_SHOBJ);
     } else {
-        mprSprintf(sp, path, sizeof(path), "./%s%s", fileName, BLD_BUILD_SHOBJ);
+        mprSprintf(path, sizeof(path), "./%s%s", fileName, BLD_BUILD_SHOBJ);
     }
     if (mprLoadModule(sp, path, entry, (void*) sp) == 0) {
         mprError(sp, "Can't load module %s", path);
@@ -305,13 +316,11 @@ int mprRunTests(MprTestService *sp)
         MprList     *lp;
         char        tName[64];
 
-        mprSprintf(sp, tName, sizeof(tName), "test.%d", i);
-
+        mprSprintf(tName, sizeof(tName), "test.%d", i);
         lp = copyGroups(sp, sp->groups);
         if (lp == 0) {
-            return MPR_ERR_NO_MEMORY;
+            return MPR_ERR_MEMORY;
         }
-        
         /*
             Build the full names for all groups
          */
@@ -321,7 +330,7 @@ int mprRunTests(MprTestService *sp)
         }
         tp = mprCreateThread(sp, tName, (MprThreadProc) runTestThread, (void*) lp, 0);
         if (tp == 0) {
-            return MPR_ERR_NO_MEMORY;
+            return MPR_ERR_MEMORY;
         }
         if (mprStartThread(tp) < 0) {
             mprError(sp, "Can't start thread %d", i);
@@ -333,8 +342,11 @@ int mprRunTests(MprTestService *sp)
     /*
         Wait for all the threads to complete (simple but effective)
      */
+    mprCollectGarbage();
     while (sp->activeThreadCount > 0) {
         mprServiceEvents(sp, NULL, 250, 0);
+        //  MOB -- should do when idle?
+        mprCollectGarbage();
     }
     return (sp->totalFailedCount == 0) ? 0 : 1;
 }
@@ -431,12 +443,12 @@ static void buildFullNames(MprTestGroup *gp, cchar *name)
     for (np = gp->parent; np && np != np->parent && tos < MPR_TEST_MAX_STACK;  np = np->parent) {
         nameStack[tos++] = np->name;
     }
-    nameBuf = mprStrdup(gp, gp->service->name);
+    nameBuf = sclone(gp, gp->service->name);
     while (--tos >= 0) {
-        nameBuf = mprReallocStrcat(gp, -1, nameBuf, ".", nameStack[tos], NULL);
+        nameBuf = sjoin(gp, nameBuf, ".", nameStack[tos], NULL);
     }
     mprAssert(gp->fullName == 0);
-    gp->fullName = mprStrdup(gp, nameBuf);
+    gp->fullName = sclone(gp, nameBuf);
 
     /*
         Recurse for all test case groups
@@ -473,7 +485,7 @@ static MprTestGroup *createTestGroup(MprTestService *sp, MprTestDef *def, MprTes
     MprTestDef      **dp;
     MprTestCase     *tc;
 
-    gp = mprAllocCtx(sp, sizeof(MprTestGroup));
+    gp = mprAlloc(sp, sizeof(MprTestGroup));
     if (gp == 0) {
         return 0;
     }
@@ -496,7 +508,7 @@ static MprTestGroup *createTestGroup(MprTestService *sp, MprTestDef *def, MprTes
         return 0;
     }
     gp->def = def;
-    gp->name = mprStrdup(sp, def->name);
+    gp->name = sclone(sp, def->name);
     gp->success = 1;
 
     for (tc = def->caseDefs; tc->proc; tc++) {
@@ -635,8 +647,8 @@ static bool filterTestGroup(MprTestGroup *gp)
         next = 0;
         pattern = mprGetNextItem(testFilter, &next);
         while (pattern) {
-            len = min((int) strlen(pattern), (int) strlen(gp->fullName));
-            if (mprStrcmpAnyCaseCount(gp->fullName, pattern, len) == 0) {
+            len = min(strlen(pattern), strlen(gp->fullName));
+            if (sncasecmp(gp->fullName, pattern, len) == 0) {
                 break;
             }
             pattern = mprGetNextItem(testFilter, &next);
@@ -670,12 +682,12 @@ static bool filterTestCast(MprTestGroup *gp, MprTestCase *tc)
         See if this test has been filtered
      */
     if (mprGetListCount(testFilter) > 0) {
-        fullName = mprAsprintf(gp, -1, "%s.%s", gp->fullName, tc->name);
+        fullName = mprAsprintf(gp, "%s.%s", gp->fullName, tc->name);
         next = 0;
         pattern = mprGetNextItem(testFilter, &next);
         while (pattern) {
-            len = min((int) strlen(pattern), (int) strlen(fullName));
-            if (mprStrcmpAnyCaseCount(fullName, pattern, len) == 0) {
+            len = min(strlen(pattern), strlen(fullName));
+            if (sncasecmp(fullName, pattern, len) == 0) {
                 break;
             }
             pattern = mprGetNextItem(testFilter, &next);
@@ -743,11 +755,11 @@ static char *getErrorMessage(MprTestGroup *gp)
     int             nextItem;
 
     nextItem = 0;
-    errorMsg = mprStrdup(gp, "");
+    errorMsg = sclone(gp, "");
     fp = mprGetNextItem(gp->failures, &nextItem);
     while (fp) {
-        mprSprintf(gp, msg, sizeof(msg), "Failure in %s\nAssertion: \"%s\"\n", fp->loc, fp->message);
-        if ((errorMsg = mprStrcat(gp, -1, msg, NULL)) == NULL) {
+        mprSprintf(msg, sizeof(msg), "Failure in %s\nAssertion: \"%s\"\n", fp->loc, fp->message);
+        if ((errorMsg = sjoin(gp, errorMsg, msg, NULL)) == NULL) {
             break;
         }
         fp = mprGetNextItem(gp->failures, &nextItem);
@@ -763,7 +775,7 @@ static int addFailure(MprTestGroup *gp, cchar *loc, cchar *message)
     fp = createFailure(gp, loc, message);
     if (fp == 0) {
         mprAssert(fp);
-        return MPR_ERR_NO_MEMORY;
+        return MPR_ERR_MEMORY;
     }
     mprAddItem(gp->failures, fp);
     return 0;
@@ -774,12 +786,12 @@ static MprTestFailure *createFailure(MprTestGroup *gp, cchar *loc, cchar *messag
 {
     MprTestFailure  *fp;
 
-    fp = mprAllocCtx(gp, sizeof(MprTestFailure));
+    fp = mprAlloc(gp, sizeof(MprTestFailure));
     if (fp == 0) {
         return 0;
     }
-    fp->loc = mprStrdup(fp, loc);
-    fp->message = mprStrdup(fp, message);
+    fp->loc = sclone(fp, loc);
+    fp->message = sclone(fp, message);
     return fp;
 }
 
@@ -851,21 +863,10 @@ static void logHandler(MprCtx ctx, int flags, int level, cchar *msg)
     }
     if (flags & MPR_LOG_SRC) {
         mprFprintf(file, "%s: %d: %s\n", prefix, level, msg);
-
     } else if (flags & MPR_ERROR_SRC) {
-        /*
-            Use static printing to avoid malloc when the messages are small.
-            This is important for memory allocation errors.
-         */
-        if (strlen(msg) < (MPR_MAX_STRING - 32)) {
-            mprStaticPrintf(file, "%s: Error: %s\n", prefix, msg);
-        } else {
-            mprFprintf(file, "%s: Error: %s\n", prefix, msg);
-        }
-
+        mprFprintf(file, "%s: Error: %s\n", prefix, msg);
     } else if (flags & MPR_FATAL_SRC) {
         mprFprintf(file, "%s: Fatal: %s\n", prefix, msg);
-        
     } else if (flags & MPR_RAW) {
         mprFprintf(file, "%s", msg);
     }

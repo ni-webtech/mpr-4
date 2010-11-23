@@ -14,13 +14,14 @@
 
 /****************************** Forward Declarations **************************/
 
-static int       parseNext(MprXml *xp, int state);
 static MprXmlToken getToken(MprXml *xp, int state);
-static int       getNextChar(MprXml *xp);
-static int       scanFor(MprXml *xp, char *str);
-static int       putLastChar(MprXml *xp, int c);
-static void      xmlError(MprXml *xp, char *fmt, ...);
-static void      trimToken(MprXml *xp);
+static int  getNextChar(MprXml *xp);
+static void manageXml(MprXml *xml, int flags);
+static int  scanFor(MprXml *xp, char *str);
+static int  parseNext(MprXml *xp, int state);
+static int  putLastChar(MprXml *xp, int c);
+static void xmlError(MprXml *xp, char *fmt, ...);
+static void trimToken(MprXml *xp);
 
 /************************************ Code ************************************/
 
@@ -28,7 +29,7 @@ MprXml *mprXmlOpen(MprCtx ctx, int initialSize, int maxSize)
 {
     MprXml  *xp;
 
-    xp = mprAllocObj(ctx, MprXml, NULL);
+    xp = mprAllocObj(ctx, MprXml, manageXml);
     
     xp->inBuf = mprCreateBuf(xp, MPR_XML_BUFSIZE, MPR_XML_BUFSIZE);
     xp->tokBuf = mprCreateBuf(xp, initialSize, maxSize);
@@ -36,10 +37,19 @@ MprXml *mprXmlOpen(MprCtx ctx, int initialSize, int maxSize)
 }
 
 
+static void manageXml(MprXml *xml, int flags)
+{
+    if (flags & MPR_MANAGE_MARK) {
+        mprMark(xml->inBuf);
+        mprMark(xml->tokBuf);
+        mprMark(xml->errMsg);
+    }
+}
+
+
 void mprXmlSetParserHandler(MprXml *xp, MprXmlHandler h)
 {
     mprAssert(xp);
-
     xp->handler = h;
 }
 
@@ -168,9 +178,9 @@ static int parseNext(MprXml *xp, int state)
 
             case MPR_XMLTOK_TEXT:
                 state = MPR_XML_NEW_ELT;
-                tname = mprStrdup(xp, mprGetBufStart(tokBuf));
+                tname = sclone(xp, mprGetBufStart(tokBuf));
                 if (tname == 0) {
-                    rc = MPR_ERR_NO_MEMORY;
+                    rc = MPR_ERR_MEMORY;
                     goto exit;
                 }
                 rc = (*handler)(xp, state, tname, 0, 0);
@@ -195,7 +205,7 @@ static int parseNext(MprXml *xp, int state)
                 /*
                     Must be an attribute name
                  */
-                aname = mprStrdup(xp, mprGetBufStart(tokBuf));
+                aname = sclone(xp, mprGetBufStart(tokBuf));
                 token = getToken(xp, state);
                 if (token != MPR_XMLTOK_EQ) {
                     xmlError(xp, "Missing assignment for attribute \"%s\"", aname);
@@ -560,7 +570,7 @@ static int scanFor(MprXml *xp, char *pattern)
             /*
                 Remove the pattern from the tokBuf
              */
-            mprAdjustBufEnd(tokBuf, -(int) strlen(pattern));
+            mprAdjustBufEnd(tokBuf, -strlen(pattern));
             trimToken(xp);
             return 1;
         }
@@ -624,11 +634,11 @@ static void xmlError(MprXml *xp, char *fmt, ...)
     mprAssert(fmt);
 
     va_start(args, fmt);
-    buf = mprVasprintf(xp, MPR_MAX_STRING, fmt, args);
+    buf = mprAsprintfv(xp, fmt, args);
     va_end(args);
 
     mprFree(xp->errMsg);
-    xp->errMsg = mprAsprintf(xp, MPR_MAX_STRING, "XML error: %s\nAt line %d\n", buf, xp->lineNumber);
+    xp->errMsg = mprAsprintf(xp, "XML error: %s\nAt line %d\n", buf, xp->lineNumber);
     mprFree(buf);
 }
 

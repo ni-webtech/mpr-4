@@ -11,39 +11,33 @@
 #if BLD_UNIX_LIKE
 /*********************************** Code *************************************/
 
-MprOsService *mprCreateOsService(MprCtx ctx)
+int mprCreateOsService()
 {
-    MprOsService    *os;
-
-    os = mprAllocObj(ctx, MprOsService, NULL);
-    if (os == 0) {
-        return 0;
-    }
     umask(022);
 
     /*
         Cleanup the environment. IFS is often a security hole
      */
     putenv("IFS=\t ");
-    return os;
+    return 0;
 }
 
 
-int mprStartOsService(MprOsService *os)
+int mprStartOsService()
 {
     /* 
         Open a syslog connection
      */
 #if SOLARIS
-    openlog(mprGetAppName(os), LOG_CONS, LOG_LOCAL0);
+    openlog(mprGetAppName(MPR), LOG_CONS, LOG_LOCAL0);
 #else
-    openlog(mprGetAppName(os), LOG_CONS || LOG_PERROR, LOG_LOCAL0);
+    openlog(mprGetAppName(MPR), LOG_CONS || LOG_PERROR, LOG_LOCAL0);
 #endif
     return 0;
 }
 
 
-void mprStopOsService(MprOsService *os)
+void mprStopOsService()
 {
 }
 
@@ -139,6 +133,9 @@ void mprSleep(MprCtx ctx, int milliseconds)
 
 void mprUnloadModule(MprModule *mp)
 {
+    /*
+        The Module stop entry point should have been called.
+     */
     if (mp->handle) {
         dlclose(mp->handle);
     }

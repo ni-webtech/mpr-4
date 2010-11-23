@@ -11,19 +11,19 @@
 
 /*********************************** Code *************************************/
 
-MprOsService *mprCreateOsService(MprCtx ctx)
-{
-    return mprAllocObj(ctx, MprOsService, NULL);
-}
-
-
-int mprStartOsService(MprOsService *os)
+int mprCreateOsService()
 {
     return 0;
 }
 
 
-void mprStopOsService(MprOsService *os)
+int mprStartOsService()
+{
+    return 0;
+}
+
+
+void mprStopOsService()
 {
 }
 
@@ -86,7 +86,7 @@ MprModule *mprLoadModule(MprCtx ctx, cchar *name, cchar *initFunction, void *dat
 #if BLD_HOST_CPU_ARCH == MPR_CPU_IX86 || BLD_HOST_CPU_ARCH == MPR_CPU_IX64
                     mprSprintf(ctx, entryPoint, sizeof(entryPoint), "_%s", initFunction);
 #else
-                    mprStrcpy(entryPoint, sizeof(entryPoint), initFunction);
+                    scopy(entryPoint, sizeof(entryPoint), initFunction);
 #endif
                     fn = 0;
                     if (symFindByName(sysSymTbl, entryPoint, (char**) &fn, &symType) == -1) {

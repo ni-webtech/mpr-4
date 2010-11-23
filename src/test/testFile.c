@@ -25,7 +25,7 @@ static char *makePath(MprCtx ctx, cchar *name)
 {
     char    *path;
 
-    if ((path = mprAsprintf(ctx, -1, "%s-%d-%s", name, getpid(), mprGetCurrentThreadName(ctx))) == 0) {
+    if ((path = mprAsprintf(ctx, "%s-%d-%s", name, getpid(), mprGetCurrentThreadName(ctx))) == 0) {
         return 0;
     }
     return path;
@@ -41,7 +41,7 @@ static int initFile(MprTestGroup *gp)
 
     gp->data = mprAllocZeroed(gp, sizeof(MprTestFile));
     if (gp->data == 0) {
-        return MPR_ERR_NO_MEMORY;
+        return MPR_ERR_MEMORY;
     }
     ts = (MprTestFile*) gp->data;
 
@@ -49,7 +49,7 @@ static int initFile(MprTestGroup *gp)
     if (ts->name == 0) {
         mprFree(gp->data);
         gp->data = 0;
-        return MPR_ERR_NO_MEMORY;
+        return MPR_ERR_MEMORY;
     }
 
     /*
@@ -198,7 +198,7 @@ static void testBufferedIO(MprTestGroup *gp)
     assert(mprPeekc(file) == 'a');
     c = mprGetc(file);
     assert(c == 'a');
-    str = mprGets(file, buf, sizeof(buf));
+    str = mprGets(file, 0, NULL);
     assert(str != 0);
     len = (int) strlen(str);
     

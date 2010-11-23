@@ -78,7 +78,7 @@ MprSsl *mprCreateSsl(MprCtx ctx)
     if ((ssl = mprAllocObj(ctx, MprSsl, dummySslDestructor)) == 0) {
         return 0;
     }
-    ssl->ciphers = mprStrdup(ssl, MPR_DEFAULT_CIPHER_SUITE);
+    ssl->ciphers = sclone(ssl, MPR_DEFAULT_CIPHER_SUITE);
     ssl->protocols = MPR_PROTO_SSLV3 | MPR_PROTO_TLSV1;
     ssl->verifyDepth = 6;
     return ssl;
@@ -103,7 +103,7 @@ void mprSetSslCiphers(MprSsl *ssl, cchar *ciphers)
     mprAssert(ssl);
     
     mprFree(ssl->ciphers);
-    ssl->ciphers = mprStrdup(ssl, ciphers);
+    ssl->ciphers = sclone(ssl, ciphers);
 }
 
 
@@ -112,7 +112,7 @@ void mprSetSslKeyFile(MprSsl *ssl, cchar *keyFile)
     mprAssert(ssl);
     
     mprFree(ssl->keyFile);
-    ssl->keyFile = mprStrdup(ssl, keyFile);
+    ssl->keyFile = sclone(ssl, keyFile);
 }
 
 
@@ -121,7 +121,7 @@ void mprSetSslCertFile(MprSsl *ssl, cchar *certFile)
     mprAssert(ssl);
     
     mprFree(ssl->certFile);
-    ssl->certFile = mprStrdup(ssl, certFile);
+    ssl->certFile = sclone(ssl, certFile);
 }
 
 
@@ -130,7 +130,7 @@ void mprSetSslCaFile(MprSsl *ssl, cchar *caFile)
     mprAssert(ssl);
     
     mprFree(ssl->caFile);
-    ssl->caFile = mprStrdup(ssl, caFile);
+    ssl->caFile = sclone(ssl, caFile);
 }
 
 
@@ -139,7 +139,7 @@ void mprSetSslCaPath(MprSsl *ssl, cchar *caPath)
     mprAssert(ssl);
     
     mprFree(ssl->caPath);
-    ssl->caPath = mprStrdup(ssl, caPath);
+    ssl->caPath = sclone(ssl, caPath);
 }
 
 

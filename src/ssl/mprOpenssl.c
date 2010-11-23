@@ -47,10 +47,10 @@ static int      listenOss(MprSocket *sp, cchar *host, int port, int flags);
 static int      lockDestructor(void *ptr);
 static int      openSslDestructor(MprSsl *ssl);
 static int      openSslSocketDestructor(MprSslSocket *ssp);
-static int      readOss(MprSocket *sp, void *buf, int len);
+static size_t   readOss(MprSocket *sp, void *buf, size_t len);
 static RSA      *rsaCallback(SSL *ssl, int isExport, int keyLength);
 static int      verifyX509Certificate(int ok, X509_STORE_CTX *ctx);
-static int      writeOss(MprSocket *sp, void *buf, int len);
+static size_t   writeOss(MprSocket *sp, void *buf, size_t len);
 
 static DynLock  *sslCreateDynLock(const char *file, int line);
 static void     sslDynLock(int mode, DynLock *dl, const char *file, int line);
@@ -91,8 +91,8 @@ int mprCreateOpenSslModule(MprCtx ctx, bool lazy)
         Configure the global locks
      */
     numLocks = CRYPTO_num_locks();
-    locks = (MprMutex**) mprAllocBlock(mpr, numLocks * sizeof(MprMutex*), MPR_ALLOC_DESTRUCTOR);
-    mprUpdateDestructor(locks, lockDestructor);
+    locks = (MprMutex**) mprAllocBlock(mpr, numLocks * sizeof(MprMutex*), MPR_ALLOC_MANAGER);
+    mprSetManager(locks, (MprManager) lockDestructor);
     for (i = 0; i < numLocks; i++) {
         locks[i] = mprCreateLock(mpr);
     }
@@ -110,7 +110,7 @@ int mprCreateOpenSslModule(MprCtx ctx, bool lazy)
     SSL_library_init();
 
     if ((provider = createOpenSslProvider(mpr)) == 0) {
-        return MPR_ERR_NO_MEMORY;
+        return MPR_ERR_MEMORY;
     }
     mprSetSecureProvider(ss, provider);
     if (!lazy) {
@@ -191,10 +191,10 @@ static int configureOss(MprSsl *ssl)
     MprSocketService    *ss;
     MprSsl              *defaultSsl;
     SSL_CTX             *context;
+    uchar               resume[16];
 
     ss = mprGetMpr(ssl)->socketService;
-
-    mprUpdateDestructor(ssl, (MprDestructor) openSslDestructor);
+    mprSetManager(ssl, (MprManager) openSslDestructor);
 
     context = SSL_CTX_new(SSLv23_method());
     if (context == 0) {
@@ -205,6 +205,9 @@ static int configureOss(MprSsl *ssl)
     SSL_CTX_set_app_data(context, (void*) ssl);
     SSL_CTX_set_quiet_shutdown(context, 1);
     SSL_CTX_sess_set_cache_size(context, 512);
+
+    RAND_bytes(resume, sizeof(resume));
+    SSL_CTX_set_session_id_context(context, resume, sizeof(resume));
 
     /*
         Configure the certificates
@@ -288,10 +291,17 @@ static int configureOss(MprSsl *ssl)
     /*
         Select the required protocols
      */
+#if UNUSED && KEEP
     if (!(ssl->protocols & MPR_PROTO_SSLV2)) {
         SSL_CTX_set_options(context, SSL_OP_NO_SSLv2);
         mprLog(ssl, 4, "OpenSSL: Disabling SSLv2");
     }
+#else
+    /*
+        Disable SSLv2 by default -- it is insecure.
+     */
+    SSL_CTX_set_options(context, SSL_OP_NO_SSLv2);
+#endif
     if (!(ssl->protocols & MPR_PROTO_SSLV3)) {
         SSL_CTX_set_options(context, SSL_OP_NO_SSLv3);
         mprLog(ssl, 4, "OpenSSL: Disabling SSLv3");
@@ -307,7 +317,7 @@ static int configureOss(MprSsl *ssl)
     SSL_CTX_set_options(context, SSL_OP_SINGLE_DH_USE);
 
     if ((defaultSsl = getDefaultOpenSsl(ss)) == 0) {
-        return MPR_ERR_NO_MEMORY;
+        return MPR_ERR_MEMORY;
     }
     if (ssl != defaultSsl) {
         ssl->rsaKey512 = defaultSsl->rsaKey512;
@@ -316,7 +326,6 @@ static int configureOss(MprSsl *ssl)
         ssl->dhKey1024 = defaultSsl->dhKey1024;
     }
     ssl->context = context;
-
     return 0;
 }
 
@@ -363,8 +372,10 @@ static int configureCertificates(MprSsl *ssl, SSL_CTX *ctx, char *key, char *cer
     key = (key == 0) ? cert : key;
     if (key) {
         if (SSL_CTX_use_PrivateKey(ctx, key, SSL_FILETYPE_PEM) <= 0) {
-            mprError(ssl, "OpenSSL: Can't define private key file: %s", key); 
-            return -1;
+            if (SSL_CTX_use_PrivateKey_file(ctx, key, SSL_FILETYPE_ASN1) <= 0) {
+                mprError(ssl, "OpenSSL: Can't define private key file: %s", key); 
+                return -1;
+            }
         }
         if (!SSL_CTX_check_private_key(ctx)) {
             mprError(ssl, "OpenSSL: Check of private key file failed: %s", key);
@@ -621,7 +632,7 @@ static void disconnectOss(MprSocket *sp)
 /*
     Return the number of bytes read. Return -1 on errors and EOF
  */
-static int readOss(MprSocket *sp, void *buf, int len)
+static size_t readOss(MprSocket *sp, void *buf, size_t len)
 {
     MprSslSocket    *osp;
     int             rc, error, retries, i;
@@ -706,10 +717,11 @@ static int readOss(MprSocket *sp, void *buf, int len)
 /*
     Write data. Return the number of bytes written or -1 on errors.
  */
-static int writeOss(MprSocket *sp, void *buf, int len)
+static size_t writeOss(MprSocket *sp, void *buf, size_t len)
 {
     MprSslSocket    *osp;
-    int             rc, totalWritten;
+    size_t          totalWritten;
+    int             rc;
 
     lock(sp);
     osp = (MprSslSocket*) sp->sslSocket;
@@ -719,7 +731,6 @@ static int writeOss(MprSocket *sp, void *buf, int len)
         unlock(sp);
         return -1;
     }
-
     totalWritten = 0;
     ERR_clear_error();
 

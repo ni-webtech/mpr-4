@@ -33,11 +33,11 @@ MprFileSystem *mprCreateFileSystem(MprCtx ctx, cchar *path)
 #endif
 
 #if BLD_WIN_LIKE
-    fs->separators = mprStrdup(fs, "\\/");
-    fs->newline = mprStrdup(fs, "\r\n");
+    fs->separators = sclone(fs, "\\/");
+    fs->newline = sclone(fs, "\r\n");
 #else
-    fs->separators = mprStrdup(fs, "/");
-    fs->newline = mprStrdup(fs, "\n");
+    fs->separators = sclone(fs, "/");
+    fs->newline = sclone(fs, "\n");
 #endif
 
 #if BLD_WIN_LIKE || MACOSX
@@ -71,6 +71,7 @@ void mprAddFileSystem(MprCtx ctx, MprFileSystem *fs)
     mprAssert(ctx);
     mprAssert(fs);
     
+    //  TODO - this does not currently add a file system. It merely replaces the existing.
     mprGetMpr(ctx)->fileSystem = fs;
 }
 
@@ -120,7 +121,7 @@ void mprSetPathSeparators(MprCtx ctx, cchar *path, cchar *separators)
     
     fs = mprLookupFileSystem(ctx, path);
     mprFree(fs->separators);
-    fs->separators = mprStrdup(fs, separators);
+    fs->separators = sclone(fs, separators);
 }
 
 
@@ -134,7 +135,7 @@ void mprSetPathNewline(MprCtx ctx, cchar *path, cchar *newline)
     
     fs = mprLookupFileSystem(ctx, path);
     mprFree(fs->newline);
-    fs->newline = mprStrdup(fs, newline);
+    fs->newline = sclone(fs, newline);
 }
 
 

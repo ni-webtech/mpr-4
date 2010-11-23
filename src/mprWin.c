@@ -18,13 +18,13 @@ static cchar    *getHive(cchar *key, HKEY *root);
     Initialize the O/S platform layer
  */ 
 
-MprOsService *mprCreateOsService(MprCtx ctx)
+int mprCreateOsService()
 {
-    return mprAllocObj(ctx, MprOsService, NULL);
+    return 0;
 }
 
 
-int mprStartOsService(MprOsService *os)
+int mprStartOsService()
 {
     WSADATA     wsaData;
 
@@ -35,7 +35,7 @@ int mprStartOsService(MprOsService *os)
 }
 
 
-void mprStopOsService(MprOsService *os)
+void mprStopOsService()
 {
     WSACleanup();
 }
@@ -153,6 +153,7 @@ int mprReadRegistry(MprCtx ctx, char **buf, int max, cchar *key, cchar *name)
     value = (char*) mprAlloc(ctx, size);
     if ((int) size > max) {
         RegCloseKey(h);
+        mprAssert(!MPR_ERR_WONT_FIT);
         return MPR_ERR_WONT_FIT;
     }
     if (RegQueryValueEx(h, name, 0, &type, (uchar*) value, &size) != ERROR_SUCCESS) {
@@ -197,21 +198,22 @@ void mprSleep(MprCtx ctx, int milliseconds)
 }
 
 
-uni *mprToUni(MprCtx ctx, cchar* a)
+#if UNUSED
+uni *mprToUni(MprCtx ctx, cchar* a, int *len)
 {
     uni     *wstr;
-    int     len;
+    int     *len;
 
-    len = MultiByteToWideChar(CP_ACP, 0, a, -1, NULL, 0);
-    wstr = (uni*) mprAlloc(ctx, (len + 1) * sizeof(uni));
+    *len = MultiByteToWideChar(CP_ACP, 0, a, -1, NULL, 0);
+    wstr = (uni*) mprAlloc(ctx, (*len + 1) * sizeof(uni));
     if (wstr) {
-        MultiByteToWideChar(CP_ACP, 0, a, -1, wstr, len);
+        MultiByteToWideChar(CP_ACP, 0, a, -1, wstr, *len);
     }
     return wstr;
 }
 
 
-char *mprToAsc(MprCtx ctx, cuni *w)
+char *mprToMulti(MprCtx ctx, cuni *w)
 {
     char    *str;
     int     len;
@@ -222,6 +224,7 @@ char *mprToAsc(MprCtx ctx, cuni *w)
     }
     return str;
 }
+#endif
 
 
 void mprUnloadModule(MprModule *mp)
@@ -246,7 +249,7 @@ void mprWriteToOsLog(MprCtx ctx, cchar *message, int flags, int level)
     int         type;
     static int  once = 0;
 
-    mprStrcpy(buf, sizeof(buf), message);
+    scopy(buf, sizeof(buf), message);
     cp = &buf[strlen(buf) - 1];
     while (*cp == '\n' && cp > buf) {
         *cp-- = '\0';
@@ -267,7 +270,7 @@ void mprWriteToOsLog(MprCtx ctx, cchar *message, int flags, int level)
         if (RegCreateKeyEx(HKEY_LOCAL_MACHINE, logName, 0, NULL, 0, KEY_ALL_ACCESS, NULL, &hkey, &exists) == ERROR_SUCCESS) {
             value = "%SystemRoot%\\System32\\netmsg.dll";
             if (RegSetValueEx(hkey, "EventMessageFile", 0, REG_EXPAND_SZ, 
-                    (uchar*) value, (int) strlen(value) + 1) != ERROR_SUCCESS) {
+                    (uchar*) value, strlen(value) + 1) != ERROR_SUCCESS) {
                 RegCloseKey(hkey);
                 return;
             }
@@ -315,7 +318,7 @@ int mprWriteRegistry(MprCtx ctx, cchar *key, cchar *name, cchar *value)
         if (RegOpenKeyEx(top, key, 0, KEY_ALL_ACCESS, &h) != ERROR_SUCCESS) {
             return MPR_ERR_CANT_ACCESS;
         }
-        if (RegSetValueEx(h, name, 0, REG_SZ, value, (int) strlen(value) + 1) != ERROR_SUCCESS) {
+        if (RegSetValueEx(h, name, 0, REG_SZ, value, strlen(value) + 1) != ERROR_SUCCESS) {
             RegCloseKey(h);
             return MPR_ERR_CANT_READ;
         }
@@ -351,7 +354,7 @@ static cchar *getHive(cchar *keyPath, HKEY *hive)
 
     *hive = 0;
 
-    mprStrcpy(key, sizeof(key), keyPath);
+    scopy(key, sizeof(key), keyPath);
     key[sizeof(key) - 1] = '\0';
 
     if (cp = strchr(key, '\\')) {
@@ -374,7 +377,7 @@ static cchar *getHive(cchar *keyPath, HKEY *hive)
     if (*hive == 0) {
         return 0;
     }
-    len = (int) strlen(key) + 1;
+    len = strlen(key) + 1;
     return keyPath + len;
 }
 

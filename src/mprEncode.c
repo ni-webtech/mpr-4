@@ -139,7 +139,7 @@ char *mprUriDecode(MprCtx ctx, cchar *inbuf)
 
     mprAssert(inbuf);
 
-    if ((result = mprStrdup(ctx, inbuf)) == 0) {
+    if ((result = sclone(ctx, inbuf)) == 0) {
         return 0;
     }
 
@@ -290,7 +290,7 @@ cchar *mprLookupMimeType(MprCtx ctx, cchar *ext)
         return "";
     }
     if (mimeTable == 0) {
-        mimeTable = mprCreateHash(mprGetMpr(ctx), 67, 0);
+        mimeTable = mprCreateHash(mprGetMpr(ctx), 67, MPR_HASH_PERM_KEYS);
         for (cp = mimeTypes; cp[0]; cp += 2) {
             mprAddHash(mimeTable, cp[0], cp[1]);
         }

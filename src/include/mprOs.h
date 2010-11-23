@@ -39,6 +39,8 @@
 
 /********************************* O/S Includes *******************************/
 
+//  MOB -- restructure this entire file to common up the include section
+
 #if BLD_UNIX_LIKE && !VXWORKS && !MACOSX && !FREEBSD
     #include    <sys/types.h>
     #include    <time.h>
@@ -85,6 +87,7 @@
     #include    <sys/times.h>
     #include    <sys/utsname.h>
     #include    <sys/uio.h>
+    #include    <sys/un.h>
     #include    <sys/wait.h>
     #include    <unistd.h>
     #include    <wchar.h>
@@ -199,6 +202,7 @@
     #include    <sys/times.h>
     #include    <sys/types.h>
     #include    <sys/uio.h>
+    #include    <sys/un.h>
     #include    <sys/utsname.h>
     #include    <sys/wait.h>
     #include    <unistd.h>
@@ -249,6 +253,7 @@
     #include    <sys/time.h>
     #include    <sys/times.h>
     #include    <sys/types.h>
+    #include    <sys/un.h>
     #include    <sys/utsname.h>
     #include    <sys/wait.h>
     #include    <sys/mman.h>
@@ -344,7 +349,7 @@
 #endif
 
 /*
-    Standard const types used by the MPR
+    Standard types used by the MPR
  */
 typedef unsigned char uchar;
 typedef signed char schar;
@@ -352,8 +357,11 @@ typedef const char cchar;
 typedef const unsigned char cuchar;
 typedef const unsigned short cushort;
 typedef const void cvoid;
-typedef short uni;
-typedef const uni cuni;
+typedef int int32;
+typedef unsigned int uint32;
+//  MOB - put int64 here
+
+#define HAS_INT32 1
 
 #ifdef __cplusplus
 extern "C" {
@@ -377,6 +385,15 @@ extern "C" {
 #else
     #define MAXINT      0x7fffffff
 #endif
+
+#if SIZE_T_MAX
+    #define MAXSIZE     SIZE_T_MAX
+#elif MPR_64_BIT
+    #define MAXSIZE     INT64(0x7fffffffffffffff)
+#else
+    #define MAXSIZE     MAXINT
+#endif
+
 #endif
 #ifndef MAXINT64
     #define MAXINT64    INT64(0x7fffffffffffffff)

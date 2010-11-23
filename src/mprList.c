@@ -17,17 +17,17 @@
 /****************************** Forward Declarations **************************/
 
 static int growList(MprList *lp, int incr);
+static void manageList(MprList *lp, int flags);
 
 /************************************ Code ************************************/
 /*
     Create a general growable list structure. Use mprFree to destroy.
  */
-
 MprList *mprCreateList(MprCtx ctx)
 {
     MprList     *lp;
 
-    lp = mprAllocObj(ctx, MprList, NULL);
+    lp = mprAllocObj(ctx, MprList, manageList);
     if (lp == 0) {
         return 0;
     }
@@ -36,6 +36,14 @@ MprList *mprCreateList(MprCtx ctx)
     lp->maxSize = MAXINT;
     lp->items = 0;
     return lp;
+}
+
+
+static void manageList(MprList *lp, int flags)
+{
+    if (flags & MPR_MANAGE_MARK) {
+        mprMark(lp->items);
+    }
 }
 
 
@@ -67,10 +75,10 @@ int mprSetListLimits(MprList *lp, int initialSize, int maxSize)
     size = initialSize * sizeof(void*);
 
     if (lp->items == 0) {
-        lp->items = (void**) mprAllocCtx(lp, size);
+        lp->items = (void**) mprAlloc(NULL, size);
         if (lp->items == 0) {
             mprFree(lp);
-            return MPR_ERR_NO_MEMORY;
+            return MPR_ERR_MEMORY;
         }
         memset(lp->items, 0, size);
         lp->capacity = initialSize;
@@ -88,18 +96,18 @@ int mprCopyList(MprList *dest, MprList *src)
     mprClearList(dest);
 
     if (mprSetListLimits(dest, src->capacity, src->maxSize) < 0) {
-        return MPR_ERR_NO_MEMORY;
+        return MPR_ERR_MEMORY;
     }
     for (next = 0; (item = mprGetNextItem(src, &next)) != 0; ) {
         if (mprAddItem(dest, item) < 0) {
-            return MPR_ERR_NO_MEMORY;
+            return MPR_ERR_MEMORY;
         }
     }
     return 0;
 }
 
 
-MprList *mprDupList(MprCtx ctx, MprList *src)
+MprList *mprCloneList(MprCtx ctx, MprList *src)
 {
     MprList     *list;
 
@@ -251,7 +259,7 @@ int mprRemoveLastItem(MprList *lp)
     mprAssert(lp->length > 0);
 
     if (lp->length <= 0) {
-        return MPR_ERR_NOT_FOUND;
+        return MPR_ERR_CANT_FIND;
     }
     return mprRemoveItemAtPos(lp, lp->length - 1);
 }
@@ -272,7 +280,7 @@ int mprRemoveItemAtPos(MprList *lp, int index)
     mprAssert(lp->length > 0);
 
     if (index < 0 || index >= lp->length) {
-        return MPR_ERR_NOT_FOUND;
+        return MPR_ERR_CANT_FIND;
     }
     items = lp->items;
     for (i = index; i < (lp->length - 1); i++) {
@@ -298,10 +306,10 @@ int mprRemoveRangeOfItems(MprList *lp, int start, int end)
     mprAssert(start > end);
 
     if (start < 0 || start >= lp->length) {
-        return MPR_ERR_NOT_FOUND;
+        return MPR_ERR_CANT_FIND;
     }
     if (end < 0 || end >= lp->length) {
-        return MPR_ERR_NOT_FOUND;
+        return MPR_ERR_CANT_FIND;
     }
     if (start > end) {
         return MPR_ERR_BAD_ARGS;
@@ -473,7 +481,7 @@ int mprLookupItem(MprList *lp, cvoid *item)
             return i;
         }
     }
-    return MPR_ERR_NOT_FOUND;
+    return MPR_ERR_CANT_FIND;
 }
 
 
@@ -507,15 +515,8 @@ static int growList(MprList *lp, int incr)
     }
     memsize = len * sizeof(void*);
 
-#if MEMZZ
-    /*
-        Grow the list of items. Use the existing context for lp->items if it already exists. Otherwise use the list as the
-        memory context owner.
-     */
-    lp->items = (void**) mprRealloc((lp->items) ? mprGetParent(lp->items): lp, lp->items, memsize);
-#else
-    lp->items = (void**) mprRealloc(lp, lp->items, memsize);
-#endif
+    //  MOB -- temp workaround for ejsNamespace that has a static list
+    lp->items = mprRealloc(/* lp */ NULL, lp->items, memsize);
 
     /*
         Zero the new portion (required for no-compact lists)
@@ -540,9 +541,22 @@ MprKeyValue *mprCreateKeyPair(MprCtx ctx, cchar *key, cchar *value)
     if (pair == 0) {
         return 0;
     }
-    pair->key = mprStrdup(pair, key);
-    pair->value = mprStrdup(pair, value);
+    pair->key = sclone(pair, key);
+    pair->value = sclone(pair, value);
     return pair;
+}
+
+
+void mprMarkList(MprList *lp)
+{
+    int     i;
+
+    if (lp) {
+        for (i = 0; i < lp->length; i++) {
+            mprMark(lp->items[i]);
+        }
+        mprMark(lp);
+    }
 }
 
 

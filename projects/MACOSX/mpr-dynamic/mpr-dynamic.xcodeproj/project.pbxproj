@@ -48,7 +48,6 @@
 		C90A1A580FD6DD4C006A9E86 /* mprTest.c in Sources */ = {isa = PBXBuildFile; fileRef = C90A1A330FD6DD4C006A9E86 /* mprTest.c */; };
 		C90A1A590FD6DD4C006A9E86 /* mprThread.c in Sources */ = {isa = PBXBuildFile; fileRef = C90A1A340FD6DD4C006A9E86 /* mprThread.c */; };
 		C90A1A5A0FD6DD4C006A9E86 /* mprTime.c in Sources */ = {isa = PBXBuildFile; fileRef = C90A1A350FD6DD4C006A9E86 /* mprTime.c */; };
-		C90A1A5B0FD6DD4C006A9E86 /* mprUnicode.c in Sources */ = {isa = PBXBuildFile; fileRef = C90A1A360FD6DD4C006A9E86 /* mprUnicode.c */; };
 		C90A1A5C0FD6DD4C006A9E86 /* mprUnix.c in Sources */ = {isa = PBXBuildFile; fileRef = C90A1A370FD6DD4C006A9E86 /* mprUnix.c */; };
 		C90A1A5E0FD6DD4C006A9E86 /* mprVxworks.c in Sources */ = {isa = PBXBuildFile; fileRef = C90A1A390FD6DD4C006A9E86 /* mprVxworks.c */; };
 		C90A1A5F0FD6DD4C006A9E86 /* mprWait.c in Sources */ = {isa = PBXBuildFile; fileRef = C90A1A3A0FD6DD4C006A9E86 /* mprWait.c */; };
@@ -163,7 +162,6 @@
 		C90A1A330FD6DD4C006A9E86 /* mprTest.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; name = mprTest.c; path = ../../../src/mprTest.c; sourceTree = SOURCE_ROOT; };
 		C90A1A340FD6DD4C006A9E86 /* mprThread.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; name = mprThread.c; path = ../../../src/mprThread.c; sourceTree = SOURCE_ROOT; };
 		C90A1A350FD6DD4C006A9E86 /* mprTime.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; name = mprTime.c; path = ../../../src/mprTime.c; sourceTree = SOURCE_ROOT; };
-		C90A1A360FD6DD4C006A9E86 /* mprUnicode.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; name = mprUnicode.c; path = ../../../src/mprUnicode.c; sourceTree = SOURCE_ROOT; };
 		C90A1A370FD6DD4C006A9E86 /* mprUnix.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; name = mprUnix.c; path = ../../../src/mprUnix.c; sourceTree = SOURCE_ROOT; };
 		C90A1A390FD6DD4C006A9E86 /* mprVxworks.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; name = mprVxworks.c; path = ../../../src/mprVxworks.c; sourceTree = SOURCE_ROOT; };
 		C90A1A3A0FD6DD4C006A9E86 /* mprWait.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; name = mprWait.c; path = ../../../src/mprWait.c; sourceTree = SOURCE_ROOT; };
@@ -313,7 +311,6 @@
 				C90A1A330FD6DD4C006A9E86 /* mprTest.c */,
 				C90A1A340FD6DD4C006A9E86 /* mprThread.c */,
 				C90A1A350FD6DD4C006A9E86 /* mprTime.c */,
-				C90A1A360FD6DD4C006A9E86 /* mprUnicode.c */,
 				C90A1A370FD6DD4C006A9E86 /* mprUnix.c */,
 				C90A1A390FD6DD4C006A9E86 /* mprVxworks.c */,
 				C90A1A3A0FD6DD4C006A9E86 /* mprWait.c */,
@@ -499,7 +496,14 @@
 			isa = PBXProject;
 			buildConfigurationList = C90A19DF0FD6DC5E006A9E86 /* Build configuration list for PBXProject "mpr-dynamic" */;
 			compatibilityVersion = "Xcode 2.4";
+			developmentRegion = English;
 			hasScannedForEncodings = 0;
+			knownRegions = (
+				English,
+				Japanese,
+				French,
+				German,
+			);
 			mainGroup = C90A19DA0FD6DC5E006A9E86;
 			productRefGroup = C90A19EF0FD6DCAD006A9E86 /* Products */;
 			projectDirPath = "";
@@ -543,7 +547,6 @@
 				C90A1A580FD6DD4C006A9E86 /* mprTest.c in Sources */,
 				C90A1A590FD6DD4C006A9E86 /* mprThread.c in Sources */,
 				C90A1A5A0FD6DD4C006A9E86 /* mprTime.c in Sources */,
-				C90A1A5B0FD6DD4C006A9E86 /* mprUnicode.c in Sources */,
 				C90A1A5C0FD6DD4C006A9E86 /* mprUnix.c in Sources */,
 				C90A1A5E0FD6DD4C006A9E86 /* mprVxworks.c in Sources */,
 				C90A1A5F0FD6DD4C006A9E86 /* mprWait.c in Sources */,

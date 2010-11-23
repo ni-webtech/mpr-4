@@ -151,11 +151,11 @@ int mprRandom()
 
 char *mprDecode64(MprCtx ctx, cchar *s)
 {
-    uint        bitBuf;
-    char        *buffer, *bp;
-    int         len, c, i, j, shift;
+    uint    bitBuf;
+    char    *buffer, *bp;
+    int     len, c, i, j, shift;
 
-    len = (int) strlen(s);
+    len = strlen(s);
     if ((buffer = mprAlloc(ctx, len + 1)) == 0) {
         return NULL;
     }
@@ -190,7 +190,7 @@ char *mprEncode64(MprCtx ctx, cchar *s)
     char    *buffer, *bp;
     int     len, x, i, j, shift;
 
-    len = (int) strlen(s) * 2;
+    len = strlen(s) * 2;
     if ((buffer = mprAlloc(ctx, len + 1)) == 0) {
         return NULL;
     }
@@ -219,7 +219,7 @@ char *mprEncode64(MprCtx ctx, cchar *s)
 /*
     Return the MD5 hash of a block
  */
-char *mprGetMD5Hash(MprCtx ctx, cchar *buf, int length, cchar *prefix)
+char *mprGetMD5Hash(MprCtx ctx, cchar *buf, size_t length, cchar *prefix)
 {
     MD5CONTEXT      context;
     uchar           hash[CRYPT_HASH_SIZE];
@@ -229,7 +229,7 @@ char *mprGetMD5Hash(MprCtx ctx, cchar *buf, int length, cchar *prefix)
     int             i, len;
 
     /*
-     *  Take the MD5 hash of the string argument.
+        Take the MD5 hash of the string argument.
      */
     initMD5(&context);
     update(&context, (uchar*) buf, (uint) length);
@@ -241,7 +241,7 @@ char *mprGetMD5Hash(MprCtx ctx, cchar *buf, int length, cchar *prefix)
     }
     *r = '\0';
 
-    len = (prefix) ? (int) strlen(prefix) : 0;
+    len = (prefix) ? strlen(prefix) : 0;
     str = (char*) mprAlloc(ctx, sizeof(result) + len);
     if (str) {
         if (prefix) {
@@ -261,7 +261,7 @@ static void initMD5(MD5CONTEXT *context)
     context->count[0] = context->count[1] = 0;
 
     /*
-     *  Load constants
+        Load constants
      */
     context->state[0] = 0x67452301;
     context->state[1] = 0xefcdab89;
