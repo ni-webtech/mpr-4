@@ -17,4 +17,4 @@ include		build/make/Makefile.top
 include		build/make/Makefile.mpr
 
 diff import sync:
-	$(BLD_TOOLS_DIR)/import.sh --$@ ../tools/releases/tools-dist.tgz
+	$(BLD_TOOLS_DIR)/import.sh --$@ ../tools/out/releases/tools-dist.tgz

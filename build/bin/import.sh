@@ -173,6 +173,10 @@ if [ "$#" -ne 1 ] ; then
     exit 2
 fi
 
+if [ "`git branch | grep master`" != "* master" ] ; then 
+    echo "Sync only in default branch" 
+    echo 255 
+fi
 DIR=`getpath -a "."`
 ARCHIVE=`getpath -a "$1"`
 
