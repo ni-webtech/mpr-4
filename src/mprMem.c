@@ -66,8 +66,8 @@ static int stopSeqno = -1;
     #define INC(field)
 #endif
 
-#define lockHeap()              mprSpinLock(&heap->spin);
-#define unlockHeap()            mprSpinUnlock(&heap->spin);
+#define lockHeap()              mprSpinLock(&heap->heapLock);
+#define unlockHeap()            mprSpinUnlock(&heap->heapLock);
 
 #define percent(a,b) ((int) ((a) * 100 / (b)))
 
@@ -101,9 +101,10 @@ static void checkGarbage();
 static void deq(MprFreeMem *fp);
 static void enq(MprFreeMem *head, MprFreeMem *fp);
 static void freeBlock(MprMem *mp);
-static MprMem *growHeap(size_t size);
+static void *getNextRoot(int *indexp);
 static int getQueueIndex(size_t size, int roundup);
 static void getSystemInfo();
+static MprMem *growHeap(size_t size);
 static int initFree();
 static void initGen();
 static void linkFreeBlock(MprMem *mp); 
@@ -163,7 +164,7 @@ Mpr *mprCreateMemService(MprMemNotifier cback, MprManager manager)
     memset(heap, 0, sizeof(MprHeap));
     heap->stats.maxMemory = MAXINT;
     heap->stats.redLine = MAXINT / 100 * 99;
-    mprInitSpinLock(heap, &heap->spin);
+    mprInitSpinLock(heap, &heap->heapLock);
 
     /*
         Hand-craft the Mpr structure this include the MprRegion and MprMem headers
@@ -203,16 +204,14 @@ Mpr *mprCreateMemService(MprMemNotifier cback, MprManager manager)
     heap->enabled = 0;
 
     heap->stats.bytesAllocated += size;
-    mprInitSpinLock(heap, &heap->spin);
+    mprInitSpinLock(heap, &heap->heapLock);
+    mprInitSpinLock(heap, &heap->rootLock);
     getSystemInfo();
 
     initFree();
     initGen();
     linkFreeBlock(spare);
 
-#if UNUSED
-    heap->cond = mprCreateCond(heap);
-#endif
     heap->roots = mprCreateList(MPR);
     mprAddRoot(MPR);
     return MPR;
@@ -303,6 +302,9 @@ void mprFree(void *ptr)
 checkPrior(mp);
         CHECK(mp);
         mprAssert(!mp->free);
+        if (unlikely(mp->isRoot)) {
+            mprRemoveRoot(mp);
+        }
         if (unlikely(mp->hasManager)) {
 // printf("FREE CALL MANAGER %d %s\n", mp->seqno, basename((char*) mp->name));
             GET_MANAGER(mp)(GET_PTR(mp), MPR_MANAGE_FREE);
@@ -563,7 +565,9 @@ static void initGen()
     heap->active = heap->eternal - 1;
     heap->stale = heap->active - 1;
     heap->dead = heap->stale - 1;
+#if UNUSED
     heap->mark = heap->active + 1;
+#endif
 }
 
 
@@ -575,7 +579,9 @@ static void nextGen()
     heap->active = active;
     heap->stale = (active - 1 + MPR_MAX_GEN) % MPR_MAX_GEN;
     heap->dead = (active - 2 + MPR_MAX_GEN) % MPR_MAX_GEN;
+#if UNUSED
     heap->mark = active + 1;
+#endif
 }
 
 
@@ -737,6 +743,7 @@ static void linkFreeBlock(MprMem *mp)
     mp->dynamic = 0;
     mp->visited = 0;
     mp->builtin = 0;
+    mp->isRoot = 0;
 
     mp->free = 1;
     mp->gen = heap->eternal;
@@ -1409,8 +1416,7 @@ static void startMemWorkers()
 
 
 /*
-    Initiate a garbage collection. This can be called by any thread. If GC workers are configured, the call may return
-    before GC has completed.
+    Initiate a garbage collection. This can be called by any thread and will block until GC is complete.
  */
 void mprCollectGarbage()
 {
@@ -1427,11 +1433,7 @@ void mprCollectGarbage()
     mark();
 #else
     startMemWorkers();
-#if UNUSED
-    if (heap->cond) {
-        mprSignalCond(heap->cond);
-    }
-#endif
+    /* Wait for GC sync */
     mprYieldThread(NULL);
 #endif
 }
@@ -1450,11 +1452,9 @@ static void checkGarbage()
  */
 int mprIsTimeForGC(int timeTillNextEvent)
 {
-    //  MOB -- but what if GC already running
-    if (timeTillNextEvent < MPR_MIN_TIME_FOR_GC) {
+    if (heap->collecting || timeTillNextEvent < MPR_MIN_TIME_FOR_GC) {
         return 0;
     }
-    //  MOB - newCount is never incremented
     if (!heap->enabled || heap->newCount < heap->newQuota || heap->stats.bytesFree < MPR_GC_LOW_MEM) {
         return 0;
     }
@@ -1471,6 +1471,9 @@ int mprIsTimeForGC(int timeTillNextEvent)
 static void synchronize()
 {
     heap->mustYield = 1;
+    if (heap->notifier) {
+        (heap->notifier)(MPR_ALLOC_GC, 0);
+    }
     //  MOB - Need proper timeout here - should be short
     if (mprPauseForGCSync(120 * 1000)) {
         nextGen();
@@ -1493,6 +1496,8 @@ static void mark()
         sweep();
     }
     synchronize();
+    printf("GC Complete: MARKED %d/%d, SWEPT %d/%d\n", heap->stats.marked, heap->stats.markVisited, 
+        heap->stats.swept, heap->stats.sweepVisited);
     mprResumeThread(NULL);
     heap->collecting = 0;
 }
@@ -1518,38 +1523,41 @@ static void sweep()
                 INC(swept);
                 if (unlikely(mp->hasManager)) {
                     //  TODO OPT - would be good to have a separate bit for free required
-printf("SWEEP seqno %d, %s CALL MANAGER()\n", mp->seqno, basename((char*) mp->name));
+// printf("SWEEP seqno %d, %s CALL MANAGER()\n", mp->seqno, basename((char*) mp->name));
                     GET_MANAGER(mp)(GET_PTR(mp), MPR_MANAGE_FREE);
                 } else {
-printf("SWEEP seqno %d, %s\n", mp->seqno, basename((char*) mp->name));
+// printf("SWEEP seqno %d, %s\n", mp->seqno, basename((char*) mp->name));
                 }
-#if FUTURE
-                //  MOB - if required, could allow managers to re-activate blocks by calling mprKeep(ptr)
-                //  This could set mp->gen and then test here if gen == dead and only free if so.
+#if UNUSED || 1
                 freeBlock(mp);
 #else
                 RESET_MEM(mp);
+                mp->free = 1;
+                mp->gen = heap->eternal;
+                mp->hasManager = 0;
 #endif
             }
         }
     }
-    printf("MARKED %d/%d, SWEPT %d/%d\n", heap->stats.marked, heap->stats.markVisited, 
-        heap->stats.swept, heap->stats.sweepVisited);
 }
 
 
 static void markRoots()
 {
     void    *root;
-    int     index;
+    int     index, scans;
 
     heap->stats.markVisited = 0;
     heap->stats.marked = 0;
+    heap->rescanRoots = 0;
 
+    scans = 0;
+    do {
+        for (index = 0; (root = getNextRoot(&index)) != 0; ) {
+            mprMark(root);
+        }
+    } while (heap->rescanRoots && ++scans < 2);
     mprMark(heap->roots);
-    for (index = 0; (root = mprGetNextItem(heap->roots, &index)) != 0; ) {
-        mprMark(root);
-    }
 }
 
 
@@ -1562,29 +1570,31 @@ void mprMarkBlock(cvoid *ptr)
     CHECK(mp);
     INC(markVisited);
 
-    if (mp->mark != heap->mark) {
+    if (mp->mark != heap->active) {
         BREAKPOINT(mp);
         INC(marked);
-        mp->mark = heap->mark;
+        mp->mark = heap->active;
         mprAssert(mp->gen != heap->dead);
         mp->gen = heap->active;
         if (mp->hasManager) {
-            mprAssert(mp->seqno != -1);
             (GET_MANAGER(mp))((void*) ptr, MPR_MANAGE_MARK);
         }
     }
 }
 
 
+#if UNUSED
 void mprEternalize(void *ptr)
 {
     MprMem  *mp;
     int     save;
 
     if (ptr) {
+        mprPrintMemReport("Before Eternalize", 0);
         mp = GET_MEM(ptr);
         checkPrior(mp);
         CHECK(mp);
+        heap->stats.marked = 0;
 
         if (mp->hasManager) {
             lockHeap();
@@ -1593,10 +1603,40 @@ void mprEternalize(void *ptr)
                 mprYieldThread(NULL);
                 lockHeap();
             }
-            save = heap->mark;
-            heap->mark = heap->eternal;
+            save = heap->active;
+            heap->active = heap->eternal;
             mprMarkBlock(ptr);
-            heap->mark = save;
+            heap->active = save;
+            unlockHeap();
+        } else {
+            mp->gen = heap->eternal;
+        }
+        printf("Eternalize Complete: Eternalized %d\n", heap->stats.marked);
+        mprPrintMemReport("Eternalized", 0);
+    }
+}
+#endif
+
+
+void mprHold(void *ptr)
+{
+    MprMem  *mp;
+    int     save;
+
+    if (ptr) {
+        mp = GET_MEM(ptr);
+        CHECK(mp);
+        if (mp->hasManager) {
+            lockHeap();
+            while (heap->collecting) {
+                unlockHeap();
+                mprYieldThread(NULL);
+                lockHeap();
+            }
+            save = heap->active;
+            heap->active = heap->eternal;
+            mprMarkBlock(ptr);
+            heap->active = save;
             unlockHeap();
         } else {
             mp->gen = heap->eternal;
@@ -1605,6 +1645,34 @@ void mprEternalize(void *ptr)
 }
 
 
+void mprRelease(void *ptr)
+{
+    MprMem  *mp;
+    int     save;
+
+    if (ptr) {
+        mp = GET_MEM(ptr);
+        CHECK(mp);
+        if (mp->hasManager) {
+            lockHeap();
+            while (heap->collecting) {
+                unlockHeap();
+                mprYieldThread(NULL);
+                lockHeap();
+            }
+            save = heap->active;
+            heap->active = heap->eternal;
+            mprMarkBlock(ptr);
+            heap->active = save;
+            unlockHeap();
+        } else {
+            mp->gen = heap->eternal;
+        }
+    }
+}
+
+
+#if UNUSED
 void mprHold(void *ptr)
 {
     if (ptr) {
@@ -1619,6 +1687,7 @@ void mprRelease(void *ptr)
         GET_MEM(ptr)->gen = heap->active;
     }
 }
+#endif
 
 
 #if MPR_GC_WORKERS >= 1
@@ -1633,6 +1702,7 @@ static void marker(void *unused, MprWorker *worker)
 static void sweeper(void *unused, MprWorker *worker) 
 {
     sweep();
+    /* Sync with marker */
     mprYieldThread(NULL);
     mprResumeThread(NULL);
 }
@@ -1649,23 +1719,39 @@ bool mprEnableGC(bool on)
 }
 
 
-int mprGCPending()
+int mprGCSyncup()
 {
     return heap->mustYield;
 }
 
 
-//  MOB - can't use lockHeap, but this causes races with the marker
-void mprAddRoot(void *ptr)
+void mprAddRoot(void *root)
 {
-    mprAddItem(heap->roots, ptr);
+    mprSpinLock(&heap->rootLock);
+    mprAddItem(heap->roots, root);
+    GET_MEM(root)->isRoot = 1;
+    mprSpinUnlock(&heap->rootLock);
 }
 
 
-//  MOB - can't use lockHeap, but this causes races with the marker
-void mprRemoveRoot(void *ptr)
+void mprRemoveRoot(void *root)
 {
-    mprRemoveItem(heap->roots, ptr);
+    mprSpinLock(&heap->rootLock);
+    mprRemoveItem(heap->roots, root);
+    heap->rescanRoots = 1;
+    GET_MEM(root)->isRoot = 0;
+    mprSpinUnlock(&heap->rootLock);
+}
+
+
+static void *getNextRoot(int *indexp)
+{
+    void    *root;
+
+    mprSpinLock(&heap->rootLock);
+    root = mprGetNextItem(heap->roots, indexp);
+    mprSpinUnlock(&heap->rootLock);
+    return root;
 }
 
 

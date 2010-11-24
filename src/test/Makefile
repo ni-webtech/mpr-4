@@ -39,6 +39,9 @@ testExtra:
 	fi
 endif
 
+testFinal:
+	killall testMpr >/dev/null 2>&1 ; true
+
 leakTestExtra:
 	if type valgrind >/dev/null 2>/dev/null ; then \
 		$(call log) "[Run]" "Memory leak tests" ; \

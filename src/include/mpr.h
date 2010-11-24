@@ -539,16 +539,19 @@ extern void mprGlobalUnlock(MprAny any);
 typedef struct MprMem {
     struct MprMem   *prior;                     /**< Size of block prior to this block in memory */
     size_t          size       : MPR_SIZE_BITS; /**< Internal block length including header (max size 32MB on 32 bit) */
-//EJS
-    uint            builtin    : 1;             /**< Part of core. Just for Ejscript */
-//EJS
-    uint            dynamic    : 1;             /**< Object may be modified. Just for Ejscript */
     uint            free       : 1;             /**< Block is free */
     uint            gen        : 2;             /**< Allocation generation for block */
     uint            hasManager : 1;             /**< Block has a manager function */
+    uint            isRoot     : 1;             /**< Block is a root */
     uint            last       : 1;             /**< Block is last in memory region chunk */
     uint            mark       : 2;             /**< Inuse mark */
-//EJS
+
+    /*
+        Ejscript
+     */
+    //  MOB - just for Ejscript - remove somehow
+    uint            builtin    : 1;             /**< Part of core. Just for Ejscript */
+    uint            dynamic    : 1;             /**< Object may be modified. Just for Ejscript */
     uint            visited    : 1;             /**< Has been traversed. Not used by MprMem - provided for upper layers */
 #if BLD_MEMORY_DEBUG
     uint            magic;                      /* Unique signature */
@@ -720,10 +723,8 @@ typedef struct MprHeap {
     MprMemStats     stats;
     MprMemCollect   collect;                /**< Memory garbage collection due */
     MprMemNotifier  notifier;               /**< Memory allocation failure callback */
-#if UNUSED
-    MprCond         *cond;                  /**< Thread sync for when GC required */
-#endif
-    MprSpin         spin;                   /**< Thread locking */
+    MprSpin         heapLock;               /**< Heap allocation lock */
+    MprSpin         rootLock;               /**< Root locking */
     MprRegion       *regions;               /**< List of memory regions */
     int             eternal;                /**< Eternal generation (permanent and dead blocks) */
     int             dead;                   /**< Dead generation (blocks about to be freed) */
@@ -736,16 +737,12 @@ typedef struct MprHeap {
     int             enabled;                /**< GC is enabled */
     int             hasError;               /**< Memory allocation error */
     int             hasSweeper;             /**< Has dedicated sweeper thread */
-    int             mark;                   /**< Marker for inuse blocks */
     int             mustYield;              /**< Threads must yield for GC which is due */
     int             nextSeqno;              /**< Next sequence number */
     int             newCount;               /**< Count of new gen allocations */
     int             newQuota;               /**< Quota of new allocations before idle GC worthwhile */
     uint            pageSize;               /**< System page size */
-#if UNUSED
-    int             requireGC;              /**< Garbage collection is now required */
-    int             sweeperActive;          /**< Sweeper thread sweeping for free blocks */
-#endif
+    uint            rescanRoots;            /**< Root set has changed. Must rescan */
 } MprHeap;
 
 
@@ -1113,8 +1110,16 @@ extern void mprMark(void* ptr);
 #define mprMark(ptr) if (ptr) { mprMarkBlock(ptr); } else
 #endif
 
-#if UNUSED
-extern void mprRequireGC();
+#if FUTURE
+#define void mprMark(cvoid *ptr) if (ptr) { \
+    MprMem *mp = MPR_GET_MEM(ptr);
+    if (mp->mark != HEAP->active) {
+        mp->gen = mp->mark = HEAP->active;
+        if (mp->hasManager) {
+            ((MprManager)(((char*) (mp)) + mp->size - sizeof(void*)))(ptr, MPR_MANAGE_MARK);
+        }
+    }
+} else {
 #endif
 
 //  MOB - put all internal APIs like this in the file.
@@ -1126,7 +1131,7 @@ extern int  mprCreateGCService();
 extern void mprDestroyGCService();
 extern int  mprIsTimeForGC(int timeTillNextEvent);
 extern void mprMarkBlock(cvoid *ptr);
-extern int  mprGCPending();
+extern int  mprGCSyncup();
 extern int  mprPauseForGCSync(int timeout);
 extern void mprResumeThreadsAfterGC();
 

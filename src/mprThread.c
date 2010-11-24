@@ -81,7 +81,7 @@ bool mprStopThreadService(MprThreadService *ts, int timeout)
 
 
 /*
-    Called by worker thread code to signify that it is safe for GC. If GC is pending, this call will block at
+    Called by thread code to signify that it is safe for GC. If the GC marker is synchronizing, this call will block at 
     the GC sync point (should be brief).
  */
 void mprYieldThread(MprThread *tp)
@@ -90,9 +90,8 @@ void mprYieldThread(MprThread *tp)
         tp = mprGetCurrentThread(NULL);
     }
     tp->yielded = 1;
-    //  MOB -- who is this signalling?
     mprSignalCond(mprGetMpr()->threadService->cond);
-    while (tp->yielded && mprGCPending()) {
+    while (tp->yielded && mprGCSyncup()) {
         mprWaitForCond(tp->cond, -1);
     }
 }
@@ -111,6 +110,9 @@ void mprResumeThread(MprThread *tp)
 }
 
 
+/*
+    Pause until all threads have yielded. Called by the GC marker only.
+ */
 int mprPauseForGCSync(int timeout)
 {
     MprThreadService    *ts;
@@ -142,6 +144,9 @@ int mprPauseForGCSync(int timeout)
 }
 
 
+/*
+    Resume all threads. Called by the GC marker only.
+ */
 void mprResumeThreadsAfterGC()
 {
     MprThreadService    *ts;

@@ -235,6 +235,9 @@ int mprServiceEvents(MprCtx ctx, MprDispatcher *dispatcher, int timeout, int fla
         lock(es);
         if (delay > 0) {
             if (es->eventCount == eventCount && isIdle(es, dispatcher)) {
+                /*
+                    Allow GC sync at this point
+                 */
                 mprYieldThread(NULL);
                 if (es->waiting) {
                     unlock(es);
