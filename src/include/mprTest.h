@@ -84,7 +84,7 @@ typedef struct MprTestService {
     MprMutex        *mutex;                 /* Multi-thread sync */
 } MprTestService;
 
-extern MprTestService *mprCreateTestService(MprCtx ctx);
+extern MprTestService *mprCreateTestService();
 extern int          mprParseTestArgs(MprTestService *ts, int argc, char **argv);
 extern int          mprRunTests(MprTestService *sp);
 extern void         mprReportTestResults(MprTestService *sp);
@@ -120,7 +120,6 @@ typedef struct MprTestGroup {
     char            *content;               /* Cached response content */
 
     void            *data;                  /* Test specific data */
-    MprCtx          ctx;                    /* Memory context for unit tests to use */
     int             hasInternet;            /* Convenience flag for internet available for use */
     MprMutex        *mutex;                 /* Multi-thread sync */
 } MprTestGroup;

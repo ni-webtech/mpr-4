@@ -36,11 +36,11 @@ MprCmdService *mprCreateCmdService(Mpr *mpr)
 {
     MprCmdService   *cs;
 
-    if ((cs = (MprCmdService*) mprAllocObj(mpr, MprCmd, manageCmdService)) == 0) {
+    if ((cs = (MprCmdService*) mprAllocObj(MprCmd, manageCmdService)) == 0) {
         return 0;
     }
-    cs->cmds = mprCreateList(cs);
-    cs->mutex = mprCreateLock(cs);
+    cs->cmds = mprCreateList();
+    cs->mutex = mprCreateLock();
     return cs;
 }
 
@@ -57,21 +57,21 @@ static void manageCmdService(MprCmdService *cs, int flags)
 /*
     Create a new command object
  */
-MprCmd *mprCreateCmd(MprCtx ctx, MprDispatcher *dispatcher)
+MprCmd *mprCreateCmd(MprDispatcher *dispatcher)
 {
     MprCmdService   *cs;
     MprCmd          *cmd;
     MprCmdFile      *files;
     int             i;
     
-    cmd = mprAllocObj(ctx, MprCmd, manageCmd);
+    cmd = mprAllocObj(MprCmd, manageCmd);
     if (cmd == 0) {
         return 0;
     }
     cmd->timeoutPeriod = MPR_TIMEOUT_CMD;
     cmd->timestamp = mprGetTime(cmd);
     cmd->forkCallback = (MprForkCallback) closeFiles;
-    cmd->dispatcher = dispatcher ? dispatcher : mprGetDispatcher(ctx);
+    cmd->dispatcher = dispatcher ? dispatcher : mprGetDispatcher();
     mprAssert(cmd->dispatcher);
 
 #if VXWORKS
@@ -84,7 +84,7 @@ MprCmd *mprCreateCmd(MprCtx ctx, MprDispatcher *dispatcher)
         files[i].fd = -1;
     }
     cmd->mutex = mprCreateLock(cmd);
-    cs = mprGetMpr(ctx)->cmdService;
+    cs = mprGetMpr()->cmdService;
     mprLock(cs->mutex);
     mprAddItem(cs->cmds, cmd);
     mprUnlock(cs->mutex);
@@ -112,7 +112,7 @@ static void manageCmd(MprCmd *cmd, int flags)
 #if VXWORKS
         vxCmdManager(cmd);
 #endif
-        cs = mprGetMpr(ctx)->cmdService;
+        cs = mprGetMpr()->cmdService;
         mprLock(cs->mutex);
         mprAddItem(cs->cmds, cmd);
         mprUnlock(cs->mutex);
@@ -235,7 +235,7 @@ int mprRunCmd(MprCmd *cmd, cchar *command, char **out, char **err, int flags)
     char    **argv;
     int     argc;
 
-    if (mprMakeArgv(cmd, NULL, command, &argc, &argv) < 0 || argv == 0) {
+    if (mprMakeArgv(NULL, command, &argc, &argv) < 0 || argv == 0) {
         return 0;
     }
     return mprRunCmdV(cmd, argc, argv, out, err, flags);
@@ -269,11 +269,11 @@ int mprRunCmdV(MprCmd *cmd, int argc, char **argv, char **out, char **err, int f
 
     if (flags & MPR_CMD_OUT) {
         mprFree(cmd->stdoutBuf);
-        cmd->stdoutBuf = mprCreateBuf(cmd, MPR_BUFSIZE, -1);
+        cmd->stdoutBuf = mprCreateBuf(MPR_BUFSIZE, -1);
     }
     if (flags & MPR_CMD_ERR) {
         mprFree(cmd->stderrBuf);
-        cmd->stderrBuf = mprCreateBuf(cmd, MPR_BUFSIZE, -1);
+        cmd->stderrBuf = mprCreateBuf(MPR_BUFSIZE, -1);
     }
     mprSetCmdCallback(cmd, cmdCallback, NULL);
     lock(cmd);
@@ -290,11 +290,11 @@ int mprRunCmdV(MprCmd *cmd, int argc, char **argv, char **out, char **err, int f
     if (rc < 0) {
         if (err) {
             if (rc == MPR_ERR_CANT_ACCESS) {
-                *err = mprAsprintf(cmd, "Can't access command %s", cmd->program);
+                *err = mprAsprintf("Can't access command %s", cmd->program);
             } else if (MPR_ERR_CANT_OPEN) {
-                *err = mprAsprintf(cmd, "Can't open standard I/O for command %s", cmd->program);
+                *err = mprAsprintf("Can't open standard I/O for command %s", cmd->program);
             } else if (rc == MPR_ERR_CANT_CREATE) {
-                *err = mprAsprintf(cmd, "Can't create process for %s", cmd->program);
+                *err = mprAsprintf("Can't create process for %s", cmd->program);
             }
         }
         unlock(cmd);
@@ -348,7 +348,7 @@ int mprStartCmd(MprCmd *cmd, int argc, char **argv, char **envp, int flags)
     }
     resetCmd(cmd);
     program = argv[0];
-    cmd->program = sclone(cmd, program);
+    cmd->program = sclone(program);
     cmd->flags = flags;
 
 //MOB MARK all sanitized args
@@ -356,14 +356,14 @@ int mprStartCmd(MprCmd *cmd, int argc, char **argv, char **envp, int flags)
         return MPR_ERR_MEMORY;
     }
     if (access(program, X_OK) < 0) {
-        program = mprJoinPathExt(cmd, program, BLD_EXE);
+        program = mprJoinPathExt(program, BLD_EXE);
         if (access(program, X_OK) < 0) {
-            mprLog(cmd, 1, "cmd: can't access %s, errno %d", program, mprGetOsError());
+            mprLog(1, "cmd: can't access %s, errno %d", program, mprGetOsError());
             return MPR_ERR_CANT_ACCESS;
         }
     }
-    if (mprGetPathInfo(cmd, program, &info) == 0 && info.isDir) {
-        mprLog(cmd, 1, "cmd: program \"%s\", is a directory", program);
+    if (mprGetPathInfo(program, &info) == 0 && info.isDir) {
+        mprLog(1, "cmd: program \"%s\", is a directory", program);
         return MPR_ERR_CANT_ACCESS;
     }
 
@@ -420,11 +420,11 @@ int mprStartCmd(MprCmd *cmd, int argc, char **argv, char **envp, int flags)
         }
 #endif
         if (stdoutFd >= 0) {
-            cmd->handlers[MPR_CMD_STDOUT] = mprCreateWaitHandler(cmd, stdoutFd, MPR_READABLE, cmd->dispatcher,
+            cmd->handlers[MPR_CMD_STDOUT] = mprCreateWaitHandler(stdoutFd, MPR_READABLE, cmd->dispatcher,
                 (MprEventProc) stdoutCallback, cmd);
         }
         if (stderrFd >= 0) {
-            cmd->handlers[MPR_CMD_STDERR] = mprCreateWaitHandler(cmd, stderrFd, MPR_READABLE, cmd->dispatcher,
+            cmd->handlers[MPR_CMD_STDERR] = mprCreateWaitHandler(stderrFd, MPR_READABLE, cmd->dispatcher,
                 (MprEventProc) stderrCallback, cmd);
             if (stdoutFd >= 0) {
                 /*
@@ -470,7 +470,7 @@ int mprMakeCmdIO(MprCmd *cmd)
  */
 void mprStopCmd(MprCmd *cmd)
 {
-    mprLog(cmd, 7, "cmd: stop");
+    mprLog(7, "cmd: stop");
 
     if (cmd->pid) {
 #if BLD_WIN_LIKE
@@ -656,9 +656,9 @@ int mprWaitForCmd(MprCmd *cmd, int timeout)
         if (cmd->pid == 0 || remaining <= 0) {
             break;
         }
-        mprServiceEvents(cmd, cmd->dispatcher, 10, MPR_SERVICE_ONE_THING);
+        mprServiceEvents(cmd->dispatcher, 10, MPR_SERVICE_ONE_THING);
 #else
-        mprServiceEvents(cmd, cmd->dispatcher, remaining, MPR_SERVICE_ONE_THING);
+        mprServiceEvents(cmd->dispatcher, remaining, MPR_SERVICE_ONE_THING);
 #endif
         remaining = (int) (expires - mprGetTime(cmd));
     } while (cmd->pid && remaining >= 0);
@@ -666,7 +666,7 @@ int mprWaitForCmd(MprCmd *cmd, int timeout)
     if (cmd->pid) {
         return MPR_ERR_TIMEOUT;
     }
-    mprLog(cmd, 7, "cmd: waitForChild: status %d", cmd->status);
+    mprLog(7, "cmd: waitForChild: status %d", cmd->status);
     return 0;
 }
 
@@ -690,7 +690,7 @@ int mprReapCmd(MprCmd *cmd, int timeout)
         int     status, waitrc;
         status = 0;
         if ((waitrc = waitpid(cmd->pid, &status, WNOHANG | __WALL)) < 0) {
-            mprLog(cmd, 0, "waitpid failed for pid %d, errno %d", cmd->pid, errno);
+            mprLog(0, "waitpid failed for pid %d, errno %d", cmd->pid, errno);
             return MPR_ERR_CANT_READ;
 
         } else if (waitrc == cmd->pid) {
@@ -713,7 +713,7 @@ int mprReapCmd(MprCmd *cmd, int timeout)
             The command exit status (cmd->status) is set in cmdTaskEntry
          */
         if (semTake(cmd->exitCond, MPR_TIMEOUT_STOP_TASK) != OK) {
-            mprError(cmd, "cmd: child %s did not exit, errno %d", cmd->program);
+            mprError("cmd: child %s did not exit, errno %d", cmd->program);
             return MPR_ERR_CANT_CREATE;
         }
         semDelete(cmd->exitCond);
@@ -726,11 +726,11 @@ int mprReapCmd(MprCmd *cmd, int timeout)
             if (rc == WAIT_TIMEOUT) {
                 return -MPR_ERR_TIMEOUT;
             }
-            mprLog(cmd, 6, "cmd: WaitForSingleObject no child to reap rc %d, %d", rc, GetLastError());
+            mprLog(6, "cmd: WaitForSingleObject no child to reap rc %d, %d", rc, GetLastError());
             return MPR_ERR_CANT_READ;
         }
         if (GetExitCodeProcess(cmd->process, (ulong*) &status) == 0) {
-            mprLog(cmd, 7, "cmd: GetExitProcess error");
+            mprLog(7, "cmd: GetExitProcess error");
             return MPR_ERR_CANT_READ;
         }
         if (status != STILL_ACTIVE) {
@@ -743,8 +743,8 @@ int mprReapCmd(MprCmd *cmd, int timeout)
         }
 #endif
         /* Prevent busy waiting */
-        mprSleep(cmd, 10);
-        if (mprGetElapsedTime(cmd, mark) > timeout) {
+        mprSleep(10);
+        if (mprGetElapsedTime(mark) > timeout) {
             break;
         }
     }
@@ -874,7 +874,7 @@ void mprSetCmdDir(MprCmd *cmd, cchar *dir)
     mprAssert(dir && *dir);
 
     mprFree(cmd->dir);
-    cmd->dir = sclone(cmd, dir);
+    cmd->dir = sclone(dir);
 }
 
 
@@ -899,14 +899,14 @@ static int sanitizeArgs(MprCmd *cmd, int argc, char **argv, char **env)
 
     if (env) {
         for (i = 0; env && env[i]; i++) {
-            mprLog(cmd, 6, "cmd: env[%d]: %s", i, env[i]);
+            mprLog(6, "cmd: env[%d]: %s", i, env[i]);
         }
-        if ((cmd->env = mprAlloc(cmd, (i + 3) * sizeof(char*))) == NULL) {
+        if ((cmd->env = mprAlloc((i + 3) * sizeof(char*))) == NULL) {
             return MPR_ERR_MEMORY;
         }
         hasPath = hasLibPath = 0;
         for (index = i = 0; env && env[i]; i++) {
-            mprLog(cmd, 6, "cmd: env[%d]: %s", i, env[i]);
+            mprLog(6, "cmd: env[%d]: %s", i, env[i]);
             if (strncmp(env[i], "PATH=", 5) == 0) {
                 hasPath++;
             } else if  (strncmp(env[i], LD_LIBRARY_PATH "=", 16) == 0) {
@@ -919,17 +919,17 @@ static int sanitizeArgs(MprCmd *cmd, int argc, char **argv, char **env)
             Add PATH and LD_LIBRARY_PATH 
          */
         if (!hasPath && (cp = getenv("PATH")) != 0) {
-            cmd->env[index++] = mprAsprintf(cmd, "PATH=%s", cp);
+            cmd->env[index++] = mprAsprintf("PATH=%s", cp);
         }
         if (!hasLibPath && (cp = getenv(LD_LIBRARY_PATH)) != 0) {
-            cmd->env[index++] = mprAsprintf(cmd, "%s=%s", LD_LIBRARY_PATH, cp);
+            cmd->env[index++] = mprAsprintf("%s=%s", LD_LIBRARY_PATH, cp);
         }
         cmd->env[index++] = '\0';
         for (i = 0; i < argc; i++) {
-            mprLog(cmd, 4, "cmd: arg[%d]: %s", i, argv[i]);
+            mprLog(4, "cmd: arg[%d]: %s", i, argv[i]);
         }
         for (i = 0; cmd->env[i]; i++) {
-            mprLog(cmd, 4, "cmd: env[%d]: %s", i, cmd->env[i]);
+            mprLog(4, "cmd: env[%d]: %s", i, cmd->env[i]);
         }
     }
 #endif
@@ -943,7 +943,7 @@ static int sanitizeArgs(MprCmd *cmd, int argc, char **argv, char **env)
     cmd->argv = argv;
     cmd->argc = argc;
 
-    program = cmd->arg0 = mprAlloc(cmd, strlen(argv[0]) * 2 + 1);
+    program = cmd->arg0 = mprAlloc(strlen(argv[0]) * 2 + 1);
     strcpy(program, argv[0]);
 
     for (cp = program; *cp; cp++) {
@@ -974,7 +974,7 @@ static int sanitizeArgs(MprCmd *cmd, int argc, char **argv, char **env)
         len += strlen(*ap) + 1 + 2;         /* Space and possible quotes */
         argc++;
     }
-    cmd->command = (char*) mprAlloc(cmd, len + 1);
+    cmd->command = mprAlloc(len + 1);
     cmd->command[len] = '\0';
     
     /*
@@ -1024,7 +1024,7 @@ static int sanitizeArgs(MprCmd *cmd, int argc, char **argv, char **env)
         }
         len += 2;       /* Windows requires 2 nulls for the block end */
 
-        destp = (char*) mprAlloc(cmd, len);
+        destp = (char*) mprAlloc(len);
         endp = &destp[len];
         cmd->env = (char**) destp;
         for (ep = env; ep && *ep; ep++) {
@@ -1190,7 +1190,7 @@ static int makeChannel(MprCmd *cmd, int index)
     file = &cmd->files[index];
     now = ((int) mprGetTime(cmd) & 0xFFFF) % 64000;
 
-    pipeBuf = mprAsprintf(cmd, -1, "\\\\.\\pipe\\MPR_%d_%d_%d.tmp", getpid(), (int) now, ++tempSeed);
+    pipeBuf = mprAsprintf("\\\\.\\pipe\\MPR_%d_%d_%d.tmp", getpid(), (int) now, ++tempSeed);
 
     /*
         Pipes are always inbound. The file below is outbound. we swap whether the client or server
@@ -1245,7 +1245,7 @@ static int startProcess(MprCmd *cmd)
     cmd->pid = vfork();
 
     if (cmd->pid < 0) {
-        mprError(cmd, "start: can't fork a new process to run %s, errno %d", cmd->program, mprGetOsError());
+        mprError("start: can't fork a new process to run %s, errno %d", cmd->program, mprGetOsError());
         return MPR_ERR_CANT_INITIALIZE;
 
     } else if (cmd->pid == 0) {
@@ -1258,7 +1258,7 @@ static int startProcess(MprCmd *cmd)
         }
         if (cmd->dir) {
             if (chdir(cmd->dir) < 0) {
-                mprLog(cmd, 0, "cmd: Can't change directory to %s", cmd->dir);
+                mprLog(0, "cmd: Can't change directory to %s", cmd->dir);
                 return MPR_ERR_CANT_INITIALIZE;
             }
         }
@@ -1293,7 +1293,7 @@ static int startProcess(MprCmd *cmd)
             rc = execv(cmd->program, cmd->argv);
         }
         err = errno;
-        mprPrintfError(cmd, "Can't exec %s, err %d, cwd %s\n", cmd->program, err, mprGetCurrentPath(cmd));
+        mprPrintfError("Can't exec %s, err %d, cwd %s\n", cmd->program, err, mprGetCurrentPath(cmd));
 
         /*
             Use _exit to avoid flushing I/O any other I/O.
@@ -1323,7 +1323,7 @@ static int makeChannel(MprCmd *cmd, int index)
     file = &cmd->files[index];
 
     if (pipe(fds) < 0) {
-        mprError(cmd, "Can't create stdio pipes. Err %d", mprGetOsError());
+        mprError("Can't create stdio pipes. Err %d", mprGetOsError());
         return MPR_ERR_CANT_CREATE;
     }
     if (index == MPR_CMD_STDIN) {
@@ -1333,7 +1333,7 @@ static int makeChannel(MprCmd *cmd, int index)
         file->clientFd = fds[1];        /* write fd */
         file->fd = fds[0];              /* read fd */
     }
-    mprLog(cmd, 7, "mprMakeCmdIO: pipe handles[%d] read %d, write %d", index, fds[0], fds[1]);
+    mprLog(7, "mprMakeCmdIO: pipe handles[%d] read %d, write %d", index, fds[0], fds[1]);
     return 0;
 }
 #endif /* BLD_UNIX_LIKE */
@@ -1350,33 +1350,33 @@ int startProcess(MprCmd *cmd)
     char            *entryPoint, *program;
     int             i, pri;
 
-    mprLog(cmd, 4, "cmd: start %s", cmd->program);
+    mprLog(4, "cmd: start %s", cmd->program);
 
     entryPoint = 0;
     if (cmd->env) {
         for (i = 0; cmd->env[i]; i++) {
             if (strncmp(cmd->env[i], "entryPoint=", 11) == 0) {
-                entryPoint = sclone(cmd, cmd->env[i]);
+                entryPoint = sclone(cmd->env[i]);
             }
         }
     }
-    program = mprGetPathBase(cmd, cmd->program);
+    program = mprGetPathBase(cmd->program);
     if (entryPoint == 0) {
-        program = mprTrimPathExtension(cmd, program);
+        program = mprTrimPathExtension(program);
 #if BLD_HOST_CPU_ARCH == MPR_CPU_IX86 || BLD_HOST_CPU_ARCH == MPR_CPU_IX64
-        entryPoint = sjoin(cmd, NULL, "_", program, "Main", NULL);
+        entryPoint = sjoin(NULL, "_", program, "Main", NULL);
 #else
-        entryPoint = sjoin(cmd, NULL, program, "Main", NULL);
+        entryPoint = sjoin(NULL, program, "Main", NULL);
 #endif
     }
 
     if (symFindByName(sysSymTbl, entryPoint, (char**) &entryFn, &symType) < 0) {
-        if (mprLoadModule(cmd, cmd->program, NULL, NULL) < 0) {
-            mprError(cmd, "start: can't load DLL %s, errno %d", program, mprGetOsError());
+        if (mprLoadModule(cmd->program, NULL, NULL) < 0) {
+            mprError("start: can't load DLL %s, errno %d", program, mprGetOsError());
             return MPR_ERR_CANT_READ;
         }
         if (symFindByName(sysSymTbl, entryPoint, (char**) &entryFn, &symType) < 0) {
-            mprError(cmd, "start: can't find symbol %s, errno %d", entryPoint, mprGetOsError());
+            mprError("start: can't find symbol %s, errno %d", entryPoint, mprGetOsError());
             return MPR_ERR_CANT_ACCESS;
         }
     }
@@ -1492,7 +1492,7 @@ static int makeChannel(MprCmd *cmd, int index)
 
     file = &cmd->files[index];
 
-    file->name = mprAsprintf(cmd, -1, "/pipe/%s_%d_%d", BLD_PRODUCT, taskIdSelf(), tempSeed++);
+    file->name = mprAsprintf("/pipe/%s_%d_%d", BLD_PRODUCT, taskIdSelf(), tempSeed++);
 
     if (pipeDevCreate(file->name, 5, MPR_BUFSIZE) < 0) {
         mprError(cmd, "Can't create pipes to run %s", cmd->program);
@@ -1543,7 +1543,7 @@ static char **fixenv(MprCmd *cmd)
                 return cmd->env;
             }
         }
-        if ((env = mprAlloc(cmd, sizeof(void*) * (envc + 2))) == NULL) {
+        if ((env = mprAlloc(sizeof(void*) * (envc + 2))) == NULL) {
             return NULL;
         }
         i = 0;

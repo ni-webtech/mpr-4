@@ -36,18 +36,18 @@ int access(const char *path, int mode)
 }
 
 
-int mprGetRandomBytes(MprCtx ctx, char *buf, int length, int block)
+int mprGetRandomBytes(char *buf, int length, int block)
 {
     int     i;
 
     for (i = 0; i < length; i++) {
-        buf[i] = (char) (mprGetTime(ctx) >> i);
+        buf[i] = (char) (mprGetTime() >> i);
     }
     return 0;
 }
 
 
-MprModule *mprLoadModule(MprCtx ctx, cchar *name, cchar *initFunction, void *data)
+MprModule *mprLoadModule(cchar *name, cchar *initFunction, void *data)
 {
     MprModule       *mp;
     MprModuleEntry  fn;
@@ -60,17 +60,17 @@ MprModule *mprLoadModule(MprCtx ctx, cchar *name, cchar *initFunction, void *dat
 
     mp = 0;
     path = 0;
-    module = mprGetNormalizedPath(ctx, name);
+    module = mprGetNormalizedPath(name);
 
-    if (mprSearchForModule(ctx, module, &path) < 0) {
-        mprError(ctx, "Can't find module \"%s\" in search path \"%s\"", name, mprGetModuleSearchPath(ctx));
+    if (mprSearchForModule(module, &path) < 0) {
+        mprError("Can't find module \"%s\" in search path \"%s\"", name, mprGetModuleSearchPath());
 
     } else if (moduleFindByName((char*) path) == 0) {
         if ((fd = open(path, O_RDONLY, 0664)) < 0) {
-            mprError(ctx, "Can't open module \"%s\"", path);
+            mprError("Can't open module \"%s\"", path);
 
         } else {
-            mprLog(ctx, 5, "Loading module %s", name);
+            mprLog(5, "Loading module %s", name);
             errno = 0;
             handle = loadModule(fd, LOAD_GLOBAL_SYMBOLS);
             if (handle == 0 || errno != 0) {
@@ -78,25 +78,25 @@ MprModule *mprLoadModule(MprCtx ctx, cchar *name, cchar *initFunction, void *dat
                 if (handle) {
                     unldByModuleId(handle, 0);
                 }
-                mprError(ctx, "Can't load module %s", path);
+                mprError("Can't load module %s", path);
 
             } else {
                 close(fd);
                 if (initFunction) {
 #if BLD_HOST_CPU_ARCH == MPR_CPU_IX86 || BLD_HOST_CPU_ARCH == MPR_CPU_IX64
-                    mprSprintf(ctx, entryPoint, sizeof(entryPoint), "_%s", initFunction);
+                    mprSprintf(entryPoint, sizeof(entryPoint), "_%s", initFunction);
 #else
                     scopy(entryPoint, sizeof(entryPoint), initFunction);
 #endif
                     fn = 0;
                     if (symFindByName(sysSymTbl, entryPoint, (char**) &fn, &symType) == -1) {
-                        mprError(ctx, "Can't find symbol %s when loading %s", initFunction, path);
+                        mprError("Can't find symbol %s when loading %s", initFunction, path);
 
                     } else {
-                        mp = mprCreateModule(mprGetMpr(ctx), name, data);
+                        mp = mprCreateModule(mprGetMpr(), name, data);
                         mp->handle = handle;
-                        if ((fn)(ctx, mp) < 0) {
-                            mprError(ctx, "Initialization for %s failed.", path);
+                        if ((fn)(mp) < 0) {
+                            mprError("Initialization for %s failed.", path);
                         } else {
                             mprFree(mp);
                             mp = 0;
@@ -112,7 +112,7 @@ MprModule *mprLoadModule(MprCtx ctx, cchar *name, cchar *initFunction, void *dat
 }
 
 
-void mprSleep(MprCtx ctx, int milliseconds)
+void mprSleep(int milliseconds)
 {
     struct timespec timeout;
     int             rc;
@@ -133,7 +133,7 @@ void mprUnloadModule(MprModule *mp)
 }
 
 
-void mprWriteToOsLog(MprCtx ctx, cchar *message, int flags, int level)
+void mprWriteToOsLog(cchar *message, int flags, int level)
 {
 }
 

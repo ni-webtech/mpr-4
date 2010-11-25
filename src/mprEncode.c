@@ -90,7 +90,7 @@ static char *mimeTypes[] = {
 /*  
     Uri encode by encoding special characters with hex equivalents. Return an allocated string.
  */
-char *mprUriEncode(MprCtx ctx, cchar *inbuf, int map)
+char *mprUriEncode(cchar *inbuf, int map)
 {
     static cchar    hexTable[] = "0123456789ABCDEF";
     uchar           c;
@@ -106,7 +106,7 @@ char *mprUriEncode(MprCtx ctx, cchar *inbuf, int map)
             len += 2;
         }
     }
-    if ((result = mprAlloc(ctx, len)) == 0) {
+    if ((result = mprAlloc(len)) == 0) {
         return 0;
     }
     ip = inbuf;
@@ -131,7 +131,7 @@ char *mprUriEncode(MprCtx ctx, cchar *inbuf, int map)
 
 /*  Decode a string using URL encoding. Return an allocated string.
  */
-char *mprUriDecode(MprCtx ctx, cchar *inbuf)
+char *mprUriDecode(cchar *inbuf)
 {
     cchar   *ip;
     char    *result, *op;
@@ -139,7 +139,7 @@ char *mprUriDecode(MprCtx ctx, cchar *inbuf)
 
     mprAssert(inbuf);
 
-    if ((result = sclone(ctx, inbuf)) == 0) {
+    if ((result = sclone(inbuf)) == 0) {
         return 0;
     }
 
@@ -176,7 +176,7 @@ char *mprUriDecode(MprCtx ctx, cchar *inbuf)
 /*  
     Escape a shell command. Not really Http, but useful anyway for CGI
  */
-char *mprEscapeCmd(MprCtx ctx, cchar *cmd, int escChar)
+char *mprEscapeCmd(cchar *cmd, int escChar)
 {
     uchar   c;
     cchar   *ip;
@@ -190,7 +190,7 @@ char *mprEscapeCmd(MprCtx ctx, cchar *cmd, int escChar)
             len++;
         }
     }
-    if ((result = mprAlloc(ctx, len)) == 0) {
+    if ((result = mprAlloc(len)) == 0) {
         return 0;
     }
 
@@ -220,7 +220,7 @@ char *mprEscapeCmd(MprCtx ctx, cchar *cmd, int escChar)
 /*  
     Escape HTML to escape defined characters (prevent cross-site scripting)
  */
-char *mprEscapeHtml(MprCtx ctx, cchar *html)
+char *mprEscapeHtml(cchar *html)
 {
     cchar   *ip;
     char    *result, *op;
@@ -231,7 +231,7 @@ char *mprEscapeHtml(MprCtx ctx, cchar *html)
             len += 5;
         }
     }
-    if ((result = mprAlloc(ctx, len)) == 0) {
+    if ((result = mprAlloc(len)) == 0) {
         return 0;
     }
 
@@ -281,7 +281,7 @@ char *mprEscapeHtml(MprCtx ctx, cchar *html)
 
 static MprHashTable *mimeTable;
 
-cchar *mprLookupMimeType(MprCtx ctx, cchar *ext)
+cchar *mprLookupMimeType(cchar *ext)
 {
     char    **cp;
     cchar   *ep, *mtype;
@@ -290,7 +290,8 @@ cchar *mprLookupMimeType(MprCtx ctx, cchar *ext)
         return "";
     }
     if (mimeTable == 0) {
-        mimeTable = mprCreateHash(mprGetMpr(ctx), 67, MPR_HASH_PERM_KEYS);
+        //  MOB -- define for this
+        mimeTable = mprCreateHash(67, MPR_HASH_PERM_KEYS);
         for (cp = mimeTypes; cp[0]; cp += 2) {
             mprAddHash(mimeTable, cp[0], cp[1]);
         }

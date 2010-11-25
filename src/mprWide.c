@@ -80,7 +80,7 @@ int wcasecmp(MprChar *s1, MprChar *s2)
 }
 
 
-MprChar *wclone(MprCtx ctx, MprChar *str)
+MprChar *wclone(MprChar *str)
 {
     MprChar     *result, nullBuf[1];
     size_t      len, size;
@@ -91,7 +91,7 @@ MprChar *wclone(MprCtx ctx, MprChar *str)
     }
     len = wlen(str);
     size = (len + 1) * sizeof(MprChar);
-    if ((result = mprAlloc(ctx, size)) != NULL) {
+    if ((result = mprAlloc(size)) != NULL) {
         memcpy(result, str, len * sizeof(MprChar));
     }
     result[len] = '\0';
@@ -178,7 +178,7 @@ int wends(MprChar *str, MprChar *suffix)
 }
 
 
-MprChar *wfmt(MprCtx ctx, MprChar *fmt, ...)
+MprChar *wfmt(MprChar *fmt, ...)
 {
     MprChar     *result;
     va_list     ap;
@@ -187,26 +187,26 @@ MprChar *wfmt(MprCtx ctx, MprChar *fmt, ...)
     mprAssert(fmt);
 
     va_start(ap, fmt);
-    mfmt = awtom(ctx, fmt, NULL);
-    mresult = mprAsprintfv(ctx, mfmt, ap);
+    mfmt = awtom(fmt, NULL);
+    mresult = mprAsprintfv(mfmt, ap);
     va_end(ap);
     mprFree(mfmt);
-    result = amtow(ctx, mresult, NULL);
+    result = amtow(mresult, NULL);
     mprFree(mresult);
     return result;
 }
 
 
-MprChar *wfmtv(MprCtx ctx, MprChar *fmt, va_list arg)
+MprChar *wfmtv(MprChar *fmt, va_list arg)
 {
     MprChar     *result;
     char        *mfmt, *mresult;
 
     mprAssert(fmt);
-    mfmt = awtom(ctx, fmt, NULL);
-    mresult = mprAsprintfv(ctx, mfmt, arg);
+    mfmt = awtom(fmt, NULL);
+    mresult = mprAsprintfv(mfmt, arg);
     mprFree(mfmt);
-    result = amtow(ctx, mresult, NULL);
+    result = amtow(mresult, NULL);
     mprFree(mresult);
     return result;
 }
@@ -308,23 +308,21 @@ uint whashlower(MprChar *name, size_t len)
 }
 
 
-MprChar *wjoin(MprCtx ctx, MprChar *sep, ...)
+MprChar *wjoin(MprChar *sep, ...)
 {
     MprChar     *result;
     va_list     ap;
 
-    mprAssert(ctx);
-
     va_start(ap, sep);
-    result = wrejoinv(ctx, NULL, sep, ap);
+    result = wrejoinv(NULL, sep, ap);
     va_end(ap);
     return result;
 }
 
 
-MprChar *wjoinv(MprCtx ctx, MprChar *sep, va_list args)
+MprChar *wjoinv(MprChar *sep, va_list args)
 {
-    return wrejoin(ctx, NULL, sep, args);
+    return wrejoin(NULL, sep, args);
 }
 
 
@@ -485,27 +483,23 @@ MprChar *wrchr(MprChar *str, int c)
 }
 
 
-MprChar *wrejoin(MprCtx ctx, MprChar *buf, MprChar *sep, ...)
+MprChar *wrejoin(MprChar *buf, MprChar *sep, ...)
 {
     MprChar     *result;
     va_list     ap;
 
-    mprAssert(ctx);
-
     va_start(ap, sep);
-    result = wrejoinv(ctx, buf, sep, ap);
+    result = wrejoinv(buf, sep, ap);
     va_end(ap);
     return result;
 }
 
 
-MprChar *wrejoinv(MprCtx ctx, MprChar *buf, MprChar *sep, va_list args)
+MprChar *wrejoinv(MprChar *buf, MprChar *sep, va_list args)
 {
     va_list     ap;
     MprChar     *dest, *str, *dp, nullBuf[1];
     int         required, seplen, len;
-
-    mprAssert(ctx);
 
     if (sep == 0) {
         nullBuf[0] = 0;
@@ -523,7 +517,7 @@ MprChar *wrejoinv(MprCtx ctx, MprChar *buf, MprChar *sep, va_list args)
     if (buf && *buf) {
         required += seplen;
     }
-    if ((dest = mprRealloc(ctx, buf, required * sizeof(MprChar))) == 0) {
+    if ((dest = mprRealloc(buf, required * sizeof(MprChar))) == 0) {
         return 0;
     }
     dp = dest;
@@ -625,7 +619,7 @@ MprChar *wtok(MprChar *str, MprChar *delim, MprChar **last)
 }
 
 
-MprChar *wsub(MprCtx ctx, MprChar *str, size_t offset, size_t len)
+MprChar *wsub(MprChar *str, size_t offset, size_t len)
 {
     MprChar    *result;
     size_t      size;
@@ -643,7 +637,7 @@ MprChar *wsub(MprCtx ctx, MprChar *str, size_t offset, size_t len)
     }
 #endif
     size = (len + 1) * sizeof(MprChar);
-    if ((result = mprAlloc(ctx, size)) == NULL) {
+    if ((result = mprAlloc(size)) == NULL) {
         return NULL;
     }
     wncopy(result, len + 1, &str[offset], len);
@@ -780,7 +774,7 @@ size_t mtow(MprChar *dest, size_t destCount, cchar *src, size_t len)
 }
 
 
-MprChar *amtow(MprCtx ctx, cchar *src, size_t *lenp)
+MprChar *amtow(cchar *src, size_t *lenp)
 {
     MprChar     *dest;
     size_t      len;
@@ -789,7 +783,7 @@ MprChar *amtow(MprCtx ctx, cchar *src, size_t *lenp)
     if (len < 0) {
         return NULL;
     }
-    if ((dest = mprAlloc(ctx, (len + 1) * sizeof(MprChar))) != NULL) {
+    if ((dest = mprAlloc((len + 1) * sizeof(MprChar))) != NULL) {
         mtow(dest, len + 1, src, len);
     }
     if (lenp) {
@@ -799,7 +793,7 @@ MprChar *amtow(MprCtx ctx, cchar *src, size_t *lenp)
 }
 
 
-char *awtom(MprCtx ctx, MprChar *src, size_t *lenp)
+char *awtom(MprChar *src, size_t *lenp)
 {
     char    *dest;
     size_t  len;
@@ -808,7 +802,7 @@ char *awtom(MprCtx ctx, MprChar *src, size_t *lenp)
     if (len < 0) {
         return NULL;
     }
-    if ((dest = mprAlloc(ctx, len + 1)) != 0) {
+    if ((dest = mprAlloc(len + 1)) != 0) {
         wtom(dest, len + 1, src, len);
     }
     if (lenp) {
@@ -1046,25 +1040,25 @@ size_t xwtom(char *dest, size_t destMax, MprChar *src, size_t len)
 
 #else /* BLD_CHAR_LEN == 1 */
 
-MprChar *amtow(MprCtx ctx, cchar *src, size_t *len)
+MprChar *amtow(cchar *src, size_t *len)
 {
     if (len) {
         *len = strlen(src);
     }
-    return sclone(ctx, src);
+    return sclone(src);
 }
 
 
-char *awtom(MprCtx ctx, MprChar *src, size_t *len)
+char *awtom(MprChar *src, size_t *len)
 {
     if (len) {
         *len = strlen(src);
     }
-    return sclone(ctx, src);
+    return sclone(src);
 }
 
 #if UNUSED
-MprChar *wfmt(MprCtx ctx, MprChar *fmt, ...)
+MprChar *wfmt(MprChar *fmt, ...)
 {
     MprChar     *result;
     va_list     ap;
@@ -1072,7 +1066,7 @@ MprChar *wfmt(MprCtx ctx, MprChar *fmt, ...)
     mprAssert(fmt);
 
     va_start(ap, fmt);
-    result = mprAsprintfv(ctx, fmt, ap);
+    result = mprAsprintfv(fmt, ap);
     va_end(ap);
     return result;
 }

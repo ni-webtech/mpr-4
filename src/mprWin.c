@@ -47,16 +47,16 @@ long mprGetInst(Mpr *mpr)
 }
 
 
-HWND mprGetHwnd(MprCtx ctx)
+HWND mprGetHwnd()
 {
     Mpr     *mpr;
 
-    mpr = mprGetMpr(ctx);
+    mpr = mprGetMpr();
     return mpr->waitService->hwnd;
 }
 
 
-int mprGetRandomBytes(MprCtx ctx, char *buf, int length, int block)
+int mprGetRandomBytes(char *buf, int length, int block)
 {
     HCRYPTPROV      prov;
     int             rc;
@@ -74,7 +74,7 @@ int mprGetRandomBytes(MprCtx ctx, char *buf, int length, int block)
 }
 
 
-MprModule *mprLoadModule(MprCtx ctx, cchar *name, cchar *fun, void *data)
+MprModule *mprLoadModule(cchar *name, cchar *fun, void *data)
 {
     MprModule       *mp;
     MprModuleEntry  fn;
@@ -85,29 +85,29 @@ MprModule *mprLoadModule(MprCtx ctx, cchar *name, cchar *fun, void *data)
 
     mp = 0;
     path = 0;
-    moduleName = mprGetNormalizedPath(ctx, name);
+    moduleName = mprGetNormalizedPath(name);
 
-    if (mprSearchForModule(ctx, moduleName, &path) < 0) {
-        mprError(ctx, "Can't find module \"%s\" in search path \"%s\"", name, mprGetModuleSearchPath(ctx));
+    if (mprSearchForModule(moduleName, &path) < 0) {
+        mprError("Can't find module \"%s\" in search path \"%s\"", name, mprGetModuleSearchPath());
     } else {
-        mprLog(ctx, 5, "Loading native module %s from %s", moduleName, path);
+        mprLog(5, "Loading native module %s from %s", moduleName, path);
         //  CHANGE - was doing basename here on path
         if ((handle = GetModuleHandle(name)) == 0 && (handle = LoadLibrary(path)) == 0) {
-            mprError(ctx, "Can't load module %s\nReason: \"%d\"\n",  path, mprGetOsError());
+            mprError("Can't load module %s\nReason: \"%d\"\n",  path, mprGetOsError());
 
         } else if (fun) {
             if ((fn = (MprModuleEntry) GetProcAddress((HINSTANCE) handle, fun)) != 0) {
-                mp = mprCreateModule(ctx, name, data);
+                mp = mprCreateModule(name, data);
                 mp->handle = handle;
-                if ((fn)(ctx, mp) < 0) {
-                    mprError(ctx, "Initialization for module %s failed", name);
+                if ((fn)(mp) < 0) {
+                    mprError("Initialization for module %s failed", name);
                     FreeLibrary((HINSTANCE) handle);
                     mprFree(mp);
                     mp = 0;
                 }
 
             } else {
-                mprError(ctx, "Can't load module %s\nReason: can't find function \"%s\"\n", name, fun);
+                mprError("Can't load module %s\nReason: can't find function \"%s\"\n", name, fun);
                 FreeLibrary((HINSTANCE) handle);
             }
         }
@@ -118,7 +118,7 @@ MprModule *mprLoadModule(MprCtx ctx, cchar *name, cchar *fun, void *data)
 }
 
 
-int mprReadRegistry(MprCtx ctx, char **buf, int max, cchar *key, cchar *name)
+int mprReadRegistry(char **buf, int max, cchar *key, cchar *name)
 {
     HKEY        top, h;
     char        *value;
@@ -150,7 +150,7 @@ int mprReadRegistry(MprCtx ctx, char **buf, int max, cchar *key, cchar *name)
         return MPR_ERR_BAD_TYPE;
     }
 
-    value = (char*) mprAlloc(ctx, size);
+    value = mprAlloc(size);
     if ((int) size > max) {
         RegCloseKey(h);
         mprAssert(!MPR_ERR_WONT_FIT);
@@ -174,38 +174,38 @@ void mprSetInst(Mpr *mpr, long inst)
 }
 
 
-void mprSetHwnd(MprCtx ctx, HWND h)
+void mprSetHwnd(HWND h)
 {
     Mpr     *mpr;
 
-    mpr = mprGetMpr(ctx);
+    mpr = mprGetMpr();
     mpr->waitService->hwnd = h;
 }
 
 
-void mprSetSocketMessage(MprCtx ctx, int socketMessage)
+void mprSetSocketMessage(int socketMessage)
 {
     Mpr     *mpr;
 
-    mpr = mprGetMpr(ctx);
+    mpr = mprGetMpr();
     mpr->waitService->socketMessage = socketMessage;
 }
 
 
-void mprSleep(MprCtx ctx, int milliseconds)
+void mprSleep(int milliseconds)
 {
     Sleep(milliseconds);
 }
 
 
 #if UNUSED
-uni *mprToUni(MprCtx ctx, cchar* a, int *len)
+uni *mprToUni(cchar* a, int *len)
 {
     uni     *wstr;
     int     *len;
 
     *len = MultiByteToWideChar(CP_ACP, 0, a, -1, NULL, 0);
-    wstr = (uni*) mprAlloc(ctx, (*len + 1) * sizeof(uni));
+    wstr = mprAlloc((*len + 1) * sizeof(uni));
     if (wstr) {
         MultiByteToWideChar(CP_ACP, 0, a, -1, wstr, *len);
     }
@@ -213,13 +213,13 @@ uni *mprToUni(MprCtx ctx, cchar* a, int *len)
 }
 
 
-char *mprToMulti(MprCtx ctx, cuni *w)
+char *mprToMulti(cuni *w)
 {
     char    *str;
     int     len;
 
     len = WideCharToMultiByte(CP_ACP, 0, w, -1, NULL, 0, NULL, NULL);
-    if ((str = mprAlloc(ctx, len + 1)) != 0) {
+    if ((str = mprAlloc(len + 1)) != 0) {
         WideCharToMultiByte(CP_ACP, 0, w, -1, str, (DWORD) len, NULL, NULL);
     }
     return str;
@@ -239,7 +239,7 @@ void mprUnloadModule(MprModule *mp)
 }
 
 
-void mprWriteToOsLog(MprCtx ctx, cchar *message, int flags, int level)
+void mprWriteToOsLog(cchar *message, int flags, int level)
 {
     HKEY        hkey;
     void        *event;
@@ -263,8 +263,8 @@ void mprWriteToOsLog(MprCtx ctx, cchar *message, int flags, int level)
     if (once == 0) {
         /*  Initialize the registry */
         once = 1;
-        mprSprintf(ctx, logName, sizeof(logName), "SYSTEM\\CurrentControlSet\\Services\\EventLog\\Application\\%s",
-            mprGetAppName(ctx));
+        mprSprintf(logName, sizeof(logName), "SYSTEM\\CurrentControlSet\\Services\\EventLog\\Application\\%s",
+            mprGetAppName());
         hkey = 0;
 
         if (RegCreateKeyEx(HKEY_LOCAL_MACHINE, logName, 0, NULL, 0, KEY_ALL_ACCESS, NULL, &hkey, &exists) == ERROR_SUCCESS) {
@@ -283,7 +283,7 @@ void mprWriteToOsLog(MprCtx ctx, cchar *message, int flags, int level)
         }
     }
 
-    event = RegisterEventSource(0, mprGetAppName(ctx));
+    event = RegisterEventSource(0, mprGetAppName());
     if (event) {
         /*
             3299 is the event number for the generic message in netmsg.dll.
@@ -295,7 +295,7 @@ void mprWriteToOsLog(MprCtx ctx, cchar *message, int flags, int level)
 }
 
 
-int mprWriteRegistry(MprCtx ctx, cchar *key, cchar *name, cchar *value)
+int mprWriteRegistry(cchar *key, cchar *name, cchar *value)
 {
     HKEY    top, h, subHandle;
     ulong   disposition;

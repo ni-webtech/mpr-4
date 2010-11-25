@@ -63,7 +63,7 @@ void mprRemoveNotifier(MprWaitHandler *wp)
     Wait for I/O on a single descriptor. Return the number of I/O events found. Mask is the events of interest.
     Timeout is in milliseconds.
  */
-int mprWaitForSingleIO(MprCtx ctx, int fd, int desiredMask, int timeout)
+int mprWaitForSingleIO(int fd, int desiredMask, int timeout)
 {
     HANDLE      h;
     int         winMask;
@@ -163,11 +163,11 @@ void mprServiceWinIO(MprWaitService *ws, int sockFd, int winMask)
 /*
     Wake the wait service. WARNING: This routine must not require locking. MprEvents in scheduleDispatcher depends on this.
  */
-void mprWakeNotifier(MprCtx ctx)
+void mprWakeNotifier()
 {
     MprWaitService  *ws;
    
-    ws = mprGetMpr(ctx)->waitService;
+    ws = mprGetMpr()->waitService;
     if (!ws->wakeRequested && ws->hwnd) {
         ws->wakeRequested = 1;
         PostMessage(ws->hwnd, WM_NULL, 0, 0L);

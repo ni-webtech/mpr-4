@@ -18,18 +18,18 @@ static void manageFile(MprFile *file, int flags);
 
 /************************************ Code ************************************/
 
-MprFile *mprAttachFd(MprCtx ctx, int fd, cchar *name, int omode)
+MprFile *mprAttachFd(int fd, cchar *name, int omode)
 {
     MprFileSystem   *fs;
     MprFile         *file;
 
-    fs = mprLookupFileSystem(ctx, "/");
+    fs = mprLookupFileSystem("/");
 
-    file = mprAllocObj(ctx, MprFile, manageFile);
+    file = mprAllocObj(MprFile, manageFile);
     if (file) {
         file->fd = fd;
         file->fileSystem = fs;
-        file->path = sclone(file, name);
+        file->path = sclone(name);
         file->mode = omode;
     }
     return file;
@@ -91,26 +91,26 @@ MprOffset mprGetFileSize(MprFile *file)
 }
 
 
-MprFile *mprGetStderr(MprCtx ctx)
+MprFile *mprGetStderr()
 {
     MprFileSystem   *fs;
-    fs = mprLookupFileSystem(ctx, NULL);
+    fs = mprLookupFileSystem(NULL);
     return fs->stdError;
 }
 
 
-MprFile *mprGetStdin(MprCtx ctx)
+MprFile *mprGetStdin()
 {
     MprFileSystem   *fs;
-    fs = mprLookupFileSystem(ctx, NULL);
+    fs = mprLookupFileSystem(NULL);
     return fs->stdInput;
 }
 
 
-MprFile *mprGetStdout(MprCtx ctx)
+MprFile *mprGetStdout()
 {
     MprFileSystem   *fs;
-    fs = mprLookupFileSystem(ctx, NULL);
+    fs = mprLookupFileSystem(NULL);
     return fs->stdOutput;
 }
 
@@ -129,7 +129,7 @@ int mprGetc(MprFile *file)
         return MPR_ERR;
     }
     if (file->buf == 0) {
-        file->buf = mprCreateBuf(file, MPR_BUFSIZE, MPR_MAX_STRING);
+        file->buf = mprCreateBuf(MPR_BUFSIZE, MPR_MAX_STRING);
     }
     bp = file->buf;
 
@@ -169,7 +169,7 @@ char *mprGets(MprFile *file, size_t size, int *lenp)
     fs = file->fileSystem;
     newline = fs->newline;
     if (file->buf == 0) {
-        file->buf = mprCreateBuf(file, size, size);
+        file->buf = mprCreateBuf(size, size);
     }
     bp = file->buf;
     /*
@@ -188,26 +188,26 @@ char *mprGets(MprFile *file, size_t size, int *lenp)
                 *lenp = len;
             }
             file->pos += len + slen(newline);
-            return ssub(NULL, mprGetBufStart(bp), 0, len);
+            return ssub(mprGetBufStart(bp), 0, len);
         }
     }
     file->pos += size;
-    return ssub(NULL, mprGetBufStart(bp), 0, size);
+    return ssub(mprGetBufStart(bp), 0, size);
 }
 
 
-MprFile *mprOpen(MprCtx ctx, cchar *path, int omode, int perms)
+MprFile *mprOpen(cchar *path, int omode, int perms)
 {
     MprFileSystem   *fs;
     MprFile         *file;
     MprPath         info;
 
-    fs = mprLookupFileSystem(ctx, path);
+    fs = mprLookupFileSystem(path);
 
-    file = fs->openFile(ctx, fs, path, omode, perms);
+    file = fs->openFile(fs, path, omode, perms);
     if (file) {
         file->fileSystem = fs;
-        file->path = sclone(file, path);
+        file->path = sclone(path);
         if (omode & (O_WRONLY | O_RDWR)) {
             /*
                 OPT. Should compute this lazily.
@@ -238,7 +238,7 @@ int mprPuts(MprFile *file, cchar *str)
         Buffer output and flush when full.
      */
     if (file->buf == 0) {
-        file->buf = mprCreateBuf(file, MPR_BUFSIZE, 0);
+        file->buf = mprCreateBuf(MPR_BUFSIZE, 0);
         if (file->buf == 0) {
             return MPR_ERR_CANT_ALLOCATE;
         }
@@ -286,7 +286,7 @@ int mprPeekc(MprFile *file)
     }
 
     if (file->buf == 0) {
-        file->buf = mprCreateBuf(file, MPR_BUFSIZE, MPR_MAX_STRING);
+        file->buf = mprCreateBuf(MPR_BUFSIZE, MPR_MAX_STRING);
     }
     bp = file->buf;
 
@@ -411,7 +411,7 @@ int mprTruncate(cchar *path, MprOffset size)
 
     mprAssert(path && *path);
 
-    if ((fs = mprLookupFileSystem(NULL, path)) == 0) {
+    if ((fs = mprLookupFileSystem(path)) == 0) {
         return MPR_ERR_CANT_OPEN;
     }
     return fs->truncateFile(fs, path, size);
@@ -472,7 +472,7 @@ int mprWriteFormat(MprFile *file, cchar *fmt, ...)
 
     rc = -1;
     va_start(ap, fmt);
-    if ((buf = mprAsprintfv(file, fmt, ap)) != NULL) {
+    if ((buf = mprAsprintfv(fmt, ap)) != NULL) {
         rc = mprWriteString(file, buf);
         mprFree(buf);
     }
@@ -525,7 +525,7 @@ int mprEnableFileBuffering(MprFile *file, int initialSize, int maxSize)
         maxSize = initialSize;
     }
     if (file->buf == 0) {
-        file->buf = mprCreateBuf(file, initialSize, maxSize);
+        file->buf = mprCreateBuf(initialSize, maxSize);
     }
     return 0;
 }

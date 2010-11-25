@@ -15,11 +15,11 @@ static void manageCond(MprCond *cp, int flags);
     Create a condition variable for use by single or multiple waiters
  */
 
-MprCond *mprCreateCond(MprCtx ctx)
+MprCond *mprCreateCond()
 {
     MprCond     *cp;
 
-    cp = mprAllocObj(ctx, MprCond, manageCond);
+    cp = mprAllocObj(MprCond, manageCond);
     if (cp == 0) {
         return 0;
     }

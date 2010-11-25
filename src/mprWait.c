@@ -26,7 +26,7 @@ MprWaitService *mprCreateWaitService(Mpr *mpr)
 {
     MprWaitService  *ws;
 
-    ws = mprAllocObj(mpr, MprWaitService, manageWaitService);
+    ws = mprAllocObj(MprWaitService, manageWaitService);
     if (ws == 0) {
         return 0;
     }
@@ -50,6 +50,9 @@ static void manageWaitService(MprWaitService *ws, int flags)
 #if MPR_EVENT_KQUEUE
     mprManageKqueue(ws, flags);
 #endif
+#if MPR_EVENT_EPOLL
+    mprManageEpoll(ws, flags);
+#endif
 #if MPR_EVENT_POLL
     mprManagePoll(ws, flags);
 #endif
@@ -59,21 +62,21 @@ static void manageWaitService(MprWaitService *ws, int flags)
 }
 
 
-MprWaitHandler *mprInitWaitHandler(MprCtx ctx, MprWaitHandler *wp, int fd, int mask, MprDispatcher *dispatcher, 
+MprWaitHandler *mprInitWaitHandler(MprWaitHandler *wp, int fd, int mask, MprDispatcher *dispatcher, 
         MprEventProc proc, void *data)
 {
     MprWaitService  *ws;
 
     mprAssert(fd >= 0);
 
-    ws = mprGetMpr(ctx)->waitService;
+    ws = mprGetMpr()->waitService;
     if (mprGetListCount(ws->handlers) == FD_SETSIZE) {
-        mprError(ws, "io: Too many io handlers: %d\n", FD_SETSIZE);
+        mprError("io: Too many io handlers: %d\n", FD_SETSIZE);
         return 0;
     }
 #if BLD_UNIX_LIKE || VXWORKS
     if (fd >= FD_SETSIZE) {
-        mprError(ws, "File descriptor %d exceeds max io of %d", fd, FD_SETSIZE);
+        mprError("File descriptor %d exceeds max io of %d", fd, FD_SETSIZE);
     }
 #endif
     wp->fd              = fd;
@@ -97,19 +100,19 @@ MprWaitHandler *mprInitWaitHandler(MprCtx ctx, MprWaitHandler *wp, int fd, int m
 }
 
 
-MprWaitHandler *mprCreateWaitHandler(MprCtx ctx, int fd, int mask, MprDispatcher *dispatcher, MprEventProc proc, void *data)
+MprWaitHandler *mprCreateWaitHandler(int fd, int mask, MprDispatcher *dispatcher, MprEventProc proc, void *data)
 {
     MprWaitService  *ws;
     MprWaitHandler  *wp;
 
     mprAssert(fd >= 0);
 
-    ws = mprGetMpr(ctx)->waitService;
-    wp = mprAllocObj(ws, MprWaitHandler, manageWaitHandler);
+    ws = mprGetMpr()->waitService;
+    wp = mprAllocObj(MprWaitHandler, manageWaitHandler);
     if (wp == 0) {
         return 0;
     }
-    return mprInitWaitHandler(ctx, wp, fd, mask, dispatcher, proc, data);
+    return mprInitWaitHandler(wp, fd, mask, dispatcher, proc, data);
 }
 
 
@@ -146,9 +149,9 @@ void mprRemoveWaitHandler(MprWaitHandler *wp)
 }
 
 
-void mprWakeWaitService(MprCtx ctx)
+void mprWakeWaitService()
 {
-    mprWakeNotifier(ctx);
+    mprWakeNotifier();
 }
 
 
@@ -187,13 +190,13 @@ void mprEnableWaitEvents(MprWaitHandler *wp, int mask)
 /*
     Set a handler to be recalled without further I/O
  */
-void mprRecallWaitHandler(MprCtx ctx, int fd)
+void mprRecallWaitHandler(int fd)
 {
     MprWaitService  *ws;
     MprWaitHandler  *wp;
     int             index;
 
-    ws = mprGetMpr(ctx)->waitService;
+    ws = mprGetMpr()->waitService;
     lock(ws);
     for (index = 0; (wp = (MprWaitHandler*) mprGetNextItem(ws->handlers, &index)) != 0; ) {
         if (wp->fd == fd) {

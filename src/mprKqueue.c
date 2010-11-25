@@ -24,21 +24,21 @@ int mprCreateNotifierService(MprWaitService *ws)
     ws->interestMax = MPR_FD_MIN;
     ws->eventsMax = MPR_FD_MIN;
     ws->handlerMax = MPR_FD_MIN;
-    ws->interest = mprAllocZeroed(ws, sizeof(struct kevent) * ws->interestMax);
-    ws->events = mprAllocZeroed(ws, sizeof(struct kevent) * ws->eventsMax);
-    ws->handlerMap = mprAllocZeroed(ws, sizeof(MprWaitHandler*) * ws->handlerMax);
+    ws->interest = mprAllocZeroed(sizeof(struct kevent) * ws->interestMax);
+    ws->events = mprAllocZeroed(sizeof(struct kevent) * ws->eventsMax);
+    ws->handlerMap = mprAllocZeroed(sizeof(MprWaitHandler*) * ws->handlerMax);
     if (ws->interest == 0 || ws->events == 0 || ws->handlerMap == 0) {
         return MPR_ERR_CANT_INITIALIZE;
     }
     if ((ws->kq = kqueue()) < 0) {
-        mprError(ws, "Call to kqueue() failed");
+        mprError("Call to kqueue() failed");
         return MPR_ERR_CANT_INITIALIZE;
     }
     /*
         Initialize the "wakeup" pipe. This is used to wakeup the service thread if other threads need to wait for I/O.
      */
     if (pipe(ws->breakPipe) < 0) {
-        mprError(ws, "Can't open breakout pipe");
+        mprError("Can't open breakout pipe");
         return MPR_ERR_CANT_INITIALIZE;
     }
     fcntl(ws->breakPipe[0], F_SETFL, fcntl(ws->breakPipe[0], F_GETFL) | O_NONBLOCK);
@@ -75,8 +75,8 @@ static int growEvents(MprWaitService *ws)
 {
     ws->interestMax *= 2;
     ws->eventsMax = ws->interestMax;
-    ws->interest = mprRealloc(ws, ws->interest, sizeof(struct kevent) * ws->interestMax);
-    ws->events = mprRealloc(ws, ws->events, sizeof(struct kevent) * ws->eventsMax);
+    ws->interest = mprRealloc(ws->interest, sizeof(struct kevent) * ws->interestMax);
+    ws->events = mprRealloc(ws->events, sizeof(struct kevent) * ws->eventsMax);
     if (ws->interest == 0 || ws->events == 0) {
         return MPR_ERR_MEMORY;
     }
@@ -120,7 +120,7 @@ int mprAddNotifier(MprWaitService *ws, MprWaitHandler *wp, int mask)
         if (fd >= ws->handlerMax) {
             oldlen = ws->handlerMax;
             ws->handlerMax = fd + 32;
-            if ((ws->handlerMap = mprRealloc(ws, ws->handlerMap, sizeof(MprWaitHandler*) * ws->handlerMax)) == 0) {
+            if ((ws->handlerMap = mprRealloc(ws->handlerMap, sizeof(MprWaitHandler*) * ws->handlerMax)) == 0) {
                 return MPR_ERR_MEMORY;
             }
             memset(&ws->handlerMap[oldlen], 0, sizeof(MprWaitHandler*) * (ws->handlerMax - oldlen));
@@ -163,7 +163,7 @@ void mprRemoveNotifier(MprWaitHandler *wp)
     Wait for I/O on a single file descriptor. Return a mask of events found. Mask is the events of interest.
     timeout is in milliseconds.
  */
-int mprWaitForSingleIO(MprCtx ctx, int fd, int mask, int timeout)
+int mprWaitForSingleIO(int fd, int mask, int timeout)
 {
     struct timespec ts;
     struct kevent   interest[2], events[1];
@@ -188,7 +188,7 @@ int mprWaitForSingleIO(MprCtx ctx, int fd, int mask, int timeout)
     err = errno;
     close(kq);
     if (rc < 0) {
-        mprLog(ctx, 2, "Kevent returned %d, errno %d", rc, errno);
+        mprLog(2, "Kevent returned %d, errno %d", rc, errno);
     } else if (rc > 0) {
         if (rc > 0) {
             if (events[0].filter == EVFILT_READ) {
@@ -226,18 +226,18 @@ void mprWaitForIO(MprWaitService *ws, int timeout)
         return;
     }
     lock(ws);
-    ws->stableInterest = mprMemdup(ws, ws->interest, sizeof(struct kevent) * ws->interestCount);
+    ws->stableInterest = mprMemdup(ws->interest, sizeof(struct kevent) * ws->interestCount);
     ws->stableInterestCount = ws->interestCount;
     /* Preserve the wakeup pipe fd */
     ws->interestCount = 1;
     unlock(ws);
 
-    LOG(ws, 8, "kevent sleep for %d", timeout);
+    LOG(8, "kevent sleep for %d", timeout);
     rc = kevent(ws->kq, ws->stableInterest, ws->stableInterestCount, ws->events, ws->eventsMax, &ts);
-    LOG(ws, 8, "kevent wakes rc %d", rc);
+    LOG(8, "kevent wakes rc %d", rc);
 
     if (rc < 0) {
-        mprLog(ws, 2, "Kevent returned %d, errno %d", mprGetOsError());
+        mprLog(2, "Kevent returned %d, errno %d", mprGetOsError());
     } else if (rc > 0) {
         serviceIO(ws, rc);
     }
@@ -286,7 +286,7 @@ static void serviceIO(MprWaitService *ws, int count)
         wp->presentMask = mask & wp->desiredMask;
         mprRemoveNotifier(wp);
 
-        LOG(ws, 7, "Got I/O event mask %x", wp->presentMask);
+        LOG(7, "Got I/O event mask %x", wp->presentMask);
         if (wp->presentMask) {
             mprQueueIOEvent(wp);
         }
@@ -298,12 +298,12 @@ static void serviceIO(MprWaitService *ws, int count)
 /*
     Wake the wait service. WARNING: This routine must not require locking. MprEvents in scheduleDispatcher depends on this.
  */
-void mprWakeNotifier(MprCtx ctx)
+void mprWakeNotifier()
 {
     MprWaitService  *ws;
     int             c, rc;
 
-    ws = mprGetMpr(ctx)->waitService;
+    ws = mprGetMpr()->waitService;
     if (!ws->wakeRequested) {
         ws->wakeRequested = 1;
         c = 0;

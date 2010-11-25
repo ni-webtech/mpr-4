@@ -42,7 +42,7 @@ void mprStopOsService()
 }
 
 
-int mprGetRandomBytes(MprCtx ctx, char *buf, int length, int block)
+int mprGetRandomBytes(char *buf, int length, int block)
 {
     int     fd, sofar, rc;
 
@@ -69,7 +69,7 @@ int mprGetRandomBytes(MprCtx ctx, char *buf, int length, int block)
 /*
     Load a module specified by "name". The module is located by searching using the module search path
  */
-MprModule *mprLoadModule(MprCtx ctx, cchar *name, cchar *fun, void *data)
+MprModule *mprLoadModule(cchar *name, cchar *fun, void *data)
 {
 #if BLD_CC_DYN_LOAD
     MprModuleEntry  fn;
@@ -81,28 +81,28 @@ MprModule *mprLoadModule(MprCtx ctx, cchar *name, cchar *fun, void *data)
     mprAssert(name && *name);
 
     mp = 0;
-    mpr = mprGetMpr(ctx);
-    moduleName = mprGetNormalizedPath(ctx, name);
+    mpr = mprGetMpr();
+    moduleName = mprGetNormalizedPath(name);
 
     path = 0;
-    if (mprSearchForModule(ctx, moduleName, &path) < 0) {
-        mprError(ctx, "Can't find module \"%s\" in search path \"%s\"", name, mprGetModuleSearchPath(ctx));
+    if (mprSearchForModule(moduleName, &path) < 0) {
+        mprError("Can't find module \"%s\" in search path \"%s\"", name, mprGetModuleSearchPath());
     } else {
-        mprLog(ctx, 6, "Loading native module %s from %s", moduleName, path);
+        mprLog(6, "Loading native module %s from %s", moduleName, path);
         if ((handle = dlopen(path, RTLD_LAZY | RTLD_GLOBAL)) == 0) {
-            mprError(ctx, "Can't load module %s\nReason: \"%s\"",  path, dlerror());
+            mprError("Can't load module %s\nReason: \"%s\"",  path, dlerror());
         } else if (fun) {
             if ((fn = (MprModuleEntry) dlsym(handle, fun)) != 0) {
-                mp = mprCreateModule(mpr, name, data);
+                mp = mprCreateModule(name, data);
                 mp->handle = handle;
-                if ((fn)(ctx, mp) < 0) {
-                    mprError(ctx, "Initialization for module %s failed", name);
+                if ((fn)(mp) < 0) {
+                    mprError("Initialization for module %s failed", name);
                     dlclose(handle);
                     mprFree(mp);
                     mp = 0;
                 }
             } else {
-                mprError(ctx, "Can't load module %s\nReason: can't find function \"%s\"",  path, fun);
+                mprError("Can't load module %s\nReason: can't find function \"%s\"",  path, fun);
                 dlclose(handle);
             }
         }
@@ -111,13 +111,13 @@ MprModule *mprLoadModule(MprCtx ctx, cchar *name, cchar *fun, void *data)
     mprFree(moduleName);
     return mp;
 #else
-    mprError(ctx, "Product built without the ability to load modules dynamically");
+    mprError("Product built without the ability to load modules dynamically");
     return 0;
 #endif
 }
 
 
-void mprSleep(MprCtx ctx, int milliseconds)
+void mprSleep(int milliseconds)
 {
     struct timespec timeout;
     int             rc;
@@ -139,14 +139,14 @@ void mprUnloadModule(MprModule *mp)
     if (mp->handle) {
         dlclose(mp->handle);
     }
-    mprRemoveItem(mprGetMpr(mp)->moduleService->modules, mp);
+    mprRemoveItem(mprGetMpr()->moduleService->modules, mp);
 }
 
 
 /*  
     Write a message in the O/S native log (syslog in the case of linux)
  */
-void mprWriteToOsLog(MprCtx ctx, cchar *message, int flags, int level)
+void mprWriteToOsLog(cchar *message, int flags, int level)
 {
     char    *msg;
     int     sflag;
@@ -163,7 +163,7 @@ void mprWriteToOsLog(MprCtx ctx, cchar *message, int flags, int level)
         msg = "error: ";
         sflag = LOG_WARNING;
     }
-    syslog(sflag, "%s %s: %s\n", mprGetAppName(ctx), msg, message);
+    syslog(sflag, "%s %s: %s\n", mprGetAppName(), msg, message);
 }
 
 #else

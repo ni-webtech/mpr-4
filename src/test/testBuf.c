@@ -14,7 +14,7 @@ static void testCreateBuf(MprTestGroup *gp)
 {
     MprBuf  *bp;
 
-    bp = mprCreateBuf(gp, 512, 512);
+    bp = mprCreateBuf(512, 512);
     assert(bp != 0);
     mprFree(bp);
 }
@@ -26,7 +26,7 @@ static void testIsBufEmpty(MprTestGroup *gp)
     int     size;
 
     size = 512;
-    bp = mprCreateBuf(gp, size, -1);
+    bp = mprCreateBuf(size, -1);
 
     assert(bp != 0);
     assert(mprGetBufLength(bp) == 0);
@@ -45,7 +45,7 @@ static void testPutAndGetToBuf(MprTestGroup *gp)
     int     i, size, rc, c, bytes;
 
     size = 512;
-    bp = mprCreateBuf(gp, size, -1);
+    bp = mprCreateBuf(size, -1);
 
     bytes = size / 2;
     for (i = 0; i < bytes; i++) {
@@ -72,7 +72,7 @@ static void testFlushBuf(MprTestGroup *gp)
     int     size, i, rc;
 
     size = 512;
-    bp = mprCreateBuf(gp, size, size);
+    bp = mprCreateBuf(size, size);
     assert(bp != 0);
 
     /*
@@ -101,7 +101,7 @@ static void testGrowBuf(MprTestGroup *gp)
         Put more data than the initial size to force the buffer to grow
      */
     size = 512;
-    bp = mprCreateBuf(gp, size, -1);
+    bp = mprCreateBuf(size, -1);
     bytes = size * 10;
     for (i = 0; i < bytes; i++) {
         rc = mprPutCharToBuf(bp, 'c');
@@ -125,7 +125,7 @@ static void testGrowBuf(MprTestGroup *gp)
         Test a fixed buffer (should not grow) 
      */
     size = 2;                       /* Can only ever fit in 1 byte */
-    bp = mprCreateBuf(gp, size, size);
+    bp = mprCreateBuf(size, size);
     assert(bp != 0);
 
     rc = mprPutCharToBuf(bp, 'c');
@@ -148,7 +148,7 @@ static void testMiscBuf(MprTestGroup *gp)
     int     rc, size, c;
 
     size = 512;
-    bp = mprCreateBuf(gp, size, 0);
+    bp = mprCreateBuf(size, 0);
     assert(bp != 0);
 
     /*
@@ -192,7 +192,7 @@ static void testBufLoad(MprTestGroup *gp)
         Pick an odd size to guarantee put blocks are sometimes partial.
      */
     len = 981;
-    bp = mprCreateBuf(gp, len, 0);
+    bp = mprCreateBuf(len, 0);
     assert(bp != 0);
 
     for (i = 0; i < (int) sizeof(ibuf); i++) {

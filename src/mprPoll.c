@@ -26,8 +26,8 @@ int mprCreateNotifierService(MprWaitService *ws)
     ws->fdsCount = 0;
     ws->fdMax = MPR_FD_MIN;
 
-    ws->fds = mprAllocZeroed(ws, sizeof(struct pollfd) * ws->fdMax);
-    ws->handlerMap = mprAllocZeroed(ws, sizeof(MprWaitHandler*) * ws->fdMax);
+    ws->fds = mprAllocZeroed(sizeof(struct pollfd) * ws->fdMax);
+    ws->handlerMap = mprAllocZeroed(sizeof(MprWaitHandler*) * ws->fdMax);
     if (ws->fds == 0 || ws->handlerMap == 0) {
         return MPR_ERR_CANT_INITIALIZE;
     }
@@ -69,8 +69,8 @@ void mprManagePoll(MprWebService *ws, int flags)
 static int growFds(MprWaitService *ws)
 {
     ws->fdMax *= 2;
-    ws->fds = mprRealloc(ws, ws->fds, sizeof(struct pollfd)   ws->fdMax);
-    ws->handlerMap = mprRealloc(ws, ws->handlerMap, sizeof(MprWaitHandler*) * ws->fdMax);
+    ws->fds = mprRealloc(ws->fds, sizeof(struct pollfd)   ws->fdMax);
+    ws->handlerMap = mprRealloc(ws->handlerMap, sizeof(MprWaitHandler*) * ws->fdMax);
     if (ws->fds == 0 || ws->handlerMap) {
         return MPR_ERR_MEMORY;
     }
@@ -147,7 +147,7 @@ void mprRemoveNotifier(MprWaitHandler *wp)
     Wait for I/O on a single file descriptor. Return a mask of events found. Mask is the events of interest.
     timeout is in milliseconds.
  */
-int mprWaitForSingleIO(MprCtx ctx, int fd, int mask, int timeout)
+int mprWaitForSingleIO(int fd, int mask, int timeout)
 {
     struct pollfd   fds[1];
     int             rc;
@@ -168,7 +168,7 @@ int mprWaitForSingleIO(MprCtx ctx, int fd, int mask, int timeout)
     mask = 0;
     rc = poll(fds, 1, timeout);
     if (rc < 0) {
-        mprLog(ctx, 2, "Poll returned %d, errno %d", rc, mprGetOsError());
+        mprLog(2, "Poll returned %d, errno %d", rc, mprGetOsError());
     } else if (rc > 0) {
         if (fds[0].revents & POLLIN) {
             mask |= MPR_READABLE;
@@ -200,7 +200,7 @@ void mprWaitForIO(MprWaitService *ws, int timeout)
     }
     lock(ws);
     count = ws->fdsCount;
-    if ((fds = mprMemdup(ws, ws->fds, sizeof(struct pollfd) * count)) == 0) {
+    if ((fds = mprMemdup(ws->fds, sizeof(struct pollfd) * count)) == 0) {
         unlock(ws);
         return MPR_ERR_MEMORY;
     }
@@ -260,12 +260,12 @@ static void serviceIO(MprWaitService *ws, struct poll *fds, int count)
 /*
     Wake the wait service. WARNING: This routine must not require locking. MprEvents in scheduleDispatcher depends on this.
  */
-void mprWakeNotifier(MprCtx ctx)
+void mprWakeNotifier()
 {
     MprWaitService  *ws;
     int             c, rc;
 
-    ws = mprGetMpr(ctx)->waitService;
+    ws = mprGetMpr()->waitService;
     if (!ws->wakeRequested) {
         ws->wakeRequested = 1;
         c = 0;

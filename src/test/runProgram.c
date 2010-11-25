@@ -20,7 +20,7 @@ MAIN(runProgramMain, int argc, char* argv[])
     mpr = mprCreate(argc, argv, NULL);
 
 #if TRACE_PROGRESS
-    MprFile *f = mprOpen(mpr, "/tmp/r.log", O_CREAT|O_TRUNC|O_WRONLY, 0664);
+    MprFile *f = mprOpen("/tmp/r.log", O_CREAT|O_TRUNC|O_WRONLY, 0664);
     mprWriteFormat(f, "runProgram: argc %d\n", argc);
     for (i = 0; i < argc; i++) {
         mprWriteFormat(f, "runProgram: arg[%d] = %s\n", i, argv[i]);
@@ -29,7 +29,7 @@ MAIN(runProgramMain, int argc, char* argv[])
 #endif
 
     if (argc < 2) {
-        mprPrintfError(mpr, "Usage: runProgram exitCode args...\n");
+        mprPrintfError("Usage: runProgram exitCode args...\n");
         exit(3);
     }
     exitCode = atoi(argv[1]);

@@ -10,8 +10,8 @@
 
 /****************************** Forward Declarations **************************/
 
-static void defaultLogHandler(MprCtx ctx, int flags, int level, cchar *msg);
-static void logOutput(MprCtx ctx, int flags, int level, cchar *msg);
+static void defaultLogHandler(int flags, int level, cchar *msg);
+static void logOutput(int flags, int level, cchar *msg);
 
 /************************************ Code ************************************/
 /*
@@ -34,99 +34,97 @@ void mprBreakpoint()
 }
 
 
-void mprLog(MprCtx ctx, int level, cchar *fmt, ...)
+void mprLog(int level, cchar *fmt, ...)
 {
     va_list     args;
     char        *buf;
 
-    mprAssert(ctx);
-
-    if (level > mprGetLogLevel(ctx)) {
+    if (level > mprGetLogLevel()) {
         return;
     }
     va_start(args, fmt);
-    buf = mprAsprintfv(ctx, fmt, args);
+    buf = mprAsprintfv(fmt, args);
     va_end(args);
 
-    logOutput(ctx, MPR_LOG_SRC, level, buf);
+    logOutput(MPR_LOG_SRC, level, buf);
     mprFree(buf);
 }
 
 
-void mprRawLog(MprCtx ctx, int level, cchar *fmt, ...)
+void mprRawLog(int level, cchar *fmt, ...)
 {
     va_list     args;
     char        *buf;
 
-    if (level > mprGetLogLevel(ctx)) {
+    if (level > mprGetLogLevel()) {
         return;
     }
     va_start(args, fmt);
-    buf = mprAsprintfv(ctx, fmt, args);
+    buf = mprAsprintfv(fmt, args);
     va_end(args);
     
-    logOutput(ctx, MPR_RAW, 0, buf);
+    logOutput(MPR_RAW, 0, buf);
     mprFree(buf);
 }
 
 
-void mprError(MprCtx ctx, cchar *fmt, ...)
+void mprError(cchar *fmt, ...)
 {
     va_list     args;
     char        *buf;
 
     va_start(args, fmt);
-    buf = mprAsprintfv(ctx, fmt, args);
+    buf = mprAsprintfv(fmt, args);
     va_end(args);
     
-    logOutput(ctx, MPR_ERROR_MSG | MPR_ERROR_SRC, 0, buf);
+    logOutput(MPR_ERROR_MSG | MPR_ERROR_SRC, 0, buf);
 
     mprFree(buf);
     mprBreakpoint();
 }
 
 
-void mprMemoryError(MprCtx ctx, cchar *fmt, ...)
+void mprMemoryError(cchar *fmt, ...)
 {
     va_list     args;
     char        *buf;
 
     if (fmt == 0) {
-        logOutput(ctx, MPR_ERROR_MSG | MPR_ERROR_SRC, 0, "Memory allocation error");
+        logOutput(MPR_ERROR_MSG | MPR_ERROR_SRC, 0, "Memory allocation error");
     } else {
         va_start(args, fmt);
-        buf = mprAsprintfv(ctx, fmt, args);
+        buf = mprAsprintfv(fmt, args);
         va_end(args);
-        logOutput(ctx, MPR_ERROR_MSG | MPR_ERROR_SRC, 0, buf);
+        logOutput(MPR_ERROR_MSG | MPR_ERROR_SRC, 0, buf);
         mprFree(buf);
     }
 }
 
 
-void mprUserError(MprCtx ctx, cchar *fmt, ...)
+void mprUserError(cchar *fmt, ...)
 {
     va_list     args;
     char        *buf;
 
     va_start(args, fmt);
-    buf = mprAsprintfv(ctx, fmt, args);
+    buf = mprAsprintfv(fmt, args);
     va_end(args);
     
-    logOutput(ctx, MPR_USER_MSG | MPR_ERROR_SRC, 0, buf);
+    logOutput(MPR_USER_MSG | MPR_ERROR_SRC, 0, buf);
     mprFree(buf);
 }
 
 
-void mprFatalError(MprCtx ctx, cchar *fmt, ...)
+void mprFatalError(cchar *fmt, ...)
 {
     va_list     args;
     char        *buf;
 
     va_start(args, fmt);
-    buf = mprAsprintfv(ctx, fmt, args);
+    buf = mprAsprintfv(fmt, args);
     va_end(args);
     
-    logOutput(ctx, MPR_USER_MSG | MPR_FATAL_SRC, 0, buf);
+    logOutput(MPR_USER_MSG | MPR_FATAL_SRC, 0, buf);
     mprFree(buf);
     exit(2);
 }
@@ -176,70 +174,69 @@ void mprAssertError(cchar *loc, cchar *msg)
 }
 
 
-int mprGetLogLevel(MprCtx ctx)
+int mprGetLogLevel()
 {
     Mpr     *mpr;
 
     /*
         Leave the code like this so debuggers can patch logLevel before returning.
      */
-    mpr = mprGetMpr(ctx);
+    mpr = mprGetMpr();
     return mpr->logLevel;
 }
 
 
-void mprSetLogLevel(MprCtx ctx, int level)
+void mprSetLogLevel(int level)
 {
-    mprGetMpr(ctx)->logLevel = level;
+    mprGetMpr()->logLevel = level;
 }
 
 
-void mprSetAltLogData(MprCtx ctx, void *data)
+void mprSetAltLogData(void *data)
 {
-    mprGetMpr(ctx)->altLogData = data;
+    mprGetMpr()->altLogData = data;
 }
 
 
 /*
     Output a log message to the log handler
  */
-static void logOutput(MprCtx ctx, int flags, int level, cchar *msg)
+static void logOutput(int flags, int level, cchar *msg)
 {
     MprLogHandler   handler;
 
-    mprAssert(ctx != 0);
-    handler = mprGetMpr(ctx)->logHandler;
+    handler = mprGetMpr()->logHandler;
     if (handler != 0) {
-        (handler)(ctx, flags, level, msg);
+        (handler)(flags, level, msg);
         return;
     }
-    defaultLogHandler(ctx, flags, level, msg);
+    defaultLogHandler(flags, level, msg);
 }
 
 
-static void defaultLogHandler(MprCtx ctx, int flags, int level, cchar *msg)
+static void defaultLogHandler(int flags, int level, cchar *msg)
 {
     Mpr     *mpr;
     char    *prefix;
 
-    mpr = mprGetMpr(ctx);
+    mpr = mprGetMpr();
     prefix = mpr->name;
 
     if (msg == 0) {
         return;
     }
     while (*msg == '\n') {
-        mprPrintfError(ctx, "\n");
+        mprPrintfError("\n");
         msg++;
     }
     if (flags & MPR_LOG_SRC) {
-        mprPrintfError(ctx, "%s: %d: %s\n", prefix, level, msg);
+        mprPrintfError("%s: %d: %s\n", prefix, level, msg);
     } else if (flags & MPR_ERROR_SRC) {
-        mprPrintfError(ctx, "%s: Error: %s\n", prefix, msg);
+        mprPrintfError("%s: Error: %s\n", prefix, msg);
     } else if (flags & MPR_FATAL_SRC) {
-        mprPrintfError(ctx, "%s: Fatal: %s\n", prefix, msg);
+        mprPrintfError("%s: Fatal: %s\n", prefix, msg);
     } else if (flags & MPR_RAW) {
-        mprPrintfError(ctx, "%s", msg);
+        mprPrintfError("%s", msg);
     }
 }
 
@@ -268,15 +265,15 @@ int mprGetOsError()
 }
 
 
-int mprGetLogFd(MprCtx ctx)
+int mprGetLogFd()
 {
-    return mprGetMpr(ctx)->logFd;
+    return mprGetMpr()->logFd;
 }
 
 
-int mprSetLogFd(MprCtx ctx, int fd)
+int mprSetLogFd(int fd)
 {
-    return mprGetMpr(ctx)->logFd = fd;
+    return mprGetMpr()->logFd = fd;
 }
 
 

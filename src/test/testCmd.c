@@ -16,7 +16,7 @@ static char *program;
 
 static int initCmd(MprTestGroup *gp)
 {
-    program = mprJoinPath(gp, mprGetAppDir(gp), "runProgram" BLD_EXE);
+    program = mprJoinPath(mprGetAppDir(gp), "runProgram" BLD_EXE);
     return 0;
 }
 
@@ -25,7 +25,7 @@ static void testCreateCmd(MprTestGroup *gp)
 {
     MprCmd      *cmd;
 
-    cmd = mprCreateCmd(gp, NULL);
+    cmd = mprCreateCmd(NULL);
     assert(cmd != 0);
     mprFree(cmd);
 }
@@ -37,7 +37,7 @@ static void testRunCmd(MprTestGroup *gp)
     char        *result, command[80];
     int         rc, status, exitStatus;
 
-    cmd = mprCreateCmd(gp, NULL);
+    cmd = mprCreateCmd(NULL);
     assert(cmd != 0);
 
     /*
@@ -84,7 +84,7 @@ static void withDataCallback(MprCmd *cmd, int channel, void *data)
         len = mprReadCmdPipe(cmd, channel, mprGetBufEnd(buf), space);            
         if (len <= 0) {
             int status = mprGetError();
-            mprLog(cmd, 5, "Read %d (errno %d) from %s", len, status, (channel == MPR_CMD_STDOUT) ? "stdout" : "stderr");
+            mprLog(5, "Read %d (errno %d) from %s", len, status, (channel == MPR_CMD_STDOUT) ? "stdout" : "stderr");
             if (len == 0 || (len < 0 && !(status == EAGAIN || status == EWOULDBLOCK))) {
                 mprCloseCmdFd(cmd, channel);
                 if (channel == MPR_CMD_STDOUT && cmd->flags & MPR_CMD_ERR) {
@@ -130,10 +130,10 @@ static void testWithData(MprTestGroup *gp)
     char    *data, *env[16], *argv[16], line[80], *s, *tok;
     int     argc, i, status, rc, fd, len;
 
-    cmd = mprCreateCmd(gp, NULL);
+    cmd = mprCreateCmd(NULL);
     assert(cmd != 0);
 
-    gp->data = mprCreateBuf(gp, MPR_BUFSIZE, -1);
+    gp->data = mprCreateBuf(MPR_BUFSIZE, -1);
     assert(gp != 0);
 
     argc = 0;
@@ -206,7 +206,7 @@ static void testExitCode(MprTestGroup *gp)
     char    *result, command[80];
     int     i, status;
 
-    cmd = mprCreateCmd(gp, NULL);
+    cmd = mprCreateCmd(NULL);
     assert(cmd != 0);
 
     for (i = 0; i < 1; i++) {
@@ -215,7 +215,7 @@ static void testExitCode(MprTestGroup *gp)
         assert(result != NULL);
         assert(status == i);
         if (status != i) {
-            mprLog(gp, 0, "Status %d, result %s", status, result);
+            mprLog(0, "Status %d, result %s", status, result);
         }
     }
     mprFree(cmd);
@@ -231,7 +231,7 @@ static void testNoCapture(MprTestGroup *gp)
     char        command[80];
     int         rc, status;
 
-    cmd = mprCreateCmd(gp, NULL);
+    cmd = mprCreateCmd(NULL);
     assert(cmd != 0);
 
     mprSprintf(command, sizeof(command), "%s 99", program);

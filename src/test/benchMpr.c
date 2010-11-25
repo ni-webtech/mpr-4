@@ -21,11 +21,11 @@ static MprMutex *mutex;                 /* Test synchronization */
 
 /***************************** Forward Declarations ***************************/
 
-static void     doBenchmark(Mpr *mpr, void *thread);
-static void     endMark(MprCtx ctx, MprTime start, int count, char *msg);
+static void     doBenchmark(void *thread);
+static void     endMark(MprTime start, int count, char *msg);
 static void     eventCallback(void *data, MprEvent *ep);
 static size_t   memsize();
-static MprTime  startMark(MprCtx ctx);
+static MprTime  startMark();
 static void     testMalloc();
 static void     timerCallback(void *data, MprEvent *ep);
 volatile int    testComplete;
@@ -44,7 +44,7 @@ int benchMain(int argc, char *argv[])
     /*
         These platforms pass an arg string in via the argc value. Assumes 32-bit.
      */
-    mprMakeArgv(mpr, "http", (char*) argc, &argc, &argv);
+    mprMakeArgv("http", (char*) argc, &argc, &argv);
 #endif
 
     iterations = 5;
@@ -70,7 +70,7 @@ int benchMain(int argc, char *argv[])
             } else {
                 i = atoi(argv[++nextArg]);
                 if (i <= 0 || i > 100) {
-                    mprError(mpr, "%s: Bad number of worker threads (0-100)", mprGetAppName(mpr));
+                    mprError("%s: Bad number of worker threads (0-100)", mprGetAppName(mpr));
                     exit(2);
                 
                 }
@@ -81,9 +81,8 @@ int benchMain(int argc, char *argv[])
         }
     }
     if (err) {
-        mprPrintf(mpr, "usage: bench [-em] [-i iterations] [-t workers]\n");
-        mprRawLog(mpr, 0,
-            "usage: %s [options]\n"
+        mprPrintf("usage: bench [-em] [-i iterations] [-t workers]\n");
+        mprRawLog(0, "usage: %s [options]\n"
             "    --iterations count  # Number of iterations to run the test\n"
             "    --workers count     # Set maximum worker threads\n",
             mprGetAppName(mpr));
@@ -91,16 +90,16 @@ int benchMain(int argc, char *argv[])
     }
 
     mutex = mprCreateLock(mpr);
-    mprSetMaxWorkers(mpr, workers);
+    mprSetMaxWorkers(workers);
     mprStart(mpr);
 
-    thread = mprCreateThread(mpr, "bench", (MprThreadProc) doBenchmark, (void*) mpr, 0);
+    thread = mprCreateThread("bench", (MprThreadProc) doBenchmark, (void*) MPR, 0);
     mprStartThread(thread);
     
-    mprSleep(mpr, 999999);
+    mprSleep(999999);
     
     while (!testComplete) {
-        mprServiceEvents(mpr, mprGetDispatcher(mpr), 250, 0);
+        mprServiceEvents(mprGetDispatcher(mpr), 250, 0);
     }
     mprPrintMemReport("Memory Report", 0);
     mprFree(mpr);
@@ -125,9 +124,8 @@ int main(int argc, char **argv)
 /*
     Do a performance benchmark
  */ 
-static void doBenchmark(Mpr *mpr, void *thread)
+static void doBenchmark(void *thread)
 {
-    MprCtx          ctx;
     MprTime         start;
     MprList         *list;
     MprDispatcher   *dispatcher;
@@ -137,9 +135,8 @@ static void doBenchmark(Mpr *mpr, void *thread)
 
     mprCollectGarbage();
 
-    ctx = mprAlloc(mpr, 0);
-    mprPrintf(ctx, "Group\t%-30s\t%13s\t%12s\n", "Benchmark", "Microsec", "Elapsed-sec");
-    complete = mprCreateCond(ctx);
+    mprPrintf("Group\t%-30s\t%13s\t%12s\n", "Benchmark", "Microsec", "Elapsed-sec");
+    complete = mprCreateCond();
 
     testMalloc();
     mprCollectGarbage();
@@ -148,95 +145,93 @@ static void doBenchmark(Mpr *mpr, void *thread)
         /*
             Locking primitives
          */
-        mprPrintf(ctx, "Lock Benchmarks\n");
-        lock = mprCreateLock(ctx);
+        mprPrintf("Lock Benchmarks\n");
+        lock = mprCreateLock();
         count = 5000000 * iterations;
-        start = startMark(ctx);
+        start = startMark();
         for (i = 0; i < count; i++) {
             mprLock(lock);
             mprUnlock(lock);
         }
-        endMark(ctx, start, count, "Mutex lock|unlock");
+        endMark(start, count, "Mutex lock|unlock");
         mprFree(lock);
 
         /*
             Condition signal / wait
          */
-        mprPrintf(ctx, "Cond Benchmarks\n");
+        mprPrintf("Cond Benchmarks\n");
         count = 1000000 * iterations;
-        start = startMark(ctx);
+        start = startMark();
         mprResetCond(complete);
         for (i = 0; i < count; i++) {
             mprSignalCond(complete);
             mprWaitForCond(complete, -1);
         }
-        endMark(ctx, start, count, "Cond signal|wait");
+        endMark(start, count, "Cond signal|wait");
 
         /*
             List
          */
-        mprPrintf(ctx, "List Benchmarks\n");
+        mprPrintf("List Benchmarks\n");
         count = 20000000 * iterations;
-        list = mprCreateList(ctx);
-        start = startMark(ctx);
+        list = mprCreateList();
+        start = startMark();
         for (i = 0; i < count; i++) {
             mprAddItem(list, (void*) (long) i);
             mprRemoveItem(list, (void*) (long) i);
         }
-        endMark(ctx, start, count, "Link insert|remove");
+        endMark(start, count, "Link insert|remove");
         mprFree(list);
 
         /*
             Events
          */
-        mprPrintf(ctx, "Event Benchmarks\n");
+        mprPrintf("Event Benchmarks\n");
         mprResetCond(complete);
         count = 100000 * iterations;
         markCount = count;
-        start = startMark(ctx);
-        dispatcher = mprGetDispatcher(ctx);
+        start = startMark();
+        dispatcher = mprGetDispatcher();
         for (i = 0; i < count; i++) {
             mprCreateEvent(dispatcher, "eventBenchmark", 0, eventCallback, (void*) (long) i, 0);
         }
         mprWaitForCond(complete, -1);
-        endMark(ctx, start, count, "Event (create|run|delete)");
+        endMark(start, count, "Event (create|run|delete)");
 
 
         /*
             Test timer creation, run and delete (make a million timers!)
          */
-        mprPrintf(ctx, "Timer\n");
+        mprPrintf("Timer\n");
         mprResetCond(complete);
         count = 50000 * iterations;
         markCount = count;
-        start = startMark(ctx);
+        start = startMark();
         for (i = 0; i < count; i++) {
-            mprCreateTimerEvent(mprGetDispatcher(ctx), "timerBenchmark", 0, timerCallback, (void*) (long) i, 0);
+            mprCreateTimerEvent(mprGetDispatcher(), "timerBenchmark", 0, timerCallback, (void*) (long) i, 0);
         }
         mprWaitForCond(complete, -1);
-        endMark(ctx, start, count, "Timer (create|delete)");
+        endMark(start, count, "Timer (create|delete)");
 
         /*
             Malloc (1K)
          */
-        mprPrintf(ctx, "Malloc 1K Benchmarks\n");
+        mprPrintf("Malloc 1K Benchmarks\n");
         count = 2000000 * iterations;
-        start = startMark(ctx);
+        start = startMark();
         for (i = 0; i < count; i++) {
-            mp = mprAlloc(ctx, 1024);
+            mp = mprAlloc(1024);
             mprFree(mp);
         }
-        endMark(ctx, start, count, "Alloc mprAlloc(1K)|mprFree");
+        endMark(start, count, "Alloc mprAlloc(1K)|mprFree");
     }
     testComplete = 1;
-    mprFree(ctx);
 }
 
 
 static void testMalloc()
 {
     MprTime     start;
-    MprCtx      ctx, ctx1, ctx2;
     size_t      base;
     char        *ptr;
     int         count, i;
@@ -246,13 +241,12 @@ static void testMalloc()
         Demonstrate validation checking if end of block is overwritten. 
         Must build with debug on and MPR_ALLOC_VERIFY enabled in mpr.h
      */
-    ptr = mprAlloc(mpr, 1024);
+    ptr = mprAlloc(1024);
     memset(ptr, 0, 1024 + (2 * sizeof(void*)));
     mprFree(ptr);
 #endif
 
-    ctx = mprAlloc(mpr, 0);
-    mprPrintf(ctx, "Alloc/Malloc overhead\n");
+    mprPrintf("Alloc/Malloc overhead\n");
     count = 200000 * iterations;
 
 #if MALLOC
@@ -260,126 +254,123 @@ static void testMalloc()
         malloc(1)
      */
     base = memsize();
-    start = startMark(ctx);
+    start = startMark();
     for (i = 0; i < count; i++) {
         ptr = malloc(1);
         memset(ptr, 0, 1);
     }
-    endMark(ctx, start, count, "Alloc malloc(1)");
-    mprPrintf(ctx, "\tMalloc overhead per block %d\n\n", ((memsize() - base) / count) - 1);
+    endMark(start, count, "Alloc malloc(1)");
+    mprPrintf("\tMalloc overhead per block %d\n\n", ((memsize() - base) / count) - 1);
 
     /*
         malloc(8)
      */
     base = memsize();
-    start = startMark(ctx);
+    start = startMark();
     for (i = 0; i < count; i++) {
         ptr = malloc(8);
         memset(ptr, 0, 8);
     }
-    endMark(ctx, start, count, "Alloc malloc(8)");
-    mprPrintf(ctx, "\tMalloc overhead per block %d (approx)\n\n", ((memsize() - base) / count) - 8);
+    endMark(start, count, "Alloc malloc(8)");
+    mprPrintf("\tMalloc overhead per block %d (approx)\n\n", ((memsize() - base) / count) - 8);
 
     /*
         malloc(16)
      */
     base = memsize();
-    start = startMark(ctx);
+    start = startMark();
     for (i = 0; i < count; i++) {
         ptr = malloc(16);
         memset(ptr, 0, 16);
     }
-    endMark(ctx, start, count, "Alloc malloc(16)");
-    mprPrintf(ctx, "\tMalloc overhead per block %d (approx)\n\n", ((memsize() - base) / count) - 16);
+    endMark(start, count, "Alloc malloc(16)");
+    mprPrintf("\tMalloc overhead per block %d (approx)\n\n", ((memsize() - base) / count) - 16);
 
     /*
         malloc(32)
      */
     base = memsize();
-    start = startMark(ctx);
+    start = startMark();
     for (i = 0; i < count; i++) {
         ptr = malloc(32);
         memset(ptr, 0, 32);
     }
-    endMark(ctx, start, count, "Alloc malloc(32)");
-    mprPrintf(ctx, "\tMalloc overhead per block %d (approx)\n\n", ((memsize() - base) / count) - 32);
+    endMark(start, count, "Alloc malloc(32)");
+    mprPrintf("\tMalloc overhead per block %d (approx)\n\n", ((memsize() - base) / count) - 32);
 
     /*
         malloc+free(8)
      */
-    start = startMark(ctx);
+    start = startMark();
     for (i = 0; i < count; i++) {
         ptr = malloc(8);
         memset(ptr, 0, 8);
         mprNop(ptr);
         free(ptr);
     }
-    endMark(ctx, start, count, "Alloc malloc+free(8)");
-    mprPrintf(ctx, "\n");
+    endMark(start, count, "Alloc malloc+free(8)");
+    mprPrintf("\n");
 #endif
 
     /*
         mprAlloc(1)
      */
     base = memsize();
-    start = startMark(ctx);
-    ctx1 = mprAlloc(ctx, 0);
+    start = startMark();
     for (i = 0; i < count; i++) {
-        ptr = mprAlloc(ctx1, 1);
+        ptr = mprAlloc(1);
         memset(ptr, 0, 1);
     }
-    endMark(ctx, start, count, "Alloc mprAlloc(1)");
-    // mprPrintf(ctx, "\tMpr overhead per block %d (approx)\n\n", ((memsize() - base) / count) - 1);
+    endMark(start, count, "Alloc mprAlloc(1)");
+    // mprPrintf("\tMpr overhead per block %d (approx)\n\n", ((memsize() - base) / count) - 1);
 
     /*
         mprAlloc(8)
      */
     base = memsize();
-    start = startMark(ctx);
+    start = startMark();
     for (i = 0; i < count; i++) {
-        ptr = mprAlloc(ctx1, 8);
+        ptr = mprAlloc(8);
         memset(ptr, 0, 8);
     }
-    endMark(ctx, start, count, "Alloc mprAlloc(8)");
-    // mprPrintf(ctx, "\tMpr overhead per block %d (approx)\n\n", ((memsize() - base) / count) - 8);
+    endMark(start, count, "Alloc mprAlloc(8)");
+    // mprPrintf("\tMpr overhead per block %d (approx)\n\n", ((memsize() - base) / count) - 8);
 
     /*
         mprAlloc(16)
      */
     base = memsize();
-    start = startMark(ctx);
+    start = startMark();
     for (i = 0; i < count; i++) {
-        ptr = mprAlloc(ctx1, 16);
+        ptr = mprAlloc(16);
         memset(ptr, 0, 16);
     }
-    endMark(ctx, start, count, "Alloc mprAlloc(16)");
-    // mprPrintf(ctx, "\tMpr overhead per block %d (approx)\n\n", ((memsize() - base) / count) - 16);
+    endMark(start, count, "Alloc mprAlloc(16)");
+    // mprPrintf("\tMpr overhead per block %d (approx)\n\n", ((memsize() - base) / count) - 16);
 
     /*
         mprAlloc(32)
      */
     base = memsize();
-    start = startMark(ctx);
+    start = startMark();
     for (i = 0; i < count; i++) {
-        ptr = mprAlloc(ctx1, 32);
+        ptr = mprAlloc(32);
         memset(ptr, 0, 32);
     }
-    endMark(ctx, start, count, "Alloc mprAlloc(32)");
-    // mprPrintf(ctx, "\tMpr overhead per block %d (approx)\n\n", ((memsize() - base) / count) - 32);
+    endMark(start, count, "Alloc mprAlloc(32)");
+    // mprPrintf("\tMpr overhead per block %d (approx)\n\n", ((memsize() - base) / count) - 32);
 
     /*
         mprAlloc + mprFree(8)
      */
-    ctx2 = mprAlloc(ctx, 1);
-    start = startMark(ctx);
+    start = startMark();
     for (i = 0; i < count; i++) {
-        ptr = mprAlloc(ctx2, 8);
+        ptr = mprAlloc(8);
         memset(ptr, 0, 8);
         mprFree(ptr);
     }
-    endMark(ctx, start, count, "Alloc mprAlloc + mprFree(8)");
-    mprPrintf(ctx, "\n");
-    mprFree(ctx);
+    endMark(start, count, "Alloc mprAlloc + mprFree(8)");
+    mprPrintf("\n");
 }
 
 
@@ -413,22 +404,21 @@ static void timerCallback(void *data, MprEvent *event)
 }
 
 
-static MprTime startMark(MprCtx ctx)
+static MprTime startMark()
 {
     MprTime     now;
 
-    now = mprGetTime(ctx);
+    now = mprGetTime();
     return now;
 }
 
 
-static void endMark(MprCtx ctx, MprTime start, int count, char *msg)
+static void endMark(MprTime start, int count, char *msg)
 {
     MprTime     elapsed;
 
-    elapsed = mprGetElapsedTime(ctx, start);
-    mprPrintf(ctx, "\t%-30s\t%13.2f\t%12.2f\n", 
-        msg, elapsed * 1000.0 / count, elapsed / 1000.0);
+    elapsed = mprGetElapsedTime(start);
+    mprPrintf("\t%-30s\t%13.2f\t%12.2f\n", msg, elapsed * 1000.0 / count, elapsed / 1000.0);
 }
 
 

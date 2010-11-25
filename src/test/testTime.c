@@ -17,13 +17,13 @@ static void testTimeBasics(MprTestGroup *gp)
     mark = mprGetTime(gp);
     assert(mark != 0);
     
-    remaining = mprGetRemainingTime(gp, mark, 30000);
+    remaining = mprGetRemainingTime(mark, 30000);
     assert(0 <= remaining && remaining <= 30000);
 
-    elapsed = mprGetElapsedTime(gp, mark);
+    elapsed = mprGetElapsedTime(mark);
     assert(0 <= elapsed && elapsed < 30000);
 
-    mprSleep(gp, 20);
+    mprSleep(20);
     now = mprGetTime(gp);
     assert(mprCompareTime(mark, now) < 0);
 }
@@ -36,8 +36,8 @@ static void testZones(MprTestGroup *gp)
 
     /* TODO - need some tests here */
     now = mprGetTime(gp);
-    mprDecodeLocalTime(gp, &tm, now);
-    mprDecodeUniversalTime(gp, &tm, now);
+    mprDecodeLocalTime(&tm, now);
+    mprDecodeUniversalTime(&tm, now);
 }
 
 
@@ -49,8 +49,8 @@ static void testFormatTime(MprTestGroup *gp)
 
     /* TODO - need some tests here */
     now = mprGetTime(gp);
-    mprDecodeLocalTime(gp, &tm, now);
-    str = mprFormatTime(gp, NULL, &tm);
+    mprDecodeLocalTime(&tm, now);
+    str = mprFormatTime(NULL, &tm);
     assert(str && *str);
 }
 
@@ -60,13 +60,13 @@ static void testParseTime(MprTestGroup *gp)
     MprTime     when;
 
     when = 0;
-    assert(mprParseTime(gp, &when, "today", MPR_LOCAL_TIMEZONE, NULL) == 0);
-    assert(mprParseTime(gp, &when, "tomorrow", MPR_LOCAL_TIMEZONE, NULL) == 0);
-    assert(mprParseTime(gp, &when, "12:00", MPR_LOCAL_TIMEZONE, NULL) == 0);
-    assert(mprParseTime(gp, &when, "12:30 pm", MPR_LOCAL_TIMEZONE, NULL) == 0);
-    assert(mprParseTime(gp, &when, "1/31/99", MPR_LOCAL_TIMEZONE, NULL) == 0);
-    assert(mprParseTime(gp, &when, "Jan 17 2010", MPR_LOCAL_TIMEZONE, NULL) == 0);
-    assert(mprParseTime(gp, &when, "March 17 2010", MPR_LOCAL_TIMEZONE, NULL) == 0);
+    assert(mprParseTime(&when, "today", MPR_LOCAL_TIMEZONE, NULL) == 0);
+    assert(mprParseTime(&when, "tomorrow", MPR_LOCAL_TIMEZONE, NULL) == 0);
+    assert(mprParseTime(&when, "12:00", MPR_LOCAL_TIMEZONE, NULL) == 0);
+    assert(mprParseTime(&when, "12:30 pm", MPR_LOCAL_TIMEZONE, NULL) == 0);
+    assert(mprParseTime(&when, "1/31/99", MPR_LOCAL_TIMEZONE, NULL) == 0);
+    assert(mprParseTime(&when, "Jan 17 2010", MPR_LOCAL_TIMEZONE, NULL) == 0);
+    assert(mprParseTime(&when, "March 17 2010", MPR_LOCAL_TIMEZONE, NULL) == 0);
     assert(when != 0);
 }
 

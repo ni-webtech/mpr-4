@@ -24,7 +24,7 @@ int mprCreateNotifierService(MprWaitService *ws)
 
     ws->highestFd = 0;
     ws->handlerMax = MPR_FD_MIN;
-    ws->handlerMap = mprAllocZeroed(ws, sizeof(MprWaitHandler*) * ws->handlerMax);
+    ws->handlerMap = mprAllocZeroed(sizeof(MprWaitHandler*) * ws->handlerMax);
     if (ws->handlerMap == 0) {
         return MPR_ERR_CANT_INITIALIZE;
     }
@@ -93,7 +93,7 @@ static int growFds(MprWaitService *ws)
 {
     growFds(ws);
     ws->handlerMax *= 2;
-    ws->handlerMap = mprRealloc(ws, ws->handlerMap, sizeof(MprWaitHandler*) * ws->handlerMax);
+    ws->handlerMap = mprRealloc(ws->handlerMap, sizeof(MprWaitHandler*) * ws->handlerMax);
     if (ws->handlerMap) {
         unlock(ws);
         return MPR_ERR_MEMORY;
@@ -165,7 +165,7 @@ void mprRemoveNotifier(MprWaitHandler *wp)
     Wait for I/O on a single file descriptor. Return a mask of events found. Mask is the events of interest.
     timeout is in milliseconds.
  */
-int mprWaitForSingleIO(MprCtx ctx, int fd, int mask, int timeout)
+int mprWaitForSingleIO(int fd, int mask, int timeout)
 {
     MprWaitService  *ws;
     struct timeval  tval;
@@ -175,7 +175,7 @@ int mprWaitForSingleIO(MprCtx ctx, int fd, int mask, int timeout)
     if (timeout < 0) {
         timeout = MAXINT;
     }
-    ws = mprGetMpr(ctx)->waitService;
+    ws = mprGetMpr()->waitService;
     tval.tv_sec = timeout / 1000;
     tval.tv_usec = (timeout % 1000) * 1000;
 
@@ -190,7 +190,7 @@ int mprWaitForSingleIO(MprCtx ctx, int fd, int mask, int timeout)
     mask = 0;
     rc = select(fd + 1, &readMask, &writeMask, NULL, &tval);
     if (rc < 0) {
-        mprLog(ctx, 2, "Select returned %d, errno %d", rc, mprGetOsError());
+        mprLog(2, "Select returned %d, errno %d", rc, mprGetOsError());
     } else if (rc > 0) {
         if (FD_ISSET(fd, &readMask)) {
             mask |= MPR_READABLE;
@@ -277,12 +277,12 @@ static void serviceIO(MprWaitService *ws, int maxfd)
 /*
     Wake the wait service. WARNING: This routine must not require locking. MprEvents in scheduleDispatcher depends on this.
  */
-void mprWakeNotifier(MprCtx ctx)
+void mprWakeNotifier()
 {
     MprWaitService  *ws;
     int             c, rc;
 
-    ws = mprGetMpr(ctx)->waitService;
+    ws = mprGetMpr()->waitService;
     if (!ws->wakeRequested) {
         ws->wakeRequested = 1;
         c = 0;

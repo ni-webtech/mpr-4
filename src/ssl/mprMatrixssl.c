@@ -16,12 +16,12 @@ static MprSocket *acceptMss(MprSocket *sp);
 static void     closeMss(MprSocket *sp, bool gracefully);
 static int      configureMss(MprSsl *ssl);
 static int      connectMss(MprSocket *sp, cchar *host, int port, int flags);
-static MprSocketProvider *createMatrixSslProvider(MprCtx ctx);
-static MprSocket *createMss(MprCtx ctx, MprSsl *ssl);
+static MprSocketProvider *createMatrixSslProvider();
+static MprSocket *createMss(MprSsl *ssl);
 static void     disconnectMss(MprSocket *sp);
 static int      doHandshake(MprSocket *sp, short cipherSuite);
 static int      flushMss(MprSocket *sp);
-static MprSsl   *getDefaultMatrixSsl(MprCtx ctx);
+static MprSsl   *getDefaultMatrixSsl();
 static int      innerRead(MprSocket *sp, char *userBuf, int len);
 static int      listenMss(MprSocket *sp, cchar *host, int port, int flags);
 static int      matrixSslDestructor(MprSsl *ssl);
@@ -31,15 +31,13 @@ static size_t   writeMss(MprSocket *sp, void *buf, size_t len);
 
 /************************************ Code ************************************/
 
-int mprCreateMatrixSslModule(MprCtx ctx, bool lazy)
+int mprCreateMatrixSslModule(bool lazy)
 {
     Mpr                 *mpr;
     MprSocketService    *ss;
     MprSocketProvider   *provider;
 
-    mprAssert(ctx);
-
-    mpr = mprGetMpr(ctx);
+    mpr = mprGetMpr();
     ss = mpr->socketService;
 
     /*
@@ -48,7 +46,7 @@ int mprCreateMatrixSslModule(MprCtx ctx, bool lazy)
     if ((provider = createMatrixSslProvider(mpr)) == 0) {
         return 0;
     }
-    mprSetSecureProvider(ss, provider);
+    mprSetSecureProvider(provider);
 
     if (matrixSslOpen() < 0) {
         return 0;
@@ -60,13 +58,13 @@ int mprCreateMatrixSslModule(MprCtx ctx, bool lazy)
 }
 
 
-static MprSsl *getDefaultMatrixSsl(MprCtx ctx)
+static MprSsl *getDefaultMatrixSsl()
 {
     Mpr                 *mpr;
     MprSocketService    *ss;
     MprSsl              *ssl;
 
-    mpr = mprGetMpr(ctx);
+    mpr = mprGetMpr();
     ss = mpr->socketService;
 
     if (ss->secureProvider->defaultSsl) {
@@ -80,13 +78,13 @@ static MprSsl *getDefaultMatrixSsl(MprCtx ctx)
 }
 
 
-static MprSocketProvider *createMatrixSslProvider(MprCtx ctx)
+static MprSocketProvider *createMatrixSslProvider()
 {
     Mpr                 *mpr;
     MprSocketProvider   *provider;
 
-    mpr = mprGetMpr(ctx);
-    if ((provider = mprAllocObj(mpr, MprSocketProvider, NULL)) == NULL) {
+    mpr = mprGetMpr();
+    if ((provider = mprAllocObj(MprSocketProvider, NULL)) == NULL) {
         return 0;
     }
     provider->name = "MatrixSsl";
@@ -109,7 +107,7 @@ static int configureMss(MprSsl *ssl)
     MprSocketService    *ss;
     char                *password;
 
-    ss = mprGetMpr(ssl)->socketService;
+    ss = mprGetMpr()->socketService;
 
     mprSetManager(ssl, (MprManager) matrixSslDestructor);
 
@@ -122,7 +120,7 @@ static int configureMss(MprSsl *ssl)
     mprAssert(ssl->keys == NULL);
 
     if (matrixSslReadKeys(&ssl->keys, ssl->certFile, ssl->keyFile, password, NULL) < 0) {
-        mprError(ssl, "MatrixSSL: Could not read or decode certificate or key file."); 
+        mprError("MatrixSSL: Could not read or decode certificate or key file."); 
         return MPR_ERR_CANT_INITIALIZE;
     }
 
@@ -130,15 +128,15 @@ static int configureMss(MprSsl *ssl)
         Select the required protocols. MatrixSSL supports only SSLv3.
      */
     if (ssl->protocols & MPR_PROTO_SSLV2) {
-        mprError(ssl, "MatrixSSL: SSLv2 unsupported"); 
+        mprError("MatrixSSL: SSLv2 unsupported"); 
         return MPR_ERR_CANT_INITIALIZE;
     }
     if (!(ssl->protocols & MPR_PROTO_SSLV3)) {
-        mprError(ssl, "MatrixSSL: SSLv3 not enabled, unable to continue"); 
+        mprError("MatrixSSL: SSLv3 not enabled, unable to continue"); 
         return MPR_ERR_CANT_INITIALIZE;
     }
     if (ssl->protocols & MPR_PROTO_TLSV1) {
-        mprLog(ssl, 2, "MatrixSSL: Warning, TLSv1 not supported. Using SSLv3 only.");
+        mprLog(2, "MatrixSSL: Warning, TLSv1 not supported. Using SSLv3 only.");
     }
     return 0;
 }
@@ -156,7 +154,7 @@ static int matrixSslDestructor(MprSsl *ssl)
 /*
     Create a new Matrix socket
  */
-static MprSocket *createMss(MprCtx ctx, MprSsl *ssl)
+static MprSocket *createMss(MprSsl *ssl)
 {
     Mpr                 *mpr;
     MprSocketService    *ss;
@@ -170,16 +168,16 @@ static MprSocket *createMss(MprCtx ctx, MprSsl *ssl)
     /*
         First get a standard socket
      */
-    mpr = mprGetMpr(ctx);
+    mpr = mprGetMpr();
     ss = mpr->socketService;
-    sp = ss->standardProvider->createSocket(mpr, ssl);
+    sp = ss->standardProvider->createSocket(ssl);
     if (sp == 0) {
         return 0;
     }
     lock(sp);
     sp->provider = ss->secureProvider;
 
-    msp = (MprSslSocket*) mprAllocObj(sp, MprSslSocket, matrixSslSocketDestructor);
+    msp = (MprSslSocket*) mprAllocObj(MprSslSocket, matrixSslSocketDestructor);
     if (msp == 0) {
         mprFree(sp);
         return 0;
@@ -282,11 +280,11 @@ static MprSocket *acceptMss(MprSocket *listen)
         for non-blocking sockets. 
      */
     msp->insock.size = MPR_SSL_BUFSIZE;
-    msp->insock.start = (uchar*) mprAlloc(msp, msp->insock.size);
+    msp->insock.start = mprAlloc(msp->insock.size);
     msp->insock.end = msp->insock.buf = msp->insock.start;
 
     msp->outsock.size = MPR_SSL_BUFSIZE;
-    msp->outsock.start = (uchar*) mprAlloc(msp, msp->outsock.size);
+    msp->outsock.start = mprAlloc(msp->outsock.size);
     msp->outsock.end = msp->outsock.buf = msp->outsock.start;
 
     msp->inbuf.size = 0;
@@ -393,7 +391,7 @@ static int blockingWrite(MprSocket *sp, sslBuf_t *out)
             return -1;
             
         } else if (bytes == 0) {
-            mprSleep(sp, 10);
+            mprSleep(10);
         }
         out->start += bytes;
     }
@@ -419,9 +417,9 @@ static int doHandshake(MprSocket *sp, short cipherSuite)
         the buffers as needed.
      */
     msp->insock.size = MPR_SSL_BUFSIZE;
-    msp->insock.start = msp->insock.end = msp->insock.buf = mprAlloc(msp, msp->insock.size);
+    msp->insock.start = msp->insock.end = msp->insock.buf = mprAlloc(msp->insock.size);
     msp->outsock.size = MPR_SSL_BUFSIZE;
-    msp->outsock.start = msp->outsock.end = msp->outsock.buf = mprAlloc(msp, msp->outsock.size);
+    msp->outsock.start = msp->outsock.end = msp->outsock.buf = mprAlloc(msp->outsock.size);
     msp->inbuf.size = 0;
     msp->inbuf.start = msp->inbuf.end = msp->inbuf.buf = NULL;
 
@@ -435,7 +433,7 @@ static int doHandshake(MprSocket *sp, short cipherSuite)
         Send the hello with a blocking write
      */
     if (blockingWrite(sp, &msp->outsock) < 0) {
-        mprError(msp, "MatrixSSL: Error in socketWrite");
+        mprError("MatrixSSL: Error in socketWrite");
         goto error;
     }
     msp->outsock.start = msp->outsock.end = msp->outsock.buf;
@@ -464,11 +462,11 @@ readMore:
         }
 
     } else if (rc > 0) {
-        mprError(msp, "MatrixSSL: sslRead got %d data in sslDoHandshake %s", rc, buf);
+        mprError("MatrixSSL: sslRead got %d data in sslDoHandshake %s", rc, buf);
         goto readMore;
 
     } else {
-        mprError(msp, "MatrixSSL: sslRead error in sslDoHandhake");
+        mprError("MatrixSSL: sslRead error in sslDoHandhake");
         goto error;
     }
     return 0;
@@ -567,7 +565,7 @@ readMore:
     /*
         Define a temporary sslBuf
      */
-    inbuf->start = inbuf->end = inbuf->buf = (uchar*) mprAlloc(msp, len);
+    inbuf->start = inbuf->end = inbuf->buf = mprAlloc(len);
     inbuf->size = len;
 decodeMore:
     /*
@@ -634,7 +632,7 @@ decodeMore:
         closing on error, we don't worry too much about a clean flush.
      */
     case SSL_ERROR:
-        mprLog(sp, 4, "MatrixSSL: Closing on protocol error %d", error);
+        mprLog(4, "MatrixSSL: Closing on protocol error %d", error);
         if (inbuf->start < inbuf->end) {
             mprSetSocketBlockingMode(sp, 0);
             bytes = standard->writeSocket(sp, inbuf->start, inbuf->end - inbuf->start);
@@ -648,7 +646,7 @@ decodeMore:
         if (alertDescription == SSL_ALERT_CLOSE_NOTIFY) {
             goto readZero;
         }
-        mprLog(sp, 4, "MatrixSSL: Closing on client alert %d: %d", alertLevel, alertDescription);
+        mprLog(4, "MatrixSSL: Closing on client alert %d: %d", alertLevel, alertDescription);
         goto readError;
 
     /*
@@ -661,7 +659,7 @@ decodeMore:
                 goto readError;
             }
             insock->size *= 2;
-            insock->start = insock->buf = (uchar*) mprRealloc(msp, insock->buf, insock->size);
+            insock->start = insock->buf = mprRealloc(insock->buf, insock->size);
             insock->end = insock->buf + (insock->size / 2);
         }
         if (!performRead) {
@@ -683,7 +681,7 @@ decodeMore:
             mprFree(inbuf->buf);
             inbuf->buf = 0;
         }
-        inbuf->start = (uchar*) mprAlloc(msp, inbuf->size);
+        inbuf->start = mprAlloc(inbuf->size);
         inbuf->end = inbuf->buf = inbuf->start;
         goto decodeMore;
     }
@@ -720,7 +718,7 @@ static size_t readMss(MprSocket *sp, void *buf, size_t len)
      */
     if (isBufferedData(msp)) {
         sp->flags |= MPR_SOCKET_PENDING;
-        mprRecallWaitHandler(sp, sp->fd);
+        mprRecallWaitHandler(sp->fd);
     }
     unlock(sp);
     return bytes;
@@ -801,7 +799,7 @@ retryEncode:
                 return -1;
             }
             outsock->size *= 2;
-            outsock->buf = (uchar*) mprRealloc(msp, outsock->buf, outsock->size);
+            outsock->buf = mprRealloc(outsock->buf, outsock->size);
             outsock->end = outsock->buf + (outsock->end - outsock->start);
             outsock->start = outsock->buf;
             goto retryEncode;
@@ -846,7 +844,7 @@ static int flushMss(MprSocket *sp)
 }
 
 #else
-int mprCreateMatrixSslModule(MprCtx ctx, bool lazy) { return -1; }
+int mprCreateMatrixSslModule(bool lazy) { return -1; }
 #endif /* BLD_FEATURE_MATRIXSSL */
 
 /*

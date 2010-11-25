@@ -21,7 +21,7 @@ static MprRomInode *lookup(MprRomFileSystem *rfs, cchar *path);
 
 /*********************************** Code *************************************/
 
-static MprFile *openFile(MprCtx ctx, MprFileSystem *fileSystem, cchar *path, int flags, int omode)
+static MprFile *openFile(MprFileSystem *fileSystem, cchar *path, int flags, int omode)
 {
     MprRomFileSystem    *rfs;
     MprFile             *file;
@@ -29,7 +29,7 @@ static MprFile *openFile(MprCtx ctx, MprFileSystem *fileSystem, cchar *path, int
     mprAssert(path && *path);
 
     rfs = (MprRomFileSystem*) fileSystem;
-    file = mprAllocObj(ctx, MprFile, manageRomFile);
+    file = mprAllocObj(MprFile, manageRomFile);
     file->fileSystem = fileSystem;
     file->mode = omode;
     file->fd = -1;
@@ -199,12 +199,12 @@ static MprRomInode *lookup(MprRomFileSystem *rfs, cchar *path)
 }
 
 
-int mprSetRomFileSystem(MprCtx ctx, MprRomInode *inodeList)
+int mprSetRomFileSystem(MprRomInode *inodeList)
 {
     MprRomFileSystem     rfs;
     MprRomInode         *ri;
 
-    rfs = (MprRomFileSystem*) mprGetMpr(ctx)->fileSystem;
+    rfs = (MprRomFileSystem*) mprGetMpr()->fileSystem;
     rfs->romInodes = inodeList;
     rfs->fileIndex = mprCreateHash(rfs, MPR_FILES_HASH_SIZE, MPR_HASH_PERM_KEYS);
 
@@ -217,12 +217,12 @@ int mprSetRomFileSystem(MprCtx ctx, MprRomInode *inodeList)
 }
 
 
-MprRomFileSystem *mprCreateRomFileSystem(MprCtx ctx, cchar *path)
+MprRomFileSystem *mprCreateRomFileSystem(cchar *path)
 {
     MprFileSystem      *fs;
     MprRomFileSystem   *rfs;
 
-    rfs = mprAlloc(ctx, sizeof(MprRomFileSystem));
+    rfs = mprAlloc(sizeof(MprRomFileSystem));
     if (rfs == 0) {
         return rfs;
     }
@@ -240,7 +240,7 @@ MprRomFileSystem *mprCreateRomFileSystem(MprCtx ctx, cchar *path)
     fs->writeFile = writeFile;
 
 #if !WINCE
-    fs->stdError = mprAllocZeroed(fs, sizeof(MprFile));
+    fs->stdError = mprAllocZeroed(sizeof(MprFile));
     if (fs->stdError == 0) {
         mprFree(fs);
     }
@@ -248,7 +248,7 @@ MprRomFileSystem *mprCreateRomFileSystem(MprCtx ctx, cchar *path)
     fs->stdError->fileSystem = fs;
     fs->stdError->mode = O_WRONLY;
 
-    fs->stdInput = mprAllocZeroed(fs, sizeof(MprFile));
+    fs->stdInput = mprAllocZeroed(sizeof(MprFile));
     if (fs->stdInput == 0) {
         mprFree(fs);
     }
@@ -256,7 +256,7 @@ MprRomFileSystem *mprCreateRomFileSystem(MprCtx ctx, cchar *path)
     fs->stdInput->fileSystem = fs;
     fs->stdInput->mode = O_RDONLY;
 
-    fs->stdOutput = mprAllocZeroed(fs, sizeof(MprFile));
+    fs->stdOutput = mprAllocZeroed(sizeof(MprFile));
     if (fs->stdOutput == 0) {
         mprFree(fs);
     }

@@ -39,25 +39,25 @@ Mpr *mprCreate(int argc, char **argv, MprMemNotifier cback)
         TODO - refactor this
      */
 #if WINCE
-    mprMakeArgv(mpr, (char*) argv, mprToMulti(mpr, (uni*) argc), &argc, &argv);
+    mprMakeArgv((char*) argv, mprToMulti((uni*) argc), &argc, &argv);
 #elif VXWORKS
-    mprMakeArgv(mpr, NULL, (char*) argc, &argc, &argv);
+    mprMakeArgv(NULL, (char*) argc, &argc, &argv);
 #endif
     mpr->argc = argc;
     mpr->argv = argv;
     mpr->logFd = -1;
 
-    mpr->title = sclone(mpr, BLD_NAME);
-    mpr->version = sclone(mpr, BLD_VERSION);
+    mpr->title = sclone(BLD_NAME);
+    mpr->version = sclone(BLD_VERSION);
     mpr->idleCallback = mprServicesAreIdle;
 
     if (mpr->argv && mpr->argv[0] && *mpr->argv[0]) {
-        mpr->name = sclone(mpr, basename(mpr->argv[0]));
+        mpr->name = sclone(basename(mpr->argv[0]));
         if ((cp = strchr(mpr->name, '.')) != 0) {
             *cp = '\0';
         }
     } else {
-        mpr->name = sclone(mpr, BLD_PRODUCT);
+        mpr->name = sclone(BLD_PRODUCT);
     }
     if (mprCreateTimeService(mpr) < 0) {
         goto error;
@@ -79,10 +79,10 @@ Mpr *mprCreate(int argc, char **argv, MprMemNotifier cback)
     mpr->mutex = mprCreateLock(mpr);
     mpr->spin = mprCreateSpinLock(mpr);
 
-    if ((fs = mprCreateFileSystem(mpr, "/")) == 0) {
+    if ((fs = mprCreateFileSystem("/")) == 0) {
         goto error;
     }
-    mprAddFileSystem(mpr, fs);
+    mprAddFileSystem(fs);
 
     if ((mpr->moduleService = mprCreateModuleService(mpr)) == 0) {
         goto error;
@@ -166,11 +166,11 @@ int mprStart(Mpr *mpr)
     rc += mprStartWorkerService(mpr->workerService);
     rc += mprStartSocketService(mpr->socketService);
     if (rc != 0) {
-        mprUserError(mpr, "Can't start MPR services");
+        mprUserError("Can't start MPR services");
         return MPR_ERR_CANT_INITIALIZE;
     }
     mpr->flags |= MPR_STARTED;
-    mprLog(mpr, MPR_INFO, "MPR services are ready");
+    mprLog(MPR_INFO, "MPR services are ready");
     return 0;
 }
 
@@ -187,10 +187,7 @@ bool mprStop(Mpr *mpr)
     }
     mpr->flags |= MPR_STOPPED;
 
-    /*
-        Trigger graceful termination. This will prevent further tasks and events being created.
-     */
-    mprTerminate(mpr, 1);
+    mprTerminate(MPR_GRACEFUL);
     mprStopSocketService(mpr->socketService);
     if (!mprStopWorkerService(mpr->workerService, MPR_TIMEOUT_STOP_TASK)) {
         stopped = 0;
@@ -213,8 +210,8 @@ int mprStartEventsThread(Mpr *mpr)
 {
     MprThread   *tp;
 
-    mprLog(mpr, MPR_CONFIG, "Starting service thread");
-    if ((tp = mprCreateThread(mpr, "events", serviceEventsThread, NULL, 0)) == 0) {
+    mprLog(MPR_CONFIG, "Starting service thread");
+    if ((tp = mprCreateThread("events", serviceEventsThread, NULL, 0)) == 0) {
         return MPR_ERR_CANT_CREATE;
     }
     mpr->hasDedicatedService = 1;
@@ -225,43 +222,31 @@ int mprStartEventsThread(Mpr *mpr)
 
 static void serviceEventsThread(void *data, MprThread *tp)
 {
-    mprServiceEvents(tp, NULL, -1, 0);
+    mprServiceEvents(NULL, -1, 0);
 }
 
 
 /*
     Exit the mpr gracefully. Instruct the event loop to exit.
  */
-void mprTerminate(MprCtx ctx, bool graceful)
+void mprTerminate(bool graceful)
 {
     if (! graceful) {
         exit(0);
     }
-    mprSignalExit(ctx);
+    mprSignalExit();
 }
 
 
-bool mprIsExiting(MprCtx ctx)
+bool mprIsExiting()
 {
-    Mpr *mpr;
-
-    mpr = mprGetMpr(ctx);
-    if (mpr == 0) {
-        return 1;
-    }
-    return mpr->flags & MPR_EXITING;
+    return MPR->flags & MPR_EXITING;
 }
 
 
-bool mprIsComplete(MprCtx ctx)
+bool mprIsComplete()
 {
-    Mpr *mpr;
-
-    mpr = mprGetMpr(ctx);
-    if (mpr == 0) {
-        return 1;
-    }
-    return (mpr->flags & MPR_EXITING) && mprIsIdle(ctx);
+    return (MPR->flags & MPR_EXITING) && mprIsIdle();
 }
 
 
@@ -270,7 +255,7 @@ bool mprIsComplete(MprCtx ctx)
 /*
     Make an argv array. Caller must free by calling mprFree(argv) to free everything.
  */
-int mprMakeArgv(MprCtx ctx, cchar *program, cchar *cmd, int *argcp, char ***argvp)
+int mprMakeArgv(cchar *program, cchar *cmd, int *argcp, char ***argvp)
 {
     char        *cp, **argv, *buf, *args;
     int         size, argc;
@@ -280,7 +265,7 @@ int mprMakeArgv(MprCtx ctx, cchar *program, cchar *cmd, int *argcp, char ***argv
      */
     size = strlen(cmd) + 1;
 
-    buf = (char*) mprAlloc(ctx, (MPR_MAX_ARGC * sizeof(char*)) + size);
+    buf = (char*) mprAlloc((MPR_MAX_ARGC * sizeof(char*)) + size);
     if (buf == 0) {
         return MPR_ERR_MEMORY;
     }
@@ -290,7 +275,7 @@ int mprMakeArgv(MprCtx ctx, cchar *program, cchar *cmd, int *argcp, char ***argv
 
     argc = 0;
     if (program) {
-        argv[argc++] = (char*) sclone(ctx, program);
+        argv[argc++] = (char*) sclone(program);
     }
 
     for (cp = args; cp && *cp != '\0'; argc++) {
@@ -339,76 +324,64 @@ int mprMakeArgv(MprCtx ctx, cchar *program, cchar *cmd, int *argcp, char ***argv
 /*
     Just the Mpr services are idle. Use mprIsIdle to determine if the entire process is idle
  */
-bool mprServicesAreIdle(MprCtx ctx)
+bool mprServicesAreIdle()
 {
 #if MOB
-    Mpr     *mpr;
-    
-    mpr = mprGetMpr(ctx);
-    return mprGetListCount(mpr->workerService->busyThreads) == 0 && mprGetListCount(mpr->cmdService->cmds) == 0 && 
+    return mprGetListCount(MPR->workerService->busyThreads) == 0 && mprGetListCount(MPR->cmdService->cmds) == 0 && 
         //MOB -- dispatcher here not right
-       !(mpr->dispatcher->flags & MPR_DISPATCHER_DO_EVENT);
+       !(MPR->dispatcher->flags & MPR_DISPATCHER_DO_EVENT);
 #endif
     return 1;
 }
 
 
-bool mprIsIdle(MprCtx ctx)
+bool mprIsIdle()
 {
-    return (mprGetMpr(ctx)->idleCallback)(ctx);
+    return (MPR->idleCallback)();
 }
 
 
-MprIdleCallback mprSetIdleCallback(MprCtx ctx, MprIdleCallback idleCallback)
+MprIdleCallback mprSetIdleCallback(MprIdleCallback idleCallback)
 {
     MprIdleCallback old;
-    Mpr             *mpr;
     
-    mpr = mprGetMpr(ctx);
-    old = mpr->idleCallback;
-    mpr->idleCallback = idleCallback;
+    old = MPR->idleCallback;
+    MPR->idleCallback = idleCallback;
     return old;
 }
 
 
-void mprSignalExit(MprCtx ctx)
+void mprSignalExit()
 {
-    Mpr     *mpr;
-
-    mpr = mprGetMpr(ctx);
-
-    mprSpinLock(mpr->spin);
-    mpr->flags |= MPR_EXITING;
-    mprSpinUnlock(mpr->spin);
-    mprWakeWaitService(mpr);
+    mprSpinLock(MPR->spin);
+    MPR->flags |= MPR_EXITING;
+    mprSpinUnlock(MPR->spin);
+    mprWakeWaitService();
 }
 
 
-int mprSetAppName(MprCtx ctx, cchar *name, cchar *title, cchar *version)
+int mprSetAppName(cchar *name, cchar *title, cchar *version)
 {
-    Mpr     *mpr;
     char    *cp;
 
-    mpr = mprGetMpr(ctx);
-
     if (name) {
-        mprFree(mpr->name);
-        if ((mpr->name = (char*) mprGetPathBase(mpr, name)) == 0) {
+        mprFree(MPR->name);
+        if ((MPR->name = (char*) mprGetPathBase(name)) == 0) {
             return MPR_ERR_CANT_ALLOCATE;
         }
-        if ((cp = strrchr(mpr->name, '.')) != 0) {
+        if ((cp = strrchr(MPR->name, '.')) != 0) {
             *cp = '\0';
         }
     }
     if (title) {
-        mprFree(mpr->title);
-        if ((mpr->title = sclone(mpr, title)) == 0) {
+        mprFree(MPR->title);
+        if ((MPR->title = sclone(title)) == 0) {
             return MPR_ERR_CANT_ALLOCATE;
         }
     }
     if (version) {
-        mprFree(mpr->version);
-        if ((mpr->version = sclone(mpr, version)) == 0) {
+        mprFree(MPR->version);
+        if ((MPR->version = sclone(version)) == 0) {
             return MPR_ERR_CANT_ALLOCATE;
         }
     }
@@ -416,30 +389,27 @@ int mprSetAppName(MprCtx ctx, cchar *name, cchar *title, cchar *version)
 }
 
 
-cchar *mprGetAppName(MprCtx ctx)
+cchar *mprGetAppName()
 {
-    return mprGetMpr(ctx)->name;
+    return MPR->name;
 }
 
 
-cchar *mprGetAppTitle(MprCtx ctx)
+cchar *mprGetAppTitle()
 {
-    return mprGetMpr(ctx)->title;
+    return MPR->title;
 }
 
 
 /*
     Full host name with domain. E.g. "server.domain.com"
  */
-void mprSetHostName(MprCtx ctx, cchar *s)
+void mprSetHostName(cchar *s)
 {
-    Mpr     *mpr;
-
-    mpr = mprGetMpr(ctx);
-    mprLock(mpr->mutex);
-    mprFree(mpr->hostName);
-    mpr->hostName = sclone(mpr, s);
-    mprUnlock(mpr->mutex);
+    mprLock(MPR->mutex);
+    mprFree(MPR->hostName);
+    MPR->hostName = sclone(s);
+    mprUnlock(MPR->mutex);
     return;
 }
 
@@ -447,24 +417,21 @@ void mprSetHostName(MprCtx ctx, cchar *s)
 /*
     Return the fully qualified host name
  */
-cchar *mprGetHostName(MprCtx ctx)
+cchar *mprGetHostName()
 {
-    return mprGetMpr(ctx)->hostName;
+    return MPR->hostName;
 }
 
 
 /*
     Server name portion (no domain name)
  */
-void mprSetServerName(MprCtx ctx, cchar *s)
+void mprSetServerName(cchar *s)
 {
-    Mpr     *mpr;
-
-    mpr = mprGetMpr(ctx);
-    if (mpr->serverName) {
-        mprFree(mpr->serverName);
+    if (MPR->serverName) {
+        mprFree(MPR->serverName);
     }
-    mpr->serverName = sclone(mpr, s);
+    MPR->serverName = sclone(s);
     return;
 }
 
@@ -472,22 +439,19 @@ void mprSetServerName(MprCtx ctx, cchar *s)
 /*
     Return the server name
  */
-cchar *mprGetServerName(MprCtx ctx)
+cchar *mprGetServerName()
 {
-    return mprGetMpr(ctx)->serverName;
+    return MPR->serverName;
 }
 
 
 /*
     Set the domain name
  */
-void mprSetDomainName(MprCtx ctx, cchar *s)
+void mprSetDomainName(cchar *s)
 {
-    Mpr     *mpr;
-
-    mpr = mprGetMpr(ctx);
-    mprFree(mpr->domainName);
-    mpr->domainName = sclone(mpr, s);
+    mprFree(MPR->domainName);
+    MPR->domainName = sclone(s);
     return;
 }
 
@@ -495,24 +459,21 @@ void mprSetDomainName(MprCtx ctx, cchar *s)
 /*
     Return the domain name
  */
-cchar *mprGetDomainName(MprCtx ctx)
+cchar *mprGetDomainName()
 {
-    return mprGetMpr(ctx)->domainName;
+    return MPR->domainName;
 }
 
 
 /*
     Set the IP address
  */
-void mprSetIpAddr(MprCtx ctx, cchar *s)
+void mprSetIpAddr(cchar *s)
 {
-    Mpr     *mpr;
-
-    mpr = mprGetMpr(ctx);
-    if (mpr->ip) {
-        mprFree(mpr->ip);
+    if (MPR->ip) {
+        mprFree(MPR->ip);
     }
-    mpr->ip = sclone(mpr, s);
+    MPR->ip = sclone(s);
     return;
 }
 
@@ -520,47 +481,40 @@ void mprSetIpAddr(MprCtx ctx, cchar *s)
 /*
     Return the IP address
  */
-cchar *mprGetIpAddr(MprCtx ctx)
+cchar *mprGetIpAddr()
 {
-    return mprGetMpr(ctx)->ip;
+    return MPR->ip;
 }
 
 
-cchar *mprGetAppVersion(MprCtx ctx)
+cchar *mprGetAppVersion()
 {
-    Mpr *mpr;
-
-    mpr = mprGetMpr(ctx);
-    return mpr->version;
+    return MPR->version;
 }
 
 
-bool mprGetDebugMode(MprCtx ctx)
+bool mprGetDebugMode()
 {
-    return mprGetMpr(ctx)->debugMode;
+    return MPR->debugMode;
 }
 
 
-void mprSetDebugMode(MprCtx ctx, bool on)
+void mprSetDebugMode(bool on)
 {
-    mprGetMpr(ctx)->debugMode = on;
+    MPR->debugMode = on;
 }
 
 
-void mprSetLogHandler(MprCtx ctx, MprLogHandler handler, void *handlerData)
+void mprSetLogHandler(MprLogHandler handler, void *handlerData)
 {
-    Mpr     *mpr;
-
-    mpr = mprGetMpr(ctx);
-
-    mpr->logHandler = handler;
-    mpr->logData = handlerData;
+    MPR->logHandler = handler;
+    MPR->logData = handlerData;
 }
 
 
-MprLogHandler mprGetLogHandler(MprCtx ctx)
+MprLogHandler mprGetLogHandler()
 {
-    return mprGetMpr(ctx)->logHandler;
+    return MPR->logHandler;
 }
 
 
@@ -571,7 +525,7 @@ cchar *mprCopyright()
 }
 
 
-int mprGetEndian(MprCtx ctx)
+int mprGetEndian()
 {
     char    *probe;
     int     test;

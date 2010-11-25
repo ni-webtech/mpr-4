@@ -21,11 +21,11 @@ typedef struct MprTestFile {
 /*
     Make a unique filename for a given thread
  */
-static char *makePath(MprCtx ctx, cchar *name)
+static char *makePath(cchar *name)
 {
     char    *path;
 
-    if ((path = mprAsprintf(ctx, "%s-%d-%s", name, getpid(), mprGetCurrentThreadName(ctx))) == 0) {
+    if ((path = mprAsprintf("%s-%d-%s", name, getpid(), mprGetCurrentThreadName())) == 0) {
         return 0;
     }
     return path;
@@ -39,13 +39,13 @@ static int initFile(MprTestGroup *gp)
 {
     MprTestFile     *ts;
 
-    gp->data = mprAllocZeroed(gp, sizeof(MprTestFile));
+    gp->data = mprAllocZeroed(sizeof(MprTestFile));
     if (gp->data == 0) {
         return MPR_ERR_MEMORY;
     }
     ts = (MprTestFile*) gp->data;
 
-    ts->name = makePath(gp, NAME);
+    ts->name = makePath(NAME);
     if (ts->name == 0) {
         mprFree(gp->data);
         gp->data = 0;
@@ -55,7 +55,7 @@ static int initFile(MprTestGroup *gp)
     /*
         Don't mind if these fail. We are just making sure they don't exist before we start the tests.
      */
-    mprDeletePath(gp, ts->name);
+    mprDeletePath(ts->name);
     return 0;
 }
 
@@ -78,33 +78,33 @@ static void testBasicIO(MprTestGroup *gp)
 
     ts = (MprTestFile*) gp->data;
     
-    rc = mprDeletePath(gp, ts->name);
-    assert(!mprPathExists(ts, ts->name, R_OK));
+    rc = mprDeletePath(ts->name);
+    assert(!mprPathExists(ts->name, R_OK));
     
-    file = mprOpen(gp, ts->name, O_CREAT | O_TRUNC | O_RDWR, FILEMODE);
+    file = mprOpen(ts->name, O_CREAT | O_TRUNC | O_RDWR, FILEMODE);
     assert(file != 0);
-    assert(mprPathExists(ts, ts->name, R_OK));
+    assert(mprPathExists(ts->name, R_OK));
 
     len = mprWrite(file, "abcdef", 6);
     assert(len == 6);
     mprFree(file);
 
-    assert(mprPathExists(ts, ts->name, R_OK));
-    rc = mprGetPathInfo(gp, ts->name, &info);
+    assert(mprPathExists(ts->name, R_OK));
+    rc = mprGetPathInfo(ts->name, &info);
     assert(rc == 0);
 
     /*
         TODO windows seems to delay setting this
      */
     if (info.size != 6) {
-        mprSleep(gp, 2000);
-        rc = mprGetPathInfo(gp, ts->name, &info);
+        mprSleep(2000);
+        rc = mprGetPathInfo(ts->name, &info);
     }
     assert(info.size == 6);
     assert(!info.isDir);
     assert(info.isReg);
     
-    file = mprOpen(gp, ts->name, O_RDWR, FILEMODE);
+    file = mprOpen(ts->name, O_RDWR, FILEMODE);
     assert(file != 0);
 
     pos = mprSeek(file, SEEK_SET, 1);
@@ -129,9 +129,9 @@ static void testBasicIO(MprTestGroup *gp)
     assert(strcmp(buf, "Hello\nWorld\n") == 0);
     mprFree(file);
 
-    rc = mprDeletePath(gp, ts->name);
+    rc = mprDeletePath(ts->name);
     assert(rc == 0);
-    assert(!mprPathExists(ts, ts->name, R_OK));
+    assert(!mprPathExists(ts->name, R_OK));
 }
     
 
@@ -145,12 +145,12 @@ static void testBufferedIO(MprTestGroup *gp)
 
     ts = (MprTestFile*) gp->data;
     
-    rc = mprDeletePath(gp, ts->name);
-    assert(!mprPathExists(ts, ts->name, R_OK));
+    rc = mprDeletePath(ts->name);
+    assert(!mprPathExists(ts->name, R_OK));
     
-    file = mprOpen(gp, ts->name, O_CREAT | O_TRUNC | O_RDWR | O_BINARY, FILEMODE);
+    file = mprOpen(ts->name, O_CREAT | O_TRUNC | O_RDWR | O_BINARY, FILEMODE);
     assert(file != 0);
-    assert(mprPathExists(ts, ts->name, R_OK));
+    assert(mprPathExists(ts->name, R_OK));
     
     mprEnableFileBuffering(file, 0, 512);
     
@@ -163,12 +163,12 @@ static void testBufferedIO(MprTestGroup *gp)
     len = mprPuts(file, "ef\n");
     assert(len == 3);
     
-    assert(mprPathExists(ts, ts->name, R_OK));
+    assert(mprPathExists(ts->name, R_OK));
     
     /*
         No data flushed yet so the length should be zero
      */
-    rc = mprGetPathInfo(gp, ts->name, &info);
+    rc = mprGetPathInfo(ts->name, &info);
     assert(rc == 0);
     assert(info.size == 0);
     
@@ -179,19 +179,19 @@ static void testBufferedIO(MprTestGroup *gp)
     /*
         Now the length should be set
      */
-    rc = mprGetPathInfo(gp, ts->name, &info);
+    rc = mprGetPathInfo(ts->name, &info);
     assert(rc == 0);
 
     /*
         TODO windows seems to delay setting this
      */
     if (info.size != 7) {
-        mprSleep(gp, 2000);
-        rc = mprGetPathInfo(gp, ts->name, &info);
+        mprSleep(2000);
+        rc = mprGetPathInfo(ts->name, &info);
     }
     assert(info.size == 7);
 
-    file = mprOpen(gp, ts->name, O_RDONLY | O_BINARY, FILEMODE);
+    file = mprOpen(ts->name, O_RDONLY | O_BINARY, FILEMODE);
     assert(file != 0);
     
     pos = mprSeek(file, SEEK_SET, 0);
@@ -208,8 +208,8 @@ static void testBufferedIO(MprTestGroup *gp)
     assert(strcmp(buf, "bcdef") == 0);
     mprFree(file);
 
-    mprDeletePath(gp, ts->name);
-    assert(!mprPathExists(ts, ts->name, R_OK));
+    mprDeletePath(ts->name);
+    assert(!mprPathExists(ts->name, R_OK));
 }
     
 

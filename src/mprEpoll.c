@@ -26,8 +26,8 @@ int mprCreateNotifierService(MprWaitService *ws)
 
     ws->eventsMax = MPR_EPOLL_SIZE;
     ws->handlerMax = MPR_FD_MIN;
-    ws->events = mprAllocZeroed(ws, sizeof(struct epoll_event) * ws->eventsMax);
-    ws->handlerMap = mprAllocZeroed(ws, sizeof(MprWaitHandler*) * ws->handlerMax);
+    ws->events = mprAllocZeroed(sizeof(struct epoll_event) * ws->eventsMax);
+    ws->handlerMap = mprAllocZeroed(sizeof(MprWaitHandler*) * ws->handlerMax);
     if (ws->events == 0 || ws->handlerMap == 0) {
         return MPR_ERR_CANT_INITIALIZE;
     }
@@ -50,15 +50,11 @@ int mprCreateNotifierService(MprWaitService *ws)
     ev.events = EPOLLIN | EPOLLERR | EPOLLHUP;
     ev.data.fd = ws->breakPipe[MPR_READ_PIPE];
     epoll_ctl(ws->epoll, EPOLL_CTL_ADD, ws->breakPipe[MPR_READ_PIPE], &ev);
-
-    if (mprAllocObj(ws, char*, manageEpoll) == 0) {
-        return MPR_ERR_MEMORY;
-    }
     return 0;
 }
 
 
-static void manageEpoll(MprWaitService *ws, int flags)
+void mprManageEpoll(MprWaitService *ws, int flags)
 {
     if (flags & MPR_MANAGE_MARK) {
         ;
@@ -74,7 +70,7 @@ static void manageEpoll(MprWaitService *ws, int flags)
 static int growEvents(MprWaitService *ws)
 {
     ws->eventsMax *= 2;
-    ws->events = mprRealloc(ws, ws->events, sizeof(struct epoll_event) * ws->eventsMax);
+    ws->events = mprRealloc(ws->events, sizeof(struct epoll_event) * ws->eventsMax);
     if (ws->events == 0) {
         return MPR_ERR_MEMORY;
     }
@@ -105,7 +101,7 @@ int mprAddNotifier(MprWaitService *ws, MprWaitHandler *wp, int mask)
         if (fd >= ws->handlerMax) {
             oldlen = ws->handlerMax;
             ws->handlerMax = fd + 32;
-            if ((ws->handlerMap = mprRealloc(ws, ws->handlerMap, sizeof(MprWaitHandler*) * ws->handlerMax)) == 0) {
+            if ((ws->handlerMap = mprRealloc(ws->handlerMap, sizeof(MprWaitHandler*) * ws->handlerMax)) == 0) {
                 return MPR_ERR_MEMORY;
             }
             memset(&ws->handlerMap[oldlen], 0, sizeof(MprWaitHandler*) * (ws->handlerMax - oldlen));
@@ -140,13 +136,13 @@ void mprRemoveNotifier(MprWaitHandler *wp)
     Wait for I/O on a single file descriptor. Return a mask of events found. Mask is the events of interest.
     timeout is in milliseconds.
  */
-int mprWaitForSingleIO(MprCtx ctx, int fd, int mask, int timeout)
+int mprWaitForSingleIO(int fd, int mask, int timeout)
 {
     MprWaitService      *ws;
     struct epoll_event  ev, events[2];
     int                 epfd, rc, err;
 
-    ws = mprGetMpr(ctx)->waitService;
+    ws = mprGetMpr()->waitService;
     if (timeout < 0) {
         timeout = MAXINT;
     }
@@ -170,7 +166,7 @@ int mprWaitForSingleIO(MprCtx ctx, int fd, int mask, int timeout)
     err = errno;
     close(epfd);
     if (rc < 0) {
-        mprLog(ctx, 2, "Epoll returned %d, errno %d", rc, errno);
+        mprLog(2, "Epoll returned %d, errno %d", rc, errno);
     } else if (rc > 0) {
         if (rc > 0) {
             if (events[0].events & (EPOLLIN | EPOLLERR | EPOLLHUP)) {
@@ -257,12 +253,12 @@ static void serviceIO(MprWaitService *ws, int count)
 /*
     Wake the wait service. WARNING: This routine must not require locking. MprEvents in scheduleDispatcher depends on this.
  */
-void mprWakeNotifier(MprCtx ctx)
+void mprWakeNotifier()
 {
     MprWaitService  *ws;
     int             c, rc;
 
-    ws = mprGetMpr(ctx)->waitService;
+    ws = mprGetMpr()->waitService;
     if (!ws->wakeRequested) {
         ws->wakeRequested = 1;
         c = 0;

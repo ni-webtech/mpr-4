@@ -62,7 +62,7 @@ void mprStopOsService()
 }
 
 
-int mprGetRandomBytes(MprCtx ctx, char *buf, int length, int block)
+int mprGetRandomBytes(char *buf, int length, int block)
 {
     HCRYPTPROV      prov;
     int             rc;
@@ -80,7 +80,7 @@ int mprGetRandomBytes(MprCtx ctx, char *buf, int length, int block)
 }
 
 
-MprModule *mprLoadModule(MprCtx ctx, cchar *moduleName, cchar *initFunction)
+MprModule *mprLoadModule(cchar *moduleName, cchar *initFunction)
 {
     MprModule       *mp;
     MprModuleEntry  fn;
@@ -92,24 +92,24 @@ MprModule *mprLoadModule(MprCtx ctx, cchar *moduleName, cchar *initFunction)
 
     mp = 0;
     name = path = 0;
-    module = mprGetAbsPath(ctx, moduleName);
+    module = mprGetAbsPath(moduleName);
 
-    if (mprSearchForModule(ctx, module, &path) < 0) {
-        mprError(ctx, "Can't find module \"%s\" in search path \"%s\"", moduleName, mprGetModuleSearchPath(ctx));
+    if (mprSearchForModule(module, &path) < 0) {
+        mprError("Can't find module \"%s\" in search path \"%s\"", moduleName, mprGetModuleSearchPath());
 
     } else {
-        name = mprGetPathBase(ctx, module);
+        name = mprGetPathBase(module);
         path = mprGetPathBase(path, path);
 
-        mprLog(ctx, MPR_INFO, "Loading native module %s from %s", moduleName, path);
+        mprLog(MPR_INFO, "Loading native module %s from %s", moduleName, path);
 
         if ((handle = GetModuleHandle(name)) == 0 && (handle = LoadLibrary(path)) == 0) {
-            mprError(ctx, "Can't load module %s\nReason: \"%d\"\n",  path, mprGetOsError());
+            mprError("Can't load module %s\nReason: \"%d\"\n",  path, mprGetOsError());
 
         } else if (initFunction) {
             if ((fn = (MprModuleEntry) GetProcAddress((HINSTANCE) handle, initFunction)) != 0) {
-                if ((mp = (fn)(ctx, path)) == 0) {
-                    mprError(ctx, "Initialization for module %s failed", name);
+                if ((mp = (fn)(path)) == 0) {
+                    mprError("Initialization for module %s failed", name);
                     FreeLibrary((HINSTANCE) handle);
 
                 } else {
@@ -117,7 +117,7 @@ MprModule *mprLoadModule(MprCtx ctx, cchar *moduleName, cchar *initFunction)
                 }
 
             } else {
-                mprError(ctx, "Can't load module %s\nReason: can't find function \"%s\"\n",  name, initFunction);
+                mprError("Can't load module %s\nReason: can't find function \"%s\"\n",  name, initFunction);
                 FreeLibrary((HINSTANCE) handle);
 
             }
@@ -172,7 +172,7 @@ static cchar *getHive(cchar *keyPath, HKEY *hive)
 }
 
 
-int mprReadRegistry(MprCtx ctx, char **buf, int max, cchar *key, cchar *name)
+int mprReadRegistry(char **buf, int max, cchar *key, cchar *name)
 {
     HKEY        top, h;
     LPWSTR      wkey, wname;
@@ -185,7 +185,7 @@ int mprReadRegistry(MprCtx ctx, char **buf, int max, cchar *key, cchar *name)
     if ((key = getHive(key, &top)) == 0) {
         return MPR_ERR_CANT_ACCESS;
     }
-    wkey = mprToUni(ctx, key);
+    wkey = mprToUni(key);
     if (RegOpenKeyEx(top, wkey, 0, KEY_READ, &h) != ERROR_SUCCESS) {
         mprFree(wkey);
         return MPR_ERR_CANT_ACCESS;
@@ -195,7 +195,7 @@ int mprReadRegistry(MprCtx ctx, char **buf, int max, cchar *key, cchar *name)
     /*
         Get the type
      */
-    wname = mprToUni(ctx, name);
+    wname = mprToUni(name);
     if (RegQueryValueEx(h, wname, 0, &type, 0, &size) != ERROR_SUCCESS) {
         RegCloseKey(h);
         mprFree(wname);
@@ -206,7 +206,7 @@ int mprReadRegistry(MprCtx ctx, char **buf, int max, cchar *key, cchar *name)
         mprFree(wname);
         return MPR_ERR_BAD_TYPE;
     }
-    value = (char*) mprAlloc(ctx, size);
+    value = mprAlloc(size);
     if ((int) size > max) {
         RegCloseKey(h);
         mprFree(wname);
@@ -232,26 +232,26 @@ void mprSetInst(Mpr *mpr, long inst)
 }
 
 
-void mprSetHwnd(MprCtx ctx, HWND h)
+void mprSetHwnd(HWND h)
 {
     Mpr     *mpr;
 
-    mpr = mprGetMpr(ctx);
+    mpr = mprGetMpr();
     mpr->service->hwnd = h;
 }
 
 
-void mprSetSocketMessage(MprCtx ctx, int socketMessage)
+void mprSetSocketMessage(int socketMessage)
 {
     Mpr     *mpr;
 
-    mpr = mprGetMpr(ctx);
+    mpr = mprGetMpr();
     mpr->service->socketMessage = socketMessage;
 }
 #endif /* WINCE */
 
 
-void mprSleep(MprCtx ctx, int milliseconds)
+void mprSleep(int milliseconds)
 {
     Sleep(milliseconds);
 }
@@ -270,7 +270,7 @@ void mprUnloadModule(MprModule *mp)
 
 
 #if KEEP
-void mprWriteToOsLog(MprCtx ctx, cchar *message, int flags, int level)
+void mprWriteToOsLog(cchar *message, int flags, int level)
 {
     HKEY        hkey;
     void        *event;
@@ -297,7 +297,7 @@ void mprWriteToOsLog(MprCtx ctx, cchar *message, int flags, int level)
         /*  Initialize the registry */
         once = 1;
         mprSprintf(logName, sizeof(logName), "SYSTEM\\CurrentControlSet\\Services\\EventLog\\Application\\%s",
-            mprGetAppName(ctx));
+            mprGetAppName());
         hkey = 0;
 
         if (RegCreateKeyEx(HKEY_LOCAL_MACHINE, logName, 0, NULL, 0, KEY_ALL_ACCESS, NULL, &hkey, &exists) == ERROR_SUCCESS) {
@@ -315,7 +315,7 @@ void mprWriteToOsLog(MprCtx ctx, cchar *message, int flags, int level)
             RegCloseKey(hkey);
         }
     }
-    event = RegisterEventSource(0, mprGetAppName(ctx));
+    event = RegisterEventSource(0, mprGetAppName());
     if (event) {
         /*
             3299 is the event number for the generic message in netmsg.dll.
@@ -326,7 +326,7 @@ void mprWriteToOsLog(MprCtx ctx, cchar *message, int flags, int level)
     }
 }
 
-int mprWriteRegistry(MprCtx ctx, cchar *key, cchar *name, cchar *value)
+int mprWriteRegistry(cchar *key, cchar *name, cchar *value)
 {
     HKEY    top, h, subHandle;
     ulong   disposition;
@@ -908,7 +908,7 @@ DWORD GetModuleFileNameA(HMODULE module, LPSTR buf, DWORD size)
     LPSTR       mb;
     size_t      ret;
 
-    wpath = (LPWSTR) mprAlloc(MPR, size   sizeof(wchar_t));
+    wpath = mprAlloc( size * sizeof(wchar_t));
     ret = GetModuleFileNameW(module, wpath, size);
     mb = mprToMulti(MPR, wpath);
     strcpy(buf, mb);
@@ -950,7 +950,7 @@ HINSTANCE WINAPI LoadLibraryA(LPCSTR path)
     return h;
 }
 
-void mprWriteToOsLog(MprCtx ctx, cchar *message, int flags, int level)
+void mprWriteToOsLog(cchar *message, int flags, int level)
 {
     //  TODO
 }

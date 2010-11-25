@@ -34,12 +34,12 @@ typedef struct CRYPTO_dynlock_value DynLock;
 
 static MprSocket *acceptOss(MprSocket *sp);
 static void     closeOss(MprSocket *sp, bool gracefully);
-static MprSsl   *getDefaultOpenSsl(MprCtx ctx);
+static MprSsl   *getDefaultOpenSsl();
 static int      configureCertificateFiles(MprSsl *ssl, SSL_CTX *ctx, char *key, char *cert);
 static int      configureOss(MprSsl *ssl);
 static int      connectOss(MprSocket *sp, cchar *host, int port, int flags);
-static MprSocketProvider *createOpenSslProvider(MprCtx ctx);
-static MprSocket *createOss(MprCtx ctx, MprSsl *ssl);
+static MprSocketProvider *createOpenSslProvider();
+static MprSocket *createOss(MprSsl *ssl);
 static DH       *dhCallback(SSL *ssl, int isExport, int keyLength);
 static void     disconnectOss(MprSocket *sp);
 static int      flushOss(MprSocket *sp);
@@ -63,7 +63,7 @@ static DH       *get_dh1024();
 
 /************************************* Code ***********************************/
 
-int mprCreateOpenSslModule(MprCtx ctx, bool lazy)
+int mprCreateOpenSslModule(bool lazy)
 {
     Mpr                 *mpr;
     MprSocketService    *ss;
@@ -71,7 +71,7 @@ int mprCreateOpenSslModule(MprCtx ctx, bool lazy)
     RandBuf             randBuf;
     int                 i;
 
-    mpr = mprGetMpr(ctx);
+    mpr = mprGetMpr();
     ss = mpr->socketService;
 
     /*
@@ -82,16 +82,16 @@ int mprCreateOpenSslModule(MprCtx ctx, bool lazy)
     RAND_seed((void*) &randBuf, sizeof(randBuf));
 
 #if BLD_UNIX_LIKE
-    mprLog(mpr, 6, "OpenSsl: Before calling RAND_load_file");
+    mprLog(6, "OpenSsl: Before calling RAND_load_file");
     RAND_load_file("/dev/urandom", 256);
-    mprLog(mpr, 6, "OpenSsl: After calling RAND_load_file");
+    mprLog(6, "OpenSsl: After calling RAND_load_file");
 #endif
 
     /*
         Configure the global locks
      */
     numLocks = CRYPTO_num_locks();
-    locks = (MprMutex**) mprAllocBlock(mpr, numLocks * sizeof(MprMutex*), MPR_ALLOC_MANAGER);
+    locks = mprAllocBlock(numLocks * sizeof(MprMutex*), MPR_ALLOC_MANAGER);
     mprSetManager(locks, (MprManager) lockDestructor);
     for (i = 0; i < numLocks; i++) {
         locks[i] = mprCreateLock(mpr);
@@ -112,7 +112,7 @@ int mprCreateOpenSslModule(MprCtx ctx, bool lazy)
     if ((provider = createOpenSslProvider(mpr)) == 0) {
         return MPR_ERR_MEMORY;
     }
-    mprSetSecureProvider(ss, provider);
+    mprSetSecureProvider(provider);
     if (!lazy) {
         getDefaultOpenSsl(mpr);
     }
@@ -127,13 +127,13 @@ static int lockDestructor(void *ptr)
 }
 
 
-static MprSsl *getDefaultOpenSsl(MprCtx ctx)
+static MprSsl *getDefaultOpenSsl()
 {
     Mpr                 *mpr;
     MprSocketService    *ss;
     MprSsl              *ssl;
 
-    mpr = mprGetMpr(ctx);
+    mpr = mprGetMpr();
     ss = mpr->socketService;
 
     if (ss->secureProvider->defaultSsl) {
@@ -158,13 +158,13 @@ static MprSsl *getDefaultOpenSsl(MprCtx ctx)
 /*
     Initialize a provider structure for OpenSSL
  */
-static MprSocketProvider *createOpenSslProvider(MprCtx ctx)
+static MprSocketProvider *createOpenSslProvider()
 {
     Mpr                 *mpr;
     MprSocketProvider   *provider;
 
-    mpr = mprGetMpr(ctx);
-    if ((provider = mprAllocObj(mpr, MprSocketProvider, NULL)) == NULL) {
+    mpr = mprGetMpr();
+    if ((provider = mprAllocObj(MprSocketProvider, NULL)) == NULL) {
         return 0;
     }
     provider->name = "OpenSsl";
@@ -193,12 +193,12 @@ static int configureOss(MprSsl *ssl)
     SSL_CTX             *context;
     uchar               resume[16];
 
-    ss = mprGetMpr(ssl)->socketService;
+    ss = mprGetMpr()->socketService;
     mprSetManager(ssl, (MprManager) openSslDestructor);
 
     context = SSL_CTX_new(SSLv23_method());
     if (context == 0) {
-        mprError(ssl, "OpenSSL: Unable to create SSL context"); 
+        mprError("OpenSSL: Unable to create SSL context"); 
         return MPR_ERR_CANT_CREATE;
     }
 
@@ -227,7 +227,7 @@ static int configureOss(MprSsl *ssl)
         }
     }
 
-    mprLog(ssl, 4, "OpenSSL: Using ciphers %s", ssl->ciphers);
+    mprLog(4, "OpenSSL: Using ciphers %s", ssl->ciphers);
     SSL_CTX_set_cipher_list(context, ssl->ciphers);
 
     /*
@@ -235,14 +235,14 @@ static int configureOss(MprSsl *ssl)
      */
     if (ssl->verifyClient) {
         if (ssl->caFile == 0 && ssl->caPath == 0) {
-            mprError(ssl, "OpenSSL: Must define CA certificates if using client verification");
+            mprError("OpenSSL: Must define CA certificates if using client verification");
             SSL_CTX_free(context);
             return MPR_ERR_BAD_STATE;
         }
         if (ssl->caFile || ssl->caPath) {
             if ((!SSL_CTX_load_verify_locations(context, ssl->caFile, ssl->caPath)) ||
                     (!SSL_CTX_set_default_verify_paths(context))) {
-                mprError(ssl, "OpenSSL: Unable to set certificate locations"); 
+                mprError("OpenSSL: Unable to set certificate locations"); 
                 SSL_CTX_free(context);
                 return MPR_ERR_CANT_ACCESS;
             }
@@ -261,13 +261,13 @@ static int configureOss(MprSsl *ssl)
             }
         }
 
-        mprLog(ssl, 4, "OpenSSL: enable verification of client connections");
+        mprLog(4, "OpenSSL: enable verification of client connections");
 
         if (ssl->caFile) {
-            mprLog(ssl, 4, "OpenSSL: Using certificates from %s", ssl->caFile);
+            mprLog(4, "OpenSSL: Using certificates from %s", ssl->caFile);
 
         } else if (ssl->caPath) {
-            mprLog(ssl, 4, "OpenSSL: Using certificates from directory %s", ssl->caPath);
+            mprLog(4, "OpenSSL: Using certificates from directory %s", ssl->caPath);
         }
         SSL_CTX_set_verify(context, SSL_VERIFY_PEER | SSL_VERIFY_FAIL_IF_NO_PEER_CERT, verifyX509Certificate);
         SSL_CTX_set_verify_depth(context, ssl->verifyDepth);
@@ -294,7 +294,7 @@ static int configureOss(MprSsl *ssl)
 #if UNUSED && KEEP
     if (!(ssl->protocols & MPR_PROTO_SSLV2)) {
         SSL_CTX_set_options(context, SSL_OP_NO_SSLv2);
-        mprLog(ssl, 4, "OpenSSL: Disabling SSLv2");
+        mprLog(4, "OpenSSL: Disabling SSLv2");
     }
 #else
     /*
@@ -304,11 +304,11 @@ static int configureOss(MprSsl *ssl)
 #endif
     if (!(ssl->protocols & MPR_PROTO_SSLV3)) {
         SSL_CTX_set_options(context, SSL_OP_NO_SSLv3);
-        mprLog(ssl, 4, "OpenSSL: Disabling SSLv3");
+        mprLog(4, "OpenSSL: Disabling SSLv3");
     }
     if (!(ssl->protocols & MPR_PROTO_TLSV1)) {
         SSL_CTX_set_options(context, SSL_OP_NO_TLSv1);
-        mprLog(ssl, 4, "OpenSSL: Disabling TLSv1");
+        mprLog(4, "OpenSSL: Disabling TLSv1");
     }
 
     /* 
@@ -366,19 +366,19 @@ static int configureCertificates(MprSsl *ssl, SSL_CTX *ctx, char *key, char *cer
         return 0;
     }
     if (cert && SSL_CTX_use_certificate(ctx, cert) <= 0) {
-        mprError(ssl, "OpenSSL: Can't define certificate file: %s", cert); 
+        mprError("OpenSSL: Can't define certificate file: %s", cert); 
         return -1;
     }
     key = (key == 0) ? cert : key;
     if (key) {
         if (SSL_CTX_use_PrivateKey(ctx, key, SSL_FILETYPE_PEM) <= 0) {
             if (SSL_CTX_use_PrivateKey_file(ctx, key, SSL_FILETYPE_ASN1) <= 0) {
-                mprError(ssl, "OpenSSL: Can't define private key file: %s", key); 
+                mprError("OpenSSL: Can't define private key file: %s", key); 
                 return -1;
             }
         }
         if (!SSL_CTX_check_private_key(ctx)) {
-            mprError(ssl, "OpenSSL: Check of private key file failed: %s", key);
+            mprError("OpenSSL: Check of private key file failed: %s", key);
             return -1;
         }
     }
@@ -399,18 +399,18 @@ static int configureCertificateFiles(MprSsl *ssl, SSL_CTX *ctx, char *key, char 
     }
 
     if (cert && SSL_CTX_use_certificate_chain_file(ctx, cert) <= 0) {
-        mprError(ssl, "OpenSSL: Can't define certificate file: %s", cert); 
+        mprError("OpenSSL: Can't define certificate file: %s", cert); 
         return -1;
     }
 
     key = (key == 0) ? cert : key;
     if (key) {
         if (SSL_CTX_use_PrivateKey_file(ctx, key, SSL_FILETYPE_PEM) <= 0) {
-            mprError(ssl, "OpenSSL: Can't define private key file: %s", key); 
+            mprError("OpenSSL: Can't define private key file: %s", key); 
             return -1;
         }
         if (!SSL_CTX_check_private_key(ctx)) {
-            mprError(ssl, "OpenSSL: Check of private key file failed: %s", key);
+            mprError("OpenSSL: Check of private key file failed: %s", key);
             return -1;
         }
     }
@@ -421,7 +421,7 @@ static int configureCertificateFiles(MprSsl *ssl, SSL_CTX *ctx, char *key, char 
 /*
     Create a new socket. If listen is set, this is a socket for an accepting connection.
  */
-static MprSocket *createOss(MprCtx ctx, MprSsl *ssl)
+static MprSocket *createOss(MprSsl *ssl)
 {
     Mpr                 *mpr;
     MprSocketService    *ss;
@@ -435,9 +435,9 @@ static MprSocket *createOss(MprCtx ctx, MprSsl *ssl)
     /*
         First get a standard socket
      */
-    mpr = mprGetMpr(ctx);
+    mpr = mprGetMpr();
     ss = mpr->socketService;
-    sp = ss->standardProvider->createSocket(mpr, ssl);
+    sp = ss->standardProvider->createSocket(ssl);
     if (sp == 0) {
         return 0;
     }
@@ -447,7 +447,7 @@ static MprSocket *createOss(MprCtx ctx, MprSsl *ssl)
     /*
         Create a SslSocket object for ssl state. This logically extends MprSocket.
      */
-    osp = (MprSslSocket*) mprAllocObj(sp, MprSslSocket, openSslSocketDestructor);
+    osp = (MprSslSocket*) mprAllocObj(MprSslSocket, openSslSocketDestructor);
     if (osp == 0) {
         mprFree(sp);
         return 0;
@@ -668,20 +668,20 @@ static size_t readOss(MprSocket *sp, void *buf, size_t len)
         X509        *cert;
         char        subject[260], issuer[260], peer[260];
 
-        mprLog(ssl, 4, "%d: OpenSSL Connected using: \"%s\"", sock, SSL_get_cipher(ssl));
+        mprLog(4, "%d: OpenSSL Connected using: \"%s\"", sock, SSL_get_cipher(ssl));
 
         cert = SSL_get_peer_certificate(ssl);
         if (cert == 0) {
-            mprLog(ssl, 4, "%d: OpenSSL Details: client supplied no certificate", sock);
+            mprLog(4, "%d: OpenSSL Details: client supplied no certificate", sock);
 
         } else {
             xSubject = X509_get_subject_name(cert);
             X509_NAME_oneline(xSubject, subject, sizeof(subject) -1);
             X509_NAME_oneline(X509_get_issuer_name(cert), issuer, sizeof(issuer) -1);
             X509_NAME_get_text_by_NID(xSubject, NID_commonName, peer, sizeof(peer) - 1);
-            mprLog(ssl, 4, "%d: OpenSSL Subject %s", sock, subject);
-            mprLog(ssl, 4, "%d: OpenSSL Issuer: %s", sock, issuer);
-            mprLog(ssl, 4, "%d: OpenSSL Peer: %s", sock, peer);
+            mprLog(4, "%d: OpenSSL Subject %s", sock, subject);
+            mprLog(4, "%d: OpenSSL Issuer: %s", sock, issuer);
+            mprLog(4, "%d: OpenSSL Peer: %s", sock, peer);
             X509_free(cert);
         }
         connTraced = 1;
@@ -693,7 +693,7 @@ static size_t readOss(MprSocket *sp, void *buf, size_t len)
         if (error == SSL_ERROR_WANT_READ) {
             rc = 0;
         } else if (error == SSL_ERROR_WANT_WRITE) {
-            mprSleep(sp, 10);
+            mprSleep(10);
             rc = 0;
         } else if (error == SSL_ERROR_ZERO_RETURN) {
             sp->flags |= MPR_SOCKET_EOF;
@@ -707,7 +707,7 @@ static size_t readOss(MprSocket *sp, void *buf, size_t len)
         }
     } else if (SSL_pending(osp->osslStruct) > 0) {
         sp->flags |= MPR_SOCKET_PENDING;
-        mprRecallWaitHandler(sp, sp->fd);
+        mprRecallWaitHandler(sp->fd);
     }
     unlock(sp);
     return rc;
@@ -737,12 +737,12 @@ static size_t writeOss(MprSocket *sp, void *buf, size_t len)
     do {
         rc = SSL_write(osp->osslStruct, buf, len);
         
-        mprLog(osp, 7, "OpenSSL: written %d, requested len %d", rc, len);
+        mprLog(7, "OpenSSL: written %d, requested len %d", rc, len);
 
         if (rc <= 0) {
             rc = SSL_get_error(osp->osslStruct, rc);
             if (rc == SSL_ERROR_WANT_WRITE) {
-                mprSleep(sp, 10);
+                mprSleep(10);
                 continue;
                 
             } else if (rc == SSL_ERROR_WANT_READ) {
@@ -758,7 +758,7 @@ static size_t writeOss(MprSocket *sp, void *buf, size_t len)
         totalWritten += rc;
         buf = (void*) ((char*) buf + rc);
         len -= rc;
-        mprLog(osp, 7, "OpenSSL: write: len %d, written %d, total %d, error %d", len, rc, totalWritten, 
+        mprLog(7, "OpenSSL: write: len %d, written %d, total %d, error %d", len, rc, totalWritten, 
             SSL_get_error(osp->osslStruct, rc));
 
     } while (len > 0);
@@ -839,14 +839,14 @@ static int verifyX509Certificate(int ok, X509_STORE_CTX *xContext)
 #endif
 
     if (!ok) {
-        mprLog(ssl, 0, "OpenSSL: Certification failed: subject %s", subject);
-        mprLog(ssl, 4, "OpenSSL: Issuer: %s", issuer);
-        mprLog(ssl, 4, "OpenSSL: Peer: %s", peer);
-        mprLog(ssl, 4, "OpenSSL: Error: %d: %s", error, X509_verify_cert_error_string(error));
+        mprLog(0, "OpenSSL: Certification failed: subject %s", subject);
+        mprLog(4, "OpenSSL: Issuer: %s", issuer);
+        mprLog(4, "OpenSSL: Peer: %s", peer);
+        mprLog(4, "OpenSSL: Error: %d: %s", error, X509_verify_cert_error_string(error));
     } else {
-        mprLog(ssl, 0, "OpenSSL: Certificate verified: subject %s", subject);
-        mprLog(ssl, 4, "OpenSSL: Issuer: %s", issuer);
-        mprLog(ssl, 4, "OpenSSL: Peer: %s", peer);
+        mprLog(0, "OpenSSL: Certificate verified: subject %s", subject);
+        mprLog(4, "OpenSSL: Issuer: %s", issuer);
+        mprLog(4, "OpenSSL: Peer: %s", peer);
     }
     return ok;
 }
@@ -890,7 +890,7 @@ static DynLock *sslCreateDynLock(const char *file, int line)
 {
     DynLock     *dl;
 
-    dl = mprAllocZeroed(0, sizeof(DynLock));
+    dl = mprAllocZeroed(sizeof(DynLock));
     dl->mutex = mprCreateLock(dl);
     return dl;
 }
@@ -1031,7 +1031,7 @@ static DH *get_dh1024()
 }
 
 #else
-int mprCreateOpenSslModule(MprCtx ctx, bool lazy) { return -1; }
+int mprCreateOpenSslModule(bool lazy) { return -1; }
 #endif /* BLD_FEATURE_OPENSSL */
 
 /*

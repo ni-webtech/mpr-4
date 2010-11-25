@@ -14,30 +14,30 @@
 
 /************************************ Code ************************************/
 
-MprFileSystem *mprCreateFileSystem(MprCtx ctx, cchar *path)
+MprFileSystem *mprCreateFileSystem(cchar *path)
 {
     MprFileSystem   *fs;
     Mpr             *mpr;
     char            *cp;
 
-    mpr = mprGetMpr(ctx);
+    mpr = mprGetMpr();
     mprAssert(mpr);
     
     /*
         TODO - evolve this to support multiple file systems in a single system
      */
 #if BLD_FEATURE_ROMFS
-    fs = (MprFileSystem*) mprCreateRomFileSystem(ctx, path);
+    fs = (MprFileSystem*) mprCreateRomFileSystem(path);
 #else
-    fs = (MprFileSystem*) mprCreateDiskFileSystem(ctx, path);
+    fs = (MprFileSystem*) mprCreateDiskFileSystem(path);
 #endif
 
 #if BLD_WIN_LIKE
-    fs->separators = sclone(fs, "\\/");
-    fs->newline = sclone(fs, "\r\n");
+    fs->separators = sclone("\\/");
+    fs->newline = sclone("\r\n");
 #else
-    fs->separators = sclone(fs, "/");
-    fs->newline = sclone(fs, "\n");
+    fs->separators = sclone("/");
+    fs->newline = sclone("\n");
 #endif
 
 #if BLD_WIN_LIKE || MACOSX
@@ -53,89 +53,82 @@ MprFileSystem *mprCreateFileSystem(MprCtx ctx, cchar *path)
     if (mpr->fileSystem == NULL) {
         mpr->fileSystem = fs;
     }
-    fs->root = mprGetAbsPath(fs, path);
+    fs->root = mprGetAbsPath(path);
     if ((cp = strpbrk(fs->root, fs->separators)) != 0) {
         *++cp = '\0';
     }
 
 #if BLD_WIN_LIKE && FUTURE
-    mprReadRegistry(ctx, &fs->cygdrive, MPR_BUFSIZE, "HKEY_LOCAL_MACHINE\\SOFTWARE\\Cygnus Solutions\\Cygwin\\mounts v2",
+    mprReadRegistry(&fs->cygdrive, MPR_BUFSIZE, "HKEY_LOCAL_MACHINE\\SOFTWARE\\Cygnus Solutions\\Cygwin\\mounts v2",
         "cygdrive prefix");
 #endif
     return fs;
 }
 
 
-void mprAddFileSystem(MprCtx ctx, MprFileSystem *fs)
+void mprAddFileSystem(MprFileSystem *fs)
 {
-    mprAssert(ctx);
     mprAssert(fs);
     
     //  TODO - this does not currently add a file system. It merely replaces the existing.
-    mprGetMpr(ctx)->fileSystem = fs;
+    mprGetMpr()->fileSystem = fs;
 }
 
 
 /*
     Note: path can be null
  */
-MprFileSystem *mprLookupFileSystem(MprCtx ctx, cchar *path)
+MprFileSystem *mprLookupFileSystem(cchar *path)
 {
-    mprAssert(ctx);
-    
-    return mprGetMpr(ctx)->fileSystem;
+    return mprGetMpr()->fileSystem;
 }
 
 
-cchar *mprGetPathNewline(MprCtx ctx, cchar *path)
+cchar *mprGetPathNewline(cchar *path)
 {
     MprFileSystem   *fs;
 
-    mprAssert(ctx);
     mprAssert(path);
 
-    fs = mprLookupFileSystem(ctx, path);
+    fs = mprLookupFileSystem(path);
     return fs->newline;
 }
 
 
-cchar *mprGetPathSeparators(MprCtx ctx, cchar *path)
+cchar *mprGetPathSeparators(cchar *path)
 {
     MprFileSystem   *fs;
 
-    mprAssert(ctx);
     mprAssert(path);
 
-    fs = mprLookupFileSystem(ctx, path);
+    fs = mprLookupFileSystem(path);
     return fs->separators;
 }
 
 
-void mprSetPathSeparators(MprCtx ctx, cchar *path, cchar *separators)
+void mprSetPathSeparators(cchar *path, cchar *separators)
 {
     MprFileSystem   *fs;
 
-    mprAssert(ctx);
     mprAssert(path);
     mprAssert(separators);
     
-    fs = mprLookupFileSystem(ctx, path);
+    fs = mprLookupFileSystem(path);
     mprFree(fs->separators);
-    fs->separators = sclone(fs, separators);
+    fs->separators = sclone(separators);
 }
 
 
-void mprSetPathNewline(MprCtx ctx, cchar *path, cchar *newline)
+void mprSetPathNewline(cchar *path, cchar *newline)
 {
     MprFileSystem   *fs;
     
-    mprAssert(ctx);
     mprAssert(path);
     mprAssert(newline);
     
-    fs = mprLookupFileSystem(ctx, path);
+    fs = mprLookupFileSystem(path);
     mprFree(fs->newline);
-    fs->newline = sclone(fs, newline);
+    fs->newline = sclone(newline);
 }
 
 

@@ -14,33 +14,33 @@
 /*
     Load the ssl provider
  */
-static MprModule *loadSsl(MprCtx ctx, bool lazy)
+static MprModule *loadSsl(bool lazy)
 {
     Mpr         *mpr;
     MprModule   *mp;
 
-    mpr = mprGetMpr(ctx);
+    mpr = mprGetMpr();
     if (mpr->flags & MPR_SSL_PROVIDER_LOADED) {
-        return mprLookupModule(ctx, "sslModule");
+        return mprLookupModule("sslModule");
     }
 
-    mprLog(ctx, MPR_CONFIG, "Activating the SSL provider");
+    mprLog(MPR_CONFIG, "Activating the SSL provider");
 #if BLD_FEATURE_OPENSSL
     /*
         NOTE: preference given to open ssl if both are enabled
      */
-    mprLog(ctx, 2, "Loading OpenSSL module");
-    if (mprCreateOpenSslModule(ctx, lazy) < 0) {
+    mprLog(2, "Loading OpenSSL module");
+    if (mprCreateOpenSslModule(lazy) < 0) {
         return 0;
     }
 
 #elif BLD_FEATURE_MATRIXSSL
-    mprLog(ctx, 2, "Loading MatrixSSL module");
-    if (mprCreateMatrixSslModule(ctx, lazy) < 0) {
+    mprLog(2, "Loading MatrixSSL module");
+    if (mprCreateMatrixSslModule(lazy) < 0) {
         return 0;
     }
 #endif
-    if ((mp = mprCreateModule(ctx, "sslModule", NULL)) == 0) {
+    if ((mp = mprCreateModule("sslModule", NULL)) == 0) {
         return 0;
     }
     mpr->flags |= MPR_SSL_PROVIDER_LOADED;
@@ -48,18 +48,18 @@ static MprModule *loadSsl(MprCtx ctx, bool lazy)
 }
 
 
-MprModule *mprLoadSsl(MprCtx ctx, bool lazy)
+MprModule *mprLoadSsl(bool lazy)
 {
-    return loadSsl(ctx, lazy);
+    return loadSsl(lazy);
 }
 
 
 /*
     Loadable module interface. 
  */
-MprModule *mprSslInit(MprCtx ctx, cchar *path)
+MprModule *mprSslInit(cchar *path)
 {
-    return loadSsl(ctx, 1);
+    return loadSsl(1);
 }
 
 
@@ -68,17 +68,17 @@ static int dummySslDestructor() { return 0; }
 /*
     Create a new Ssl context object
  */
-MprSsl *mprCreateSsl(MprCtx ctx)
+MprSsl *mprCreateSsl()
 {
     MprSsl      *ssl;
 
     /*
         Create with a dummy destructor. Providers will can install one if required.
      */
-    if ((ssl = mprAllocObj(ctx, MprSsl, dummySslDestructor)) == 0) {
+    if ((ssl = mprAllocObj(MprSsl, dummySslDestructor)) == 0) {
         return 0;
     }
-    ssl->ciphers = sclone(ssl, MPR_DEFAULT_CIPHER_SUITE);
+    ssl->ciphers = sclone(MPR_DEFAULT_CIPHER_SUITE);
     ssl->protocols = MPR_PROTO_SSLV3 | MPR_PROTO_TLSV1;
     ssl->verifyDepth = 6;
     return ssl;
@@ -89,11 +89,11 @@ void mprConfigureSsl(MprSsl *ssl)
 {
     MprSocketProvider   *provider;
 
-    provider = mprGetMpr(ssl)->socketService->secureProvider;
+    provider = mprGetMpr()->socketService->secureProvider;
     if (provider) {
         provider->configureSsl(ssl);
     } else {
-        mprError(ssl, "Secure socket provider not loaded");
+        mprError("Secure socket provider not loaded");
     }
 }
 
@@ -103,7 +103,7 @@ void mprSetSslCiphers(MprSsl *ssl, cchar *ciphers)
     mprAssert(ssl);
     
     mprFree(ssl->ciphers);
-    ssl->ciphers = sclone(ssl, ciphers);
+    ssl->ciphers = sclone(ciphers);
 }
 
 
@@ -112,7 +112,7 @@ void mprSetSslKeyFile(MprSsl *ssl, cchar *keyFile)
     mprAssert(ssl);
     
     mprFree(ssl->keyFile);
-    ssl->keyFile = sclone(ssl, keyFile);
+    ssl->keyFile = sclone(keyFile);
 }
 
 
@@ -121,7 +121,7 @@ void mprSetSslCertFile(MprSsl *ssl, cchar *certFile)
     mprAssert(ssl);
     
     mprFree(ssl->certFile);
-    ssl->certFile = sclone(ssl, certFile);
+    ssl->certFile = sclone(certFile);
 }
 
 
@@ -130,7 +130,7 @@ void mprSetSslCaFile(MprSsl *ssl, cchar *caFile)
     mprAssert(ssl);
     
     mprFree(ssl->caFile);
-    ssl->caFile = sclone(ssl, caFile);
+    ssl->caFile = sclone(caFile);
 }
 
 
@@ -139,7 +139,7 @@ void mprSetSslCaPath(MprSsl *ssl, cchar *caPath)
     mprAssert(ssl);
     
     mprFree(ssl->caPath);
-    ssl->caPath = sclone(ssl, caPath);
+    ssl->caPath = sclone(caPath);
 }
 
 
@@ -168,18 +168,18 @@ void mprVerifySslClients(MprSsl *ssl, bool on)
 /*
     Stubs
  */
-MprModule *mprLoadSsl(MprCtx ctx, bool lazy)
+MprModule *mprLoadSsl(bool lazy)
 {
     return 0;
 }
 
-MprModule *mprSslInit(MprCtx ctx, cchar *path)
+MprModule *mprSslInit(cchar *path)
 {
     return 0;
 }
 
 
-MprSsl *mprCreateSsl(MprCtx ctx)
+MprSsl *mprCreateSsl()
 {
     return 0;
 }

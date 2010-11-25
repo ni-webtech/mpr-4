@@ -15,13 +15,11 @@ static void manageSpinLock(MprSpin *lock, int flags);
 
 /************************************ Code ************************************/
 
-MprMutex *mprCreateLock(MprCtx ctx)
+MprMutex *mprCreateLock()
 {
     MprMutex    *lock;
 
-    mprAssert(ctx);
-
-    lock = mprAllocObj(ctx, MprMutex, manageLock);
+    lock = mprAllocObj(MprMutex, manageLock);
     if (lock == 0) {
         return 0;
     }
@@ -66,10 +64,8 @@ static void manageLock(MprMutex *lock, int flags)
 }
 
 
-MprMutex *mprInitLock(MprCtx ctx, MprMutex *lock)
+MprMutex *mprInitLock(MprMutex *lock)
 {
-    mprAssert(ctx);
-
 #if BLD_UNIX_LIKE
     pthread_mutexattr_t attr;
     pthread_mutexattr_init(&attr);
@@ -110,18 +106,16 @@ bool mprTryLock(MprMutex *lock)
 }
 
 
-MprSpin *mprCreateSpinLock(MprCtx ctx)
+MprSpin *mprCreateSpinLock()
 {
     MprSpin    *lock;
 
-    mprAssert(ctx);
-
-    lock = mprAllocObj(ctx, MprSpin, manageSpinLock);
+    lock = mprAllocObj(MprSpin, manageSpinLock);
     if (lock == 0) {
         return 0;
     }
 #if USE_MPR_LOCK
-    mprInitLock(ctx, &lock->cs);
+    mprInitLock(&lock->cs);
 #elif MACOSX
     lock->cs = OS_SPINLOCK_INIT;
 #elif BLD_UNIX_LIKE && BLD_HAS_SPINLOCK
@@ -176,12 +170,10 @@ static void manageSpinLock(MprSpin *lock, int flags)
 /*
     Static version just for mprAlloc which needs locks that don't allocate memory.
  */
-MprSpin *mprInitSpinLock(MprCtx ctx, MprSpin *lock)
+MprSpin *mprInitSpinLock(MprSpin *lock)
 {
-    mprAssert(ctx);
-
 #if USE_MPR_LOCK
-    mprInitLock(ctx, &lock->cs);
+    mprInitLock(&lock->cs);
 #elif MACOSX
     lock->cs = OS_SPINLOCK_INIT;
 #elif BLD_UNIX_LIKE && BLD_HAS_SPINLOCK
@@ -245,24 +237,19 @@ bool mprTrySpinLock(MprSpin *lock)
 /*
     Big global lock. Avoid using this.
  */
-void mprGlobalLock(MprCtx ctx)
+void mprGlobalLock()
 {
-    Mpr *mpr;
-
-    mpr = mprGetMpr(ctx);
-    mprAssert(mpr);
-
-    if (mpr && mpr->mutex) {
-        mprLock(mpr->mutex);
+    if (MPR && MPR->mutex) {
+        mprLock(MPR->mutex);
     }
 }
 
 
-void mprGlobalUnlock(MprCtx ctx)
+void mprGlobalUnlock()
 {
     Mpr *mpr;
 
-    mpr = mprGetMpr(ctx);
+    mpr = mprGetMpr();
     mprAssert(mpr);
 
     if (mpr && mpr->mutex) {

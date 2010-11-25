@@ -24,7 +24,7 @@ static void testStartWorker(MprTestGroup *gp)
         Can only run this test if the worker is greater than the number of threads.
      */
     if (mprGetMaxWorkers(gp) > gp->service->numThreads) {
-        rc = mprStartWorker(gp, workerProc, (void*) gp);
+        rc = mprStartWorker(workerProc, (void*) gp);
         assert(rc == 0);
         assert(mprWaitForTestToComplete(gp, MPR_TEST_SLEEP));
     }

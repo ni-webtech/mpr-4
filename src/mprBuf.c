@@ -20,14 +20,14 @@ static void manageBuf(MprBuf *buf, int flags);
     used to define the amount to increase the size of the buffer each time if it becomes full. (Note: mprGrowBuf() will 
     exponentially increase this number for performance.)
  */
-MprBuf *mprCreateBuf(MprCtx ctx, int initialSize, int maxSize)
+MprBuf *mprCreateBuf(int initialSize, int maxSize)
 {
     MprBuf      *bp;
     
     if (initialSize <= 0) {
         initialSize = MPR_DEFAULT_ALLOC;
     }
-    if ((bp = mprAllocObj(ctx, MprBuf, manageBuf)) == 0) {
+    if ((bp = mprAllocObj(MprBuf, manageBuf)) == 0) {
         return 0;
     }
     bp->growBy = MPR_BUFSIZE;
@@ -44,12 +44,12 @@ static void manageBuf(MprBuf *bp, int flags)
 }
 
 
-MprBuf *mprCloneBuf(MprCtx ctx, MprBuf *orig)
+MprBuf *mprCloneBuf(MprBuf *orig)
 {
     MprBuf      *bp;
     int         len;
 
-    if ((bp = mprCreateBuf(ctx, orig->growBy, orig->maxsize)) == 0) {
+    if ((bp = mprCreateBuf(orig->growBy, orig->maxsize)) == 0) {
         return 0;
     }
     bp->refillProc = orig->refillProc;
@@ -61,7 +61,7 @@ MprBuf *mprCloneBuf(MprCtx ctx, MprBuf *orig)
 }
 
 
-char *mprGet(MprCtx ctx, MprBuf *bp)
+char *mprGet(MprBuf *bp)
 {
     return (char*) bp->start;
 }
@@ -97,7 +97,7 @@ int mprSetBufSize(MprBuf *bp, int initialSize, int maxSize)
         bp->maxsize = maxSize;
         return 0;
     }
-    if ((bp->data = mprAlloc(bp, initialSize)) == 0) {
+    if ((bp->data = mprAlloc(initialSize)) == 0) {
         return MPR_ERR_MEMORY;
     }
     bp->growBy = initialSize;
@@ -391,7 +391,7 @@ int mprPutFmtToBuf(MprBuf *bp, cchar *fmt, ...)
     va_start(ap, fmt);
     space = mprGetBufSpace(bp);
     space += (bp->maxsize - bp->buflen);
-    buf = mprAsprintfv(bp, fmt, ap);
+    buf = mprAsprintfv(fmt, ap);
     rc = mprPutStringToBuf(bp, buf);
     mprFree(buf);
     va_end(ap);
@@ -418,7 +418,7 @@ int mprGrowBuf(MprBuf *bp, int need)
     } else {
         growBy = bp->growBy;
     }
-    if ((newbuf = mprAlloc(bp, bp->buflen + growBy)) == 0) {
+    if ((newbuf = mprAlloc(bp->buflen + growBy)) == 0) {
         return MPR_ERR_MEMORY;
     }
     if (bp->data) {
@@ -563,7 +563,7 @@ int mprPutFmtToWideBuf(MprBuf *bp, cchar *fmt, ...)
     va_start(ap, fmt);
     space = mprGetBufSpace(bp);
     space += (bp->maxsize - bp->buflen);
-    buf = mprAsprintfv(bp, fmt, ap);
+    buf = mprAsprintfv(fmt, ap);
     wbuf = amtow(bp, buf, &len);
     rc = mprPutBlockToBuf(bp, (char*) wbuf, len * sizeof(MprChar));
     mprFree(buf);

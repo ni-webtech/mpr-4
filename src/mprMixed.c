@@ -94,7 +94,7 @@ int mends(MprChar *str, cchar *suffix)
 }
 
 
-MprChar *mfmt(MprCtx ctx, cchar *fmt, ...)
+MprChar *mfmt(cchar *fmt, ...)
 {
     MprChar     *result;
     va_list     ap;
@@ -103,22 +103,22 @@ MprChar *mfmt(MprCtx ctx, cchar *fmt, ...)
     mprAssert(fmt);
 
     va_start(ap, fmt);
-    mresult = mprAsprintfv(ctx, fmt, ap);
+    mresult = mprAsprintfv(fmt, ap);
     va_end(ap);
-    result = amtow(ctx, mresult, NULL);
+    result = amtow(mresult, NULL);
     mprFree(mresult);
     return result;
 }
 
 
-MprChar *mfmtv(MprCtx ctx, cchar *fmt, va_list arg)
+MprChar *mfmtv(cchar *fmt, va_list arg)
 {
     MprChar     *result;
     char        *mresult;
 
     mprAssert(fmt);
-    mresult = mprAsprintfv(ctx, fmt, arg);
-    result = amtow(ctx, mresult, NULL);
+    mresult = mprAsprintfv(fmt, arg);
+    result = amtow(mresult, NULL);
     mprFree(mresult);
     return result;
 }
@@ -127,23 +127,21 @@ MprChar *mfmtv(MprCtx ctx, cchar *fmt, va_list arg)
 /*
     Sep is ascii, args are MprChar
  */
-MprChar *mjoin(MprCtx ctx, cchar *sep, ...)
+MprChar *mjoin(cchar *sep, ...)
 {
     MprChar     *result;
     va_list     ap;
 
-    mprAssert(ctx);
-
     va_start(ap, sep);
-    result = mrejoinv(ctx, NULL, sep, ap);
+    result = mrejoinv(NULL, sep, ap);
     va_end(ap);
     return result;
 }
 
 
-MprChar *mjoinv(MprCtx ctx, cchar *sep, va_list args)
+MprChar *mjoinv(cchar *sep, va_list args)
 {
-    return mrejoinv(ctx, NULL, sep, args);
+    return mrejoinv(NULL, sep, args);
 }
 
 
@@ -242,32 +240,28 @@ MprChar *mpbrk(MprChar *str, cchar *set)
 /*
     Sep is ascii, args are MprChar
  */
-MprChar *mrejoin(MprCtx ctx, MprChar *buf, cchar *sep, ...)
+MprChar *mrejoin(MprChar *buf, cchar *sep, ...)
 {
     MprChar     *result;
     va_list     ap;
 
-    mprAssert(ctx);
-
     va_start(ap, sep);
-    result = mrejoinv(ctx, buf, sep, ap);
+    result = mrejoinv(buf, sep, ap);
     va_end(ap);
     return result;
 }
 
 
-MprChar *mrejoinv(MprCtx ctx, MprChar *buf, cchar *sep, va_list args)
+MprChar *mrejoinv(MprChar *buf, cchar *sep, va_list args)
 {
     va_list     ap;
     MprChar     *dest, *str, *dp, *wsep;
     int         required, seplen, len;
 
-    mprAssert(ctx);
-
     if (sep == 0) {
         sep = "";
     } 
-    wsep = amtow(ctx, sep, NULL);
+    wsep = amtow(sep, NULL);
     seplen = strlen(sep);
     va_copy(ap, args);
     required = 1;
@@ -280,7 +274,7 @@ MprChar *mrejoinv(MprCtx ctx, MprChar *buf, cchar *sep, va_list args)
     if (buf && *buf) {
         required += seplen;
     }
-    if ((dest = mprRealloc(ctx, buf, required)) == 0) {
+    if ((dest = mprRealloc(buf, required)) == 0) {
         mprFree(wsep);
         return 0;
     }

@@ -30,17 +30,17 @@ static void queueDispatcher(MprDispatcher *prior, MprDispatcher *dispatcher);
 /*
     Create the overall dispatch service. There may be many event dispatchers.
  */
-MprEventService *mprCreateEventService(MprCtx ctx)
+MprEventService *mprCreateEventService()
 {
     MprEventService     *es;
     Mpr                 *mpr;
 
-    mpr = mprGetMpr(ctx);
-    if ((es = mprAllocObj(ctx, MprEventService, manageEventService)) == 0) {
+    mpr = mprGetMpr();
+    if ((es = mprAllocObj(MprEventService, manageEventService)) == 0) {
         return 0;
     }
     mpr->eventService = es;
-    es->now = mprGetTime(ctx);
+    es->now = mprGetTime();
     es->mutex = mprCreateLock(es);
     es->waitCond = mprCreateCond(es);
     initDispatcherQ(es, &es->runQ, "running");
@@ -49,7 +49,7 @@ MprEventService *mprCreateEventService(MprCtx ctx)
     initDispatcherQ(es, &es->waitQ, "waiting");
 
     //  MOB -- move this to MPR
-    mpr->dispatcher = mprCreateDispatcher(es, "mpr", 1);
+    mpr->dispatcher = mprCreateDispatcher("mpr", 1);
     return es;
 }
 
@@ -109,7 +109,7 @@ static int dispatchEvents(MprDispatcher *dispatcher)
     dispatcher->active = mprGetCurrentThread(es);
     unlock(es);
 #endif
-    LOG(dispatcher, 7, "dispatchEvents for %s", dispatcher->name);
+    LOG(7, "dispatchEvents for %s", dispatcher->name);
 
     /* No locking because this must run single-threaded */
 
@@ -121,7 +121,7 @@ static int dispatchEvents(MprDispatcher *dispatcher)
             mprQueueEvent(dispatcher, event);
         }
         mprAssert(event->proc);
-        LOG(dispatcher, 7, "Call event %s", event->name);
+        LOG(7, "Call event %s", event->name);
         dispatcher->inUse++;
 
         (*event->proc)(event->data, event);
@@ -176,7 +176,7 @@ static void serviceDispatcher(MprDispatcher *dispatcher)
     @param timeout Time in milliseconds to wait. Set to zero for no wait. Set to -1 to wait forever.
     @returns Zero if not events occurred. Otherwise returns non-zero.
  */
-int mprServiceEvents(MprCtx ctx, MprDispatcher *dispatcher, int timeout, int flags)
+int mprServiceEvents(MprDispatcher *dispatcher, int timeout, int flags)
 {
     MprEventService     *es;
     MprDispatcher       *dp;
@@ -184,8 +184,7 @@ int mprServiceEvents(MprCtx ctx, MprDispatcher *dispatcher, int timeout, int fla
     Mpr                 *mpr;
     int                 count, delay, wasRunning, beginEventCount, eventCount, justOne, idle;
 
-    mprAssert(ctx);
-    mpr = mprGetMpr(ctx);
+    mpr = mprGetMpr();
 
     es = mpr->eventService;
     es->now = mprGetTime(es);
@@ -223,7 +222,7 @@ int mprServiceEvents(MprCtx ctx, MprDispatcher *dispatcher, int timeout, int fla
                 mprActivateWorker(dp->requiredWorker, (MprWorkerProc) serviceDispatcher, dp);
             } else {
 //  MOB -- need option to run events without starting a worker
-                if (mprStartWorker(dp, (MprWorkerProc) serviceDispatcher, dp) < 0) {
+                if (mprStartWorker((MprWorkerProc) serviceDispatcher, dp) < 0) {
                     /* Can't start a worker thread. Put back on the wait queue */
                     queueDispatcher(&es->waitQ, dp);
                 } 
@@ -274,18 +273,18 @@ int mprServiceEvents(MprCtx ctx, MprDispatcher *dispatcher, int timeout, int fla
 /*
     Create a disabled dispatcher. A dispatcher schedules events on a single dispatch queue.
  */
-MprDispatcher *mprCreateDispatcher(MprCtx ctx, cchar *name, int enable)
+MprDispatcher *mprCreateDispatcher(cchar *name, int enable)
 {
     MprEventService     *es;
     MprDispatcher       *dispatcher;
 
-    if ((dispatcher = mprAllocObj(ctx, MprDispatcher, manageDispatcher)) == 0) {
+    if ((dispatcher = mprAllocObj(MprDispatcher, manageDispatcher)) == 0) {
         return 0;
     }
     //  MOB - cleanup. Requires name to be static. It is this way because some dispatchers are not allocated.
     dispatcher->name = name;
     dispatcher->enabled = enable;
-    es = dispatcher->service = mprGetMpr(ctx)->eventService;
+    es = dispatcher->service = mprGetMpr()->eventService;
     mprInitEventQ(&dispatcher->eventQ);
     queueDispatcher(&es->idleQ, dispatcher);
     return dispatcher;
@@ -326,7 +325,7 @@ void mprEnableDispatcher(MprDispatcher *dispatcher)
     lock(es);
     if (!dispatcher->enabled) {
         dispatcher->enabled = 1;
-        LOG(es, 7, "mprEnableDispatcher: %s", dispatcher->name);
+        LOG(7, "mprEnableDispatcher: %s", dispatcher->name);
         if (!isEmpty(dispatcher) && !isReady(dispatcher) && !isRunning(dispatcher)) {
             queueDispatcher(&es->readyQ, dispatcher);
             if (es->waiting) {
@@ -393,7 +392,7 @@ void mprScheduleDispatcher(MprDispatcher *dispatcher)
     mprAssert(dispatcher->enabled);
 
     es = dispatcher->service;
-    ws = mprGetMpr(dispatcher)->waitService;
+    ws = mprGetMpr()->waitService;
 
     lock(es);
     //  MOB - why awake if already running?
@@ -570,12 +569,9 @@ static void dequeueDispatcher(MprDispatcher *dispatcher)
 /*
     Get the primary Mpr dispatcher
  */
-MprDispatcher *mprGetDispatcher(MprCtx ctx)
+MprDispatcher *mprGetDispatcher()
 {
-    Mpr     *mpr;
-    
-    mpr = mprGetMpr(ctx);
-    return mpr->dispatcher;
+    return MPR->dispatcher;
 }
 
 

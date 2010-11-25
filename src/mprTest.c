@@ -29,20 +29,20 @@ static MprList  *copyGroups(MprTestService *sp, MprList *groups);
 
 /******************************************************************************/
 
-MprTestService *mprCreateTestService(MprCtx ctx)
+MprTestService *mprCreateTestService()
 {
     MprTestService      *sp;
 
-    if ((sp = mprAllocObj(ctx, MprTestService, manageTestService)) == 0) {
+    if ((sp = mprAllocObj(MprTestService, manageTestService)) == 0) {
         return 0;
     }
     sp->iterations = 1;
     sp->numThreads = 1;
     sp->workers = 0;
-    sp->testFilter = mprCreateList(sp);
-    sp->groups = mprCreateList(sp);
-    sp->start = mprGetTime(sp);
-    sp->mutex = mprCreateLock(sp);
+    sp->testFilter = mprCreateList();
+    sp->groups = mprCreateList();
+    sp->start = mprGetTime();
+    sp->mutex = mprCreateLock();
     return sp;
 }
 
@@ -70,16 +70,16 @@ int mprParseTestArgs(MprTestService *sp, int argc, char *argv[])
     outputVersion = 0;
     logSpec = "stderr:1";
 
-    mpr = mprGetMpr(sp);
-    programName = mprGetPathBase(mpr, argv[0]);
+    mpr = mprGetMpr();
+    programName = mprGetPathBase(argv[0]);
     sp->name = BLD_PRODUCT;
 
     /*
         Save the command line
      */
-    sp->commandLine = sjoin(sp, NULL, mprGetPathBase(mpr, argv[i++]), NULL);
+    sp->commandLine = sjoin(NULL, mprGetPathBase(argv[i++]), NULL);
     for (; i < argc; i++) {
-        sp->commandLine = sjoin(sp, sp->commandLine, " ", argv[i], NULL);
+        sp->commandLine = sjoin(sp->commandLine, " ", argv[i], NULL);
     }
 
     for (nextArg = 1; nextArg < argc; nextArg++) {
@@ -94,7 +94,7 @@ int mprParseTestArgs(MprTestService *sp, int argc, char *argv[])
             } else {
                 depth = atoi(argv[++nextArg]);
                 if (depth < 0 || depth > 10) {
-                    mprError(sp, "Bad test depth %d, (range 0-9)", depth);
+                    mprError("Bad test depth %d, (range 0-9)", depth);
                     err++;
                 } else {
                     sp->testDepth = depth;
@@ -102,7 +102,7 @@ int mprParseTestArgs(MprTestService *sp, int argc, char *argv[])
             }
 
         } else if (strcmp(argp, "--debug") == 0 || strcmp(argp, "-d") == 0) {
-            mprSetDebugMode(mpr, 1);
+            mprSetDebugMode(1);
             sp->debugOnFailures = 1;
 
         } else if (strcmp(argp, "--echo") == 0) {
@@ -147,7 +147,7 @@ int mprParseTestArgs(MprTestService *sp, int argc, char *argv[])
             } else {
                 i = atoi(argv[++nextArg]);
                 if (i <= 0 || i > 100) {
-                    mprError(sp, "%s: Bad number of threads (1-100)", programName);
+                    mprError("%s: Bad number of threads (1-100)", programName);
                     return MPR_ERR_BAD_ARGS;
                 }
                 sp->numThreads = i;
@@ -165,7 +165,7 @@ int mprParseTestArgs(MprTestService *sp, int argc, char *argv[])
             } else {
                 i = atoi(argv[++nextArg]);
                 if (i < 0 || i > 100) {
-                    mprError(sp, "%s: Bad number of worker threads (0-100)", programName);
+                    mprError("%s: Bad number of worker threads (0-100)", programName);
                     return MPR_ERR_BAD_ARGS;
                 }
                 sp->workers = i;
@@ -190,8 +190,7 @@ int mprParseTestArgs(MprTestService *sp, int argc, char *argv[])
 #endif
 
     if (err) {
-        mprPrintfError(mpr, 
-        "usage: %s [options]\n"
+        mprPrintfError("usage: %s [options]\n"
         "    --continue            # Continue on errors\n"
         "    --depth number        # Zero == basic, 1 == throrough, 2 extensive\n"
         "    --debug               # Run in debug mode\n"
@@ -210,7 +209,7 @@ int mprParseTestArgs(MprTestService *sp, int argc, char *argv[])
     }
 
     if (outputVersion) {
-        mprPrintfError(mpr, "%s: Version: %s\n", BLD_NAME, BLD_VERSION);
+        mprPrintfError("%s: Version: %s\n", BLD_NAME, BLD_VERSION);
         mprFree(mpr);
         return MPR_ERR_BAD_ARGS;
     }
@@ -226,7 +225,7 @@ int mprParseTestArgs(MprTestService *sp, int argc, char *argv[])
         }
     }
 #endif
-    mprSetMaxWorkers(sp, sp->workers);
+    mprSetMaxWorkers(sp->workers);
     return 0;
 }
 
@@ -241,10 +240,10 @@ static int parseFilter(MprTestService *sp, cchar *filter)
     }
 
     tok = 0;
-    str = sclone(sp, filter);
+    str = sclone(filter);
     word = stok(str, " \t\r\n", &tok);
     while (word) {
-        if (mprAddItem(sp->testFilter, sclone(sp, word)) < 0) {
+        if (mprAddItem(sp->testFilter, sclone(word)) < 0) {
             return MPR_ERR_MEMORY;
         }
         word = stok(0, " \t\r\n", &tok);
@@ -278,7 +277,7 @@ static int loadModule(MprTestService *sp, cchar *fileName)
         mprSprintf(path, sizeof(path), "./%s%s", fileName, BLD_BUILD_SHOBJ);
     }
     if (mprLoadModule(sp, path, entry, (void*) sp) == 0) {
-        mprError(sp, "Can't load module %s", path);
+        mprError("Can't load module %s", path);
         return -1;
     }
     return 0;
@@ -302,12 +301,12 @@ int mprRunTests(MprTestService *sp)
     sp->activeThreadCount = sp->numThreads;
 
     if (sp->echoCmdLine) {
-        mprPrintf(sp, "%12s %s ... ", "[Test]", sp->commandLine);
+        mprPrintf("%12s %s ... ", "[Test]", sp->commandLine);
         if (sp->verbose) {
-            mprPrintf(sp, "\n");
+            mprPrintf("\n");
         }
     }
-    sp->start = mprGetTime(sp);
+    sp->start = mprGetTime();
 
     /*
         Create worker threads for each test thread. 
@@ -328,12 +327,12 @@ int mprRunTests(MprTestService *sp)
         while ((gp = mprGetNextItem(lp, &next)) != 0) {
             buildFullNames(gp, gp->name);
         }
-        tp = mprCreateThread(sp, tName, (MprThreadProc) runTestThread, (void*) lp, 0);
+        tp = mprCreateThread(tName, (MprThreadProc) runTestThread, (void*) lp, 0);
         if (tp == 0) {
             return MPR_ERR_MEMORY;
         }
         if (mprStartThread(tp) < 0) {
-            mprError(sp, "Can't start thread %d", i);
+            mprError("Can't start thread %d", i);
             return MPR_ERR_CANT_INITIALIZE;
         }
     }
@@ -344,7 +343,7 @@ int mprRunTests(MprTestService *sp)
      */
     mprCollectGarbage();
     while (sp->activeThreadCount > 0) {
-        mprServiceEvents(sp, NULL, 250, 0);
+        mprServiceEvents(NULL, 250, 0);
         //  MOB -- should do when idle?
         mprCollectGarbage();
     }
@@ -358,7 +357,7 @@ static MprList *copyGroups(MprTestService *sp, MprList *groups)
     MprList         *lp;
     int             next;
 
-    lp = mprCreateList(sp);
+    lp = mprCreateList();
     if (lp == 0) {
         return 0;
     }
@@ -415,14 +414,14 @@ void runTestThread(MprList *groups, void *threadp)
 void mprReportTestResults(MprTestService *sp)
 {
     if (sp->totalFailedCount == 0 && sp->verbose >= 1) {
-        mprPrintf(sp, "%12s All tests PASSED for \"%s\"\n", "[REPORT]", sp->name);
+        mprPrintf("%12s All tests PASSED for \"%s\"\n", "[REPORT]", sp->name);
     }
     if (sp->totalFailedCount > 0 || sp->verbose >= 2) {
         double  elapsed;
-        elapsed = ((mprGetTime(sp) - sp->start) * 1.0 / 1000.0);
-        mprPrintf(sp, "%12s %d tests completed, %d test(s) failed.\n", 
+        elapsed = ((mprGetTime() - sp->start) * 1.0 / 1000.0);
+        mprPrintf("%12s %d tests completed, %d test(s) failed.\n", 
             "[DETAILS]", sp->totalTestCount, sp->totalFailedCount);
-        mprPrintf(sp, "%12s Elapsed time: %5.2f seconds.\n", "[BENCHMARK]", elapsed);
+        mprPrintf("%12s Elapsed time: %5.2f seconds.\n", "[BENCHMARK]", elapsed);
     }
 }
 
@@ -443,12 +442,12 @@ static void buildFullNames(MprTestGroup *gp, cchar *name)
     for (np = gp->parent; np && np != np->parent && tos < MPR_TEST_MAX_STACK;  np = np->parent) {
         nameStack[tos++] = np->name;
     }
-    nameBuf = sclone(gp, gp->service->name);
+    nameBuf = sclone(gp->service->name);
     while (--tos >= 0) {
-        nameBuf = sjoin(gp, nameBuf, ".", nameStack[tos], NULL);
+        nameBuf = sjoin(nameBuf, ".", nameStack[tos], NULL);
     }
     mprAssert(gp->fullName == 0);
-    gp->fullName = sclone(gp, nameBuf);
+    gp->fullName = sclone(nameBuf);
 
     /*
         Recurse for all test case groups
@@ -485,30 +484,30 @@ static MprTestGroup *createTestGroup(MprTestService *sp, MprTestDef *def, MprTes
     MprTestDef      **dp;
     MprTestCase     *tc;
 
-    gp = mprAlloc(sp, sizeof(MprTestGroup));
+    gp = mprAlloc(sizeof(MprTestGroup));
     if (gp == 0) {
         return 0;
     }
     gp->service = sp;
     gp->cond = mprCreateCond(gp);
 
-    gp->failures = mprCreateList(sp);
+    gp->failures = mprCreateList();
     if (gp->failures == 0) {
         mprFree(gp);
         return 0;
     }
-    gp->cases = mprCreateList(sp);
+    gp->cases = mprCreateList();
     if (gp->cases == 0) {
         mprFree(gp);
         return 0;
     }
-    gp->groups = mprCreateList(sp);
+    gp->groups = mprCreateList();
     if (gp->groups == 0) {
         mprFree(gp);
         return 0;
     }
     gp->def = def;
-    gp->name = sclone(sp, def->name);
+    gp->name = sclone(def->name);
     gp->success = 1;
 
     for (tc = def->caseDefs; tc->proc; tc++) {
@@ -682,7 +681,7 @@ static bool filterTestCast(MprTestGroup *gp, MprTestCase *tc)
         See if this test has been filtered
      */
     if (mprGetListCount(testFilter) > 0) {
-        fullName = mprAsprintf(gp, "%s.%s", gp->fullName, tc->name);
+        fullName = mprAsprintf("%s.%s", gp->fullName, tc->name);
         next = 0;
         pattern = mprGetNextItem(testFilter, &next);
         while (pattern) {
@@ -713,17 +712,17 @@ static void runTestProc(MprTestGroup *gp, MprTestCase *test)
     mprResetTestGroup(gp);
 
     if (sp->singleStep) {
-        mprPrintf(gp, "%12s Run test \"%s.%s\", press <ENTER>: ", "[Test]", gp->fullName, test->name);
+        mprPrintf("%12s Run test \"%s.%s\", press <ENTER>: ", "[Test]", gp->fullName, test->name);
         getchar();
 
     } else if (sp->verbose) {
-        mprPrintf(gp, "%12s Run test \"%s.%s\": ", "[Test]", gp->fullName, test->name);
+        mprPrintf("%12s Run test \"%s.%s\": ", "[Test]", gp->fullName, test->name);
     }
 
     if (gp->skip) {
         if (sp->verbose) {
             if (gp->skipWarned++ == 0) {
-                mprPrintf(gp, "%12s Skipping test: \"%s.%s\": \n", "[Skip]", gp->fullName, test->name);
+                mprPrintf("%12s Skipping test: \"%s.%s\": \n", "[Skip]", gp->fullName, test->name);
             }
         }
         
@@ -738,10 +737,10 @@ static void runTestProc(MprTestGroup *gp, MprTestCase *test)
         if (gp->success) {
             ++sp->totalTestCount;
             if (sp->verbose) {
-                mprPrintf(sp, "PASSED\n");
+                mprPrintf("PASSED\n");
             }
         } else {
-            mprPrintfError(gp, "FAILED test \"%s.%s\"\nDetails: %s\n", gp->fullName, test->name, getErrorMessage(gp));
+            mprPrintfError("FAILED test \"%s.%s\"\nDetails: %s\n", gp->fullName, test->name, getErrorMessage(gp));
         }
     }
     mprUnlock(sp->mutex);
@@ -755,11 +754,11 @@ static char *getErrorMessage(MprTestGroup *gp)
     int             nextItem;
 
     nextItem = 0;
-    errorMsg = sclone(gp, "");
+    errorMsg = sclone("");
     fp = mprGetNextItem(gp->failures, &nextItem);
     while (fp) {
         mprSprintf(msg, sizeof(msg), "Failure in %s\nAssertion: \"%s\"\n", fp->loc, fp->message);
-        if ((errorMsg = sjoin(gp, errorMsg, msg, NULL)) == NULL) {
+        if ((errorMsg = sjoin(errorMsg, msg, NULL)) == NULL) {
             break;
         }
         fp = mprGetNextItem(gp->failures, &nextItem);
@@ -786,12 +785,12 @@ static MprTestFailure *createFailure(MprTestGroup *gp, cchar *loc, cchar *messag
 {
     MprTestFailure  *fp;
 
-    fp = mprAlloc(gp, sizeof(MprTestFailure));
+    fp = mprAlloc(sizeof(MprTestFailure));
     if (fp == 0) {
         return 0;
     }
-    fp->loc = sclone(fp, loc);
-    fp->message = sclone(fp, message);
+    fp->loc = sclone(loc);
+    fp->message = sclone(message);
     return fp;
 }
 
@@ -847,13 +846,13 @@ static void adjustFailedCount(MprTestService *sp, int adj)
 }
 
 
-static void logHandler(MprCtx ctx, int flags, int level, cchar *msg)
+static void logHandler(int flags, int level, cchar *msg)
 {
     Mpr         *mpr;
     MprFile     *file;
     char        *prefix;
 
-    mpr = mprGetMpr(ctx);
+    mpr = mprGetMpr();
     file = (MprFile*) mpr->logData;
     prefix = mpr->name;
 
@@ -896,14 +895,14 @@ static int setLogging(Mpr *mpr, char *logSpec)
         file = mpr->fileSystem->stdError;
 
     } else {
-        if ((file = mprOpen(mpr, logSpec, O_CREAT | O_WRONLY | O_TRUNC | O_TEXT, 0664)) == 0) {
-            mprPrintfError(mpr, "Can't open log file %s\n", logSpec);
+        if ((file = mprOpen(logSpec, O_CREAT | O_WRONLY | O_TRUNC | O_TEXT, 0664)) == 0) {
+            mprPrintfError("Can't open log file %s\n", logSpec);
             return MPR_ERR_CANT_OPEN;
         }
     }
 
-    mprSetLogLevel(mpr, level);
-    mprSetLogHandler(mpr, logHandler, (void*) file);
+    mprSetLogLevel(level);
+    mprSetLogHandler(logHandler, (void*) file);
 
     return 0;
 }

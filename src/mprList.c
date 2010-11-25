@@ -23,11 +23,11 @@ static void manageList(MprList *lp, int flags);
 /*
     Create a general growable list structure. Use mprFree to destroy.
  */
-MprList *mprCreateList(MprCtx ctx)
+MprList *mprCreateList()
 {
     MprList     *lp;
 
-    lp = mprAllocObj(ctx, MprList, manageList);
+    lp = mprAllocObj(MprList, manageList);
     if (lp == 0) {
         return 0;
     }
@@ -75,7 +75,7 @@ int mprSetListLimits(MprList *lp, int initialSize, int maxSize)
     size = initialSize * sizeof(void*);
 
     if (lp->items == 0) {
-        lp->items = (void**) mprAlloc(NULL, size);
+        lp->items = mprAlloc(size);
         if (lp->items == 0) {
             mprFree(lp);
             return MPR_ERR_MEMORY;
@@ -107,11 +107,11 @@ int mprCopyList(MprList *dest, MprList *src)
 }
 
 
-MprList *mprCloneList(MprCtx ctx, MprList *src)
+MprList *mprCloneList(MprList *src)
 {
     MprList     *list;
 
-    list = mprCreateList(ctx);
+    list = mprCreateList();
     if (list == 0) {
         return 0;
     }
@@ -515,8 +515,8 @@ static int growList(MprList *lp, int incr)
     }
     memsize = len * sizeof(void*);
 
-    //  MOB -- temp workaround for ejsNamespace that has a static list
-    lp->items = mprRealloc(/* lp */ NULL, lp->items, memsize);
+    //  MOB - RC
+    lp->items = mprRealloc(lp->items, memsize);
 
     /*
         Zero the new portion (required for no-compact lists)
@@ -533,16 +533,16 @@ void mprSortList(MprList *lp, MprListCompareProc compare)
 }
 
 
-MprKeyValue *mprCreateKeyPair(MprCtx ctx, cchar *key, cchar *value)
+MprKeyValue *mprCreateKeyPair(cchar *key, cchar *value)
 {
     MprKeyValue     *pair;
     
-    pair = mprAlloc(ctx, sizeof(MprKeyValue));
+    pair = mprAlloc(sizeof(MprKeyValue));
     if (pair == 0) {
         return 0;
     }
-    pair->key = sclone(pair, key);
-    pair->value = sclone(pair, value);
+    pair->key = sclone(key);
+    pair->value = sclone(value);
     return pair;
 }
 

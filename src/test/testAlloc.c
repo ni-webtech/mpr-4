@@ -17,19 +17,19 @@ static void testBasicAlloc(MprTestGroup *gp)
     int     size;
 
     size = 16;
-    cp = (char*) mprAlloc(gp, size);
+    cp = mprAlloc(size);
     assert(cp != 0);
     memset(cp, 0x77, size);
     mprFree(cp);
 
-    cp = (char*) mprAlloc(gp, size);
+    cp = mprAlloc(size);
     assert(cp != 0);
     memset(cp, 0x77, size);
-    cp = (char*) mprRealloc(gp, cp, size * 2);
+    cp = mprRealloc(cp, size * 2);
     assert(cp != 0);
     mprFree(cp);
 
-    cp = sclone(gp, "Hello World");
+    cp = sclone("Hello World");
     assert(cp != 0);
     assert(strcmp(cp, "Hello World") == 0);
     mprFree(cp);
@@ -38,7 +38,7 @@ static void testBasicAlloc(MprTestGroup *gp)
         Test special MPR allowances
      */
     mprFree(0);
-    cp = sclone(gp, NULL);
+    cp = sclone(NULL);
     assert(cp != 0);
     assert(cp[0] == '\0');
     mprFree(cp);
@@ -52,12 +52,12 @@ static void testLotsOfAlloc(MprTestGroup *gp)
     int     i;
 
     for (i = 0; i < 10000; i++) {
-        mp = mprAlloc(gp, 64);
+        mp = mprAlloc(64);
         assert(mp != 0);
         mprFree(mp);
     }
     for (i = 2; i < (2 * 1024 * 1024); i *= 2) {
-        mp = mprAlloc(gp, i);
+        mp = mprAlloc(i);
         assert(mp != 0);
         mprFree(mp);
     }
@@ -68,7 +68,7 @@ static void testBigAlloc(MprTestGroup *gp)
 {
     void    *mp;
 
-    mp = mprAlloc(gp, 8 * 1024 * 1024);
+    mp = mprAlloc(8 * 1024 * 1024);
     assert(mp != 0);
     mprFree(mp);
 }
@@ -86,7 +86,7 @@ static void testAllocIntegrityChecks(MprTestGroup *gp)
     size = 64;
     count = sizeof(blocks) / sizeof(void*);
     for (i = 0; i < count; i++) {
-        blocks[i] = mprAlloc(gp, size);
+        blocks[i] = mprAlloc(size);
         assert(blocks[i] != 0);
         memset(blocks[i], i % 0xff, size);
     }
@@ -104,7 +104,7 @@ static void testAllocIntegrityChecks(MprTestGroup *gp)
     count = sizeof(blocks) / sizeof(void*);
     for (i = 1; i < count; i++) {
         size = 1 << ((i + 6) / 100);
-        blocks[i] = mprAlloc(gp, size);
+        blocks[i] = mprAlloc(size);
         assert(blocks[i] != 0);
         memset(blocks[i], i % 0xff, size);
     }
@@ -151,7 +151,7 @@ static void testAllocLongevity(MprTestGroup *gp)
             mprFree(cp);
         }
         len = mprRandom() % size;
-        cp = blocks[k] = mprAlloc(gp, len);
+        cp = blocks[k] = mprAlloc(len);
         actual = mprGetBlockSize(cp);
         mprAssert(actual >= len);
         memset(cp, k, actual);

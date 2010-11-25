@@ -16,12 +16,12 @@ static void manageModuleService(MprModuleService *ms, int flags);
 /*
     Open the module service
  */
-MprModuleService *mprCreateModuleService(MprCtx ctx)
+MprModuleService *mprCreateModuleService()
 {
     MprModuleService    *ms;
     cchar               *searchPath;
 
-    ms = mprAllocObj(ctx, MprModuleService, manageModuleService);
+    ms = mprAllocObj(MprModuleService, manageModuleService);
     if (ms == 0) {
         return 0;
     }
@@ -43,8 +43,8 @@ MprModuleService *mprCreateModuleService(MprCtx ctx)
     } else {
         searchPath = ms->searchPath;
     }
-    ms->searchPath = sclone(ms, (searchPath) ? searchPath : (cchar*) ".");
-    ms->mutex = mprCreateLock(ms);
+    ms->searchPath = sclone((searchPath) ? searchPath : (cchar*) ".");
+    ms->mutex = mprCreateLock();
     return ms;
 }
 
@@ -104,22 +104,22 @@ void mprStopModuleService(MprModuleService *ms)
 /*
     Create a new module
  */
-MprModule *mprCreateModule(MprCtx ctx, cchar *name, void *data)
+MprModule *mprCreateModule(cchar *name, void *data)
 {
     MprModuleService    *ms;
     MprModule           *mp;
     Mpr                 *mpr;
     int                 index;
 
-    mpr = mprGetMpr(ctx);
+    mpr = mprGetMpr();
     ms = mpr->moduleService;
     mprAssert(ms);
 
-    if ((mp = mprAllocObj(mpr, MprModule, NULL)) == 0) {
+    if ((mp = mprAllocObj(MprModule, NULL)) == 0) {
         return 0;
     }
     index = mprAddItem(ms->modules, mp);
-    mp->name = sclone(mp, name);
+    mp->name = sclone(name);
     mp->moduleData = data;
     mp->handle = 0;
     mp->start = 0;
@@ -136,7 +136,7 @@ MprModule *mprCreateModule(MprCtx ctx, cchar *name, void *data)
 /*
     See if a module is already loaded
  */
-MprModule *mprLookupModule(MprCtx ctx, cchar *name)
+MprModule *mprLookupModule(cchar *name)
 {
     MprModuleService    *ms;
     MprModule           *mp;
@@ -144,7 +144,7 @@ MprModule *mprLookupModule(MprCtx ctx, cchar *name)
 
     mprAssert(name && name);
 
-    ms = mprGetMpr(ctx)->moduleService;
+    ms = mprGetMpr()->moduleService;
     mprAssert(ms);
 
     for (next = 0; (mp = mprGetNextItem(ms->modules, &next)) != 0; ) {
@@ -157,31 +157,30 @@ MprModule *mprLookupModule(MprCtx ctx, cchar *name)
 }
 
 
-MprAny mprLookupModuleData(MprCtx ctx, cchar *name)
+void *mprLookupModuleData(cchar *name)
 {
     MprModule   *module;
 
-    if ((module = mprLookupModule(ctx, name)) == NULL) {
+    if ((module = mprLookupModule(name)) == NULL) {
         return NULL;
     }
     return module->moduleData;
 }
 
 
-void mprSetModuleSearchPath(MprCtx ctx, char *searchPath)
+void mprSetModuleSearchPath(char *searchPath)
 {
     MprModuleService    *ms;
     Mpr                 *mpr;
 
-    mprAssert(ctx);
     mprAssert(searchPath && *searchPath);
 
-    mpr = mprGetMpr(ctx);
+    mpr = mprGetMpr();
     mprAssert(mpr);
     ms = mpr->moduleService;
 
     mprFree(ms->searchPath);
-    ms->searchPath = sclone(ms, searchPath);
+    ms->searchPath = sclone(searchPath);
 
 #if BLD_WIN_LIKE && !WINCE
     {
@@ -199,14 +198,12 @@ void mprSetModuleSearchPath(MprCtx ctx, char *searchPath)
 }
 
 
-cchar *mprGetModuleSearchPath(MprCtx ctx)
+cchar *mprGetModuleSearchPath()
 {
     MprModuleService    *ms;
     Mpr                 *mpr;
 
-    mprAssert(ctx);
-
-    mpr = mprGetMpr(ctx);
+    mpr = mprGetMpr();
     mprAssert(mpr);
     ms = mpr->moduleService;
 
@@ -219,25 +216,24 @@ cchar *mprGetModuleSearchPath(MprCtx ctx)
     Return true if the shared library in "file" can be found. Return the actual path in *path. The filename
     may not have a shared library extension which is typical so calling code can be cross platform.
  */
-static int probe(MprCtx ctx, cchar *filename, char **pathp)
+static int probe(cchar *filename, char **pathp)
 {
     char    *path;
 
-    mprAssert(ctx);
     mprAssert(filename && *filename);
     mprAssert(pathp);
 
     *pathp = 0;
-    mprLog(ctx, 6, "Probe for native module %s", filename);
-    if (mprPathExists(ctx, filename, R_OK)) {
-        *pathp = sclone(ctx, filename);
+    mprLog(6, "Probe for native module %s", filename);
+    if (mprPathExists(filename, R_OK)) {
+        *pathp = sclone(filename);
         return 1;
     }
 
     if (strstr(filename, BLD_SHOBJ) == 0) {
-        path = sjoin(ctx, NULL, filename, BLD_SHOBJ, NULL);
-        mprLog(ctx, 6, "Probe for native module %s", path);
-        if (mprPathExists(ctx, path, R_OK)) {
+        path = sjoin(NULL, filename, BLD_SHOBJ, NULL);
+        mprLog(6, "Probe for native module %s", path);
+        if (mprPathExists(path, R_OK)) {
             *pathp = path;
             return 1;
         }
@@ -250,30 +246,30 @@ static int probe(MprCtx ctx, cchar *filename, char **pathp)
 /*
     Search for a module in the modulePath.
  */
-int mprSearchForModule(MprCtx ctx, cchar *name, char **path)
+int mprSearchForModule(cchar *name, char **path)
 {
     char    *fileName, *searchPath, *dir, *tok;
 
     /*
         Search for path directly
      */
-    if (probe(ctx, name, path)) {
-        mprLog(ctx, 6, "Found native module %s at %s", name, *path);
+    if (probe(name, path)) {
+        mprLog(6, "Found native module %s at %s", name, *path);
         return 0;
     }
 
     /*
         Search in the searchPath
      */
-    searchPath = sclone(ctx, mprGetModuleSearchPath(ctx));
+    searchPath = sclone(mprGetModuleSearchPath());
 
     tok = 0;
     dir = stok(searchPath, MPR_SEARCH_SEP, &tok);
     while (dir && *dir) {
-        fileName = mprJoinPath(ctx, dir, name);
-        if (probe(ctx, fileName, path)) {
+        fileName = mprJoinPath(dir, name);
+        if (probe(fileName, path)) {
             mprFree(fileName);
-            mprLog(ctx, 6, "Found native module %s at %s", name, *path);
+            mprLog(6, "Found native module %s at %s", name, *path);
             return 0;
         }
         mprFree(fileName);

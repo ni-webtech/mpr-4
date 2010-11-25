@@ -164,7 +164,7 @@ Mpr *mprCreateMemService(MprMemNotifier cback, MprManager manager)
     memset(heap, 0, sizeof(MprHeap));
     heap->stats.maxMemory = MAXINT;
     heap->stats.redLine = MAXINT / 100 * 99;
-    mprInitSpinLock(heap, &heap->heapLock);
+    mprInitSpinLock(&heap->heapLock);
 
     /*
         Hand-craft the Mpr structure this include the MprRegion and MprMem headers
@@ -204,8 +204,8 @@ Mpr *mprCreateMemService(MprMemNotifier cback, MprManager manager)
     heap->enabled = 0;
 
     heap->stats.bytesAllocated += size;
-    mprInitSpinLock(heap, &heap->heapLock);
-    mprInitSpinLock(heap, &heap->rootLock);
+    mprInitSpinLock(&heap->heapLock);
+    mprInitSpinLock(&heap->rootLock);
     getSystemInfo();
 
     initFree();
@@ -241,7 +241,7 @@ void mprDestroyMemService()
 }
 
 
-void *mprAllocBlock(MprCtx IGNORED, size_t usize, int flags)
+void *mprAllocBlock(size_t usize, int flags)
 {
     MprMem      *mp;
     void        *ptr;
@@ -329,7 +329,7 @@ void mprFreeBlock(void *ptr, cchar *loc)
 #endif
 
 
-void *mprRealloc(MprCtx IGNORED, void *ptr, size_t usize)
+void *mprRealloc(void *ptr, size_t usize)
 {
     MprMem      *mp, *newb;
     void        *newptr;
@@ -338,7 +338,7 @@ void *mprRealloc(MprCtx IGNORED, void *ptr, size_t usize)
     mprAssert(usize > 0);
 
     if (ptr == 0) {
-        return mprAllocBlock(IGNORED, usize, 0);
+        return mprAllocBlock(usize, 0);
     }
     mp = GET_MEM(ptr);
     CHECK(mp);
@@ -346,7 +346,7 @@ void *mprRealloc(MprCtx IGNORED, void *ptr, size_t usize)
         return ptr;
     }
     flags = mp->hasManager ? MPR_ALLOC_MANAGER : 0;
-    if ((newptr = mprAllocBlock(IGNORED, usize, flags)) == NULL) {
+    if ((newptr = mprAllocBlock(usize, flags)) == NULL) {
         return 0;
     }
     newb = GET_MEM(newptr);
@@ -359,11 +359,11 @@ checkPrior(newb);
 }
 
 
-void *mprMemdup(MprCtx IGNORED, cvoid *ptr, size_t usize)
+void *mprMemdup(cvoid *ptr, size_t usize)
 {
     char    *newp;
 
-    if ((newp = mprAllocBlock(IGNORED, usize, 0)) != 0) {
+    if ((newp = mprAllocBlock(usize, 0)) != 0) {
         memcpy(newp, ptr, usize);
     }
     return newp;
@@ -417,8 +417,7 @@ int mprMemcpy(void *dest, int destMax, cvoid *src, int nbytes)
 
 
 #if BLD_WIN_LIKE
-//  MOB - remove arg
-Mpr *mprGetMpr(MprCtx IGNORED)
+Mpr *mprGetMpr()
 {
     return MPR;
 }
@@ -455,7 +454,7 @@ void mprSetMemCollect(MprMemCollect collect)
 }
 
 
-void mprSetMemLimits(MprCtx IGNORED, int redLine, int maxMemory)
+void mprSetMemLimits(int redLine, int maxMemory)
 {
     if (redLine > 0) {
         heap->stats.redLine = redLine;
@@ -466,7 +465,7 @@ void mprSetMemLimits(MprCtx IGNORED, int redLine, int maxMemory)
 }
 
 
-void mprSetMemPolicy(MprCtx IGNORED, int policy)
+void mprSetMemPolicy(int policy)
 {
     heap->allocPolicy = policy;
 }
@@ -969,11 +968,11 @@ static void allocException(size_t size, bool granted)
     if (!granted) {
         switch (heap->allocPolicy) {
         case MPR_ALLOC_POLICY_EXIT:
-            mprError(MPR, "Application exiting due to memory allocation failure.");
-            mprTerminate(MPR, 0);
+            mprError("Application exiting due to memory allocation failure.");
+            mprTerminate(0);
             break;
         case MPR_ALLOC_POLICY_RESTART:
-            mprError(MPR, "Application restarting due to memory allocation failure.");
+            mprError("Application restarting due to memory allocation failure.");
             //  TODO - Other systems
 #if BLD_UNIX_LIKE
             execv(MPR->argv[0], MPR->argv);
@@ -1409,7 +1408,7 @@ static void startMemWorkers()
     mprStartWorker(NULL, marker, NULL);
     mprStartWorker(NULL, sweeper, NULL);
 #elif MPR_GC_WORKERS == 1
-    mprStartWorker(NULL, marker, NULL);
+    mprStartWorker(marker, NULL);
 #endif
 }
 #endif
@@ -1458,7 +1457,7 @@ int mprIsTimeForGC(int timeTillNextEvent)
     if (!heap->enabled || heap->newCount < heap->newQuota || heap->stats.bytesFree < MPR_GC_LOW_MEM) {
         return 0;
     }
-    mprLog(NULL, 7, "Time for GC. Work done %d, time till next event %d", heap->newCount, timeTillNextEvent);
+    LOG(7, "Time for GC. Work done %d, time till next event %d", heap->newCount, timeTillNextEvent);
     return 1;
 }
 

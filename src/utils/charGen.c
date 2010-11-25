@@ -18,12 +18,12 @@ int main(int argc, char *argv[])
 
     mpr = mprCreate(argc, argv, 0);
 
-    mprPrintf(mpr, "static uchar charMatch[256] = {\n\t0x00,");
+    mprPrintf("static uchar charMatch[256] = {\n\t0x00,");
 
     for (c = 1; c < 256; ++c) {
         flags = 0;
         if (c % 16 == 0)
-            mprPrintf(mpr, "\n\t");
+            mprPrintf("\n\t");
 #if BLD_WIN_LIKE
         if (strchr("&;`'\"|*?~<>^()[]{}$\\\n\r%", c)) {
             flags |= MPR_ENCODE_SHELL;
@@ -50,9 +50,9 @@ int main(int argc, char *argv[])
         if (strchr("<>&\"'", c) != 0) {
             flags |= MPR_ENCODE_HTML;
         }
-        mprPrintf(mpr, "0x%02x%c", flags, (c < 255) ? ',' : ' ');
+        mprPrintf("0x%02x%c", flags, (c < 255) ? ',' : ' ');
     }
-    mprPrintf(mpr, "\n};\n");
+    mprPrintf("\n};\n");
     return 0;
 }
 

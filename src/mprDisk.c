@@ -18,7 +18,7 @@ static int getPathInfo(MprDiskFileSystem *fileSystem, cchar *path, MprPath *info
 
 /************************************ Code ************************************/
 
-static MprFile *openFile(MprCtx ctx, MprFileSystem *fileSystem, cchar *path, int omode, int perms)
+static MprFile *openFile(MprFileSystem *fileSystem, cchar *path, int omode, int perms)
 {
     MprDiskFileSystem   *dfs;
     MprFile             *file;
@@ -26,12 +26,11 @@ static MprFile *openFile(MprCtx ctx, MprFileSystem *fileSystem, cchar *path, int
     mprAssert(path);
 
     dfs = (MprDiskFileSystem*) fileSystem;
-    file = mprAllocObj(ctx, MprFile, manageDiskFile);
+    file = mprAllocObj(MprFile, manageDiskFile);
     if (file == 0) {
         return 0;
     }
-    
-    file->path = sclone(file, path);
+    file->path = sclone(path);
     file->fd = open(path, omode, perms);
     if (file->fd < 0) {
         mprFree(file);
@@ -286,7 +285,7 @@ static char *getPathLink(MprDiskFileSystem *fileSystem, cchar *path)
         return NULL;
     }
     pbuf[len] = '\0';
-    return sclone(fileSystem, pbuf);
+    return sclone(pbuf);
 #else
     return NULL;
 #endif
@@ -295,7 +294,7 @@ static char *getPathLink(MprDiskFileSystem *fileSystem, cchar *path)
 
 static int truncateFile(MprDiskFileSystem *fileSystem, cchar *path, MprOffset size)
 {
-    if (!mprPathExists(NULL, path, F_OK)) {
+    if (!mprPathExists(path, F_OK)) {
         return MPR_ERR_CANT_ACCESS;
     }
 #if BLD_WIN_LIKE
@@ -347,12 +346,12 @@ static void manageDiskFileSystem(MprDiskFileSystem *dfs, int flags)
 }
 
 
-MprDiskFileSystem *mprCreateDiskFileSystem(MprCtx ctx, cchar *path)
+MprDiskFileSystem *mprCreateDiskFileSystem(cchar *path)
 {
     MprFileSystem       *fs;
     MprDiskFileSystem   *dfs;
 
-    if ((dfs = mprAllocObj(ctx, MprDiskFileSystem, manageDiskFileSystem)) == 0) {
+    if ((dfs = mprAllocObj(MprDiskFileSystem, manageDiskFileSystem)) == 0) {
         return 0;
     }
 
@@ -375,7 +374,7 @@ MprDiskFileSystem *mprCreateDiskFileSystem(MprCtx ctx, cchar *path)
     dfs->writeFile = writeFile;
 
 #if !WINCE
-    dfs->stdError = mprAllocObj(dfs, MprFile, NULL);
+    dfs->stdError = mprAllocObj(MprFile, NULL);
     if (dfs->stdError == 0) {
         mprFree(dfs);
     }
@@ -384,7 +383,7 @@ MprDiskFileSystem *mprCreateDiskFileSystem(MprCtx ctx, cchar *path)
     dfs->stdError->fileSystem = fs;
     dfs->stdError->mode = O_WRONLY;
 
-    dfs->stdInput = mprAllocObj(dfs, MprFile, NULL);
+    dfs->stdInput = mprAllocObj(MprFile, NULL);
     if (dfs->stdInput == 0) {
         mprFree(dfs);
     }
@@ -393,7 +392,7 @@ MprDiskFileSystem *mprCreateDiskFileSystem(MprCtx ctx, cchar *path)
     dfs->stdInput->fileSystem = fs;
     dfs->stdInput->mode = O_RDONLY;
 
-    dfs->stdOutput = mprAllocObj(dfs, MprFile, NULL);
+    dfs->stdOutput = mprAllocObj(MprFile, NULL);
     if (dfs->stdOutput == 0) {
         mprFree(dfs);
     }

@@ -149,14 +149,14 @@ int mprRandom()
 }
 
 
-char *mprDecode64(MprCtx ctx, cchar *s)
+char *mprDecode64(cchar *s)
 {
     uint    bitBuf;
     char    *buffer, *bp;
     int     len, c, i, j, shift;
 
     len = strlen(s);
-    if ((buffer = mprAlloc(ctx, len + 1)) == 0) {
+    if ((buffer = mprAlloc(len + 1)) == 0) {
         return NULL;
     }
     bp = buffer;
@@ -184,14 +184,14 @@ char *mprDecode64(MprCtx ctx, cchar *s)
 }
 
 
-char *mprEncode64(MprCtx ctx, cchar *s)
+char *mprEncode64(cchar *s)
 {
     uint    shiftbuf;
     char    *buffer, *bp;
     int     len, x, i, j, shift;
 
     len = strlen(s) * 2;
-    if ((buffer = mprAlloc(ctx, len + 1)) == 0) {
+    if ((buffer = mprAlloc(len + 1)) == 0) {
         return NULL;
     }
     bp = buffer;
@@ -219,7 +219,7 @@ char *mprEncode64(MprCtx ctx, cchar *s)
 /*
     Return the MD5 hash of a block
  */
-char *mprGetMD5Hash(MprCtx ctx, cchar *buf, size_t length, cchar *prefix)
+char *mprGetMD5Hash(cchar *buf, size_t length, cchar *prefix)
 {
     MD5CONTEXT      context;
     uchar           hash[CRYPT_HASH_SIZE];
@@ -242,7 +242,7 @@ char *mprGetMD5Hash(MprCtx ctx, cchar *buf, size_t length, cchar *prefix)
     *r = '\0';
 
     len = (prefix) ? strlen(prefix) : 0;
-    str = (char*) mprAlloc(ctx, sizeof(result) + len);
+    str = mprAlloc(sizeof(result) + len);
     if (str) {
         if (prefix) {
             strcpy(str, prefix);

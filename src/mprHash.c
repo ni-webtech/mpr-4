@@ -26,11 +26,11 @@ static void manageHash(MprHashTable *table, int flags);
     efficiency. Caller should use mprFree to free the hash table.
  */
 
-MprHashTable *mprCreateHash(MprCtx ctx, int hashSize, int flags)
+MprHashTable *mprCreateHash(int hashSize, int flags)
 {
     MprHashTable    *table;
 
-    if ((table = mprAllocObj(ctx, MprHashTable, manageHash)) == 0) {
+    if ((table = mprAllocObj(MprHashTable, manageHash)) == 0) {
         return 0;
     }
     /*  TODO -- should support rehashing */
@@ -41,7 +41,7 @@ MprHashTable *mprCreateHash(MprCtx ctx, int hashSize, int flags)
     table->flags = flags;
     table->count = 0;
     table->hashSize = hashSize;
-    table->buckets = (MprHash**) mprAllocZeroed(table, sizeof(MprHash*) * hashSize);
+    table->buckets = mprAllocZeroed(sizeof(MprHash*) * hashSize);
 #if BLD_CHAR_LEN > 1
     if (table->flags & MPR_HASH_UNICODE) {
         if (table->flags & MPR_HASH_CASELESS) {
@@ -85,12 +85,12 @@ static void manageHash(MprHashTable *table, int flags)
 }
 
 
-MprHashTable *mprCloneHash(MprCtx ctx, MprHashTable *master)
+MprHashTable *mprCloneHash(MprHashTable *master)
 {
     MprHash         *hp;
     MprHashTable    *table;
 
-    table = mprCreateHash(ctx, master->hashSize, master->flags);
+    table = mprCreateHash(master->hashSize, master->flags);
     if (table == 0) {
         return 0;
     }
@@ -123,7 +123,7 @@ MprHash *mprAddHash(MprHashTable *table, cvoid *key, cvoid *ptr)
     /*
         New entry
      */
-    sp = mprAllocObj(table, MprHash, NULL);
+    sp = mprAllocObj(MprHash, NULL);
     if (sp == 0) {
         return 0;
     }
@@ -151,7 +151,7 @@ MprHash *mprAddDuplicateHash(MprHashTable *table, cvoid *key, cvoid *ptr)
     MprHash     *sp;
     int         index;
 
-    sp = mprAllocObj(table, MprHash, NULL);
+    sp = mprAllocObj(MprHash, NULL);
     if (sp == 0) {
         return 0;
     }
@@ -328,7 +328,7 @@ static inline void *dupKey(MprHashTable *table, MprHash *sp, cvoid *key)
         return wclone(sp, (MprChar*) key, -1);
     } else
 #endif
-        return sclone(sp, key);
+        return sclone(key);
 }
 
 

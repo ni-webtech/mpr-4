@@ -25,14 +25,14 @@ static void trimToken(MprXml *xp);
 
 /************************************ Code ************************************/
 
-MprXml *mprXmlOpen(MprCtx ctx, int initialSize, int maxSize)
+MprXml *mprXmlOpen(int initialSize, int maxSize)
 {
     MprXml  *xp;
 
-    xp = mprAllocObj(ctx, MprXml, manageXml);
+    xp = mprAllocObj(MprXml, manageXml);
     
-    xp->inBuf = mprCreateBuf(xp, MPR_XML_BUFSIZE, MPR_XML_BUFSIZE);
-    xp->tokBuf = mprCreateBuf(xp, initialSize, maxSize);
+    xp->inBuf = mprCreateBuf(MPR_XML_BUFSIZE, MPR_XML_BUFSIZE);
+    xp->tokBuf = mprCreateBuf(initialSize, maxSize);
     return xp;
 }
 
@@ -178,7 +178,7 @@ static int parseNext(MprXml *xp, int state)
 
             case MPR_XMLTOK_TEXT:
                 state = MPR_XML_NEW_ELT;
-                tname = sclone(xp, mprGetBufStart(tokBuf));
+                tname = sclone(mprGetBufStart(tokBuf));
                 if (tname == 0) {
                     rc = MPR_ERR_MEMORY;
                     goto exit;
@@ -205,7 +205,7 @@ static int parseNext(MprXml *xp, int state)
                 /*
                     Must be an attribute name
                  */
-                aname = sclone(xp, mprGetBufStart(tokBuf));
+                aname = sclone(mprGetBufStart(tokBuf));
                 token = getToken(xp, state);
                 if (token != MPR_XMLTOK_EQ) {
                     xmlError(xp, "Missing assignment for attribute \"%s\"", aname);
@@ -634,11 +634,11 @@ static void xmlError(MprXml *xp, char *fmt, ...)
     mprAssert(fmt);
 
     va_start(args, fmt);
-    buf = mprAsprintfv(xp, fmt, args);
+    buf = mprAsprintfv(fmt, args);
     va_end(args);
 
     mprFree(xp->errMsg);
-    xp->errMsg = mprAsprintf(xp, "XML error: %s\nAt line %d\n", buf, xp->lineNumber);
+    xp->errMsg = mprAsprintf("XML error: %s\nAt line %d\n", buf, xp->lineNumber);
     mprFree(buf);
 }
 

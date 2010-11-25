@@ -93,7 +93,7 @@ size_t scopy(char *dest, size_t destMax, cchar *src)
 }
 
 
-char *sclone(MprCtx ctx, cchar *str)
+char *sclone(cchar *str)
 {
     char    *ptr;
     size_t  size, len;
@@ -103,7 +103,7 @@ char *sclone(MprCtx ctx, cchar *str)
     }
     len = strlen(str);
     size = len + 1;
-    if ((ptr = mprAlloc(ctx, size)) != NULL) {
+    if ((ptr = mprAlloc(size)) != NULL) {
         memcpy(ptr, str, len);
     }
     ptr[len] = '\0';
@@ -136,7 +136,7 @@ int sends(cchar *str, cchar *suffix)
 }
 
 
-char *sfmt(MprCtx ctx, cchar *fmt, ...)
+char *sfmt(cchar *fmt, ...)
 {
     va_list     ap;
     char        *buf;
@@ -144,16 +144,16 @@ char *sfmt(MprCtx ctx, cchar *fmt, ...)
     mprAssert(fmt);
 
     va_start(ap, fmt);
-    buf = mprAsprintfv(ctx, fmt, ap);
+    buf = mprAsprintfv(fmt, ap);
     va_end(ap);
     return buf;
 }
 
 
-char *sfmtv(MprCtx ctx, cchar *fmt, va_list arg)
+char *sfmtv(cchar *fmt, va_list arg)
 {
     mprAssert(fmt);
-    return mprAsprintfv(ctx, fmt, arg);
+    return mprAsprintfv(fmt, arg);
 }
 
 
@@ -259,23 +259,21 @@ uint shashlower(cchar *cname, size_t len)
 }
 
 
-char *sjoin(MprCtx ctx, cchar *sep, ...)
+char *sjoin(cchar *sep, ...)
 {
     va_list     ap;
     char        *result;
 
-    mprAssert(ctx);
-
     va_start(ap, sep);
-    result = srejoinv(ctx, NULL, sep, ap);
+    result = srejoinv(NULL, sep, ap);
     va_end(ap);
     return result;
 }
 
 
-char *sjoinv(MprCtx ctx, cchar *sep, va_list args)
+char *sjoinv(cchar *sep, va_list args)
 {
-    return srejoin(ctx, NULL, sep, args);
+    return srejoin(NULL, sep, args);
 }
 
 
@@ -425,27 +423,23 @@ char *srchr(cchar *s, int c)
 }
 
 
-char *srejoin(MprCtx ctx, char *buf, cchar *sep, ...)
+char *srejoin(char *buf, cchar *sep, ...)
 {
     va_list     ap;
     char        *result;
 
-    mprAssert(ctx);
-
     va_start(ap, sep);
-    result = srejoinv(ctx, buf, sep, ap);
+    result = srejoinv(buf, sep, ap);
     va_end(ap);
     return result;
 }
 
 
-char *srejoinv(MprCtx ctx, char *buf, cchar *sep, va_list args)
+char *srejoinv(char *buf, cchar *sep, va_list args)
 {
     va_list     ap;
     char        *dest, *str, *dp;
     int         required, seplen;
-
-    mprAssert(ctx);
 
     if (sep == 0) {
         sep = "";
@@ -463,7 +457,7 @@ char *srejoinv(MprCtx ctx, char *buf, cchar *sep, va_list args)
     if (buf && *buf) {
         required += seplen;
     }
-    if ((dest = (char*) mprRealloc(ctx, buf, required)) == 0) {
+    if ((dest = mprRealloc(buf, required)) == 0) {
         return 0;
     }
     dp = dest;
@@ -675,7 +669,7 @@ char *stok(char *str, cchar *delim, char **last)
 }
 
 
-char *ssub(MprCtx ctx, char *str, size_t offset, size_t len)
+char *ssub(char *str, size_t offset, size_t len)
 {
     char    *result;
     size_t  size;
@@ -688,7 +682,7 @@ char *ssub(MprCtx ctx, char *str, size_t offset, size_t len)
         return NULL;
     }
     size = len + 1;
-    if ((result = mprAlloc(ctx, size)) == NULL) {
+    if ((result = mprAlloc(size)) == NULL) {
         return NULL;
     }
     sncopy(result, size, &str[offset], len);
