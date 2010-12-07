@@ -29,9 +29,9 @@ int mprStartOsService()
         Open a syslog connection
      */
 #if SOLARIS
-    openlog(mprGetAppName(MPR), LOG_CONS, LOG_LOCAL0);
+    openlog(mprGetAppName(), LOG_CONS, LOG_LOCAL0);
 #else
-    openlog(mprGetAppName(MPR), LOG_CONS || LOG_PERROR, LOG_LOCAL0);
+    openlog(mprGetAppName(), LOG_CONS || LOG_PERROR, LOG_LOCAL0);
 #endif
     return 0;
 }
@@ -95,7 +95,7 @@ MprModule *mprLoadModule(cchar *name, cchar *fun, void *data)
             if ((fn = (MprModuleEntry) dlsym(handle, fun)) != 0) {
                 mp = mprCreateModule(name, data);
                 mp->handle = handle;
-                if ((fn)(mp) < 0) {
+                if ((fn)(data) < 0) {
                     mprError("Initialization for module %s failed", name);
                     dlclose(handle);
                     mprFree(mp);

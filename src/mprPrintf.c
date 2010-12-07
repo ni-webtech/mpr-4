@@ -111,10 +111,12 @@ static int  getState(char c, int state);
 static int  growBuf(Format *fmt);
 static char *sprintfCore(char *buf, int maxsize, cchar *fmt, va_list arg);
 static void outNum(Format *fmt, cchar *prefix, uint64 val);
-static void outFloat(Format *fmt, char specChar, double value);
 static void outString(Format *fmt, cchar *str, int len);
 #if BLD_CHAR_LEN > 1
 static void outWideString(Format *fmt, MprChar *str, int len);
+#endif
+#if BLD_FEATURE_FLOAT
+static void outFloat(Format *fmt, char specChar, double value);
 #endif
 
 /************************************* Code ***********************************/
@@ -465,11 +467,13 @@ static char *sprintfCore(char *buf, int maxsize, cchar *spec, va_list arg)
         case STATE_TYPE:
             switch (c) {
             case 'e':
+#if BLD_FEATURE_FLOAT
             case 'g':
             case 'f':
                 fmt.radix = 10;
                 outFloat(&fmt, c, (double) va_arg(arg, double));
                 break;
+#endif /* BLD_FEATURE_FLOAT */
 
             case 'c':
                 BPUT(&fmt, (char) va_arg(arg, int));
@@ -794,6 +798,7 @@ static void outNum(Format *fmt, cchar *prefix, uint64 value)
 }
 
 
+#if BLD_FEATURE_FLOAT
 static void outFloat(Format *fmt, char specChar, double value)
 {
     char    result[MPR_MAX_STRING], *cp;
@@ -1022,6 +1027,7 @@ char *mprDtoa(double value, int ndigits, int mode, int flags)
     mprFree(buf);
     return result;
 }
+#endif /* BLD_FEATURE_FLOAT */
 
 
 /*

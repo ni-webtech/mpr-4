@@ -127,21 +127,57 @@ MprChar *mfmtv(cchar *fmt, va_list arg)
 /*
     Sep is ascii, args are MprChar
  */
-MprChar *mjoin(cchar *sep, ...)
+MprChar *mjoin(cchar *str, ...)
 {
     MprChar     *result;
     va_list     ap;
 
-    va_start(ap, sep);
-    result = mrejoinv(NULL, sep, ap);
+    mprAssert(str);
+
+    va_start(ap, str);
+    result = mjoinv(str, ap);
     va_end(ap);
     return result;
 }
 
 
-MprChar *mjoinv(cchar *sep, va_list args)
+MprChar *mjoinv(MprChar *buf, va_list args)
 {
-    return mrejoinv(NULL, sep, args);
+    va_list     ap;
+    MprChar     *dest, *str, *dp;
+    int         required, len;
+
+    mprAssert(buf);
+
+    va_copy(ap, args);
+    required = 1;
+    if (buf) {
+        required += wlen(buf);
+    }
+    str = va_arg(ap, MprChar*);
+    while (str) {
+        required += wlen(str);
+        str = va_arg(ap, MprChar*);
+    }
+    if ((dest = mprAlloc(required)) == 0) {
+        return 0;
+    }
+    dp = dest;
+    if (buf) {
+        wcopy(dp, buf);
+        dp += wlen(buf);
+    }
+    va_copy(ap, args);
+    str = va_arg(ap, MprChar*);
+    while (str) {
+        wcopy(dp, required, str);
+        len = wlen(str);
+        dp += len;
+        required -= len;
+        str = va_arg(ap, MprChar*);
+    }
+    *dp = '\0';
+    return dest;
 }
 
 
@@ -240,66 +276,48 @@ MprChar *mpbrk(MprChar *str, cchar *set)
 /*
     Sep is ascii, args are MprChar
  */
-MprChar *mrejoin(MprChar *buf, cchar *sep, ...)
+MprChar *mrejoin(MprChar *buf, ...)
 {
     MprChar     *result;
     va_list     ap;
 
-    va_start(ap, sep);
-    result = mrejoinv(buf, sep, ap);
+    va_start(ap, buf);
+    result = mrejoinv(buf, ap);
     va_end(ap);
     return result;
 }
 
 
-MprChar *mrejoinv(MprChar *buf, cchar *sep, va_list args)
+MprChar *mrejoinv(MprChar *buf, va_list args)
 {
     va_list     ap;
-    MprChar     *dest, *str, *dp, *wsep;
-    int         required, seplen, len;
+    MprChar     *dest, *str, *dp;
+    int         required, len;
 
-    if (sep == 0) {
-        sep = "";
-    } 
-    wsep = amtow(sep, NULL);
-    seplen = strlen(sep);
     va_copy(ap, args);
     required = 1;
+    if (buf) {
+        required += wlen(buf);
+    }
     str = va_arg(ap, MprChar*);
     while (str) {
         required += wlen(str);
-        required += seplen;
         str = va_arg(ap, MprChar*);
     }
-    if (buf && *buf) {
-        required += seplen;
-    }
     if ((dest = mprRealloc(buf, required)) == 0) {
-        mprFree(wsep);
         return 0;
     }
     dp = dest;
     va_copy(ap, args);
     str = va_arg(ap, MprChar*);
-    if (str && *buf) {
-        wcopy(dp, required, wsep);
-        dp += seplen;
-        required -= seplen;
-    }
     while (str) {
         wcopy(dp, required, str);
         len = wlen(str);
         dp += len;
         required -= len;
         str = va_arg(ap, MprChar*);
-        if (str) {
-            wcopy(dp, required, wsep);
-            dp += seplen;
-            required -= seplen;
-        }
     }
     *dp = '\0';
-    mprFree(wsep);
     return dest;
 }
 
@@ -389,6 +407,8 @@ MprChar *mtrim(MprChar *str, cchar *set, int where)
     return str;
 }
 
+#else
+void dummyWide() {}
 #endif /* BLD_CHAR_LEN > 1 */
 
 /*

@@ -185,6 +185,11 @@
  */
 
 #if EMBEDTHIS || 1
+     #include    "buildConfig.h"
+#endif
+#if BLD_FEATURE_FLOAT
+
+#if EMBEDTHIS || 1
     #include    "mpr.h"
     #if WIN || WINCE
         typedef int int32_t;
@@ -4271,3 +4276,5 @@ dtoa
 #ifdef __cplusplus
 }
 #endif
+/* EMBEDTHIS */
+#endif /* BLD_FEATURE_FLOAT */

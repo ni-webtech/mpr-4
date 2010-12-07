@@ -6,10 +6,8 @@
 
 include 	.makedep
 
-ifeq ($(BUILD_NATIVE_OR_COMPLETE_CROSS),1)
-	TARGETS	+= $(BLD_BIN_DIR)/makerom$(BLD_EXE)
-	TARGETS	+= $(BLD_BIN_DIR)/charGen$(BLD_EXE)
-endif
+TARGETS		+= $(BLD_BIN_DIR)/makerom$(BLD_EXE)
+TARGETS		+= $(BLD_BIN_DIR)/charGen$(BLD_EXE)
 
 compileTargets: $(TARGETS)
 
@@ -18,4 +16,3 @@ $(BLD_BIN_DIR)/makerom$(BLD_EXE): $(BLD_OBJ_DIR)/makerom$(BLD_OBJ) $(BLD_LIB_DIR
 
 $(BLD_BIN_DIR)/charGen$(BLD_EXE): $(BLD_OBJ_DIR)/charGen$(BLD_OBJ)
 	@bld --exe $(BLD_BIN_DIR)/charGen$(BLD_EXE) --search "$(BLD_MPR_LIBPATHS)" --libs "$(BLD_MPR_LIBS)" charGen
-

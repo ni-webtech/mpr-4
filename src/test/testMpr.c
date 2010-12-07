@@ -51,6 +51,7 @@ static MprTestDef master = {
     { { 0 } },
 };
 
+static int setupSignals();
 
 /************************************* Code ***********************************/
 
@@ -62,6 +63,7 @@ MAIN(testMain, int argc, char *argv[])
     int             rc;
 
     mpr = mprCreate(argc, argv, 0);
+    setupSignals();
 
 #if VXWORKS || WINCE
     /*
@@ -102,6 +104,14 @@ MAIN(testMain, int argc, char *argv[])
     return (rc == 0) ? 0 : 6;
 }
 
+
+static int setupSignals()
+{
+#if BLD_UNIX_LIKE
+    signal(SIGPIPE, SIG_IGN);
+#endif
+    return 0;
+}
 /*
     @copy   default
     

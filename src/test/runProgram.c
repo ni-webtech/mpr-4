@@ -8,6 +8,10 @@
 
 #include    "mpr.h"
 
+void t(FILE *fp, int where) {
+    fprintf(fp, "AT %d\n", where);
+}
+
 /************************************ Code ************************************/
 
 MAIN(runProgramMain, int argc, char* argv[])
@@ -17,7 +21,12 @@ MAIN(runProgramMain, int argc, char* argv[])
     char    buf[256], *ep;
     int     i, len, exitCode, sofar;
 
+    signal(SIGPIPE, SIG_IGN);
+FILE *fp;
+fp = fopen("/tmp/z.tmp", "w+");
+t(fp, __LINE__);
     mpr = mprCreate(argc, argv, NULL);
+t(fp, __LINE__);
 
 #if TRACE_PROGRESS
     MprFile *f = mprOpen("/tmp/r.log", O_CREAT|O_TRUNC|O_WRONLY, 0664);
@@ -28,14 +37,19 @@ MAIN(runProgramMain, int argc, char* argv[])
     mprFree(f);
 #endif
 
+t(fp, __LINE__);
     if (argc < 2) {
+t(fp, __LINE__);
         mprPrintfError("Usage: runProgram exitCode args...\n");
         exit(3);
     }
     exitCode = atoi(argv[1]);
-    out = mprGetStdout(mpr);
+    out = mprGetStdout();
+fprintf(fp, "OUT %x\n", out);
 
+t(fp, __LINE__);
     if (exitCode != 99) {
+t(fp, __LINE__);
         /*
             Echo the args
          */
@@ -45,6 +59,7 @@ MAIN(runProgramMain, int argc, char* argv[])
                 mprPutc(out, ' ');
             }
         }
+t(fp, __LINE__);
         mprPutc(out, '\n');
 
         /*
@@ -60,6 +75,7 @@ MAIN(runProgramMain, int argc, char* argv[])
         mprPutc(out, '\n');
         mprFlush(out);
     }
+t(fp, __LINE__);
 
     /*
         Read the input
@@ -67,12 +83,20 @@ MAIN(runProgramMain, int argc, char* argv[])
     sofar = 0;
     while ((len = read(0, buf, sizeof(buf))) > 0) {
         sofar += write(1, buf, len);
+        buf[len] = '\0';
+fprintf(fp, "OUT got %d, buf %s\n", len, buf);
     }
+fprintf(fp, "LEN %d\n", len);
+t(fp, __LINE__);
     if (exitCode != 99) {
+t(fp, __LINE__);
         mprPuts(out, "END");
         mprPutc(out, '\n');
     }
     mprFlush(out);
+t(fp, __LINE__);
+fprintf(fp, "GOT %d, exiting\n", sofar);
+fclose(fp);
     return exitCode;
 }
 

@@ -22,7 +22,7 @@ static void manageWaitHandler(MprWaitHandler *wp, int flags);
 /*
     Initialize the service
  */
-MprWaitService *mprCreateWaitService(Mpr *mpr)
+MprWaitService *mprCreateWaitService()
 {
     MprWaitService  *ws;
 
@@ -30,10 +30,10 @@ MprWaitService *mprCreateWaitService(Mpr *mpr)
     if (ws == 0) {
         return 0;
     }
-    mpr->waitService = ws;
-    ws->handlers = mprCreateList(ws);
-    ws->mutex = mprCreateLock(ws);
-    ws->spin = mprCreateSpinLock(ws);
+    MPR->waitService = ws;
+    ws->handlers = mprCreateList();
+    ws->mutex = mprCreateLock();
+    ws->spin = mprCreateSpinLock();
     mprCreateNotifierService(ws);
     return ws;
 }
@@ -42,7 +42,12 @@ MprWaitService *mprCreateWaitService(Mpr *mpr)
 static void manageWaitService(MprWaitService *ws, int flags)
 {
     if (flags & MPR_MANAGE_MARK) {
+#if UNUSED
+        //  Some are static so can't be managed here
         mprMarkList(ws->handlers);
+#else
+        mprMark(ws->handlers);
+#endif
         mprMark(ws->handlerMap);
         mprMark(ws->mutex);
         mprMark(ws->spin);
@@ -95,7 +100,7 @@ MprWaitHandler *mprInitWaitHandler(MprWaitHandler *wp, int fd, int mask, MprDisp
     }
     mprAddNotifier(ws, wp, mask);
     unlock(ws);
-    mprWakeWaitService(wp->service);
+    mprWakeWaitService();
     return wp;
 }
 
@@ -144,7 +149,7 @@ void mprRemoveWaitHandler(MprWaitHandler *wp)
             mprRemoveEvent(&wp->event);
         }
     }
-    mprWakeWaitService(ws);
+    mprWakeWaitService();
     unlock(ws);
 }
 
@@ -160,9 +165,9 @@ void mprQueueIOEvent(MprWaitHandler *wp)
     MprDispatcher   *dispatcher;
     MprEvent        *event;
 
-    dispatcher = (wp->dispatcher) ? wp->dispatcher: mprGetDispatcher(wp);
+    dispatcher = (wp->dispatcher) ? wp->dispatcher: mprGetDispatcher();
     event = &wp->event;
-    mprInitEvent(dispatcher, event, "IOEvent", 0, (MprEventProc) wp->proc, (void*) wp->handlerData, 0);
+    mprInitEvent(dispatcher, event, "IOEvent", 0, (MprEventProc) wp->proc, (void*) wp->handlerData, MPR_EVENT_STATIC);
     event->fd = wp->fd;
     event->mask = wp->presentMask;
     mprQueueEvent(dispatcher, event);
@@ -173,7 +178,7 @@ void mprDisableWaitEvents(MprWaitHandler *wp)
 {
     if (wp->desiredMask) {
         mprRemoveNotifier(wp);
-        mprWakeWaitService(wp->service);
+        mprWakeWaitService();
     }
 }
 
@@ -182,7 +187,7 @@ void mprEnableWaitEvents(MprWaitHandler *wp, int mask)
 {
     if (mask != wp->desiredMask) {
         mprAddNotifier(wp->service, wp, mask);
-        mprWakeWaitService(wp->service);
+        mprWakeWaitService();
     }
 }
 
@@ -202,7 +207,7 @@ void mprRecallWaitHandler(int fd)
         if (wp->fd == fd) {
             wp->flags |= MPR_WAIT_RECALL_HANDLER;
             ws->needRecall = 1;
-            mprWakeWaitService(wp->service);
+            mprWakeWaitService();
             break;
         }
     }

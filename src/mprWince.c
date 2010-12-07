@@ -39,8 +39,8 @@ static void timeToFileTime(uint64 t, FILETIME *ft);
 
 int mprCreateOsService()
 {
-    files = mprCreateList(MPR);
-    currentDir = sclone(MPR, "/");
+    files = mprCreateList();
+    currentDir = sclone("/");
     return 0;
 }
 
@@ -108,7 +108,8 @@ MprModule *mprLoadModule(cchar *moduleName, cchar *initFunction)
 
         } else if (initFunction) {
             if ((fn = (MprModuleEntry) GetProcAddress((HINSTANCE) handle, initFunction)) != 0) {
-                if ((mp = (fn)(path)) == 0) {
+                mp = mprCreateModule(name, data);
+                if ((fn)(data)) < 0) {
                     mprError("Initialization for module %s failed", name);
                     FreeLibrary((HINSTANCE) handle);
 

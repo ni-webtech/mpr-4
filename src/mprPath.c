@@ -256,7 +256,7 @@ char *mprGetCurrentPath()
     if (firstSep(fs, dir) == NULL) {
         sep[0] = defaultSep(fs);
         sep[1] = '\0';
-        return sjoin(NULL, dir, sep, NULL);
+        return sjoin(dir, sep, NULL);
     }
 }
 #elif BLD_WIN_LIKE
@@ -703,7 +703,7 @@ char *mprJoinPath(cchar *path, cchar *other)
             if ((cp = strchr(drive, ':')) != 0) {
                 *++cp = '\0';
             }
-            result = sjoin(NULL, drive, other, NULL);
+            result = sjoin(drive, other, NULL);
             mprFree(drive);
             return result;
         } else {
@@ -745,7 +745,7 @@ char *mprJoinPathExt(cchar *path, cchar *ext)
     if (cp && firstSep(fs, cp) == 0) {
         return sclone(path);
     }
-    return sjoin(NULL, path, ext, NULL);
+    return sjoin(path, ext, NULL);
 }
 
 
@@ -982,7 +982,7 @@ char *mprGetNormalizedPath(cchar *pathArg)
         if (fs->hasDriveSpecs) {
             last = path[strlen(path) - 1];
             if (last == ':') {
-                path = sjoin(NULL, path, ".", NULL);
+                path = sjoin(path, ".", NULL);
                 mprFree(dupPath);
             }
         }
@@ -1189,7 +1189,7 @@ char *mprResolvePath(cchar *path, cchar *other)
             if ((cp = strchr(drive, ':')) != 0) {
                 *++cp = '\0';
             }
-            result = sjoin(NULL, drive, other, NULL);
+            result = sjoin(drive, other, NULL);
             mprFree(drive);
             return result;
         }

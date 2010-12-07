@@ -24,7 +24,7 @@ MprCond *mprCreateCond()
         return 0;
     }
     cp->triggered = 0;
-    cp->mutex = mprCreateLock(cp);
+    cp->mutex = mprCreateLock();
 
 #if BLD_WIN_LIKE
     cp->cv = CreateEvent(NULL, FALSE, FALSE, NULL);
@@ -72,7 +72,7 @@ int mprWaitForCond(MprCond *cp, int timeout)
     if (timeout < 0) {
         timeout = MAXINT;
     }
-    now = mprGetTime(cp);
+    now = mprGetTime();
     expire = now + timeout;
 
 #if BLD_UNIX_LIKE
@@ -127,7 +127,7 @@ int mprWaitForCond(MprCond *cp, int timeout)
                 rc = MPR_ERR;
             }
 #endif
-        } while (!cp->triggered && rc == 0 && (now = mprGetTime(cp)) < expire);
+        } while (!cp->triggered && rc == 0 && (now = mprGetTime()) < expire);
     }
     if (cp->triggered) {
         cp->triggered = 0;
@@ -197,7 +197,7 @@ int mprWaitForMultiCond(MprCond *cp, int timeout)
     if (timeout < 0) {
         timeout = MAXINT;
     }
-    now = mprGetTime(cp);
+    now = mprGetTime();
     expire = now + timeout;
 
 #if BLD_UNIX_LIKE

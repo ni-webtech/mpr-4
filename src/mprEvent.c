@@ -59,7 +59,7 @@ void mprInitEvent(MprDispatcher *dispatcher, MprEvent *event, cchar *name, int p
     mprAssert(event->next == 0);
     mprAssert(event->prev == 0);
 
-    dispatcher->service->now = mprGetTime(dispatcher);
+    dispatcher->service->now = mprGetTime();
     event->name = name;
     event->timestamp = dispatcher->service->now;
     event->proc = proc;
@@ -68,6 +68,7 @@ void mprInitEvent(MprDispatcher *dispatcher, MprEvent *event, cchar *name, int p
     event->data = data;
     event->dispatcher = dispatcher;
     event->next = event->prev = 0;
+    event->flags = flags;
     event->continuous = (flags & MPR_EVENT_CONTINUOUS) ? 1 : 0;
 }
 

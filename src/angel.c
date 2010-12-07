@@ -207,7 +207,7 @@ static void setAppDefaults(Mpr *mpr)
     } else {
         pidDir = ".";
     }
-    pidPath = sjoin(NULL, pidDir, "/angel-", serviceName, ".pid", NULL);
+    pidPath = sjoin(pidDir, "/angel-", serviceName, ".pid", NULL);
 }
 
 
@@ -232,11 +232,11 @@ static void angel()
     if (writeAngelPid(getpid()) < 0) {
         return;
     }
-    mark = mprGetTime(mpr);
+    mark = mprGetTime();
 
     while (! exiting) {
         if (mprGetElapsedTime(mark) > (3600 * 1000)) {
-            mark = mprGetTime(mpr);
+            mark = mprGetTime();
             restartCount = 0;
             restartWarned = 0;
         }
@@ -279,8 +279,8 @@ static void angel()
                     ac = 0;
                 }
                 argv = mprAlloc(sizeof(char*) * (6 + ac));
-                env[0] = sjoin(NULL, "LD_LIBRARY_PATH=", homeDir, NULL);
-                env[1] = sjoin(NULL, "PATH=", getenv("PATH"), NULL);
+                env[0] = sjoin("LD_LIBRARY_PATH=", homeDir, NULL);
+                env[1] = sjoin("PATH=", getenv("PATH"), NULL);
                 env[2] = 0;
 
                 next = 0;
@@ -597,7 +597,7 @@ int APIENTRY WinMain(HINSTANCE inst, HINSTANCE junk, char *args, int junk2)
     initService();
 
     mprSetAppName(BLD_PRODUCT "Angel", BLD_NAME "Angel", BLD_VERSION);
-    appName = mprGetAppName(mpr);
+    appName = mprGetAppName();
     appTitle = mprGetAppTitle(mpr);
 
     mprSetLogHandler(logHandler, NULL);
@@ -837,12 +837,12 @@ static void angel()
     if (createConsole) {
         createFlags |= CREATE_NEW_CONSOLE;
     }
-    mark = mprGetTime(mpr);
+    mark = mprGetTime();
 
     while (! exiting) {
 
         if (mprGetElapsedTime(mark) > (3600 * 1000)) {
-            mark = mprGetTime(mpr);
+            mark = mprGetTime();
             restartCount = 0;
             restartWarned = 0;
         }
@@ -1221,7 +1221,7 @@ static void initService()
     serviceTitle = BLD_NAME;
     serviceStopped = 0;
 
-    serviceProgram = sjoin(NULL, mprGetAppDir(mpr), "/", BLD_PRODUCT, ".exe", NULL);
+    serviceProgram = sjoin(mprGetAppDir(mpr), "/", BLD_PRODUCT, ".exe", NULL);
 }
 
 /*

@@ -25,7 +25,7 @@ MprModuleService *mprCreateModuleService()
     if (ms == 0) {
         return 0;
     }
-    ms->modules = mprCreateList(ms);
+    ms->modules = mprCreateList();
 
     /*
         Define the default module search path
@@ -62,11 +62,13 @@ static void manageModuleService(MprModuleService *ms, int flags)
 /*
     Call the start routine for each module
  */
-int mprStartModuleService(MprModuleService *ms)
+int mprStartModuleService()
 {
-    MprModule       *mp;
-    int             next;
+    MprModuleService    *ms;
+    MprModule           *mp;
+    int                 next;
 
+    ms = mprGetMpr()->moduleService;
     mprAssert(ms);
 
     for (next = 0; (mp = mprGetNextItem(ms->modules, &next)) != 0; ) {
@@ -84,13 +86,14 @@ int mprStartModuleService(MprModuleService *ms)
 /*
     Stop all modules
  */
-void mprStopModuleService(MprModuleService *ms)
+void mprStopModuleService()
 {
-    MprModule       *mp;
-    int             next;
+    MprModuleService    *ms;
+    MprModule           *mp;
+    int                 next;
 
+    ms = mprGetMpr()->moduleService;
     mprAssert(ms);
-
     mprLock(ms->mutex);
     for (next = 0; (mp = mprGetNextItem(ms->modules, &next)) != 0; ) {
         if (mp->stop) {
@@ -189,7 +192,7 @@ void mprSetModuleSearchPath(char *searchPath)
         /*
             So dependent DLLs can be loaded by LoadLibrary
          */
-        path = sjoin(mpr, NULL, "PATH=", searchPath, ";", getenv("PATH"), NULL);
+        path = sjoin("PATH=", searchPath, ";", getenv("PATH"), NULL);
         mprMapSeparators(mpr, path, '\\');
         putenv(path);
         mprFree(path);
@@ -231,7 +234,7 @@ static int probe(cchar *filename, char **pathp)
     }
 
     if (strstr(filename, BLD_SHOBJ) == 0) {
-        path = sjoin(NULL, filename, BLD_SHOBJ, NULL);
+        path = sjoin(filename, BLD_SHOBJ, NULL);
         mprLog(6, "Probe for native module %s", path);
         if (mprPathExists(path, R_OK)) {
             *pathp = path;

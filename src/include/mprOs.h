@@ -21,16 +21,16 @@
 
 /********************************* CPU Families *******************************/
 /*
-    Porters, add your CPU families here and update configure code. 
+    CPU families
  */
 #define MPR_CPU_UNKNOWN     0
-#define MPR_CPU_IX86        1
-#define MPR_CPU_PPC         2
-#define MPR_CPU_SPARC       3
-#define MPR_CPU_XSCALE      4
-#define MPR_CPU_ARM         5
-#define MPR_CPU_MIPS        6
-#define MPR_CPU_68K         7
+#define MPR_CPU_IX86        1           /* X86 */
+#define MPR_CPU_PPC         2           /* Power PC */
+#define MPR_CPU_SPARC       3           /* Sparc */
+#define MPR_CPU_XSCALE      4           /* XScale */
+#define MPR_CPU_ARM         5           /* Arm */
+#define MPR_CPU_MIPS        6           /* Mips */
+#define MPR_CPU_68K         7           /* Motorola 68000 */
 #define MPR_CPU_SIMNT       8           /* VxWorks NT simulator */
 #define MPR_CPU_SIMSPARC    9           /* VxWorks sparc simulator */
 #define MPR_CPU_IX64        10          /* AMD64 or EMT64 */
@@ -39,20 +39,58 @@
 
 /********************************* O/S Includes *******************************/
 
-//  MOB -- restructure this entire file to common up the include section
+#if WIN
+    #define     _CRT_SECURE_NO_DEPRECATE 1
+    #ifndef     _WIN32_WINNT
+        #define _WIN32_WINNT 0x501
+    #endif
+#endif
 
-#if BLD_UNIX_LIKE && !VXWORKS && !MACOSX && !FREEBSD
-    #include    <sys/types.h>
-    #include    <time.h>
+#if BLD_WIN_LIKE
+    #include    <winsock2.h>
+    #include    <windows.h>
+    #include    <winbase.h>
+    #include    <winuser.h>
+    #include    <shlobj.h>
+    #include    <shellapi.h>
+    #include    <wincrypt.h>
+#endif
+#if WIN
+    #include    <ws2tcpip.h>
+    #include    <conio.h>
+    #include    <process.h>
+    #include    <windows.h>
+    #include    <shlobj.h>
+    #if BLD_DEBUG
+        #include <crtdbg.h>
+    #endif
+#endif
+#undef     _WIN32_WINNT
+
+#if UNUSED
     #include    <arpa/inet.h>
+#endif
     #include    <ctype.h>
     #include    <dirent.h>
     #include    <dlfcn.h>
     #include    <fcntl.h>
-    #include    <grp.h> 
     #include    <errno.h>
+#if BLD_FEATURE_FLOAT || 1
+    #include    <float.h>
+    #define __USE_ISOC99 1
+    #include    <math.h>
+#endif
+    #include    <grp.h> 
+#if UNUSED && BLD_WIN_LIKE
+    #include    <io.h>
+#endif
+#if MACOSX
     #include    <libgen.h>
+#endif
     #include    <limits.h>
+#if UNUSED && BLD_WIN_LIKE
+    #include    <malloc.h>
+#endif
     #include    <netdb.h>
     #include    <net/if.h>
     #include    <netinet/in.h>
@@ -60,330 +98,167 @@
     #include    <netinet/ip.h>
     #include    <pthread.h> 
     #include    <pwd.h> 
-    #include    <sys/poll.h>
+#if !CYGWIN
+    #include    <resolv.h>
+#endif
     #include    <setjmp.h>
     #include    <signal.h>
     #include    <stdarg.h>
+#if UNUSED && WINCE
+    #include    <stddef.h>
+#endif
+#if BLD_UNIX_LIKE
+    #include    <stdint.h>
+#endif
     #include    <stdio.h>
     #include    <stdlib.h>
     #include    <string.h>
+#if BLD_UNIX_LIKE
     #include    <syslog.h>
-#if !CYGWIN
+#endif
+#if LINUX
     #include    <sys/epoll.h>
 #endif
     #include    <sys/ioctl.h>
     #include    <sys/mman.h>
-    #include    <sys/stat.h>
+#if UNUSED && MACOSX
     #include    <sys/param.h>
-    #if !CYGWIN && !SOLARIS
-        #include    <sys/prctl.h>
-    #endif
+#endif
+    #include    <sys/poll.h>
+    #include    <sys/stat.h>
+#if LINUX
+    #include    <sys/prctl.h>
+#endif
+    #include    <sys/types.h>
     #include    <sys/resource.h>
     #include    <sys/sem.h>
+#if UNUSED
     #include    <sys/shm.h>
+#endif
     #include    <sys/socket.h>
     #include    <sys/select.h>
     #include    <sys/time.h>
     #include    <sys/times.h>
     #include    <sys/utsname.h>
     #include    <sys/uio.h>
+#if UNUSED
     #include    <sys/un.h>
+#endif
     #include    <sys/wait.h>
+    #include    <time.h>
     #include    <unistd.h>
+#if UNUSED && LINUX
+    #include    <values.h>
+#endif
     #include    <wchar.h>
 #if LINUX && !__UCLIBC__
     #include    <sys/sendfile.h>
 #endif
-#if CYGWIN || LINUX
-    #include    <stdint.h>
-#else
+
+#if UNUSED && FREEBSD
     #include    <netinet/in_systm.h>
 #endif
-    #define __USE_ISOC99 1
-    #include    <math.h>
-#if !CYGWIN
-    #include    <resolv.h>
-    #include    <values.h>
-#endif
-#endif /* BLD_UNIX_LIKE */
 
+#if MACOSX
+    #include    <mach-o/dyld.h>
+    #include    <sys/sysctl.h>
+    #include    <libkern/OSAtomic.h>
+#endif
 
 #if VXWORKS
     #include    <vxWorks.h>
     #include    <envLib.h>
-    #include    <sys/types.h>
-    #include    <time.h>
-    #include    <arpa/inet.h>
-    #include    <ctype.h>
-    #include    <dirent.h>
-    #include    <fcntl.h>
-    #include    <errno.h>
     #include    <iosLib.h>
-    #include    <limits.h>
     #include    <loadLib.h>
-    #include    <netdb.h>
-    #include    <net/if.h>
-    #include    <netinet/tcp.h>
-    #include    <netinet/in.h>
-    #include    <netinet/ip.h>
     #include    <selectLib.h>
-    #include    <setjmp.h>
-    #include    <signal.h>
-    #include    <stdarg.h>
-    #include    <stdio.h>
-    #include    <stdlib.h>
-    #include    <string.h>
-    #include    <symSyncLib.h>
-    #include    <sysSymTbl.h>
-    #include    <sys/fcntlcom.h>
-    #include    <sys/ioctl.h>
-    #include    <sys/stat.h>
-    #include    <sys/socket.h>
-    #include    <sys/times.h>
-    #include    <unistd.h>
-    #include    <unldLib.h>
-    #include    <float.h>
-    #define __USE_ISOC99 1
-    #include    <math.h>
     #include    <sockLib.h>
     #include    <inetLib.h>
     #include    <ioLib.h>
     #include    <pipeDrv.h>
     #include    <hostLib.h>
-    #include    <netdb.h>
+    #include    <symSyncLib.h>
+    #include    <sysSymTbl.h>
+    #include    <sys/fcntlcom.h>
     #include    <tickLib.h>
     #include    <taskHookLib.h>
+    #include    <unldLib.h>
 #if _WRS_VXWORKS_MAJOR >= 6
     #include    <wait.h>
 #endif
 #endif /* VXWORKS */
 
-
-#if MACOSX
-    #include    <time.h>
-    #include    <arpa/inet.h>
-    #include    <ctype.h>
-    #include    <dirent.h>
-    #include    <dlfcn.h>
-    #include    <fcntl.h>
-    #include    <grp.h> 
-    #include    <errno.h>
-    #include    <libgen.h>
-    #include    <limits.h>
-    #include    <mach-o/dyld.h>
-    #include    <netdb.h>
-    #include    <net/if.h>
-    #include    <netinet/in.h>
-    #include    <netinet/tcp.h>
-    #include    <sys/poll.h>
-    #include    <pthread.h> 
-    #include    <pwd.h> 
-    #include    <resolv.h>
-    #include    <setjmp.h>
-    #include    <signal.h>
-    #include    <stdarg.h>
-    #include    <stdio.h>
-    #include    <stdlib.h>
-    #include    <stdint.h>
-    #include    <string.h>
-    #include    <syslog.h>
-    #include    <sys/ioctl.h>
-    #include    <sys/mman.h>
-    #include    <sys/types.h>
-    #include    <sys/stat.h>
-    #include    <sys/param.h>
-    #include    <sys/resource.h>
-    #include    <sys/sem.h>
-    #include    <sys/shm.h>
-    #include    <sys/socket.h>
-    #include    <sys/select.h>
-    #include    <sys/sysctl.h>
-    #include    <sys/time.h>
-    #include    <sys/times.h>
-    #include    <sys/types.h>
-    #include    <sys/uio.h>
-    #include    <sys/un.h>
-    #include    <sys/utsname.h>
-    #include    <sys/wait.h>
-    #include    <unistd.h>
-    #include    <wchar.h>
-    #include    <libkern/OSAtomic.h>
-    #include    <float.h>
-    #define __USE_ISOC99 1
-    #include    <math.h>
-#endif /* MACOSX */
-
-
-#if FREEBSD
-    #include    <time.h>
-    #include    <arpa/inet.h>
-    #include    <ctype.h>
-    #include    <dirent.h>
-    #include    <dlfcn.h>
-    #include    <fcntl.h>
-    #include    <grp.h> 
-    #include    <errno.h>
-    #include    <libgen.h>
-    #include    <limits.h>
-    #include    <netdb.h>
-    #include    <sys/socket.h>
-    #include    <net/if.h>
-    #include    <netinet/in_systm.h>
-    #include    <netinet/in.h>
-    #include    <netinet/tcp.h>
-    #include    <netinet/ip.h>
-    #include    <pthread.h> 
-    #include    <pwd.h> 
-    #include    <resolv.h>
-    #include    <signal.h>
-    #include    <stdarg.h>
-    #include    <stdio.h>
-    #include    <stdlib.h>
-    #include    <stdint.h>
-    #include    <string.h>
-    #include    <syslog.h>
-    #include    <sys/ioctl.h>
-    #include    <sys/types.h>
-    #include    <sys/stat.h>
-    #include    <sys/param.h>
-    #include    <sys/resource.h>
-    #include    <sys/sem.h>
-    #include    <sys/shm.h>
-    #include    <sys/select.h>
-    #include    <sys/time.h>
-    #include    <sys/times.h>
-    #include    <sys/types.h>
-    #include    <sys/un.h>
-    #include    <sys/utsname.h>
-    #include    <sys/wait.h>
-    #include    <sys/mman.h>
-    #include    <sys/sysctl.h>
-    #include    <unistd.h>
-    #include    <poll.h>
-    #include    <float.h>
-    #define __USE_ISOC99 1
-    #include    <math.h>
-#endif /* FREEBSD */
-
-#if WIN
-    /*
-        We replace insecure functions with Embedthis replacements
-     */
-    #define     _CRT_SECURE_NO_DEPRECATE 1
-
-    /*
-        Need this to get the the latest winsock APIs
-     */
-    #ifndef     _WIN32_WINNT
-    #define     _WIN32_WINNT 0x501
-    #endif
-
-    #include    <winsock2.h>
-    #include    <ws2tcpip.h>
-    #include    <ctype.h>
-    #include    <conio.h>
-    #include    <direct.h>
-    #include    <errno.h>
-    #include    <fcntl.h>
-    #include    <io.h>
-    #include    <limits.h>
-    #include    <malloc.h>
-    #include    <process.h>
-    #include    <sys/stat.h>
-    #include    <sys/types.h>
-    #include    <setjmp.h>
-    #include    <stddef.h>
-    #include    <stdio.h>
-    #include    <stdlib.h>
-    #include    <string.h>
-    #include    <stdarg.h>
-    #include    <time.h>
-    #include    <windows.h>
-    #include    <math.h>
-    #include    <float.h>
-    #include    <shlobj.h>
-    #include    <shellapi.h>
-    #include    <wincrypt.h>
-    #if BLD_DEBUG
-    #include    <crtdbg.h>
-    #endif
-    #undef     _WIN32_WINNT
-#endif /* WIN */
-
-
-#if WINCE
-    #include    <ctype.h>
-    #include    <malloc.h>
-    #include    <stddef.h>
-    #include    <stdio.h>
-    #include    <stdlib.h>
-    #include    <string.h>
-    #include    <stdarg.h>
-    #include    <time.h>
-    #include    <winsock2.h>
-    #include    <windows.h>
-    #include    <winbase.h>
-    #include    <winuser.h>
-    #include    <float.h>
-    #include    <shlobj.h>
-    #include    <shellapi.h>
-    #include    <wincrypt.h>
-#endif /* WINCE */
-
-/***************************** Cross Platform Defines *************************/
+/************************************** Defines *******************************/
 /*
-    Word size and conversions between integer and pointer.
+    Standard types
  */
 #if __WORDSIZE == 64 || __amd64 || __x86_64 || __x86_64__ || _WIN64
     #define MPR_64_BIT 1
-    #define ITOP(i)         ((void*) ((int64) i))
-    #define PTOI(i)         ((int) ((int64) i))
-    #define LTOP(i)         ((void*) ((int64) i))
-    #define PTOL(i)         ((int64) i)
 #else
     #define MPR_64_BIT 0
-    #define ITOP(i)         ((void*) ((int) i))
-    #define PTOI(i)         ((int) i)
-    #define LTOP(i)         ((void*) ((int) i))
-    #define PTOL(i)         ((int64) (int) i)
 #endif
 
-/*
-    Standard types used by the MPR
- */
+#if !MACOSX
+    typedef int bool;
+#endif
 typedef unsigned char uchar;
 typedef signed char schar;
 typedef const char cchar;
 typedef const unsigned char cuchar;
+typedef unsigned short ushort;
 typedef const unsigned short cushort;
 typedef const void cvoid;
 typedef int int32;
 typedef unsigned int uint32;
-//  MOB - put int64 here
+typedef unsigned int uint;
+typedef unsigned long ulong;
+#if BLD_UNIX_LIKE
+    __extension__ typedef long long int int64;
+    __extension__ typedef unsigned long long int uint64;
+#elif BLD_WIN_LIKE
+    typedef __int64 int64;
+    typedef unsigned __int64 uint64;
+#else
+    typedef long long int int64;
+    typedef unsigned long long int uint64;
+#endif
+typedef off_t MprOffset;
 
+#if UNUSED
+typedef intptr_t pint;
+#endif
+
+/* To stop MatrixSSL from defining int32 */
 #define HAS_INT32 1
 
-#ifdef __cplusplus
-extern "C" {
-#else
-    #if !MACOSX
-        typedef char bool;
+#ifndef BITSPERBYTE
+    #define BITSPERBYTE     (8 * sizeof(char))
+#endif
+#ifndef BITS
+    #define BITS(type)      (BITSPERBYTE * (int) sizeof(type))
+#endif
+
+#if BLD_FEATURE_FLOAT
+    #ifndef MAXFLOAT
+        #if BLD_WIN_LIKE
+            #define MAXFLOAT        DBL_MAX
+        #else
+            #define MAXFLOAT        FLT_MAX
+        #endif
+    #endif
+    #if BLD_WIN_LIKE
+        #define isNan(f) (_isnan(f))
+    #else
+        #define isNan(f) (f == FP_NAN)
     #endif
 #endif
 
-#ifndef BITSPERBYTE
-#define BITSPERBYTE     (8 * sizeof(char))
-#endif
-
-#if !SOLARIS
-#define BITS(type)      (BITSPERBYTE * (int) sizeof(type))
-#endif
 
 #ifndef MAXINT
 #if INT_MAX
     #define MAXINT      INT_MAX
 #else
     #define MAXINT      0x7fffffff
+#endif
 #endif
 
 #if SIZE_T_MAX
@@ -393,21 +268,32 @@ extern "C" {
 #else
     #define MAXSIZE     MAXINT
 #endif
-
-#endif
 #ifndef MAXINT64
     #define MAXINT64    INT64(0x7fffffffffffffff)
 #endif
 
 /*
-    Byte orderings
+    Word size and conversions between integer and pointer.
  */
-#define MPR_LITTLE_ENDIAN   1
-#define MPR_BIG_ENDIAN      2
-/*
-    Current endian ordering
- */
-#define MPR_ENDIAN          BLD_ENDIAN
+#if MPR_64_BIT
+    #define ITOP(i)     ((void*) ((int64) i))
+    #define PTOI(i)     ((int) ((int64) i))
+    #define LTOP(i)     ((void*) ((int64) i))
+    #define PTOL(i)     ((int64) i)
+#else
+    #define ITOP(i)     ((void*) ((int) i))
+    #define PTOI(i)     ((int) i)
+    #define LTOP(i)     ((void*) ((int) i))
+    #define PTOL(i)     ((int64) (int) i)
+#endif
+
+#if BLD_WIN_LIKE
+    #define INT64(x)    (x##i64)
+    #define UINT64(x)   (x##Ui64)
+#else
+    #define INT64(x)    (x##LL)
+    #define UINT64(x)   (x##ULL)
+#endif
 
 #ifndef max
     #define max(a,b)  (((a) > (b)) ? (a) : (b))
@@ -428,8 +314,6 @@ extern "C" {
     #endif
 #endif
 
-#define MPR_INLINE inline
-
 /*
     Optimize expression evaluation code depending if the value is likely or not
  */
@@ -444,13 +328,13 @@ extern "C" {
 #endif
 
 #if !__UCLIBC__ && !CYGWIN && __USE_XOPEN2K
-#define BLD_HAS_SPINLOCK    1
+    #define BLD_HAS_SPINLOCK    1
 #endif
 
 #if VXWORKS && (_WRS_VXWORKS_MAJOR <= 5 || _DIAB_TOOL)
-#define BLD_HAS_UNNAMED_UNIONS 0
+    #define BLD_HAS_UNNAMED_UNIONS 0
 #else
-#define BLD_HAS_UNNAMED_UNIONS 1
+    #define BLD_HAS_UNNAMED_UNIONS 1
 #endif
 
 #if BLD_CC_DOUBLE_BRACES
@@ -459,210 +343,76 @@ extern "C" {
     #define  NULL_INIT    {0}
 #endif
 
-/******************************** Linux Defines *******************************/
-
-#if CYGWIN || LINUX
-    __extension__ typedef long long int int64;
-    __extension__ typedef unsigned long long int uint64;
-
-#if CYGWIN
-    typedef unsigned long ulong;
+#ifndef R_OK
+    #define R_OK    4
+    #define W_OK    2
+    #define X_OK    1
+    #define F_OK    0
 #endif
 
-    typedef off_t MprOffset;
-    typedef intptr_t pint;
+#if MACSOX
+    #define LD_LIBRARY_PATH "DYLD_LIBRARY_PATH"
+#else
+    #define LD_LIBRARY_PATH "LD_LIBRARY_PATH"
+#endif
 
-    #define INT64(x) (x##LL)
-    #define UINT64(x) (x##ULL)
+/*********************************** Fixups ***********************************/
 
+#if BLD_UNIX_LIKE
     #define closesocket(x)  close(x)
     #define MPR_BINARY      ""
     #define MPR_TEXT        ""
+    #define O_BINARY        0
+    #define O_TEXT          0
+    #define MSG_NOSIGNAL    0
     #define SOCKET_ERROR    -1
-    #define SET_SOCKOPT_CAST void*
-
-    #define MAX_FLOAT       MAXFLOAT
-    #define isNan(f) (f == FP_NAN)
-
-#if CYGWIN
+    #define __WALL          0
     #ifndef PTHREAD_MUTEX_RECURSIVE_NP
         #define PTHREAD_MUTEX_RECURSIVE_NP PTHREAD_MUTEX_RECURSIVE
     #endif
-    #define __WALL          0
-#else
-    #define O_BINARY        0
-    #define O_TEXT          0
-
-    /*
-        For some reason it is removed from fedora 6 pthreads.h and only comes in for UNIX96
-     */
-    extern int pthread_mutexattr_gettype (__const pthread_mutexattr_t *__restrict
-        __attr, int *__restrict __kind) __THROW;
-    /* 
-        Set the mutex kind attribute in *ATTR to KIND (either PTHREAD_MUTEX_NORMAL,
-        PTHREAD_MUTEX_RECURSIVE, PTHREAD_MUTEX_ERRORCHECK, or PTHREAD_MUTEX_DEFAULT).  
-     */
-    extern int pthread_mutexattr_settype (pthread_mutexattr_t *__attr, int __kind) __THROW;
-    extern char **environ;
 #endif
 
-    #define LD_LIBRARY_PATH "LD_LIBRARY_PATH"
 
-#endif  /* CYGWIN || LINUX  */
-
-/******************************* VxWorks Defines ******************************/
-
-#if VXWORKS
-    typedef off_t MprOffset;
-    typedef unsigned int uint;
-    typedef unsigned long ulong;
-    typedef long long int int64;
-    typedef unsigned long long int uint64;
-    typedef int pint;
-
-    #define HAVE_SOCKLEN_T
-    #define INT64(x) (x##LL)
-    #define UINT64(x) (x##ULL)
-
-    #define MPR_BINARY      ""
-    #define MPR_TEXT        ""
-    #define O_BINARY        0
-    #define O_TEXT          0
-    #define SOCKET_ERROR    -1
-    #define MSG_NOSIGNAL    0
-    #define __WALL          0
-
-    /*  TODO - refactor - rename */
-    #define SET_SOCKOPT_CAST char*
-    #define closesocket(x) close(x)
-
-    #define MAX_FLOAT       FLT_MAX
-
-    #undef R_OK
-    #define R_OK    4
-    #undef W_OK
-    #define W_OK    2
-    #undef X_OK
-    #define X_OK    1
-    #undef F_OK
-    #define F_OK    0
-
-    extern int sysClkRateGet();
-
-    #ifndef SHUT_RDWR
-        #define SHUT_RDWR 2
+#if FREEBSD
+    #if UNUSED
+        #define CLD_EXITED 1
+        #define CLD_KILLED 2
     #endif
-
-    #define getpid mprGetpid
-    extern uint mprGetpid();
-    extern char *strdup(const char *);
-
-#if _WRS_VXWORKS_MAJOR < 6
-    #define NI_MAXHOST      128
-    extern STATUS access(cchar *path, int mode);
-    typedef int     socklen_t;
-    struct sockaddr_storage {
-        char        pad[1024];
-    };
-#else
-    /*
-        This may or may not be necessary - let us know dev@embedthis.com if your system needs this (and why).
-     */
-    #if _DIAB_TOOL
-        #if BLD_HOST_CPU_ARCH == MPR_CPU_PPC
-            // #define __va_copy(dest, src) *(dest) = *(src)
-            #define __va_copy(dest, src) memcpy((dest), (src), sizeof(va_list))
-        #endif
-    #endif
-    #define HAVE_SOCKLEN_T
-#endif
-    #if _DIAB_TOOL
-    #define inline __inline__
-    #endif
-    extern int gettimeofday(struct timeval *tv, struct timezone *tz);
-
-#endif  /* VXWORKS */
-
-/******************************** MacOsx Defines ******************************/
+#endif /* FREEBSD */
 
 #if MACOSX
-    typedef off_t MprOffset;
-    typedef unsigned long ulong;
-
-    __extension__ typedef long long int int64;
-    __extension__ typedef unsigned long long int uint64;
-    typedef intptr_t pint;
-
-    #define INT64(x) (x##LL)
-    #define UINT64(x) (x##ULL)
-
-    #define closesocket(x)  close(x)
-    #define MPR_BINARY      ""
-    #define MPR_TEXT        ""
-    #define O_BINARY        0
-    #define O_TEXT          0
-    #define SOCKET_ERROR    -1
-    #define MSG_NOSIGNAL    0
-    #define __WALL          0           /* 0x40000000 */
-    #define SET_SOCKOPT_CAST void*
     #define PTHREAD_MUTEX_RECURSIVE_NP  PTHREAD_MUTEX_RECURSIVE
-
-    #define MAX_FLOAT       MAXFLOAT
-    
     /*
         Fix for MAC OS X - getenv
      */
     #if !HAVE_DECL_ENVIRON
-    #ifdef __APPLE__
-        #include <crt_externs.h>
-        #define environ (*_NSGetEnviron())
-    #else
-        extern char **environ;
+        #ifdef __APPLE__
+            #include <crt_externs.h>
+            #define environ (*_NSGetEnviron())
+        #else
+            extern char **environ;
+        #endif
     #endif
+#endif
+
+#if SOLARIS
+    #define INADDR_NONE     ((in_addr_t) 0xffffffff)
+#endif
+
+#if VXWORKS
+    #ifndef SHUT_RDWR
+        #define SHUT_RDWR 2
     #endif
-    #define LD_LIBRARY_PATH "DYLD_LIBRARY_PATH"
-#endif /* MACOSX */
 
-/*********************************** FREEBSD **************************************/
+    #define HAVE_SOCKLEN_T
+    #define getpid mprGetpid
 
-#if FREEBSD
-    typedef off_t MprOffset;
-    typedef unsigned long ulong;
-    typedef intptr_t pint;
+    #if _DIAB_TOOL
+        #define inline __inline__
+    #endif
+#endif
 
-    __extension__ typedef long long int int64;
-    __extension__ typedef unsigned long long int uint64;
-    #define INT64(x) (x##LL)
-
-    #define closesocket(x)  close(x)
-    #define MPR_BINARY      ""
-    #define MPR_TEXT        ""
-    #define O_BINARY        0
-    #define O_TEXT          0
-    #define SOCKET_ERROR    -1
-    #define MPR_DLL_EXT     ".dylib"
-    #define __WALL          0
-    #define PTHREAD_MUTEX_RECURSIVE_NP  PTHREAD_MUTEX_RECURSIVE
-
-    #define MAX_FLOAT       MAXFLOAT
-
-    #define CLD_EXITED 1
-    #define CLD_KILLED 2
-    #define LD_LIBRARY_PATH "LD_LIBRARY_PATH"
-
-#endif /* FREEBSD */
-
-/******************************* Windows Defines ******************************/
-/*
-    All windows like systems. Includes WINCE.
- */
 #if BLD_WIN_LIKE
-    typedef unsigned int uint;
-    typedef unsigned long ulong;
-    typedef unsigned short ushort;
-    typedef __int64 int64;
-    typedef unsigned __int64 uint64;
-    typedef int64   MprOffset;
     typedef int     uid_t;
     typedef void    *handle;
     typedef char    *caddr_t;
@@ -671,61 +421,15 @@ extern "C" {
     typedef ushort  mode_t;
     typedef void    *siginfo_t;
     typedef int     socklen_t;
-    #if WINCE
-        typedef int pint;
-    #else
-        typedef intptr_t pint;
-    #endif
-
-    struct timezone {
-      int  tz_minuteswest;      /* minutes W of Greenwich */
-      int  tz_dsttime;          /* type of dst correction */
-    };
 
     #define HAVE_SOCKLEN_T
-    #define INT64(x) (x##i64)
-    #define UINT64(x) (x##Ui64)
     #define MSG_NOSIGNAL    0
     #define MPR_BINARY      "b"
     #define MPR_TEXT        "t"
 
-    #if !WINCE
-    #define access      _access
-    #define chdir       _chdir
-    #define close       _close
-    #define fileno      _fileno
-    #define fstat       _fstat
-    #define getcwd      _getcwd
-    #define getpid      _getpid
-    #define gettimezone _gettimezone
-    #define lseek       _lseek
-    #define mkdir(a,b)  _mkdir(a)
-    #define open        _open
-    #define putenv      _putenv
-    #define read        _read
-    #define rmdir(a)    _rmdir(a)
-    #define stat        _stat
-    #define strdup      _strdup
-    #define umask       _umask
-    #define unlink      _unlink
-    #define write       _write
-    #endif
-    
-    #define MPR_TEXT    "t"
-
-    #ifndef R_OK
-    #define R_OK    4
-    #endif
-    #ifndef W_OK
-    #define W_OK    2
-    #endif
-    #ifndef X_OK
-    #define X_OK    4
-    #endif
-    #ifndef F_OK
-    #define F_OK    0
-    #endif
-
+    /*
+        Error codes 
+     */
     #define EPERM           1
     #define ENOENT          2
     #define ESRCH           3
@@ -737,24 +441,6 @@ extern "C" {
     #define EBADF           9
     #define ECHILD          10
     #define EAGAIN          11
-
-    /*
-        VS 2010 defines these
-     */
-    #ifndef EWOULDBLOCK
-    #define EWOULDBLOCK     EAGAIN
-    #define EINPROGRESS     36
-    #define EALREADY        37
-    #define ENETDOWN        43
-    #define ECONNRESET      44
-    #define ECONNREFUSED    45
-    #define EADDRNOTAVAIL   49
-    #define EISCONN         56
-    #define EADDRINUSE      46
-    #define ENETUNREACH     51
-    #define ECONNABORTED    53
-    #endif
-
     #define ENOMEM          12
     #define EACCES          13
     #define EFAULT          14
@@ -778,66 +464,60 @@ extern "C" {
     #define EDOM            33
     #define ERANGE          34
 
-    #undef SHUT_RDWR
-    #define SHUT_RDWR           2
-    
-    #define MAX_FLOAT       DBL_MAX
-
-#ifndef FILE_FLAG_FIRST_PIPE_INSTANCE
-    #define FILE_FLAG_FIRST_PIPE_INSTANCE   0x00080000
-#endif
-
-    #define SET_SOCKOPT_CAST cchar*
-    #define inline __inline
-    #define chmod _chmod
-    #define isNan(f) (_isnan(f))
-
-    /*
-        PHP can't handle these
-     */
-    #if !BUILDING_PHP
-        #define popen _popen
-        #define pclose _pclose
+    #ifndef EWOULDBLOCK
+    #define EWOULDBLOCK     EAGAIN
+    #define EINPROGRESS     36
+    #define EALREADY        37
+    #define ENETDOWN        43
+    #define ECONNRESET      44
+    #define ECONNREFUSED    45
+    #define EADDRNOTAVAIL   49
+    #define EISCONN         56
+    #define EADDRINUSE      46
+    #define ENETUNREACH     51
+    #define ECONNABORTED    53
     #endif
 
-    /*
-        When time began
-     */
+    #undef SHUT_RDWR
+    #define SHUT_RDWR       2
+    
+#if UNUSED
+    #ifndef FILE_FLAG_FIRST_PIPE_INSTANCE
+        #define FILE_FLAG_FIRST_PIPE_INSTANCE   0x00080000
+    #endif
     #define TIME_GENESIS UINT64(11644473600000000)
+#endif
 
-    extern void     srand48(long);
-    extern long     lrand48(void);
-    extern long     ulimit(int, ...);
-    extern long     nap(long);
-    extern int      getuid(void);
-    extern int      geteuid(void);
-
-    extern int gettimeofday(struct timeval *tv, struct timezone *tz);
+    #if !WINCE
+    #define access      _access
+    #define chdir       _chdir
+    #define chmod       _chmod
+    #define close       _close
+    #define fileno      _fileno
+    #define fstat       _fstat
+    #define getcwd      _getcwd
+    #define getpid      _getpid
+    #define gettimezone _gettimezone
+    #define lseek       _lseek
+    #define mkdir(a,b)  _mkdir(a)
+    #define open        _open
+    #define putenv      _putenv
+    #define read        _read
+    #define rmdir(a)    _rmdir(a)
+    #define stat        _stat
+    #define strdup      _strdup
+    #define umask       _umask
+    #define unlink      _unlink
+    #define write       _write
+    #endif
 #endif /* WIN_LIKE */
 
-/******************************** Wince Defines *******************************/
-
 #if WINCE
-
     typedef void FILE;
     typedef int off_t;
 
-    struct stat {
-        int     st_dev;
-        int     st_ino;
-        ushort  st_mode;
-        short   st_nlink;
-        short   st_uid;
-        short   st_gid;
-        int     st_rdev;
-        long    st_size;
-        time_t  st_atime;
-        time_t  st_mtime;
-        time_t  st_ctime;
-    };
-
     #ifndef EOF
-        #define EOF         -1
+        #define EOF        -1
     #endif
 
     #define O_RDONLY        0
@@ -874,12 +554,86 @@ extern "C" {
     #define STARTF_USESHOWWINDOW 0
     #define STARTF_USESTDHANDLES 0
 
-    /*
-        Tunable parameters
-     */
-    #define     BUFSIZ      MPR_BUFSIZE
-    #define     PATHSIZE    MPR_MAX_PATH
+    #define BUFSIZ   MPR_BUFSIZE
+    #define PATHSIZE MPR_MAX_PATH
     #define gethostbyname2(a,b) gethostbyname(a)
+#endif /* WINCE */
+
+/*********************************** Externs **********************************/
+
+#ifdef __cplusplus
+extern "C" {
+#endif
+
+#if LINUX
+    /*
+        For some reason it is removed from fedora 6 pthreads.h and only comes in for UNIX96
+     */
+    extern int pthread_mutexattr_gettype (__const pthread_mutexattr_t *__restrict
+        __attr, int *__restrict __kind) __THROW;
+    /* 
+        Set the mutex kind attribute in *ATTR to KIND (either PTHREAD_MUTEX_NORMAL,
+        PTHREAD_MUTEX_RECURSIVE, PTHREAD_MUTEX_ERRORCHECK, or PTHREAD_MUTEX_DEFAULT).  
+     */
+    extern int pthread_mutexattr_settype (pthread_mutexattr_t *__attr, int __kind) __THROW;
+    extern char **environ;
+#endif
+
+#if VXWORKS
+    extern int gettimeofday(struct timeval *tv, struct timezone *tz);
+    extern uint mprGetpid();
+    extern char *strdup(const char *);
+    extern int sysClkRateGet();
+
+    #if _WRS_VXWORKS_MAJOR < 6
+        #define NI_MAXHOST      128
+        extern STATUS access(cchar *path, int mode);
+        typedef int     socklen_t;
+        struct sockaddr_storage {
+            char        pad[1024];
+        };
+    #else
+        /*
+            This may or may not be necessary - let us know dev@embedthis.com if your system needs this (and why).
+         */
+        #if _DIAB_TOOL
+            #if BLD_HOST_CPU_ARCH == MPR_CPU_PPC
+                // #define __va_copy(dest, src) *(dest) = *(src)
+                #define __va_copy(dest, src) memcpy((dest), (src), sizeof(va_list))
+            #endif
+        #endif
+        #define HAVE_SOCKLEN_T
+    #endif
+#endif  /* VXWORKS */
+
+#if BLD_WIN_LIKE
+    struct timezone {
+      int  tz_minuteswest;      /* minutes W of Greenwich */
+      int  tz_dsttime;          /* type of dst correction */
+    };
+    extern int  getuid(void);
+    extern int  geteuid(void);
+    extern int  gettimeofday(struct timeval *tv, struct timezone *tz);
+    extern long lrand48(void);
+    extern long nap(long);
+    extern void srand48(long);
+    extern long ulimit(int, ...);
+#endif
+
+#if WINCE
+    struct stat {
+        int     st_dev;
+        int     st_ino;
+        ushort  st_mode;
+        short   st_nlink;
+        short   st_uid;
+        short   st_gid;
+        int     st_rdev;
+        long    st_size;
+        time_t  st_atime;
+        time_t  st_mtime;
+        time_t  st_ctime;
+    };
 
     extern int access(cchar *filename, int flags);
     extern int chdir(cchar   dirname);
@@ -904,7 +658,6 @@ extern "C" {
     extern int write(int handle, cvoid *buffer, uint count);
     extern int umask(int mode);
     extern int unlink(cchar *path);
-
     extern int errno;
 
     #undef CreateFile
@@ -934,7 +687,6 @@ extern "C" {
 
     #undef GetProcAddress
     #define GetProcAddress GetProcAddressA
-    // extern FARPROC GetProcAddressA(HMODULE module, LPCSTR name);
 
     #undef GetFileAttributes
     #define GetFileAttributes GetFileAttributesA
@@ -953,32 +705,7 @@ extern "C" {
 
     extern struct tm *localtime_r(const time_t *when, struct tm *tp);
     extern struct tm *gmtime_r(const time_t *t, struct tm *tp);
-
 #endif /* WINCE */
-
-/****************************** Solaris Defines *******************************/
-
-#if SOLARIS
-    typedef off_t MprOffset;
-    typedef long long int int64;
-    typedef unsigned long long int uint64;
-
-    #define INT64(x) (x##LL)
-    #define UINT64(x) (x##ULL)
-
-    #define closesocket(x)  close(x)
-    #define MPR_BINARY      ""
-    #define MPR_TEXT        ""
-    #define O_BINARY        0
-    #define O_TEXT          0
-    #define SOCKET_ERROR    -1
-    #define MSG_NOSIGNAL    0
-    #define INADDR_NONE     ((in_addr_t) 0xffffffff)
-    #define __WALL  0
-    #define PTHREAD_MUTEX_RECURSIVE_NP  PTHREAD_MUTEX_RECURSIVE
-    #define LD_LIBRARY_PATH "LD_LIBRARY_PATH"
-    #define MAX_FLOAT       MAXFLOAT
-#endif /* SOLARIS */
 
 #ifdef __cplusplus
 }

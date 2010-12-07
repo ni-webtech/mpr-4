@@ -81,6 +81,7 @@ parseArg()
         ;;
     enable-all)
         BLD_FEATURE_ASSERT=1
+        BLD_FEATURE_FLOAT=1
         BLD_FEATURE_MATRIXSSL=0
         BLD_FEATURE_OPENSSL=1
         BLD_FEATURE_SSL=1

@@ -259,27 +259,61 @@ uint shashlower(cchar *cname, size_t len)
 }
 
 
-char *sjoin(cchar *sep, ...)
+char *sjoin(cchar *str, ...)
 {
     va_list     ap;
     char        *result;
 
-    va_start(ap, sep);
-    result = srejoinv(NULL, sep, ap);
+    mprAssert(str);
+
+    va_start(ap, str);
+    result = sjoinv(str, ap);
     va_end(ap);
     return result;
 }
 
 
-char *sjoinv(cchar *sep, va_list args)
+char *sjoinv(cchar *buf, va_list args)
 {
-    return srejoin(NULL, sep, args);
+    va_list     ap;
+    char        *dest, *str, *dp;
+    int         required;
+
+    mprAssert(buf);
+
+    va_copy(ap, args);
+    required = 1;
+    if (buf) {
+        required += strlen(buf);
+    }
+    str = va_arg(ap, char*);
+    while (str) {
+        required += strlen(str);
+        str = va_arg(ap, char*);
+    }
+    if ((dest = mprAlloc(required)) == 0) {
+        return 0;
+    }
+    dp = dest;
+    if (buf) {
+        strcpy(dp, buf);
+        dp += strlen(buf);
+    }
+    va_copy(ap, args);
+    str = va_arg(ap, char*);
+    while (str) {
+        strcpy(dp, str);
+        dp += strlen(str);
+        str = va_arg(ap, char*);
+    }
+    *dp = '\0';
+    return dest;
 }
 
 
 size_t slen(cchar *s)
 {
-    return strlen(s);
+    return s ? strlen(s) : 0;
 }
 
 
@@ -423,58 +457,42 @@ char *srchr(cchar *s, int c)
 }
 
 
-char *srejoin(char *buf, cchar *sep, ...)
+char *srejoin(char *buf, ...)
 {
-    va_list     ap;
+    va_list     args;
     char        *result;
 
-    va_start(ap, sep);
-    result = srejoinv(buf, sep, ap);
-    va_end(ap);
+    va_start(args, buf);
+    result = srejoinv(buf, args);
+    va_end(args);
     return result;
 }
 
 
-char *srejoinv(char *buf, cchar *sep, va_list args)
+char *srejoinv(char *buf, va_list args)
 {
     va_list     ap;
     char        *dest, *str, *dp;
-    int         required, seplen;
+    int         len, required;
 
-    if (sep == 0) {
-        sep = "";
-    } 
-    seplen = strlen(sep);
     va_copy(ap, args);
-    required = 1;
-    seplen = strlen(sep);
+    len = slen(buf);
+    required = len + 1;
     str = va_arg(ap, char*);
     while (str) {
         required += strlen(str);
-        required += seplen;
         str = va_arg(ap, char*);
-    }
-    if (buf && *buf) {
-        required += seplen;
     }
     if ((dest = mprRealloc(buf, required)) == 0) {
         return 0;
     }
-    dp = dest;
+    dp = &dest[len];
     va_copy(ap, args);
     str = va_arg(ap, char*);
-    if (str && *sep) {
-        strcpy(dp, sep);
-        dp += seplen;
-    }
     while (str) {
         strcpy(dp, str);
         dp += strlen(str);
         str = va_arg(ap, char*);
-        if (str) {
-            strcpy(dp, sep);
-            dp += seplen;
-        }
     }
     *dp = '\0';
     return dest;

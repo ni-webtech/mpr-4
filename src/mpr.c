@@ -59,7 +59,7 @@ Mpr *mprCreate(int argc, char **argv, MprMemNotifier cback)
     } else {
         mpr->name = sclone(BLD_PRODUCT);
     }
-    if (mprCreateTimeService(mpr) < 0) {
+    if (mprCreateTimeService() < 0) {
         goto error;
     }
     if (mprCreateOsService() < 0) {
@@ -73,33 +73,33 @@ Mpr *mprCreate(int argc, char **argv, MprMemNotifier cback)
     if (mprHasMemError()) {
         goto error;
     }
-    if ((mpr->threadService = mprCreateThreadService(mpr)) == 0) {
+    if ((mpr->threadService = mprCreateThreadService()) == 0) {
         goto error;
     }
-    mpr->mutex = mprCreateLock(mpr);
-    mpr->spin = mprCreateSpinLock(mpr);
+    mpr->mutex = mprCreateLock();
+    mpr->spin = mprCreateSpinLock();
 
     if ((fs = mprCreateFileSystem("/")) == 0) {
         goto error;
     }
     mprAddFileSystem(fs);
 
-    if ((mpr->moduleService = mprCreateModuleService(mpr)) == 0) {
+    if ((mpr->moduleService = mprCreateModuleService()) == 0) {
         goto error;
     }
-    if ((mpr->eventService = mprCreateEventService(mpr)) == 0) {
+    if ((mpr->eventService = mprCreateEventService()) == 0) {
         goto error;
     }
-    if ((mpr->cmdService = mprCreateCmdService(mpr)) == 0) {
+    if ((mpr->cmdService = mprCreateCmdService()) == 0) {
         goto error;
     }
-    if ((mpr->workerService = mprCreateWorkerService(mpr)) == 0) {
+    if ((mpr->workerService = mprCreateWorkerService()) == 0) {
         goto error;
     }
-    if ((mpr->waitService = mprCreateWaitService(mpr)) == 0) {
+    if ((mpr->waitService = mprCreateWaitService()) == 0) {
         goto error;
     }
-    if ((mpr->socketService = mprCreateSocketService(mpr)) == 0) {
+    if ((mpr->socketService = mprCreateSocketService()) == 0) {
         goto error;
     }
     /*
@@ -126,6 +126,8 @@ static void manageMpr(Mpr *mpr, int flags)
         mprMark(mpr->dispatcher);
         mprMark(mpr->domainName);
         mprMark(mpr->ejsService);
+        mprMark(mpr->httpService);
+        mprMark(mpr->appwebService);
         mprMark(mpr->eventService);
         mprMark(mpr->fileSystem);
         mprMark(mpr->hostName);
@@ -139,6 +141,7 @@ static void manageMpr(Mpr *mpr, int flags)
         mprMark(mpr->spin);
         mprMark(mpr->socketService);
         mprMark(mpr->threadService);
+        mprMark(mpr->mimeTable);
         mprMark(mpr->timeTokens);
         mprMark(mpr->title);
         mprMark(mpr->version);
@@ -150,53 +153,53 @@ static void manageMpr(Mpr *mpr, int flags)
 
     } else if (flags & MPR_MANAGE_FREE) {
         if ((mpr->flags & MPR_STARTED) && !(mpr->flags & MPR_STOPPED)) {
-            mprStop(mpr);
+            mprStop();
         }
         mprDestroyMemService();
     }
 }
 
 
-int mprStart(Mpr *mpr)
+int mprStart()
 {
     int     rc;
 
-    rc = mprStartOsService(mpr->osService);
-    rc += mprStartModuleService(mpr->moduleService);
-    rc += mprStartWorkerService(mpr->workerService);
-    rc += mprStartSocketService(mpr->socketService);
+    rc = mprStartOsService();
+    rc += mprStartModuleService();
+    rc += mprStartWorkerService();
+    rc += mprStartSocketService();
     if (rc != 0) {
         mprUserError("Can't start MPR services");
         return MPR_ERR_CANT_INITIALIZE;
     }
-    mpr->flags |= MPR_STARTED;
+    MPR->flags |= MPR_STARTED;
     mprLog(MPR_INFO, "MPR services are ready");
     return 0;
 }
 
 
-bool mprStop(Mpr *mpr)
+bool mprStop()
 {
     int     stopped;
 
     stopped = 1;
-    mprLock(mpr->mutex);
-    if ((!(mpr->flags & MPR_STARTED)) || (mpr->flags & MPR_STOPPED)) {
-        mprUnlock(mpr->mutex);
+    mprLock(MPR->mutex);
+    if ((!(MPR->flags & MPR_STARTED)) || (MPR->flags & MPR_STOPPED)) {
+        mprUnlock(MPR->mutex);
         return 0;
     }
-    mpr->flags |= MPR_STOPPED;
+    MPR->flags |= MPR_STOPPED;
 
     mprTerminate(MPR_GRACEFUL);
-    mprStopSocketService(mpr->socketService);
-    if (!mprStopWorkerService(mpr->workerService, MPR_TIMEOUT_STOP_TASK)) {
+    mprStopSocketService();
+    if (!mprStopWorkerService(MPR_TIMEOUT_STOP_TASK)) {
         stopped = 0;
     }
-    if (!mprStopThreadService(mpr->threadService, MPR_TIMEOUT_STOP_TASK)) {
+    if (!mprStopThreadService(MPR_TIMEOUT_STOP_TASK)) {
         stopped = 0;
     }
-    mprStopModuleService(mpr->moduleService);
-    mprStopOsService(mpr->osService);
+    mprStopModuleService();
+    mprStopOsService();
     return stopped;
 }
 
@@ -206,7 +209,7 @@ bool mprStop(Mpr *mpr)
 /*
     Thread to service the event queue. Used if the user does not have their own main event loop.
  */
-int mprStartEventsThread(Mpr *mpr)
+int mprStartEventsThread()
 {
     MprThread   *tp;
 
@@ -214,7 +217,7 @@ int mprStartEventsThread(Mpr *mpr)
     if ((tp = mprCreateThread("events", serviceEventsThread, NULL, 0)) == 0) {
         return MPR_ERR_CANT_CREATE;
     }
-    mpr->hasDedicatedService = 1;
+    MPR->hasDedicatedService = 1;
     mprStartThread(tp);
     return 0;
 }

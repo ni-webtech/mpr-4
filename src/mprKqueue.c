@@ -188,7 +188,7 @@ int mprWaitForSingleIO(int fd, int mask, int timeout)
     err = errno;
     close(kq);
     if (rc < 0) {
-        mprLog(2, "Kevent returned %d, errno %d", rc, errno);
+        mprLog(6, "Kevent returned %d, errno %d", rc, errno);
     } else if (rc > 0) {
         if (rc > 0) {
             if (events[0].filter == EVFILT_READ) {
@@ -214,7 +214,7 @@ void mprWaitForIO(MprWaitService *ws, int timeout)
     mprAssert(timeout > 0);
 
 #if BLD_DEBUG
-    if (mprGetDebugMode(ws) && timeout > 30000) {
+    if (mprGetDebugMode() && timeout > 30000) {
         timeout = 30000;
     }
 #endif
@@ -237,7 +237,7 @@ void mprWaitForIO(MprWaitService *ws, int timeout)
     LOG(8, "kevent wakes rc %d", rc);
 
     if (rc < 0) {
-        mprLog(2, "Kevent returned %d, errno %d", mprGetOsError());
+        mprLog(6, "Kevent returned %d, errno %d", rc, mprGetOsError());
     } else if (rc > 0) {
         serviceIO(ws, rc);
     }

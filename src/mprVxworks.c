@@ -95,7 +95,7 @@ MprModule *mprLoadModule(cchar *name, cchar *initFunction, void *data)
                     } else {
                         mp = mprCreateModule(mprGetMpr(), name, data);
                         mp->handle = handle;
-                        if ((fn)(mp) < 0) {
+                        if ((fn)(data) < 0) {
                             mprError("Initialization for %s failed.", path);
                         } else {
                             mprFree(mp);

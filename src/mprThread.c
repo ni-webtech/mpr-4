@@ -25,27 +25,25 @@ static void workerMain(MprWorker *worker, MprThread *tp);
 
 /************************************ Code ***********************************/
 
-MprThreadService *mprCreateThreadService(Mpr *mpr)
+MprThreadService *mprCreateThreadService()
 {
     MprThreadService    *ts;
-
-    mprAssert(mpr);
 
     ts = mprAllocObj(MprThreadService, manageThreadService);
     if (ts == 0) {
         return 0;
     }
-    if ((ts->mutex = mprCreateLock(ts)) == 0) {
+    if ((ts->mutex = mprCreateLock()) == 0) {
         return 0;
     }
-    if ((ts->cond = mprCreateCond(ts)) == 0) {
+    if ((ts->cond = mprCreateCond()) == 0) {
         return 0;
     }
-    if ((ts->threads = mprCreateList(ts)) == 0) {
+    if ((ts->threads = mprCreateList()) == 0) {
         return 0;
     }
-    mpr->mainOsThread = mprGetCurrentOsThread();
-    mpr->threadService = ts;
+    MPR->mainOsThread = mprGetCurrentOsThread();
+    MPR->threadService = ts;
     ts->stackSize = MPR_DEFAULT_STACK;
 
     /*
@@ -70,8 +68,11 @@ static void manageThreadService(MprThreadService *ts, int flags)
 }
 
 
-bool mprStopThreadService(MprThreadService *ts, int timeout)
+bool mprStopThreadService(int timeout)
 {
+    MprThreadService    *ts;
+
+    ts = MPR->threadService;
     while (timeout > 0 && ts->threads->length > 1) {
         mprSleep(50);
         timeout -= 50;
@@ -87,7 +88,7 @@ bool mprStopThreadService(MprThreadService *ts, int timeout)
 void mprYieldThread(MprThread *tp)
 {
     if (tp == NULL) {
-        tp = mprGetCurrentThread(NULL);
+        tp = mprGetCurrentThread();
     }
     tp->yielded = 1;
     mprSignalCond(mprGetMpr()->threadService->cond);
@@ -104,7 +105,7 @@ void mprYieldThread(MprThread *tp)
 void mprResumeThread(MprThread *tp)
 {
     if (tp == NULL) {
-        tp = mprGetCurrentThread(NULL);
+        tp = mprGetCurrentThread();
     }
     tp->yielded = 0;
 }
@@ -243,8 +244,8 @@ MprThread *mprCreateThread(cchar *name, MprThreadProc entry, void *data, int sta
     tp->data = data;
     tp->entry = entry;
     tp->name = sclone(name);
-    tp->mutex = mprCreateLock(tp);
-    tp->cond = mprCreateCond(tp);
+    tp->mutex = mprCreateLock();
+    tp->cond = mprCreateCond();
     tp->pid = getpid();
     tp->priority = MPR_NORMAL_PRIORITY;
 
@@ -629,16 +630,16 @@ MprWorkerService *mprCreateWorkerService()
     if (ws == 0) {
         return 0;
     }
-    ws->mutex = mprCreateLock(ws);
+    ws->mutex = mprCreateLock();
     ws->minThreads = MPR_DEFAULT_MIN_THREADS;
     ws->maxThreads = MPR_DEFAULT_MAX_THREADS;
 
     /*
         Presize the lists so they cannot get memory allocation failures later on.
      */
-    ws->idleThreads = mprCreateList(ws);
+    ws->idleThreads = mprCreateList();
     mprSetListLimits(ws->idleThreads, ws->maxThreads, -1);
-    ws->busyThreads = mprCreateList(ws);
+    ws->busyThreads = mprCreateList();
     mprSetListLimits(ws->busyThreads, ws->maxThreads, -1);
     return ws;
 }
@@ -647,32 +648,36 @@ MprWorkerService *mprCreateWorkerService()
 static void manageWorkerService(MprWorkerService *ws, int flags)
 {
     if (flags & MPR_MANAGE_MARK) {
-        mprMark(ws->busyThreads);
-        mprMark(ws->idleThreads);
+        mprMarkList(ws->busyThreads);
+        mprMarkList(ws->idleThreads);
         mprMark(ws->mutex);
     }
 }
 
 
-int mprStartWorkerService(MprWorkerService *ws)
+int mprStartWorkerService()
 {
+    MprWorkerService    *ws;
+
     /*
         Create a timer to trim excess threads in the worker
      */
+    ws = MPR->workerService;
     mprSetMinWorkers(ws->minThreads);
-    ws->pruneTimer = mprCreateTimerEvent(mprGetDispatcher(ws), "pruneTimer", MPR_TIMEOUT_PRUNER, (MprEventProc) pruneWorkers,
+    ws->pruneTimer = mprCreateTimerEvent(mprGetDispatcher(), "pruneTimer", MPR_TIMEOUT_PRUNER, (MprEventProc) pruneWorkers,
         (void*) ws, 0);
     return 0;
 }
 
 
-bool mprStopWorkerService(MprWorkerService *ws, int timeout)
+bool mprStopWorkerService(int timeout)
 {
-    MprWorker     *worker;
-    int           next;
+    MprWorkerService    *ws;
+    MprWorker           *worker;
+    int                 next;
 
+    ws = MPR->workerService;
     mprLock(ws->mutex);
-
     if (ws->pruneTimer) {
         mprFree(ws->pruneTimer);
         ws->pruneTimer = 0;
@@ -766,7 +771,7 @@ MprWorker *mprGetCurrentWorker()
     ws = mprGetMpr()->workerService;
 
     mprLock(ws->mutex);
-    thread = mprGetCurrentThread(ws);
+    thread = mprGetCurrentThread();
     for (next = -1; (worker = (MprWorker*) mprGetPrevItem(ws->busyThreads, &next)) != 0; ) {
         if (worker->thread == thread) {
             mprUnlock(ws->mutex);
@@ -878,7 +883,7 @@ static void pruneWorkers(MprWorkerService *ws, MprEvent *timer)
     MprWorker     *worker;
     int           index, toTrim;
 
-    if (mprGetDebugMode(ws)) {
+    if (mprGetDebugMode()) {
         return;
     }
     /*
@@ -964,7 +969,7 @@ static MprWorker *createWorker(MprWorkerService *ws, int stackSize)
     worker->data = 0;
     worker->state = 0;
     worker->workerService = ws;
-    worker->idleCond = mprCreateCond(worker);
+    worker->idleCond = mprCreateCond();
 
     mprSprintf(name, sizeof(name), "worker.%u", getNextThreadNum(ws));
     worker->thread = mprCreateThread(name, (MprThreadProc) workerMain, (void*) worker, 0);
@@ -997,7 +1002,7 @@ static void workerMain(MprWorker *worker, MprThread *tp)
 
     mprLock(ws->mutex);
 
-    while (!(worker->state & MPR_WORKER_PRUNED) && !mprIsExiting(worker)) {
+    while (!(worker->state & MPR_WORKER_PRUNED) && !mprIsExiting()) {
         if (worker->proc) {
             mprUnlock(ws->mutex);
             (*worker->proc)(worker->data, worker);

@@ -41,8 +41,8 @@ MprEventService *mprCreateEventService()
     }
     mpr->eventService = es;
     es->now = mprGetTime();
-    es->mutex = mprCreateLock(es);
-    es->waitCond = mprCreateCond(es);
+    es->mutex = mprCreateLock();
+    es->waitCond = mprCreateCond();
     initDispatcherQ(es, &es->runQ, "running");
     initDispatcherQ(es, &es->readyQ, "ready");
     initDispatcherQ(es, &es->idleQ, "idle");
@@ -102,11 +102,11 @@ static int dispatchEvents(MprDispatcher *dispatcher)
 
 #if BLD_DEBUG
     lock(es);
-    if (dispatcher->active && dispatcher->active != mprGetCurrentThread(es)) {
+    if (dispatcher->active && dispatcher->active != mprGetCurrentThread()) {
         unlock(es);
         return 0;
     }
-    dispatcher->active = mprGetCurrentThread(es);
+    dispatcher->active = mprGetCurrentThread();
     unlock(es);
 #endif
     LOG(7, "dispatchEvents for %s", dispatcher->name);
@@ -135,7 +135,7 @@ static int dispatchEvents(MprDispatcher *dispatcher)
         lock(es);
         es->eventCount += count;
         if (es->waiting) {
-            mprWakeWaitService(es);
+            mprWakeWaitService();
         }
         unlock(es);
     }
@@ -187,7 +187,7 @@ int mprServiceEvents(MprDispatcher *dispatcher, int timeout, int flags)
     mpr = mprGetMpr();
 
     es = mpr->eventService;
-    es->now = mprGetTime(es);
+    es->now = mprGetTime();
     expires = timeout < 0 ? (es->now + MPR_MAX_TIMEOUT) : (es->now + timeout);
     beginEventCount = eventCount = es->eventCount;
     justOne = flags & MPR_SERVICE_ONE_THING;
@@ -216,7 +216,7 @@ int mprServiceEvents(MprDispatcher *dispatcher, int timeout, int flags)
             idle = getIdleTime(es, dispatcher);
             delay = min(delay, idle);
         }
-        while ((dp = getNextReadyDispatcher(es)) != NULL && !mprIsComplete(mpr)) {
+        while ((dp = getNextReadyDispatcher(es)) != NULL && !mprIsComplete()) {
             mprAssert(isRunning(dp));
             if (dp->requiredWorker) {
                 mprActivateWorker(dp->requiredWorker, (MprWorkerProc) serviceDispatcher, dp);
@@ -246,7 +246,7 @@ int mprServiceEvents(MprDispatcher *dispatcher, int timeout, int flags)
                     unlock(es);
 #if MPR_GC_WORKERS == 0
                     if (mprIsTimeForGC(delay)) {
-                        mprCollectGarbage();
+                        mprCollectGarbage(0);
                     }
 #endif
                     mprWaitForIO(mpr->waitService, delay);
@@ -257,8 +257,8 @@ int mprServiceEvents(MprDispatcher *dispatcher, int timeout, int flags)
             } else unlock(es);
         } else unlock(es);
 
-        es->now = mprGetTime(mpr);
-    } while (es->now < expires && !justOne && !mprIsComplete(es));
+        es->now = mprGetTime();
+    } while (es->now < expires && !justOne && !mprIsComplete());
 
     if (dispatcher && !wasRunning) {
         lock(es);
@@ -298,7 +298,9 @@ static void manageDispatcher(MprDispatcher *dispatcher, int flags)
     if (flags & MPR_MANAGE_MARK) {
         q = &dispatcher->eventQ;
         for (event = q->next; event != q; event = event->next) {
-            mprMark(event);
+            if (!(event->flags & MPR_EVENT_STATIC)) {
+                mprMark(event);
+            }
         }
     } else if (flags & MPR_MANAGE_FREE) {
         MprEventService     *es;
@@ -335,7 +337,7 @@ void mprEnableDispatcher(MprDispatcher *dispatcher)
     }
     unlock(es);
     if (mustWake) {
-        mprWakeWaitService(es);
+        mprWakeWaitService();
     }
 }
 
@@ -419,7 +421,7 @@ void mprScheduleDispatcher(MprDispatcher *dispatcher)
     }
     unlock(es);
     if (mustAwake) {
-        mprWakeWaitService(es);
+        mprWakeWaitService();
     }
 }
 

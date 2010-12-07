@@ -109,12 +109,12 @@ int mprCreateOpenSslModule(bool lazy)
 
     SSL_library_init();
 
-    if ((provider = createOpenSslProvider(mpr)) == 0) {
+    if ((provider = createOpenSslProvider()) == 0) {
         return MPR_ERR_MEMORY;
     }
     mprSetSecureProvider(provider);
     if (!lazy) {
-        getDefaultOpenSsl(mpr);
+        getDefaultOpenSsl();
     }
     return 0;
 }
@@ -316,7 +316,7 @@ static int configureOss(MprSsl *ssl)
      */
     SSL_CTX_set_options(context, SSL_OP_SINGLE_DH_USE);
 
-    if ((defaultSsl = getDefaultOpenSsl(ss)) == 0) {
+    if ((defaultSsl = getDefaultOpenSsl()) == 0) {
         return MPR_ERR_MEMORY;
     }
     if (ssl != defaultSsl) {
@@ -565,7 +565,7 @@ static int connectOss(MprSocket *sp, cchar *host, int port, int flags)
     mprAssert(osp);
 
     if (ss->secureProvider->defaultSsl == 0) {
-        if ((ssl = getDefaultOpenSsl(ss)) == 0) {
+        if ((ssl = getDefaultOpenSsl()) == 0) {
             unlock(sp);
             return MPR_ERR_CANT_INITIALIZE;
         }

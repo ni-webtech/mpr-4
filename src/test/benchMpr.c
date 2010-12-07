@@ -101,7 +101,7 @@ int benchMain(int argc, char *argv[])
     while (!testComplete) {
         mprServiceEvents(mprGetDispatcher(mpr), 250, 0);
     }
-    mprPrintMemReport("Memory Report", 0);
+    mprPrintMem("Memory Report", 0);
     mprFree(mpr);
     return 0;
 }
@@ -133,13 +133,13 @@ static void doBenchmark(void *thread)
     int             count, i;
     MprMutex        *lock;
 
-    mprCollectGarbage();
+    mprCollectGarbage(1);
 
     mprPrintf("Group\t%-30s\t%13s\t%12s\n", "Benchmark", "Microsec", "Elapsed-sec");
     complete = mprCreateCond();
 
     testMalloc();
-    mprCollectGarbage();
+    mprCollectGarbage(0);
 
     if (!testAllocOnly) {
         /*

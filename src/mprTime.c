@@ -549,7 +549,7 @@ static void decodeTime(struct tm *tp, MprTime when, bool local)
         timeForZoneCalc = when;
         if (when < MIN_TIME || when > MAX_TIME) {
             /*
-                Can't use localTime on this date. Map to an alternate date with a valid year.
+                Can't be certain localTime will work for all O/Ss with this year.  Map to an a date with a valid year.
              */
             decodeTime(&t, when, 0);
             t.tm_year = 110;
@@ -574,11 +574,6 @@ static void decodeTime(struct tm *tp, MprTime when, bool local)
     tp->tm_wday     = (int) ((floorDiv(when, MS_PER_DAY) + 4) % 7);
     tp->tm_yday     = (int) (floorDiv(when, MS_PER_DAY) - daysSinceEpoch(year));
     tp->tm_mon      = getMonth(year, tp->tm_yday);
-    if (leapYear(year)) {
-        tp->tm_mday = tp->tm_yday - leapMonthStart[tp->tm_mon] + 1;
-    } else {
-        tp->tm_mday = tp->tm_yday - normalMonthStart[tp->tm_mon] + 1;
-    }
     tp->tm_isdst    = dst != 0;
 #if BLD_UNIX_LIKE && !CYGWIN
     tp->tm_gmtoff   = offset / MS_PER_SEC;
@@ -596,11 +591,20 @@ static void decodeTime(struct tm *tp, MprTime when, bool local)
     if (tp->tm_wday < 0) {
         tp->tm_wday += 7;
     }
+    if (tp->tm_yday < 0) {
+        tp->tm_yday += 365;
+    }
+    if (leapYear(year)) {
+        tp->tm_mday = tp->tm_yday - leapMonthStart[tp->tm_mon] + 1;
+    } else {
+        tp->tm_mday = tp->tm_yday - normalMonthStart[tp->tm_mon] + 1;
+    }
     mprAssert(tp->tm_hour >= 0);
     mprAssert(tp->tm_min >= 0);
     mprAssert(tp->tm_sec >= 0);
     mprAssert(tp->tm_wday >= 0);
     mprAssert(tp->tm_mon >= 0);
+    /* This asserts with some calculating some intermediate dates <= year 100 */
     mprAssert(tp->tm_yday >= 0);
     mprAssert(tp->tm_yday < 365 || (tp->tm_yday < 366 && leapYear(year)));
     mprAssert(tp->tm_mday >= 1);

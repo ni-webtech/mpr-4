@@ -99,16 +99,16 @@ void mprWaitForIO(MprWaitService *ws, int timeout)
     mprAssert(ws->hwnd);
 
 #if BLD_DEBUG
-    if (mprGetDebugMode(ws) && timeout > 30000) {
+    if (mprGetDebugMode() && timeout > 30000) {
         timeout = 30000;
     }
 #endif
-    if (mprGetCurrentThread(ws)->isMain) {
+    if (mprGetCurrentThread()->isMain) {
         if (ws->needRecall) {
             mprDoWaitRecall(ws);
             return;
         }
-        ws->willAwake = mprGetMpr(ws)->eventService->now + timeout;
+        ws->willAwake = MPR->eventService->now + timeout;
         SetTimer(ws->hwnd, 0, timeout, NULL);
 
         if (GetMessage(&msg, NULL, 0, 0) == 0) {
@@ -167,7 +167,7 @@ void mprWakeNotifier()
 {
     MprWaitService  *ws;
    
-    ws = mprGetMpr()->waitService;
+    ws = MPR->waitService;
     if (!ws->wakeRequested && ws->hwnd) {
         ws->wakeRequested = 1;
         PostMessage(ws->hwnd, WM_NULL, 0, 0L);
@@ -180,12 +180,10 @@ void mprWakeNotifier()
  */ 
 int mprInitWindow(MprWaitService *ws)
 {
-    Mpr         *mpr;
     WNDCLASS    wc;
     HWND        hwnd;
     int         rc;
 
-    mpr = mprGetMpr(ws);
     if (ws->hwnd) {
         return 0;
     }
@@ -198,16 +196,16 @@ int mprInitWindow(MprWaitService *ws)
     wc.hIcon            = NULL;
     wc.lpfnWndProc      = (WNDPROC) msgProc;
 
-    wc.lpszMenuName     = wc.lpszClassName = mprGetAppName(mpr);
+    wc.lpszMenuName     = wc.lpszClassName = mprGetAppName();
 
     rc = RegisterClass(&wc);
     if (rc == 0) {
-        mprError(mpr, "Can't register windows class");
+        mprError("Can't register windows class");
         return MPR_ERR_CANT_INITIALIZE;
     }
-    hwnd = CreateWindow(mprGetAppName(mpr), mprGetAppTitle(mpr), WS_OVERLAPPED, CW_USEDEFAULT, 0, 0, 0, NULL, NULL, 0, NULL);
+    hwnd = CreateWindow(mprGetAppName(), mprGetAppTitle(), WS_OVERLAPPED, CW_USEDEFAULT, 0, 0, 0, NULL, NULL, 0, NULL);
     if (!hwnd) {
-        mprError(mpr, "Can't create window");
+        mprError("Can't create window");
         return -1;
     }
     ws->hwnd = hwnd;
@@ -221,20 +219,18 @@ int mprInitWindow(MprWaitService *ws)
  */
 static LRESULT msgProc(HWND hwnd, uint msg, uint wp, long lp)
 {
-    Mpr                 *mpr;
     MprWaitService      *ws;
     int                 sock, winMask;
 
-    mpr = mprGetMpr(NULL);
-    ws = mpr->waitService;
+    ws = MPR->waitService;
 
     if (msg == WM_DESTROY || msg == WM_QUIT) {
-        mprTerminate(mpr, 1);
+        mprTerminate(MPR_GRACEFUL);
 
     } else if (msg && msg == ws->socketMessage) {
         sock = wp;
         winMask = LOWORD(lp);
-        mprServiceWinIO(mpr->waitService, sock, winMask);
+        mprServiceWinIO(MPR->waitService, sock, winMask);
 
     } else if (ws->msgCallback) {
         ws->msgCallback(hwnd, msg, wp, lp);

@@ -65,6 +65,11 @@ if [ "$BLD_FEATURE_DEVICE" = "" ] ; then
 fi
 
 #
+#   Floating point support
+#
+BLD_FEATURE_FLOAT=1
+
+#
 #   Disable the Legacy code for backward compatibility (back one major revision).
 #
 BLD_FEATURE_LEGACY_API=0

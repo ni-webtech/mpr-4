@@ -77,7 +77,7 @@ int mprParseTestArgs(MprTestService *sp, int argc, char *argv[])
     /*
         Save the command line
      */
-    sp->commandLine = sjoin(NULL, mprGetPathBase(argv[i++]), NULL);
+    sp->commandLine = sclone(mprGetPathBase(argv[i++]));
     for (; i < argc; i++) {
         sp->commandLine = sjoin(sp->commandLine, " ", argv[i], NULL);
     }
@@ -341,11 +341,11 @@ int mprRunTests(MprTestService *sp)
     /*
         Wait for all the threads to complete (simple but effective)
      */
-    mprCollectGarbage();
+    mprCollectGarbage(0);
     while (sp->activeThreadCount > 0) {
         mprServiceEvents(NULL, 250, 0);
         //  MOB -- should do when idle?
-        mprCollectGarbage();
+        mprCollectGarbage(0);
     }
     return (sp->totalFailedCount == 0) ? 0 : 1;
 }
@@ -478,18 +478,38 @@ MprTestGroup *mprAddTestGroup(MprTestService *sp, MprTestDef *def)
 }
 
 
+static void manageTestGroup(MprTestGroup *gp, int flags)
+{
+    if (flags & MPR_MANAGE_MARK) {
+        mprMark(gp->name);
+        mprMark(gp->fullName);
+        mprMarkList(gp->failures);
+        mprMarkList(gp->groups);
+        mprMarkList(gp->cases);
+        mprMark(gp->def);
+        mprMark(gp->cond);
+        mprMark(gp->cond2);
+        mprMark(gp->conn);
+        mprMark(gp->data);
+        mprMark(gp->mutex);
+
+    } else if (flags & MPR_MANAGE_FREE) {
+    }
+}
+
+
 static MprTestGroup *createTestGroup(MprTestService *sp, MprTestDef *def, MprTestGroup *parent)
 {
     MprTestGroup    *gp, *child;
     MprTestDef      **dp;
     MprTestCase     *tc;
 
-    gp = mprAlloc(sizeof(MprTestGroup));
+    gp = mprAllocObj(MprTestGroup, manageTestGroup);
     if (gp == 0) {
         return 0;
     }
     gp->service = sp;
-    gp->cond = mprCreateCond(gp);
+    gp->cond = mprCreateCond();
 
     gp->failures = mprCreateList();
     if (gp->failures == 0) {
@@ -542,7 +562,7 @@ void mprResetTestGroup(MprTestGroup *gp)
     if (gp->mutex) {
         mprFree(gp->mutex);
     }
-    gp->mutex = mprCreateLock(gp);
+    gp->mutex = mprCreateLock();
 }
 
 
@@ -781,12 +801,21 @@ static int addFailure(MprTestGroup *gp, cchar *loc, cchar *message)
 }
 
 
+static void manageTestFailure(MprTestFailure *fp, int flags)
+{
+    if (flags & MPR_MANAGE_MARK) {
+        mprMark(fp->loc);
+        mprMark(fp->message);
+    } else if (flags & MPR_MANAGE_FREE) {
+    }
+}
+
+
 static MprTestFailure *createFailure(MprTestGroup *gp, cchar *loc, cchar *message)
 {
     MprTestFailure  *fp;
 
-    fp = mprAlloc(sizeof(MprTestFailure));
-    if (fp == 0) {
+    if ((fp = mprAllocObj(MprTestFailure, manageTestFailure)) == 0) {
         return 0;
     }
     fp->loc = sclone(loc);

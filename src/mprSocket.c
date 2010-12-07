@@ -60,7 +60,7 @@ MprSocketService *mprCreateSocketService()
     }
     ss->secureProvider = NULL;
 
-    ss->mutex = mprCreateLock(ss);
+    ss->mutex = mprCreateLock();
     if (ss->mutex == 0) {
         mprFree(ss);
         return 0;
@@ -82,10 +82,12 @@ static void manageSocketService(MprSocketService *ss, int flags)
 /*
     Start the socket service
  */
-int mprStartSocketService(MprSocketService *ss)
+int mprStartSocketService()
 {
-    char    hostName[MPR_MAX_IP_NAME], serverName[MPR_MAX_IP_NAME], domainName[MPR_MAX_IP_NAME], *dp;
+    MprSocketService    *ss;
+    char                hostName[MPR_MAX_IP_NAME], serverName[MPR_MAX_IP_NAME], domainName[MPR_MAX_IP_NAME], *dp;
 
+    ss = mprGetMpr()->socketService;
     mprAssert(ss);
 
     serverName[0] = '\0';
@@ -180,7 +182,7 @@ static MprSocket *createSocket(struct MprSsl *ssl)
 
     sp->provider = mprGetMpr()->socketService->standardProvider;
     sp->service = mprGetMpr()->socketService;
-    sp->mutex = mprCreateLock(sp);
+    sp->mutex = mprCreateLock();
     return sp;
 }
 
@@ -587,12 +589,12 @@ static void closeSocket(MprSocket *sp, bool gracefully)
         }
         if (shutdown(sp->fd, SHUT_RDWR) == 0) {
             if (gracefully) {
-                timesUp = mprGetTime(0) + MPR_TIMEOUT_LINGER;
+                timesUp = mprGetTime() + MPR_TIMEOUT_LINGER;
                 do {
                     if (recv(sp->fd, buf, sizeof(buf), 0) <= 0) {
                         break;
                     }
-                } while (mprGetTime(0) < timesUp);
+                } while (mprGetTime() < timesUp);
             }
         }
         closesocket(sp->fd);

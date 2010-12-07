@@ -212,7 +212,7 @@ void mprWaitForIO(MprWaitService *ws, int timeout)
     int             rc, maxfd;
 
 #if BLD_DEBUG
-    if (mprGetDebugMode(ws) && timeout > 30000) {
+    if (mprGetDebugMode() && timeout > 30000) {
         timeout = 30000;
     }
 #endif

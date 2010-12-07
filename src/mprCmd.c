@@ -69,7 +69,7 @@ MprCmd *mprCreateCmd(MprDispatcher *dispatcher)
         return 0;
     }
     cmd->timeoutPeriod = MPR_TIMEOUT_CMD;
-    cmd->timestamp = mprGetTime(cmd);
+    cmd->timestamp = mprGetTime();
     cmd->forkCallback = (MprForkCallback) closeFiles;
     cmd->dispatcher = dispatcher ? dispatcher : mprGetDispatcher();
     mprAssert(cmd->dispatcher);
@@ -83,7 +83,7 @@ MprCmd *mprCreateCmd(MprDispatcher *dispatcher)
         files[i].clientFd = -1;
         files[i].fd = -1;
     }
-    cmd->mutex = mprCreateLock(cmd);
+    cmd->mutex = mprCreateLock();
     cs = mprGetMpr()->cmdService;
     mprLock(cs->mutex);
     mprAddItem(cs->cmds, cmd);
@@ -586,7 +586,7 @@ static int serviceWinCmdEvents(MprCmd *cmd, int channel, int timeout)
 {
     int     rc, count, status;
 
-    if (mprGetDebugMode(cmd)) {
+    if (mprGetDebugMode()) {
         timeout = MAXINT;
     }
     if (cmd->files[channel].handle) {
@@ -639,10 +639,10 @@ int mprWaitForCmd(MprCmd *cmd, int timeout)
     if (timeout < 0) {
         timeout = MAXINT;
     }
-    if (mprGetDebugMode(cmd)) {
+    if (mprGetDebugMode()) {
         timeout = MAXINT;
     }
-    expires = mprGetTime(cmd) + timeout;
+    expires = mprGetTime() + timeout;
     remaining = timeout;
     do {
         if (cmd->eofCount >= cmd->requiredEof) {
@@ -652,7 +652,7 @@ int mprWaitForCmd(MprCmd *cmd, int timeout)
         }
 #if BLD_WIN_LIKE && !WINCE
         mprPollCmdPipes(cmd, timeout);
-        remaining = (int) (expires - mprGetTime(cmd));
+        remaining = (int) (expires - mprGetTime());
         if (cmd->pid == 0 || remaining <= 0) {
             break;
         }
@@ -660,7 +660,7 @@ int mprWaitForCmd(MprCmd *cmd, int timeout)
 #else
         mprServiceEvents(cmd->dispatcher, remaining, MPR_SERVICE_ONE_THING);
 #endif
-        remaining = (int) (expires - mprGetTime(cmd));
+        remaining = (int) (expires - mprGetTime());
     } while (cmd->pid && remaining >= 0);
 
     if (cmd->pid) {
@@ -683,7 +683,7 @@ int mprReapCmd(MprCmd *cmd, int timeout)
     if (timeout < 0) {
         timeout = MAXINT;
     }
-    mark = mprGetTime(cmd);
+    mark = mprGetTime();
 
     while (cmd->pid) {
 #if BLD_UNIX_LIKE
@@ -1188,7 +1188,7 @@ static int makeChannel(MprCmd *cmd, int index)
     serverAtt.bInheritHandle = 0;
 
     file = &cmd->files[index];
-    now = ((int) mprGetTime(cmd) & 0xFFFF) % 64000;
+    now = ((int) mprGetTime() & 0xFFFF) % 64000;
 
     pipeBuf = mprAsprintf("\\\\.\\pipe\\MPR_%d_%d_%d.tmp", getpid(), (int) now, ++tempSeed);
 
@@ -1293,7 +1293,7 @@ static int startProcess(MprCmd *cmd)
             rc = execv(cmd->program, cmd->argv);
         }
         err = errno;
-        mprPrintfError("Can't exec %s, err %d, cwd %s\n", cmd->program, err, mprGetCurrentPath(cmd));
+        printf("Can't exec %s, err %d\n", cmd->program, err);
 
         /*
             Use _exit to avoid flushing I/O any other I/O.
@@ -1364,12 +1364,11 @@ int startProcess(MprCmd *cmd)
     if (entryPoint == 0) {
         program = mprTrimPathExtension(program);
 #if BLD_HOST_CPU_ARCH == MPR_CPU_IX86 || BLD_HOST_CPU_ARCH == MPR_CPU_IX64
-        entryPoint = sjoin(NULL, "_", program, "Main", NULL);
+        entryPoint = sjoin("_", program, "Main", NULL);
 #else
-        entryPoint = sjoin(NULL, program, "Main", NULL);
+        entryPoint = sjoin(program, "Main", NULL);
 #endif
     }
-
     if (symFindByName(sysSymTbl, entryPoint, (char**) &entryFn, &symType) < 0) {
         if (mprLoadModule(cmd->program, NULL, NULL) < 0) {
             mprError("start: can't load DLL %s, errno %d", program, mprGetOsError());
@@ -1547,7 +1546,7 @@ static char **fixenv(MprCmd *cmd)
             return NULL;
         }
         i = 0;
-        env[i++] = sjoin(cmd, NULL, "PATH=", getenv("PATH"), NULL);
+        env[i++] = sjoin("PATH=", getenv("PATH"), NULL);
         for (envc = 0; cmd->env[envc]; envc++) {
             env[i++] = cmd->env[envc];
         }

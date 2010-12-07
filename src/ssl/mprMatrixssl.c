@@ -43,7 +43,7 @@ int mprCreateMatrixSslModule(bool lazy)
     /*
         Install this module as the SSL provider (can only have 1)
      */
-    if ((provider = createMatrixSslProvider(mpr)) == 0) {
+    if ((provider = createMatrixSslProvider()) == 0) {
         return 0;
     }
     mprSetSecureProvider(provider);
@@ -52,7 +52,7 @@ int mprCreateMatrixSslModule(bool lazy)
         return 0;
     }
     if (!lazy) {
-        getDefaultMatrixSsl(ss);
+        getDefaultMatrixSsl();
     }
     return 0;
 }
@@ -342,7 +342,7 @@ static int connectMss(MprSocket *sp, cchar *host, int port, int flags)
     mprAssert(msp);
 
     if (ss->secureProvider->defaultSsl == 0) {
-        if ((ssl = getDefaultMatrixSsl(ss)) == 0) {
+        if ((ssl = getDefaultMatrixSsl()) == 0) {
             unlock(sp);
             return MPR_ERR_CANT_INITIALIZE;
         }

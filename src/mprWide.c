@@ -308,21 +308,59 @@ uint whashlower(MprChar *name, size_t len)
 }
 
 
-MprChar *wjoin(MprChar *sep, ...)
+MprChar *wjoin(MprChar *str, ...)
 {
     MprChar     *result;
     va_list     ap;
 
-    va_start(ap, sep);
-    result = wrejoinv(NULL, sep, ap);
+    mprAssert(str);
+
+    va_start(ap, str);
+    result = wrejoinv(NULL, str, ap);
     va_end(ap);
     return result;
 }
 
 
-MprChar *wjoinv(MprChar *sep, va_list args)
+MprChar *wjoinv(MprChar *buf, va_list args)
 {
-    return wrejoin(NULL, sep, args);
+    va_list     ap;
+    MprChar     *dest, *str, *dp, nullBuf[1];
+    int         required, len, blen;
+
+    mprAssert(buf);
+
+    va_copy(ap, args);
+    required = 1;
+    blen = wlen(buf);
+    if (buf) {
+        required += blen;
+    }
+    str = va_arg(ap, MprChar*);
+    while (str) {
+        required += wlen(str);
+        str = va_arg(ap, MprChar*);
+    }
+    if ((dest = mprAlloc(required * sizeof(MprChar))) == 0) {
+        return 0;
+    }
+    dp = dest;
+    if (buf) {
+        wcopy(dp, required, buf);
+        dp += blen;
+        required -= blen;
+    }
+    va_copy(ap, args);
+    str = va_arg(ap, MprChar*);
+    while (str) {
+        wcopy(dp, required, str);
+        len = wlen(str);
+        dp += len;
+        required -= len;
+        str = va_arg(ap, MprChar*);
+    }
+    *dp = '\0';
+    return dest;
 }
 
 
@@ -330,7 +368,10 @@ size_t wlen(MprChar *s)
 {
     size_t  i;
 
-    for (i = 0; *s; s++) ;
+    i = 0;
+    if (s) {
+        while (*s) s++;
+    }
     return i;
 }
 
@@ -483,63 +524,47 @@ MprChar *wrchr(MprChar *str, int c)
 }
 
 
-MprChar *wrejoin(MprChar *buf, MprChar *sep, ...)
+MprChar *wrejoin(MprChar *buf, ...)
 {
     MprChar     *result;
     va_list     ap;
 
-    va_start(ap, sep);
-    result = wrejoinv(buf, sep, ap);
+    va_start(ap, buf);
+    result = wrejoinv(buf, buf, ap);
     va_end(ap);
     return result;
 }
 
 
-MprChar *wrejoinv(MprChar *buf, MprChar *sep, va_list args)
+MprChar *wrejoinv(MprChar *buf, va_list args)
 {
     va_list     ap;
     MprChar     *dest, *str, *dp, nullBuf[1];
-    int         required, seplen, len;
+    int         required, len, n;
 
-    if (sep == 0) {
-        nullBuf[0] = 0;
-        sep = nullBuf;
-    } 
-    seplen = wlen(sep);
     va_copy(ap, args);
-    required = 1;
+    len = wlen(buf);
+    required = len + 1;
     str = va_arg(ap, MprChar*);
     while (str) {
         required += wlen(str);
-        required += seplen;
         str = va_arg(ap, MprChar*);
-    }
-    if (buf && *buf) {
-        required += seplen;
     }
     if ((dest = mprRealloc(buf, required * sizeof(MprChar))) == 0) {
         return 0;
     }
-    dp = dest;
+    dp = &dest[len];
+    required -= len;
     va_copy(ap, args);
     str = va_arg(ap, MprChar*);
-    if (str && *sep) {
-        wcopy(dp, required, sep);
-        dp += seplen;
-        required -= seplen;
-    }
     while (str) {
         wcopy(dp, required, str);
-        len = wlen(str);
-        dp += len;
-        required -= len;
+        n = wlen(str);
+        dp += n;
+        required -= n;
         str = va_arg(ap, MprChar*);
-        if (str) {
-            wcopy(dp, required, sep);
-            dp += seplen;
-            required -= seplen;
-        }
     }
+    mprAssert(required >= 0);
     *dp = '\0';
     return dest;
 }

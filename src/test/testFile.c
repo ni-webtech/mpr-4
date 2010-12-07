@@ -139,9 +139,10 @@ static void testBufferedIO(MprTestGroup *gp)
 {
     MprFile         *file;
     MprPath         info;
-    char            buf[512], *str;
-    int             pos, len, rc, c;
     MprTestFile     *ts;
+    char            *str;
+    size_t          len;
+    int             pos, rc, c;
 
     ts = (MprTestFile*) gp->data;
     
@@ -200,12 +201,9 @@ static void testBufferedIO(MprTestGroup *gp)
     assert(c == 'a');
     str = mprGets(file, 0, NULL);
     assert(str != 0);
-    len = (int) strlen(str);
-    
-    assert(len == 5);
-    buf[len] = '\0';
-    
-    assert(strcmp(buf, "bcdef") == 0);
+    len = strlen(str);
+    assert(len == 5);   
+    assert(strcmp(str, "bcdef") == 0);
     mprFree(file);
 
     mprDeletePath(ts->name);

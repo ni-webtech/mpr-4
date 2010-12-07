@@ -46,7 +46,13 @@ static int stopSeqno = -1;
 #define RESET_MEM(mp)           if (mp != GET_MEM(MPR)) { memset(GET_PTR(mp), 0xFE, mp->size - sizeof(MprMem)); } else
 #define SET_MAGIC(mp)           if (1) { (mp)->magic = MPR_ALLOC_MAGIC; } else
 #define SET_SEQ(mp)             if (1) { (mp)->seqno = heap->nextSeqno++; } else
-#define INIT_BLK(mp, len)       if (1) { SET_MAGIC(mp); SET_SEQ(mp); mp->size = len; mp->name = NULL; } else
+#define INIT_BLK(mp, len)       if (1) { \
+                                    SET_MAGIC(mp); \
+                                    SET_SEQ(mp); \
+                                    mp->size = len; \
+                                    mp->name = NULL; \
+                                    mp->mark = heap->eternal; \
+                                } else
 #define VALID_BLK(mp)           validBlk(mp)
 
 #else
@@ -56,7 +62,7 @@ static int stopSeqno = -1;
 #define RESET_MEM(mp)           
 #define SET_MAGIC(mp)
 #define SET_SEQ(mp)           
-#define INIT_BLK(mp, len)       if (1) { mp->size = len; } else
+#define INIT_BLK(mp, len)       if (1) { mp->size = len; mp->mark = heap->eternal ; } else
 #define VALID_BLK(mp)           1
 #endif
 
@@ -97,7 +103,6 @@ static int      padding[] = { 0, MANAGER_SIZE };
 /***************************** Forward Declarations ***************************/
 
 static void allocException(size_t size, bool granted);
-static void checkGarbage();
 static void deq(MprFreeMem *fp);
 static void enq(MprFreeMem *head, MprFreeMem *fp);
 static void freeBlock(MprMem *mp);
@@ -212,7 +217,7 @@ Mpr *mprCreateMemService(MprMemNotifier cback, MprManager manager)
     initGen();
     linkFreeBlock(spare);
 
-    heap->roots = mprCreateList(MPR);
+    heap->roots = mprCreateList();
     mprAddRoot(MPR);
     return MPR;
 }
@@ -235,9 +240,11 @@ void mprDestroyMemService()
             }
         }
     }
+#if BLD_MEMORY_STATS && 0
     if (heap->enabled) {
         printGCStats();
     }
+#endif
 }
 
 
@@ -250,9 +257,7 @@ void *mprAllocBlock(size_t usize, int flags)
 
     mprAssert(usize > 0);
 
-    if (usize == 0) {
-        usize = 1;
-    }
+    usize = max(usize, sizeof(MprFreeMem) - sizeof(MprMem));
     padWords = padding[flags & MPR_ALLOC_PAD_MASK];
     size = MPR_ALLOC_ALIGN(usize + sizeof(MprMem) + (padWords * sizeof(void*)));
     
@@ -285,10 +290,18 @@ void *mprAllocBlock(size_t usize, int flags)
     CHECK(mp);
     mp->gen = heap->active;
     heap->newCount++;
+#if NEW_SEQ_ON_EACH_ALLOC || 1
+    SET_SEQ(mp);
+    BREAKPOINT(mp);
+#endif
 checkPrior(mp);
     return ptr;
 }
 
+
+#if BLD_DEBUG
+#undef mprFree
+#endif
 
 /*
     Free a block of memory
@@ -322,9 +335,11 @@ void mprFreeBlock(void *ptr, cchar *loc)
 {
     size_t      size;
 
-    size = GET_USIZE(GET_MEM(ptr));
-    mprFree(ptr);
-    strncpy(ptr, loc, size);
+    if (ptr) {
+        size = GET_USIZE(GET_MEM(ptr));
+        mprFree(ptr);
+        strncpy(ptr, loc, size);
+    }
 }
 #endif
 
@@ -350,7 +365,12 @@ void *mprRealloc(void *ptr, size_t usize)
         return 0;
     }
     newb = GET_MEM(newptr);
+    if (mp->hasManager) {
+        SET_MANAGER(newb, GET_MANAGER(mp));
+    }
     memcpy(newptr, ptr, mp->size - sizeof(MprMem));
+    /* Preserves hold status */
+    newb->gen = mp->gen;
 checkPrior(mp);
     freeBlock(mp);
 checkPrior(mp);
@@ -448,10 +468,12 @@ void mprSetMemNotifier(MprMemNotifier cback)
 }
 
 
+#if UNUSED
 void mprSetMemCollect(MprMemCollect collect)
 {
     heap->collect = collect;
 }
+#endif
 
 
 void mprSetMemLimits(int redLine, int maxMemory)
@@ -564,9 +586,6 @@ static void initGen()
     heap->active = heap->eternal - 1;
     heap->stale = heap->active - 1;
     heap->dead = heap->stale - 1;
-#if UNUSED
-    heap->mark = heap->active + 1;
-#endif
 }
 
 
@@ -578,9 +597,6 @@ static void nextGen()
     heap->active = active;
     heap->stale = (active - 1 + MPR_MAX_GEN) % MPR_MAX_GEN;
     heap->dead = (active - 2 + MPR_MAX_GEN) % MPR_MAX_GEN;
-#if UNUSED
-    heap->mark = active + 1;
-#endif
 }
 
 
@@ -691,12 +707,12 @@ static MprMem *searchFree(size_t size, int *indexp)
                 Put test here so we don't do this in the common path where the block can be satisfied from the free list
              */
             unlockHeap();
-            checkGarbage();
+            mprCollectGarbage(MPR_GC_CHECK);
             lockHeap();
         }
     }
     unlockHeap();
-    checkGarbage();
+    mprCollectGarbage(MPR_GC_CHECK);
     return NULL;
 }
 
@@ -738,7 +754,6 @@ static void linkFreeBlock(MprMem *mp)
     MprFreeMem  *freeq, *fp;
     int         index, group, bucket;
 
-    //  MOB - just for free list
     mp->dynamic = 0;
     mp->visited = 0;
     mp->builtin = 0;
@@ -746,6 +761,7 @@ static void linkFreeBlock(MprMem *mp)
 
     mp->free = 1;
     mp->gen = heap->eternal;
+    mp->mark = heap->eternal;
     mp->hasManager = 0;
     fp = (MprFreeMem*) mp;
 #if BLD_DEBUG
@@ -942,6 +958,7 @@ static MprMem *growHeap(size_t required)
     INIT_BLK(mp, size - rsize);
     mp->last = 1;
     unlockHeap();
+    mprAssert(mp->size >= (size - rsize));
     CHECK(mp);
     return mp;
 }
@@ -1326,7 +1343,7 @@ static void printGCStats()
 #endif /* BLD_MEMORY_STATS */
 
 
-void mprPrintMemReport(cchar *msg, int detail)
+void mprPrintMem(cchar *msg, int detail)
 {
 #if BLD_MEMORY_STATS
     MprMemStats   *ap;
@@ -1383,21 +1400,27 @@ static void breakpoint(MprMem *mp)
 #endif
 
 /***************************************************** Garbage Colllector *************************************************/
+#if UNUSED
 /*
     Collect all garbage. This conducts three sweeps of garbage.
  */
 void mprCollectAllGarbage()
 {
+#if UNUSED
     if (heap->enabled) {
-        mprPrintMemReport("GC", 0);
+        mprPrintMem("GC", 0);
     }
-    mprCollectGarbage();
-    mprCollectGarbage();
-    mprCollectGarbage();
+#endif
+    mprCollectGarbage(1);
+    mprCollectGarbage(1);
+    mprCollectGarbage(1);
+#if UNUSED
     if (heap->enabled) {
-        mprPrintMemReport("GC", 0);
+        mprPrintMem("GC", 0);
     }
+#endif
 }
+#endif
 
 
 #if MPR_GC_WORKERS > 0
@@ -1417,31 +1440,34 @@ static void startMemWorkers()
 /*
     Initiate a garbage collection. This can be called by any thread and will block until GC is complete.
  */
-void mprCollectGarbage()
+void mprCollectGarbage(int kind)
 {
-    lockHeap();
-    heap->newCount = 0;
-    if (heap->collecting || !heap->enabled) {
-        unlockHeap();
-        return;
+    int     i, count;
+
+    if (kind == MPR_GC_CHECK) {
+        if (heap->newCount < heap->newQuota || heap->stats.bytesFree >= MPR_GC_LOW_MEM) {
+            return;
+        }
     }
-    heap->collecting = 1;
-    unlockHeap();
+    count = (kind == MPR_GC_ALL) ? 3 : 1;
+
+    for (i = 0; i < count; i++) {
+        lockHeap();
+        heap->newCount = 0;
+        if (heap->collecting || !heap->enabled) {
+            unlockHeap();
+            return;
+        }
+        heap->collecting = 1;
+        unlockHeap();
 
 #if MPR_GC_WORKERS == 0
-    mark();
+        mark();
 #else
-    startMemWorkers();
-    /* Wait for GC sync */
-    mprYieldThread(NULL);
+        startMemWorkers();
+        /* Wait for GC sync */
+        mprYieldThread(NULL);
 #endif
-}
-
-
-static void checkGarbage()
-{
-    if (heap->newCount >= heap->newQuota && !heap->collecting && heap->stats.bytesFree < MPR_GC_LOW_MEM) {
-        mprCollectGarbage();
     }
 }
 
@@ -1486,17 +1512,20 @@ static void synchronize()
 
 static void mark()
 {
+    int     freeBefore;
     /*
         Yield this thread first so mprPauseForGCSync will not wait for self in synchronize()
      */
     mprYieldThread(NULL);
+    freeBefore = heap->stats.bytesFree;
     markRoots();
     if (!heap->hasSweeper) {
         sweep();
     }
     synchronize();
-    printf("GC Complete: MARKED %d/%d, SWEPT %d/%d\n", heap->stats.marked, heap->stats.markVisited, 
-        heap->stats.swept, heap->stats.sweepVisited);
+    mprLog(5, "GC Complete: MARKED %d/%d, SWEPT %d/%d, bytesFree %d (before %d)\n", 
+        heap->stats.marked, heap->stats.markVisited, 
+        heap->stats.swept, heap->stats.sweepVisited, (int) heap->stats.bytesFree, freeBefore);
     mprResumeThread(NULL);
     heap->collecting = 0;
 }
@@ -1505,36 +1534,35 @@ static void mark()
 static void sweep()
 {
     MprRegion   *region;
-    MprMem      *mp;
+    MprMem      *mp, *next;
     
     if (!heap->enabled) {
         return;
+    }
+    /*
+        Run all destructors so all can guarantee dependant memory blocks will still exist
+     */
+    for (region = heap->regions; region; region = region->next) {
+        for (mp = region->start; mp; mp = GET_NEXT(mp)) {
+            if (unlikely(mp->gen == heap->dead && mp->hasManager)) {
+                CHECK(mp);
+                BREAKPOINT(mp);
+                (GET_MANAGER(mp))(GET_PTR(mp), MPR_MANAGE_FREE);
+            }
+        }
     }
     heap->stats.sweepVisited = 0;
     heap->stats.swept = 0;
 
     for (region = heap->regions; region; region = region->next) {
-        for (mp = region->start; mp; mp = GET_NEXT(mp)) {
-            CHECK(mp);
-            BREAKPOINT(mp);
+        for (mp = region->start; mp; mp = next) {
+            next = GET_NEXT(mp);
             INC(sweepVisited);
-            if (mp->gen == heap->dead) {
+            if (unlikely(mp->gen == heap->dead)) {
+                CHECK(mp);
+                BREAKPOINT(mp);
                 INC(swept);
-                if (unlikely(mp->hasManager)) {
-                    //  TODO OPT - would be good to have a separate bit for free required
-// printf("SWEEP seqno %d, %s CALL MANAGER()\n", mp->seqno, basename((char*) mp->name));
-                    GET_MANAGER(mp)(GET_PTR(mp), MPR_MANAGE_FREE);
-                } else {
-// printf("SWEEP seqno %d, %s\n", mp->seqno, basename((char*) mp->name));
-                }
-#if UNUSED || 1
                 freeBlock(mp);
-#else
-                RESET_MEM(mp);
-                mp->free = 1;
-                mp->gen = heap->eternal;
-                mp->hasManager = 0;
-#endif
             }
         }
     }
@@ -1578,6 +1606,8 @@ void mprMarkBlock(cvoid *ptr)
         if (mp->hasManager) {
             (GET_MANAGER(mp))((void*) ptr, MPR_MANAGE_MARK);
         }
+    } else {
+        mprAssert(mp->gen == heap->active);
     }
 }
 
@@ -1589,7 +1619,7 @@ void mprEternalize(void *ptr)
     int     save;
 
     if (ptr) {
-        mprPrintMemReport("Before Eternalize", 0);
+        mprPrintMem("Before Eternalize", 0);
         mp = GET_MEM(ptr);
         checkPrior(mp);
         CHECK(mp);
@@ -1611,12 +1641,13 @@ void mprEternalize(void *ptr)
             mp->gen = heap->eternal;
         }
         printf("Eternalize Complete: Eternalized %d\n", heap->stats.marked);
-        mprPrintMemReport("Eternalized", 0);
+        mprPrintMem("Eternalized", 0);
     }
 }
 #endif
 
 
+#if UNUSED && KEEP
 void mprHold(void *ptr)
 {
     MprMem  *mp;
@@ -1669,9 +1700,9 @@ void mprRelease(void *ptr)
         }
     }
 }
+#endif
 
 
-#if UNUSED
 void mprHold(void *ptr)
 {
     if (ptr) {
@@ -1682,11 +1713,15 @@ void mprHold(void *ptr)
 
 void mprRelease(void *ptr)
 {
+    MprMem  *mp;
+
     if (ptr) {
-        GET_MEM(ptr)->gen = heap->active;
+        mp = GET_MEM(ptr);
+        if (!mp->free) {
+            mp->gen = heap->active;
+        }
     }
 }
-#endif
 
 
 #if MPR_GC_WORKERS >= 1
