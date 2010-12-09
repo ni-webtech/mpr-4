@@ -331,12 +331,6 @@ typedef intptr_t pint;
     #define BLD_HAS_SPINLOCK    1
 #endif
 
-#if VXWORKS && (_WRS_VXWORKS_MAJOR <= 5 || _DIAB_TOOL)
-    #define BLD_HAS_UNNAMED_UNIONS 0
-#else
-    #define BLD_HAS_UNNAMED_UNIONS 1
-#endif
-
 #if BLD_CC_DOUBLE_BRACES
     #define  NULL_INIT    {{0}}
 #else

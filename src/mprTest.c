@@ -341,11 +341,8 @@ int mprRunTests(MprTestService *sp)
     /*
         Wait for all the threads to complete (simple but effective)
      */
-    mprCollectGarbage(0);
     while (sp->activeThreadCount > 0) {
         mprServiceEvents(NULL, 250, 0);
-        //  MOB -- should do when idle?
-        mprCollectGarbage(0);
     }
     return (sp->totalFailedCount == 0) ? 0 : 1;
 }

@@ -31,6 +31,7 @@ MprFile *mprAttachFd(int fd, cchar *name, int omode)
         file->fileSystem = fs;
         file->path = sclone(name);
         file->mode = omode;
+        file->attached = 1;
     }
     return file;
 }
@@ -43,7 +44,9 @@ static void manageFile(MprFile *file, int flags)
         mprMark(file->path);
 
     } else if (flags & MPR_MANAGE_FREE) {
-        mprCloseFile(file);
+        if (!file->attached) {
+            mprCloseFile(file);
+        }
     }
 }
 

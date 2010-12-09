@@ -246,7 +246,7 @@ int mprServiceEvents(MprDispatcher *dispatcher, int timeout, int flags)
                     unlock(es);
 #if MPR_GC_WORKERS == 0
                     if (mprIsTimeForGC(delay)) {
-                        mprCollectGarbage(0);
+                        mprCollectGarbage(MPR_GC_CHECK);
                     }
 #endif
                     mprWaitForIO(mpr->waitService, delay);
@@ -281,8 +281,7 @@ MprDispatcher *mprCreateDispatcher(cchar *name, int enable)
     if ((dispatcher = mprAllocObj(MprDispatcher, manageDispatcher)) == 0) {
         return 0;
     }
-    //  MOB - cleanup. Requires name to be static. It is this way because some dispatchers are not allocated.
-    dispatcher->name = name;
+    dispatcher->name = sclone(name);
     dispatcher->enabled = enable;
     es = dispatcher->service = mprGetMpr()->eventService;
     mprInitEventQ(&dispatcher->eventQ);
@@ -296,6 +295,7 @@ static void manageDispatcher(MprDispatcher *dispatcher, int flags)
     MprEvent        *q, *event;
 
     if (flags & MPR_MANAGE_MARK) {
+        mprMark(dispatcher->name);
         q = &dispatcher->eventQ;
         for (event = q->next; event != q; event = event->next) {
             if (!(event->flags & MPR_EVENT_STATIC)) {

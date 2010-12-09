@@ -18,13 +18,15 @@ static void manageSpinLock(MprSpin *lock, int flags);
 MprMutex *mprCreateLock()
 {
     MprMutex    *lock;
+#if BLD_UNIX_LIKE
+    pthread_mutexattr_t attr;
+#endif
 
     lock = mprAllocObj(MprMutex, manageLock);
     if (lock == 0) {
         return 0;
     }
 #if BLD_UNIX_LIKE
-    pthread_mutexattr_t attr;
     pthread_mutexattr_init(&attr);
     pthread_mutexattr_settype(&attr, PTHREAD_MUTEX_RECURSIVE_NP);
     pthread_mutex_init(&lock->cs, &attr);
@@ -72,10 +74,13 @@ MprMutex *mprInitLock(MprMutex *lock)
     pthread_mutexattr_settype(&attr, PTHREAD_MUTEX_RECURSIVE_NP);
     pthread_mutex_init(&lock->cs, &attr);
     pthread_mutexattr_destroy(&attr);
+
 #elif WINCE
     InitializeCriticalSection(&lock->cs);
+
 #elif BLD_WIN_LIKE
     InitializeCriticalSectionAndSpinCount(&lock->cs, 5000);
+
 #elif VXWORKS
     /* Removed SEM_INVERSION_SAFE */
     lock->cs = semMCreate(SEM_Q_PRIORITY | SEM_DELETE_SAFE);
@@ -95,6 +100,7 @@ MprMutex *mprInitLock(MprMutex *lock)
 bool mprTryLock(MprMutex *lock)
 {
     int     rc;
+
 #if BLD_UNIX_LIKE
     rc = pthread_mutex_trylock(&lock->cs) != 0;
 #elif BLD_WIN_LIKE
@@ -108,6 +114,10 @@ bool mprTryLock(MprMutex *lock)
 
 MprSpin *mprCreateSpinLock()
 {
+#if BLD_UNIX_LIKE && !MACOSX
+    pthread_mutexattr_t attr;
+#endif
+
     MprSpin    *lock;
 
     lock = mprAllocObj(MprSpin, manageSpinLock);
@@ -121,7 +131,6 @@ MprSpin *mprCreateSpinLock()
 #elif BLD_UNIX_LIKE && BLD_HAS_SPINLOCK
     pthread_spin_init(&lock->cs, 0);
 #elif BLD_UNIX_LIKE
-    pthread_mutexattr_t attr;
     pthread_mutexattr_init(&attr);
     pthread_mutexattr_settype(&attr, PTHREAD_MUTEX_RECURSIVE_NP);
     pthread_mutex_init(&lock->cs, &attr);
@@ -172,6 +181,10 @@ static void manageSpinLock(MprSpin *lock, int flags)
  */
 MprSpin *mprInitSpinLock(MprSpin *lock)
 {
+#if BLD_UNIX_LIKE && !MACOSX
+    pthread_mutexattr_t attr;
+#endif
+
 #if USE_MPR_LOCK
     mprInitLock(&lock->cs);
 #elif MACOSX
@@ -179,7 +192,6 @@ MprSpin *mprInitSpinLock(MprSpin *lock)
 #elif BLD_UNIX_LIKE && BLD_HAS_SPINLOCK
     pthread_spin_init(&lock->cs, 0);
 #elif BLD_UNIX_LIKE
-    pthread_mutexattr_t attr;
     pthread_mutexattr_init(&attr);
     pthread_mutexattr_settype(&attr, PTHREAD_MUTEX_RECURSIVE_NP);
     pthread_mutex_init(&lock->cs, &attr);

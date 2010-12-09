@@ -1416,6 +1416,7 @@ char *mprGetAppPath()
     }
 
 #if MACOSX
+{
     char    path[MPR_MAX_PATH], pbuf[MPR_MAX_PATH];
     uint    size;
     int     len;
@@ -1432,8 +1433,9 @@ char *mprGetAppPath()
     pbuf[len] = '\0';
     mpr->appPath = mprGetAbsPath(pbuf);
     return sclone(mpr->appPath);
-
+}
 #elif FREEBSD 
+{
     char    pbuf[MPR_MAX_STRING];
     int     len;
 
@@ -1444,8 +1446,9 @@ char *mprGetAppPath()
      pbuf[len] = '\0';
      mpr->appPath = mprGetAbsPath(pbuf);
      return sclone(mpr->appPath);
-
+}
 #elif BLD_UNIX_LIKE 
+{
     char    pbuf[MPR_MAX_STRING], *path;
     int     len;
 #if SOLARIS
@@ -1462,7 +1465,7 @@ char *mprGetAppPath()
     mprFree(path);
     mpr->appPath = mprGetAbsPath(pbuf);
     return sclone(mpr->appPath);
-
+}
 #elif BLD_WIN_LIKE
 {
     char    pbuf[MPR_MAX_PATH];
