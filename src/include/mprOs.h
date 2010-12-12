@@ -354,7 +354,11 @@ typedef intptr_t pint;
 #ifndef R_OK
     #define R_OK    4
     #define W_OK    2
+#if BLD_WIN_LIKE
+    #define X_OK    R_OK
+#else
     #define X_OK    1
+#endif
     #define F_OK    0
 #endif
 
