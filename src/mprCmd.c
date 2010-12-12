@@ -1073,7 +1073,7 @@ static int sanitizeArgs(MprCmd *cmd, int argc, char **argv, char **env)
             destp += 12 + strlen(SYSTEMROOT);
         }
         if (!hasPath) {
-            mprSprintf(cmd, destp, (int) (endp - destp - 1), "PATH=%s", PATH);
+            mprSprintf(destp, (int) (endp - destp - 1), "PATH=%s", PATH);
             destp += 6 + strlen(PATH);
         }
         *destp++ = '\0';
