@@ -349,8 +349,7 @@ MprList *mprGetPathFiles(cchar *dir, bool enumDirs)
     MprDirEntry     *dp;
     MprPath         fileInfo;
     MprList         *list;
-    char            *path, pbuf[MPR_MAX_PATH];
-    int             sep;
+    char            *seps, *path, pbuf[MPR_MAX_PATH];
 #if WINCE
     WIN32_FIND_DATAA findData;
 #else
@@ -363,7 +362,7 @@ MprList *mprGetPathFiles(cchar *dir, bool enumDirs)
     if ((path = mprJoinPath(dir, "*.*")) == 0) {
         return 0;
     }
-    sep = mprGetPathSeparator(dir);
+    seps = mprGetPathSeparators(dir);
 
     h = FindFirstFile(path, &findData);
     if (h == INVALID_HANDLE_VALUE) {
@@ -390,7 +389,7 @@ MprList *mprGetPathFiles(cchar *dir, bool enumDirs)
 
             /* dp->lastModified = (uint) findData.ftLastWriteTime.dwLowDateTime; */
 
-            if (mprSprintf(pbuf, sizeof(pbuf), "%s%c%s", dir, sep, dp->name) < 0) {
+            if (mprSprintf(pbuf, sizeof(pbuf), "%s%c%s", dir, seps[0], dp->name) < 0) {
                 dp->lastModified = 0;
             } else {
                 mprGetPathInfo(pbuf, &fileInfo);
@@ -857,7 +856,7 @@ static char *toCygPath(cchar *path)
         
     if (fs->cygdrive) {
         len = strlen(fs->cygdrive);
-        if (mprStrcmpAnyCaseCount(fs->cygdrive, &path[2], len) == 0 && isSep(mpr, path[len+2])) {
+        if (sncasecmp(fs->cygdrive, &path[2], len) == 0 && isSep(mpr, path[len+2])) {
             /*
                 If path is like: "c:/cygdrive/c/..."
                 Just strip the "c:" portion. Still validly qualified.
@@ -1103,6 +1102,7 @@ char *mprGetNormalizedPath(cchar *pathArg)
 }
 
 
+#if UNUSED
 cchar *mprGetPathSeparator(cchar *path)
 {
     MprFileSystem   *fs;
@@ -1110,6 +1110,7 @@ cchar *mprGetPathSeparator(cchar *path)
     fs = mprLookupFileSystem(path);
     return fs->separators;
 }
+#endif
 
 
 bool mprIsPathSeparator(cchar *path, cchar c)

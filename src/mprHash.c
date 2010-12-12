@@ -16,7 +16,7 @@
 
 /**************************** Forward Declarations ****************************/
 
-static inline void *dupKey(MprHashTable *table, MprHash *sp, cvoid *key);
+static void *dupKey(MprHashTable *table, MprHash *sp, cvoid *key);
 static MprHash  *lookupHash(int *bucketIndex, MprHash **prevSp, MprHashTable *table, cvoid *key);
 static void manageHash(MprHashTable *table, int flags);
 
@@ -321,7 +321,7 @@ MprHash *mprGetNextHash(MprHashTable *table, MprHash *last)
 }
 
 
-static inline void *dupKey(MprHashTable *table, MprHash *sp, cvoid *key)
+static void *dupKey(MprHashTable *table, MprHash *sp, cvoid *key)
 {
 #if BLD_CHAR_LEN > 1
     if (table->flags & MPR_HASH_UNICODE) {

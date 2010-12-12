@@ -83,19 +83,20 @@ static int stopSeqno = -1;
     #elif BLD_HOST_CPU_ARCH == MPR_CPU_IX86 || BLD_HOST_CPU_ARCH == MPR_CPU_IX64
         #define USE_FFSL_ASM_X86 1
     #endif
-    static inline int ffsl(ulong word);
-    static inline int flsl(ulong word);
+    static MPR_INLINE int ffsl(ulong word);
+    static MPR_INLINE int flsl(ulong word);
 #elif BSD_EMULATION
     #define ffsl FFSL
     #define flsl FLSL
     #define NEED_FFSL 1
     #define USE_FFSL_ASM_X86 1
-    static inline int ffsl(ulong word);
-    static inline int flsl(ulong word);
+    static MPR_INLINE int ffsl(ulong word);
+    static MPR_INLINE int flsl(ulong word);
 #endif
 
 /********************************** Data **************************************/
 
+#undef          MPR
 Mpr             *MPR;
 static MprHeap  *heap;
 static int      padding[] = { 0, MANAGER_SIZE };
@@ -626,7 +627,7 @@ static int getQueueIndex(size_t size, int roundup)
     mprAssert(index < (heap->freeEnd - heap->freeq));
     
 #if BLD_MEMORY_STATS
-    mprAssert(heap->freeq[index].stats.minSize <= usize && usize < heap->freeq[index + 1].stats.minSize);
+    mprAssert(heap->freeq[index].stats.minSize <= (int) usize && (int) usize < heap->freeq[index + 1].stats.minSize);
 #endif
     
     if (roundup) {
@@ -1251,7 +1252,7 @@ size_t mprGetMem()
 #if NEED_FFSL
 #if USE_FFSL_ASM_X86
 
-static inline int ffsl(ulong x)
+static MPR_INLINE int ffsl(ulong x)
 {
     long    r;
 
@@ -1263,7 +1264,7 @@ static inline int ffsl(ulong x)
 }
 
 
-static inline int flsl(ulong x)
+static MPR_INLINE int flsl(ulong x)
 {
     long r;
 
@@ -1279,7 +1280,7 @@ static inline int flsl(ulong x)
 /* 
     Find first bit set in word 
  */
-static inline int ffsl(ulong word)
+static MPR_INLINE int ffsl(ulong word)
 {
     int     b;
 
@@ -1296,7 +1297,7 @@ static inline int ffsl(ulong word)
 /* 
     Find last bit set in word 
  */
-static inline int flsl(ulong word)
+static MPR_INLINE int flsl(ulong word)
 {
     int     b;
 
@@ -1584,6 +1585,7 @@ static void sweep()
 {
     MprRegion   *region, *nextRegion;
     MprMem      *mp, *next;
+MprMem *xnext, *onext;
     int         total;
     
     if (!heap->enabled) {
@@ -1608,7 +1610,6 @@ static void sweep()
 
     //  MOB - opt. Could lock regions?
     lockHeap();
-    MprMem *xnext, *onext;
     for (region = heap->regions; region; region = nextRegion) {
         nextRegion = region->next;
         for (mp = region->start; mp; mp = next) {

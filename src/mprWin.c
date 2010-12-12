@@ -363,13 +363,13 @@ static cchar *getHive(cchar *keyPath, HKEY *hive)
     if (cp == 0 || *cp == '\0') {
         return 0;
     }
-    if (!mprStrcmpAnyCase(key, "HKEY_LOCAL_MACHINE")) {
+    if (!scasecmp(key, "HKEY_LOCAL_MACHINE")) {
         *hive = HKEY_LOCAL_MACHINE;
-    } else if (!mprStrcmpAnyCase(key, "HKEY_CURRENT_USER")) {
+    } else if (!scasecmp(key, "HKEY_CURRENT_USER")) {
         *hive = HKEY_CURRENT_USER;
-    } else if (!mprStrcmpAnyCase(key, "HKEY_USERS")) {
+    } else if (!scasecmp(key, "HKEY_USERS")) {
         *hive = HKEY_USERS;
-    } else if (!mprStrcmpAnyCase(key, "HKEY_CLASSES_ROOT")) {
+    } else if (!scasecmp(key, "HKEY_CLASSES_ROOT")) {
         *hive = HKEY_CLASSES_ROOT;
     } else {
         return 0;

@@ -985,7 +985,7 @@ extern void mprVirtFree(void *ptr, size_t size);
     In debug mode, all memory blocks can have a debug name
  */
 #if BLD_MEMORY_DEBUG
-    static inline void *mprSetName(void *ptr, cchar *name) {
+    static MPR_INLINE void *mprSetName(void *ptr, cchar *name) {
         MPR_GET_MEM(ptr)->name = name;
         return ptr;
     }
@@ -5704,6 +5704,7 @@ extern void mprNop(void *ptr);
     @ingroup Mpr
  */
 extern Mpr *mprGetMpr();
+#define MPR mprGetMpr()
 #else
     #define mprGetMpr() MPR
     extern Mpr *MPR;

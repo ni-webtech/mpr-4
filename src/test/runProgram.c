@@ -17,9 +17,11 @@ MAIN(runProgramMain, int argc, char* argv[])
     char    buf[256], *ep;
     int     i, len, exitCode, sofar;
 
-    signal(SIGPIPE, SIG_IGN);
     mpr = mprCreate(argc, argv, 0);
 
+#if BLD_UNIX_LIKE
+    signal(SIGPIPE, SIG_IGN);
+#endif
 #if TRACE_PROGRESS
     MprFile *f = mprOpen("/tmp/r.log", O_CREAT|O_TRUNC|O_WRONLY, 0664);
     mprWriteFormat(f, "runProgram: argc %d\n", argc);
