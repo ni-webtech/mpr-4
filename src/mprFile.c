@@ -132,7 +132,7 @@ int mprGetc(MprFile *file)
         return MPR_ERR;
     }
     if (file->buf == 0) {
-        file->buf = mprCreateBuf(MPR_BUFSIZE, MPR_MAX_STRING);
+        file->buf = mprCreateBuf(MPR_BUFSIZE, MPR_BUFSIZE);
     }
     bp = file->buf;
 
@@ -150,6 +150,39 @@ int mprGetc(MprFile *file)
 }
 
 
+static char *findNewline(cchar *str, cchar *newline, size_t len, int *nlen)
+{
+    char    *start, *best;
+    int     i, newlines;
+
+    mprAssert(str);
+    mprAssert(newline);
+    mprAssert(nlen);
+    mprAssert(len > 0);
+
+    if (str == NULL || newline == NULL) {
+        return NULL;
+    }
+    newlines = strlen(newline);
+    mprAssert(newlines == 1 || newlines == 2);
+
+    start = best = NULL;
+    *nlen = 0;
+    for (i = 0; i < newlines; i++) {
+        if ((start = memchr(str, newline[i], len)) != 0) {
+            if (best == NULL || start < best) {
+                best = start;
+                *nlen = 1;
+                if (newlines == 2 && best[1] == newline[!i]) {
+                    (*nlen)++;
+                }
+            }
+        }
+    }
+    return best;
+}
+
+
 /*
     Get a string from the file. This will put the file into buffered mode.
     Return NULL on eof.
@@ -160,7 +193,7 @@ char *mprGets(MprFile *file, size_t maxline, int *lenp)
     MprFileSystem   *fs;
     cchar           *eol, *newline, *start;
     char            *result;
-    size_t          size, len, consumed;
+    size_t          size, len, nlen, consumed;
 
     mprAssert(file);
 
@@ -170,8 +203,8 @@ char *mprGets(MprFile *file, size_t maxline, int *lenp)
     if (lenp) {
         *lenp = 0;
     }
-    if (maxline == 0) {
-        maxline = MAXSIZE;
+    if (maxline <= 0) {
+        maxline = MPR_BUFSIZE;
     }
     fs = file->fileSystem;
     newline = fs->newline;
@@ -185,14 +218,14 @@ char *mprGets(MprFile *file, size_t maxline, int *lenp)
     do {
         if (mprGetBufLength(bp) == 0) {
             if (fillBuf(file) <= 0) {
-                return NULL;
+                return result;
             }
         }
         start = mprGetBufStart(bp);
         len = mprGetBufLength(bp);
-        if ((eol = scontains(start, newline, len)) != 0) {
+        if ((eol = findNewline(start, newline, len, &nlen)) != 0) {
             len = eol - start;
-            consumed = len + slen(newline);
+            consumed = len + nlen;
         } else {
             consumed = len;
         }
@@ -302,7 +335,7 @@ int mprPeekc(MprFile *file)
         return MPR_ERR;
     }
     if (file->buf == 0) {
-        file->buf = mprCreateBuf(MPR_BUFSIZE, MPR_MAX_STRING);
+        file->buf = mprCreateBuf(MPR_BUFSIZE, MPR_BUFSIZE);
     }
     bp = file->buf;
 

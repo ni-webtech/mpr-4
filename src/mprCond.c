@@ -46,7 +46,6 @@ static void manageCond(MprCond *cp, int flags)
 
     } else if (flags & MPR_MANAGE_FREE) {
         mprAssert(cp->mutex);
-        mprLock(cp->mutex);
 #if BLD_WIN_LIKE
         CloseHandle(cp->cv);
 #elif VXWORKS

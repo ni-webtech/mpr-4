@@ -105,6 +105,7 @@ static void manageCmd(MprCmd *cmd, int flags)
         mprMark(cmd->stdoutBuf);
         mprMark(cmd->stderrBuf);
         mprMark(cmd->mutex);
+		mprMark(cmd->cond);
 #if BLD_WIN_LIKE
         mprMark(cmd->command);
         mprMark(cmd->arg0);
