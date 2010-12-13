@@ -385,7 +385,7 @@ void runTestThread(MprList *groups, void *threadp)
 {
     MprTestService  *sp;
     MprTestGroup    *gp;
-    int             next, i;
+    int             next, i, count;
 
     /*
         Get the service pointer
@@ -397,6 +397,7 @@ void runTestThread(MprList *groups, void *threadp)
     sp = gp->service;
     mprAssert(sp);
 
+    count = 0;
     for (i = (sp->iterations + sp->numThreads - 1) / sp->numThreads; i > 0; i--) {
         if (sp->totalFailedCount > 0 && !sp->continueOnFailures) {
             break;
@@ -405,6 +406,7 @@ void runTestThread(MprList *groups, void *threadp)
         while ((gp = mprGetNextItem(groups, &next)) != 0) {
             runTestGroup(gp);
         }
+        mprPrintf("%12s Iteration %d complete\n", "[Notice]", count++);
     }
     if (threadp) {
         adjustThreadCount(sp, -1);
