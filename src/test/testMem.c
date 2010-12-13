@@ -169,7 +169,7 @@ static void testAllocLongevity(MprTestGroup *gp)
         Allocate blocks and store in a cache. The GC will mark blocks in the cache and preserve. Others will be deleted.
         Check memory does not grow unexpectedly.
      */
-    iterations = (gp->service->testDepth * 5 + 1) * 8192;
+    iterations = (gp->service->testDepth * 2 + 1) * 4096;
     memsize = mprGetMem();
     blockSize = 16 * 1024;
     cache = mprAllocObj(Cache, cacheManager);
