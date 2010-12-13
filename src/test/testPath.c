@@ -353,13 +353,13 @@ static void testTransform(MprTestGroup *gp)
 #endif
 
     /* Test MapSeparators */
-    path = sclone("\\a\\b\\c\\d", -1);
+    path = sclone("\\a\\b\\c\\d");
     mprMapSeparators(path, '/');
     assert(*path == '/');
     assert(strchr(path, '\\') == 0);
 
     /* Test PortablePath */
-    path = sclone("\\a\\b\\c\\d", -1);
+    path = sclone("\\a\\b\\c\\d");
     path = mprGetPortablePath(path);
     mprAssert(*path == '/');
     assert(strchr(path, '\\') == 0);

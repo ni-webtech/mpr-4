@@ -193,7 +193,7 @@ void mprSetModuleSearchPath(char *searchPath)
             So dependent DLLs can be loaded by LoadLibrary
          */
         path = sjoin("PATH=", searchPath, ";", getenv("PATH"), NULL);
-        mprMapSeparators(mpr, path, '\\');
+        mprMapSeparators(path, '\\');
         putenv(path);
         mprFree(path);
     }

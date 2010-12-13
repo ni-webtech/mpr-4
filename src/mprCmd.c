@@ -695,10 +695,9 @@ int mprWaitForCmd(MprCmd *cmd, int timeout)
 int mprReapCmd(MprCmd *cmd, int timeout)
 {
     MprTime     mark;
-    int         flags;
-    int         rc, status, waitrc;
+    int         flags, rc, status, waitrc;
 
-    rc = status = waitrc = 0;
+    flags = rc = status = waitrc = 0;
     mprLock(cmd->mutex);
     if (timeout < 0) {
         timeout = MAXINT;
@@ -1036,7 +1035,7 @@ static int sanitizeArgs(MprCmd *cmd, int argc, char **argv, char **env)
     argv[0] = saveArg0;
 
     for (i = 0; i < argc; i++) {
-        mprLog(cmd, 4, "cmd: arg[%d]: %s", i, argv[i]);
+        mprLog(4, "cmd: arg[%d]: %s", i, argv[i]);
     }
 
     /*
@@ -1064,9 +1063,9 @@ static int sanitizeArgs(MprCmd *cmd, int argc, char **argv, char **env)
         endp = &destp[len];
         cmd->env = (char**) destp;
         for (ep = env; ep && *ep; ep++) {
-            mprLog(cmd, 4, "cmd: env[%d]: %s", i, *ep);
+            mprLog(4, "cmd: env[%d]: %s", i, *ep);
             strcpy(destp, *ep);
-            mprLog(cmd, 7, "cmd: Set env variable: %s", destp);
+            mprLog(7, "cmd: Set env variable: %s", destp);
             destp += strlen(*ep) + 1;
         }
         if (!hasSystemRoot) {
@@ -1135,9 +1134,9 @@ static int startProcess(MprCmd *cmd)
     if (! CreateProcess(0, cmd->command, 0, 0, 1, 0, cmd->env, cmd->dir, &startInfo, &procInfo)) {
         err = mprGetOsError();
         if (err == ERROR_DIRECTORY) {
-            mprError(cmd, "Can't create process: %s, directory %s is invalid", cmd->program, cmd->dir);
+            mprError("Can't create process: %s, directory %s is invalid", cmd->program, cmd->dir);
         } else {
-            mprError(cmd, "Can't create process: %s, %d", cmd->program, err);
+            mprError("Can't create process: %s, %d", cmd->program, err);
         }
         return MPR_ERR_CANT_CREATE;
     }
@@ -1239,7 +1238,7 @@ static int makeChannel(MprCmd *cmd, int index)
     att = (index == MPR_CMD_STDIN) ? &clientAtt : &serverAtt;
     readHandle = CreateNamedPipe(pipeBuf, openMode, pipeMode, 1, 0, 256 * 1024, 1, att);
     if (readHandle == INVALID_HANDLE_VALUE) {
-        mprError(cmd, "Can't create stdio pipes %s. Err %d\n", pipeBuf, mprGetOsError());
+        mprError("Can't create stdio pipes %s. Err %d\n", pipeBuf, mprGetOsError());
         return MPR_ERR_CANT_CREATE;
     }
     readFd = (int) (int64) _open_osfhandle((long) readHandle, 0);
@@ -1249,7 +1248,7 @@ static int makeChannel(MprCmd *cmd, int index)
     writeFd = (int) _open_osfhandle((long) writeHandle, 0);
 
     if (readFd < 0 || writeFd < 0) {
-        mprError(cmd, "Can't create stdio pipes %s. Err %d\n", pipeBuf, mprGetOsError());
+        mprError("Can't create stdio pipes %s. Err %d\n", pipeBuf, mprGetOsError());
         return MPR_ERR_CANT_CREATE;
     }
     if (index == MPR_CMD_STDIN) {

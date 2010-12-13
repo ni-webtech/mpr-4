@@ -2129,7 +2129,7 @@ extern void mprResetBufIfEmpty(MprBuf *buf);
     @returns Zero if successful and otherwise a negative error code 
     @ingroup MprBuf
  */
-extern int mprSetBufSize(MprBuf *buf, int size, int maxSize);
+extern int mprSetBufSize(MprBuf *buf, size_t size, size_t maxSize);
 
 /**
     Get the buffer refill procedure

@@ -128,7 +128,7 @@ static int deletePath(MprDiskFileSystem *fileSystem, cchar *path)
             rc = 0;
             break;
         }
-        mprSleep(fileSystem, 10);
+        mprSleep(10);
     }
     return rc;
 }
@@ -189,7 +189,7 @@ static int getPathInfo(MprDiskFileSystem *fileSystem, cchar *path, MprPath *info
     info->isDir = (s.st_mode & S_IFDIR) != 0;
     info->isReg = (s.st_mode & S_IFREG) != 0;
     info->isLink = 0;
-    ext = mprGetPathExtension(fileSystem, path);
+    ext = mprGetPathExtension(path);
     if (ext && strcmp(ext, "lnk") == 0) {
         info->isLink = 1;
     }

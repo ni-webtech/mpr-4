@@ -349,7 +349,8 @@ MprList *mprGetPathFiles(cchar *dir, bool enumDirs)
     MprDirEntry     *dp;
     MprPath         fileInfo;
     MprList         *list;
-    char            *seps, *path, pbuf[MPR_MAX_PATH];
+	cchar			*seps;
+    char            *path, pbuf[MPR_MAX_PATH];
 #if WINCE
     WIN32_FIND_DATAA findData;
 #else
@@ -381,7 +382,7 @@ MprList *mprGetPathFiles(cchar *dir, bool enumDirs)
                 mprFree(path);
                 return 0;
             }
-            dp->name = sclone(dp, findData.cFileName);
+            dp->name = sclone(findData.cFileName);
             if (dp->name == 0) {
                 mprFree(path);
                 return 0;
@@ -585,7 +586,7 @@ char *mprGetRelPath(cchar *pathArg)
     GetFullPathName(path, sizeof(apath) - 1, apath, NULL);
     apath[sizeof(apath) - 1] = '\0';
     path = apath;
-    mprMapSeparators(fs, path, sep);
+    mprMapSeparators(path, sep);
 }
 #endif
     /*

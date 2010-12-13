@@ -111,7 +111,7 @@ void mprWaitForIO(MprWaitService *ws, int timeout)
         SetTimer(ws->hwnd, 0, timeout, NULL);
 
         if (GetMessage(&msg, NULL, 0, 0) == 0) {
-            mprTerminate(ws, 1);
+            mprTerminate(1);
         } else {
             TranslateMessage(&msg);
             DispatchMessage(&msg);

@@ -41,18 +41,15 @@ void mprStopOsService()
 }
 
 
-long mprGetInst(Mpr *mpr)
+long mprGetInst()
 {
-    return (long) mpr->appInstance;
+    return (long) MPR->appInstance;
 }
 
 
 HWND mprGetHwnd()
 {
-    Mpr     *mpr;
-
-    mpr = mprGetMpr();
-    return mpr->waitService->hwnd;
+    return MPR->waitService->hwnd;
 }
 
 
@@ -168,27 +165,21 @@ int mprReadRegistry(char **buf, int max, cchar *key, cchar *name)
 }
 
 
-void mprSetInst(Mpr *mpr, long inst)
+void mprSetInst(long inst)
 {
-    mpr->appInstance = inst;
+    MPR->appInstance = inst;
 }
 
 
 void mprSetHwnd(HWND h)
 {
-    Mpr     *mpr;
-
-    mpr = mprGetMpr();
-    mpr->waitService->hwnd = h;
+    MPR->waitService->hwnd = h;
 }
 
 
 void mprSetSocketMessage(int socketMessage)
 {
-    Mpr     *mpr;
-
-    mpr = mprGetMpr();
-    mpr->waitService->socketMessage = socketMessage;
+    MPR->waitService->socketMessage = socketMessage;
 }
 
 
@@ -234,7 +225,7 @@ void mprUnloadModule(MprModule *mp)
     if (mp->stop) {
         mp->stop(mp);
     }
-    mprRemoveItem(mprGetMpr(mp)->moduleService->modules, mp);
+    mprRemoveItem(MPR->moduleService->modules, mp);
     FreeLibrary((HINSTANCE) mp->handle);
 }
 

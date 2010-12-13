@@ -23,7 +23,7 @@ static void testCreateBuf(MprTestGroup *gp)
 static void testIsBufEmpty(MprTestGroup *gp)
 {
     MprBuf  *bp;
-    int     size;
+    size_t  size;
 
     size = 512;
     bp = mprCreateBuf(size, -1);
@@ -95,7 +95,8 @@ static void testFlushBuf(MprTestGroup *gp)
 static void testGrowBuf(MprTestGroup *gp)
 {
     MprBuf  *bp;
-    int     size, i, rc, bytes, c;
+	size_t	size;
+    int     i, rc, c, bytes;
 
     /*
         Put more data than the initial size to force the buffer to grow
@@ -110,7 +111,7 @@ static void testGrowBuf(MprTestGroup *gp)
     rc = mprGetBufSize(bp);
     rc = mprGetBufLength(bp);
     assert(mprGetBufSize(bp) > size);
-    assert(mprGetBufSize(bp) >= bytes);
+    assert(mprGetBufSize(bp) >= (size_t) bytes);
     assert(mprGetBufLength(bp) == bytes);
 
     for (i = 0; i < bytes; i++) {
@@ -186,7 +187,7 @@ static void testBufLoad(MprTestGroup *gp)
 {
     MprBuf  *bp;
     char    obuf[512], ibuf[512];
-    int     rc, count, i, j, len, bytes, sofar, size;
+    int     rc, count, i, j, bytes, sofar, size, len;
 
     /*
         Pick an odd size to guarantee put blocks are sometimes partial.
@@ -237,7 +238,7 @@ static void testBufLoad(MprTestGroup *gp)
 
         sofar = 0;
         while (mprGetBufLength(bp) > 0) {
-            len = min(mprGetBufLength(bp), (int) sizeof(obuf) - sofar);
+            len = (int) min(mprGetBufLength(bp), sizeof(obuf) - sofar);
             memcpy(&obuf[sofar], mprGetBufStart(bp), len);
             sofar += len;
             mprAdjustBufStart(bp, len);

@@ -70,7 +70,7 @@ char *mprGet(MprBuf *bp)
 /*
     Set the current buffer size and maximum size limit.
  */
-int mprSetBufSize(MprBuf *bp, int initialSize, int maxSize)
+int mprSetBufSize(MprBuf *bp, size_t initialSize, size_t maxSize)
 {
     mprAssert(bp);
 
@@ -405,7 +405,7 @@ int mprPutFmtToBuf(MprBuf *bp, cchar *fmt, ...)
 int mprGrowBuf(MprBuf *bp, int need)
 {
     char    *newbuf;
-    int     growBy;
+    size_t   growBy;
 
     if (bp->maxsize > 0 && bp->buflen >= bp->maxsize) {
         return MPR_ERR_TOO_MANY;

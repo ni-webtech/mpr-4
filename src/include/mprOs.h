@@ -87,7 +87,7 @@
 #if !BLD_WIN_LIKE
     #include    <grp.h> 
 #endif
-#if UNUSED && BLD_WIN_LIKE
+#if BLD_WIN_LIKE
     #include    <io.h>
 #endif
 #if MACOSX

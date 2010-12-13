@@ -1,0 +1,53 @@
+#
+#	Makefile for Windows Visual Studio projects
+#
+#	Copyright (c) Embedthis Software LLC, 2003-2009. All Rights Reserved.
+#
+
+include     .makedep
+
+include     buildConfig.override
+
+SRC			= ../../../src
+CMD			= ../../../src/utils
+MPR_HDR 	= $(BLD_OUT_DIR)/buildConfig.h $(shell find $(SRC)/include -name 'mpr*.h')
+LIBS		= ws2_32.lib
+PROJECTS	= libmpr.vcproj libmprssl.vcproj testMpr.vcproj benchMpr.vcproj runProgram.vcproj
+
+MAKE_IFLAGS	= -I$(BLD_TOP)/src/include/master $(BLD_MPR_IFLAGS)
+ifeq ($(BLD_FEATURE_OPENSSL),1)
+	SSL_IFLAGS	+= $(BLD_OPENSSL_IFLAGS)
+endif
+ifeq ($(BLD_FEATURE_MATRIXSSL),1)
+	SSL_IFLAGS	+= $(BLD_MATRIXSSL_IFLAGS)
+endif
+
+compileExtra: prep $(PROJECTS)
+
+prep:
+	if ls $(BLD_BIN_DIR)/*.def >/dev/null 2>&1 ; then \
+		cp $(BLD_BIN_DIR)/*.def . ; \
+	fi
+
+libmpr.vcproj: Makefile buildConfig.override
+	@makeVsProj --project libmpr.vcproj --library mpr --dflags "$(DFLAGS)" \
+		--def libmpr.def --libs "$(LIBS)" $(MPR_HDR) \
+	    $(shell find $(SRC) -name '*.c' | egrep -v 'utils|test|angel')
+	
+libmprssl.vcproj: Makefile buildConfig.override
+	@makeVsProj --project libmprssl.vcproj --library mprSsl --dflags "$(DFLAGS)" \
+		--iflags "$(SSL_IFLAGS)" --def libmprssl.def --libs "libmpr.lib $(LIBS)" $(MPR_HDR) \
+		$(SRC)/ssl/*.c
+	
+testMpr.vcproj: Makefile buildConfig.override
+	@makeVsProj --project testMpr.vcproj --exe testMpr.exe --dflags "$(DFLAGS)" \
+		--libs "$(LIBS) libmpr.lib" $(MPR_HDR) \
+	    $(shell find $(SRC)/test -name '*.c' | egrep -v 'runProgram|benchMpr')
+
+benchMpr.vcproj: Makefile buildConfig.override
+	@makeVsProj --project benchMpr.vcproj --exe benchMpr.exe --dflags "$(DFLAGS)" \
+		--libs "$(LIBS) libmpr.lib" $(MPR_HDR) $(SRC)/test/benchMpr.c 
+
+runProgram.vcproj: Makefile buildConfig.override
+	@makeVsProj --project runProgram.vcproj --exe runProgram.exe --dflags "$(DFLAGS)" \
+		--libs "$(LIBS) libmpr.lib" $(MPR_HDR) $(SRC)/test/runProgram.c 
