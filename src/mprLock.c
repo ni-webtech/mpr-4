@@ -114,7 +114,7 @@ bool mprTryLock(MprMutex *lock)
 
 MprSpin *mprCreateSpinLock()
 {
-#if BLD_UNIX_LIKE && !MACOSX
+#if BLD_UNIX_LIKE && !BLD_HAS_SPINLOCK && !MACOSX
     pthread_mutexattr_t attr;
 #endif
 
@@ -181,7 +181,7 @@ static void manageSpinLock(MprSpin *lock, int flags)
  */
 MprSpin *mprInitSpinLock(MprSpin *lock)
 {
-#if BLD_UNIX_LIKE && !MACOSX
+#if BLD_UNIX_LIKE && !BLD_HAS_SPINLOCK && !MACOSX
     pthread_mutexattr_t attr;
 #endif
 

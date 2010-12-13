@@ -15,7 +15,6 @@
 /********************************** Forwards **********************************/
 
 static int growEvents(MprWaitService *ws);
-static void manageEpoll(MprWaitService *ws, int flags);
 static void serviceIO(MprWaitService *ws, int count);
 
 /************************************ Code ************************************/
@@ -32,7 +31,7 @@ int mprCreateNotifierService(MprWaitService *ws)
         return MPR_ERR_CANT_INITIALIZE;
     }
     if ((ws->epoll = epoll_create(MPR_EPOLL_SIZE)) < 0) {
-        mprError(ws, "Call to epoll() failed");
+        mprError("Call to epoll() failed");
         return MPR_ERR_CANT_INITIALIZE;
     }
     /*
@@ -40,7 +39,7 @@ int mprCreateNotifierService(MprWaitService *ws)
      *  to wait for I/O.
      */
     if (pipe(ws->breakPipe) < 0) {
-        mprError(ws, "Can't open breakout pipe");
+        mprError("Can't open breakout pipe");
         return MPR_ERR_CANT_INITIALIZE;
     }
     fcntl(ws->breakPipe[0], F_SETFL, fcntl(ws->breakPipe[0], F_GETFL) | O_NONBLOCK);
@@ -150,7 +149,7 @@ int mprWaitForSingleIO(int fd, int mask, int timeout)
     memset(events, 0, sizeof(events));
     ev.data.fd = fd;
     if ((epfd = epoll_create(MPR_EPOLL_SIZE)) < 0) {
-        mprError(ws, "Call to epoll() failed");
+        mprError("Call to epoll() failed");
         return MPR_ERR_CANT_INITIALIZE;
     }
     if (mask & MPR_READABLE) {
@@ -200,7 +199,7 @@ void mprWaitForIO(MprWaitService *ws, int timeout)
     rc = epoll_wait(ws->epoll, ws->events, ws->eventsMax, timeout);
     if (rc < 0) {
         if (errno != EINTR) {
-            mprLog(ws, 2, "Kevent returned %d, errno %d", mprGetOsError());
+            mprLog(2, "Kevent returned %d, errno %d", mprGetOsError());
         }
     } else if (rc > 0) {
         serviceIO(ws, rc);

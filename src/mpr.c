@@ -22,7 +22,7 @@ Mpr *mprCreate(int argc, char **argv, int flags)
 {
     MprFileSystem   *fs;
     Mpr             *mpr;
-    char            *cp;
+    char            *cp, *name;
 
     srand((uint) time(NULL));
 
@@ -48,7 +48,11 @@ Mpr *mprCreate(int argc, char **argv, int flags)
     mpr->idleCallback = mprServicesAreIdle;
 
     if (mpr->argv && mpr->argv[0] && *mpr->argv[0]) {
-        mpr->name = sclone(basename(mpr->argv[0]));
+        name = mpr->argv[0];
+        if ((cp = strchr(name, '/')) != 0) {
+            name = cp;
+        }
+        mpr->name = sclone(name);
         if ((cp = strchr(mpr->name, '.')) != 0) {
             *cp = '\0';
         }
