@@ -872,7 +872,7 @@ static MprMem *freeBlock(MprMem *mp)
         INC(joins);
     }
     next = GET_NEXT(mp);
-#if BLD_CC_MMU && 0
+#if BLD_CC_MMU
     /*
         Release entire regions back to the O/S. (Region has no prior and is also last when complete)
      */
@@ -1585,7 +1585,6 @@ static void sweep()
 {
     MprRegion   *region, *nextRegion;
     MprMem      *mp, *next;
-MprMem *xnext, *onext;
     int         total;
     
     if (!heap->enabled) {
@@ -1613,24 +1612,16 @@ MprMem *xnext, *onext;
     for (region = heap->regions; region; region = nextRegion) {
         nextRegion = region->next;
         for (mp = region->start; mp; mp = next) {
-            onext = GET_NEXT(mp);
-            if (onext) {
-                CHECK(onext);
-            }
             INC(sweepVisited);
             if (unlikely(mp->gen == heap->dead)) {
                 CHECK(mp);
                 BREAKPOINT(mp);
                 INC(swept);
                 total += mp->size;
-                xnext = freeBlock(mp);
+                next = freeBlock(mp);
             } else {
-                xnext = GET_NEXT(mp);
+                next = GET_NEXT(mp);
             }
-            if (onext != xnext) {
-                mprAssert(onext->magic == 0xfefefefe);
-            }
-            next = xnext;
             if (next) {
                 CHECK(next);
             }

@@ -318,22 +318,24 @@ size_t slen(cchar *s)
 
 
 /*  
-    Map a string to lower case (overwrites original string)
+    Map a string to lower case. Allocates a new string 
  */
-char *slower(char *str)
+char *slower(cchar *str)
 {
-    char    *cp;
+    char    *cp, *s;
 
     mprAssert(str);
 
     if (str) {
-        for (cp = str; *cp; cp++) {
+        s = sclone(str);
+        for (cp = s; *cp; cp++) {
             if (isupper((int) *cp)) {
                 *cp = (char) tolower((int) *cp);
             }
         }
+        str = s;
     }
-    return str;
+    return (char*) str;
 }
 
 
@@ -737,19 +739,21 @@ char *strim(char *str, cchar *set, int where)
 /*  
     Map a string to upper case (overwrites buffer)
  */
-char *supper(char *str)
+char *supper(cchar *str)
 {
-    char    *cp;
+    char    *cp, *s;
 
     mprAssert(str);
     if (str) {
-        for (cp = str; *cp; cp++) {
+        s = sclone(s);
+        for (cp = s; *cp; cp++) {
             if (islower((int) *cp)) {
                 *cp = (char) toupper((int) *cp);
             }
         }
+        str = s;
     }
-    return str;
+    return (char*) str;
 }
 
 

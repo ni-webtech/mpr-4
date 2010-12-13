@@ -1344,9 +1344,7 @@ int mprParseTime(MprTime *time, cchar *dateString, int zoneFlags, struct tm *def
         Set to -1 to cause mktime will try to determine if DST is in effect
      */
     tm.tm_isdst = -1;
-
-    str = sclone(dateString);
-    slower(str);
+    str = slower(dateString);
 
     /*
         Handle ISO dates: "2009-05-21t16:06:05.000z

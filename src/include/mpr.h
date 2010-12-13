@@ -1331,14 +1331,13 @@ extern char *sjoinv(cchar *str, va_list args);
  */
 extern size_t slen(cchar *str);
 
-//  MOB - should slower, supper, wlower, wupper allocate a new string?
 /**
     Convert a string to lower case. 
-    @description Convert a string to its lower case equivalent. This overwrites the original string.
+    @description Convert a string to its lower case equivalent.
     @param str String to convert.
     @ingroup MprString
  */
-extern char *slower(char *str);
+extern char *slower(cchar *str);
 
 /**
     Compare strings ignoring case.
@@ -1469,16 +1468,14 @@ extern char *stok(char *str, cchar *delim, char **last);
  */
 extern char *ssub(char *str, size_t offset, size_t length);
 
-//  MOB - should slower, supper, wlower, wupper allocate a new string?
 /**
     Convert a string to upper case.
-    This modifies the original string.
     @description Convert a string to its upper case equivalent.
     @param str String to convert.
     @return Returns a pointer to the converted string. Will always equal str.
     @ingroup MprString
  */
-extern char *supper(char *s);
+extern char *supper(cchar *s);
 
 /**
     Trim a string.
@@ -1520,7 +1517,6 @@ extern MprChar *wjoin(MprChar *sep, ...);
 extern MprChar *wjoinv(MprChar *sep, va_list args);
 extern size_t   wlen(MprChar *s);
 
-//  MOB - should slower, supper, wlower, wupper allocate a new string?
 extern MprChar *wlower(MprChar *s);
 extern int      wncasecmp(MprChar *s1, MprChar *s2, size_t len);
 extern int      wncmp(MprChar *s1, MprChar *s2, size_t len);
@@ -5398,6 +5394,13 @@ typedef struct MprCmd {
     MprMutex        *mutex;             /* Multithread sync */
 } MprCmd;
 
+
+/**
+    Close the command
+    @param cmd MprCmd object created via mprCreateCmd
+    @ingroup MprCmd
+ */
+extern void mprCloseCmd(MprCmd *cmd);
 
 /**
     Close the command channel

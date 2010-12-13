@@ -736,7 +736,6 @@ static void runTestProc(MprTestGroup *gp, MprTestCase *test)
     } else if (sp->verbose) {
         mprPrintf("%12s Run test \"%s.%s\": ", "[Test]", gp->fullName, test->name);
     }
-
     if (gp->skip) {
         if (sp->verbose) {
             if (gp->skipWarned++ == 0) {

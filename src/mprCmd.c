@@ -150,6 +150,12 @@ static void vxCmdManager(MprCmd *cmd)
 #endif
 
 
+void mprCloseCmd(MprCmd *cmd)
+{
+    mprFree(cmd);
+}
+
+
 static void resetCmd(MprCmd *cmd)
 {
     MprCmdFile      *files;

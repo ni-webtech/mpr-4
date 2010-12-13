@@ -377,20 +377,22 @@ size_t wlen(MprChar *s)
 
 
 /*  
-    Map a string to lower case (overwrites original string)
+    Map a string to lower case 
  */
 MprChar *wlower(MprChar *str)
 {
-    MprChar *cp;
+    MprChar *cp, *s;
 
     mprAssert(str);
 
     if (str) {
-        for (cp = str; *cp; cp++) {
+        s = wclone(str);
+        for (cp = s; *cp; cp++) {
             if (isupper((int) *cp)) {
                 *cp = (MprChar) tolower((int) *cp);
             }
         }
+        str = s;
     }
     return str;
 }
@@ -696,19 +698,21 @@ MprChar *wtrim(MprChar *str, MprChar *set, int where)
 
 
 /*  
-    Map a string to upper case (overwrites buffer)
+    Map a string to upper case
  */
 char *wupper(MprChar *str)
 {
-    MprChar     *cp;
+    MprChar     *cp, *s;
 
     mprAssert(str);
     if (str) {
-        for (cp = str; *cp; cp++) {
+        s = wclone(str);
+        for (cp = s; *cp; cp++) {
             if (islower((int) *cp)) {
                 *cp = (char) toupper((int) *cp);
             }
         }
+        str = s;
     }
     return str;
 }

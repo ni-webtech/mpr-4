@@ -20,9 +20,9 @@ static int initLock(MprTestGroup *gp)
     mprGlobalLock(gp);
     if (mutex == 0) {
         mutex = mprCreateLock(gp);
+        mprAddRoot(mutex);
     }
     mprGlobalUnlock(gp);
-    
     return 0;
 }
 
@@ -30,12 +30,12 @@ static int initLock(MprTestGroup *gp)
 static int termLock(MprTestGroup *gp)
 {
     mprGlobalLock(gp);
-    if (mutex == 0) {
+    if (mutex) {
+        mprRemoveRoot(mutex);
         mprFree(mutex);
         mutex = 0;
     }
     mprGlobalUnlock(gp);
-    
     return 0;
 }
 
@@ -45,7 +45,6 @@ static void testCriticalSection(MprTestGroup *gp)
     int     i, size;
 
     mprLock(mutex);
-
     size = sizeof(critical) / sizeof(MprThread*);
     for (i = 0; i < size; i++) {
         critical[i] = mprGetCurrentOsThread(gp);

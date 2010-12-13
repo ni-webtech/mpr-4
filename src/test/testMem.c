@@ -163,13 +163,14 @@ static void testAllocLongevity(MprTestGroup *gp)
 {
     Cache   *cache;
     uchar   *cp;
-    int     i, j, index, blockSize, len, actual, iterations, memsize, total;
+    int     i, j, index, blockSize, len, actual, iterations, memsize, total, depth;
     
     /*
         Allocate blocks and store in a cache. The GC will mark blocks in the cache and preserve. Others will be deleted.
         Check memory does not grow unexpectedly.
      */
-    iterations = (gp->service->testDepth * 2 + 1) * 4096;
+    depth = gp->service->testDepth;
+    iterations = (depth * depth * 1024) + 1024;
     memsize = mprGetMem();
     blockSize = 16 * 1024;
     cache = mprAllocObj(Cache, cacheManager);
