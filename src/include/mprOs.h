@@ -362,6 +362,9 @@ typedef intptr_t pint;
     #ifndef PTHREAD_MUTEX_RECURSIVE_NP
         #define PTHREAD_MUTEX_RECURSIVE_NP PTHREAD_MUTEX_RECURSIVE
     #endif
+    #ifndef PTHREAD_MUTEX_RECURSIVE
+        #define PTHREAD_MUTEX_RECURSIVE PTHREAD_MUTEX_RECURSIVE_NP
+    #endif
 #endif
 
 #if MACOSX || VXWORKS || CYGWIN || BLD_WIN_LIKE
@@ -377,7 +380,6 @@ typedef intptr_t pint;
 #endif /* FREEBSD */
 
 #if MACOSX
-    #define PTHREAD_MUTEX_RECURSIVE_NP  PTHREAD_MUTEX_RECURSIVE
     /*
         Fix for MAC OS X - getenv
      */

@@ -1068,7 +1068,6 @@ void *mprVirtAlloc(size_t size, int mode)
 
 void mprVirtFree(void *ptr, size_t size)
 {
-    printf("UNPIN size %ld\n", size);
 #if BLD_CC_MMU
     #if BLD_UNIX_LIKE
         if (munmap(ptr, size) != 0) {
@@ -1196,7 +1195,8 @@ MprMemStats *mprGetMemStats()
 {
 #if LINUX
     char            buf[1024], *cp;
-    int             fd, len;
+    size_t          len;
+    int             fd;
 
     heap->stats.ram = MAXINT64;
     if ((fd = open("/proc/meminfo", O_RDONLY)) >= 0) {
@@ -1369,7 +1369,7 @@ void mprPrintMem(cchar *msg, int detail)
 
     printf("\n\nMPR Memory Report %s\n", msg);
     printf("------------------------------------------------------------------------------------------\n");
-    printf("  Total memory        %14ld K\n",            mprGetMem());
+    printf("  Total memory        %14d K\n",             (int) mprGetMem());
     printf("  Current heap memory %14d K\n",             (int) (ap->bytesAllocated / 1024));
     printf("  Free heap memory    %14d K\n",             (int) (ap->bytesFree / 1024));
     printf("  Allocation errors   %14d\n",               ap->errors);
