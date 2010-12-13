@@ -946,7 +946,8 @@ else
             if [ "$OS" = MACOSX ] ; then
                 INSTALL_NAME="-install_name @rpath/`basename $SHARED_LIBRARY`"
             elif [ "$OS" = LINUX ] ; then
-                ERRORS="-Wl,--no-allow-shlib-undefined"
+                # ERRORS="-Wl,--no-allow-shlib-undefined"
+                :
             fi
             run "${LINKER}" -o ${SHARED_LIBRARY} ${SONAME_SWITCH} ${INSTALL_NAME} ${DSO} ${LOBJS} \
                 ${MAKE_LDFLAGS} ${BLD_LDFLAGS} ${_LDFLAGS} ${MAKE_CFLAGS} ${BLD_CFLAGS} ${_CFLAGS} \
