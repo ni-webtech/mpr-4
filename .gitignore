@@ -47,3 +47,11 @@ bin/*.sln
 bin/*.suo
 bin/.kdbgrc.*
 out
+*.vcxproj
+*.sdf
+*.suo
+*.filters
+*.user
+*.old
+Win32
+*.opensdf
