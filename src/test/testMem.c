@@ -55,7 +55,7 @@ static void testBigAlloc(MprTestGroup *gp)
     assert(mp != 0);
     memset(mp, 0, len);
     mprFree(mp);
-    //  MOB -- test that this is given back to the O/S
+    //  MOB -- test that this is given back to the O/S. BUT Free doesn't do GC.
     assert((mprGetMem() - memsize) < (len * 2));
     // printf("Used %ld K\n", (mprGetMem() - memsize) / 1024);
 }
@@ -163,7 +163,8 @@ static void testAllocLongevity(MprTestGroup *gp)
 {
     Cache   *cache;
     uchar   *cp;
-    int     i, j, index, blockSize, len, actual, iterations, memsize, total, depth;
+	size_t	memsize;
+    int     i, j, index, blockSize, len, actual, iterations, total, depth;
     
     /*
         Allocate blocks and store in a cache. The GC will mark blocks in the cache and preserve. Others will be deleted.
@@ -194,13 +195,17 @@ static void testAllocLongevity(MprTestGroup *gp)
         memset(cp, index, actual);
         if ((i % CACHE_MAX) == 0) {
             mprLog(1, "ITER %,d, DELTA %,d K, total allocated this pass %,d\n", i, (mprGetMem() - memsize) / 1024, total);
-            assert((mprGetMem() - memsize) < (4 * 1024 * 1024));
+            if (mprGetMem() > memsize) {
+				assert((mprGetMem() - memsize) < (4 * 1024 * 1024));
+			}
             mprCollectGarbage(MPR_GC_FROM_USER);
             total = 0;
         }
     }
     mprRemoveRoot(cache);
-    assert((mprGetMem() - memsize) < (4 * 1024 * 1024));
+	if (mprGetMem() > memsize) {
+	    assert((mprGetMem() - memsize) < (4 * 1024 * 1024));
+	}
 }
 
 

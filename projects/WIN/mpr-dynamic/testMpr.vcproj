@@ -3,7 +3,7 @@
     ProjectType="Visual C++"
     Version="8.00"
     Name="testMpr"
-    ProjectGUID="092ba6ae-f2d8-4535-86b3-02d350c1da03"
+    ProjectGUID="32d29c84-821c-426a-99e1-b85c89d76340"
     RootNamespace=""
     Keyword="Win32Proj"
     TargetFrameworkVersion="0"
@@ -66,7 +66,7 @@
                 StringPooling="true"
                 MinimalRebuild="true"
                 AdditionalIncludeDirectories="../../../src/include/master;../../../out/include;../../../src/include"
-                PreprocessorDefinitions="WIN32;_DEBUG;_WINDOWS;;_REENTRANT;_MT"
+                PreprocessorDefinitions="WIN32;_DEBUG;_WINDOWS;-DDEBUG_IDE=1;_REENTRANT;_MT"
                 Optimization="1"
                 FavorSizeOrSpeed="1"
                 RuntimeLibrary="2"
@@ -136,7 +136,7 @@
                 StringPooling="true"
                 MinimalRebuild="true"
                 AdditionalIncludeDirectories="../../../src/include/master;../../../out/include;../../../src/include"
-                PreprocessorDefinitions="WIN32;_DEBUG;_WINDOWS;;_REENTRANT;_MT"
+                PreprocessorDefinitions="WIN32;_DEBUG;_WINDOWS;-DDEBUG_IDE=1;_REENTRANT;_MT"
                 Optimization="0"
                 FavorSizeOrSpeed="1"
                 BasicRuntimeChecks="3"
@@ -160,7 +160,7 @@
         <Filter
             Name="Header Files"
             Filter="h;hpp;hxx;hm;inl;inc;xsd"
-            UniqueIdentifier="{df4a99dd-06a2-4ee8-bc60-9abcdce2f59c}"
+            UniqueIdentifier="{b6a2f445-c710-4776-b46b-ed50a8a90608}"
             >
             <File
                 RelativePath="..\..\..\out\buildConfig.h"
@@ -190,12 +190,8 @@
         <Filter
             Name="Source Files"
             Filter="cpp;c;cc;cxx;def;odl;idl;hpj;bat;asm;asmx"
-            UniqueIdentifier="{b353c875-525d-4451-9279-6345cb360eb9}"
+            UniqueIdentifier="{a7ddbb08-5f64-41fa-9946-077c24320358}"
             >
-            <File
-                RelativePath="..\..\..\src\test\benchMpr.c"
-                >
-            </File>
             <File
                 RelativePath="..\..\..\src\test\testBuf.c"
                 >

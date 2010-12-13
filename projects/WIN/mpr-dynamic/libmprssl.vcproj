@@ -3,7 +3,7 @@
     ProjectType="Visual C++"
     Version="8.00"
     Name="libmprssl"
-    ProjectGUID="d66f0c59-2485-4693-8bcd-f3466a96b596"
+    ProjectGUID="e8d23702-5bd7-4110-9760-6b8cefaec180"
     RootNamespace=""
     Keyword="Win32Proj"
     TargetFrameworkVersion="0"
@@ -66,7 +66,7 @@
                 StringPooling="true"
                 MinimalRebuild="true"
                 AdditionalIncludeDirectories="C:/home/mob/git/packages/openssl/openssl-1.0.0a/inc32;C:/home/mob/git/packages/matrixssl/matrixssl-1-8-8-open;../../../src/include/master;../../../out/include;../../../src/include"
-                PreprocessorDefinitions="WIN32;_DEBUG;_WINDOWS;;_REENTRANT;_MT"
+                PreprocessorDefinitions="WIN32;_DEBUG;_WINDOWS;-DDEBUG_IDE=1;_REENTRANT;_MT"
                 Optimization="1"
                 FavorSizeOrSpeed="1"
                 RuntimeLibrary="2"
@@ -137,7 +137,7 @@
                 StringPooling="true"
                 MinimalRebuild="true"
                 AdditionalIncludeDirectories="C:/home/mob/git/packages/openssl/openssl-1.0.0a/inc32;C:/home/mob/git/packages/matrixssl/matrixssl-1-8-8-open;../../../src/include/master;../../../out/include;../../../src/include"
-                PreprocessorDefinitions="WIN32;_DEBUG;_WINDOWS;;_REENTRANT;_MT"
+                PreprocessorDefinitions="WIN32;_DEBUG;_WINDOWS;-DDEBUG_IDE=1;_REENTRANT;_MT"
                 Optimization="0"
                 FavorSizeOrSpeed="1"
                 BasicRuntimeChecks="3"
@@ -162,7 +162,7 @@
         <Filter
             Name="Header Files"
             Filter="h;hpp;hxx;hm;inl;inc;xsd"
-            UniqueIdentifier="{938233f5-e087-4d14-8b65-98808ab26229}"
+            UniqueIdentifier="{e0c195c9-4ac4-46d3-a274-195ad06632f2}"
             >
             <File
                 RelativePath="..\..\..\out\buildConfig.h"
@@ -192,7 +192,7 @@
         <Filter
             Name="Source Files"
             Filter="cpp;c;cc;cxx;def;odl;idl;hpj;bat;asm;asmx"
-            UniqueIdentifier="{df072fcf-7c75-4ce3-bee8-01d8d9155ff9}"
+            UniqueIdentifier="{bc184b9e-1dc3-454c-b1c6-e3c8e0367655}"
             >
             <File
                 RelativePath="..\..\..\src\ssl\mprMatrixssl.c"
