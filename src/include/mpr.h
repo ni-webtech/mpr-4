@@ -526,6 +526,10 @@ extern void mprGlobalUnlock();
 #endif
 #endif
 
+#if FUTURE && KEEP
+#define MPR_ALLOC_MAX_BLOCK         ((uint)((INT64(1) << MPR_SIZE_BITS) - 1))
+#endif
+
 /**
     - Not a general purpose 
     - Relies on cooperation from user s/w (managers, yield, make/break)
@@ -579,7 +583,6 @@ typedef struct MprMem {
 
 
 #define MPR_ALLOC_MAGIC             0xe814ecab
-#define MPR_ALLOC_MAX_BLOCK         ((uint)((INT64(1) << MPR_SIZE_BITS) - 1))
 #define MPR_ALLOC_MIN_SPLIT         (32 + sizeof(MprMem))
 #define MPR_ALLOC_ALIGN(x)          (((x) + MPR_ALIGN - 1) & ~(MPR_ALIGN - 1))
 #define MPR_PAGE_ALIGN(x, psize)    ((((size_t) (x)) + ((size_t) (psize)) - 1) & ~(((size_t) (psize)) - 1))

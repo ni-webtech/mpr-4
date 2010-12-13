@@ -962,10 +962,12 @@ static MprMem *growHeap(size_t required)
     rsize = MPR_ALLOC_ALIGN(sizeof(MprRegion));
     size = max(required + rsize, (size_t) heap->chunkSize);
     size = MPR_PAGE_ALIGN(size, heap->pageSize);
+#if FUTURE && KEEP
     if (size >= MPR_ALLOC_MAX_BLOCK) {
         mprAssert(size < MPR_ALLOC_MAX_BLOCK);
         return 0;
     }
+#endif
     if ((region = mprVirtAlloc(size, MPR_MAP_READ | MPR_MAP_WRITE)) == NULL) {
         return 0;
     }
