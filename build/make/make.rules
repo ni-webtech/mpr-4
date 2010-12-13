@@ -107,9 +107,9 @@ DO_RECURSE=$(RECURSE)
 #
 ifneq ($(BLD_OS),WIN)
     ifeq ($(BLD_OS),MACOSX)
-        setlibpath = export DYLD_LIBRARY_PATH="$(BLD_BUILD_LIB_DIR):$(BLD_BUILD_MOD_DIR)"
+        setlibpath = export DYLD_LIBRARY_PATH="$(BLD_BIN_DIR):$(BLD_BUILD_LIB_DIR):$(BLD_BUILD_MOD_DIR)"
     else
-        setlibpath = export LD_LIBRARY_PATH="$(BLD_BUILD_LIB_DIR):$(BLD_BUILD_MOD_DIR)"
+        setlibpath = export LD_LIBRARY_PATH="$(BLD_BIN_DIR):$(BLD_BUILD_LIB_DIR):$(BLD_BUILD_MOD_DIR)"
     endif
     ifeq ($(BLD_OS),CYGWIN)
         export PATH:="$(BLD_TOP)/modules:$(PATH)"

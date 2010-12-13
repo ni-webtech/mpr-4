@@ -22,7 +22,7 @@ $(BLD_BIN_DIR)/runProgram$(BLD_EXE): runProgram.c $(BLD_LIB_DIR)/libmpr$(BLD_LIB
 $(BLD_BIN_DIR)/benchMpr$(BLD_EXE): $(OBJECTS) $(BLD_LIB_DIR)/libmpr$(BLD_LIB) $(BLD_OBJ_DIR)/benchMpr$(BLD_OBJ)
 	bld --exe $(BLD_BIN_DIR)/benchMpr$(BLD_EXE) --search "$(BLD_MPR_LIBPATHS)" --libs "$(BLD_MPR_LIBS)" benchMpr
 
-ifneq	($(BUILDING_CROSS),1)
+ifneq	($(BLD_CROSS),1)
 testExtra: 
 	$(BLD_BIN_DIR)/testMpr -v -i 2 --depth $(BUILD_DEPTH)
 	if [ $(BUILD_DEPTH) -ge 3 ] ; then \
@@ -37,7 +37,6 @@ testExtra:
 			$(BLD_BIN_DIR)/testMpr -v -i 2 --threads $$t --depth $(BUILD_DEPTH) ; \
 		done ; \
 	fi
-endif
 
 testFinal:
 	killall testMpr >/dev/null 2>&1 ; true
@@ -52,6 +51,7 @@ benchExtra:
 	echo "# Benchmarking $(BLD_PRODUCT).mpr"
 	./benchMpr$(BLD_EXE) -T 0 | tee ../../images/benchmarks/mpr.csv ; \
 	./benchMpr$(BLD_EXE) -T 20 -e | tee -a ../../images/benchmarks/mpr.csv
+endif
 
 cleanExtra:
 	rm -f benchMpr$(BLD_EXE) trace*.txt *.txt.old testMpr$(BLD_LIB)

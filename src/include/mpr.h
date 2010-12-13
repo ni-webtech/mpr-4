@@ -511,11 +511,19 @@ extern void mprGlobalUnlock();
 #if MPR_64_BIT
     #define MPR_ALIGN               16
     #define MPR_ALIGN_SHIFT         4
+#if UNUSED
     #define MPR_SIZE_BITS           53
+#else
+    #define MPR_SIZE_BITS           64
+#endif
 #else
     #define MPR_ALIGN               8
     #define MPR_ALIGN_SHIFT         3
+#if UNUSED
     #define MPR_SIZE_BITS           21
+#else
+    #define MPR_SIZE_BITS           32
+#endif
 #endif
 
 /**
@@ -545,7 +553,9 @@ extern void mprGlobalUnlock();
  */
 typedef struct MprMem {
     struct MprMem   *prior;                     /**< Size of block prior to this block in memory */
-    size_t          size       : MPR_SIZE_BITS; /**< Internal block length including header (max size 16MB on 32 bit) */
+    //  MOB - pack
+    size_t          size    /* : MPR_SIZE_BITS*/; /**< Internal block length including header (max size 16MB on 32 bit) */
+    //  MOB - 8 bits
     uint            free       : 1;             /**< Block is free */
     uint            gen        : 2;             /**< Allocation generation for block */
     uint            hasManager : 1;             /**< Block has a manager function */
@@ -569,6 +579,7 @@ typedef struct MprMem {
 
 
 #define MPR_ALLOC_MAGIC             0xe814ecab
+#define MPR_ALLOC_MAX_BLOCK         ((uint)((INT64(1) << MPR_SIZE_BITS) - 1))
 #define MPR_ALLOC_MIN_SPLIT         (32 + sizeof(MprMem))
 #define MPR_ALLOC_ALIGN(x)          (((x) + MPR_ALIGN - 1) & ~(MPR_ALIGN - 1))
 #define MPR_PAGE_ALIGN(x, psize)    ((((size_t) (x)) + ((size_t) (psize)) - 1) & ~(((size_t) (psize)) - 1))
@@ -591,10 +602,13 @@ typedef struct MprMem {
  */
 #define MPR_ALLOC_BIG               (32 * 1024)
 #define MPR_REGION_MIN_SIZE         MPR_MEM_CHUNK_SIZE
+
+#if UNUSED
 #if BLD_TUNE == MPR_TUNE_SPEED
     #define MPR_REGION_MAX_SIZE     (4 * 1024 * 1024)
 #else
     #define MPR_REGION_MAX_SIZE     MPR_REGION_MIN_SIZE
+#endif
 #endif
 
 /*
