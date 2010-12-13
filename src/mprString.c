@@ -745,7 +745,7 @@ char *supper(cchar *str)
 
     mprAssert(str);
     if (str) {
-        s = sclone(s);
+        s = sclone(str);
         for (cp = s; *cp; cp++) {
             if (islower((int) *cp)) {
                 *cp = (char) toupper((int) *cp);
