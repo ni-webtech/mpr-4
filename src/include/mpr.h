@@ -581,9 +581,15 @@ typedef struct MprMem {
 #define MPR_GET_MEM(ptr)            ((MprMem*) (((char*) (ptr)) - sizeof(MprMem)))
 
 /*
+    GC Object generations
+ */
+#define MPR_GEN_ETERNAL             3           /**< Builtin objects that live forever */
+#define MPR_MAX_GEN                 3           /**< Number of generations for object allocation */
+
+/*
     Max/min O/S allocation chunk sizes
  */
-#define MPR_ALLOC_RETURN            (32 * 1024)
+#define MPR_ALLOC_BIG               (32 * 1024)
 #define MPR_REGION_MIN_SIZE         MPR_MEM_CHUNK_SIZE
 #if BLD_TUNE == MPR_TUNE_SPEED
     #define MPR_REGION_MAX_SIZE     (4 * 1024 * 1024)
@@ -617,25 +623,17 @@ typedef struct MprMem {
 #endif
 
 /*
-    Flags for mprAllocBlock
- */
-#define MPR_ALLOC_MANAGER           0x1         /**< Reserve room for a manager */
-#define MPR_ALLOC_ZERO              0x2         /**< Zero memory */
-#define MPR_ALLOC_PAD_MASK          0x1         /**< Flags that impact padding */
-
-/*
     Flags for MprMemNotifier
  */
-#define MPR_ALLOC_GC                0x1         /**< System would benefit from a garbage collection */
-#define MPR_ALLOC_YIELD             0x2         /**< GC complete, threads must yield to sync new generation */
-#define MPR_ALLOC_LOW               0x4         /**< Memory is low, no errors yet */
-#define MPR_ALLOC_DEPLETED          0x8         /**< Memory depleted. Cannot satisfy current request */
+#define MPR_MEM_GC                  0x1         /**< System would benefit from a garbage collection */
+#define MPR_MEM_YIELD               0x2         /**< GC complete, threads must yield to sync new generation */
+#define MPR_MEM_LOW                 0x4         /**< Memory is low, no errors yet */
+#define MPR_MEM_DEPLETED            0x8         /**< Memory depleted. Cannot satisfy current request */
 
 /*
-    GC Object generations
+    Return values for MprMemNotifier callback
  */
-#define MPR_GEN_ETERNAL             3           /**< Builtin objects that live forever */
-#define MPR_MAX_GEN                 3           /**< Number of generations for object allocation */
+#define MPR_DELAY_GC                0x1         /**< Delay GC */
 
 /**
     Memory allocation error callback. Notifiers are called if mprSetNotifier has been called on a context and a 
@@ -644,13 +642,11 @@ typedef struct MprMem {
     @param total Total bytes allocated.
     @param granted Set to true if the request was actually granted, but the application is now exceeding its redline
         memory limit.
+    @return Return MPR_DELAY_GC if the notification is MPR_MEM_GC and delayed garbage collection is required. Otherwise,
+        return zero.
     @ingroup MprMem
  */
-typedef void (*MprMemNotifier)(int flags, size_t size);
-
-#if UNUSED
-typedef void (*MprMemCollect)();
-#endif
+typedef int (*MprMemNotifier)(int flags, size_t size);
 
 /**
     Mpr memory block manager prototype
@@ -731,9 +727,6 @@ typedef struct MprHeap {
     size_t          bucketMap[MPR_ALLOC_NUM_GROUPS];
     struct MprList  *roots;                 /**< List of GC root objects */
     MprMemStats     stats;
-#if UNUSED
-    MprMemCollect   collect;                /**< Memory garbage collection due */
-#endif
     MprMemNotifier  notifier;               /**< Memory allocation failure callback */
     MprSpin         heapLock;               /**< Heap allocation lock */
     MprSpin         rootLock;               /**< Root locking */
@@ -744,16 +737,18 @@ typedef struct MprHeap {
     int             active;                 /**< Active generation for new and active blocks */
     int             allocPolicy;            /**< Memory allocation depletion policy */
     int             chunkSize;              /**< O/S memory allocation chunk size */
-    uint            cleanup;                /**< Garbage collection needed */
     int             collecting;             /**< GC is running */
     int             destroying;             /**< Destroying the heap */
     int             enabled;                /**< GC is enabled */
+    int             flags;                  /**< GC operational control flags */
+    int             from;                   /**< Eligible mprCollectGarbage flags */
     int             hasError;               /**< Memory allocation error */
     int             hasSweeper;             /**< Has dedicated sweeper thread */
     int             mustYield;              /**< Threads must yield for GC which is due */
-    int             nextSeqno;              /**< Next sequence number */
+    uint            notified;               /**< Memory notifier has been informed */
     int             newCount;               /**< Count of new gen allocations */
     int             newQuota;               /**< Quota of new allocations before idle GC worthwhile */
+    int             nextSeqno;              /**< Next sequence number */
     uint            pageSize;               /**< System page size */
     uint            rescanRoots;            /**< Root set has changed. Must rescan */
 } MprHeap;
@@ -764,17 +759,19 @@ typedef struct MprHeap {
     @param manager Memory manager to manage the Mpr object
     @return The Mpr control structure
  */
-extern struct Mpr *mprCreateMemService(MprMemNotifier cback, MprManager manager);
+extern struct Mpr *mprCreateMemService(MprManager manager, int flags);
 
 /**
     Destroy the memory service. Called as the last thing before exiting
  */
 extern void mprDestroyMemService();
 
-/**
-    Start the memory garbage collector
+/*
+    Flags for mprAllocBlock
  */
-extern int mprStartMemService();
+#define MPR_ALLOC_MANAGER           0x1         /**< Reserve room for a manager */
+#define MPR_ALLOC_ZERO              0x2         /**< Zero memory */
+#define MPR_ALLOC_PAD_MASK          0x1         /**< Flags that impact padding */
 
 /**
     Allocate a block of memory.
@@ -822,7 +819,7 @@ extern MprMemStats *mprGetMemStats();
     amount of allocated heap memory.
     @returns the amount of memory used by the application in bytes.
  */
-extern size_t mprGetUsedMemory();
+extern size_t mprGetMem();
 
 /**
     Get the current O/S virtual page size
@@ -1067,20 +1064,28 @@ extern void mprCheckBlock(MprMem *bp);
  */
 extern void mprAddRoot(void *ptr);
 
-#define MPR_GC_CHECK    1
-#define MPR_GC_ONE      2
-#define MPR_GC_ALL      3
+/*
+    Flags for mprCollectGarbage()
+ */
+#define MPR_GC_FROM_EVENTS  0x1     /**<  */
+#define MPR_GC_FROM_SEARCH  0x2     /**<  */
+#define MPR_GC_FROM_USER    0x4     /**<  */
+#define MPR_GC_FROM_WORKER  0x8     /**<  */
+#define MPR_GC_FORCE        0x10    /**<  */
+#define MPR_GC_FROM_ALL     0xf     /**<  */
 
 /**
     Collect garbage
-    @description Initiates garbage collection to free unreachable memory blocks. If worker and sweeper threads 
-        are configured, this call may return before collection is complete. A single garbage collection may not 
-        free all memory. Use mprCollectAllGarbage to free all memory blocks.
-    @param kind Set to MPR_GC_CHECK to check if garbage needs collecting and collect only if worthwhile. Set to
-        MPR_GC_ONE to do one sweep for garbage. This will not collect all garbage. Set to MPR_GC_ALL to do three
-        sweeps and thus collect all possible garbage.
+    @description Initiates garbage collection to free unreachable memory blocks. This call may return before collection 
+    is complete if garbage collection has been configured via mprCreate() to use dedicated threads for collection. 
+    A single garbage collection may not free all memory. Use mprCollectAllGarbage to free all memory blocks.
+    @param flags Flags to control the collection. Set flags to MPR_GC_FORCE to force one sweep. Set to zero
+    to perform a conditional sweep where the sweep is only performed if there is sufficient garbage to warrant a collection.
+    Other flags include MPR_GC_FROM_EVENTS which must be specified if calling mprCollectGarbage from a routine that 
+    also blocks on mprServiceEvents. Similarly, use MPR_GC_FROM_OWN if managing garbage collections manually.
   */
-extern void mprCollectGarbage(int kind);
+extern void mprCollectGarbage(int flags);
+extern void mprCollectAllGarbage();
 
 /**
     Enable or disable the garbage collector
@@ -1143,8 +1148,7 @@ extern void mprMarkBlock(cvoid *ptr);
 extern void mprEternalize(void *ptr);
 extern int  mprCreateGCService();
 extern void mprDestroyGCService();
-extern int  mprIsTimeForGC(int timeTillNextEvent);
-extern int  mprGCSyncup();
+extern int  mprWaitForSync();
 extern int  mprPauseForGCSync(int timeout);
 extern void mprResumeThreadsAfterGC();
 
@@ -1334,7 +1338,7 @@ extern size_t slen(cchar *str);
     @param str String to convert.
     @ingroup MprString
  */
-extern void slower(char *str);
+extern char *slower(char *str);
 
 /**
     Compare strings ignoring case.
@@ -1465,14 +1469,16 @@ extern char *stok(char *str, cchar *delim, char **last);
  */
 extern char *ssub(char *str, size_t offset, size_t length);
 
+//  MOB - should slower, supper, wlower, wupper allocate a new string?
 /**
     Convert a string to upper case.
+    This modifies the original string.
     @description Convert a string to its upper case equivalent.
     @param str String to convert.
     @return Returns a pointer to the converted string. Will always equal str.
     @ingroup MprString
  */
-extern void supper(char *s);
+extern char *supper(char *s);
 
 /**
     Trim a string.
@@ -1513,6 +1519,8 @@ extern uint     whashlower(MprChar *name, size_t len);
 extern MprChar *wjoin(MprChar *sep, ...);
 extern MprChar *wjoinv(MprChar *sep, va_list args);
 extern size_t   wlen(MprChar *s);
+
+//  MOB - should slower, supper, wlower, wupper allocate a new string?
 extern MprChar *wlower(MprChar *s);
 extern int      wncasecmp(MprChar *s1, MprChar *s2, size_t len);
 extern int      wncmp(MprChar *s1, MprChar *s2, size_t len);
@@ -2880,7 +2888,7 @@ extern int mprGetHashCount(MprHashTable *table);
     @return Value associated with the key when the entry was inserted via mprInsertSymbol.
     @ingroup MprHash
  */
-extern cvoid *mprLookupHash(MprHashTable *table, cvoid *key);
+extern void *mprLookupHash(MprHashTable *table, cvoid *key);
 
 /**
     Lookup a symbol in the hash table and return the hash entry
@@ -3889,6 +3897,7 @@ extern void mprUnloadModule(MprModule *mp);
  */
 #define MPR_EVENT_CONTINUOUS    0x1
 #define MPR_EVENT_STATIC        0x2
+#define MPR_EVENT_NO_THREAD     0x4
 
 /**
     Event callback function
@@ -4218,6 +4227,7 @@ typedef struct MprThread {
     int             isMain;             /**< Is the main thread */
     int             priority;           /**< Current priority */
     int             stackSize;          /**< Only VxWorks implements */
+    int             stickyYield;        /**< Yielded does not auto-clear after GC */
     int             yielded;            /**< Thread has yielded to GC */
 } MprThread;
 
@@ -4329,6 +4339,9 @@ extern void mprSetThreadPriority(MprThread *thread, int priority);
  */
 extern int mprStartThread(MprThread *thread);
 
+//  MOB DOC
+extern void mprYieldThread(MprThread *tp);
+
 /*
     Somewhat internal APIs
  */
@@ -4338,9 +4351,11 @@ extern void mprSetThreadStackSize(int size);
 extern int mprSetThreadData(MprThreadLocal *tls, void *value);
 extern void *mprGetThreadData(MprThreadLocal *tls);
 extern MprThreadLocal *mprCreateThreadLocal();
+extern void mprSetStickyYield(MprThread *tp, int enable);
 
-extern void mprYieldThread(MprThread *tp);
+#if UNUSED
 extern void mprResumeThread(MprThread *tp);
+#endif
 
 /******************************************************** I/O Wait *********************************************************/
 /*
@@ -5644,7 +5659,10 @@ typedef struct Mpr {
     char            *appPath;               /**< Path name of application executable */
     char            *appDir;                /**< Path of directory containing app executable */
     int             flags;                  /**< Processing state */
+#if UNUSED
     int             hasDedicatedService;    /**< Running a dedicated events thread */
+#endif
+    int             hasError;               /**< Mpr has an initialization error */
     int             logFd;                  /**< Logging file descriptor */
 
     /*
@@ -5665,6 +5683,7 @@ typedef struct Mpr {
     void            *ejsService;            /**< Ejscript service */
     void            *httpService;           /**< Http service object */
     void            *appwebService;         /**< Appweb service object */
+    void            *testService;           /**< Test service object */
     MprIdleCallback idleCallback;           /**< Invoked to determine if the process is idle */
     MprOsThread     mainOsThread;           /**< Main OS thread ID */
     MprMutex        *mutex;                 /**< Thread synchronization */
@@ -5690,6 +5709,18 @@ extern Mpr *mprGetMpr();
     extern Mpr *MPR;
 #endif
 
+#define MPR_MARK_THREAD         0x1         /**< Start a dedicated marker thread for garbage collection */
+#define MPR_SWEEP_THREAD        0x2         /**< Start a dedicated sweeper thread for garbage collection */
+#define MPR_EVENTS_THREAD       0x4         /**< Invoke garbage collection from within mprServiceEvents */
+#define MPR_USER_EVENTS_THREAD  0x8         /**< User will explicitly manage own mprServiceEvents calls */
+#define MPR_USER_GC             0x10        /**< User will managed garbage collection explicitly */
+
+#if BLD_TUNE == MPR_TUNE_SPEED
+    #define MPR_THREAD_PATTERN (MPR_MARK_THREAD | MPR_SWEEP_THREAD)
+#else
+    #define MPR_THREAD_PATTERN (MPR_MARK_THREAD)
+#endif
+
 /**
     Create an instance of the MPR.
     @description Initializes the MPR and creates an Mpr control object. The Mpr Object manages all MPR facilities 
@@ -5697,12 +5728,12 @@ extern Mpr *mprGetMpr();
     @param argc Count of command line args
     @param argv Command line arguments for the application. Arguments may be passed into the Mpr for retrieval
         by the unit test framework.
-    @param cback Memory allocation failure notification callback.
+    @param flags
     @return Returns a pointer to the Mpr object. 
     @stability Evolving.
     @ingroup Mpr
  */
-extern Mpr *mprCreate(int argc, char **argv, MprMemNotifier cback);
+extern Mpr *mprCreate(int argc, char **argv, int flags);
 
 /**
     Start the Mpr services

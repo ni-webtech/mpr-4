@@ -67,6 +67,7 @@ typedef struct MprTestService {
     int             echoCmdLine;            /* Echo the command line */
     int             firstArg;               /* Count of arguments */
     MprList         *groups;                /* Master list of test groups */
+    MprList         *threadData;            /* Per thread objects */
     int             iterations;             /* Times to run the test */
     bool            singleStep;             /* Pause between tests */
     cchar           *name;                  /* Name for entire test */

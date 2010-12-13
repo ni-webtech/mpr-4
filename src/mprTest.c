@@ -1,5 +1,5 @@
 /*
-    mprTestLib.c - Embedthis Unit Test Framework Library
+    mprTest.c - Embedthis Unit Test Framework
 
     Copyright (c) All Rights Reserved. See details at the end of the file.
  */
@@ -36,11 +36,13 @@ MprTestService *mprCreateTestService()
     if ((sp = mprAllocObj(MprTestService, manageTestService)) == 0) {
         return 0;
     }
+    MPR->testService = sp;
     sp->iterations = 1;
     sp->numThreads = 1;
     sp->workers = 0;
     sp->testFilter = mprCreateList();
     sp->groups = mprCreateList();
+    sp->threadData = mprCreateList();
     sp->start = mprGetTime();
     sp->mutex = mprCreateLock();
     return sp;
@@ -49,11 +51,18 @@ MprTestService *mprCreateTestService()
 
 static void manageTestService(MprTestService *ts, int flags)
 {
+    MprList     *lp;
+    int         next;
+    
     if (flags & MPR_MANAGE_MARK) {
         mprMark(ts->commandLine);
-        mprMark(ts->groups);
         mprMark(ts->mutex);
-        mprMark(ts->testFilter);
+        mprMarkList(ts->groups);
+        mprMarkList(ts->testFilter);
+        mprMark(ts->threadData);
+        for (next = 0; (lp = mprGetNextItem(ts->threadData, &next)) != 0; ) {
+            mprMarkList(lp);
+        }
     }
 }
 
@@ -268,7 +277,6 @@ static int loadModule(MprTestService *sp, cchar *fileName)
     if (mprLookupModule(sp, base)) {
         return 0;
     }
-                
     mprSprintf(entry, sizeof(entry), "%sInit", base);
 
     if (fileName[0] == '/' || (*fileName && fileName[1] == ':')) {
@@ -289,6 +297,8 @@ int mprRunTests(MprTestService *sp)
 {
     MprTestGroup    *gp;
     MprThread       *tp;
+    MprList         *lp;
+    char            tName[64];
     int             next, i;
 
     /*
@@ -312,12 +322,11 @@ int mprRunTests(MprTestService *sp)
         Create worker threads for each test thread. 
      */
     for (i = 0; i < sp->numThreads; i++) {
-        MprList     *lp;
-        char        tName[64];
-
         mprSprintf(tName, sizeof(tName), "test.%d", i);
-        lp = copyGroups(sp, sp->groups);
-        if (lp == 0) {
+        if ((lp = copyGroups(sp, sp->groups)) == 0) {
+            return MPR_ERR_MEMORY;
+        }
+        if (mprAddItem(sp->threadData, lp) < 0) {
             return MPR_ERR_MEMORY;
         }
         /*
@@ -336,13 +345,8 @@ int mprRunTests(MprTestService *sp)
             return MPR_ERR_CANT_INITIALIZE;
         }
     }
-    // mprSleep(sp, 999999);
-
-    /*
-        Wait for all the threads to complete (simple but effective)
-     */
-    while (sp->activeThreadCount > 0) {
-        mprServiceEvents(NULL, 250, 0);
+    while (!mprIsComplete()) {
+        mprServiceEvents(NULL, -1, 0);
     }
     return (sp->totalFailedCount == 0) ? 0 : 1;
 }
@@ -466,9 +470,7 @@ MprTestGroup *mprAddTestGroup(MprTestService *sp, MprTestDef *def)
     if (gp == 0) {
         return 0;
     }
-
     if (mprAddItem(sp->groups, gp) < 0) {
-        mprFree(gp);
         return 0;
     }
     return gp;
@@ -482,8 +484,7 @@ static void manageTestGroup(MprTestGroup *gp, int flags)
         mprMark(gp->fullName);
         mprMarkList(gp->failures);
         mprMarkList(gp->groups);
-        mprMarkList(gp->cases);
-        mprMark(gp->def);
+        mprMark(gp->cases);
         mprMark(gp->cond);
         mprMark(gp->cond2);
         mprMark(gp->conn);
@@ -742,11 +743,8 @@ static void runTestProc(MprTestGroup *gp, MprTestCase *test)
                 mprPrintf("%12s Skipping test: \"%s.%s\": \n", "[Skip]", gp->fullName, test->name);
             }
         }
-        
     } else {
-        /*
-            The function is part of the enclosing MprTest group
-         */
+        mprCollectGarbage(MPR_GC_FROM_USER);
         mprResetCond(gp->cond);
         (test->proc)(gp);
     
@@ -860,6 +858,9 @@ static void adjustThreadCount(MprTestService *sp, int adj)
 {
     mprLock(sp->mutex);
     sp->activeThreadCount += adj;
+    if (sp->activeThreadCount <= 0) {
+        mprTerminate(MPR_GRACEFUL);
+    }
     mprUnlock(sp->mutex);
 }
 

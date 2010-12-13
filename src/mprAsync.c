@@ -108,7 +108,6 @@ void mprWaitForIO(MprWaitService *ws, int timeout)
             mprDoWaitRecall(ws);
             return;
         }
-        ws->willAwake = MPR->eventService->now + timeout;
         SetTimer(ws->hwnd, 0, timeout, NULL);
 
         if (GetMessage(&msg, NULL, 0, 0) == 0) {

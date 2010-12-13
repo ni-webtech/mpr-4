@@ -58,7 +58,7 @@ extern "C" {
     #define MPR_TIME_HASH_SIZE      67            /**< Hash size for time token lookup */
     #define MPR_MEM_CHUNK_SIZE      (128 * 1024)  /**< Memory allocation chunk size */
     #define MPR_GC_LOW_MEM          (32 * 1024)   /**< Free memory low water mark before invoking GC */
-    #define MPR_NEW_QUOTA           500           /**< new allocations before a GC is worthwhile */
+    #define MPR_NEW_QUOTA           (4 * 1024)    /**< new allocations before a GC is worthwhile */
     #define MPR_GC_WORKERS          0             /**< Run garbage collection non-concurrently */
     
 #elif BLD_TUNE == MPR_TUNE_BALANCED
@@ -86,7 +86,7 @@ extern "C" {
     #define MPR_TIME_HASH_SIZE      89
     #define MPR_MEM_CHUNK_SIZE      (256 * 1024)
     #define MPR_GC_LOW_MEM          (64 * 1024)
-    #define MPR_NEW_QUOTA           500 
+    #define MPR_NEW_QUOTA           (16 * 1024) 
     #define MPR_GC_WORKERS          1
     
 #else
@@ -113,7 +113,7 @@ extern "C" {
     #define MPR_TIME_HASH_SIZE      97
     #define MPR_MEM_CHUNK_SIZE      (1024 * 1024)
     #define MPR_GC_LOW_MEM          (128 * 1024)
-    #define MPR_NEW_QUOTA           500 
+    #define MPR_NEW_QUOTA           (1024 * 32) 
     #define MPR_GC_WORKERS          2
 #endif
 
@@ -214,8 +214,8 @@ extern "C" {
 /*
     Garbage collector tuning
  */
-#define MPR_MIN_TIME_FOR_GC     2               /**< Wait till 2 milliseconds of idle time possible */
-#define MPR_GC_TIMEOUT          50              /**< Cond var timeout */
+#define MPR_MIN_TIME_FOR_GC     2                               /**< Wait till 2 milliseconds of idle time possible */
+#define MPR_GC_TIMEOUT          (3600 * MPR_TICKS_PER_SEC)      /**< Cond var timeout */
     
 #ifdef __cplusplus
 }

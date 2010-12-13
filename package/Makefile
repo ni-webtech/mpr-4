@@ -42,14 +42,15 @@ $(INC_DEST)/mprSsl.h: Makefile $(HEADERS)
 	cp ../src/include/mprSsl.h $(INC_DEST)/mprSsl.h
 
 $(DEST)/mprLib.c: Makefile $(HEADERS) $(MPR_SOURCES)
-	echo -e '#define BLD_MPRLIB 1\n#define MPR_IN_MEM 1\n#include "mpr.h"' >$(DEST)/mprLib.c
+	echo -e '#include "mpr.h"' >$(DEST)/mprLib.c
 	dist $(MPR_SOURCES) | egrep -v '#inc.*mpr' >>$(DEST)/mprLib.c
 
 $(DEST)/makerom.c: Makefile ../src/utils/makerom.c
 	cp ../src/utils/makerom.c $(DEST)/makerom.c
 
 $(DEST)/mprSsl.c: Makefile ../src/include/mprSsl.h $(HEADERS) $(SSL_SOURCES)
-	dist $(HEADERS) $(SSL_SOURCES) | egrep -v '#inc.*mpr' >$(DEST)/mprSsl.c
+	echo -e '#include "mpr.h"' >$(DEST)/mprSsl.c
+	dist $(SSL_SOURCES) | egrep -v '#inc.*mpr' >>$(DEST)/mprSsl.c
 
 $(DEST)/angel.c: Makefile ../src/angel.c
 	cp ../src/angel.c $(DEST)/angel.c

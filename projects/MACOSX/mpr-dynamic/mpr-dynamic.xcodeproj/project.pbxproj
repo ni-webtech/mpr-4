@@ -56,7 +56,6 @@
 		C90A1A890FD6DF4D006A9E86 /* mprMatrixssl.c in Sources */ = {isa = PBXBuildFile; fileRef = C90A1A860FD6DF4D006A9E86 /* mprMatrixssl.c */; };
 		C90A1A8A0FD6DF4D006A9E86 /* mprOpenssl.c in Sources */ = {isa = PBXBuildFile; fileRef = C90A1A870FD6DF4D006A9E86 /* mprOpenssl.c */; };
 		C90A1A8B0FD6DF4D006A9E86 /* mprSsl.c in Sources */ = {isa = PBXBuildFile; fileRef = C90A1A880FD6DF4D006A9E86 /* mprSsl.c */; };
-		C90A1AF40FD6E319006A9E86 /* testAlloc.c in Sources */ = {isa = PBXBuildFile; fileRef = C90A1AE30FD6E319006A9E86 /* testAlloc.c */; };
 		C90A1AF50FD6E319006A9E86 /* testBuf.c in Sources */ = {isa = PBXBuildFile; fileRef = C90A1AE40FD6E319006A9E86 /* testBuf.c */; };
 		C90A1AF60FD6E319006A9E86 /* testCmd.c in Sources */ = {isa = PBXBuildFile; fileRef = C90A1AE50FD6E319006A9E86 /* testCmd.c */; };
 		C90A1AF70FD6E319006A9E86 /* testCond.c in Sources */ = {isa = PBXBuildFile; fileRef = C90A1AE60FD6E319006A9E86 /* testCond.c */; };
@@ -71,6 +70,7 @@
 		C90A1B020FD6E319006A9E86 /* testSprintf.c in Sources */ = {isa = PBXBuildFile; fileRef = C90A1AF10FD6E319006A9E86 /* testSprintf.c */; };
 		C90A1B030FD6E319006A9E86 /* testTime.c in Sources */ = {isa = PBXBuildFile; fileRef = C90A1AF20FD6E319006A9E86 /* testTime.c */; };
 		C90A1B040FD6E319006A9E86 /* testUnicode.c in Sources */ = {isa = PBXBuildFile; fileRef = C90A1AF30FD6E319006A9E86 /* testUnicode.c */; };
+		C940B30C12B3610700B75D63 /* libmpr.dylib in Frameworks */ = {isa = PBXBuildFile; fileRef = C90A19EE0FD6DCAD006A9E86 /* libmpr.dylib */; };
 		C941899512ADC7FE00AD31B5 /* mprMem.c in Sources */ = {isa = PBXBuildFile; fileRef = C941899212ADC7FE00AD31B5 /* mprMem.c */; };
 		C941899612ADC7FE00AD31B5 /* mprMixed.c in Sources */ = {isa = PBXBuildFile; fileRef = C941899312ADC7FE00AD31B5 /* mprMixed.c */; };
 		C941899712ADC7FE00AD31B5 /* mprWide.c in Sources */ = {isa = PBXBuildFile; fileRef = C941899412ADC7FE00AD31B5 /* mprWide.c */; };
@@ -84,13 +84,12 @@
 		C9EAE707110A61C10062863F /* mprEncode.c in Sources */ = {isa = PBXBuildFile; fileRef = C9EAE705110A61C10062863F /* mprEncode.c */; };
 		C9EAE708110A61C10062863F /* mprEpoll.c in Sources */ = {isa = PBXBuildFile; fileRef = C9EAE706110A61C10062863F /* mprEpoll.c */; };
 		C9EAE70A110A61D00062863F /* dtoa.c in Sources */ = {isa = PBXBuildFile; fileRef = C9EAE709110A61D00062863F /* dtoa.c */; };
+		C9EC264A12B18D220087E7D9 /* testMem.c in Sources */ = {isa = PBXBuildFile; fileRef = C9EC264812B18D220087E7D9 /* testMem.c */; };
 		C9F3AA711252431200183E33 /* libmatrixsslstatic.a in Frameworks */ = {isa = PBXBuildFile; fileRef = C9F8E4B6102B659C00492AB2 /* libmatrixsslstatic.a */; };
 		C9F3AAA61252447B00183E33 /* libmpr.dylib in Frameworks */ = {isa = PBXBuildFile; fileRef = C90A19EE0FD6DCAD006A9E86 /* libmpr.dylib */; };
 		C9F3AAAA1252449F00183E33 /* libmprssl.dylib in Frameworks */ = {isa = PBXBuildFile; fileRef = C90A19FE0FD6DCD8006A9E86 /* libmprssl.dylib */; };
 		C9F3AAAB125244AB00183E33 /* libmpr.dylib in Frameworks */ = {isa = PBXBuildFile; fileRef = C90A19EE0FD6DCAD006A9E86 /* libmpr.dylib */; };
 		C9F3AAAC125244AB00183E33 /* libmprssl.dylib in Frameworks */ = {isa = PBXBuildFile; fileRef = C90A19FE0FD6DCD8006A9E86 /* libmprssl.dylib */; };
-		C9F3AAFA1252462A00183E33 /* libmpr.dylib in Frameworks */ = {isa = PBXBuildFile; fileRef = C90A19EE0FD6DCAD006A9E86 /* libmpr.dylib */; };
-		C9F3AAFB1252462A00183E33 /* libmprssl.dylib in Frameworks */ = {isa = PBXBuildFile; fileRef = C90A19FE0FD6DCD8006A9E86 /* libmprssl.dylib */; };
 		C9F3AAFD1252464800183E33 /* runProgram.c in Sources */ = {isa = PBXBuildFile; fileRef = C9F3AAFC1252464800183E33 /* runProgram.c */; };
 		C9FA8F8B124906F000FEAFE2 /* benchMpr.c in Sources */ = {isa = PBXBuildFile; fileRef = C9FA8F8A124906F000FEAFE2 /* benchMpr.c */; };
 /* End PBXBuildFile section */
@@ -176,7 +175,6 @@
 		C90A1ACE0FD6E2A4006A9E86 /* testMpr */ = {isa = PBXFileReference; explicitFileType = "compiled.mach-o.executable"; includeInIndex = 0; path = testMpr; sourceTree = BUILT_PRODUCTS_DIR; };
 		C90A1ADF0FD6E2EF006A9E86 /* charGen.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; name = charGen.c; path = ../../../src/utils/charGen.c; sourceTree = SOURCE_ROOT; };
 		C90A1AE10FD6E2EF006A9E86 /* makerom.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; name = makerom.c; path = ../../../src/utils/makerom.c; sourceTree = SOURCE_ROOT; };
-		C90A1AE30FD6E319006A9E86 /* testAlloc.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; name = testAlloc.c; path = ../../../src/test/testAlloc.c; sourceTree = SOURCE_ROOT; };
 		C90A1AE40FD6E319006A9E86 /* testBuf.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; name = testBuf.c; path = ../../../src/test/testBuf.c; sourceTree = SOURCE_ROOT; };
 		C90A1AE50FD6E319006A9E86 /* testCmd.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; name = testCmd.c; path = ../../../src/test/testCmd.c; sourceTree = SOURCE_ROOT; };
 		C90A1AE60FD6E319006A9E86 /* testCond.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; name = testCond.c; path = ../../../src/test/testCond.c; sourceTree = SOURCE_ROOT; };
@@ -203,6 +201,7 @@
 		C9EAE705110A61C10062863F /* mprEncode.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; name = mprEncode.c; path = ../../../src/mprEncode.c; sourceTree = SOURCE_ROOT; };
 		C9EAE706110A61C10062863F /* mprEpoll.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; name = mprEpoll.c; path = ../../../src/mprEpoll.c; sourceTree = SOURCE_ROOT; };
 		C9EAE709110A61D00062863F /* dtoa.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; name = dtoa.c; path = ../../../src/deps/dtoa.c; sourceTree = SOURCE_ROOT; };
+		C9EC264812B18D220087E7D9 /* testMem.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; name = testMem.c; path = ../../../src/test/testMem.c; sourceTree = SOURCE_ROOT; };
 		C9F3AAF61252462100183E33 /* runProgram */ = {isa = PBXFileReference; explicitFileType = "compiled.mach-o.executable"; includeInIndex = 0; path = runProgram; sourceTree = BUILT_PRODUCTS_DIR; };
 		C9F3AAFC1252464800183E33 /* runProgram.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; name = runProgram.c; path = ../../../src/test/runProgram.c; sourceTree = SOURCE_ROOT; };
 		C9F8E4B6102B659C00492AB2 /* libmatrixsslstatic.a */ = {isa = PBXFileReference; lastKnownFileType = archive.ar; name = libmatrixsslstatic.a; path = ../../../lib/libmatrixsslstatic.a; sourceTree = SOURCE_ROOT; };
@@ -240,8 +239,7 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				C9F3AAFA1252462A00183E33 /* libmpr.dylib in Frameworks */,
-				C9F3AAFB1252462A00183E33 /* libmprssl.dylib in Frameworks */,
+				C940B30C12B3610700B75D63 /* libmpr.dylib in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -356,8 +354,8 @@
 			isa = PBXGroup;
 			children = (
 				C9FA8F8A124906F000FEAFE2 /* benchMpr.c */,
+				C9EC264812B18D220087E7D9 /* testMem.c */,
 				C9B21F641011D0DD001053BB /* testThread.c */,
-				C90A1AE30FD6E319006A9E86 /* testAlloc.c */,
 				C90A1AE40FD6E319006A9E86 /* testBuf.c */,
 				C90A1AE50FD6E319006A9E86 /* testCmd.c */,
 				C90A1AE60FD6E319006A9E86 /* testCond.c */,
@@ -586,7 +584,6 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				C90A1AF40FD6E319006A9E86 /* testAlloc.c in Sources */,
 				C90A1AF50FD6E319006A9E86 /* testBuf.c in Sources */,
 				C90A1AF60FD6E319006A9E86 /* testCmd.c in Sources */,
 				C90A1AF70FD6E319006A9E86 /* testCond.c in Sources */,
@@ -602,6 +599,7 @@
 				C90A1B030FD6E319006A9E86 /* testTime.c in Sources */,
 				C90A1B040FD6E319006A9E86 /* testUnicode.c in Sources */,
 				C9B21F651011D0DD001053BB /* testThread.c in Sources */,
+				C9EC264A12B18D220087E7D9 /* testMem.c in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -708,7 +706,7 @@
 				GCC_MODEL_TUNING = G5;
 				GCC_OPTIMIZATION_LEVEL = 0;
 				INSTALL_PATH = "";
-				LD_DYLIB_INSTALL_NAME = "/usr/lib/mpr/$(EXECUTABLE_PATH)";
+				LD_DYLIB_INSTALL_NAME = libmpr.dylib;
 				PREBINDING = NO;
 				PRODUCT_NAME = libmpr;
 			};
@@ -747,7 +745,7 @@
 					../../../src/include,
 				);
 				INSTALL_PATH = "";
-				LD_DYLIB_INSTALL_NAME = /usr/lib/mpr/libmprssl.dylib;
+				LD_DYLIB_INSTALL_NAME = libmprssl.dylib;
 				LIBRARY_SEARCH_PATHS = "$(inherited)";
 				PREBINDING = NO;
 				PRODUCT_NAME = libmprssl;
@@ -838,6 +836,9 @@
 				GCC_MODEL_TUNING = G5;
 				GCC_OPTIMIZATION_LEVEL = 0;
 				INSTALL_PATH = /usr/local/bin;
+				LD_RUNPATH_SEARCH_PATHS = "";
+				LINK_WITH_STANDARD_LIBRARIES = YES;
+				OTHER_LDFLAGS = "";
 				PREBINDING = NO;
 				PRODUCT_NAME = runProgram;
 			};

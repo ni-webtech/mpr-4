@@ -18,7 +18,7 @@ MAIN(runProgramMain, int argc, char* argv[])
     int     i, len, exitCode, sofar;
 
     signal(SIGPIPE, SIG_IGN);
-    mpr = mprCreate(argc, argv, NULL);
+    mpr = mprCreate(argc, argv, 0);
 
 #if TRACE_PROGRESS
     MprFile *f = mprOpen("/tmp/r.log", O_CREAT|O_TRUNC|O_WRONLY, 0664);

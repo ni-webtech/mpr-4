@@ -10,27 +10,23 @@
 
 /**************************** Forward Declarations ****************************/
 
-static void memoryNotifier(int flags, size_t size);
 static void manageMpr(Mpr *mpr, int flags);
 static void serviceEventsThread(void *data, MprThread *tp);
+static void startThreads(int flags);
 
 /************************************* Code ***********************************/
 /*
-    Create the MPR service. This routine is the first call an MPR application must do. It creates the top 
-    level memory context.
+    Create and initialize the MPR service.
  */
-Mpr *mprCreate(int argc, char **argv, MprMemNotifier cback)
+Mpr *mprCreate(int argc, char **argv, int flags)
 {
     MprFileSystem   *fs;
     Mpr             *mpr;
     char            *cp;
 
-    if (cback == 0) {
-        cback = memoryNotifier;
-    }
     srand((uint) time(NULL));
 
-    if ((mpr = (Mpr*) mprCreateMemService(cback, (MprManager) manageMpr)) == 0) {
+    if ((mpr = (Mpr*) mprCreateMemService((MprManager) manageMpr, flags)) == 0) {
         mprAssert(mpr);
         return 0;
     }
@@ -59,60 +55,29 @@ Mpr *mprCreate(int argc, char **argv, MprMemNotifier cback)
     } else {
         mpr->name = sclone(BLD_PRODUCT);
     }
-    if (mprCreateTimeService() < 0) {
-        goto error;
-    }
-    if (mprCreateOsService() < 0) {
-        goto error;
-    }
-
-    /*
-        See if any of the preceeding allocations failed and mark all blocks allocated so far as required.
-        They will then be omitted from leak reports.
-     */
-    if (mprHasMemError()) {
-        goto error;
-    }
-    if ((mpr->threadService = mprCreateThreadService()) == 0) {
-        goto error;
-    }
+    mprCreateTimeService();
+    mprCreateOsService();
     mpr->mutex = mprCreateLock();
     mpr->spin = mprCreateSpinLock();
 
-    if ((fs = mprCreateFileSystem("/")) == 0) {
-        goto error;
-    }
+    fs = mprCreateFileSystem("/");
     mprAddFileSystem(fs);
 
-    if ((mpr->moduleService = mprCreateModuleService()) == 0) {
-        goto error;
-    }
-    if ((mpr->eventService = mprCreateEventService()) == 0) {
-        goto error;
-    }
-    if ((mpr->cmdService = mprCreateCmdService()) == 0) {
-        goto error;
-    }
-    if ((mpr->workerService = mprCreateWorkerService()) == 0) {
-        goto error;
-    }
-    if ((mpr->waitService = mprCreateWaitService()) == 0) {
-        goto error;
-    }
-    if ((mpr->socketService = mprCreateSocketService()) == 0) {
-        goto error;
-    }
-    /*
-        Now catch all memory allocation errors up to this point. Should be none.
-     */
-    if (mprHasMemError()) {
-        goto error;
+    mpr->threadService = mprCreateThreadService();
+    mpr->moduleService = mprCreateModuleService();
+    mpr->eventService = mprCreateEventService();
+    mpr->cmdService = mprCreateCmdService();
+    mpr->workerService = mprCreateWorkerService();
+    mpr->waitService = mprCreateWaitService();
+    mpr->socketService = mprCreateSocketService();
+
+    startThreads(flags);
+
+    if (MPR->hasError || mprHasMemError()) {
+        mprFree(mpr);
+        return 0;
     }
     return mpr;
-
-error:
-    mprFree(mpr);
-    return 0;
 }
 
 
@@ -126,6 +91,7 @@ static void manageMpr(Mpr *mpr, int flags)
         mprMark(mpr->dispatcher);
         mprMark(mpr->domainName);
         mprMark(mpr->ejsService);
+        mprMark(mpr->testService);
         mprMark(mpr->httpService);
         mprMark(mpr->appwebService);
         mprMark(mpr->eventService);
@@ -204,11 +170,34 @@ bool mprStop()
 }
 
 
+//  MOB - problem on windows. Causes the message pump to run in a thread that does not own the HWND.
+static void startThreads(int flags)
+{
+    MprThread   *tp;
+
+#if UNUSED
+        mprStartMemService(flags);
+#endif
+    if (flags & MPR_EVENTS_THREAD) {
+        if ((tp = mprCreateThread("events", serviceEventsThread, NULL, 0)) == 0) {
+            MPR->hasError = 1;
+        } else {
+#if UNUSED
+            MPR->hasDedicatedService = 1;
+#endif
+            mprStartThread(tp);
+        }
+    }
+}
+
+
+#if UNUSED
 //  MOB -- is this being used?
 //  MOB - problem on windows. Causes the message pump to run in a thread that does not own the HWND.
 /*
     Thread to service the event queue. Used if the user does not have their own main event loop.
  */
+int mprStartEventsThread()
 int mprStartEventsThread()
 {
     MprThread   *tp;
@@ -221,10 +210,12 @@ int mprStartEventsThread()
     mprStartThread(tp);
     return 0;
 }
+#endif
 
 
 static void serviceEventsThread(void *data, MprThread *tp)
 {
+    mprLog(MPR_CONFIG, "Service thread started");
     mprServiceEvents(NULL, -1, 0);
 }
 
@@ -536,22 +527,6 @@ int mprGetEndian()
     test = 1;
     probe = (char*) &test;
     return (*probe == 1) ? MPR_LITTLE_ENDIAN : MPR_BIG_ENDIAN;
-}
-
-
-/*
-    Default memory handler
- */
-static void memoryNotifier(int flags, size_t size)
-{
-    if (flags & MPR_ALLOC_DEPLETED) {
-        mprPrintfError(NULL, "Can't allocate memory block of size %d\n", size);
-        mprPrintfError(NULL, "Total memory used %d\n", mprGetUsedMemory());
-        exit(255);
-    } else if (flags & MPR_ALLOC_LOW) {
-        mprPrintfError(NULL, "Memory request for %d bytes exceeds memory red-line\n", size);
-        mprPrintfError(NULL, "Total memory used %d\n", mprGetUsedMemory());
-    }
 }
 
 

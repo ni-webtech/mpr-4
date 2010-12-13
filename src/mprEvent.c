@@ -28,6 +28,9 @@ MprEvent *mprCreateEvent(MprDispatcher *dispatcher, cchar *name, int period, Mpr
     if ((event = mprAllocObj(MprEvent, manageEvent)) == 0) {
         return 0;
     }
+    if (dispatcher == 0) {
+        dispatcher = mprGetDispatcher();
+    }
     mprInitEvent(dispatcher, event, name, period, proc, data, flags);
     mprQueueEvent(dispatcher, event);
     return event;
@@ -50,8 +53,8 @@ static void manageEvent(MprEvent *event, int flags)
 /*
     Statically initialize an event
  */
-void mprInitEvent(MprDispatcher *dispatcher, MprEvent *event, cchar *name, int period, MprEventProc proc, 
-        void *data, int flags)
+void mprInitEvent(MprDispatcher *dispatcher, MprEvent *event, cchar *name, int period, MprEventProc proc, void *data, 
+    int flags)
 {
     mprAssert(dispatcher);
     mprAssert(event);

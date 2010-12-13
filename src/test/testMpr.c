@@ -62,7 +62,7 @@ MAIN(testMain, int argc, char *argv[])
     MprTestGroup    *gp;
     int             rc;
 
-    mpr = mprCreate(argc, argv, 0);
+    mpr = mprCreate(argc, argv, MPR_USER_GC);
     setupSignals();
 
 #if VXWORKS || WINCE
@@ -89,7 +89,6 @@ MAIN(testMain, int argc, char *argv[])
         exit(5);
     }
 #endif
-
     if (mprStart(mpr)) {
         mprError("Can't start mpr services");
         exit(4);

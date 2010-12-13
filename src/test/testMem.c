@@ -1,5 +1,5 @@
 /**
-    testAlloc.c - Unit tests for the mprAlloc module
+    testMem.c - Unit tests for the mprMem module
 
     Copyright (c) All Rights Reserved. See details at the end of the file.
  */ 
@@ -9,7 +9,6 @@
 #include    "mprTest.h"
 
 /************************************ Code ************************************/
-
 
 static void testBasicAlloc(MprTestGroup *gp)
 {
@@ -45,10 +44,27 @@ static void testBasicAlloc(MprTestGroup *gp)
 }
 
 
+static void testBigAlloc(MprTestGroup *gp)
+{
+    void    *mp;
+    size_t  memsize, len;
+    
+    memsize = mprGetMem();
+    len = 8 * 1024 * 1024;
+    mp = mprAlloc(len);
+    assert(mp != 0);
+    memset(mp, 0, len);
+    mprFree(mp);
+    //  MOB -- test that this is given back to the O/S
+    assert((mprGetMem() - memsize) < (len * 2));
+    // printf("Used %ld K\n", (mprGetMem() - memsize) / 1024);
+}
+
 
 static void testLotsOfAlloc(MprTestGroup *gp)
 {
     void    *mp;
+    size_t  memsize;
     int     i;
 
     for (i = 0; i < 10000; i++) {
@@ -56,27 +72,21 @@ static void testLotsOfAlloc(MprTestGroup *gp)
         assert(mp != 0);
         mprFree(mp);
     }
-    for (i = 2; i < (2 * 1024 * 1024); i *= 2) {
+    memsize = mprGetMem();
+    for (i = 2; i < (1024 * 1024); i *= 2) {
         mp = mprAlloc(i);
         assert(mp != 0);
         mprFree(mp);
+        mprCollectGarbage(MPR_GC_FROM_USER);
     }
-}
-
-
-static void testBigAlloc(MprTestGroup *gp)
-{
-    void    *mp;
-
-    mp = mprAlloc(8 * 1024 * 1024);
-    assert(mp != 0);
-    mprFree(mp);
+    // printf("Used %ld K\n", (mprGetMem() - memsize) / 1024);
+    assert((mprGetMem() - memsize) < (4 * 1024 * 1024));
 }
 
 
 static void testAllocIntegrityChecks(MprTestGroup *gp)
 {
-    void    *blocks[259];
+    void    *blocks[256];
     uchar   *cp;
     int     i, j, size, count;
 
@@ -90,6 +100,10 @@ static void testAllocIntegrityChecks(MprTestGroup *gp)
         assert(blocks[i] != 0);
         memset(blocks[i], i % 0xff, size);
     }
+    /*
+        Memory can't be freed without our consent (GC waits for a sync point before advancing generations).
+        So this memory is safe and wont be freed yet.
+     */
     for (i = 0; i < count; i++) {
         cp = (uchar*) blocks[i];
         for (j = 0; j < size; j++) {
@@ -126,36 +140,66 @@ static void testAllocIntegrityChecks(MprTestGroup *gp)
 }
 
 
+#define CACHE_MAX 256
+
+typedef struct Cache {
+    void    *blocks[CACHE_MAX];
+} Cache;
+
+
+static void cacheManager(Cache *cache, int flags) 
+{
+    int     i;
+    
+    if (flags & MPR_MANAGE_MARK) {
+        for (i = 0; i < CACHE_MAX; i++) {
+            mprMark(cache->blocks[i]);
+        }
+    }
+}
+
+
 static void testAllocLongevity(MprTestGroup *gp)
 {
-    void    *blocks[256];
+    Cache   *cache;
     uchar   *cp;
-    int     i, j, k, size, count, len, actual, iter;
+    int     i, j, index, blockSize, len, actual, iterations, memsize, total;
     
     /*
-        Basic integrity test. Allocate blocks of 64 bytes and fill and test each block
+        Allocate blocks and store in a cache. The GC will mark blocks in the cache and preserve. Others will be deleted.
+        Check memory does not grow unexpectedly.
      */
-    size = 16 * 1024;
-    count = sizeof(blocks) / sizeof(void*);
-    memset(blocks, 0, sizeof(blocks));
+    iterations = (gp->service->testDepth * 5 + 1) * 8192;
+    memsize = mprGetMem();
+    blockSize = 16 * 1024;
+    cache = mprAllocObj(Cache, cacheManager);
+    assert(cache);
+    mprAddRoot(cache);
 
-    iter = (gp->service->testDepth * 8 + 1) * 8192;
-    for (i = 0; i < iter; i++) {
-        k = mprRandom() % count;
-        // print("%d - %d\n", i, k);
-        if ((cp = blocks[k]) != NULL) {
+    for (i = 0, total = 0; i < iterations; i++) {
+        index = mprRandom() % CACHE_MAX;
+        if ((cp = cache->blocks[index]) != NULL) {
             len = mprGetBlockSize(cp);
             for (j = 0; j < len; j++) {
-                mprAssert(cp[j] == k);
+                assert(cp[j] == index);
             }
-            mprFree(cp);
         }
-        len = mprRandom() % size;
-        cp = blocks[k] = mprAlloc(len);
+        len = mprRandom() % blockSize;
+        cp = cache->blocks[index] = mprAlloc(len);
+        total += len;
         actual = mprGetBlockSize(cp);
-        mprAssert(actual >= len);
-        memset(cp, k, actual);
+        assert(actual >= len);
+        
+        memset(cp, index, actual);
+        if ((i % CACHE_MAX) == 0) {
+            mprLog(1, "ITER %,d, DELTA %,d K, total allocated this pass %,d\n", i, (mprGetMem() - memsize) / 1024, total);
+            assert((mprGetMem() - memsize) < (4 * 1024 * 1024));
+            mprCollectGarbage(MPR_GC_FROM_USER);
+            total = 0;
+        }
     }
+    mprRemoveRoot(cache);
+    assert((mprGetMem() - memsize) < (4 * 1024 * 1024));
 }
 
 
@@ -168,11 +212,11 @@ static void testAllocLongevity(MprTestGroup *gp)
 MprTestDef testAlloc = {
     "alloc", 0, 0, 0,
     {
-        MPR_TEST(0, testAllocLongevity),
         MPR_TEST(0, testBasicAlloc),
-        MPR_TEST(1, testLotsOfAlloc),
-        MPR_TEST(2, testBigAlloc),
+        MPR_TEST(0, testBigAlloc),
+        MPR_TEST(0, testLotsOfAlloc),
         MPR_TEST(0, testAllocIntegrityChecks),
+        MPR_TEST(0, testAllocLongevity),
         MPR_TEST(0, 0),
     },
 };

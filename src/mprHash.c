@@ -207,7 +207,7 @@ MprHash *mprLookupHashEntry(MprHashTable *table, cvoid *key)
 /*
     Lookup a key and return the hash entry data
  */
-cvoid *mprLookupHash(MprHashTable *table, cvoid *key)
+void *mprLookupHash(MprHashTable *table, cvoid *key)
 {
     MprHash     *sp;
 
@@ -217,7 +217,7 @@ cvoid *mprLookupHash(MprHashTable *table, cvoid *key)
     if (sp == 0) {
         return 0;
     }
-    return sp->data;
+    return (void*) sp->data;
 }
 
 

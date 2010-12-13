@@ -379,7 +379,7 @@ size_t wlen(MprChar *s)
 /*  
     Map a string to lower case (overwrites original string)
  */
-void wlower(MprChar *str)
+MprChar *wlower(MprChar *str)
 {
     MprChar *cp;
 
@@ -392,6 +392,7 @@ void wlower(MprChar *str)
             }
         }
     }
+    return str;
 }
 
 
@@ -697,7 +698,7 @@ MprChar *wtrim(MprChar *str, MprChar *set, int where)
 /*  
     Map a string to upper case (overwrites buffer)
  */
-void wupper(MprChar *str)
+char *wupper(MprChar *str)
 {
     MprChar     *cp;
 
@@ -709,6 +710,7 @@ void wupper(MprChar *str)
             }
         }
     }
+    return str;
 }
 
 /*********************************** Conversions *******************************/

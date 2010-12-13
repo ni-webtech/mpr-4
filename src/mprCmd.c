@@ -266,7 +266,6 @@ int mprRunCmdV(MprCmd *cmd, int argc, char **argv, char **out, char **err, int f
     } else {
         flags &= ~MPR_CMD_OUT;
     }
-
     if (flags & MPR_CMD_OUT) {
         mprFree(cmd->stdoutBuf);
         cmd->stdoutBuf = mprCreateBuf(MPR_BUFSIZE, -1);
@@ -286,7 +285,6 @@ int mprRunCmdV(MprCmd *cmd, int argc, char **argv, char **out, char **err, int f
     if (cmd->files[MPR_CMD_STDIN].fd >= 0) {
         mprCloseCmdFd(cmd, MPR_CMD_STDIN);
     }
-
     if (rc < 0) {
         if (err) {
             if (rc == MPR_ERR_CANT_ACCESS) {
@@ -300,12 +298,10 @@ int mprRunCmdV(MprCmd *cmd, int argc, char **argv, char **out, char **err, int f
         unlock(cmd);
         return rc;
     }
-
     if (cmd->flags & MPR_CMD_DETACH) {
         unlock(cmd);
         return 0;
     }
-
     unlock(cmd);
     if (mprWaitForCmd(cmd, -1) < 0) {
         return MPR_ERR_NOT_READY;
@@ -634,7 +630,7 @@ void mprPollCmdPipes(MprCmd *cmd, int timeout)
 int mprWaitForCmd(MprCmd *cmd, int timeout)
 {
     MprTime     expires;
-    int         remaining;
+    int         remaining, delay;
 
     if (timeout < 0) {
         timeout = MAXINT;
@@ -650,6 +646,7 @@ int mprWaitForCmd(MprCmd *cmd, int timeout)
                 return 0;
             }
         }
+        delay = (cmd->eofCount == 0) ? 10 : remaining;
 #if BLD_WIN_LIKE && !WINCE
         mprPollCmdPipes(cmd, timeout);
         remaining = (int) (expires - mprGetTime());
@@ -658,7 +655,13 @@ int mprWaitForCmd(MprCmd *cmd, int timeout)
         }
         mprServiceEvents(cmd->dispatcher, 10, MPR_SERVICE_ONE_THING);
 #else
-        mprServiceEvents(cmd->dispatcher, remaining, MPR_SERVICE_ONE_THING);
+        /*
+            MOB BUG - not ideal. Delay must be short as there is a race. The command may increment eofCount before we get
+            into mprServiceEvents if another thread is running mprServiceEvents. This can then hang a long time.
+            Set delay to 20 to be sure.
+         */
+        delay = 20;
+        mprServiceEvents(cmd->dispatcher, delay, MPR_SERVICE_ONE_THING);
 #endif
         remaining = (int) (expires - mprGetTime());
     } while (cmd->pid && remaining >= 0);

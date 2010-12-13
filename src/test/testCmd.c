@@ -163,6 +163,9 @@ static void testWithData(MprTestGroup *gp)
         len = (int) strlen(line);
         rc = write(fd, line, len);
         assert(rc == len);
+        if (rc != len) {
+            break;
+        }
     }
     mprCloseCmdFd(cmd, MPR_CMD_STDIN);
     assert(mprWaitForCmd(cmd, MPR_TEST_SLEEP) == 0);

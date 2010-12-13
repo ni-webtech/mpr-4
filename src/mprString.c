@@ -320,7 +320,7 @@ size_t slen(cchar *s)
 /*  
     Map a string to lower case (overwrites original string)
  */
-void slower(char *str)
+char *slower(char *str)
 {
     char    *cp;
 
@@ -333,6 +333,7 @@ void slower(char *str)
             }
         }
     }
+    return str;
 }
 
 
@@ -736,7 +737,7 @@ char *strim(char *str, cchar *set, int where)
 /*  
     Map a string to upper case (overwrites buffer)
  */
-void supper(char *str)
+char *supper(char *str)
 {
     char    *cp;
 
@@ -748,6 +749,7 @@ void supper(char *str)
             }
         }
     }
+    return str;
 }
 
 

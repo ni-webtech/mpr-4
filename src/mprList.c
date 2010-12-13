@@ -425,9 +425,7 @@ cvoid *mprPopItem(MprList *lp)
     cvoid   *item;
     int     index;
 
-    mprAssert(lp->length > 0);
-    item = 0;
-
+    item = NULL;
     if (lp->length > 0) {
         index = lp->length - 1;
         item = mprGetItem(lp, index);

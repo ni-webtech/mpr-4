@@ -90,14 +90,30 @@ void mprYieldThread(MprThread *tp)
     if (tp == NULL) {
         tp = mprGetCurrentThread();
     }
+    mprLog(2, "mprYieldThread %s yielded was %d", tp->name, tp->yielded);
     tp->yielded = 1;
-    mprSignalCond(mprGetMpr()->threadService->cond);
-    while (tp->yielded && mprGCSyncup()) {
+
+    /*
+        Wake the marker to check if all threads are yielded and wait for the all clear
+     */
+    mprSignalCond(MPR->threadService->cond);
+    while (tp->yielded && mprWaitForSync()) {
+        mprLog(2, "mprYieldThread %s must wait", tp->name);
         mprWaitForCond(tp->cond, -1);
     }
 }
 
 
+void mprSetStickyYield(MprThread *tp, int enable)
+{
+    if (tp == NULL) {
+        tp = mprGetCurrentThread();
+    }
+    tp->stickyYield = enable;
+}
+
+
+#if UNUSED
 /*
     Called by worker thread code to signify that it is working and may have local object references that the marker
     can't see. i.e. Can't do GC.
@@ -109,6 +125,7 @@ void mprResumeThread(MprThread *tp)
     }
     tp->yielded = 0;
 }
+#endif
 
 
 /*
@@ -121,6 +138,7 @@ int mprPauseForGCSync(int timeout)
     int                 i, allYielded;
 
     ts = mprGetMpr()->threadService;
+    mprLog(1, "mprPauseForGCSync timeout %d", timeout);
 
     //  MOB timeout
     do {
@@ -137,9 +155,11 @@ int mprPauseForGCSync(int timeout)
         if (allYielded) {
             break;
         }
+        mprLog(1, "mprPauseForGCSync: waiting for threads to yield");
         mprWaitForCond(ts->cond, MPR_GC_TIMEOUT);
     } while (!allYielded);
 
+    mprLog(1, "mprPauseForGCSync: complete %d", allYielded);
     //  MOB -- return if timeout failed
     return (allYielded) ? 1 : 0;
 }
@@ -155,11 +175,15 @@ void mprResumeThreadsAfterGC()
     int                 i;
 
     ts = mprGetMpr()->threadService;
+    mprLog(1, "mprResumeThreadsAfterGC sync");
 
     mprLock(ts->mutex);
     for (i = 0; i < ts->threads->length; i++) {
         tp = (MprThread*) mprGetItem(ts->threads, i);
         if (tp->yielded) {
+            if (!tp->stickyYield) {
+                tp->yielded = 0;
+            }
             mprSignalCond(tp->cond);
         }
     }
@@ -1019,11 +1043,12 @@ static void workerMain(MprWorker *worker, MprThread *tp)
         mprUnlock(ws->mutex);
 
         /*
-            Sleep till there is more work to do
+            Sleep till there is more work to do. Yield for GC first.
          */
-        mprYieldThread(NULL);
+        tp->stickyYield = 1;
+        mprCollectGarbage(MPR_GC_FROM_WORKER);
         rc = mprWaitForCond(worker->idleCond, -1);
-        mprResumeThread(NULL);
+        tp->stickyYield = 0;
         mprLock(ws->mutex);
     }
     changeState(worker, 0);
