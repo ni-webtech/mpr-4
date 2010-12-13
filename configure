@@ -1311,20 +1311,23 @@ unique() {
 
 
 createBuildConfig() {
+    local out
+    
     if [ "$BLD_BUILD_OS" = WIN ] ; then
         BLD_OUT_DIR=`relativePath "${BLD_OUT_DIR}"`
     fi
+    eval out=\"${BLD_OUT_DIR}\"
 
     #
     #   Create the buildConfig.sh and buildConfig.make files
     #
     [ $quiet = 0 ] && echo "  #"
-    mkdir -p ${BLD_OUT_DIR}/bin ${BLD_OUT_DIR}/include
+    mkdir -p "${out}/bin" "${out}/include"
     
-    eval CONFIG_ARGS=\"${BLD_OUT_DIR}/${CONFIG_ARGS}\"
-    eval CONFIG_MAKE=\"${BLD_OUT_DIR}/${CONFIG_MAKE}\"
-    eval CONFIG_SH=\"${BLD_OUT_DIR}/bin/${CONFIG_SH}\"
-    eval CONFIG_H=\"${BLD_OUT_DIR}/include/${CONFIG_H}\"
+    CONFIG_ARGS="${out}/${CONFIG_ARGS}"
+    CONFIG_MAKE="${out}/${CONFIG_MAKE}"
+    CONFIG_SH="${out}/bin/${CONFIG_SH}"
+    CONFIG_H="${out}/include/${CONFIG_H}"
 
     rm -f $CONFIG_SH $CONFIG_MAKE $CONFIG_H
     for f in $CONFIG_SH $CONFIG_MAKE $CONFIG_H
@@ -1602,16 +1605,30 @@ BLD_VER_PREFIX="$BLD_VER_PREFIX"
 BLD_WEB_PREFIX="$BLD_WEB_PREFIX"
 
 #
-#   Absolute native build directories
+#   Relative native build directories
 #
 !EOF_CONFIG2
 
-    v=`eval canonPath "${BLD_BUILD_BIN_DIR}"` 
+    v=`eval relativePath "${BLD_BUILD_BIN_DIR}"` 
     echo -e "BLD_BUILD_BIN_DIR=\"${v}\""      >>$NAME
-    v=`eval canonPath "${BLD_BUILD_LIB_DIR}"` 
+    v=`eval relativePath "${BLD_BUILD_LIB_DIR}"` 
     echo -e "BLD_BUILD_LIB_DIR=\"${v}\""      >>$NAME
-    v=`eval canonPath "${BLD_BUILD_MOD_DIR}"` 
+    v=`eval relativePath "${BLD_BUILD_MOD_DIR}"` 
     echo -e "BLD_BUILD_MOD_DIR=\"${v}\""      >>$NAME
+
+    cat >>$NAME <<!EOF_CONFIG2a
+
+#
+#   Absolute native build directories
+#
+!EOF_CONFIG2a
+
+    v=`eval canonPath "${BLD_BUILD_BIN_DIR}"` 
+    echo -e "BLD_ABS_BUILD_BIN_DIR=\"${v}\""      >>$NAME
+    v=`eval canonPath "${BLD_BUILD_LIB_DIR}"` 
+    echo -e "BLD_ABS_BUILD_LIB_DIR=\"${v}\""      >>$NAME
+    v=`eval canonPath "${BLD_BUILD_MOD_DIR}"` 
+    echo -e "BLD_ABS_BUILD_MOD_DIR=\"${v}\""      >>$NAME
 
     cat >>$NAME <<!EOF_STANDARD_FEATURES
 
@@ -1774,7 +1791,7 @@ createCrossConfig()
     echo -e "\n${t}#\n${t}#\tOutput Directories \n${t}#"
 
     echo -e "${t}BLD_OUT_DIR=\"${BLD_OUT_DIR}\""
-    echo -e "${t}BLD_TOOLS_DIR=\"${BLD_TOP}/build/bin\""
+    echo -e "${t}BLD_TOOLS_DIR=\"\${BLD_TOP}/build/bin\""
     echo
     for d in BIN LIB OBJ MOD INC
     do
