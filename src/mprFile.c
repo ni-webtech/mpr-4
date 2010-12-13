@@ -154,48 +154,62 @@ int mprGetc(MprFile *file)
     Get a string from the file. This will put the file into buffered mode.
     Return NULL on eof.
  */
-char *mprGets(MprFile *file, size_t size, int *lenp)
+char *mprGets(MprFile *file, size_t maxline, int *lenp)
 {
     MprBuf          *bp;
     MprFileSystem   *fs;
-    cchar           *eol, *newline;
-    size_t          len;
-    int             count;
+    cchar           *eol, *newline, *start;
+    char            *result;
+    size_t          size, len, consumed;
 
     mprAssert(file);
+
     if (file == 0) {
         return NULL;
     }
-    if (size == 0) {
-        size = MAXSIZE;
+    if (lenp) {
+        *lenp = 0;
+    }
+    if (maxline == 0) {
+        maxline = MAXSIZE;
     }
     fs = file->fileSystem;
     newline = fs->newline;
     if (file->buf == 0) {
-        file->buf = mprCreateBuf(size, size);
+        file->buf = mprCreateBuf(maxline, maxline);
     }
     bp = file->buf;
-    /*
-        Must leave room for null
-     */
-    count = 0;
-    while (--size > 0) {
+
+    result = NULL;
+    size = 0;
+    do {
         if (mprGetBufLength(bp) == 0) {
             if (fillBuf(file) <= 0) {
                 return NULL;
             }
         }
-        if ((eol = scontains(mprGetBufStart(bp), newline, mprGetBufLength(bp))) != 0) {
-            len = eol - mprGetBufStart(bp);
-            if (lenp) {
-                *lenp = len;
-            }
-            file->pos += len + slen(newline);
-            return ssub(mprGetBufStart(bp), 0, len);
+        start = mprGetBufStart(bp);
+        len = mprGetBufLength(bp);
+        if ((eol = scontains(start, newline, len)) != 0) {
+            len = eol - start;
+            consumed = len + slen(newline);
+        } else {
+            consumed = len;
         }
-    }
-    file->pos += size;
-    return ssub(mprGetBufStart(bp), 0, size);
+        file->pos += consumed;
+        if (lenp) {
+            *lenp += len;
+        }
+        if ((result = mprRealloc(result, size + len + 1)) == 0) {
+            return NULL;
+        }
+        memcpy(&result[size], start, len);
+        size += len;
+        result[size] = '\0';
+        mprAdjustBufStart(bp, consumed);
+    } while (!eol);
+
+    return result;
 }
 
 
@@ -287,7 +301,6 @@ int mprPeekc(MprFile *file)
     if (file == 0) {
         return MPR_ERR;
     }
-
     if (file->buf == 0) {
         file->buf = mprCreateBuf(MPR_BUFSIZE, MPR_MAX_STRING);
     }
