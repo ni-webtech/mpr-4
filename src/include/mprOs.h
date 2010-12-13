@@ -358,14 +358,16 @@ typedef intptr_t pint;
     #define MPR_TEXT        ""
     #define O_BINARY        0
     #define O_TEXT          0
-    #define MSG_NOSIGNAL    0
     #define SOCKET_ERROR    -1
-    #define __WALL          0
     #ifndef PTHREAD_MUTEX_RECURSIVE_NP
         #define PTHREAD_MUTEX_RECURSIVE_NP PTHREAD_MUTEX_RECURSIVE
     #endif
 #endif
 
+#if MACOSX || VXWORKS || CYGWIN || BLD_WIN_LIKE
+    #define __WALL          0
+    #define MSG_NOSIGNAL    0
+#endif
 
 #if FREEBSD
     #if UNUSED
