@@ -56,7 +56,8 @@ int mprCreateNotifierService(MprWaitService *ws)
 void mprManageEpoll(MprWaitService *ws, int flags)
 {
     if (flags & MPR_MANAGE_MARK) {
-        ;
+        mprMark(ws->events);
+    
     } else if (flags & MPR_MANAGE_FREE) {
         if (ws->epoll) {
             close(ws->epoll);

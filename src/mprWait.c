@@ -52,6 +52,9 @@ static void manageWaitService(MprWaitService *ws, int flags)
         mprMark(ws->mutex);
         mprMark(ws->spin);
     }
+#if MPR_EVENT_ASYNC
+    /* Nothing to manage */
+#endif
 #if MPR_EVENT_KQUEUE
     mprManageKqueue(ws, flags);
 #endif
