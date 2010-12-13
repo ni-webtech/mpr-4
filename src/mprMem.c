@@ -794,6 +794,7 @@ static void linkFreeBlock(MprMem *mp)
 static void unlinkFreeBlock(MprFreeMem *fp) 
 {
     MprMem  *mp;
+
     deq(fp);
     mp = (MprMem*) fp;
     heap->stats.bytesFree -= mp->size;
