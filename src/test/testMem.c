@@ -173,7 +173,7 @@ static void testAllocLongevity(MprTestGroup *gp)
     memsize = mprGetMem();
     blockSize = 16 * 1024;
     cache = mprAllocObj(Cache, cacheManager);
-    assert(cache);
+    assert(cache != 0);
     mprAddRoot(cache);
 
     for (i = 0, total = 0; i < iterations; i++) {
