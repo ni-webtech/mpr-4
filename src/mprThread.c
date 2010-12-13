@@ -688,7 +688,7 @@ int mprStartWorkerService()
      */
     ws = MPR->workerService;
     mprSetMinWorkers(ws->minThreads);
-    ws->pruneTimer = mprCreateTimerEvent(mprGetDispatcher(), "pruneTimer", MPR_TIMEOUT_PRUNER, (MprEventProc) pruneWorkers,
+    ws->pruneTimer = mprCreateTimerEvent(mprGetDispatcher(), "pruneWorkers", MPR_TIMEOUT_PRUNER, (MprEventProc) pruneWorkers,
         (void*) ws, 0);
     return 0;
 }

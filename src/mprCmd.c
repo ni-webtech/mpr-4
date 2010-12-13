@@ -84,6 +84,8 @@ MprCmd *mprCreateCmd(MprDispatcher *dispatcher)
         files[i].fd = -1;
     }
     cmd->mutex = mprCreateLock();
+    cmd->cond = mprCreateCond();
+
     cs = mprGetMpr()->cmdService;
     mprLock(cs->mutex);
     mprAddItem(cs->cmds, cmd);
@@ -214,6 +216,7 @@ void mprCloseCmdFd(MprCmd *cmd, int channel)
     /*
         Disconnect but don't free. This prevents some races with callbacks.
      */
+    mprLock(cmd->mutex);
     if (cmd->handlers[channel]) {
         mprRemoveWaitHandler(cmd->handlers[channel]);
         cmd->handlers[channel] = 0;
@@ -230,6 +233,7 @@ void mprCloseCmdFd(MprCmd *cmd, int channel)
             }
         }
     }
+    mprUnlock(cmd->mutex);
 }
 
 
@@ -309,11 +313,12 @@ int mprRunCmdV(MprCmd *cmd, int argc, char **argv, char **out, char **err, int f
         return 0;
     }
     unlock(cmd);
+
     if (mprWaitForCmd(cmd, -1) < 0) {
         return MPR_ERR_NOT_READY;
     }
-    lock(cmd);
 
+    lock(cmd);
     if (mprGetCmdExitStatus(cmd, &status) < 0) {
         unlock(cmd);
         return MPR_ERR;
@@ -562,9 +567,11 @@ int mprWriteCmdPipe(MprCmd *cmd, int channel, char *buf, int bufsize)
 void mprEnableCmdEvents(MprCmd *cmd, int channel)
 {
 #if BLD_UNIX_LIKE || VXWORKS
+    mprLock(cmd->mutex);
     if (cmd->handlers[channel]) {
         mprEnableWaitEvents(cmd->handlers[channel], MPR_READABLE);
     }
+    mprUnlock(cmd->mutex);
 #endif
 }
 
@@ -647,28 +654,27 @@ int mprWaitForCmd(MprCmd *cmd, int timeout)
     expires = mprGetTime() + timeout;
     remaining = timeout;
     do {
+        mprLock(cmd->mutex);
         if (cmd->eofCount >= cmd->requiredEof) {
+            /* WARNING: will block here if requiredEof is zero */
             if (mprReapCmd(cmd, 0) == 0) {
+                mprUnlock(cmd->mutex);
                 return 0;
             }
         }
-        delay = (cmd->eofCount == 0) ? 10 : remaining;
+        mprUnlock(cmd->mutex);
+
 #if BLD_WIN_LIKE && !WINCE
         mprPollCmdPipes(cmd, timeout);
         remaining = (int) (expires - mprGetTime());
         if (cmd->pid == 0 || remaining <= 0) {
             break;
         }
-        mprServiceEvents(cmd->dispatcher, 10, MPR_SERVICE_ONE_THING);
+        delay = 10;
 #else
-        /*
-            MOB BUG - not ideal. Delay must be short as there is a race. The command may increment eofCount before we get
-            into mprServiceEvents if another thread is running mprServiceEvents. This can then hang a long time.
-            Set delay to 20 to be sure.
-         */
-        delay = 20;
-        mprServiceEvents(cmd->dispatcher, delay, MPR_SERVICE_ONE_THING);
+        delay = remaining;
 #endif
+        mprServiceEvents(cmd->dispatcher, delay, MPR_SERVICE_ONE_THING, cmd->cond);
         remaining = (int) (expires - mprGetTime());
     } while (cmd->pid && remaining >= 0);
 
@@ -688,7 +694,11 @@ int mprWaitForCmd(MprCmd *cmd, int timeout)
 int mprReapCmd(MprCmd *cmd, int timeout)
 {
     MprTime     mark;
+    int         flags;
+    int         rc, status, waitrc;
 
+    rc = status = waitrc = 0;
+    mprLock(cmd->mutex);
     if (timeout < 0) {
         timeout = MAXINT;
     }
@@ -696,20 +706,29 @@ int mprReapCmd(MprCmd *cmd, int timeout)
 
     while (cmd->pid) {
 #if BLD_UNIX_LIKE
-        int     status, waitrc;
-        status = 0;
-        if ((waitrc = waitpid(cmd->pid, &status, WNOHANG | __WALL)) < 0) {
+        /*
+            WARNING: this will block here if the process has not completed and requiredEof is zero. Only happens
+            if creating a command and not opening any stdout or stderr output which users SHOULD do.
+         */
+        flags = (cmd->requiredEof) ? WNOHANG | __WALL : 0;
+        if ((waitrc = waitpid(cmd->pid, &status, flags)) < 0) {
             mprLog(0, "waitpid failed for pid %d, errno %d", cmd->pid, errno);
+            mprUnlock(cmd->mutex);
             return MPR_ERR_CANT_READ;
 
         } else if (waitrc == cmd->pid) {
+            mprLog(7, "waitpid pid %d, errno %d, thread %s", cmd->pid, errno, mprGetCurrentThreadName());
             if (!WIFSTOPPED(status)) {
                 if (WIFEXITED(status)) {
                     cmd->status = WEXITSTATUS(status);
                 } else if (WIFSIGNALED(status)) {
                     cmd->status = WTERMSIG(status);
+                } else {
+                    mprLog(0, "MOB waitpid FUNNY pid %d, errno %d", cmd->pid, errno);
                 }
                 cmd->pid = 0;
+            } else {
+                mprLog(0, "MOB waitpid ELSE pid %d, errno %d", cmd->pid, errno);
             }
             break;
             
@@ -723,6 +742,7 @@ int mprReapCmd(MprCmd *cmd, int timeout)
          */
         if (semTake(cmd->exitCond, MPR_TIMEOUT_STOP_TASK) != OK) {
             mprError("cmd: child %s did not exit, errno %d", cmd->program);
+            mprUnlock(cmd->mutex);
             return MPR_ERR_CANT_CREATE;
         }
         semDelete(cmd->exitCond);
@@ -730,16 +750,18 @@ int mprReapCmd(MprCmd *cmd, int timeout)
         cmd->pid = 0;
 #endif
 #if BLD_WIN_LIKE
-        int     status, rc;
         if ((rc = WaitForSingleObject(cmd->process, 10)) != WAIT_OBJECT_0) {
             if (rc == WAIT_TIMEOUT) {
+                mprUnlock(cmd->mutex);
                 return -MPR_ERR_TIMEOUT;
             }
             mprLog(6, "cmd: WaitForSingleObject no child to reap rc %d, %d", rc, GetLastError());
+            mprUnlock(cmd->mutex);
             return MPR_ERR_CANT_READ;
         }
         if (GetExitCodeProcess(cmd->process, (ulong*) &status) == 0) {
             mprLog(7, "cmd: GetExitProcess error");
+            mprUnlock(cmd->mutex);
             return MPR_ERR_CANT_READ;
         }
         if (status != STILL_ACTIVE) {
@@ -757,6 +779,10 @@ int mprReapCmd(MprCmd *cmd, int timeout)
             break;
         }
     }
+    if (cmd->pid == 0) {
+        mprSignalCond(cmd->cond);
+    }
+    mprUnlock(cmd->mutex);
     return (cmd->pid == 0) ? 0 : 1;
 }
 

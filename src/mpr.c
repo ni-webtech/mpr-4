@@ -202,7 +202,6 @@ static void startThreads(int flags)
     Thread to service the event queue. Used if the user does not have their own main event loop.
  */
 int mprStartEventsThread()
-int mprStartEventsThread()
 {
     MprThread   *tp;
 
@@ -220,7 +219,7 @@ int mprStartEventsThread()
 static void serviceEventsThread(void *data, MprThread *tp)
 {
     mprLog(MPR_CONFIG, "Service thread started");
-    mprServiceEvents(NULL, -1, 0);
+    mprServiceEvents(NULL, -1, 0, NULL);
 }
 
 

@@ -249,7 +249,7 @@ static void testClientServer(MprTestGroup *gp, cchar *host)
             thisLen -= nbytes;
             thisBuf += nbytes;
             if (nbytes == 0) {
-                mprServiceEvents(NULL, 50, MPR_SERVICE_ONE_THING);
+                mprServiceEvents(NULL, 50, MPR_SERVICE_ONE_THING, NULL);
             }
         }
     }
@@ -259,7 +259,7 @@ static void testClientServer(MprTestGroup *gp, cchar *host)
 {
     MprTime mark = mprGetTime(gp);
     do {
-        mprServiceEvents(NULL, 50, MPR_SERVICE_ONE_THING);
+        mprServiceEvents(NULL, 50, MPR_SERVICE_ONE_THING, NULL);
         if (mprWaitForTestToComplete(gp, MPR_TEST_SLEEP)) {
             break;
         }

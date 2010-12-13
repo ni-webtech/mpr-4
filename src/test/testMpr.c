@@ -62,7 +62,7 @@ MAIN(testMain, int argc, char *argv[])
     MprTestGroup    *gp;
     int             rc;
 
-    mpr = mprCreate(argc, argv, MPR_USER_GC);
+    mpr = mprCreate(argc, argv, MPR_USER_EVENTS_THREAD | MPR_USER_GC);
     setupSignals();
 
 #if VXWORKS || WINCE
