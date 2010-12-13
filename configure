@@ -1345,7 +1345,7 @@ createBuildConfig() {
     #
     cp $CONFIG_H config.sav
 
-    egrep -v '^#|^[ 	]+#|^$' < config.sav | egrep -v '^export ' | tee /tmp/mob.tmp | \
+    egrep -v '^#|^[ 	]+#|^$' < config.sav | egrep -v '^export ' | \
         sed 's/_#/#/g' | sed 's/\([^=]*\)=\(.*\)/#define \1 \2/' | sed 's/'\''/"/g' | \
         sed 's/^#define/    #define/' | sed 's/^ #/#/' >$CONFIG_H
     addScripts
