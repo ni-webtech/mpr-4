@@ -13,6 +13,7 @@ CMD			= ../../../src/utils
 MPR_HDR 	= $(BLD_OUT_DIR)/buildConfig.h $(shell find $(SRC)/include -name 'mpr*.h')
 LIBS		= ws2_32.lib
 PROJECTS	= libmpr.vcproj libmprssl.vcproj testMpr.vcproj benchMpr.vcproj runProgram.vcproj
+DFLAGS		= -DDEBUG_IDE=1
 
 MAKE_IFLAGS	= -I$(BLD_TOP)/src/include/master $(BLD_MPR_IFLAGS)
 ifeq ($(BLD_FEATURE_OPENSSL),1)

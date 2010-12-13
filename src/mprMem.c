@@ -1862,13 +1862,13 @@ static void *getNextRoot(int *indexp)
 static int memoryNotifier(int flags, size_t size)
 {
     if (flags & MPR_MEM_DEPLETED) {
-        mprPrintfError(NULL, "Can't allocate memory block of size %d\n", size);
-        mprPrintfError(NULL, "Total memory used %d\n", mprGetMem());
+        mprPrintfError("Can't allocate memory block of size %d\n", size);
+        mprPrintfError("Total memory used %d\n", mprGetMem());
         exit(255);
 
     } else if (flags & MPR_MEM_LOW) {
-        mprPrintfError(NULL, "Memory request for %d bytes exceeds memory red-line\n", size);
-        mprPrintfError(NULL, "Total memory used %d\n", mprGetMem());
+        mprPrintfError("Memory request for %d bytes exceeds memory red-line\n", size);
+        mprPrintfError("Total memory used %d\n", mprGetMem());
 
     } else if (flags & MPR_MEM_GC) {
         ;
