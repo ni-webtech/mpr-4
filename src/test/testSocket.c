@@ -155,8 +155,8 @@ static int readEvent(MprTestGroup *gp, MprEvent *event)
 {
     MprTestSocket   *ts;
     MprSocket       *sp;
+    MprSize         rc, space, nbytes, len;
     char            *buf;
-    int             rc, space, nbytes, len;
 
     ts = (MprTestSocket*) gp->data;
     sp = ts->client;
@@ -226,9 +226,9 @@ static void testClientServer(MprTestGroup *gp, cchar *host)
     MprTestSocket   *ts;
     MprDispatcher   *dispatcher;
     MprTime         mark;
+    MprSize         len, thisLen, sofar, nbytes, count;
     char            *buf, *thisBuf;
-    size_t          len;
-    int             i, rc, thisLen, sofar, nbytes, count;
+    int             i, rc;
 
     dispatcher = mprGetDispatcher(gp);
 

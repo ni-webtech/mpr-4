@@ -650,7 +650,8 @@ static bool filterTestGroup(MprTestGroup *gp)
     MprTestService  *sp;
     MprList         *testFilter;
     char            *pattern;
-    int             len, next;
+    MprSize          len;
+    int             next;
 
     sp = gp->service;
     testFilter = sp->testFilter;
@@ -688,7 +689,8 @@ static bool filterTestCast(MprTestGroup *gp, MprTestCase *tc)
     MprTestService  *sp;
     MprList         *testFilter;
     char            *pattern, *fullName;
-    int             len, next;
+    MprSize          len;
+    int             next;
 
     sp = gp->service;
     testFilter = sp->testFilter;

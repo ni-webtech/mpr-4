@@ -247,7 +247,7 @@ typedef unsigned Long ULong;
 #ifdef KR_headers
 extern char *MALLOC();
 #else
-extern void *MALLOC(size_t);
+extern void *MALLOC(MprSize);
 #endif
 #else
 #define MALLOC malloc

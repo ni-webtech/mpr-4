@@ -24,7 +24,7 @@ static MprMutex *mutex;                 /* Test synchronization */
 static void     doBenchmark(void *thread);
 static void     endMark(MprTime start, int count, char *msg);
 static void     eventCallback(void *data, MprEvent *ep);
-static size_t   memsize();
+static MprSize   memsize();
 static MprTime  startMark();
 static void     testMalloc();
 static void     timerCallback(void *data, MprEvent *ep);
@@ -230,7 +230,7 @@ static void doBenchmark(void *thread)
 static void testMalloc()
 {
     MprTime     start;
-    size_t      base;
+    MprSize      base;
     char        *ptr;
     int         count, i;
 
@@ -420,7 +420,7 @@ static void endMark(MprTime start, int count, char *msg)
 }
 
 
-static size_t memsize() 
+static MprSize memsize() 
 {
 #if MACOSX || FREEBSD
     struct rusage   rusage;

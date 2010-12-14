@@ -214,6 +214,7 @@
 #if !MACOSX
     typedef int bool;
 #endif
+
 typedef unsigned char uchar;
 typedef signed char schar;
 typedef const char cchar;
@@ -225,20 +226,20 @@ typedef int int32;
 typedef unsigned int uint32;
 typedef unsigned int uint;
 typedef unsigned long ulong;
+
+typedef off_t MprOffset;
+
 #if BLD_UNIX_LIKE
+    typedef ssize_t MprSize;
     __extension__ typedef long long int int64;
     __extension__ typedef unsigned long long int uint64;
 #elif BLD_WIN_LIKE
+    typedef SSIZE_T MprSize;
     typedef __int64 int64;
     typedef unsigned __int64 uint64;
 #else
     typedef long long int int64;
     typedef unsigned long long int uint64;
-#endif
-typedef off_t MprOffset;
-
-#if UNUSED
-typedef intptr_t pint;
 #endif
 
 /* To stop MatrixSSL from defining int32 */

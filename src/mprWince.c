@@ -907,7 +907,7 @@ DWORD GetModuleFileNameA(HMODULE module, LPSTR buf, DWORD size)
 {
     LPWSTR      wpath;
     LPSTR       mb;
-    size_t      ret;
+    MprSize      ret;
 
     wpath = mprAlloc( size * sizeof(wchar_t));
     ret = GetModuleFileNameW(module, wpath, size);

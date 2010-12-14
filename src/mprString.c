@@ -75,9 +75,9 @@ int scasecmp(cchar *s1, cchar *s2)
 }
 
 
-size_t scopy(char *dest, size_t destMax, cchar *src)
+MprSize scopy(char *dest, MprSize destMax, cchar *src)
 {
-    size_t      len;
+    MprSize      len;
 
     mprAssert(src);
     mprAssert(dest);
@@ -96,7 +96,7 @@ size_t scopy(char *dest, size_t destMax, cchar *src)
 char *sclone(cchar *str)
 {
     char    *ptr;
-    size_t  size, len;
+    MprSize  size, len;
 
     if (str == NULL) {
         str = "";
@@ -161,7 +161,7 @@ char *sfmtv(cchar *fmt, va_list arg)
     Compute a hash for a C string
     (Based on work by Paul Hsieh (c) 2004-2008, see http://www.azillionmonkeys.com/qed/hash.html)
  */
-uint shash(cchar *cname, size_t len)
+uint shash(cchar *cname, MprSize len)
 {
     uchar   *name;
     uint    hash, rem, tmp;
@@ -172,7 +172,7 @@ uint shash(cchar *cname, size_t len)
     if (cname == NULL) {
         return 0;
     }
-    hash = len;
+    hash = (uint) len;
     rem = len & 3;
     name = (uchar*) cname;
     for (len >>= 2; len > 0; len--, name += 4) {
@@ -211,7 +211,7 @@ uint shash(cchar *cname, size_t len)
 /*
     Hash the lower case name
  */
-uint shashlower(cchar *cname, size_t len)
+uint shashlower(cchar *cname, MprSize len)
 {
     uchar   *name;
     uint    hash, rem, tmp;
@@ -222,7 +222,7 @@ uint shashlower(cchar *cname, size_t len)
     if (cname == NULL) {
         return 0;
     }
-    hash = len;
+    hash = (uint) len;
     rem = len & 3;
     name = (uchar*) cname;
 
@@ -277,7 +277,7 @@ char *sjoinv(cchar *buf, va_list args)
 {
     va_list     ap;
     char        *dest, *str, *dp;
-    int         required;
+    MprSize      required;
 
     mprAssert(buf);
 
@@ -311,7 +311,7 @@ char *sjoinv(cchar *buf, va_list args)
 }
 
 
-size_t slen(cchar *s)
+MprSize slen(cchar *s)
 {
     return s ? strlen(s) : 0;
 }
@@ -339,7 +339,7 @@ char *slower(cchar *str)
 }
 
 
-int sncasecmp(cchar *s1, cchar *s2, size_t n)
+int sncasecmp(cchar *s1, cchar *s2, MprSize n)
 {
     int     rc;
 
@@ -373,7 +373,7 @@ int sncasecmp(cchar *s1, cchar *s2, size_t n)
 /*
     Case sensitive string comparison. Limited by length
  */
-int sncmp(cchar *s1, cchar *s2, size_t n)
+int sncmp(cchar *s1, cchar *s2, MprSize n)
 {
     int     rc;
 
@@ -408,9 +408,9 @@ int sncmp(cchar *s1, cchar *s2, size_t n)
     This routine copies at most "count" characters from a string. It ensures the result is always null terminated and 
     the buffer does not overflow. Returns MPR_ERR_WONT_FIT if the buffer is too small.
  */
-size_t sncopy(char *dest, size_t destMax, cchar *src, size_t count)
+MprSize sncopy(char *dest, MprSize destMax, cchar *src, MprSize count)
 {
-    size_t      len;
+    MprSize      len;
 
     mprAssert(dest);
     mprAssert(src);
@@ -476,7 +476,7 @@ char *srejoinv(char *buf, va_list args)
 {
     va_list     ap;
     char        *dest, *str, *dp;
-    int         len, required;
+    MprSize      len, required;
 
     va_copy(ap, args);
     len = slen(buf);
@@ -502,7 +502,7 @@ char *srejoinv(char *buf, va_list args)
 }
 
 
-size_t sspn(cchar *str, cchar *set)
+MprSize sspn(cchar *str, cchar *set)
 {
 #if KEEP
     cchar       *sp;
@@ -543,10 +543,10 @@ int sstarts(cchar *str, cchar *prefix)
 }
 
 
-char *scontains(cchar *str, cchar *pattern, size_t limit)
+char *scontains(cchar *str, cchar *pattern, MprSize limit)
 {
     cchar   *cp, *s1, *s2;
-    size_t  lim;
+    MprSize  lim;
 
     mprAssert(0 <= limit && limit < MAXINT);
     
@@ -690,10 +690,10 @@ char *stok(char *str, cchar *delim, char **last)
 }
 
 
-char *ssub(char *str, size_t offset, size_t len)
+char *ssub(char *str, MprSize offset, MprSize len)
 {
     char    *result;
-    size_t  size;
+    MprSize  size;
 
     mprAssert(str);
     mprAssert(offset >= 0);
@@ -713,7 +713,8 @@ char *ssub(char *str, size_t offset, size_t len)
 
 char *strim(char *str, cchar *set, int where)
 {
-    int     len, i;
+    MprSize  len;
+    int     i;
 
     if (str == NULL || set == NULL) {
         return str;

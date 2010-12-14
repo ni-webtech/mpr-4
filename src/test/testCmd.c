@@ -59,7 +59,7 @@ static void withDataCallback(MprCmd *cmd, int channel, void *data)
 {
     MprTestGroup    *gp;
     MprBuf          *buf;
-    int             space, len;
+    MprSize         len, space;
 
     gp = data;
     buf = (MprBuf*) gp->data;

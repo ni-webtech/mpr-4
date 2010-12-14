@@ -3,7 +3,7 @@
     ProjectType="Visual C++"
     Version="8.00"
     Name="testMpr"
-    ProjectGUID="32d29c84-821c-426a-99e1-b85c89d76340"
+    ProjectGUID="f3357baf-d5e2-4f3f-874b-bd0baad80e34"
     RootNamespace=""
     Keyword="Win32Proj"
     TargetFrameworkVersion="0"
@@ -160,7 +160,7 @@
         <Filter
             Name="Header Files"
             Filter="h;hpp;hxx;hm;inl;inc;xsd"
-            UniqueIdentifier="{b6a2f445-c710-4776-b46b-ed50a8a90608}"
+            UniqueIdentifier="{ff3cfa91-98f5-4503-9342-f6cc6de9dca7}"
             >
             <File
                 RelativePath="..\..\..\out\buildConfig.h"
@@ -190,7 +190,7 @@
         <Filter
             Name="Source Files"
             Filter="cpp;c;cc;cxx;def;odl;idl;hpj;bat;asm;asmx"
-            UniqueIdentifier="{a7ddbb08-5f64-41fa-9946-077c24320358}"
+            UniqueIdentifier="{a56b0b24-8cd5-4ef6-a1e5-dec55df7e1b8}"
             >
             <File
                 RelativePath="..\..\..\src\test\testBuf.c"

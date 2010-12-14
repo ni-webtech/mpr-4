@@ -255,7 +255,8 @@ bool mprIsComplete()
 int mprMakeArgv(cchar *program, cchar *cmd, int *argcp, char ***argvp)
 {
     char        *cp, **argv, *buf, *args;
-    int         size, argc;
+    MprSize      size;
+    int         argc;
 
     /*
         Allocate one buffer for argv and the actual args themselves

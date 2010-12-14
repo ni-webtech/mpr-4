@@ -73,16 +73,16 @@ int mprCloseFile(MprFile *file)
 }
 
 
-static size_t readFile(MprFile *file, void *buf, size_t size)
+static MprSize readFile(MprFile *file, void *buf, MprSize size)
 {
     mprAssert(file);
     mprAssert(buf);
 
-    return read(file->fd, buf, size);
+    return read(file->fd, buf, (uint) size);
 }
 
 
-static size_t writeFile(MprFile *file, cvoid *buf, size_t count)
+static MprSize writeFile(MprFile *file, cvoid *buf, MprSize count)
 {
     mprAssert(file);
     mprAssert(buf);
@@ -90,7 +90,7 @@ static size_t writeFile(MprFile *file, cvoid *buf, size_t count)
 #if VXWORKS
     return write(file->fd, (void*) buf, count);
 #else
-    return write(file->fd, buf, count);
+    return write(file->fd, buf, (uint) count);
 #endif
 }
 

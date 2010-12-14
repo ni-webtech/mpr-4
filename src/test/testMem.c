@@ -47,7 +47,7 @@ static void testBasicAlloc(MprTestGroup *gp)
 static void testBigAlloc(MprTestGroup *gp)
 {
     void    *mp;
-    size_t  memsize, len;
+    MprSize  memsize, len;
     
     memsize = mprGetMem();
     len = 8 * 1024 * 1024;
@@ -65,7 +65,7 @@ static void testBigAlloc(MprTestGroup *gp)
 static void testLotsOfAlloc(MprTestGroup *gp)
 {
     void    *mp;
-    size_t  memsize;
+    MprSize  memsize;
     int     i;
 
     for (i = 0; i < 10000; i++) {
@@ -163,10 +163,10 @@ static void cacheManager(Cache *cache, int flags)
 
 static void testAllocLongevity(MprTestGroup *gp)
 {
-    Cache   *cache;
-    uchar   *cp;
-	size_t	memsize;
-    int     i, j, index, blockSize, len, actual, iterations, total, depth;
+    Cache       *cache;
+	MprSize	    memsize, len, actual, total;
+    uchar       *cp;
+    int         i, j, index, blockSize, iterations, depth;
     
     /*
         Allocate blocks and store in a cache. The GC will mark blocks in the cache and preserve. Others will be deleted.

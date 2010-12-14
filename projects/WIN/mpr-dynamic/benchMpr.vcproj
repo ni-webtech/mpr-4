@@ -3,7 +3,7 @@
     ProjectType="Visual C++"
     Version="8.00"
     Name="benchMpr"
-    ProjectGUID="7f711d9c-3518-4b34-b741-90a4caa0544a"
+    ProjectGUID="762339a0-89e5-4540-a4cd-aaa6d336207a"
     RootNamespace=""
     Keyword="Win32Proj"
     TargetFrameworkVersion="0"
@@ -160,7 +160,7 @@
         <Filter
             Name="Header Files"
             Filter="h;hpp;hxx;hm;inl;inc;xsd"
-            UniqueIdentifier="{a00ec46a-b4d5-41a5-b14b-3fbb8341a57d}"
+            UniqueIdentifier="{20f87ca9-f948-4c9a-bbfa-8d15ee771df4}"
             >
             <File
                 RelativePath="..\..\..\out\buildConfig.h"
@@ -190,7 +190,7 @@
         <Filter
             Name="Source Files"
             Filter="cpp;c;cc;cxx;def;odl;idl;hpj;bat;asm;asmx"
-            UniqueIdentifier="{cd151a64-7a0e-4748-b5e0-af76fb1e9a82}"
+            UniqueIdentifier="{5121e6b0-86b7-44e4-9c2e-1fb60319f624}"
             >
             <File
                 RelativePath="..\..\..\src\test\benchMpr.c"
