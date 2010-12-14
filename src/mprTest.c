@@ -20,6 +20,8 @@ static bool     filterTestCast(MprTestGroup *gp, MprTestCase *tc);
 static char     *getErrorMessage(MprTestGroup *gp);
 static void     manageTestService(MprTestService *ts, int flags);
 static int      parseFilter(MprTestService *sp, cchar *str);
+static void     runInit(MprTestGroup *parent);
+static void     runTerm(MprTestGroup *parent);
 static void     runTestGroup(MprTestGroup *gp);
 static void     runTestProc(MprTestGroup *gp, MprTestCase *test);
 static void     runTestThread(MprList *groups, void *threadp);
@@ -397,6 +399,9 @@ void runTestThread(MprList *groups, void *threadp)
     sp = gp->service;
     mprAssert(sp);
 
+    for (next = 0; (gp = mprGetNextItem(groups, &next)) != 0; ) {
+        runInit(gp);
+    }
     count = 0;
     for (i = (sp->iterations + sp->numThreads - 1) / sp->numThreads; i > 0; i--) {
         if (sp->totalFailedCount > 0 && !sp->continueOnFailures) {
@@ -407,6 +412,9 @@ void runTestThread(MprList *groups, void *threadp)
             runTestGroup(gp);
         }
         mprPrintf("%12s Iteration %d complete\n", "[Notice]", count++);
+    }
+    for (next = 0; (gp = mprGetNextItem(groups, &next)) != 0; ) {
+        runTerm(gp);
     }
     if (threadp) {
         adjustThreadCount(sp, -1);
@@ -490,8 +498,8 @@ static void manageTestGroup(MprTestGroup *gp, int flags)
         mprMark(gp->cond);
         mprMark(gp->cond2);
         mprMark(gp->conn);
-        mprMark(gp->data);
         mprMark(gp->mutex);
+        mprMark(gp->data);
 
     } else if (flags & MPR_MANAGE_FREE) {
     }
@@ -566,6 +574,48 @@ void mprResetTestGroup(MprTestGroup *gp)
 }
 
 
+static void runInit(MprTestGroup *parent)
+{
+    MprTestGroup    *gp;
+    int             next;
+
+    next = 0; 
+    while ((gp = mprGetNextItem(parent->groups, &next)) != 0) {
+        if (! filterTestGroup(gp)) {
+            continue;
+        }
+        if (gp->def->init && (*gp->def->init)(gp) < 0) {
+            gp->failedCount++;
+            if (!gp->service->continueOnFailures) {
+                break;
+            }
+        }
+        runInit(gp);
+    }
+}
+
+
+static void runTerm(MprTestGroup *parent)
+{
+    MprTestGroup    *gp;
+    int             next;
+
+    next = 0; 
+    while ((gp = mprGetNextItem(parent->groups, &next)) != 0) {
+        if (! filterTestGroup(gp)) {
+            continue;
+        }
+        if (gp->def->term && (*gp->def->term)(gp) < 0) {
+            gp->failedCount++;
+            if (!gp->service->continueOnFailures) {
+                break;
+            }
+        }
+        runInit(gp);
+    }
+}
+
+
 static void runTestGroup(MprTestGroup *parent)
 {
     MprTestService  *sp;
@@ -574,11 +624,6 @@ static void runTestGroup(MprTestGroup *parent)
     int             count, nextItem;
 
     sp = parent->service;
-
-    if (parent->def->init && (*parent->def->init)(parent) < 0) {
-        parent->failedCount++;
-        return;
-    }
 
     /*
         Recurse over sub groups
@@ -601,9 +646,6 @@ static void runTestGroup(MprTestGroup *parent)
         }
         count = sp->totalFailedCount;
         if (count > 0 && !sp->continueOnFailures) {
-            if (parent->def->term) {
-                (*parent->def->term)(parent);
-            }
             return;
         }
 
@@ -611,7 +653,6 @@ static void runTestGroup(MprTestGroup *parent)
             Recurse over all tests in this group
          */
         runTestGroup(gp);
-
         gp->testCount++;
 
         if (! gp->success) {
@@ -634,10 +675,6 @@ static void runTestGroup(MprTestGroup *parent)
             }
         }
         tc = mprGetNextItem(parent->cases, &nextItem);
-    }
-
-    if (parent->def->term && (*parent->def->term)(parent) < 0) {
-        parent->failedCount++;
     }
 }
 

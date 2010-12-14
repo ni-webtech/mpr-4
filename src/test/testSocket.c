@@ -23,14 +23,67 @@ typedef struct MprTestSocket {
 
 static int warnNoInternet = 0;
 static int bufsize = 16 * 1024;
+static int hasIPv6 = 0;
 
 /***************************** Forward Declarations ***************************/
 
 static int acceptFn(MprTestGroup *gp, MprEvent *event);
 static void manageTestSocket(MprTestSocket *ts, int flags);
+static MprTestSocket *openServer(MprTestGroup *gp, cchar *host);
 static int readEvent(MprTestGroup *gp, MprEvent *event);
 
 /************************************ Code ************************************/
+/*
+    Initialize the TestSocket structure and find a free server port to listen on.
+    Also determine if we have an internet connection. 
+    This is done per group, not really required, but does no harm.
+ */
+static int initSocket(MprTestGroup *gp)
+{
+    MprSocket       *sock;
+    MprTestSocket   *sp;
+
+#if UNUSED
+    ts = mprAllocObj(MprTestSocket, NULL);
+    if (ts == 0) {
+        return MPR_ERR_MEMORY;
+    }
+    gp->data = (void*) ts;
+#endif
+
+    if (getenv("NO_INTERNET")) {
+        warnNoInternet = 1;
+    } else {
+        /*
+            See if we have an internet connection
+         */
+        sock = mprCreateSocket(NULL);
+        if (mprOpenClientSocket(sock, "www.google.com", 80, 0) >= 0) {
+            gp->hasInternet = 1;
+        }
+        mprCloseSocket(sock, 0);
+
+        /*
+            Check for IPv6 support
+         */
+        if ((sp = openServer(gp, "::1")) != 0) {
+            hasIPv6 = 1;
+            mprFree(sp);
+        }
+    }
+    return 0;
+}
+
+
+static int termSocket(MprTestGroup *gp)
+{
+#if UNUSED
+    mprFree(gp->data);
+#endif
+    return 0;
+}
+
+
 /*
     Open a server on a free port.
  */
@@ -59,7 +112,6 @@ static MprTestSocket *openServer(MprTestGroup *gp, cchar *host)
             ts->port = port;
 
             ts->listenHandler = mprCreateWaitHandler(listen->fd, MPR_SOCKET_READABLE, NULL, (MprEventProc) acceptFn, gp);
-            gp->data = (void*) ts;
             return ts;
         }
     }
@@ -77,49 +129,17 @@ static void manageTestSocket(MprTestSocket *ts, int flags)
         mprMark(ts->clientHandler);
 
     } else if (flags & MPR_MANAGE_FREE) {
+        if (ts->listenHandler) {
+            printf("CLOSE LISTEN HANDLER\n");
+        }
         mprRemoveWaitHandler(ts->clientHandler);
         mprRemoveWaitHandler(ts->listenHandler);
+        if (ts->sock) {
+            printf("CLOSE %d\n", ts->sock->fd);
+        }
         mprCloseSocket(ts->sock, 0);
         mprCloseSocket(ts->client, 0);
     }
-}
-
-
-/*
-    Initialize the TestSocket structure and find a free server port to listen on.
-    Also determine if we have an internet connection.
- */
-static int initSocket(MprTestGroup *gp)
-{
-    MprSocket       *sock;
-    MprTestSocket   *ts;
-
-    ts = mprAllocObj(MprTestSocket, NULL);
-    if (ts == 0) {
-        return MPR_ERR_MEMORY;
-    }
-    gp->data = (void*) ts;
-
-    if (getenv("NO_INTERNET")) {
-        warnNoInternet++;
-    } else {
-        /*
-            See if we have an internet connection
-         */
-        sock = mprCreateSocket(NULL);
-        if (mprOpenClientSocket(sock, "www.embedthis.com", 80, 0) >= 0) {
-            gp->hasInternet = 1;
-        }
-        mprFree(sock);
-    }
-    return 0;
-}
-
-
-static int termSocket(MprTestGroup *gp)
-{
-    mprFree(gp->data);
-    return 0;
 }
 
 
@@ -138,12 +158,15 @@ static int acceptFn(MprTestGroup *gp, MprEvent *event)
     MprTestSocket   *ts;
 
     ts = (MprTestSocket*) gp->data;
-    ts->accepted = 1;
-
     sp = mprAcceptSocket(ts->sock);
-    ts->client = sp;
-    ts->clientHandler = mprCreateWaitHandler(sp->fd, MPR_READABLE, NULL, (MprEventProc) readEvent, (void*) gp);
-    mprSignalTestComplete(gp);
+    assert(sp);
+    if (sp) {
+        ts->client = sp;
+        ts->accepted = 1;        
+        ts->clientHandler = mprCreateWaitHandler(sp->fd, MPR_READABLE, NULL, (MprEventProc) readEvent, (void*) gp);
+        assert(ts->clientHandler);
+        mprSignalTestComplete(gp);
+    }
     return 0;
 }
 
@@ -232,13 +255,14 @@ static void testClientServer(MprTestGroup *gp, cchar *host)
 
     dispatcher = mprGetDispatcher(gp);
 
-    ts = openServer(gp, host);
+    gp->data = ts = openServer(gp, host);
     assert(ts != NULL);
     if (ts == 0) {
         return;
     }
     client = mprCreateSocket(NULL);
     assert(client != 0);
+    assert(!ts->accepted);
 
     /*
         Open client connection
@@ -246,8 +270,8 @@ static void testClientServer(MprTestGroup *gp, cchar *host)
     rc = mprOpenClientSocket(client, host, ts->port, 0);
     assert(rc >= 0);
 
-    /*  Set in acceptFn() */
     mprWaitForTestToComplete(gp, MPR_TEST_SLEEP);
+    /*  Set in acceptFn() */
     assert(ts->accepted);
 
     buf = "01234567890123456789012345678901234567890123456789\r\n";
@@ -291,6 +315,7 @@ static void testClientServer(MprTestGroup *gp, cchar *host)
     assert(mprGetBufLength(ts->inBuf) == (count * len));
     mprFlushBuf(ts->inBuf);
     mprFree(client); 
+    gp->data = 0;
     mprFree(ts); 
 }
 
@@ -303,12 +328,7 @@ static void testClientServerIPv4(MprTestGroup *gp)
 
 static void testClientServerIPv6(MprTestGroup *gp)
 {
-    MprTestSocket   *ts;
-
-    if ((ts = openServer(gp, "::1")) == 0) {
-        mprLog(2, "testSocket: Can't find free IPv6 port. IPv6 may not be enabled. Skipping test.");
-    } else {
-        mprFree(ts);
+    if (hasIPv6) {
         testClientServer(gp, "::1");
     }
 }
@@ -328,7 +348,6 @@ static void testClientSslv4(MprTestGroup *gp)
             assert(rc >= 0);
             mprFree(sp);
         }
-        
     } else if (warnNoInternet++ == 0) {
         mprPrintf("\n%12s Skipping test %s.testClientSslv4: no internet connection.\n", "[Notice]", gp->fullName);
     }

@@ -119,6 +119,7 @@ typedef struct MprTestGroup {
 
     void            *data;                  /* Test specific data */
     int             hasInternet;            /* Convenience flag for internet available for use */
+    int             hasIPv6;                /* Convenience flag for IPv6 service */
     MprMutex        *mutex;                 /* Multi-thread sync */
 } MprTestGroup;
 

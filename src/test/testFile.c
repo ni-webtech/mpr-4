@@ -13,41 +13,29 @@
 #define NAME        "testFile.tmp"
 #define FILEMODE    0644
 
-typedef struct MprTestFile {
+typedef struct TestFile {
     char        *name;
-} MprTestFile;
+} TestFile;
+
+static char *makePath(cchar *name);
+static void manageTestFile(TestFile *tf, int flags);
 
 /************************************ Code ************************************/
-/*
-    Make a unique filename for a given thread
- */
-static char *makePath(cchar *name)
-{
-    char    *path;
-
-    if ((path = mprAsprintf("%s-%d-%s", name, getpid(), mprGetCurrentThreadName())) == 0) {
-        return 0;
-    }
-    return path;
-}
-
-
 /*
     Initialization for this test module
  */
 static int initFile(MprTestGroup *gp)
 {
-    MprTestFile     *ts;
+    TestFile     *ts;
 
-    gp->data = mprAllocZeroed(sizeof(MprTestFile));
+    gp->data = mprAllocObj(TestFile, manageTestFile);
     if (gp->data == 0) {
         return MPR_ERR_MEMORY;
     }
-    ts = (MprTestFile*) gp->data;
+    ts = (TestFile*) gp->data;
 
     ts->name = makePath(NAME);
     if (ts->name == 0) {
-        mprFree(gp->data);
         gp->data = 0;
         return MPR_ERR_MEMORY;
     }
@@ -57,6 +45,15 @@ static int initFile(MprTestGroup *gp)
      */
     mprDeletePath(ts->name);
     return 0;
+}
+
+
+static void manageTestFile(TestFile *tf, int flags)
+{
+    if (flags & MPR_MANAGE_MARK) {
+        mprMark(tf->name);
+    } else if (flags & MPR_MANAGE_FREE) {
+    }
 }
 
 
@@ -74,9 +71,9 @@ static void testBasicIO(MprTestGroup *gp)
     MprPath         info;
     char            buf[512];
     int             pos, len, rc;
-    MprTestFile     *ts;
+    TestFile        *ts;
 
-    ts = (MprTestFile*) gp->data;
+    ts = (TestFile*) gp->data;
     
     rc = mprDeletePath(ts->name);
     assert(!mprPathExists(ts->name, R_OK));
@@ -139,12 +136,12 @@ static void testBufferedIO(MprTestGroup *gp)
 {
     MprFile         *file;
     MprPath         info;
-    MprTestFile     *ts;
+    TestFile        *ts;
     char            *str;
     size_t          len;
     int             pos, rc, c;
 
-    ts = (MprTestFile*) gp->data;
+    ts = (TestFile*) gp->data;
     
     rc = mprDeletePath(ts->name);
     assert(!mprPathExists(ts->name, R_OK));
@@ -210,6 +207,20 @@ static void testBufferedIO(MprTestGroup *gp)
     assert(!mprPathExists(ts->name, R_OK));
 }
     
+
+/*
+    Make a unique filename for a given thread
+ */
+static char *makePath(cchar *name)
+{
+    char    *path;
+
+    if ((path = mprAsprintf("%s-%d-%s", name, getpid(), mprGetCurrentThreadName())) == 0) {
+        return 0;
+    }
+    return path;
+}
+
 
 MprTestDef testFile = {
     "file", 0, initFile, termFile,

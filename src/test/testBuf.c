@@ -34,7 +34,6 @@ static void testIsBufEmpty(MprTestGroup *gp)
     assert(mprGetBufSpace(bp) >= (size - 1));
     assert(mprGetBufLength(bp) == 0);
     assert(mprGetBufStart(bp) == mprGetBufEnd(bp));
-
     mprFree(bp);
 }
 
@@ -60,7 +59,6 @@ static void testPutAndGetToBuf(MprTestGroup *gp)
     }
     c = mprGetCharFromBuf(bp);
     assert(c == -1);
-
     mprFree(bp);
 }
 

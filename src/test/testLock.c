@@ -11,7 +11,11 @@
 /*********************************** Locals ***********************************/
 
 static MprOsThread      critical[2048];
-static MprMutex         *mutex;
+
+/*
+    Single global mutex
+ */
+static MprMutex     *mutex;
 
 /************************************ Code ************************************/
 
@@ -20,6 +24,7 @@ static int initLock(MprTestGroup *gp)
     mprGlobalLock(gp);
     if (mutex == 0) {
         mutex = mprCreateLock(gp);
+        gp->data = mutex;
         mprAddRoot(mutex);
     }
     mprGlobalUnlock(gp);
