@@ -274,10 +274,6 @@ static void testClientServer(MprTestGroup *gp, cchar *host)
             }
         }
     }
-    mprAssert(mprGetBufLength(ts->inBuf) < 16 * 1024);
-    if (mprGetBufLength(ts->inBuf) >= 16 * 1024) {
-        print("MOB LEN %d\n", mprGetBufLength(ts->inBuf));
-    }
     mprCloseSocket(client, 1);
 
     mark = mprGetTime(gp);
@@ -292,7 +288,6 @@ static void testClientServer(MprTestGroup *gp, cchar *host)
         print("i %d count %d, remaining %d, buflen %d, cmp %d", i, count, thisLen, mprGetBufLength(ts->inBuf), count * len);
         print("ELAPSED %d", mprGetElapsedTime(mark));
     }
-
     assert(mprGetBufLength(ts->inBuf) == (count * len));
     mprFlushBuf(ts->inBuf);
     mprFree(client); 
