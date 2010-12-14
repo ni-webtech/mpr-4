@@ -3980,11 +3980,6 @@ typedef struct MprEventService {
     struct MprMutex *mutex;             /**< Multi-thread sync */
 } MprEventService;
 
-/*
-    ServiceEvents parameters
- */
-#define MPR_SERVICE_ONE_THING   0x4         /**< Wait for one event or one I/O */
-
 /**
     Create a new event dispatcher
     @param name Useful name for debugging
@@ -4007,6 +4002,12 @@ extern MprDispatcher *mprGetDispatcher();
 extern void mprEnableDispatcher(MprDispatcher *dispatcher);
 
 /*
+    mprServiceEvents parameters
+ */
+#define MPR_SERVICE_ONE_THING   0x4         /**< Wait for one event or one I/O */
+#define MPR_SERVICE_NO_GC       0x8         /**< Don't run GC */
+
+/*
     Schedule events. This can be called by any thread. Typically an app will dedicate one thread to be an event service 
     thread. This call will service events until the timeout expires or if MPR_SERVICE_ONE_THING is specified in flags, 
     after one event. This will service all enabled dispatcher queues and pending I/O events.
@@ -4014,11 +4015,10 @@ extern void mprEnableDispatcher(MprDispatcher *dispatcher);
         dispatcher will be serviced without starting a worker thread. This can be set to NULL.
     @param timeout Time in milliseconds to wait. Set to zero for no wait. Set to -1 to wait forever.
     @param flags If set to MPR_SERVICE_ONE_THING, this call will service at most one event. Otherwise set to zero.
-    @param cond Condition variable to wait on if another thread is responsible for servicing events.
     @returns The number of events serviced. Returns MPR_ERR_BUSY is another thread is servicing events and timeout is zero.
     @ingroup MprEvent
  */
-extern int mprServiceEvents(MprDispatcher *dispatcher, int delay, int flags, MprCond *cond);
+extern int mprServiceEvents(MprDispatcher *dispatcher, int delay, int flags);
 
 /**
     Create a new event

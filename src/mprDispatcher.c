@@ -189,10 +189,9 @@ static void serviceDispatcher(MprDispatcher *dispatcher)
     @param dispatcher Primary dispatcher to service. This dispatcher is set to the running state and events on this
         dispatcher will be serviced without starting a worker thread. This can be set to NULL.
     @param timeout Time in milliseconds to wait. Set to zero for no wait. Set to -1 to wait forever.
-    @param cond Condition variable to wait on if another thread is responsible for servicing events.
     @returns Zero if not events occurred. Otherwise returns non-zero.
  */
-int mprServiceEvents(MprDispatcher *primary, int timeout, int flags, MprCond *cond)
+int mprServiceEvents(MprDispatcher *primary, int timeout, int flags)
 {
     MprEventService     *es;
     MprDispatcher       *dp;
@@ -205,15 +204,6 @@ int mprServiceEvents(MprDispatcher *primary, int timeout, int flags, MprCond *co
     es = mpr->eventService;
     beginEventCount = eventCount = es->eventCount;
 
-    if (MPR->heap.flags & (MPR_EVENTS_THREAD | MPR_USER_EVENTS_THREAD)) {
-        if (cond) {
-            mprSetStickyYield(NULL, 1);
-            mprYieldThread(NULL);
-            mprWaitForCond(cond, timeout);
-            mprSetStickyYield(NULL, 0);
-            return 0;
-        }
-    }
     es->now = mprGetTime();
     expires = timeout < 0 ? (es->now + MPR_MAX_TIMEOUT) : (es->now + timeout);
     justOne = (flags & MPR_SERVICE_ONE_THING) ? 1 : 0;

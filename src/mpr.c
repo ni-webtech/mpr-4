@@ -219,7 +219,7 @@ int mprStartEventsThread()
 static void serviceEventsThread(void *data, MprThread *tp)
 {
     mprLog(MPR_CONFIG, "Service thread started");
-    mprServiceEvents(NULL, -1, 0, NULL);
+    mprServiceEvents(NULL, -1, 0);
 }
 
 

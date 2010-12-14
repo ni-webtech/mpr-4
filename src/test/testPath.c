@@ -84,7 +84,6 @@ static void testCopyPath(MprTestGroup *gp)
 
     to = mprAsprintf("newTest-%s.tmp", mprGetCurrentThreadName(gp));
     assert(mprPathExists(from, F_OK));
-    assert(!mprPathExists(to, F_OK));
     mprCopyPath(from, to, 0664);
     assert(mprPathExists(to, F_OK));
     mprDeletePath(from);

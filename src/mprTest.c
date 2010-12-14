@@ -346,7 +346,7 @@ int mprRunTests(MprTestService *sp)
         }
     }
     while (!mprIsComplete()) {
-        mprServiceEvents(NULL, -1, 0, NULL);
+        mprServiceEvents(NULL, -1, 0);
     }
     return (sp->totalFailedCount == 0) ? 0 : 1;
 }

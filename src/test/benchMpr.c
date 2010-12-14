@@ -96,11 +96,8 @@ int benchMain(int argc, char *argv[])
     thread = mprCreateThread("bench", (MprThreadProc) doBenchmark, (void*) MPR, 0);
     mprStartThread(thread);
     
-    //  MOB
-    mprSleep(999999);
-    
     while (!testComplete) {
-        mprServiceEvents(mprGetDispatcher(mpr), 250, 0, NULL);
+        mprServiceEvents(mprGetDispatcher(mpr), 250, 0);
     }
     mprPrintMem("Memory Report", 0);
     mprFree(mpr);

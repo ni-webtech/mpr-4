@@ -344,7 +344,9 @@ void mprFreeBlock(void *ptr, cchar *loc)
     if (ptr) {
         mp = GET_MEM(ptr);
         usize = GET_USIZE(mp);
+        
         mprFree(ptr);
+        
         len = min(slen(loc), usize - 1);
         strncpy(ptr, loc, len);
         ((char*) ptr)[len] = '\0';
@@ -1088,6 +1090,8 @@ void mprVirtFree(void *ptr, size_t size)
 #else
     free(ptr);
 #endif
+    heap->stats.bytesAllocated -= size;
+    mprAssert(heap->stats.bytesAllocated >= 0);
 }
 
 

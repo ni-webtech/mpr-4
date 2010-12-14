@@ -15,7 +15,8 @@ typedef struct MprTestSocket {
     MprSocket       *sock;                      /* Server listen socket */
     MprSocket       *client;                    /* Client socket */
     MprBuf          *inBuf;                     /* Input buffer */
-    MprWaitHandler  *handler;                   /* Wait handler */
+    MprWaitHandler  *listenHandler;             /* Listen wait handler for the server */
+    MprWaitHandler  *clientHandler;             /* Wait handler for the client connection */
     int             port;                       /* Server port */
     int             accepted;                   /* Accept */
 } MprTestSocket;
@@ -26,6 +27,7 @@ static int bufsize = 16 * 1024;
 /***************************** Forward Declarations ***************************/
 
 static int acceptFn(MprTestGroup *gp, MprEvent *event);
+static void manageTestSocket(MprTestSocket *ts, int flags);
 static int readEvent(MprTestGroup *gp, MprEvent *event);
 
 /************************************ Code ************************************/
@@ -42,13 +44,12 @@ static MprTestSocket *openServer(MprTestGroup *gp, cchar *host)
     if (listen == 0) {
         return 0;
     }
-
     for (port = 9175; port < 9250; port++) {
         if (mprOpenServerSocket(listen, host, port, MPR_SOCKET_NODELAY | MPR_SOCKET_THREAD) >= 0) {
             if (mprListenOnSocket(listen) < 0) {
                 continue;
             }
-            ts = mprAllocObj(MprTestSocket, NULL);
+            ts = mprAllocObj(MprTestSocket, manageTestSocket);
             if (ts == 0) {
                 return 0;
             }
@@ -56,12 +57,31 @@ static MprTestSocket *openServer(MprTestGroup *gp, cchar *host)
             ts->sock = listen;
             ts->inBuf = mprCreateBuf(0, 0);
             ts->port = port;
-            mprCreateWaitHandler(listen->fd, MPR_SOCKET_READABLE, NULL, (MprEventProc) acceptFn, gp);
+
+            ts->listenHandler = mprCreateWaitHandler(listen->fd, MPR_SOCKET_READABLE, NULL, (MprEventProc) acceptFn, gp);
             gp->data = (void*) ts;
             return ts;
         }
     }
     return 0;
+}
+
+
+static void manageTestSocket(MprTestSocket *ts, int flags)
+{
+    if (flags & MPR_MANAGE_MARK) {
+        mprMark(ts->sock);
+        mprMark(ts->client);
+        mprMark(ts->inBuf);
+        mprMark(ts->listenHandler);
+        mprMark(ts->clientHandler);
+
+    } else if (flags & MPR_MANAGE_FREE) {
+        mprRemoveWaitHandler(ts->clientHandler);
+        mprRemoveWaitHandler(ts->listenHandler);
+        mprCloseSocket(ts->sock, 0);
+        mprCloseSocket(ts->client, 0);
+    }
 }
 
 
@@ -122,7 +142,7 @@ static int acceptFn(MprTestGroup *gp, MprEvent *event)
 
     sp = mprAcceptSocket(ts->sock);
     ts->client = sp;
-    ts->handler = mprCreateWaitHandler(sp->fd, MPR_READABLE, NULL, (MprEventProc) readEvent, (void*) gp);
+    ts->clientHandler = mprCreateWaitHandler(sp->fd, MPR_READABLE, NULL, (MprEventProc) readEvent, (void*) gp);
     mprSignalTestComplete(gp);
     return 0;
 }
@@ -166,7 +186,7 @@ static int readEvent(MprTestGroup *gp, MprEvent *event)
     } else {
         mprAdjustBufEnd(ts->inBuf, nbytes);
     }
-    mprEnableWaitEvents(ts->handler, MPR_READABLE);
+    mprEnableWaitEvents(ts->clientHandler, MPR_READABLE);
     return 0;
 }
 
@@ -205,8 +225,10 @@ static void testClientServer(MprTestGroup *gp, cchar *host)
     MprSocket       *client;
     MprTestSocket   *ts;
     MprDispatcher   *dispatcher;
+    MprTime         mark;
     char            *buf, *thisBuf;
-    int             i, rc, len, thisLen, sofar, nbytes, count;
+    size_t          len;
+    int             i, rc, thisLen, sofar, nbytes, count;
 
     dispatcher = mprGetDispatcher(gp);
 
@@ -215,7 +237,6 @@ static void testClientServer(MprTestGroup *gp, cchar *host)
     if (ts == 0) {
         return;
     }
-    
     client = mprCreateSocket(NULL);
     assert(client != 0);
 
@@ -230,7 +251,7 @@ static void testClientServer(MprTestGroup *gp, cchar *host)
     assert(ts->accepted);
 
     buf = "01234567890123456789012345678901234567890123456789\r\n";
-    len = (int) strlen(buf);
+    len = strlen(buf);
 
     /*
         Write a set of lines to the client. Server should receive. Use non-blocking mode. This writes about 5K of data.
@@ -249,17 +270,16 @@ static void testClientServer(MprTestGroup *gp, cchar *host)
             thisLen -= nbytes;
             thisBuf += nbytes;
             if (nbytes == 0) {
-                mprServiceEvents(NULL, 50, MPR_SERVICE_ONE_THING, NULL);
+                mprServiceEvents(NULL, 50, MPR_SERVICE_ONE_THING | MPR_SERVICE_NO_GC);
             }
         }
     }
     mprAssert(mprGetBufLength(ts->inBuf) < 16 * 1024);
     mprCloseSocket(client, 1);
 
-{
-    MprTime mark = mprGetTime(gp);
+    mark = mprGetTime(gp);
     do {
-        mprServiceEvents(NULL, 50, MPR_SERVICE_ONE_THING, NULL);
+        mprServiceEvents(NULL, 50, MPR_SERVICE_ONE_THING | MPR_SERVICE_NO_GC);
         if (mprWaitForTestToComplete(gp, MPR_TEST_SLEEP)) {
             break;
         }
@@ -269,10 +289,11 @@ static void testClientServer(MprTestGroup *gp, cchar *host)
         print("i %d count %d, remaining %d, buflen %d, cmp %d", i, count, thisLen, mprGetBufLength(ts->inBuf), count * len);
         print("ELAPSED %d", mprGetElapsedTime(mark));
     }
-}
+
     assert(mprGetBufLength(ts->inBuf) == (count * len));
     mprFlushBuf(ts->inBuf);
     mprFree(client); 
+    mprFree(ts); 
 }
 
 
@@ -284,9 +305,12 @@ static void testClientServerIPv4(MprTestGroup *gp)
 
 static void testClientServerIPv6(MprTestGroup *gp)
 {
-    if (openServer(gp, "::1") == 0) {
+    MprTestSocket   *ts;
+
+    if ((ts = openServer(gp, "::1")) == 0) {
         mprLog(2, "testSocket: Can't find free IPv6 port. IPv6 may not be enabled. Skipping test.");
     } else {
+        mprFree(ts);
         testClientServer(gp, "::1");
     }
 }
@@ -302,7 +326,6 @@ static void testClientSslv4(MprTestGroup *gp)
             sp = mprCreateSocket(NULL);
             assert(sp != 0);
             assert(sp->provider != 0);
-        
             rc = mprOpenClientSocket(sp, "www.google.com", 443, 0);
             assert(rc >= 0);
             mprFree(sp);

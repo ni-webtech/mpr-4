@@ -545,9 +545,10 @@ static void disconnectSocket(MprSocket *sp)
 
 void mprCloseSocket(MprSocket *sp, bool gracefully)
 {
-    mprAssert(sp);
+    if (sp == NULL) {
+        return;
+    }
     mprAssert(sp->provider);
-
     if (sp->provider == 0) {
         return;
     }

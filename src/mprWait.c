@@ -138,6 +138,9 @@ void mprRemoveWaitHandler(MprWaitHandler *wp)
 {
     MprWaitService      *ws;
 
+    if (wp == 0) {
+        return;
+    }
     ws = wp->service;
 
     /*
