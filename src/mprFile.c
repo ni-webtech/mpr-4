@@ -150,7 +150,7 @@ int mprGetc(MprFile *file)
 }
 
 
-static char *findNewline(cchar *str, cchar *newline, size_t len, int *nlen)
+static char *findNewline(cchar *str, cchar *newline, size_t len, size_t *nlen)
 {
     char    *start, *best;
     int     i, newlines;
