@@ -55,9 +55,10 @@ static void testBigAlloc(MprTestGroup *gp)
     assert(mp != 0);
     memset(mp, 0, len);
     mprFree(mp);
-    //  MOB -- test that this is given back to the O/S. BUT Free doesn't do GC.
-    assert((mprGetMem() - memsize) < (len * 2));
-    // printf("Used %ld K\n", (mprGetMem() - memsize) / 1024);
+    
+    if (mprGetMem() > memsize) {
+        assert((mprGetMem() - memsize) < (len * 2));
+    }
 }
 
 
@@ -79,8 +80,9 @@ static void testLotsOfAlloc(MprTestGroup *gp)
         mprFree(mp);
         mprCollectGarbage(MPR_GC_FROM_USER);
     }
-    // printf("Used %ld K\n", (mprGetMem() - memsize) / 1024);
-    assert((mprGetMem() - memsize) < (4 * 1024 * 1024));
+    if (mprGetMem() > memsize) {
+        assert((mprGetMem() - memsize) < (4 * 1024 * 1024));
+    }
 }
 
 

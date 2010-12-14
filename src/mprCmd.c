@@ -676,7 +676,7 @@ int mprWaitForCmd(MprCmd *cmd, int timeout)
         delay = remaining;
 #endif
         if (MPR->heap.flags & (MPR_EVENTS_THREAD | MPR_USER_EVENTS_THREAD)) {
-            mprWaitForCond(cmd->cond, timeout);
+            mprWaitForCond(cmd->cond, delay);
         } else {
             mprServiceEvents(cmd->dispatcher, delay, MPR_SERVICE_ONE_THING);
         }

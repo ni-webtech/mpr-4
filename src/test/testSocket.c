@@ -275,6 +275,9 @@ static void testClientServer(MprTestGroup *gp, cchar *host)
         }
     }
     mprAssert(mprGetBufLength(ts->inBuf) < 16 * 1024);
+    if (mprGetBufLength(ts->inBuf) >= 16 * 1024) {
+        print("MOB LEN %d\n", mprGetBufLength(ts->inBuf));
+    }
     mprCloseSocket(client, 1);
 
     mark = mprGetTime(gp);
