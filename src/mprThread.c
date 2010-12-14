@@ -392,7 +392,7 @@ int mprStartThread(MprThread *tp)
         0, 0, 0, 0, 0, 0, 0, 0, 0);
 
     if (taskHandle < 0) {
-        mprError(tp, "Can't create thread %s\n", tp->name);
+        mprError("Can't create thread %s\n", tp->name);
         return MPR_ERR_CANT_INITIALIZE;
     }
 }

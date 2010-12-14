@@ -680,12 +680,12 @@ typedef void (*MprManager)(void *ptr, int flags);
  */
 typedef struct MprFreeMem {
     union {
-        MprMem          hdr;
+        MprMem          blk;
         struct {
             int         minSize;            /* Min size of block in queue */
             uint        count;              /* Number of blocks on the queue */
         } stats;
-    };
+    } info;
     struct MprFreeMem *next;                /* Next free block */
     struct MprFreeMem *prev;                /* Previous free block */
 } MprFreeMem;
@@ -699,14 +699,13 @@ typedef struct MprMemStats {
     uint            errors;                 /* Allocation errors */
     uint            numCpu;                 /* Number of CPUs */
     uint            pageSize;               /* System page size */
-    ssize          bytesAllocated;         /* Bytes currently allocated */
-    ssize          bytesFree;              /* Bytes currently free */
-    ssize          redLine;                /* Warn if allocation exceeds this level */
-    ssize          maxMemory;              /* Max memory that can be allocated */
-    ssize          rss;                    /* OS calculated resident stack size in bytes */
-    ssize          ram;                    /* System RAM size in bytes */
-    ssize          user;                   /* System user RAM size in bytes (excludes kernel) */
-
+    ssize           bytesAllocated;         /* Bytes currently allocated */
+    ssize           bytesFree;              /* Bytes currently free */
+    ssize           redLine;                /* Warn if allocation exceeds this level */
+    ssize           maxMemory;              /* Max memory that can be allocated */
+    ssize           rss;                    /* OS calculated resident stack size in bytes */
+    ssize           ram;                    /* System RAM size in bytes */
+    ssize           user;                   /* System user RAM size in bytes (excludes kernel) */
     int             markVisited;
     int             marked;
     int             sweepVisited;
@@ -1005,10 +1004,7 @@ extern void mprVirtFree(void *ptr, ssize size);
     In debug mode, all memory blocks can have a debug name
  */
 #if BLD_MEMORY_DEBUG
-    static MPR_INLINE void *mprSetName(void *ptr, cchar *name) {
-        MPR_GET_MEM(ptr)->name = name;
-        return ptr;
-    }
+    extern void *mprSetName(void *ptr, cchar *name);
     #define mprGetName(ptr) (MPR_GET_MEM(ptr)->name)
     #define mprPassName(ptr, name) mprSetName(ptr, name)
 #else

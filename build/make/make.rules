@@ -129,9 +129,6 @@ lib  = $(patsubst %, $(BLD_LIB_DIR)/lib%$(BLD_LIB),$(1))
 mod  = $(patsubst %, $(BLD_MOD_DIR)/%.mod,$(1))
 vlib = $(patsubst %, $(BLD_LIB_DIR)/lib%$(BLD_LIB),$(1))
 
-#vlib = $(patsubst %, $(BLD_LIB_DIR)/lib%-$(BLD_VERSION)$(BLD_LIB),$(1))
-#mod  = $(patsubst %, $(BLD_MOD_DIR)/%-$(BLD_VERSION).mod,$(1))
-
 #
 #	Default target
 #

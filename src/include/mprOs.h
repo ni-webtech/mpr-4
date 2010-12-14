@@ -38,12 +38,19 @@
 #define MPR_CPU_SH4         12
 
 /********************************* O/S Includes *******************************/
-
+/*
+    Out-of-order definitions and includes. Order really matters in this section
+ */
 #if WIN
     #define     _CRT_SECURE_NO_DEPRECATE 1
     #ifndef     _WIN32_WINNT
         #define _WIN32_WINNT 0x501
     #endif
+#endif
+
+#if VXWORKS
+    #include    <vxWorks.h>
+    #define     HAS_USHORT 1
 #endif
 
 #if BLD_WIN_LIKE
@@ -55,6 +62,7 @@
     #include    <shellapi.h>
     #include    <wincrypt.h>
 #endif
+
 #if WIN
     #include    <ws2tcpip.h>
     #include    <conio.h>
@@ -67,67 +75,92 @@
 #endif
 #undef     _WIN32_WINNT
 
+/*
+    Includes in alphabetic order
+ */
 #if CYGWIN
     #include    <arpa/inet.h>
 #endif
+
     #include    <ctype.h>
+
 #if BLD_WIN_LIKE
     #include    <direct.h>
 #else
     #include    <dirent.h>
+#if !VXWORKS
     #include    <dlfcn.h>
 #endif
+#endif
+
     #include    <fcntl.h>
     #include    <errno.h>
+
 #if BLD_FEATURE_FLOAT || 1
     #include    <float.h>
     #define __USE_ISOC99 1
     #include    <math.h>
 #endif
-#if !BLD_WIN_LIKE
+
+#if BLD_UNIX_LIKE
     #include    <grp.h> 
 #endif
+
 #if BLD_WIN_LIKE
     #include    <io.h>
 #endif
+
 #if MACOSX
     #include    <libgen.h>
 #endif
+
     #include    <limits.h>
+
 #if UNUSED && BLD_WIN_LIKE
     #include    <malloc.h>
 #endif
-#if !BLD_WIN_LIKE
+
+#if BLD_UNIX_LIKE || VXWORKS
     #include    <netdb.h>
     #include    <net/if.h>
     #include    <netinet/in.h>
     #include    <netinet/tcp.h>
     #include    <netinet/ip.h>
+#endif
+
+#if BLD_UNIX_LIKE
     #include    <pthread.h> 
     #include    <pwd.h> 
 #if !CYGWIN
     #include    <resolv.h>
 #endif
 #endif
+
     #include    <setjmp.h>
     #include    <signal.h>
     #include    <stdarg.h>
+
 #if UNUSED && WINCE
     #include    <stddef.h>
 #endif
+
 #if BLD_UNIX_LIKE
     #include    <stdint.h>
 #endif
+
     #include    <stdio.h>
     #include    <stdlib.h>
     #include    <string.h>
+
 #if BLD_UNIX_LIKE
     #include    <syslog.h>
 #endif
+
 #if LINUX
     #include    <sys/epoll.h>
 #endif
-#if !BLD_WIN_LIKE
+
+#if BLD_UNIX_LIKE
     #include    <sys/ioctl.h>
     #include    <sys/mman.h>
 #if UNUSED && MACOSX
@@ -135,12 +168,16 @@
 #endif
     #include    <sys/poll.h>
 #endif
+
     #include    <sys/stat.h>
+
 #if LINUX
     #include    <sys/prctl.h>
 #endif
+
     #include    <sys/types.h>
-#if !BLD_WIN_LIKE
+
+#if BLD_UNIX_LIKE
     #include    <sys/resource.h>
     #include    <sys/sem.h>
 #if UNUSED
@@ -157,14 +194,24 @@
 #endif
     #include    <sys/wait.h>
 #endif
+
     #include    <time.h>
-#if !BLD_WIN_LIKE
+
+#if BLD_UNIX_LIKE
     #include    <unistd.h>
 #endif
+
 #if UNUSED && LINUX
     #include    <values.h>
 #endif
+
+#if !VXWORKS
     #include    <wchar.h>
+#endif
+
+/*
+    Extra includes per O/S
+ */
 #if LINUX && !__UCLIBC__
     #include    <sys/sendfile.h>
 #endif
@@ -199,7 +246,7 @@
 #if _WRS_VXWORKS_MAJOR >= 6
     #include    <wait.h>
 #endif
-#endif /* VXWORKS */
+#endif
 
 /************************************** Defines *******************************/
 /*
@@ -269,7 +316,7 @@
 
 #ifndef HAS_SSIZE
     #define HAS_SSIZE 1
-    #if BLD_UNIX_LIKE
+    #if BLD_UNIX_LIKE || VXWORKS
         typedef ssize_t ssize;
     #else
         typedef SSIZE_T ssize;
@@ -279,6 +326,8 @@
 #ifndef HAS_INT64
     #if BLD_UNIX_LIKE
         __extension__ typedef long long int int64;
+    #elif VXWORKS
+        typedef long long int int64;
     #elif BLD_WIN_LIKE
         typedef __int64 int64;
     #else
@@ -289,6 +338,8 @@
 #ifndef HAS_UINT64
     #if BLD_UNIX_LIKE
         __extension__ typedef unsigned long long int uint64;
+    #elif VXWORKS
+        typedef unsigned long long int uint64;
     #elif BLD_WIN_LIKE
         typedef unsigned __int64 uint64;
     #else
@@ -442,15 +493,15 @@ typedef off_t MprOffset;
     #ifndef PTHREAD_MUTEX_RECURSIVE
         #define PTHREAD_MUTEX_RECURSIVE PTHREAD_MUTEX_RECURSIVE_NP
     #endif
-#if !CYGWIN
+#endif
+
+#if !BLD_WIN_LIKE
     #define O_BINARY        0
     #define O_TEXT          0
 #endif
-#endif
 
-#if MACOSX || VXWORKS || CYGWIN || BLD_WIN_LIKE
+#if !LINUX
     #define __WALL          0
-//  MOB refactor
 #if !CYGWIN
     #define MSG_NOSIGNAL    0
 #endif
@@ -492,6 +543,8 @@ typedef off_t MprOffset;
     #if _DIAB_TOOL
         #define inline __inline__
     #endif
+    #define closesocket(x)  close(x)
+    #define va_copy(d, s) ((d) = (s))
 #endif
 
 #if BLD_WIN_LIKE

@@ -4,9 +4,11 @@
 #	Copyright (c) Embedthis Software LLC, 2003-2010. All Rights Reserved.
 #
 
-include			.makedep
+NATIVE_ONLY	= 1
 
-TARGETS			:= 	\
+include		.makedep
+
+TARGETS		= 	\
 	$(BLD_BUILD_BIN_DIR)/dsi$(BLD_EXE) \
 	$(BLD_BUILD_BIN_DIR)/edep$(BLD_EXE)
 

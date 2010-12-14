@@ -1429,16 +1429,16 @@ int startProcess(MprCmd *cmd)
         (int) cmd->program, (int) entryFn, (int) cmd, 0, 0, 0, 0, 0, 0, 0);
 
     if (cmd->pid < 0) {
-        mprError(cmd, "start: can't create task %s, errno %d", entryPoint, mprGetOsError());
+        mprError("start: can't create task %s, errno %d", entryPoint, mprGetOsError());
         mprFree(entryPoint);
         return MPR_ERR_CANT_CREATE;
     }
 
-    mprLog(cmd, 7, "cmd, child taskId %d", cmd->pid);
+    mprLog(7, "cmd, child taskId %d", cmd->pid);
     mprFree(entryPoint);
 
     if (semTake(cmd->startCond, MPR_TIMEOUT_START_TASK) != OK) {
-        mprError(cmd, "start: child %s did not initialize, errno %d", cmd->program, mprGetOsError());
+        mprError("start: child %s did not initialize, errno %d", cmd->program, mprGetOsError());
         return MPR_ERR_CANT_CREATE;
     }
     semDelete(cmd->startCond);
@@ -1497,12 +1497,12 @@ static void cmdTaskEntry(char *program, MprCmdTaskFn entry, int cmdArg)
     if (cmd->dir) {
         rc = chdir(cmd->dir);
     } else {
-        dir = mprGetPathDir(cmd, cmd->program);
+        dir = mprGetPathDir(cmd->program);
         rc = chdir(dir);
         mprFree(dir);
     }
     if (rc < 0) {
-        mprLog(cmd, 0, "cmd: Can't change directory to %s", cmd->dir);
+        mprLog(0, "cmd: Can't change directory to %s", cmd->dir);
         exit(255);
     }
 
@@ -1535,7 +1535,7 @@ static int makeChannel(MprCmd *cmd, int index)
     file->name = mprAsprintf("/pipe/%s_%d_%d", BLD_PRODUCT, taskIdSelf(), tempSeed++);
 
     if (pipeDevCreate(file->name, 5, MPR_BUFSIZE) < 0) {
-        mprError(cmd, "Can't create pipes to run %s", cmd->program);
+        mprError("Can't create pipes to run %s", cmd->program);
         return MPR_ERR_CANT_OPEN;
     }
     
@@ -1548,7 +1548,7 @@ static int makeChannel(MprCmd *cmd, int index)
         file->fd = open(file->name, O_RDONLY, 0644);
     }
     if (file->fd < 0) {
-        mprError(cmd, "Can't create stdio pipes. Err %d", mprGetOsError());
+        mprError("Can't create stdio pipes. Err %d", mprGetOsError());
         return MPR_ERR_CANT_CREATE;
     }
     return 0;

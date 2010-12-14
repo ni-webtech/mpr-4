@@ -576,7 +576,7 @@ static int initFree()
         bucketBits = ((ssize) bucket) << (max(0, group - 1));
 
         size = groupBits | bucketBits;
-        freeq->stats.minSize = (int) (size << MPR_ALIGN_SHIFT);
+        freeq->info.stats.minSize = (int) (size << MPR_ALIGN_SHIFT);
 #endif
         freeq->next = freeq->prev = freeq;
     }
@@ -631,7 +631,8 @@ static int getQueueIndex(ssize size, int roundup)
     mprAssert(index < (heap->freeEnd - heap->freeq));
     
 #if BLD_MEMORY_STATS
-    mprAssert(heap->freeq[index].stats.minSize <= (int) usize && (int) usize < heap->freeq[index + 1].stats.minSize);
+    mprAssert(heap->freeq[index].info.stats.minSize <= (int) usize && 
+        (int) usize < heap->freeq[index + 1].info.stats.minSize);
 #endif
     
     if (roundup) {
@@ -788,7 +789,7 @@ static void linkFreeBlock(MprMem *mp)
 
     heap->stats.bytesFree += mp->size;
 #if BLD_MEMORY_STATS
-    freeq->stats.count++;
+    freeq->info.stats.count++;
 #endif
 }
 
@@ -807,8 +808,8 @@ static void unlinkFreeBlock(MprFreeMem *fp)
 #if BLD_MEMORY_STATS
 {
     MprFreeMem *freeq = getQueue(mp->size);
-    freeq->stats.count--;
-    mprAssert(freeq->stats.count >= 0);
+    freeq->info.stats.count--;
+    mprAssert(freeq->info.stats.count >= 0);
 }
 #endif
 }
@@ -1329,7 +1330,7 @@ static void printQueueStats()
     printf("\nFree Queue Stats\n Bucket                     Size   Count\n");
     for (i = 0, freeq = heap->freeq; freeq != heap->freeEnd; freeq++, i++) {
         index = (int) (freeq - heap->freeq);
-        printf("%7d %24d %7d\n", i, freeq->stats.minSize, freeq->stats.count);
+        printf("%7d %24d %7d\n", i, freeq->info.stats.minSize, freeq->info.stats.count);
     }
 }
 
@@ -1862,6 +1863,13 @@ static void *getNextRoot(int *indexp)
     root = mprGetNextItem(heap->roots, indexp);
     mprSpinUnlock(&heap->rootLock);
     return root;
+}
+
+
+void *mprSetName(void *ptr, cchar *name) 
+{
+    MPR_GET_MEM(ptr)->name = name;
+    return ptr;
 }
 
 

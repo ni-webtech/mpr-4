@@ -138,6 +138,7 @@ int main(int argc, char *argv[])
     }
     fprintf(fp, "\n\n");
 
+    fprintf(fp, "ifneq ($(NATIVE_ONLY),1)\n");
     fprintf(fp, "OBJECTS =");
     for (i = nextArg; i < argc; i++) {
         if (access(argv[i], R_OK) != 0) {
@@ -148,6 +149,7 @@ int main(int argc, char *argv[])
         fprintf(fp, " \\\n\t$(BLD_OBJ_DIR)/%s", mprGetBaseName(path));
     }
     fprintf(fp, "\n");
+    fprintf(fp, "endif\n");
 
     for (i = nextArg; !finished && i < argc; i++) {
         if (*argv[i] == '*') {
@@ -177,10 +179,10 @@ int main(int argc, char *argv[])
     fprintf(fp, "\n#\n#   Read the Makefile rules and per-os make definitions.\n#\n");
     fprintf(fp, "include $(BLD_TOP)/build/make/make.rules\n\n");
 
-    fprintf(fp, "ifeq ($(BUILDING_CROSS),1)\n");
-    fprintf(fp, "   include $(BLD_TOP)/build/make/make.$(BLD_HOST_OS)\n");
-    fprintf(fp, "else\n");
+    fprintf(fp, "ifeq ($(BUILDING_NATIVE),1)\n");
     fprintf(fp, "   include $(BLD_TOP)/build/make/make.$(BLD_BUILD_OS)\n");
+    fprintf(fp, "else\n");
+    fprintf(fp, "   include $(BLD_TOP)/build/make/make.$(BLD_HOST_OS)\n");
     fprintf(fp, "endif\n\n");
 
     fclose(fp);
