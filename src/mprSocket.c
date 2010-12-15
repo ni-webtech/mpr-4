@@ -943,8 +943,9 @@ ssize mprSendFileToSocket(MprSocket *sock, MprFile *file, MprOffset offset, int 
 #if MACOSX && __MAC_OS_X_VERSION_MIN_REQUIRED >= 1050
     struct sf_hdtr  def;
 #endif
-    off_t           written, off;
-    int             rc, i, done, toWriteBefore, toWriteAfter, toWriteFile;
+    ssize           rc, written;
+    off_t           off;
+    int             i, done, toWriteBefore, toWriteAfter, toWriteFile;
 
     rc = 0;
 

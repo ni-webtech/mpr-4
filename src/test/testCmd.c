@@ -80,11 +80,11 @@ static void withDataCallback(MprCmd *cmd, int channel, void *data)
     MprTestGroup    *gp;
     TestCmd         *tc;
     MprBuf          *buf;
-    ssize         len, space;
+    ssize           len, space;
 
     gp = data;
     tc = gp->data;
-    assert(tc);
+    assert(tc != NULL);
     buf = tc->buf;
     assert(buf != NULL);
     
@@ -156,7 +156,7 @@ static void testWithData(MprTestGroup *gp)
 
     assert(gp != 0);
     tc = gp->data;
-    assert(tc);
+    assert(tc != NULL);
 
     cmd = mprCreateCmd(NULL);
     assert(cmd != 0);

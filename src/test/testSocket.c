@@ -149,13 +149,13 @@ static int acceptFn(MprTestGroup *gp, MprEvent *event)
 
     ts = (MprTestSocket*) gp->data;
     sp = mprAcceptSocket(ts->sock);
-    assert(sp);
+    assert(sp != NULL);
     if (sp) {
         mprAssert(sp->fd >= 0);
         ts->client = sp;
         ts->accepted = 1;        
         ts->clientHandler = mprCreateWaitHandler(sp->fd, MPR_READABLE, NULL, (MprEventProc) readEvent, (void*) gp);
-        assert(ts->clientHandler);
+        assert(ts->clientHandler != NULL);
         mprSignalTestComplete(gp);
     }
     return 0;
@@ -169,8 +169,9 @@ static int readEvent(MprTestGroup *gp, MprEvent *event)
 {
     MprTestSocket   *ts;
     MprSocket       *sp;
+    ssize           len, nbytes, space;
     char            *buf;
-    int             rc, space, nbytes, len;
+    int             rc;
 
     ts = (MprTestSocket*) gp->data;
     sp = ts->client;
@@ -240,9 +241,9 @@ static void testClientServer(MprTestGroup *gp, cchar *host)
     MprTestSocket   *ts;
     MprDispatcher   *dispatcher;
     MprTime         mark;
-    ssize           len;
+    ssize           len, thisLen, nbytes, sofar;
     char            *buf, *thisBuf;
-    int             i, rc, thisLen, sofar, nbytes, count;
+    int             i, rc, count;
 
     dispatcher = mprGetDispatcher(gp);
 
