@@ -1,15 +1,15 @@
 /*
- *	getpath.c - Convert from one file format to another
- *
- *  Copyright (c) All Rights Reserved. See copyright notice at the bottom of the file.
- *
- *  Converts pathnames from Cygwin format to various windows formats and back.
- *  Usage:  getpath [-ar] files
- * 
- *  Switches:
- *      -a      canonicalized absolute path
- *      -c      canonicalized path
- *      -r      canonicalized relative path
+  	getpath.c - Convert from one file format to another
+  
+    Copyright (c) All Rights Reserved. See copyright notice at the bottom of the file.
+  
+    Converts pathnames from Cygwin format to various windows formats and back.
+    Usage:  getpath [-ar] files
+   
+    Switches:
+        -a      canonicalized absolute path
+        -c      canonicalized path
+        -r      canonicalized relative path
  */
 /********************************** Includes **********************************/
 
@@ -85,7 +85,7 @@ int main(int argc, char *argv[])
 
 
 /*
- *  Map delimiters - modifies argument
+    Map delimiters - modifies argument
  */
 static char *mapDelim(char *path)
 {
@@ -101,11 +101,11 @@ static char *mapDelim(char *path)
 
 
 /*
- *  Trim trailing "/" characters - modifies arg
+    Trim trailing "/" characters - modifies arg
  */
 static char *trim(char *path) 
 {
-    int     len;
+    ssize    len;
 
     while (1) {
         len = strlen(path);
@@ -120,7 +120,7 @@ static char *trim(char *path)
 
 
 /*
- *  Tokenize a path into an array of path segments
+    Tokenize a path into an array of path segments
  */
 static char **getSegments(char *path, int *countp)
 {
@@ -128,7 +128,7 @@ static char **getSegments(char *path, int *countp)
     int     count, i;
 
     /*
-     *  Count path segments
+        Count path segments
      */
     for (count = 1, cp = path; *cp; cp++) {
         if (*cp == '/') {
@@ -165,19 +165,19 @@ static char **getSegments(char *path, int *countp)
 
 
 /*
- *  Return an absolute path variation of path
+    Return an absolute path variation of path
  */
 static char *absolutePath(char *path)
 {
     char    *str, cwd[MAXPATH], *result;
-    int     len;
+    ssize   len;
 
 	if (path == NULL || *path == '\0') {
 		return path;
 	}
 
     /*
-     *  Duplicate as we modify in-place and trim trailing "/"
+        Duplicate as we modify in-place and trim trailing "/"
      */
     str = mapDelim(strdup(path));
     if (*str == '/') {
@@ -206,12 +206,13 @@ static char *absolutePath(char *path)
 
 
 /*
- *  Return a relative path variation of path
+    Return a relative path variation of path
  */
 static char *relativePath(char *path)
 {
     char    cwd[MAXPATH], **strSegments, **cwdSegments, *cp, *result;
-    int     cwdCount, strCount, i, len, commonLevels, upLevels;
+    ssize   len;
+    int     cwdCount, strCount, i, commonLevels, upLevels;
 
 	if (path == NULL || *path == '\0') {
 		return ".";
@@ -260,12 +261,13 @@ static char *relativePath(char *path)
 
 
 /*
- *	Canonicalize a path. This removes "." and ".." segments and also redundant "/".
+  	Canonicalize a path. This removes "." and ".." segments and also redundant "/".
  */
 static char *canonPath(char *path)
 {
     char    *str, *cp, *result, **segments;
-    int     count, i, from, to, len;
+    ssize   len;
+    int     count, i, from, to;
 
 	if (path == NULL) {
 		return NULL;
@@ -275,7 +277,7 @@ static char *canonPath(char *path)
     }
 
     /*
-     *  Duplicate as we modify in-place and trim trailing "/"
+        Duplicate as we modify in-place and trim trailing "/"
      */
     str = trim(mapDelim(strdup(path)));
     while (*str == '/') {
@@ -283,14 +285,14 @@ static char *canonPath(char *path)
     }
 
     /*
-     *  Allocate space for the result (conservative)
+        Allocate space for the result (conservative)
      */
     result = malloc(strlen(str) + 1);
 
     segments = getSegments(str, &count);
 
     /*
-     *  Remove "." and ".." segments
+        Remove "." and ".." segments
      */
     for (from = to = 0; from < count && segments[from]; from++) {
         if (strcmp(segments[from], ".") == 0) {
@@ -310,7 +312,7 @@ static char *canonPath(char *path)
     }
 
     /*
-     *  Catenate the result
+        Catenate the result
      */
     cp = result;
     if (*path == '/') {
@@ -330,31 +332,31 @@ static char *canonPath(char *path)
 }
 
 /*
- *  @copy   default
- *
- *  Copyright (c) Embedthis Software LLC, 2003-2010. All Rights Reserved.
- *  Copyright (c) Michael O'Brien, 1993-2010. All Rights Reserved.
- *
- *  This software is distributed under commercial and open source licenses.
- *  You may use the GPL open source license described below or you may acquire
- *  a commercial license from Embedthis Software. You agree to be fully bound
- *  by the terms of either license. Consult the LICENSE.TXT distributed with
- *  this software for full details.
- *
- *  This software is open source; you can redistribute it and/or modify it
- *  under the terms of the GNU General Public License as published by the
- *  Free Software Foundation; either version 2 of the License, or (at your
- *  option) any later version. See the GNU General Public License for more
- *  details at: http://www.embedthis.com/downloads/gplLicense.html
- *
- *  This program is distributed WITHOUT ANY WARRANTY; without even the
- *  implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
- *
- *  This GPL license does NOT permit incorporating this software into
- *  proprietary programs. If you are unable to comply with the GPL, you must
- *  acquire a commercial license to use this software. Commercial licenses
- *  for this software and support services are available from Embedthis
- *  Software at http://www.embedthis.com
- *
- *  @end
+    @copy   default
+  
+    Copyright (c) Embedthis Software LLC, 2003-2010. All Rights Reserved.
+    Copyright (c) Michael O'Brien, 1993-2010. All Rights Reserved.
+  
+    This software is distributed under commercial and open source licenses.
+    You may use the GPL open source license described below or you may acquire
+    a commercial license from Embedthis Software. You agree to be fully bound
+    by the terms of either license. Consult the LICENSE.TXT distributed with
+    this software for full details.
+  
+    This software is open source; you can redistribute it and/or modify it
+    under the terms of the GNU General Public License as published by the
+    Free Software Foundation; either version 2 of the License, or (at your
+    option) any later version. See the GNU General Public License for more
+    details at: http://www.embedthis.com/downloads/gplLicense.html
+  
+    This program is distributed WITHOUT ANY WARRANTY; without even the
+    implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
+  
+    This GPL license does NOT permit incorporating this software into
+    proprietary programs. If you are unable to comply with the GPL, you must
+    acquire a commercial license to use this software. Commercial licenses
+    for this software and support services are available from Embedthis
+    Software at http://www.embedthis.com
+  
+    @end
  */

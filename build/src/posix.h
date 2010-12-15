@@ -58,6 +58,7 @@
     #ifndef R_OK
     #define R_OK     4
     #endif
+    typedef SSIZE_T ssize;
 
     extern void      srand48(long);
     extern long      lrand48(void);
@@ -70,6 +71,7 @@
     #include <libgen.h>
     #include <unistd.h>
 
+    typedef ssize_t ssize;
 	#define  MPR_TEXT    ""
     #include <unistd.h>
     #define  min(a,b) ((a) < (b) ? (a) : (b))

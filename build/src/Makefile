@@ -25,3 +25,6 @@ $(BLD_BUILD_BIN_DIR)/dsi$(BLD_EXE): $(BLD_OBJ_DIR)/dsi$(BLD_OBJ) dsi.c
 
 $(BLD_BUILD_BIN_DIR)/edep$(BLD_EXE): $(BLD_OBJ_DIR)/edep$(BLD_OBJ) edep.c
 	bld --exe $(BLD_BUILD_BIN_DIR)/edep$(BLD_EXE) edep$(BLD_OBJ)
+
+$(BLD_BUILD_BIN_DIR)/getpath$(BLD_EXE): $(BLD_OBJ_DIR)/getpath$(BLD_OBJ) getpath.c
+	bld --exe $(BLD_BUILD_BIN_DIR)/getpath$(BLD_EXE) getpath$(BLD_OBJ)

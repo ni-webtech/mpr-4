@@ -368,6 +368,7 @@ mprSetMemNotifier
 mprSetMemPolicy
 mprSetMinWorkers
 mprSetModuleSearchPath
+mprSetName
 mprSetPathNewline
 mprSetPathSeparators
 mprSetSecureProvider
