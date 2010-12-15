@@ -62,8 +62,8 @@ typedef struct Format {
     uchar   *endbuf;
     uchar   *start;
     uchar   *end;
-    int     growBy;
-    int     maxsize;
+    ssize   growBy;
+    ssize   maxsize;
     int     precision;
     int     radix;
     int     width;
@@ -341,14 +341,15 @@ static int getState(char c, int state)
 }
 
 
-static char *sprintfCore(char *buf, int maxsize, cchar *spec, va_list arg)
+static char *sprintfCore(char *buf, ssize maxsize, cchar *spec, va_list arg)
 {
     Format        fmt;
     MprEjsString  *es;
-    char          c;
+    ssize         len;
     int64         iValue;
     uint64        uValue;
-    int           len, state;
+    int           state;
+    char          c;
 
     if (spec == 0) {
         spec = "";
@@ -1037,7 +1038,7 @@ char *mprDtoa(double value, int ndigits, int mode, int flags)
 static int growBuf(Format *fmt)
 {
     uchar   *newbuf;
-    int     buflen;
+    ssize   buflen;
 
     buflen = (int) (fmt->endbuf - fmt->buf);
     if (fmt->maxsize >= 0 && buflen >= fmt->maxsize) {

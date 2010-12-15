@@ -937,7 +937,7 @@ static ssize localSendfile(MprSocket *sp, MprFile *file, MprOffset offset, ssize
 /*  Write data from a file to a socket. Includes the ability to write header before and after the file data.
     Works even with a null "file" to just output the headers.
  */
-ssize mprSendFileToSocket(MprSocket *sock, MprFile *file, MprOffset offset, int bytes, MprIOVec *beforeVec, 
+ssize mprSendFileToSocket(MprSocket *sock, MprFile *file, MprOffset offset, ssize bytes, MprIOVec *beforeVec, 
     int beforeCount, MprIOVec *afterVec, int afterCount)
 {
 #if MACOSX && __MAC_OS_X_VERSION_MIN_REQUIRED >= 1050
@@ -976,7 +976,7 @@ ssize mprSendFileToSocket(MprSocket *sock, MprFile *file, MprOffset offset, int 
         for (i = toWriteAfter = 0; i < afterCount; i++) {
             toWriteAfter += (int) afterVec[i].len;
         }
-        toWriteFile = bytes - toWriteBefore - toWriteAfter;
+        toWriteFile = (int) bytes - toWriteBefore - toWriteAfter;
         mprAssert(toWriteFile >= 0);
 
         /*
