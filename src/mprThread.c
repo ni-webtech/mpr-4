@@ -933,7 +933,7 @@ int mprGetAvailableWorkers()
     MprWorkerService  *ws;
 
     ws = mprGetMpr()->workerService;
-    return ws->idleThreads->length + (ws->maxThreads - ws->numThreads); 
+    return (int) ws->idleThreads->length + (ws->maxThreads - ws->numThreads); 
 }
 
 

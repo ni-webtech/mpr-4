@@ -13,7 +13,7 @@
 /***************************** Forward Declarations ***************************/
 
 static void dequeueDispatcher(MprDispatcher *dispatcher);
-static int getIdleTime(MprEventService *ds, MprDispatcher *dispatcher);
+static MprTime getIdleTime(MprEventService *ds, MprDispatcher *dispatcher);
 static MprDispatcher *getNextReadyDispatcher(MprEventService *es);
 static void initDispatcherQ(MprEventService *ds, MprDispatcher *q, cchar *name);
 static bool isIdle(MprEventService *es, MprDispatcher *dispatcher);
@@ -193,8 +193,8 @@ int mprServiceEvents(MprDispatcher *primary, int timeout, int flags)
 {
     MprEventService     *es;
     MprDispatcher       *dp;
-    MprTime             expires;
-    int                 count, delay, wasRunning, beginEventCount, eventCount, justOne, idle;
+    MprTime             expires, delay, idle;
+    int                 count, wasRunning, beginEventCount, eventCount, justOne;
 
     es = MPR->eventService;
     beginEventCount = eventCount = es->eventCount;
@@ -241,7 +241,7 @@ int mprServiceEvents(MprDispatcher *primary, int timeout, int flags)
             } 
         }
         lock(es);
-        delay = (int) (expires - es->now);
+        delay = (expires - es->now);
         if (delay > 0) {
             idle = getIdleTime(es, primary);
             delay = min(delay, idle);
@@ -256,12 +256,12 @@ int mprServiceEvents(MprDispatcher *primary, int timeout, int flags)
                 }
                 if (es->waiting) {
                     unlock(es);
-                    mprWaitForMultiCond(es->waitCond, delay);
+                    mprWaitForMultiCond(es->waitCond, (int) delay);
                 } else {
                     es->waiting = 1;
                     MPR->waitService->willAwake = es->now + delay;
                     unlock(es);
-                    mprWaitForIO(MPR->waitService, delay);
+                    mprWaitForIO(MPR->waitService, (int) delay);
                     es->waiting = 0;
                     mprSignalMultiCond(es->waitCond);
                 }
@@ -496,11 +496,11 @@ static MprDispatcher *getNextReadyDispatcher(MprEventService *es)
 /*
     Get the time to sleep till the next pending event. Must be called locked.
  */
-static int getIdleTime(MprEventService *es, MprDispatcher *dispatcher)
+static MprTime getIdleTime(MprEventService *es, MprDispatcher *dispatcher)
 {
     MprDispatcher   *readyQ, *waitQ, *dp;
     MprEvent        *event;
-    int             delay;
+    MprTime         delay;
 
     waitQ = &es->waitQ;
     readyQ = &es->readyQ;
@@ -515,7 +515,7 @@ static int getIdleTime(MprEventService *es, MprDispatcher *dispatcher)
         if (dispatcher) {
             event = dispatcher->eventQ.next;
             if (event != &dispatcher->eventQ) {
-                delay = min(delay, (int) (event->due - es->now));
+                delay = min(delay, (event->due - es->now));
             }
         }
         /*
@@ -524,7 +524,7 @@ static int getIdleTime(MprEventService *es, MprDispatcher *dispatcher)
         for (dp = waitQ->next; dp != waitQ; dp = dp->next) {
             event = dp->eventQ.next;
             if (event != &dp->eventQ) {
-                delay = min(delay, (int) (event->due - es->now));
+                delay = min(delay, (event->due - es->now));
                 if (delay <= 0) {
                     break;
                 }

@@ -111,7 +111,7 @@ int mprSetBufSize(MprBuf *bp, ssize initialSize, ssize maxSize)
 }
 
 
-void mprSetBufMax(MprBuf *bp, int max)
+void mprSetBufMax(MprBuf *bp, ssize max)
 {
     bp->maxsize = max;
 }
@@ -140,7 +140,7 @@ void mprAddNullToBuf(MprBuf *bp)
 void mprAdjustBufEnd(MprBuf *bp, ssize size)
 {
     mprAssert(bp->buflen == (bp->endbuf - bp->data));
-    mprAssert(size <= (int) bp->buflen);
+    mprAssert(size <= bp->buflen);
     mprAssert((bp->end + size) >= bp->data);
     mprAssert((bp->end + size) <= bp->endbuf);
 
@@ -161,7 +161,7 @@ void mprAdjustBufEnd(MprBuf *bp, ssize size)
 void mprAdjustBufStart(MprBuf *bp, ssize size)
 {
     mprAssert(bp->buflen == (bp->endbuf - bp->data));
-    mprAssert(size <= (int) bp->buflen);
+    mprAssert(size <= bp->buflen);
     mprAssert((bp->start + size) >= bp->data);
     mprAssert((bp->start + size) <= bp->end);
 

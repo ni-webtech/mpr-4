@@ -115,7 +115,7 @@ MprModule *mprLoadModule(cchar *name, cchar *fun, void *data)
 }
 
 
-int mprReadRegistry(char **buf, int max, cchar *key, cchar *name)
+int mprReadRegistry(char **buf, ssize max, cchar *key, cchar *name)
 {
     HKEY        top, h;
     char        *value;

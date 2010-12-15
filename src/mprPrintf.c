@@ -109,7 +109,7 @@ typedef struct MprEjsString {
 
 static int  getState(char c, int state);
 static int  growBuf(Format *fmt);
-static char *sprintfCore(char *buf, int maxsize, cchar *fmt, va_list arg);
+static char *sprintfCore(char *buf, ssize maxsize, cchar *fmt, va_list arg);
 static void outNum(Format *fmt, cchar *prefix, uint64 val);
 static void outString(Format *fmt, cchar *str, ssize len);
 #if BLD_CHAR_LEN > 1
@@ -121,7 +121,7 @@ static void outFloat(Format *fmt, char specChar, double value);
 
 /************************************* Code ***********************************/
 
-int mprPrintf(cchar *fmt, ...)
+ssize mprPrintf(cchar *fmt, ...)
 {
     va_list         ap;
     MprFileSystem   *fs;
@@ -140,11 +140,11 @@ int mprPrintf(cchar *fmt, ...)
         len = -1;
     }
     mprFree(buf);
-    return (int) len;
+    return len;
 }
 
 
-int mprPrintfError(cchar *fmt, ...)
+ssize mprPrintfError(cchar *fmt, ...)
 {
     MprFileSystem   *fs;
     va_list         ap;
@@ -165,11 +165,11 @@ int mprPrintfError(cchar *fmt, ...)
         len = -1;
     }
     mprFree(buf);
-    return (int) len;
+    return len;
 }
 
 
-int mprFprintf(MprFile *file, cchar *fmt, ...)
+ssize mprFprintf(MprFile *file, cchar *fmt, ...)
 {
     ssize       len;
     va_list     ap;
@@ -187,7 +187,7 @@ int mprFprintf(MprFile *file, cchar *fmt, ...)
         len = -1;
     }
     mprFree(buf);
-    return (int) len;
+    return len;
 }
 
 
@@ -229,7 +229,7 @@ int mprStaticPrintfError(cchar *fmt, ...)
 #endif
 
 
-char *mprSprintf(char *buf, int bufsize, cchar *fmt, ...)
+char *mprSprintf(char *buf, ssize bufsize, cchar *fmt, ...)
 {
     va_list     ap;
     char        *result;
@@ -245,7 +245,7 @@ char *mprSprintf(char *buf, int bufsize, cchar *fmt, ...)
 }
 
 
-char *mprSprintfv(char *buf, int bufsize, cchar *fmt, va_list arg)
+char *mprSprintfv(char *buf, ssize bufsize, cchar *fmt, va_list arg)
 {
     mprAssert(buf);
     mprAssert(fmt);
@@ -649,7 +649,7 @@ static void outString(Format *fmt, cchar *str, ssize len)
         len = 4;
     } else if (fmt->flags & SPRINTF_ALTERNATE) {
         str++;
-        len = (int) *str;
+        len = (ssize) *str;
     } else if (fmt->precision >= 0) {
         for (cp = str, len = 0; len < fmt->precision; len++) {
             if (*cp++ == '\0') {
@@ -689,7 +689,7 @@ static void outWideString(Format *fmt, MprChar *str, ssize len)
         return;
     } else if (fmt->flags & SPRINTF_ALTERNATE) {
         str++;
-        len = (int) *str;
+        len = (ssize) *str;
     } else if (fmt->precision >= 0) {
         for (cp = str, len = 0; len < fmt->precision; len++) {
             if (*cp++ == 0) {

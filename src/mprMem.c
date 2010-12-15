@@ -478,7 +478,7 @@ void mprSetMemNotifier(MprMemNotifier cback)
 }
 
 
-void mprSetMemLimits(int redLine, int maxMemory)
+void mprSetMemLimits(ssize redLine, ssize maxMemory)
 {
     if (redLine > 0) {
         heap->stats.redLine = redLine;
@@ -1866,11 +1866,13 @@ static void *getNextRoot(int *indexp)
 }
 
 
+#ifndef mprSetName
 void *mprSetName(void *ptr, cchar *name) 
 {
     MPR_GET_MEM(ptr)->name = name;
     return ptr;
 }
+#endif
 
 
 /*

@@ -958,7 +958,7 @@ extern void mprSetMemError();
     @param maxMemory Hard memory limit. If exceeded, the request will not be granted, and the memory handler will be invoked.
     @ingroup MprMem
  */
-extern void mprSetMemLimits(int redline, int maxMemory);
+extern void mprSetMemLimits(ssize redline, ssize maxMemory);
 
 /**
     Set the memory allocation policy for when allocations fail.
@@ -1700,7 +1700,7 @@ extern int mprIsNan(double value);
     @return Returns the number of bytes written
     @ingroup MprString
  */
-extern int mprPrintfError(cchar *fmt, ...);
+extern ssize mprPrintfError(cchar *fmt, ...);
 
 /**
     Formatted print. This is a secure verion of printf that can handle null args.
@@ -1710,7 +1710,7 @@ extern int mprPrintfError(cchar *fmt, ...);
     @return Returns the number of bytes written
     @ingroup MprString
  */
-extern int mprPrintf(cchar *fmt, ...);
+extern ssize mprPrintf(cchar *fmt, ...);
 
 /**
     Print a formatted message to a file descriptor
@@ -1722,7 +1722,7 @@ extern int mprPrintf(cchar *fmt, ...);
     @return Returns the number of bytes written
     @ingroup MprString
  */
-extern int mprFprintf(struct MprFile *file, cchar *fmt, ...);
+extern ssize mprFprintf(struct MprFile *file, cchar *fmt, ...);
 
 /**
     Format a string into a statically allocated buffer.
@@ -1735,7 +1735,7 @@ extern int mprFprintf(struct MprFile *file, cchar *fmt, ...);
     @return Returns the buffer.
     @ingroup MprString
  */
-extern char *mprSprintf(char *buf, int maxSize, cchar *fmt, ...);
+extern char *mprSprintf(char *buf, ssize maxSize, cchar *fmt, ...);
 
 /**
     Format a string into a statically allocated buffer.
@@ -1748,7 +1748,7 @@ extern char *mprSprintf(char *buf, int maxSize, cchar *fmt, ...);
     @return Returns the buffer;
     @ingroup MprString
  */
-extern char *mprSprintfv(char *buf, int maxSize, cchar *fmt, va_list args);
+extern char *mprSprintfv(char *buf, ssize maxSize, cchar *fmt, va_list args);
 
 /**
     Format a string into an allocated buffer.
@@ -1843,7 +1843,7 @@ extern MprBuf *mprCloneBuf(MprBuf *orig);
     @param maxSize New maximum size the buffer can grow to
     @ingroup MprBuf
  */
-extern void mprSetBufMax(MprBuf *buf, int maxSize);
+extern void mprSetBufMax(MprBuf *buf, ssize maxSize);
 
 /**
     Get a reference to the the buffer memory.
@@ -2527,7 +2527,7 @@ extern int mprInsertItemAtPos(MprList *list, int index, cvoid *item);
         Existing items are not freed, they are only removed from the list.
     @param list List pointer returned from mprCreateList.
     @param item Item pointer to remove. 
-    @return Returns zero if successful, otherwise a negative MPR error code.
+    @return Returns the positive index of the removed item, otherwise a negative MPR error code.
     @ingroup MprList
  */
 extern int mprRemoveItem(MprList *list, void *item);
@@ -2536,7 +2536,7 @@ extern int mprRemoveItem(MprList *list, void *item);
     Remove an item from the list
     @description Removes the element specified by \a index, from the list. The
         list index is provided by mprInsertItem.
-    @return Returns zero if successful, otherwise a negative MPR error code.
+    @return Returns the positive index of the removed item, otherwise a negative MPR error code.
     @ingroup MprList
  */
 extern int mprRemoveItemAtPos(MprList *list, int index);
@@ -2546,7 +2546,7 @@ extern int mprRemoveItemAtPos(MprList *list, int index);
     @description Remove the item at the highest index position.
         Existing items are not freed, they are only removed from the list.
     @param list List pointer returned from mprCreateList.
-    @return Returns zero if successful, otherwise a negative MPR error code.
+    @return Returns the positive index of the removed item, otherwise a negative MPR error code.
     @ingroup MprList
  */
 extern int mprRemoveLastItem(MprList *list);
@@ -2944,7 +2944,7 @@ typedef int             (*MprMakeLinkProc)(struct MprFileSystem *fs, cchar *path
 typedef int             (*MprCloseFileProc)(struct MprFile *file);
 typedef ssize          (*MprReadFileProc)(struct MprFile *file, void *buf, ssize size);
 typedef MprOffset       (*MprSeekFileProc)(struct MprFile *file, int seekType, MprOffset distance);
-typedef int             (*MprSetBufferedProc)(struct MprFile *file, int initialSize, int maxSize);
+typedef int             (*MprSetBufferedProc)(struct MprFile *file, ssize initialSize, ssize maxSize);
 typedef int             (*MprTruncateFileProc)(struct MprFileSystem *fs, cchar *path, MprOffset size);
 typedef ssize          (*MprWriteFileProc)(struct MprFile *file, cvoid *buf, ssize count);
 
@@ -3153,7 +3153,7 @@ extern void mprDisableFileBuffering(MprFile *file);
     @param maxSize Maximum size the data buffer can grow to
     @ingroup MprFile
  */
-extern int mprEnableFileBuffering(MprFile *file, int size, int maxSize);
+extern int mprEnableFileBuffering(MprFile *file, ssize size, ssize maxSize);
 
 /**
     Flush any buffered write data
@@ -4189,7 +4189,7 @@ typedef struct MprXml {
 } MprXml;
 
 //MOB MARK
-extern MprXml *mprXmlOpen(int initialSize, int maxSize);
+extern MprXml *mprXmlOpen(ssize initialSize, ssize maxSize);
 extern void mprXmlSetParserHandler(MprXml *xp, MprXmlHandler h);
 extern void mprXmlSetInputStream(MprXml *xp, MprXmlInputStream s, void *arg);
 extern int mprXmlParse(MprXml *xp);
@@ -5952,7 +5952,7 @@ extern void mprSetAltLogData(void *data);
 extern void mprSleep(int msec);
 
 #if BLD_WIN_LIKE
-extern int mprReadRegistry(char **buf, int max, cchar *key, cchar *val);
+extern int mprReadRegistry(char **buf, ssize max, cchar *key, cchar *val);
 extern int mprWriteRegistry(cchar *key, cchar *name, cchar *value);
 #endif
 

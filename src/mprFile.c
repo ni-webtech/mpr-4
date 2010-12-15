@@ -153,7 +153,8 @@ int mprGetc(MprFile *file)
 static char *findNewline(cchar *str, cchar *newline, ssize len, ssize *nlen)
 {
     char    *start, *best;
-    int     i, newlines;
+    ssize   newlines;
+    int     i;
 
     mprAssert(str);
     mprAssert(newline);
@@ -163,7 +164,7 @@ static char *findNewline(cchar *str, cchar *newline, ssize len, ssize *nlen)
     if (str == NULL || newline == NULL) {
         return NULL;
     }
-    newlines = (int) strlen(newline);
+    newlines = strlen(newline);
     mprAssert(newlines == 1 || newlines == 2);
 
     start = best = NULL;
@@ -557,7 +558,7 @@ static ssize fillBuf(MprFile *file)
 /*
     Enable and control file buffering
  */
-int mprEnableFileBuffering(MprFile *file, int initialSize, int maxSize)
+int mprEnableFileBuffering(MprFile *file, ssize initialSize, ssize maxSize)
 {
     mprAssert(file);
 

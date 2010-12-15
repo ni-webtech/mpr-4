@@ -64,7 +64,7 @@ void mprInitList(MprList *lp)
  */
 int mprSetListLimits(MprList *lp, int initialSize, int maxSize)
 {
-    int         size;
+    int       size;
 
     if (initialSize <= 0) {
         initialSize = MPR_LIST_INCR;
@@ -172,7 +172,7 @@ void *mprSetItem(MprList *lp, int index, cvoid *item)
  */
 int mprAddItem(MprList *lp, cvoid *item)
 {
-    int     index;
+    int   index;
 
     mprAssert(lp);
     mprAssert(lp->capacity >= 0);
@@ -183,7 +183,7 @@ int mprAddItem(MprList *lp, cvoid *item)
             return MPR_ERR_TOO_MANY;
         }
     }
-    index = lp->length++;
+    index = (int) lp->length++;
     lp->items[index] = (void*) item;
     return index;
 }
@@ -488,7 +488,7 @@ int mprLookupItem(MprList *lp, cvoid *item)
  */
 static int growList(MprList *lp, int incr)
 {
-    int     len, memsize;
+    int   len, memsize;
 
     if (lp->maxSize <= 0) {
         lp->maxSize = MAXINT;

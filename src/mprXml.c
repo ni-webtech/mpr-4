@@ -25,7 +25,7 @@ static void trimToken(MprXml *xp);
 
 /************************************ Code ************************************/
 
-MprXml *mprXmlOpen(int initialSize, int maxSize)
+MprXml *mprXmlOpen(ssize initialSize, ssize maxSize)
 {
     MprXml  *xp;
 

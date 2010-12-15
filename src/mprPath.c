@@ -1033,7 +1033,7 @@ char *mprGetNormalizedPath(cchar *pathArg)
                 continue;
             }
             segments[i++] = mark;
-            len += (int) (sp - mark);
+            len += (sp - mark);
 #if KEEP
             if (i == 1 && segmentCount == 1 && fs->hasDriveSpecs && strchr(mark, ':') != 0) {
                 /*
@@ -1049,7 +1049,7 @@ char *mprGetNormalizedPath(cchar *pathArg)
 
     if (--sp > mark) {
         segments[i++] = mark;
-        len += (int) (sp - mark);
+        len += (sp - mark);
     }
     mprAssert(i <= segmentCount);
     segmentCount = i;

@@ -643,8 +643,7 @@ void mprPollCmdPipes(MprCmd *cmd, int timeout)
  */
 int mprWaitForCmd(MprCmd *cmd, int timeout)
 {
-    MprTime     expires;
-    int         remaining, delay;
+    MprTime     expires, remaining, delay;
 
     if (timeout < 0) {
         timeout = MAXINT;
@@ -667,7 +666,7 @@ int mprWaitForCmd(MprCmd *cmd, int timeout)
 
 #if BLD_WIN_LIKE && !WINCE
         mprPollCmdPipes(cmd, timeout);
-        remaining = (int) (expires - mprGetTime());
+        remaining = (expires - mprGetTime());
         if (cmd->pid == 0 || remaining <= 0) {
             break;
         }
@@ -676,11 +675,11 @@ int mprWaitForCmd(MprCmd *cmd, int timeout)
         delay = remaining;
 #endif
         if (MPR->heap.flags & (MPR_EVENTS_THREAD | MPR_USER_EVENTS_THREAD)) {
-            mprWaitForCond(cmd->cond, delay);
+            mprWaitForCond(cmd->cond, (int) delay);
         } else {
-            mprServiceEvents(cmd->dispatcher, delay, MPR_SERVICE_ONE_THING);
+            mprServiceEvents(cmd->dispatcher, (int) delay, MPR_SERVICE_ONE_THING);
         }
-        remaining = (int) (expires - mprGetTime());
+        remaining = (expires - mprGetTime());
     } while (cmd->pid && remaining >= 0);
 
     if (cmd->pid) {
@@ -1075,11 +1074,11 @@ static int sanitizeArgs(MprCmd *cmd, int argc, char **argv, char **env)
             destp += strlen(*ep) + 1;
         }
         if (!hasSystemRoot) {
-            mprSprintf(destp, (int) (endp - destp - 1), "SYSTEMROOT=%s", SYSTEMROOT);
+            mprSprintf(destp, (endp - destp - 1), "SYSTEMROOT=%s", SYSTEMROOT);
             destp += 12 + strlen(SYSTEMROOT);
         }
         if (!hasPath) {
-            mprSprintf(destp, (int) (endp - destp - 1), "PATH=%s", PATH);
+            mprSprintf(destp, (endp - destp - 1), "PATH=%s", PATH);
             destp += 6 + strlen(PATH);
         }
         *destp++ = '\0';
