@@ -495,7 +495,7 @@ typedef off_t MprOffset;
     #endif
 #endif
 
-#if !BLD_WIN_LIKE
+#if !BLD_WIN_LIKE && !CYGWIN
     #define O_BINARY        0
     #define O_TEXT          0
 #endif
