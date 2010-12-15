@@ -69,7 +69,7 @@ int main(int argc, char *argv[])
                 fprintf(stderr, "Too many include directories\n");
                 exit(1);
             }
-            for (cp = &argp[2]; cp && isspace(*cp) ; cp++) ;
+            for (cp = &argp[2]; cp && isspace((int) *cp) ; cp++) ;
             includeDir[numIncludeDir++] = strdup(cp);
 
         } else if (strncmp(argp, "--out", 5) == 0) {

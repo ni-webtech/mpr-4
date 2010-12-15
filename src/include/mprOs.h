@@ -67,7 +67,7 @@
 #endif
 #undef     _WIN32_WINNT
 
-#if UNUSED
+#if CYGWIN
     #include    <arpa/inet.h>
 #endif
     #include    <ctype.h>
@@ -435,8 +435,6 @@ typedef off_t MprOffset;
     #define closesocket(x)  close(x)
     #define MPR_BINARY      ""
     #define MPR_TEXT        ""
-    #define O_BINARY        0
-    #define O_TEXT          0
     #define SOCKET_ERROR    -1
     #ifndef PTHREAD_MUTEX_RECURSIVE_NP
         #define PTHREAD_MUTEX_RECURSIVE_NP PTHREAD_MUTEX_RECURSIVE
@@ -444,11 +442,18 @@ typedef off_t MprOffset;
     #ifndef PTHREAD_MUTEX_RECURSIVE
         #define PTHREAD_MUTEX_RECURSIVE PTHREAD_MUTEX_RECURSIVE_NP
     #endif
+#if !CYGWIN
+    #define O_BINARY        0
+    #define O_TEXT          0
+#endif
 #endif
 
 #if MACOSX || VXWORKS || CYGWIN || BLD_WIN_LIKE
     #define __WALL          0
+//  MOB refactor
+#if !CYGWIN
     #define MSG_NOSIGNAL    0
+#endif
 #endif
 
 #if FREEBSD

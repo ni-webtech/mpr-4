@@ -1367,11 +1367,11 @@ static void printGCStats()
     printf("Regions: %d\n", regionCount);
 
     printf("\nGC Stats\n");
-    printf("  Eternal generation has %9d blocks, %12ld bytes\n", counts[heap->eternal], bytes[heap->eternal]);
-    printf("  Stale generation has   %9d blocks, %12ld bytes\n", counts[heap->stale], bytes[heap->stale]);
-    printf("  Active generation has  %9d blocks, %12ld bytes\n", counts[heap->active], bytes[heap->active]);
-    printf("  Dead generation has    %9d blocks, %12ld bytes\n", counts[heap->dead], bytes[heap->dead]);
-    printf("  Free generation has    %9d blocks, %12ld bytes\n", counts[free], bytes[free]);
+    printf("  Eternal generation has %9d blocks, %12d bytes\n", counts[heap->eternal], (int) bytes[heap->eternal]);
+    printf("  Stale generation has   %9d blocks, %12d bytes\n", counts[heap->stale], (int) bytes[heap->stale]);
+    printf("  Active generation has  %9d blocks, %12d bytes\n", counts[heap->active], (int) bytes[heap->active]);
+    printf("  Dead generation has    %9d blocks, %12d bytes\n", counts[heap->dead], (int) bytes[heap->dead]);
+    printf("  Free generation has    %9d blocks, %12d bytes\n", counts[free], (int) bytes[free]);
 }
 #endif /* BLD_MEMORY_STATS */
 
