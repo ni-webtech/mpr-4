@@ -957,7 +957,9 @@ ssize mprSendFileToSocket(MprSocket *sock, MprFile *file, MprOffset offset, int 
     def.trailers = (afterCount > 0) ? (struct iovec*) afterVec: 0;
 
     if (file && file->fd >= 0) {
-        rc = sendfile(file->fd, sock->fd, offset, &written, &def, 0);
+        off_t       sent;
+        rc = sendfile(file->fd, sock->fd, offset, &sent, &def, 0);
+        written = (ssize) sent;
     } else
 #else
     if (1) 

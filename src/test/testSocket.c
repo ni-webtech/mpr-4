@@ -117,14 +117,8 @@ static void manageTestSocket(MprTestSocket *ts, int flags)
         mprMark(ts->clientHandler);
 
     } else if (flags & MPR_MANAGE_FREE) {
-        if (ts->listenHandler) {
-            printf("CLOSE LISTEN HANDLER\n");
-        }
         mprRemoveWaitHandler(ts->clientHandler);
         mprRemoveWaitHandler(ts->listenHandler);
-        if (ts->sock) {
-            printf("CLOSE SOCK %d\n", ts->sock->fd);
-        }
         mprCloseSocket(ts->sock, 0);
         if (ts->client) {
             mprAssert(ts->client->fd < 0);

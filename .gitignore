@@ -56,3 +56,4 @@ out
 Win32
 *.opensdf
 projects/WIN/*/x64
+project.xcworkspace
