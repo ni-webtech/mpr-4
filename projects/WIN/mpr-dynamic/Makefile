@@ -31,9 +31,6 @@ prep:
 	fi
 
 libmpr.vcproj: Makefile buildConfig.override
-	echo makeVsProj --project libmpr.vcproj --library mpr --dflags "$(DFLAGS)" \
-		--def libmpr.def --libs "$(LIBS)" $(MPR_HDR) \
-	    $(shell find $(SRC) -name '*.c' | egrep -v 'utils|test|angel|ssl/')
 	@makeVsProj --project libmpr.vcproj --library mpr --dflags "$(DFLAGS)" \
 		--def libmpr.def --libs "$(LIBS)" $(MPR_HDR) \
 	    $(shell find $(SRC) -name '*.c' | egrep -v 'utils|test|angel')
