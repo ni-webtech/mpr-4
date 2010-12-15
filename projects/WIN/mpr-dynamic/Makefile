@@ -10,12 +10,12 @@ include     buildConfig.override
 
 SRC			= ../../../src
 CMD			= ../../../src/utils
-MPR_HDR 	= $(BLD_OUT_DIR)/buildConfig.h $(shell find $(SRC)/include -name 'mpr*.h')
+MPR_HDR 	= $(BLD_INC_DIR)/buildConfig.h $(shell find $(SRC)/include -name 'mpr*.h')
 LIBS		= ws2_32.lib
 PROJECTS	= libmpr.vcproj libmprssl.vcproj testMpr.vcproj benchMpr.vcproj runProgram.vcproj
-DFLAGS		= -DDEBUG_IDE=1
+DFLAGS		= DEBUG_IDE
 
-MAKE_IFLAGS	= -I$(BLD_TOP)/src/include/master $(BLD_MPR_IFLAGS)
+MAKE_IFLAGS	= $(BLD_MPR_IFLAGS) -I$(BLD_TOP)/src/include/master 
 ifeq ($(BLD_FEATURE_OPENSSL),1)
 	SSL_IFLAGS	+= $(BLD_OPENSSL_IFLAGS)
 endif
@@ -31,6 +31,9 @@ prep:
 	fi
 
 libmpr.vcproj: Makefile buildConfig.override
+	echo makeVsProj --project libmpr.vcproj --library mpr --dflags "$(DFLAGS)" \
+		--def libmpr.def --libs "$(LIBS)" $(MPR_HDR) \
+	    $(shell find $(SRC) -name '*.c' | egrep -v 'utils|test|angel|ssl/')
 	@makeVsProj --project libmpr.vcproj --library mpr --dflags "$(DFLAGS)" \
 		--def libmpr.def --libs "$(LIBS)" $(MPR_HDR) \
 	    $(shell find $(SRC) -name '*.c' | egrep -v 'utils|test|angel')
@@ -52,3 +55,6 @@ benchMpr.vcproj: Makefile buildConfig.override
 runProgram.vcproj: Makefile buildConfig.override
 	@makeVsProj --project runProgram.vcproj --exe runProgram.exe --dflags "$(DFLAGS)" \
 		--libs "$(LIBS) libmpr.lib" $(MPR_HDR) $(SRC)/test/runProgram.c 
+
+cleanExtra:
+	rm -rf Upgrade* _Upgrade*

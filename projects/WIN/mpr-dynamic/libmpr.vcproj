@@ -3,7 +3,7 @@
     ProjectType="Visual C++"
     Version="8.00"
     Name="libmpr"
-    ProjectGUID="e4e03379-b4cb-4511-9e4a-e35baf9b25fe"
+    ProjectGUID="1a5db3a9-3f6e-419f-b81b-9843ea32a0a1"
     RootNamespace=""
     Keyword="Win32Proj"
     TargetFrameworkVersion="0"
@@ -66,7 +66,7 @@
                 StringPooling="true"
                 MinimalRebuild="true"
                 AdditionalIncludeDirectories="../../../src/include/master;../../../out/include;../../../src/include"
-                PreprocessorDefinitions="WIN32;_DEBUG;_WINDOWS;-DDEBUG_IDE=1;_REENTRANT;_MT"
+                PreprocessorDefinitions="WIN32;_DEBUG;_WINDOWS;DEBUG_IDE;_REENTRANT;_MT"
                 Optimization="1"
                 FavorSizeOrSpeed="1"
                 RuntimeLibrary="2"
@@ -137,7 +137,7 @@
                 StringPooling="true"
                 MinimalRebuild="true"
                 AdditionalIncludeDirectories="../../../src/include/master;../../../out/include;../../../src/include"
-                PreprocessorDefinitions="WIN32;_DEBUG;_WINDOWS;-DDEBUG_IDE=1;_REENTRANT;_MT"
+                PreprocessorDefinitions="WIN32;_DEBUG;_WINDOWS;DEBUG_IDE;_REENTRANT;_MT"
                 Optimization="0"
                 FavorSizeOrSpeed="1"
                 BasicRuntimeChecks="3"
@@ -162,10 +162,10 @@
         <Filter
             Name="Header Files"
             Filter="h;hpp;hxx;hm;inl;inc;xsd"
-            UniqueIdentifier="{02bf7166-cdaa-4e74-8650-377f19c60bd2}"
+            UniqueIdentifier="{d3e4238a-faaf-469b-a429-f679c2778d44}"
             >
             <File
-                RelativePath="..\..\..\out\buildConfig.h"
+                RelativePath="..\..\..\out\include\buildConfig.h"
                 >
             </File>
             <File
@@ -192,7 +192,7 @@
         <Filter
             Name="Source Files"
             Filter="cpp;c;cc;cxx;def;odl;idl;hpj;bat;asm;asmx"
-            UniqueIdentifier="{5f791df1-6dd8-470f-bcbd-d72143bf8ce4}"
+            UniqueIdentifier="{2554f0bf-23ad-49ff-a811-542f0c309dbe}"
             >
             <File
                 RelativePath="..\..\..\src\deps\dtoa.c"
@@ -348,18 +348,6 @@
             </File>
             <File
                 RelativePath="..\..\..\src\mprXml.c"
-                >
-            </File>
-            <File
-                RelativePath="..\..\..\src\ssl\mprMatrixssl.c"
-                >
-            </File>
-            <File
-                RelativePath="..\..\..\src\ssl\mprOpenssl.c"
-                >
-            </File>
-            <File
-                RelativePath="..\..\..\src\ssl\mprSsl.c"
                 >
             </File>
         </Filter>

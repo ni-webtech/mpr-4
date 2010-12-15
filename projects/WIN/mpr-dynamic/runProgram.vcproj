@@ -3,7 +3,7 @@
     ProjectType="Visual C++"
     Version="8.00"
     Name="runProgram"
-    ProjectGUID="2393dd21-0912-4511-9176-2dfbb943c549"
+    ProjectGUID="58c067ec-b025-4a26-a8d4-8aff52dd33fa"
     RootNamespace=""
     Keyword="Win32Proj"
     TargetFrameworkVersion="0"
@@ -66,7 +66,7 @@
                 StringPooling="true"
                 MinimalRebuild="true"
                 AdditionalIncludeDirectories="../../../src/include/master;../../../out/include;../../../src/include"
-                PreprocessorDefinitions="WIN32;_DEBUG;_WINDOWS;-DDEBUG_IDE=1;_REENTRANT;_MT"
+                PreprocessorDefinitions="WIN32;_DEBUG;_WINDOWS;DEBUG_IDE;_REENTRANT;_MT"
                 Optimization="1"
                 FavorSizeOrSpeed="1"
                 RuntimeLibrary="2"
@@ -136,7 +136,7 @@
                 StringPooling="true"
                 MinimalRebuild="true"
                 AdditionalIncludeDirectories="../../../src/include/master;../../../out/include;../../../src/include"
-                PreprocessorDefinitions="WIN32;_DEBUG;_WINDOWS;-DDEBUG_IDE=1;_REENTRANT;_MT"
+                PreprocessorDefinitions="WIN32;_DEBUG;_WINDOWS;DEBUG_IDE;_REENTRANT;_MT"
                 Optimization="0"
                 FavorSizeOrSpeed="1"
                 BasicRuntimeChecks="3"
@@ -160,10 +160,10 @@
         <Filter
             Name="Header Files"
             Filter="h;hpp;hxx;hm;inl;inc;xsd"
-            UniqueIdentifier="{77083dac-5df5-4188-8abc-4b2852d7662a}"
+            UniqueIdentifier="{ca5619a4-15e4-4a7c-ba9d-48ff68ca410e}"
             >
             <File
-                RelativePath="..\..\..\out\buildConfig.h"
+                RelativePath="..\..\..\out\include\buildConfig.h"
                 >
             </File>
             <File
@@ -190,7 +190,7 @@
         <Filter
             Name="Source Files"
             Filter="cpp;c;cc;cxx;def;odl;idl;hpj;bat;asm;asmx"
-            UniqueIdentifier="{50cfef1e-62f7-48ef-a44f-5bf124a11c3a}"
+            UniqueIdentifier="{7b95baa3-cc4a-42ed-8c60-8fb280f9f4a9}"
             >
             <File
                 RelativePath="..\..\..\src\test\runProgram.c"

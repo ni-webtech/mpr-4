@@ -209,6 +209,7 @@ mprGets
 mprGlobalLock
 mprGlobalUnlock
 mprGrowBuf
+mprHasEventsThread
 mprHasMemError
 mprHasSecureSockets
 mprHold
