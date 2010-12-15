@@ -815,7 +815,7 @@ static void unlinkFreeBlock(MprFreeMem *fp)
 }
 
 
-#if BLD_MEMORY_DEBUG
+#if BLD_CC_MMU && BLD_MEMORY_DEBUG
 static int isFirst(MprMem *mp)
 {
     MprRegion   *region;
@@ -832,9 +832,11 @@ static int isFirst(MprMem *mp)
 
 static MprMem *freeBlock(MprMem *mp)
 {
-    MprRegion   *region, *rp, *prior;
     MprMem      *prev, *next, *after;
     ssize       size;
+#if BLD_CC_MMU
+    MprRegion   *region, *rp, *prior;
+#endif
 
     BREAKPOINT(mp);
 
