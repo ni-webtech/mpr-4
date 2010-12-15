@@ -495,14 +495,14 @@ void mprStopCmd(MprCmd *cmd)
 /*
     Non-blocking read from a pipe. For windows which doesn't seem to have non-blocking pipes!
  */
-int mprReadCmdPipe(MprCmd *cmd, int channel, char *buf, int bufsize)
+ssize mprReadCmdPipe(MprCmd *cmd, int channel, char *buf, ssize bufsize)
 {
 #if BLD_WIN_LIKE && !WINCE
     int     count, rc;
 
     rc = PeekNamedPipe(cmd->files[channel].handle, NULL, 0, NULL, &count, NULL);
     if (rc && count > 0) {
-        return read(cmd->files[channel].fd, buf, bufsize);
+        return read(cmd->files[channel].fd, buf, (uint) bufsize);
     }
     if (cmd->process == 0) {
         return 0;
@@ -798,7 +798,7 @@ int mprReapCmd(MprCmd *cmd, int timeout)
 static void cmdCallback(MprCmd *cmd, int channel, void *data)
 {
     MprBuf      *buf;
-    int         len, space;
+    ssize       len, space;
 
     /*
         Note: stdin, stdout and stderr are named from the client's perspective
@@ -974,8 +974,9 @@ static int sanitizeArgs(MprCmd *cmd, int argc, char **argv, char **env)
 #endif
 
 #if BLD_WIN_LIKE
-    char    *program, *SYSTEMROOT, **ep, **ap, *destp, *cp, *localArgv[2], *saveArg0, *PATH, *endp;
-    int     i, len, hasPath, hasSystemRoot;
+    char        *program, *SYSTEMROOT, **ep, **ap, *destp, *cp, *localArgv[2], *saveArg0, *PATH, *endp;
+    ssize       len;
+    int         i, hasPath, hasSystemRoot;
 
     mprAssert(argc > 0 && argv[0] != NULL);
 
@@ -1047,7 +1048,8 @@ static int sanitizeArgs(MprCmd *cmd, int argc, char **argv, char **env)
      */
     cmd->env = 0;
     if (env) {
-        for (hasSystemRoot =  hasPath = len = 0, ep = env; ep && *ep; ep++) {
+        len = 0;
+        for (hasSystemRoot = hasPath = 0, ep = env; ep && *ep; ep++) {
             len += strlen(*ep) + 1;
             if (strncmp(*ep, "PATH=", 5) == 0) {
                 hasPath++;

@@ -153,7 +153,8 @@ char *mprDecode64(cchar *s)
 {
     uint    bitBuf;
     char    *buffer, *bp;
-    int     len, c, i, j, shift;
+    ssize   len;
+    int     c, i, j, shift;
 
     len = strlen(s);
     if ((buffer = mprAlloc(len + 1)) == 0) {
@@ -188,7 +189,8 @@ char *mprEncode64(cchar *s)
 {
     uint    shiftbuf;
     char    *buffer, *bp;
-    int     len, x, i, j, shift;
+    ssize   len;
+    int     x, i, j, shift;
 
     len = strlen(s) * 2;
     if ((buffer = mprAlloc(len + 1)) == 0) {
@@ -219,14 +221,15 @@ char *mprEncode64(cchar *s)
 /*
     Return the MD5 hash of a block
  */
-char *mprGetMD5Hash(cchar *buf, size_t length, cchar *prefix)
+char *mprGetMD5Hash(cchar *buf, ssize length, cchar *prefix)
 {
     MD5CONTEXT      context;
     uchar           hash[CRYPT_HASH_SIZE];
     cchar           *hex = "0123456789abcdef";
     char            *r, *str;
     char            result[(CRYPT_HASH_SIZE * 2) + 1];
-    int             i, len;
+    ssize           len;
+    int             i;
 
     /*
         Take the MD5 hash of the string argument.

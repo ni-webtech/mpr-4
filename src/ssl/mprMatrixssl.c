@@ -26,8 +26,8 @@ static int      innerRead(MprSocket *sp, char *userBuf, int len);
 static int      listenMss(MprSocket *sp, cchar *host, int port, int flags);
 static int      matrixSslDestructor(MprSsl *ssl);
 static int      matrixSslSocketDestructor(MprSslSocket *msp);
-static size_t   readMss(MprSocket *sp, void *buf, size_t len);
-static size_t   writeMss(MprSocket *sp, void *buf, size_t len);
+static ssize   readMss(MprSocket *sp, void *buf, ssize len);
+static ssize   writeMss(MprSocket *sp, void *buf, ssize len);
 
 /************************************ Code ************************************/
 
@@ -698,10 +698,10 @@ readError:
 /*
     Return number of bytes read. Return -1 on errors and EOF
  */
-static size_t readMss(MprSocket *sp, void *buf, size_t len)
+static ssize readMss(MprSocket *sp, void *buf, ssize len)
 {
     MprSslSocket  *msp;
-    size_t        bytes;
+    ssize        bytes;
 
     lock(sp);
     msp = (MprSslSocket*) sp->sslSocket;
@@ -744,7 +744,7 @@ static size_t readMss(MprSocket *sp, void *buf, size_t len)
     been encoded.  When it is completely flushed, we return the originally requested length, and resume normal 
     processing.
  */
-static size_t writeMss(MprSocket *sp, void *buf, size_t len)
+static ssize writeMss(MprSocket *sp, void *buf, ssize len)
 {
     MprSslSocket    *msp;
     sslBuf_t        *outsock;

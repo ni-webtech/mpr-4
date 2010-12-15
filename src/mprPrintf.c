@@ -101,7 +101,7 @@ typedef struct MprEjsString {
     void            *type;
     void            *next;
     void            *prev;
-    size_t          length;
+    ssize           length;
     MprChar         value[0];
 } MprEjsString;
 
@@ -111,9 +111,9 @@ static int  getState(char c, int state);
 static int  growBuf(Format *fmt);
 static char *sprintfCore(char *buf, int maxsize, cchar *fmt, va_list arg);
 static void outNum(Format *fmt, cchar *prefix, uint64 val);
-static void outString(Format *fmt, cchar *str, int len);
+static void outString(Format *fmt, cchar *str, ssize len);
 #if BLD_CHAR_LEN > 1
-static void outWideString(Format *fmt, MprChar *str, int len);
+static void outWideString(Format *fmt, MprChar *str, ssize len);
 #endif
 #if BLD_FEATURE_FLOAT
 static void outFloat(Format *fmt, char specChar, double value);
@@ -123,10 +123,10 @@ static void outFloat(Format *fmt, char specChar, double value);
 
 int mprPrintf(cchar *fmt, ...)
 {
-    MprFileSystem   *fs;
     va_list         ap;
+    MprFileSystem   *fs;
     char            *buf;
-    int             len;
+    ssize           len;
 
     /* No asserts here as this is used as part of assert reporting */
 
@@ -140,7 +140,7 @@ int mprPrintf(cchar *fmt, ...)
         len = -1;
     }
     mprFree(buf);
-    return len;
+    return (int) len;
 }
 
 
@@ -148,8 +148,8 @@ int mprPrintfError(cchar *fmt, ...)
 {
     MprFileSystem   *fs;
     va_list         ap;
+    ssize           len;
     char            *buf;
-    int             len;
 
     /* No asserts here as this is used as part of assert reporting */
 
@@ -165,15 +165,15 @@ int mprPrintfError(cchar *fmt, ...)
         len = -1;
     }
     mprFree(buf);
-    return len;
+    return (int) len;
 }
 
 
 int mprFprintf(MprFile *file, cchar *fmt, ...)
 {
+    ssize       len;
     va_list     ap;
     char        *buf;
-    int         len;
 
     if (file == 0) {
         return MPR_ERR_BAD_HANDLE;
@@ -187,7 +187,7 @@ int mprFprintf(MprFile *file, cchar *fmt, ...)
         len = -1;
     }
     mprFree(buf);
-    return len;
+    return (int) len;
 }
 
 
@@ -639,10 +639,10 @@ static char *sprintfCore(char *buf, int maxsize, cchar *spec, va_list arg)
 }
 
 
-static void outString(Format *fmt, cchar *str, int len)
+static void outString(Format *fmt, cchar *str, ssize len)
 {
     cchar   *cp;
-    int     i;
+    ssize   i;
 
     if (str == NULL) {
         str = "null";
@@ -676,7 +676,7 @@ static void outString(Format *fmt, cchar *str, int len)
 
 
 #if BLD_CHAR_LEN > 1
-static void outWideString(Format *fmt, MprChar *str, int len)
+static void outWideString(Format *fmt, MprChar *str, ssize len)
 {
     MprChar     *cp;
     int         i;
@@ -767,7 +767,7 @@ static void outNum(Format *fmt, cchar *prefix, uint64 value)
     fill = fmt->width - len;
 
     if (prefix != 0) {
-        fill -= strlen(prefix);
+        fill -= (int) strlen(prefix);
     }
     leadingZeros = (fmt->precision > len) ? fmt->precision - len : 0;
     fill -= leadingZeros;
@@ -821,7 +821,7 @@ static void outFloat(Format *fmt, char specChar, double value)
         // sprintf(result, "%*.*e", fmt->width, fmt->precision, value);
     }
 
-    len = strlen(result);
+    len = (int) strlen(result);
     fill = fmt->width - len;
     if (fmt->flags & SPRINTF_COMMA) {
         if (((len - 1) / 3) > 0) {
@@ -943,7 +943,7 @@ char *mprDtoa(double value, int ndigits, int mode, int flags)
             Note: ndigits < 0 seems to trim N digits from the end with rounding.
          */
         ip = intermediate = dtoa(value, mode, ndigits, &period, &sign, NULL);
-        len = strlen(intermediate);
+        len = (int) strlen(intermediate);
         exponent = period - 1;
 
         if (mode == MPR_DTOA_ALL_DIGITS && ndigits == 0) {
@@ -990,7 +990,7 @@ char *mprDtoa(double value, int ndigits, int mode, int flags)
                     }
                     totalDigits = count + ndigits;
                     if (period < totalDigits) {
-                        count = totalDigits + sign - mprGetBufLength(buf);
+                        count = totalDigits + sign - (int) mprGetBufLength(buf);
                         mprPutCharToBuf(buf, '.');
                         mprPutSubStringToBuf(buf, &ip[period], count);
                         mprPutPadToBuf(buf, '0', count - strlen(&ip[period]));

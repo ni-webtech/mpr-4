@@ -90,7 +90,7 @@ void mprYieldThread(MprThread *tp)
     if (tp == NULL) {
         tp = mprGetCurrentThread();
     }
-    mprLog(2, "mprYieldThread %s yielded was %d", tp->name, tp->yielded);
+    mprLog(7, "mprYieldThread %s yielded was %d", tp->name, tp->yielded);
     tp->yielded = 1;
 
     /*
@@ -98,7 +98,7 @@ void mprYieldThread(MprThread *tp)
      */
     mprSignalCond(MPR->threadService->cond);
     while (tp->yielded && mprWaitForSync()) {
-        mprLog(2, "mprYieldThread %s must wait", tp->name);
+        mprLog(7, "mprYieldThread %s must wait", tp->name);
         mprWaitForCond(tp->cond, -1);
     }
 }
@@ -138,7 +138,7 @@ int mprPauseForGCSync(int timeout)
     int                 i, allYielded;
 
     ts = mprGetMpr()->threadService;
-    mprLog(1, "mprPauseForGCSync timeout %d", timeout);
+    mprLog(7, "mprPauseForGCSync timeout %d", timeout);
 
     //  MOB timeout
     do {
@@ -155,11 +155,11 @@ int mprPauseForGCSync(int timeout)
         if (allYielded) {
             break;
         }
-        mprLog(1, "mprPauseForGCSync: waiting for threads to yield");
+        mprLog(7, "mprPauseForGCSync: waiting for threads to yield");
         mprWaitForCond(ts->cond, MPR_GC_TIMEOUT);
     } while (!allYielded);
 
-    mprLog(1, "mprPauseForGCSync: complete %d", allYielded);
+    mprLog(7, "mprPauseForGCSync: complete %d", allYielded);
     //  MOB -- return if timeout failed
     return (allYielded) ? 1 : 0;
 }
@@ -175,7 +175,7 @@ void mprResumeThreadsAfterGC()
     int                 i;
 
     ts = mprGetMpr()->threadService;
-    mprLog(1, "mprResumeThreadsAfterGC sync");
+    mprLog(7, "mprResumeThreadsAfterGC sync");
 
     mprLock(ts->mutex);
     for (i = 0; i < ts->threads->length; i++) {

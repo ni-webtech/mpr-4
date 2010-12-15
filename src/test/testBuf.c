@@ -23,7 +23,7 @@ static void testCreateBuf(MprTestGroup *gp)
 static void testIsBufEmpty(MprTestGroup *gp)
 {
     MprBuf  *bp;
-    size_t  size;
+    ssize  size;
 
     size = 512;
     bp = mprCreateBuf(size, -1);
@@ -65,9 +65,10 @@ static void testPutAndGetToBuf(MprTestGroup *gp)
 
 static void testFlushBuf(MprTestGroup *gp)
 {
-    MprBuf  *bp;
-    char    buf[512];
-    int     size, i, rc;
+    MprBuf      *bp;
+    ssize     rc;
+    char        buf[512];
+    int         size, i;
 
     size = 512;
     bp = mprCreateBuf(size, size);
@@ -92,9 +93,9 @@ static void testFlushBuf(MprTestGroup *gp)
 
 static void testGrowBuf(MprTestGroup *gp)
 {
-    MprBuf  *bp;
-	size_t	size;
-    int     i, rc, c, bytes;
+    MprBuf      *bp;
+	ssize	    size, rc, bytes;
+    int         i, c;
 
     /*
         Put more data than the initial size to force the buffer to grow
@@ -109,7 +110,7 @@ static void testGrowBuf(MprTestGroup *gp)
     rc = mprGetBufSize(bp);
     rc = mprGetBufLength(bp);
     assert(mprGetBufSize(bp) > size);
-    assert(mprGetBufSize(bp) >= (size_t) bytes);
+    assert(mprGetBufSize(bp) >= (ssize) bytes);
     assert(mprGetBufLength(bp) == bytes);
 
     for (i = 0; i < bytes; i++) {
@@ -143,8 +144,9 @@ static void testGrowBuf(MprTestGroup *gp)
 
 static void testMiscBuf(MprTestGroup *gp)
 {
-    MprBuf  *bp;
-    int     rc, size, c;
+    MprBuf      *bp;
+    ssize     size, rc;
+    int         c;
 
     size = 512;
     bp = mprCreateBuf(size, 0);
@@ -183,9 +185,10 @@ static void testMiscBuf(MprTestGroup *gp)
 
 static void testBufLoad(MprTestGroup *gp)
 {
-    MprBuf  *bp;
-    char    obuf[512], ibuf[512];
-    int     rc, count, i, j, bytes, sofar, size, len;
+    MprBuf      *bp;
+    char        obuf[512], ibuf[512];
+    ssize     rc, count, bytes, sofar, size, len;
+    int         i, j;
 
     /*
         Pick an odd size to guarantee put blocks are sometimes partial.
@@ -236,7 +239,7 @@ static void testBufLoad(MprTestGroup *gp)
 
         sofar = 0;
         while (mprGetBufLength(bp) > 0) {
-            len = (int) min(mprGetBufLength(bp), sizeof(obuf) - sofar);
+            len = min(mprGetBufLength(bp), ((ssize) (sizeof(obuf) - sofar)));
             memcpy(&obuf[sofar], mprGetBufStart(bp), len);
             sofar += len;
             mprAdjustBufStart(bp, len);

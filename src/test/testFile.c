@@ -69,8 +69,9 @@ static void testBasicIO(MprTestGroup *gp)
 {
     MprFile         *file;
     MprPath         info;
+    MprOffset       pos;
+    ssize           len, rc;
     char            buf[512];
-    int             pos, len, rc;
     TestFile        *ts;
 
     ts = (TestFile*) gp->data;
@@ -91,7 +92,7 @@ static void testBasicIO(MprTestGroup *gp)
     assert(rc == 0);
 
     /*
-        TODO windows seems to delay setting this
+        MOB TODO windows seems to delay setting this
      */
     if (info.size != 6) {
         mprSleep(2000);
@@ -138,7 +139,7 @@ static void testBufferedIO(MprTestGroup *gp)
     MprPath         info;
     TestFile        *ts;
     char            *str;
-    size_t          len;
+    ssize          len;
     int             pos, rc, c;
 
     ts = (TestFile*) gp->data;

@@ -687,7 +687,8 @@ static bool filterTestGroup(MprTestGroup *gp)
     MprTestService  *sp;
     MprList         *testFilter;
     char            *pattern;
-    int             len, next;
+    ssize           len;
+    int             next;
 
     sp = gp->service;
     testFilter = sp->testFilter;
@@ -725,7 +726,8 @@ static bool filterTestCast(MprTestGroup *gp, MprTestCase *tc)
     MprTestService  *sp;
     MprList         *testFilter;
     char            *pattern, *fullName;
-    int             len, next;
+    ssize           len;
+    int             next;
 
     sp = gp->service;
     testFilter = sp->testFilter;
@@ -880,7 +882,7 @@ bool mprWaitForTestToComplete(MprTestGroup *gp, int timeout)
     
     mprAssert(gp->cond);
 
-    rc = (mprWaitForCond(gp->cond, timeout) == 0);
+    rc = mprWaitForCond(gp->cond, timeout) == 0;
     mprResetCond(gp->cond);
     return rc;
 }

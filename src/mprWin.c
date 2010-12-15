@@ -261,7 +261,7 @@ void mprWriteToOsLog(cchar *message, int flags, int level)
         if (RegCreateKeyEx(HKEY_LOCAL_MACHINE, logName, 0, NULL, 0, KEY_ALL_ACCESS, NULL, &hkey, &exists) == ERROR_SUCCESS) {
             value = "%SystemRoot%\\System32\\netmsg.dll";
             if (RegSetValueEx(hkey, "EventMessageFile", 0, REG_EXPAND_SZ, 
-                    (uchar*) value, strlen(value) + 1) != ERROR_SUCCESS) {
+                    (uchar*) value, (int) strlen(value) + 1) != ERROR_SUCCESS) {
                 RegCloseKey(hkey);
                 return;
             }
@@ -309,7 +309,7 @@ int mprWriteRegistry(cchar *key, cchar *name, cchar *value)
         if (RegOpenKeyEx(top, key, 0, KEY_ALL_ACCESS, &h) != ERROR_SUCCESS) {
             return MPR_ERR_CANT_ACCESS;
         }
-        if (RegSetValueEx(h, name, 0, REG_SZ, value, strlen(value) + 1) != ERROR_SUCCESS) {
+        if (RegSetValueEx(h, name, 0, REG_SZ, value, (int) strlen(value) + 1) != ERROR_SUCCESS) {
             RegCloseKey(h);
             return MPR_ERR_CANT_READ;
         }
@@ -339,7 +339,7 @@ int mprWriteRegistry(cchar *key, cchar *name, cchar *value)
 static cchar *getHive(cchar *keyPath, HKEY *hive)
 {
     char    key[MPR_MAX_STRING], *cp;
-    int     len;
+    ssize   len;
 
     mprAssert(keyPath && *keyPath);
 

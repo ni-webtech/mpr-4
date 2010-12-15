@@ -20,7 +20,7 @@ static void manageBuf(MprBuf *buf, int flags);
     used to define the amount to increase the size of the buffer each time if it becomes full. (Note: mprGrowBuf() will 
     exponentially increase this number for performance.)
  */
-MprBuf *mprCreateBuf(int initialSize, int maxSize)
+MprBuf *mprCreateBuf(ssize initialSize, ssize maxSize)
 {
     MprBuf      *bp;
     
@@ -47,7 +47,7 @@ static void manageBuf(MprBuf *bp, int flags)
 MprBuf *mprCloneBuf(MprBuf *orig)
 {
     MprBuf      *bp;
-    int         len;
+    ssize       len;
 
     if ((bp = mprCreateBuf(orig->growBy, orig->maxsize)) == 0) {
         return 0;
@@ -70,7 +70,7 @@ char *mprGet(MprBuf *bp)
 /*
     Set the current buffer size and maximum size limit.
  */
-int mprSetBufSize(MprBuf *bp, size_t initialSize, size_t maxSize)
+int mprSetBufSize(MprBuf *bp, ssize initialSize, ssize maxSize)
 {
     mprAssert(bp);
 
@@ -122,7 +122,7 @@ void mprSetBufMax(MprBuf *bp, int max)
  */
 void mprAddNullToBuf(MprBuf *bp)
 {
-    size_t      space;
+    ssize      space;
 
     space = bp->endbuf - bp->end;
     if (space < sizeof(char)) {
@@ -137,7 +137,7 @@ void mprAddNullToBuf(MprBuf *bp)
 }
 
 
-void mprAdjustBufEnd(MprBuf *bp, int size)
+void mprAdjustBufEnd(MprBuf *bp, ssize size)
 {
     mprAssert(bp->buflen == (bp->endbuf - bp->data));
     mprAssert(size <= (int) bp->buflen);
@@ -158,7 +158,7 @@ void mprAdjustBufEnd(MprBuf *bp, int size)
 /*
     Adjust the start pointer after a user copy. Note: size can be negative.
  */
-void mprAdjustBufStart(MprBuf *bp, int size)
+void mprAdjustBufStart(MprBuf *bp, ssize size)
 {
     mprAssert(bp->buflen == (bp->endbuf - bp->data));
     mprAssert(size <= (int) bp->buflen);
@@ -191,9 +191,9 @@ int mprGetCharFromBuf(MprBuf *bp)
 }
 
 
-int mprGetBlockFromBuf(MprBuf *bp, char *buf, int size)
+ssize mprGetBlockFromBuf(MprBuf *bp, char *buf, ssize size)
 {
-    int     thisLen, bytesRead;
+    ssize     thisLen, bytesRead;
 
     mprAssert(buf);
     mprAssert(size >= 0);
@@ -220,19 +220,19 @@ int mprGetBlockFromBuf(MprBuf *bp, char *buf, int size)
 }
 
 
-size_t mprGetBufLength(MprBuf *bp)
+ssize mprGetBufLength(MprBuf *bp)
 {
     return (bp->end - bp->start);
 }
 
 
-size_t mprGetBufSize(MprBuf *bp)
+ssize mprGetBufSize(MprBuf *bp)
 {
     return bp->buflen;
 }
 
 
-size_t mprGetBufSpace(MprBuf *bp)
+ssize mprGetBufSpace(MprBuf *bp)
 {
     return (bp->endbuf - bp->end);
 }
@@ -288,8 +288,8 @@ int mprLookAtLastCharInBuf(MprBuf *bp)
 
 int mprPutCharToBuf(MprBuf *bp, int c)
 {
-    char    *cp;
-    int     space;
+    char       *cp;
+    ssize      space;
 
     mprAssert(bp->buflen == (bp->endbuf - bp->data));
 
@@ -310,9 +310,9 @@ int mprPutCharToBuf(MprBuf *bp, int c)
 }
 
 
-size_t mprPutBlockToBuf(MprBuf *bp, cchar *str, size_t size)
+ssize mprPutBlockToBuf(MprBuf *bp, cchar *str, ssize size)
 {
-    size_t      thisLen, bytes, space;
+    ssize      thisLen, bytes, space;
 
     mprAssert(str);
     mprAssert(size >= 0);
@@ -342,7 +342,7 @@ size_t mprPutBlockToBuf(MprBuf *bp, cchar *str, size_t size)
 }
 
 
-int mprPutStringToBuf(MprBuf *bp, cchar *str)
+ssize mprPutStringToBuf(MprBuf *bp, cchar *str)
 {
     if (str) {
         return mprPutBlockToBuf(bp, str, strlen(str));
@@ -351,9 +351,9 @@ int mprPutStringToBuf(MprBuf *bp, cchar *str)
 }
 
 
-int mprPutSubStringToBuf(MprBuf *bp, cchar *str, int count)
+ssize mprPutSubStringToBuf(MprBuf *bp, cchar *str, ssize count)
 {
-    int     len;
+    ssize     len;
 
     if (str) {
         len = strlen(str);
@@ -366,7 +366,7 @@ int mprPutSubStringToBuf(MprBuf *bp, cchar *str, int count)
 }
 
 
-size_t mprPutPadToBuf(MprBuf *bp, int c, size_t count)
+ssize mprPutPadToBuf(MprBuf *bp, int c, ssize count)
 {
     mprAssert(count < MAXINT);
 
@@ -379,11 +379,11 @@ size_t mprPutPadToBuf(MprBuf *bp, int c, size_t count)
 }
 
 
-int mprPutFmtToBuf(MprBuf *bp, cchar *fmt, ...)
+ssize mprPutFmtToBuf(MprBuf *bp, cchar *fmt, ...)
 {
     va_list     ap;
     char        *buf;
-    int         rc, space;
+    ssize       rc, space;
 
     if (fmt == 0) {
         return 0;
@@ -402,10 +402,10 @@ int mprPutFmtToBuf(MprBuf *bp, cchar *fmt, ...)
 /*
     Grow the buffer. Return 0 if the buffer grows. Increase by the growBy size specified when creating the buffer. 
  */
-int mprGrowBuf(MprBuf *bp, int need)
+int mprGrowBuf(MprBuf *bp, ssize need)
 {
     char    *newbuf;
-    size_t   growBy;
+    ssize   growBy;
 
     if (bp->maxsize > 0 && bp->buflen >= bp->maxsize) {
         return MPR_ERR_TOO_MANY;
@@ -450,10 +450,10 @@ int mprGrowBuf(MprBuf *bp, int need)
 /*
     Add a number to the buffer (always null terminated).
  */
-int mprPutIntToBuf(MprBuf *bp, int i)
+ssize mprPutIntToBuf(MprBuf *bp, int i)
 {
-    char    numBuf[16];
-    int     rc;
+    char        numBuf[16];
+    ssize       rc;
 
     itos(numBuf, sizeof(numBuf), i, 10);
     rc = mprPutStringToBuf(bp, numBuf);
@@ -461,7 +461,6 @@ int mprPutIntToBuf(MprBuf *bp, int i)
     if (bp->end < bp->endbuf) {
         *((char*) bp->end) = (char) '\0';
     }
-
     return rc;
 }
 
@@ -510,7 +509,7 @@ void mprResetBufIfEmpty(MprBuf *bp)
 #if BLD_CHAR_LEN > 1
 void mprAddNullToWideBuf(MprBuf *bp)
 {
-    size_t      space;
+    ssize      space;
 
     space = bp->endbuf - bp->end;
     if (space < sizeof(MprChar)) {
@@ -554,7 +553,7 @@ int mprPutFmtToWideBuf(MprBuf *bp, cchar *fmt, ...)
     va_list     ap;
     MprChar     *wbuf;
     char        *buf;
-    size_t      len;
+    ssize       len;
     int         rc, space;
 
     if (fmt == 0) {
@@ -576,7 +575,7 @@ int mprPutFmtToWideBuf(MprBuf *bp, cchar *fmt, ...)
 int mprPutStringToWideBuf(MprBuf *bp, cchar *str)
 {
     MprChar     *wstr;
-    size_t      len;
+    ssize      len;
     int         result;
 
     if (str) {

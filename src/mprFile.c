@@ -13,7 +13,7 @@
 
 /****************************** Forward Declarations **************************/
 
-static int fillBuf(MprFile *file);
+static ssize fillBuf(MprFile *file);
 static void manageFile(MprFile *file, int flags);
 
 /************************************ Code ************************************/
@@ -55,7 +55,7 @@ int mprFlush(MprFile *file)
 {
     MprFileSystem   *fs;
     MprBuf          *bp;
-    int             len, rc;
+    ssize           len, rc;
 
     mprAssert(file);
     if (file == 0) {
@@ -72,7 +72,7 @@ int mprFlush(MprFile *file)
             len = mprGetBufLength(bp);
             rc = fs->writeFile(file, mprGetBufStart(bp), len);
             if (rc < 0) {
-                return rc;
+                return (int) rc;
             }
             mprAdjustBufStart(bp, rc);
         }
@@ -123,8 +123,8 @@ MprFile *mprGetStdout()
  */
 int mprGetc(MprFile *file)
 {
-    MprBuf  *bp;
-    int     len;
+    MprBuf      *bp;
+    ssize     len;
 
     mprAssert(file);
 
@@ -150,7 +150,7 @@ int mprGetc(MprFile *file)
 }
 
 
-static char *findNewline(cchar *str, cchar *newline, size_t len, size_t *nlen)
+static char *findNewline(cchar *str, cchar *newline, ssize len, ssize *nlen)
 {
     char    *start, *best;
     int     i, newlines;
@@ -163,7 +163,7 @@ static char *findNewline(cchar *str, cchar *newline, size_t len, size_t *nlen)
     if (str == NULL || newline == NULL) {
         return NULL;
     }
-    newlines = strlen(newline);
+    newlines = (int) strlen(newline);
     mprAssert(newlines == 1 || newlines == 2);
 
     start = best = NULL;
@@ -187,13 +187,13 @@ static char *findNewline(cchar *str, cchar *newline, size_t len, size_t *nlen)
     Get a string from the file. This will put the file into buffered mode.
     Return NULL on eof.
  */
-char *mprGets(MprFile *file, size_t maxline, int *lenp)
+char *mprGets(MprFile *file, ssize maxline, ssize *lenp)
 {
     MprBuf          *bp;
     MprFileSystem   *fs;
+    ssize           size, len, nlen, consumed;
     cchar           *eol, *newline, *start;
     char            *result;
-    size_t          size, len, nlen, consumed;
 
     mprAssert(file);
 
@@ -229,7 +229,7 @@ char *mprGets(MprFile *file, size_t maxline, int *lenp)
         } else {
             consumed = len;
         }
-        file->pos += consumed;
+        file->pos += (MprOffset) consumed;
         if (lenp) {
             *lenp += len;
         }
@@ -275,11 +275,11 @@ MprFile *mprOpen(cchar *path, int omode, int perms)
 /*
     Put a string to the file. This will put the file into buffered mode.
  */
-int mprPuts(MprFile *file, cchar *str)
+ssize mprPuts(MprFile *file, cchar *str)
 {
     MprBuf  *bp;
+    ssize   total, bytes, count;
     char    *buf;
-    size_t  total, bytes, count;
 
     mprAssert(file);
     count = strlen(str);
@@ -315,7 +315,7 @@ int mprPuts(MprFile *file, cchar *str)
         count -= bytes;
         buf += bytes;
         total += bytes;
-        file->pos += bytes;
+        file->pos += (MprOffset) bytes;
     }
     return total;
 }
@@ -326,8 +326,8 @@ int mprPuts(MprFile *file, cchar *str)
  */
 int mprPeekc(MprFile *file)
 {
-    MprBuf  *bp;
-    int     len;
+    MprBuf      *bp;
+    ssize       len;
 
     mprAssert(file);
 
@@ -355,7 +355,7 @@ int mprPeekc(MprFile *file)
 /*
     Put a character to the file. This will put the file into buffered mode.
  */
-int mprPutc(MprFile *file, int c)
+ssize mprPutc(MprFile *file, int c)
 {
     mprAssert(file);
 
@@ -374,12 +374,12 @@ int mprPutc(MprFile *file, int c)
 }
 
 
-int mprRead(MprFile *file, void *buf, size_t size)
+ssize mprRead(MprFile *file, void *buf, ssize size)
 {
     MprFileSystem   *fs;
     MprBuf          *bp;
+    ssize           bytes, totalRead;
     void            *bufStart;
-    size_t          bytes, totalRead;
 
     mprAssert(file);
     if (file == 0) {
@@ -407,7 +407,7 @@ int mprRead(MprFile *file, void *buf, size_t size)
         }
         totalRead = ((char*) buf - (char*) bufStart);
     }
-    file->pos += totalRead;
+    file->pos += (MprOffset) totalRead;
     return totalRead;
 }
 
@@ -467,11 +467,11 @@ int mprTruncate(cchar *path, MprOffset size)
 }
 
 
-int mprWrite(MprFile *file, cvoid *buf, size_t count)
+ssize mprWrite(MprFile *file, cvoid *buf, ssize count)
 {
     MprFileSystem   *fs;
     MprBuf          *bp;
-    size_t          bytes, written;
+    ssize           bytes, written;
 
     mprAssert(file);
     if (file == 0) {
@@ -499,7 +499,7 @@ int mprWrite(MprFile *file, cvoid *buf, size_t count)
             buf = (char*) buf + bytes;
         }
     }
-    file->pos += written;
+    file->pos += (MprOffset) written;
     if (file->pos > file->size) {
         file->size = file->pos;
     }
@@ -507,17 +507,17 @@ int mprWrite(MprFile *file, cvoid *buf, size_t count)
 }
 
 
-int mprWriteString(MprFile *file, cchar *str)
+ssize mprWriteString(MprFile *file, cchar *str)
 {
     return mprWrite(file, str, strlen(str));
 }
 
 
-int mprWriteFormat(MprFile *file, cchar *fmt, ...)
+ssize mprWriteFormat(MprFile *file, cchar *fmt, ...)
 {
     va_list     ap;
     char        *buf;
-    int         rc;
+    ssize       rc;
 
     rc = -1;
     va_start(ap, fmt);
@@ -533,11 +533,11 @@ int mprWriteFormat(MprFile *file, cchar *fmt, ...)
 /*
     Fill the read buffer. Return the new buffer length. Only called when the buffer is empty.
  */
-static int fillBuf(MprFile *file)
+static ssize fillBuf(MprFile *file)
 {
     MprFileSystem   *fs;
     MprBuf          *bp;
-    int             len;
+    ssize           len;
 
     bp = file->buf;
     fs = file->fileSystem;

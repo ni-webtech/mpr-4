@@ -13,7 +13,7 @@
 /*
     Format a number as a string. Support radix 10 and 16.
  */
-MprChar *itow(MprChar *buf, size_t count, int64 value, int radix)
+MprChar *itow(MprChar *buf, ssize count, int64 value, int radix)
 {
     MprChar     numBuf[32];
     MprChar     *cp, *dp, *endp;
@@ -83,7 +83,7 @@ int wcasecmp(MprChar *s1, MprChar *s2)
 MprChar *wclone(MprChar *str)
 {
     MprChar     *result, nullBuf[1];
-    size_t      len, size;
+    ssize       len, size;
 
     if (str == NULL) {
         nullBuf[0] = 0;
@@ -112,10 +112,10 @@ int wcmp(MprChar *s1, MprChar *s2)
 }
 
 
-MprChar *wcontains(MprChar *str, MprChar *pattern, size_t limit)
+MprChar *wcontains(MprChar *str, MprChar *pattern, ssize limit)
 {
     MprChar     *cp, *s1, *s2;
-    size_t      lim;
+    ssize       lim;
 
     mprAssert(0 <= limit && limit < MAXINT);
 
@@ -148,9 +148,9 @@ MprChar *wcontains(MprChar *str, MprChar *pattern, size_t limit)
 /*
     destMax and len are character counts, not sizes in bytes
  */
-size_t wcopy(MprChar *dest, size_t destMax, MprChar *src)
+ssize wcopy(MprChar *dest, ssize destMax, MprChar *src)
 {
-    size_t      len;
+    ssize      len;
 
     mprAssert(src);
     mprAssert(dest);
@@ -216,7 +216,7 @@ MprChar *wfmtv(MprChar *fmt, va_list arg)
     Compute a hash for a Unicode string 
     (Based on work by Paul Hsieh, see http://www.azillionmonkeys.com/qed/hash.html)
  */
-uint whash(MprChar *name, size_t len)
+uint whash(MprChar *name, ssize len)
 {
     uint    tmp, rem, hash;
 
@@ -262,7 +262,7 @@ uint whash(MprChar *name, size_t len)
 }
 
 
-uint whashlower(MprChar *name, size_t len)
+uint whashlower(MprChar *name, ssize len)
 {
     uint    tmp, rem, hash;
 
@@ -364,9 +364,9 @@ MprChar *wjoinv(MprChar *buf, va_list args)
 }
 
 
-size_t wlen(MprChar *s)
+ssize wlen(MprChar *s)
 {
-    size_t  i;
+    ssize  i;
 
     i = 0;
     if (s) {
@@ -398,7 +398,7 @@ MprChar *wlower(MprChar *str)
 }
 
 
-int wncasecmp(MprChar *s1, MprChar *s2, size_t n)
+int wncasecmp(MprChar *s1, MprChar *s2, ssize n)
 {
     int     rc;
 
@@ -429,7 +429,7 @@ int wncasecmp(MprChar *s1, MprChar *s2, size_t n)
 }
 
 
-int wncmp(MprChar *s1, MprChar *s2, size_t n)
+int wncmp(MprChar *s1, MprChar *s2, ssize n)
 {
     int     rc;
 
@@ -465,9 +465,9 @@ int wncmp(MprChar *s1, MprChar *s2, size_t n)
     the buffer does not overflow. Returns MPR_ERR_WONT_FIT if the buffer is too small.
     destMax and len are character counts, not sizes in bytes
  */
-size_t wncopy(MprChar *dest, size_t destMax, MprChar *src, size_t count)
+ssize wncopy(MprChar *dest, ssize destMax, MprChar *src, ssize count)
 {
-    size_t      len;
+    ssize      len;
 
     mprAssert(dest);
     mprAssert(src);
@@ -573,7 +573,7 @@ MprChar *wrejoinv(MprChar *buf, va_list args)
 }
 
 
-size_t wspn(MprChar *str, MprChar *set)
+ssize wspn(MprChar *str, MprChar *set)
 {
     MprChar     *sp;
     int         count;
@@ -622,7 +622,7 @@ int64 wtoi(MprChar *str, int radix, int *err)
 MprChar *wtok(MprChar *str, MprChar *delim, MprChar **last)
 {
     MprChar    *start, *end;
-    size_t     i;
+    ssize      i;
 
     start = str ? str : *last;
 
@@ -647,10 +647,10 @@ MprChar *wtok(MprChar *str, MprChar *delim, MprChar **last)
 }
 
 
-MprChar *wsub(MprChar *str, size_t offset, size_t len)
+MprChar *wsub(MprChar *str, ssize offset, ssize len)
 {
     MprChar    *result;
-    size_t      size;
+    ssize      size;
 
     mprAssert(str);
     mprAssert(offset >= 0);
@@ -675,7 +675,7 @@ MprChar *wsub(MprChar *str, size_t offset, size_t len)
 
 MprChar *wtrim(MprChar *str, MprChar *set, int where)
 {
-    size_t  len, i;
+    ssize  len, i;
 
     if (str == NULL || set == NULL) {
         return str;
@@ -725,9 +725,9 @@ char *wupper(MprChar *str)
     Return a count of characters copied or -1 if an invalid multibyte sequence was provided in src.
     NOTE: does not allocate.
  */
-size_t wtom(char *dest, size_t destCount, MprChar *src, size_t len)
+ssize wtom(char *dest, ssize destCount, MprChar *src, ssize len)
 {
-    size_t      size;
+    ssize      size;
 
     mprAssert(0 <= len && len < MAXINT);
 
@@ -770,9 +770,9 @@ size_t wtom(char *dest, size_t destCount, MprChar *src, size_t len)
     If dest is NULL, don't copy the string, just return the length.
     NOTE: does not allocate
  */
-size_t mtow(MprChar *dest, size_t destCount, cchar *src, size_t len) 
+ssize mtow(MprChar *dest, ssize destCount, cchar *src, ssize len) 
 {
-    size_t      size;
+    ssize      size;
 
     mprAssert(0 < destCount && len < MAXINT);
     mprAssert(0 <= len && len < MAXINT);
@@ -805,10 +805,10 @@ size_t mtow(MprChar *dest, size_t destCount, cchar *src, size_t len)
 }
 
 
-MprChar *amtow(cchar *src, size_t *lenp)
+MprChar *amtow(cchar *src, ssize *lenp)
 {
     MprChar     *dest;
-    size_t      len;
+    ssize       len;
 
     len = mtow(NULL, MAXSIZE, src, 0);
     if (len < 0) {
@@ -824,10 +824,10 @@ MprChar *amtow(cchar *src, size_t *lenp)
 }
 
 
-char *awtom(MprChar *src, size_t *lenp)
+char *awtom(MprChar *src, ssize *lenp)
 {
     char    *dest;
-    size_t  len;
+    ssize   len;
 
     len = wtom(NULL, MAXSIZE, src, 0);
     if (len < 0) {
@@ -920,7 +920,7 @@ static int isValidUtf8(cuchar *src, int len)
 //  MOB - CLEAN
 static int offsets[6] = { 0x00000000UL, 0x00003080UL, 0x000E2080UL, 0x03C82080UL, 0xFA082080UL, 0x82082080UL };
 
-size_t xmtow(MprChar *dest, size_t destMax, cchar *src, size_t len) 
+ssize xmtow(MprChar *dest, ssize destMax, cchar *src, ssize len) 
 {
     MprChar     *dp, *dend;
     cchar       *sp, *send;
@@ -1006,7 +1006,7 @@ static cuchar marks[7] = { 0x00, 0x00, 0xC0, 0xE0, 0xF0, 0xF8, 0xFC };
    end if
 */
 
-size_t xwtom(char *dest, size_t destMax, MprChar *src, size_t len)
+ssize xwtom(char *dest, ssize destMax, MprChar *src, ssize len)
 {
     MprChar     *sp, *send;
     char        *dp, *dend;
@@ -1071,7 +1071,7 @@ size_t xwtom(char *dest, size_t destMax, MprChar *src, size_t len)
 
 #else /* BLD_CHAR_LEN == 1 */
 
-MprChar *amtow(cchar *src, size_t *len)
+MprChar *amtow(cchar *src, ssize *len)
 {
     if (len) {
         *len = strlen(src);
@@ -1080,7 +1080,7 @@ MprChar *amtow(cchar *src, size_t *len)
 }
 
 
-char *awtom(MprChar *src, size_t *len)
+char *awtom(MprChar *src, ssize *len)
 {
     if (len) {
         *len = strlen(src);
