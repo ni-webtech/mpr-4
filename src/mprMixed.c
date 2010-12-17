@@ -23,11 +23,11 @@ int mcmp(MprChar *s1, cchar *s2)
 }
 
 
-MprChar *mcontains(MprChar *str, cchar *pattern, size_t limit)
+MprChar *mcontains(MprChar *str, cchar *pattern, ssize limit)
 {
     MprChar     *cp, *s1;
     cchar       *s2;
-    size_t      lim;
+    ssize       lim;
 
     mprAssert(0 <= limit && limit < MAXSIZE);
 
@@ -55,9 +55,9 @@ MprChar *mcontains(MprChar *str, cchar *pattern, size_t limit)
 /*
     destMax and len are character counts, not sizes in bytes
  */
-size_t mcopy(MprChar *dest, cchar *src)
+ssize mcopy(MprChar *dest, cchar *src)
 {
-    size_t      len;
+    ssize       len;
 
     mprAssert(src);
     mprAssert(dest);
@@ -184,7 +184,7 @@ MprChar *mjoinv(MprChar *buf, va_list args)
 /*
     Case insensitive string comparison. Limited by length
  */
-int mncasecmp(MprChar *s1, cchar *s2, size_t n)
+int mncasecmp(MprChar *s1, cchar *s2, ssize n)
 {
     int     rc;
 
@@ -216,7 +216,7 @@ int mncasecmp(MprChar *s1, cchar *s2, size_t n)
 
 
 
-int mncmp(MprChar *s1, cchar *s2, size_t n)
+int mncmp(MprChar *s1, cchar *s2, ssize n)
 {
     mprAssert(0 <= n && n < MAXSIZE);
 
@@ -245,7 +245,7 @@ int mncmp(MprChar *s1, cchar *s2, size_t n)
 }
 
 
-size_t mncopy(MprChar *dest, size_t destMax, cchar *src, size_t len)
+ssize mncopy(MprChar *dest, ssize destMax, cchar *src, ssize len)
 {
     mprAssert(0 <= len && len < MAXSIZE);
     mprAssert(0 < destMax && destMax < MAXSIZE);
@@ -322,7 +322,7 @@ MprChar *mrejoinv(MprChar *buf, va_list args)
 }
 
 
-size_t mspn(MprChar *str, cchar *set)
+ssize mspn(MprChar *str, cchar *set)
 {
     cchar   *sp;
     int     count;
@@ -359,7 +359,7 @@ int mstarts(MprChar *str, cchar *prefix)
 MprChar *mtok(MprChar *str, cchar *delim, MprChar **last)
 {
     MprChar    *start, *end;
-    size_t     i;
+    ssize      i;
 
     start = str ? str : *last;
 
@@ -386,7 +386,7 @@ MprChar *mtok(MprChar *str, cchar *delim, MprChar **last)
 
 MprChar *mtrim(MprChar *str, cchar *set, int where)
 {
-    size_t  len, i;
+    ssize   len, i;
 
     if (str == NULL || set == NULL) {
         return str;

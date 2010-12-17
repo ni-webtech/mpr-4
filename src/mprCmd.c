@@ -495,14 +495,14 @@ void mprStopCmd(MprCmd *cmd)
 /*
     Non-blocking read from a pipe. For windows which doesn't seem to have non-blocking pipes!
  */
-int mprReadCmdPipe(MprCmd *cmd, int channel, char *buf, int bufsize)
+ssize mprReadCmdPipe(MprCmd *cmd, int channel, char *buf, ssize bufsize)
 {
 #if BLD_WIN_LIKE && !WINCE
     int     count, rc;
 
     rc = PeekNamedPipe(cmd->files[channel].handle, NULL, 0, NULL, &count, NULL);
     if (rc && count > 0) {
-        return read(cmd->files[channel].fd, buf, bufsize);
+        return read(cmd->files[channel].fd, buf, (uint) bufsize);
     }
     if (cmd->process == 0) {
         return 0;
@@ -643,8 +643,7 @@ void mprPollCmdPipes(MprCmd *cmd, int timeout)
  */
 int mprWaitForCmd(MprCmd *cmd, int timeout)
 {
-    MprTime     expires;
-    int         remaining, delay;
+    MprTime     expires, remaining, delay;
 
     if (timeout < 0) {
         timeout = MAXINT;
@@ -667,7 +666,7 @@ int mprWaitForCmd(MprCmd *cmd, int timeout)
 
 #if BLD_WIN_LIKE && !WINCE
         mprPollCmdPipes(cmd, timeout);
-        remaining = (int) (expires - mprGetTime());
+        remaining = (expires - mprGetTime());
         if (cmd->pid == 0 || remaining <= 0) {
             break;
         }
@@ -676,11 +675,11 @@ int mprWaitForCmd(MprCmd *cmd, int timeout)
         delay = remaining;
 #endif
         if (MPR->heap.flags & (MPR_EVENTS_THREAD | MPR_USER_EVENTS_THREAD)) {
-            mprWaitForCond(cmd->cond, delay);
+            mprWaitForCond(cmd->cond, (int) delay);
         } else {
-            mprServiceEvents(cmd->dispatcher, delay, MPR_SERVICE_ONE_THING);
+            mprServiceEvents(cmd->dispatcher, (int) delay, MPR_SERVICE_ONE_THING);
         }
-        remaining = (int) (expires - mprGetTime());
+        remaining = (expires - mprGetTime());
     } while (cmd->pid && remaining >= 0);
 
     if (cmd->pid) {
@@ -798,7 +797,7 @@ int mprReapCmd(MprCmd *cmd, int timeout)
 static void cmdCallback(MprCmd *cmd, int channel, void *data)
 {
     MprBuf      *buf;
-    int         len, space;
+    ssize       len, space;
 
     /*
         Note: stdin, stdout and stderr are named from the client's perspective
@@ -974,8 +973,9 @@ static int sanitizeArgs(MprCmd *cmd, int argc, char **argv, char **env)
 #endif
 
 #if BLD_WIN_LIKE
-    char    *program, *SYSTEMROOT, **ep, **ap, *destp, *cp, *localArgv[2], *saveArg0, *PATH, *endp;
-    int     i, len, hasPath, hasSystemRoot;
+    char        *program, *SYSTEMROOT, **ep, **ap, *destp, *cp, *localArgv[2], *saveArg0, *PATH, *endp;
+    ssize       len;
+    int         i, hasPath, hasSystemRoot;
 
     mprAssert(argc > 0 && argv[0] != NULL);
 
@@ -1047,7 +1047,8 @@ static int sanitizeArgs(MprCmd *cmd, int argc, char **argv, char **env)
      */
     cmd->env = 0;
     if (env) {
-        for (hasSystemRoot =  hasPath = len = 0, ep = env; ep && *ep; ep++) {
+        len = 0;
+        for (hasSystemRoot = hasPath = 0, ep = env; ep && *ep; ep++) {
             len += strlen(*ep) + 1;
             if (strncmp(*ep, "PATH=", 5) == 0) {
                 hasPath++;
@@ -1073,11 +1074,11 @@ static int sanitizeArgs(MprCmd *cmd, int argc, char **argv, char **env)
             destp += strlen(*ep) + 1;
         }
         if (!hasSystemRoot) {
-            mprSprintf(destp, (int) (endp - destp - 1), "SYSTEMROOT=%s", SYSTEMROOT);
+            mprSprintf(destp, (endp - destp - 1), "SYSTEMROOT=%s", SYSTEMROOT);
             destp += 12 + strlen(SYSTEMROOT);
         }
         if (!hasPath) {
-            mprSprintf(destp, (int) (endp - destp - 1), "PATH=%s", PATH);
+            mprSprintf(destp, (endp - destp - 1), "PATH=%s", PATH);
             destp += 6 + strlen(PATH);
         }
         *destp++ = '\0';
@@ -1427,16 +1428,16 @@ int startProcess(MprCmd *cmd)
         (int) cmd->program, (int) entryFn, (int) cmd, 0, 0, 0, 0, 0, 0, 0);
 
     if (cmd->pid < 0) {
-        mprError(cmd, "start: can't create task %s, errno %d", entryPoint, mprGetOsError());
+        mprError("start: can't create task %s, errno %d", entryPoint, mprGetOsError());
         mprFree(entryPoint);
         return MPR_ERR_CANT_CREATE;
     }
 
-    mprLog(cmd, 7, "cmd, child taskId %d", cmd->pid);
+    mprLog(7, "cmd, child taskId %d", cmd->pid);
     mprFree(entryPoint);
 
     if (semTake(cmd->startCond, MPR_TIMEOUT_START_TASK) != OK) {
-        mprError(cmd, "start: child %s did not initialize, errno %d", cmd->program, mprGetOsError());
+        mprError("start: child %s did not initialize, errno %d", cmd->program, mprGetOsError());
         return MPR_ERR_CANT_CREATE;
     }
     semDelete(cmd->startCond);
@@ -1495,12 +1496,12 @@ static void cmdTaskEntry(char *program, MprCmdTaskFn entry, int cmdArg)
     if (cmd->dir) {
         rc = chdir(cmd->dir);
     } else {
-        dir = mprGetPathDir(cmd, cmd->program);
+        dir = mprGetPathDir(cmd->program);
         rc = chdir(dir);
         mprFree(dir);
     }
     if (rc < 0) {
-        mprLog(cmd, 0, "cmd: Can't change directory to %s", cmd->dir);
+        mprLog(0, "cmd: Can't change directory to %s", cmd->dir);
         exit(255);
     }
 
@@ -1533,7 +1534,7 @@ static int makeChannel(MprCmd *cmd, int index)
     file->name = mprAsprintf("/pipe/%s_%d_%d", BLD_PRODUCT, taskIdSelf(), tempSeed++);
 
     if (pipeDevCreate(file->name, 5, MPR_BUFSIZE) < 0) {
-        mprError(cmd, "Can't create pipes to run %s", cmd->program);
+        mprError("Can't create pipes to run %s", cmd->program);
         return MPR_ERR_CANT_OPEN;
     }
     
@@ -1546,7 +1547,7 @@ static int makeChannel(MprCmd *cmd, int index)
         file->fd = open(file->name, O_RDONLY, 0644);
     }
     if (file->fd < 0) {
-        mprError(cmd, "Can't create stdio pipes. Err %d", mprGetOsError());
+        mprError("Can't create stdio pipes. Err %d", mprGetOsError());
         return MPR_ERR_CANT_CREATE;
     }
     return 0;

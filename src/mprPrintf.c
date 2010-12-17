@@ -62,8 +62,8 @@ typedef struct Format {
     uchar   *endbuf;
     uchar   *start;
     uchar   *end;
-    int     growBy;
-    int     maxsize;
+    ssize   growBy;
+    ssize   maxsize;
     int     precision;
     int     radix;
     int     width;
@@ -101,19 +101,24 @@ typedef struct MprEjsString {
     void            *type;
     void            *next;
     void            *prev;
-    size_t          length;
+    ssize           length;
     MprChar         value[0];
 } MprEjsString;
+
+typedef struct MprEjsName {
+    MprEjsString    *name;
+    MprEjsString    *space;
+} MprEjsName;
 
 /***************************** Forward Declarations ***************************/
 
 static int  getState(char c, int state);
 static int  growBuf(Format *fmt);
-static char *sprintfCore(char *buf, int maxsize, cchar *fmt, va_list arg);
+static char *sprintfCore(char *buf, ssize maxsize, cchar *fmt, va_list arg);
 static void outNum(Format *fmt, cchar *prefix, uint64 val);
-static void outString(Format *fmt, cchar *str, int len);
+static void outString(Format *fmt, cchar *str, ssize len);
 #if BLD_CHAR_LEN > 1
-static void outWideString(Format *fmt, MprChar *str, int len);
+static void outWideString(Format *fmt, MprChar *str, ssize len);
 #endif
 #if BLD_FEATURE_FLOAT
 static void outFloat(Format *fmt, char specChar, double value);
@@ -121,12 +126,12 @@ static void outFloat(Format *fmt, char specChar, double value);
 
 /************************************* Code ***********************************/
 
-int mprPrintf(cchar *fmt, ...)
+ssize mprPrintf(cchar *fmt, ...)
 {
-    MprFileSystem   *fs;
     va_list         ap;
+    MprFileSystem   *fs;
     char            *buf;
-    int             len;
+    ssize           len;
 
     /* No asserts here as this is used as part of assert reporting */
 
@@ -144,12 +149,12 @@ int mprPrintf(cchar *fmt, ...)
 }
 
 
-int mprPrintfError(cchar *fmt, ...)
+ssize mprPrintfError(cchar *fmt, ...)
 {
     MprFileSystem   *fs;
     va_list         ap;
+    ssize           len;
     char            *buf;
-    int             len;
 
     /* No asserts here as this is used as part of assert reporting */
 
@@ -169,11 +174,11 @@ int mprPrintfError(cchar *fmt, ...)
 }
 
 
-int mprFprintf(MprFile *file, cchar *fmt, ...)
+ssize mprFprintf(MprFile *file, cchar *fmt, ...)
 {
+    ssize       len;
     va_list     ap;
     char        *buf;
-    int         len;
 
     if (file == 0) {
         return MPR_ERR_BAD_HANDLE;
@@ -229,7 +234,7 @@ int mprStaticPrintfError(cchar *fmt, ...)
 #endif
 
 
-char *mprSprintf(char *buf, int bufsize, cchar *fmt, ...)
+char *mprSprintf(char *buf, ssize bufsize, cchar *fmt, ...)
 {
     va_list     ap;
     char        *result;
@@ -245,7 +250,7 @@ char *mprSprintf(char *buf, int bufsize, cchar *fmt, ...)
 }
 
 
-char *mprSprintfv(char *buf, int bufsize, cchar *fmt, va_list arg)
+char *mprSprintfv(char *buf, ssize bufsize, cchar *fmt, va_list arg)
 {
     mprAssert(buf);
     mprAssert(fmt);
@@ -341,14 +346,16 @@ static int getState(char c, int state)
 }
 
 
-static char *sprintfCore(char *buf, int maxsize, cchar *spec, va_list arg)
+static char *sprintfCore(char *buf, ssize maxsize, cchar *spec, va_list arg)
 {
     Format        fmt;
     MprEjsString  *es;
-    char          c;
+    MprEjsName    qname;
+    ssize         len;
     int64         iValue;
     uint64        uValue;
-    int           len, state;
+    int           state;
+    char          c;
 
     if (spec == 0) {
         spec = "";
@@ -481,19 +488,19 @@ static char *sprintfCore(char *buf, int maxsize, cchar *spec, va_list arg)
 
             case 'N':
                 /* Name */
-                es = va_arg(arg, MprEjsString*);
-                if (es) {
+                qname = va_arg(arg, MprEjsName);
+                if (qname.name) {
 #if BLD_CHAR_LEN == 1
-                    outString(&fmt, es->value, es->length);
+                    outString(&fmt, qname.name->value, qname.name->length);
                     BPUT(&fmt, ':');
                     BPUT(&fmt, ':');
                     es = va_arg(arg, MprEjsString*);
-                    outString(&fmt, es->value, es->length);
+                    outString(&fmt, qname.space->value, qname.space->length);
 #else
-                    outWideString(&fmt, es->value, es->length);
+                    outWideString(&fmt, qname.name->value, qname.name->length);
                     BPUT(&fmt, ':');
                     es = va_arg(arg, MprEjsString*);
-                    outWideString(&fmt, es->value, es->length);
+                    outWideString(&fmt, qname.space->value, qname.space->length);
 #endif
                 } else {
                     outString(&fmt, NULL, 0);
@@ -639,17 +646,17 @@ static char *sprintfCore(char *buf, int maxsize, cchar *spec, va_list arg)
 }
 
 
-static void outString(Format *fmt, cchar *str, int len)
+static void outString(Format *fmt, cchar *str, ssize len)
 {
     cchar   *cp;
-    int     i;
+    ssize   i;
 
     if (str == NULL) {
         str = "null";
         len = 4;
     } else if (fmt->flags & SPRINTF_ALTERNATE) {
         str++;
-        len = (int) *str;
+        len = (ssize) *str;
     } else if (fmt->precision >= 0) {
         for (cp = str, len = 0; len < fmt->precision; len++) {
             if (*cp++ == '\0') {
@@ -676,7 +683,7 @@ static void outString(Format *fmt, cchar *str, int len)
 
 
 #if BLD_CHAR_LEN > 1
-static void outWideString(Format *fmt, MprChar *str, int len)
+static void outWideString(Format *fmt, MprChar *str, ssize len)
 {
     MprChar     *cp;
     int         i;
@@ -689,7 +696,7 @@ static void outWideString(Format *fmt, MprChar *str, int len)
         return;
     } else if (fmt->flags & SPRINTF_ALTERNATE) {
         str++;
-        len = (int) *str;
+        len = (ssize) *str;
     } else if (fmt->precision >= 0) {
         for (cp = str, len = 0; len < fmt->precision; len++) {
             if (*cp++ == 0) {
@@ -767,7 +774,7 @@ static void outNum(Format *fmt, cchar *prefix, uint64 value)
     fill = fmt->width - len;
 
     if (prefix != 0) {
-        fill -= strlen(prefix);
+        fill -= (int) strlen(prefix);
     }
     leadingZeros = (fmt->precision > len) ? fmt->precision - len : 0;
     fill -= leadingZeros;
@@ -821,7 +828,7 @@ static void outFloat(Format *fmt, char specChar, double value)
         // sprintf(result, "%*.*e", fmt->width, fmt->precision, value);
     }
 
-    len = strlen(result);
+    len = (int) strlen(result);
     fill = fmt->width - len;
     if (fmt->flags & SPRINTF_COMMA) {
         if (((len - 1) / 3) > 0) {
@@ -943,7 +950,7 @@ char *mprDtoa(double value, int ndigits, int mode, int flags)
             Note: ndigits < 0 seems to trim N digits from the end with rounding.
          */
         ip = intermediate = dtoa(value, mode, ndigits, &period, &sign, NULL);
-        len = strlen(intermediate);
+        len = (int) strlen(intermediate);
         exponent = period - 1;
 
         if (mode == MPR_DTOA_ALL_DIGITS && ndigits == 0) {
@@ -990,7 +997,7 @@ char *mprDtoa(double value, int ndigits, int mode, int flags)
                     }
                     totalDigits = count + ndigits;
                     if (period < totalDigits) {
-                        count = totalDigits + sign - mprGetBufLength(buf);
+                        count = totalDigits + sign - (int) mprGetBufLength(buf);
                         mprPutCharToBuf(buf, '.');
                         mprPutSubStringToBuf(buf, &ip[period], count);
                         mprPutPadToBuf(buf, '0', count - strlen(&ip[period]));
@@ -1037,7 +1044,7 @@ char *mprDtoa(double value, int ndigits, int mode, int flags)
 static int growBuf(Format *fmt)
 {
     uchar   *newbuf;
-    int     buflen;
+    ssize   buflen;
 
     buflen = (int) (fmt->endbuf - fmt->buf);
     if (fmt->maxsize >= 0 && buflen >= fmt->maxsize) {

@@ -33,8 +33,8 @@ static int ipv6(cchar *ip);
 static int listenSocket(MprSocket *sp, cchar *ip, int port, int initialFlags);
 static void manageSocket(MprSocket *sp, int flags);
 static void manageSocketService(MprSocketService *ss, int flags);
-static size_t readSocket(MprSocket *sp, void *buf, size_t bufsize);
-static size_t writeSocket(MprSocket *sp, void *buf, size_t bufsize);
+static ssize readSocket(MprSocket *sp, void *buf, ssize bufsize);
+static ssize writeSocket(MprSocket *sp, void *buf, ssize bufsize);
 
 /************************************ Code ************************************/
 /*
@@ -705,7 +705,7 @@ static MprSocket *acceptSocket(MprSocket *listen)
 /*  
     Read data. Return -1 for EOF and errors. On success, return the number of bytes read
  */
-int mprReadSocket(MprSocket *sp, void *buf, int bufsize)
+ssize mprReadSocket(MprSocket *sp, void *buf, ssize bufsize)
 {
     mprAssert(sp);
     mprAssert(buf);
@@ -723,11 +723,11 @@ int mprReadSocket(MprSocket *sp, void *buf, int bufsize)
     Standard read from a socket (Non SSL)
     Return number of bytes read. Return -1 on errors and EOF.
  */
-static size_t readSocket(MprSocket *sp, void *buf, size_t bufsize)
+static ssize readSocket(MprSocket *sp, void *buf, ssize bufsize)
 {
     struct sockaddr_storage server;
     socklen_t               len;
-    size_t                  bytes;
+    ssize                   bytes;
     int                     errCode;
 
     mprAssert(buf);
@@ -742,9 +742,9 @@ static size_t readSocket(MprSocket *sp, void *buf, size_t bufsize)
 again:
     if (sp->flags & MPR_SOCKET_DATAGRAM) {
         len = sizeof(server);
-        bytes = recvfrom(sp->fd, buf, bufsize, MSG_NOSIGNAL, (struct sockaddr*) &server, (socklen_t*) &len);
+        bytes = recvfrom(sp->fd, buf, (int) bufsize, MSG_NOSIGNAL, (struct sockaddr*) &server, (socklen_t*) &len);
     } else {
-        bytes = recv(sp->fd, buf, bufsize, MSG_NOSIGNAL);
+        bytes = recv(sp->fd, buf, (int) bufsize, MSG_NOSIGNAL);
     }
     if (bytes < 0) {
         errCode = mprGetSocketError(sp);
@@ -787,7 +787,7 @@ again:
     Write data. Return the number of bytes written or -1 on errors. NOTE: this routine will return with a
     short write if the underlying socket can't accept any more data.
  */
-size_t mprWriteSocket(MprSocket *sp, void *buf, size_t bufsize)
+ssize mprWriteSocket(MprSocket *sp, void *buf, ssize bufsize)
 {
     mprAssert(sp);
     mprAssert(buf);
@@ -804,11 +804,12 @@ size_t mprWriteSocket(MprSocket *sp, void *buf, size_t bufsize)
 /*  
     Standard write to a socket (Non SSL)
  */
-static size_t writeSocket(MprSocket *sp, void *buf, size_t bufsize)
+static ssize writeSocket(MprSocket *sp, void *buf, ssize bufsize)
 {
     struct sockaddr     *addr;
     socklen_t           addrlen;
-    int                 family, protocol, sofar, errCode, len, written;
+    ssize               len, written, sofar;
+    int                 family, protocol, errCode;
 
     mprAssert(buf);
     mprAssert(bufsize >= 0);
@@ -830,9 +831,9 @@ static size_t writeSocket(MprSocket *sp, void *buf, size_t bufsize)
         while (len > 0) {
             unlock(sp);
             if ((sp->flags & MPR_SOCKET_BROADCAST) || (sp->flags & MPR_SOCKET_DATAGRAM)) {
-                written = sendto(sp->fd, &((char*) buf)[sofar], len, MSG_NOSIGNAL, addr, addrlen);
+                written = sendto(sp->fd, &((char*) buf)[sofar], (int) len, MSG_NOSIGNAL, addr, addrlen);
             } else {
-                written = send(sp->fd, &((char*) buf)[sofar], len, MSG_NOSIGNAL);
+                written = send(sp->fd, &((char*) buf)[sofar], (int) len, MSG_NOSIGNAL);
             }
             lock(sp);
             if (written < 0) {
@@ -867,16 +868,16 @@ static size_t writeSocket(MprSocket *sp, void *buf, size_t bufsize)
 /*  
     Write a string to the socket
  */
-int mprWriteSocketString(MprSocket *sp, cchar *str)
+ssize mprWriteSocketString(MprSocket *sp, cchar *str)
 {
     return mprWriteSocket(sp, (void*) str, strlen(str));
 }
 
 
-int mprWriteSocketVector(MprSocket *sp, MprIOVec *iovec, int count)
+ssize mprWriteSocketVector(MprSocket *sp, MprIOVec *iovec, int count)
 {
-    char    *start;
-    int     total, len, i, written;
+    ssize       total, len, i, written;
+    char        *start;
 
 #if BLD_UNIX_LIKE
     if (sp->sslSocket == 0) {
@@ -918,7 +919,7 @@ int mprWriteSocketVector(MprSocket *sp, MprIOVec *iovec, int count)
 
 #if !BLD_FEATURE_ROMFS
 #if !LINUX || __UCLIBC__
-static int localSendfile(MprSocket *sp, MprFile *file, MprOffset offset, int len)
+static ssize localSendfile(MprSocket *sp, MprFile *file, MprOffset offset, ssize len)
 {
     char    buf[MPR_BUFSIZE];
 
@@ -936,14 +937,15 @@ static int localSendfile(MprSocket *sp, MprFile *file, MprOffset offset, int len
 /*  Write data from a file to a socket. Includes the ability to write header before and after the file data.
     Works even with a null "file" to just output the headers.
  */
-MprOffset mprSendFileToSocket(MprSocket *sock, MprFile *file, MprOffset offset, int bytes, MprIOVec *beforeVec, 
+ssize mprSendFileToSocket(MprSocket *sock, MprFile *file, MprOffset offset, ssize bytes, MprIOVec *beforeVec, 
     int beforeCount, MprIOVec *afterVec, int afterCount)
 {
 #if MACOSX && __MAC_OS_X_VERSION_MIN_REQUIRED >= 1050
     struct sf_hdtr  def;
 #endif
-    off_t           written, off;
-    int             rc, i, done, toWriteBefore, toWriteAfter, toWriteFile;
+    ssize           rc, written;
+    off_t           off;
+    int             i, done, toWriteBefore, toWriteAfter, toWriteFile;
 
     rc = 0;
 
@@ -955,7 +957,9 @@ MprOffset mprSendFileToSocket(MprSocket *sock, MprFile *file, MprOffset offset, 
     def.trailers = (afterCount > 0) ? (struct iovec*) afterVec: 0;
 
     if (file && file->fd >= 0) {
-        rc = sendfile(file->fd, sock->fd, offset, &written, &def, 0);
+        off_t       sent;
+        rc = sendfile(file->fd, sock->fd, offset, &sent, &def, 0);
+        written = (ssize) sent;
     } else
 #else
     if (1) 
@@ -964,14 +968,15 @@ MprOffset mprSendFileToSocket(MprSocket *sock, MprFile *file, MprOffset offset, 
         /*
             Either !MACOSX or no file is opened
          */
-        done = written = 0;
+        done = 0;
+        written = 0;
         for (i = toWriteBefore = 0; i < beforeCount; i++) {
             toWriteBefore += (int) beforeVec[i].len;
         }
         for (i = toWriteAfter = 0; i < afterCount; i++) {
             toWriteAfter += (int) afterVec[i].len;
         }
-        toWriteFile = bytes - toWriteBefore - toWriteAfter;
+        toWriteFile = (int) bytes - toWriteBefore - toWriteAfter;
         mprAssert(toWriteFile >= 0);
 
         /*
@@ -1320,7 +1325,7 @@ int mprGetSocketInfo(cchar *ip, int port, int *family, int *protocol, struct soc
             mprUnlock(ss->mutex);
             return MPR_ERR_MEMORY;
         }
-        memcpy((char*) &sa6->sin6_addr, (char*) hostent->h_addr_list[0], (size_t) hostent->h_length);
+        memcpy((char*) &sa6->sin6_addr, (char*) hostent->h_addr_list[0], (ssize) hostent->h_length);
         sa6->sin6_family = hostent->h_addrtype;
         sa6->sin6_port = htons((short) (port & 0xFFFF));
         *addr = (struct sockaddr*) sa6;
@@ -1331,7 +1336,7 @@ int mprGetSocketInfo(cchar *ip, int port, int *family, int *protocol, struct soc
             mprUnlock(ss->mutex);
             return MPR_ERR_MEMORY;
         }
-        memcpy((char*) &sa->sin_addr, (char*) hostent->h_addr_list[0], (size_t) hostent->h_length);
+        memcpy((char*) &sa->sin_addr, (char*) hostent->h_addr_list[0], (ssize) hostent->h_length);
         sa->sin_family = hostent->h_addrtype;
         sa->sin_port = htons((short) (port & 0xFFFF));
         *addr = (struct sockaddr*) sa;
@@ -1394,7 +1399,7 @@ int mprGetSocketInfo(cchar *ip, int port, int *family, int *protocol, struct soc
                 return MPR_ERR_CANT_FIND;
             }
         }
-        memcpy((char*) &sa->sin_addr, (char*) hostent->h_addr_list[0], (size_t) hostent->h_length);
+        memcpy((char*) &sa->sin_addr, (char*) hostent->h_addr_list[0], (ssize) hostent->h_length);
 #endif
     }
     *addr = (struct sockaddr*) sa;

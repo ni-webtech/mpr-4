@@ -38,12 +38,19 @@
 #define MPR_CPU_SH4         12
 
 /********************************* O/S Includes *******************************/
-
+/*
+    Out-of-order definitions and includes. Order really matters in this section
+ */
 #if WIN
     #define     _CRT_SECURE_NO_DEPRECATE 1
     #ifndef     _WIN32_WINNT
         #define _WIN32_WINNT 0x501
     #endif
+#endif
+
+#if VXWORKS
+    #include    <vxWorks.h>
+    #define     HAS_USHORT 1
 #endif
 
 #if BLD_WIN_LIKE
@@ -55,6 +62,7 @@
     #include    <shellapi.h>
     #include    <wincrypt.h>
 #endif
+
 #if WIN
     #include    <ws2tcpip.h>
     #include    <conio.h>
@@ -67,67 +75,92 @@
 #endif
 #undef     _WIN32_WINNT
 
-#if UNUSED
+/*
+    Includes in alphabetic order
+ */
+#if CYGWIN
     #include    <arpa/inet.h>
 #endif
+
     #include    <ctype.h>
+
 #if BLD_WIN_LIKE
     #include    <direct.h>
 #else
     #include    <dirent.h>
+#if !VXWORKS
     #include    <dlfcn.h>
 #endif
+#endif
+
     #include    <fcntl.h>
     #include    <errno.h>
+
 #if BLD_FEATURE_FLOAT || 1
     #include    <float.h>
     #define __USE_ISOC99 1
     #include    <math.h>
 #endif
-#if !BLD_WIN_LIKE
+
+#if BLD_UNIX_LIKE
     #include    <grp.h> 
 #endif
+
 #if BLD_WIN_LIKE
     #include    <io.h>
 #endif
+
 #if MACOSX
     #include    <libgen.h>
 #endif
+
     #include    <limits.h>
+
 #if UNUSED && BLD_WIN_LIKE
     #include    <malloc.h>
 #endif
-#if !BLD_WIN_LIKE
+
+#if BLD_UNIX_LIKE || VXWORKS
     #include    <netdb.h>
     #include    <net/if.h>
     #include    <netinet/in.h>
     #include    <netinet/tcp.h>
     #include    <netinet/ip.h>
+#endif
+
+#if BLD_UNIX_LIKE
     #include    <pthread.h> 
     #include    <pwd.h> 
 #if !CYGWIN
     #include    <resolv.h>
 #endif
 #endif
+
     #include    <setjmp.h>
     #include    <signal.h>
     #include    <stdarg.h>
+
 #if UNUSED && WINCE
     #include    <stddef.h>
 #endif
+
 #if BLD_UNIX_LIKE
     #include    <stdint.h>
 #endif
+
     #include    <stdio.h>
     #include    <stdlib.h>
     #include    <string.h>
+
 #if BLD_UNIX_LIKE
     #include    <syslog.h>
 #endif
+
 #if LINUX
     #include    <sys/epoll.h>
 #endif
-#if !BLD_WIN_LIKE
+
+#if BLD_UNIX_LIKE
     #include    <sys/ioctl.h>
     #include    <sys/mman.h>
 #if UNUSED && MACOSX
@@ -135,12 +168,16 @@
 #endif
     #include    <sys/poll.h>
 #endif
+
     #include    <sys/stat.h>
+
 #if LINUX
     #include    <sys/prctl.h>
 #endif
+
     #include    <sys/types.h>
-#if !BLD_WIN_LIKE
+
+#if BLD_UNIX_LIKE
     #include    <sys/resource.h>
     #include    <sys/sem.h>
 #if UNUSED
@@ -157,14 +194,24 @@
 #endif
     #include    <sys/wait.h>
 #endif
+
     #include    <time.h>
-#if !BLD_WIN_LIKE
+
+#if BLD_UNIX_LIKE
     #include    <unistd.h>
 #endif
+
 #if UNUSED && LINUX
     #include    <values.h>
 #endif
+
+#if !VXWORKS
     #include    <wchar.h>
+#endif
+
+/*
+    Extra includes per O/S
+ */
 #if LINUX && !__UCLIBC__
     #include    <sys/sendfile.h>
 #endif
@@ -199,54 +246,119 @@
 #if _WRS_VXWORKS_MAJOR >= 6
     #include    <wait.h>
 #endif
-#endif /* VXWORKS */
+#endif
 
 /************************************** Defines *******************************/
 /*
     Standard types
  */
+#ifndef HAS_BOOL
+    #if !MACOSX
+        #define HAS_BOOL 1
+        typedef int bool;
+    #endif
+#endif
+
+#ifndef HAS_UCHAR
+    #define HAS_UCHAR 1
+    typedef unsigned char uchar;
+#endif
+
+#ifndef HAS_SCHAR
+    #define HAS_SCHAR 1
+    typedef signed char schar;
+#endif
+
+#ifndef HAS_CCHAR
+    #define HAS_CCHAR 1
+    typedef const char cchar;
+#endif
+
+#ifndef HAS_CUCHAR
+    #define HAS_CUCHAR 1
+    typedef const unsigned char cuchar;
+#endif
+
+#ifndef HAS_USHORT
+    #define HAS_USHORT 1
+    typedef unsigned short ushort;
+#endif
+
+#ifndef HAS_CUSHORT
+    #define HAS_CUSHORT 1
+    typedef const unsigned short cushort;
+#endif
+
+#ifndef HAS_CVOID
+    #define HAS_CVOID 1
+    typedef const void cvoid;
+#endif
+
+#ifndef HAS_INT32
+    #define HAS_INT32 1
+    typedef int int32;
+#endif
+
+#ifndef HAS_UINT32
+    #define HAS_UINT32 1
+    typedef unsigned int uint32;
+#endif
+
+#ifndef HAS_UINT
+    #define HAS_UINT 1
+    typedef unsigned int uint;
+#endif
+
+#ifndef HAS_ULONG
+    #define HAS_ULONG 1
+    typedef unsigned long ulong;
+#endif
+
+#ifndef HAS_SSIZE
+    #define HAS_SSIZE 1
+    #if BLD_UNIX_LIKE || VXWORKS
+        typedef ssize_t ssize;
+    #else
+        typedef SSIZE_T ssize;
+    #endif
+#endif
+
+#ifndef HAS_INT64
+    #if BLD_UNIX_LIKE
+        __extension__ typedef long long int int64;
+    #elif VXWORKS
+        typedef long long int int64;
+    #elif BLD_WIN_LIKE
+        typedef __int64 int64;
+    #else
+        typedef long long int int64;
+    #endif
+#endif
+
+#ifndef HAS_UINT64
+    #if BLD_UNIX_LIKE
+        __extension__ typedef unsigned long long int uint64;
+    #elif VXWORKS
+        typedef unsigned long long int uint64;
+    #elif BLD_WIN_LIKE
+        typedef unsigned __int64 uint64;
+    #else
+        typedef unsigned long long int uint64;
+    #endif
+#endif
+
+typedef off_t MprOffset;
+
 #if __WORDSIZE == 64 || __amd64 || __x86_64 || __x86_64__ || _WIN64
     #define MPR_64_BIT 1
 #else
     #define MPR_64_BIT 0
 #endif
 
-#if !MACOSX
-    typedef int bool;
-#endif
-typedef unsigned char uchar;
-typedef signed char schar;
-typedef const char cchar;
-typedef const unsigned char cuchar;
-typedef unsigned short ushort;
-typedef const unsigned short cushort;
-typedef const void cvoid;
-typedef int int32;
-typedef unsigned int uint32;
-typedef unsigned int uint;
-typedef unsigned long ulong;
-#if BLD_UNIX_LIKE
-    __extension__ typedef long long int int64;
-    __extension__ typedef unsigned long long int uint64;
-#elif BLD_WIN_LIKE
-    typedef __int64 int64;
-    typedef unsigned __int64 uint64;
-#else
-    typedef long long int int64;
-    typedef unsigned long long int uint64;
-#endif
-typedef off_t MprOffset;
-
-#if UNUSED
-typedef intptr_t pint;
-#endif
-
-/* To stop MatrixSSL from defining int32 */
-#define HAS_INT32 1
-
 #ifndef BITSPERBYTE
     #define BITSPERBYTE     (8 * sizeof(char))
 #endif
+
 #ifndef BITS
     #define BITS(type)      (BITSPERBYTE * (int) sizeof(type))
 #endif
@@ -374,8 +486,6 @@ typedef intptr_t pint;
     #define closesocket(x)  close(x)
     #define MPR_BINARY      ""
     #define MPR_TEXT        ""
-    #define O_BINARY        0
-    #define O_TEXT          0
     #define SOCKET_ERROR    -1
     #ifndef PTHREAD_MUTEX_RECURSIVE_NP
         #define PTHREAD_MUTEX_RECURSIVE_NP PTHREAD_MUTEX_RECURSIVE
@@ -385,9 +495,16 @@ typedef intptr_t pint;
     #endif
 #endif
 
-#if MACOSX || VXWORKS || CYGWIN || BLD_WIN_LIKE
+#if !BLD_WIN_LIKE && !CYGWIN
+    #define O_BINARY        0
+    #define O_TEXT          0
+#endif
+
+#if !LINUX
     #define __WALL          0
+#if !CYGWIN
     #define MSG_NOSIGNAL    0
+#endif
 #endif
 
 #if FREEBSD
@@ -426,6 +543,8 @@ typedef intptr_t pint;
     #if _DIAB_TOOL
         #define inline __inline__
     #endif
+    #define closesocket(x)  close(x)
+    #define va_copy(d, s) ((d) = (s))
 #endif
 
 #if BLD_WIN_LIKE

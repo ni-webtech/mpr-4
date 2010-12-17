@@ -120,7 +120,9 @@ static void manageTestSocket(MprTestSocket *ts, int flags)
         mprRemoveWaitHandler(ts->clientHandler);
         mprRemoveWaitHandler(ts->listenHandler);
         mprCloseSocket(ts->sock, 0);
-        mprCloseSocket(ts->client, 0);
+        if (ts->client) {
+            mprAssert(ts->client->fd < 0);
+        }
     }
 }
 
@@ -141,12 +143,13 @@ static int acceptFn(MprTestGroup *gp, MprEvent *event)
 
     ts = (MprTestSocket*) gp->data;
     sp = mprAcceptSocket(ts->sock);
-    assert(sp);
+    assert(sp != NULL);
     if (sp) {
+        mprAssert(sp->fd >= 0);
         ts->client = sp;
         ts->accepted = 1;        
         ts->clientHandler = mprCreateWaitHandler(sp->fd, MPR_READABLE, NULL, (MprEventProc) readEvent, (void*) gp);
-        assert(ts->clientHandler);
+        assert(ts->clientHandler != NULL);
         mprSignalTestComplete(gp);
     }
     return 0;
@@ -160,8 +163,9 @@ static int readEvent(MprTestGroup *gp, MprEvent *event)
 {
     MprTestSocket   *ts;
     MprSocket       *sp;
+    ssize           len, nbytes, space;
     char            *buf;
-    int             rc, space, nbytes, len;
+    int             rc;
 
     ts = (MprTestSocket*) gp->data;
     sp = ts->client;
@@ -231,9 +235,9 @@ static void testClientServer(MprTestGroup *gp, cchar *host)
     MprTestSocket   *ts;
     MprDispatcher   *dispatcher;
     MprTime         mark;
+    ssize           len, thisLen, nbytes, sofar;
     char            *buf, *thisBuf;
-    size_t          len;
-    int             i, rc, thisLen, sofar, nbytes, count;
+    int             i, rc, count;
 
     dispatcher = mprGetDispatcher(gp);
 
@@ -260,9 +264,9 @@ static void testClientServer(MprTestGroup *gp, cchar *host)
     len = strlen(buf);
 
     /*
-        Write a set of lines to the client. Server should receive. Use non-blocking mode. This writes about 5K of data.
+        Write a set of lines to the client. Server should receive. Use blocking mode. This writes about 5K of data.
      */
-    mprSetSocketBlockingMode(client, 0);
+    mprSetSocketBlockingMode(client, 1);
     sofar = 0;
     count = 100;
     for (i = 0; i < count; i++) {
@@ -275,16 +279,20 @@ static void testClientServer(MprTestGroup *gp, cchar *host)
             assert(nbytes >= 0);
             thisLen -= nbytes;
             thisBuf += nbytes;
+#if UNUSED
             if (nbytes == 0) {
                 mprServiceEvents(NULL, 50, MPR_SERVICE_ONE_THING | MPR_SERVICE_NO_GC);
             }
+#endif
         }
     }
     mprCloseSocket(client, 1);
 
     mark = mprGetTime(gp);
     do {
+#if UNUSED
         mprServiceEvents(NULL, 50, MPR_SERVICE_ONE_THING | MPR_SERVICE_NO_GC);
+#endif
         if (mprWaitForTestToComplete(gp, MPR_TEST_SLEEP)) {
             break;
         }
@@ -339,13 +347,17 @@ static void testClientSslv4(MprTestGroup *gp)
 MprTestDef testSocket = {
     "socket", 0, initSocket, termSocket,
     {
+#if 1 || UNUSED
         MPR_TEST(0, testCreateSocket),
         MPR_TEST(0, testClient),
+#endif
 #if !WIN
         MPR_TEST(0, testClientServerIPv4),
         MPR_TEST(0, testClientServerIPv6),
 #endif
+#if 1 || UNUSED
         MPR_TEST(0, testClientSslv4),
+#endif
         MPR_TEST(0, 0),
     },
 };

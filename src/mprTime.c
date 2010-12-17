@@ -420,7 +420,6 @@ static int getTimeZoneOffsetFromTm(struct tm *tp)
     if ((tze = getenv("TIMEZONE")) != 0) {
         if ((p = strchr(tze, ':')) != 0) {
             if ((p = strchr(tze, ':')) != 0) {
-                int64 value;
                 offset = - stoi(++p, 10, NULL) * MS_PER_MIN;
             }
         }

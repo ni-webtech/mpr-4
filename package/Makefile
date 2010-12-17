@@ -36,6 +36,7 @@ prep:
 	mkdir -p $(DEST) $(INC_DEST) $(DOC_DEST)/man $(DOC_DEST)/api $(REL_DIR)
 
 $(INC_DEST)/mpr.h: Makefile $(HEADERS)
+	TITLE="$(BLD_NAME) Header" \
 	dist $(HEADERS) | egrep -v '#include.*mpr|#inc.*config.h|#inc.*ucp.*\.h|#inc.*pcre' >$(INC_DEST)/mpr.h
 
 $(INC_DEST)/mprSsl.h: Makefile $(HEADERS)
@@ -43,6 +44,7 @@ $(INC_DEST)/mprSsl.h: Makefile $(HEADERS)
 
 $(DEST)/mprLib.c: Makefile $(HEADERS) $(MPR_SOURCES)
 	echo -e '#include "mpr.h"' >$(DEST)/mprLib.c
+	TITLE="$(BLD_NAME) Library Source" \
 	dist $(MPR_SOURCES) | egrep -v '#inc.*mpr' >>$(DEST)/mprLib.c
 
 $(DEST)/makerom.c: Makefile ../src/utils/makerom.c

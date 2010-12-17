@@ -135,8 +135,8 @@ static MPR_INLINE char *lastSep(MprFileSystem *fs, cchar *path)
 int mprCopyPath(cchar *fromName, cchar *toName, int mode)
 {
     MprFile     *from, *to;
+    ssize       count;
     char        buf[MPR_BUFSIZE];
-    int         count;
 
     if ((from = mprOpen(fromName, O_RDONLY | O_BINARY, 0)) == 0) {
         mprError("Can't open %s", fromName);
@@ -306,7 +306,7 @@ char *mprGetPathDir(cchar *path)
     MprFileSystem   *fs;
     cchar           *cp;
     char            *result;
-    size_t          len;
+    ssize          len;
 
     mprAssert(path);
 
@@ -562,7 +562,8 @@ char *mprGetRelPath(cchar *pathArg)
 {
     MprFileSystem   *fs;
     char            home[MPR_MAX_FNAME], *hp, *cp, *result, *tmp, *path;
-    int             homeSegments, len, i, commonSegments, sep;
+    ssize           len;
+    int             homeSegments, i, commonSegments, sep;
 
     fs = mprLookupFileSystem(pathArg);
     
@@ -935,7 +936,7 @@ char *mprGetNormalizedPath(cchar *pathArg)
 {
     MprFileSystem   *fs;
     char            *dupPath, *path, *sp, *dp, *mark, **segments;
-    size_t          len;
+    ssize           len;
     int             addSep, i, segmentCount, hasDot, last, sep;
 
     if (pathArg == 0 || *pathArg == '\0') {
@@ -1007,8 +1008,8 @@ char *mprGetNormalizedPath(cchar *pathArg)
     /*
         NOTE: The root "/" for absolute paths will be stored as empty.
      */
-    i = len = 0;
-    for (mark = sp = path; *sp; sp++) {
+    len = 0;
+    for (i = 0, mark = sp = path; *sp; sp++) {
         if (isSep(fs, *sp)) {
             *sp = '\0';
             if (*mark == '.' && mark[1] == '\0' && segmentCount > 1) {
@@ -1032,7 +1033,7 @@ char *mprGetNormalizedPath(cchar *pathArg)
                 continue;
             }
             segments[i++] = mark;
-            len += (int) (sp - mark);
+            len += (sp - mark);
 #if KEEP
             if (i == 1 && segmentCount == 1 && fs->hasDriveSpecs && strchr(mark, ':') != 0) {
                 /*
@@ -1048,7 +1049,7 @@ char *mprGetNormalizedPath(cchar *pathArg)
 
     if (--sp > mark) {
         segments[i++] = mark;
-        len += (int) (sp - mark);
+        len += (sp - mark);
     }
     mprAssert(i <= segmentCount);
     segmentCount = i;
@@ -1259,7 +1260,7 @@ int mprSamePath(cchar *path1, cchar *path2)
 /*
     Compare two file path to determine if they point to the same file.
  */
-int mprSamePathCount(cchar *path1, cchar *path2, size_t len)
+int mprSamePathCount(cchar *path1, cchar *path2, ssize len)
 {
     MprFileSystem   *fs;
     char            *tmpPath1, *tmpPath2;

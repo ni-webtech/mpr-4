@@ -49,11 +49,11 @@ Mpr *mprCreate(int argc, char **argv, int flags)
 
     if (mpr->argv && mpr->argv[0] && *mpr->argv[0]) {
         name = mpr->argv[0];
-        if ((cp = strchr(name, '/')) != 0) {
-            name = cp;
+        if ((cp = strrchr(name, '/')) != 0) {
+            name = &cp[1];
         }
         mpr->name = sclone(name);
-        if ((cp = strchr(mpr->name, '.')) != 0) {
+        if ((cp = strrchr(mpr->name, '.')) != 0) {
             *cp = '\0';
         }
     } else {
@@ -255,7 +255,8 @@ bool mprIsComplete()
 int mprMakeArgv(cchar *program, cchar *cmd, int *argcp, char ***argvp)
 {
     char        *cp, **argv, *buf, *args;
-    int         size, argc;
+    ssize       size;
+    int         argc;
 
     /*
         Allocate one buffer for argv and the actual args themselves

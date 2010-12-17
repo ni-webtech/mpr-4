@@ -39,7 +39,7 @@ int mprCreateNotifierService(MprWaitService *ws)
     for (rc = retries = 0; retries < maxTries; retries++) {
         breakSock = socket(AF_INET, SOCK_DGRAM, 0);
         if (breakSock < 0) {
-            mprLog(ws, MPR_WARN, "Can't open port %d to use for select. Retrying.\n");
+            mprLog(MPR_WARN, "Can't open port %d to use for select. Retrying.\n");
         }
 #if BLD_UNIX_LIKE
         fcntl(breakSock, F_SETFD, FD_CLOEXEC);
@@ -69,7 +69,7 @@ int mprCreateNotifierService(MprWaitService *ws)
     }
 
     if (breakSock < 0 || rc < 0) {
-        mprLog(ws, MPR_WARN, "Can't bind any port to use for select. Tried %d-%d\n", breakPort, breakPort - maxTries);
+        mprLog(MPR_WARN, "Can't bind any port to use for select. Tried %d-%d\n", breakPort, breakPort - maxTries);
         return MPR_ERR_CANT_OPEN;
     }
     ws->breakSock = breakSock;
@@ -79,7 +79,7 @@ int mprCreateNotifierService(MprWaitService *ws)
 }
 
 
-static void mprManageSelect(MprWaitService *ws, int flags)
+void mprManageSelect(MprWaitService *ws, int flags)
 {
     if (flags & MPR_MANAGE_FREE) {
         if (ws->breakSock >= 0) {
@@ -109,7 +109,7 @@ int mprAddNotifier(MprWaitService *ws, MprWaitHandler *wp, int mask)
 
     fd = wp->fd;
     if (fd >= FD_SETSIZE) {
-        mprError(ws, "File descriptor exceeds configured maximum in FD_SETSIZE (%d vs %d)", fd, FD_SETSIZE);
+        mprError("File descriptor exceeds configured maximum in FD_SETSIZE (%d vs %d)", fd, FD_SETSIZE);
         return MPR_ERR_CANT_INITIALIZE;
     }
     lock(ws);
@@ -290,7 +290,7 @@ void mprWakeNotifier()
         if (rc < 0) {
             static int warnOnce = 0;
             if (warnOnce++ == 0) {
-                mprLog(ws, 0, "Can't send wakeup to breakout socket: errno %d", errno);
+                mprLog(0, "Can't send wakeup to breakout socket: errno %d", errno);
             }
         }
     }

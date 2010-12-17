@@ -69,7 +69,7 @@ MAIN(testMain, int argc, char *argv[])
     /*
         These platforms pass an arg string in via the argc value. Assumes 32-bit.
      */
-    mprMakeArgv(mpr, "testMpr", (char*) argc, &argc, &argv);
+    mprMakeArgv("testMpr", (char*) argc, &argc, &argv);
 #endif
     ts = mprCreateTestService(mpr);
     if (ts == 0) {

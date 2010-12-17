@@ -57,3 +57,5 @@ Win32
 *.opensdf
 project.xcworkspace
 *.save
+projects/WIN/*/x64
+project.xcworkspace
