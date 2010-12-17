@@ -105,6 +105,11 @@ typedef struct MprEjsString {
     MprChar         value[0];
 } MprEjsString;
 
+typedef struct MprEjsName {
+    MprEjsString    *name;
+    MprEjsString    *space;
+} MprEjsName;
+
 /***************************** Forward Declarations ***************************/
 
 static int  getState(char c, int state);
@@ -345,6 +350,7 @@ static char *sprintfCore(char *buf, ssize maxsize, cchar *spec, va_list arg)
 {
     Format        fmt;
     MprEjsString  *es;
+    MprEjsName    qname;
     ssize         len;
     int64         iValue;
     uint64        uValue;
@@ -482,19 +488,19 @@ static char *sprintfCore(char *buf, ssize maxsize, cchar *spec, va_list arg)
 
             case 'N':
                 /* Name */
-                es = va_arg(arg, MprEjsString*);
-                if (es) {
+                qname = va_arg(arg, MprEjsName);
+                if (qname.name) {
 #if BLD_CHAR_LEN == 1
-                    outString(&fmt, es->value, es->length);
+                    outString(&fmt, qname.name->value, qname.name->length);
                     BPUT(&fmt, ':');
                     BPUT(&fmt, ':');
                     es = va_arg(arg, MprEjsString*);
-                    outString(&fmt, es->value, es->length);
+                    outString(&fmt, qname.space->value, qname.space->length);
 #else
-                    outWideString(&fmt, es->value, es->length);
+                    outWideString(&fmt, qname.name->value, qname.name->length);
                     BPUT(&fmt, ':');
                     es = va_arg(arg, MprEjsString*);
-                    outWideString(&fmt, es->value, es->length);
+                    outWideString(&fmt, qname.space->value, qname.space->length);
 #endif
                 } else {
                     outString(&fmt, NULL, 0);

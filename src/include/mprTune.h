@@ -16,8 +16,6 @@
 
 /********************************** Includes **********************************/
 
-#include    "buildConfig.h"
-
 #ifdef __cplusplus
 extern "C" {
 #endif

@@ -10,7 +10,7 @@
 #	modules. 
 #
 #	These initial defaults are read by configure when first creating the
-#	configuration files: buildConfig.make, buildConfig.sh, buildConfig.h.
+#	buildConfig.h configuration file.
 #
 #	See standard.defaults the default values and for comments on each variable.
 #

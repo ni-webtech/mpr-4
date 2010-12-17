@@ -52,7 +52,6 @@ $(DEST)/makerom.c: Makefile ../src/utils/makerom.c
 
 $(DEST)/mprSsl.c: Makefile ../src/include/mprSsl.h $(HEADERS) $(SSL_SOURCES)
 	echo -e '#include "mpr.h"' >$(DEST)/mprSsl.c
-	TITLE="$(BLD_NAME) SSL Library Source" \
 	dist $(SSL_SOURCES) | egrep -v '#inc.*mpr' >>$(DEST)/mprSsl.c
 
 $(DEST)/angel.c: Makefile ../src/angel.c

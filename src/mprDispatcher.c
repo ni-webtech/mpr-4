@@ -78,6 +78,9 @@ static void manageEventService(MprEventService *es, int flags)
         for (dp = q->next; dp != q; dp = dp->next) {
             mprMark(dp);
         }
+    } else if (flags & MPR_MANAGE_FREE) {
+        /* Needed for race with manageDispatcher */
+        es->mutex = 0;
     }
 }
 
@@ -317,13 +320,15 @@ static void manageDispatcher(MprDispatcher *dispatcher, int flags)
         }
     } else if (flags & MPR_MANAGE_FREE) {
         es = dispatcher->service;
-        lock(es);
-        dequeueDispatcher(dispatcher);
-        dispatcher->deleted = 1;
-        if (dispatcher->inUse) {
-            mprAssert(!dispatcher->inUse);
+        if (es->mutex) {
+            lock(es);
+            dequeueDispatcher(dispatcher);
+            dispatcher->deleted = 1;
+            if (dispatcher->inUse) {
+                mprAssert(!dispatcher->inUse);
+            }
+            unlock(es);
         }
-        unlock(es);
     }
 }
 
