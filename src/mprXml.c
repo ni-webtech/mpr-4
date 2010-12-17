@@ -585,7 +585,8 @@ static int scanFor(MprXml *xp, char *pattern)
 static int getNextChar(MprXml *xp)
 {
     MprBuf  *inBuf;
-    int     l, c;
+    ssize   l;
+    int     c;
 
     inBuf = xp->inBuf;
     if (mprGetBufLength(inBuf) <= 0) {

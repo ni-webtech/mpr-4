@@ -400,9 +400,10 @@ void *mprMemdup(cvoid *ptr, ssize usize)
 }
 
 
-int mprMemcmp(cvoid *s1, int s1Len, cvoid *s2, int s2Len)
+int mprMemcmp(cvoid *s1, ssize s1Len, cvoid *s2, ssize s2Len)
 {
-    int     len, rc;
+    ssize       len;
+    int         rc;
 
     mprAssert(s1);
     mprAssert(s2);

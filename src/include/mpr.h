@@ -894,7 +894,7 @@ extern ssize mprMemcpy(void *dest, ssize destMax, cvoid *src, ssize nbytes);
         second. Returns 1 if the first is greater than the first.
     @ingroup MprString
  */
-extern int mprMemcmp(cvoid *b1, int b1Len, cvoid *b2, int b2Len);
+extern int mprMemcmp(cvoid *b1, ssize b1Len, cvoid *b2, ssize b2Len);
 
 /**
     Duplicate a block of memory.
@@ -4171,7 +4171,7 @@ typedef enum MprXmlToken {
 } MprXmlToken;
 
 typedef int (*MprXmlHandler)(struct MprXml *xp, int state, cchar *tagName, cchar* attName, cchar* value);
-typedef int (*MprXmlInputStream)(struct MprXml *xp, void *arg, char *buf, ssize size);
+typedef ssize (*MprXmlInputStream)(struct MprXml *xp, void *arg, char *buf, ssize size);
 
 /*
     Per XML session structure
