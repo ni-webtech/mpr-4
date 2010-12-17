@@ -10,18 +10,6 @@
 
 /************************************ Code ************************************/
 
-static int initCond(MprTestGroup *gp)
-{
-    return 0;
-}
-
-
-static int termCond(MprTestGroup *gp)
-{
-    return 0;
-}
-
-
 static void callback(void *data, MprEvent *event)
 {
     mprSignalCond((MprCond*) data);
@@ -56,7 +44,7 @@ static void testCriticalSection(MprTestGroup *gp)
 
 
 MprTestDef testCond = {
-    "cond", 0, initCond, termCond,
+    "cond", 0, 0, 0,
     {
         MPR_TEST(0, testCriticalSection),
         MPR_TEST(0, 0),

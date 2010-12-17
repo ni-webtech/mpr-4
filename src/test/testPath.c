@@ -14,33 +14,27 @@
 #define DIR2        "/testSubDir"
 #define DIRMODE     0755
 
-typedef struct MprTestPath {
-    char            *dir1;
-    char            *dir2;
-} MprTestPath;
+typedef struct TestPath {
+    char    *dir1;
+    char    *dir2;
+} TestPath;
+
+static char *makePath(cchar *name);
+static void manageTestPath(TestPath *tp, int flags);
 
 /************************************ Code ************************************/
-/*
-    Make a unique filename for a given thread
- */
-static char *makePath(cchar *name)
-{
-    return mprAsprintf("%s-%d-%s", name, getpid(), mprGetCurrentThreadName());
-}
-
-
 /*
     Initialization for this test module
  */
 static int initPath(MprTestGroup *gp)
 {
-    MprTestPath     *ts;
+    TestPath     *ts;
 
-    gp->data = mprAllocZeroed(sizeof(MprTestPath));
+    gp->data = mprAllocObj(TestPath, manageTestPath);
     if (gp->data == 0) {
         return MPR_ERR_MEMORY;
     }
-    ts = (MprTestPath*) gp->data;
+    ts = (TestPath*) gp->data;
 
     ts->dir1 = makePath(DIR1);
     ts->dir2 = mprAsprintf("%s%s", ts->dir1, DIR2);
@@ -59,6 +53,16 @@ static int initPath(MprTestGroup *gp)
 }
 
 
+static void manageTestPath(TestPath *tp, int flags)
+{
+    if (flags & MPR_MANAGE_MARK) {
+        mprMark(tp->dir1);
+        mprMark(tp->dir2);
+    } else if (flags & MPR_MANAGE_FREE) {
+    }
+}
+
+
 static int termPath(MprTestGroup *gp)
 {
     mprFree(gp->data);
@@ -69,11 +73,11 @@ static int termPath(MprTestGroup *gp)
 
 static void testCopyPath(MprTestGroup *gp)
 {
-    MprTestPath     *ts;
-    MprFile         *file;
-    char            *from, *to;
+    TestPath    *ts;
+    MprFile     *file;
+    char        *from, *to;
 
-    ts = (MprTestPath*) gp->data;
+    ts = (TestPath*) gp->data;
 
     from = mprAsprintf("copyTest-%s.tmp", mprGetCurrentThreadName(gp));
     assert(from != 0);
@@ -163,10 +167,10 @@ static void testJoinPath(MprTestGroup *gp)
 
 static void testMakeDir(MprTestGroup *gp)
 {
-    MprTestPath     *ts;
-    int             rc;
+    TestPath    *ts;
+    int         rc;
     
-    ts = (MprTestPath*) gp->data;
+    ts = (TestPath*) gp->data;
 
     mprGlobalLock(gp);
     rc = mprMakeDir(ts->dir1, DIRMODE, 1);
@@ -367,6 +371,15 @@ static void testTransform(MprTestGroup *gp)
 }
 
     
+/*
+    Make a unique filename for a given thread
+ */
+static char *makePath(cchar *name)
+{
+    return mprAsprintf("%s-%d-%s", name, getpid(), mprGetCurrentThreadName());
+}
+
+
 MprTestDef testPath = {
     "path", 0, initPath, termPath,
     {

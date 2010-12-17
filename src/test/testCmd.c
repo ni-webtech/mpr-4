@@ -10,14 +10,32 @@
 
 /*********************************** Locals ***********************************/
 
-static char *program;
+typedef struct TestCmd {
+    MprBuf  *buf;
+    char    *program;
+} TestCmd;
+
+static void manageTestCmd(TestCmd *tc, int flags);
 
 /************************************ Code ************************************/
 
 static int initCmd(MprTestGroup *gp)
 {
-    program = mprJoinPath(mprGetAppDir(gp), "runProgram" BLD_EXE);
+    TestCmd     *tc;
+
+    gp->data = tc = mprAllocObj(TestCmd, manageTestCmd);
+    tc->program = mprJoinPath(mprGetAppDir(gp), "runProgram" BLD_EXE);
     return 0;
+}
+
+
+static void manageTestCmd(TestCmd *tc, int flags)
+{
+    if (flags & MPR_MANAGE_MARK) {
+        mprMark(tc->buf);
+        mprMark(tc->program);
+    } else if (flags & MPR_MANAGE_FREE) {
+    }
 }
 
 
@@ -34,16 +52,18 @@ static void testCreateCmd(MprTestGroup *gp)
 static void testRunCmd(MprTestGroup *gp)
 {
     MprCmd      *cmd;
+    TestCmd     *tc;
     char        *result, command[80];
     int         rc, status, exitStatus;
 
+    tc = gp->data;
     cmd = mprCreateCmd(NULL);
     assert(cmd != 0);
 
     /*
         runProgram reads from the input, so it requires stdin to be connected
      */
-    mprSprintf(command, sizeof(command), "%s 0", program);
+    mprSprintf(command, sizeof(command), "%s 0", tc->program);
     status = mprRunCmd(cmd, command, &result, NULL, MPR_CMD_IN);
     assert(result != NULL);
     assert(status == 0);
@@ -58,11 +78,14 @@ static void testRunCmd(MprTestGroup *gp)
 static void withDataCallback(MprCmd *cmd, int channel, void *data)
 {
     MprTestGroup    *gp;
+    TestCmd         *tc;
     MprBuf          *buf;
     int             space, len;
 
     gp = data;
-    buf = (MprBuf*) gp->data;
+    tc = gp->data;
+    assert(tc);
+    buf = tc->buf;
     assert(buf != NULL);
     
     if (channel == MPR_CMD_STDIN) {
@@ -125,19 +148,23 @@ static int match(char *s1, char *s2)
 
 static void testWithData(MprTestGroup *gp)
 {
-    MprCmd  *cmd;
-    MprBuf  *buf;
-    char    *data, *env[16], *argv[16], line[80], *s, *tok;
-    int     argc, i, status, rc, fd, len;
+    MprCmd      *cmd;
+    MprBuf      *buf;
+    TestCmd     *tc;
+    char        *data, *env[16], *argv[16], line[80], *s, *tok;
+    int         argc, i, status, rc, fd, len;
+
+    assert(gp != 0);
+    tc = gp->data;
+    assert(tc);
 
     cmd = mprCreateCmd(NULL);
     assert(cmd != 0);
 
-    gp->data = mprCreateBuf(MPR_BUFSIZE, -1);
-    assert(gp != 0);
+    tc->buf = mprCreateBuf(MPR_BUFSIZE, -1);
 
     argc = 0;
-    argv[argc++] = program;
+    argv[argc++] = tc->program;
     argv[argc++] = "0";
     argv[argc++] = "a";
     argv[argc++] = "b";
@@ -173,7 +200,7 @@ static void testWithData(MprTestGroup *gp)
     /*
         Now analyse returned data
      */
-    buf = (MprBuf*) gp->data;
+    buf = tc->buf;
     assert(mprGetBufLength(buf) > 0);
     if (mprGetBufLength(buf) > 0) {
         data = mprGetBufStart(buf);
@@ -205,15 +232,17 @@ static void testWithData(MprTestGroup *gp)
 
 static void testExitCode(MprTestGroup *gp)
 {
-    MprCmd  *cmd;
-    char    *result, command[80];
-    int     i, status;
+    MprCmd      *cmd;
+    TestCmd     *tc;
+    char        *result, command[80];
+    int         i, status;
 
+    tc = gp->data;
     cmd = mprCreateCmd(NULL);
     assert(cmd != 0);
 
     for (i = 0; i < 1; i++) {
-        mprSprintf(command, sizeof(command), "%s %d", program, i);
+        mprSprintf(command, sizeof(command), "%s %d", tc->program, i);
         status = mprRunCmd(cmd, command, &result, NULL, MPR_CMD_IN);
         assert(result != NULL);
         assert(status == i);
@@ -231,13 +260,15 @@ static void testExitCode(MprTestGroup *gp)
 static void testNoCapture(MprTestGroup *gp)
 {
     MprCmd      *cmd;
+    TestCmd     *tc;
     char        command[80];
     int         rc, status;
 
+    tc = gp->data;
     cmd = mprCreateCmd(NULL);
     assert(cmd != 0);
 
-    mprSprintf(command, sizeof(command), "%s 99", program);
+    mprSprintf(command, sizeof(command), "%s 99", tc->program);
     status = mprRunCmd(cmd, command, NULL, NULL, MPR_CMD_IN);
     assert(status == 99);
 

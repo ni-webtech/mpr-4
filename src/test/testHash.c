@@ -185,7 +185,7 @@ static void testIterateHash(MprTestGroup *gp)
 //  MOB -- test caseless nad unicode
 
 MprTestDef testHash = {
-    "symbol", 0, 0, 0,
+    "hash", 0, 0, 0,
     {
         MPR_TEST(0, testCreateTable),
         MPR_TEST(0, testIsTableEmpty),

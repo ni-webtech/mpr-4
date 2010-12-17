@@ -639,7 +639,7 @@ static MprSocket *acceptSocket(MprSocket *listen)
     fd = (int) accept(listen->fd, addr, &addrlen);
     if (fd < 0) {
         if (mprGetError() != EAGAIN) {
-            mprLog(1, "socket: accept failed, errno %d", mprGetOsError());
+            mprLog(0, "socket: accept failed, errno %d", mprGetOsError());
         }
         return 0;
     }
