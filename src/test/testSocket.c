@@ -23,7 +23,6 @@ typedef struct MprTestSocket {
 
 static int warnNoInternet = 0;
 static int bufsize = 16 * 1024;
-static int hasIPv6 = 0;
 
 /***************************** Forward Declarations ***************************/
 
@@ -36,20 +35,12 @@ static int readEvent(MprTestGroup *gp, MprEvent *event);
 /*
     Initialize the TestSocket structure and find a free server port to listen on.
     Also determine if we have an internet connection. 
-    This is done per group, not really required, but does no harm.
+    This is called per group.
  */
 static int initSocket(MprTestGroup *gp)
 {
     MprSocket       *sock;
     MprTestSocket   *sp;
-
-#if UNUSED
-    ts = mprAllocObj(MprTestSocket, NULL);
-    if (ts == 0) {
-        return MPR_ERR_MEMORY;
-    }
-    gp->data = (void*) ts;
-#endif
 
     if (getenv("NO_INTERNET")) {
         warnNoInternet = 1;
@@ -67,7 +58,7 @@ static int initSocket(MprTestGroup *gp)
             Check for IPv6 support
          */
         if ((sp = openServer(gp, "::1")) != 0) {
-            hasIPv6 = 1;
+            gp->hasIPv6 = 1;
             mprFree(sp);
         }
     }
@@ -77,9 +68,6 @@ static int initSocket(MprTestGroup *gp)
 
 static int termSocket(MprTestGroup *gp)
 {
-#if UNUSED
-    mprFree(gp->data);
-#endif
     return 0;
 }
 
@@ -129,14 +117,8 @@ static void manageTestSocket(MprTestSocket *ts, int flags)
         mprMark(ts->clientHandler);
 
     } else if (flags & MPR_MANAGE_FREE) {
-        if (ts->listenHandler) {
-            printf("CLOSE LISTEN HANDLER\n");
-        }
         mprRemoveWaitHandler(ts->clientHandler);
         mprRemoveWaitHandler(ts->listenHandler);
-        if (ts->sock) {
-            printf("CLOSE %d\n", ts->sock->fd);
-        }
         mprCloseSocket(ts->sock, 0);
         mprCloseSocket(ts->client, 0);
     }
@@ -328,7 +310,7 @@ static void testClientServerIPv4(MprTestGroup *gp)
 
 static void testClientServerIPv6(MprTestGroup *gp)
 {
-    if (hasIPv6) {
+    if (gp->hasIPv6) {
         testClientServer(gp, "::1");
     }
 }
