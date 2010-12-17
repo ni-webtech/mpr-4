@@ -20,6 +20,7 @@ export CYGWIN=nodosfilewarning
 CONFIG_ARGS=.buildConfig.args
 CONFIG_H=buildConfig.h
 CONFIG_SRC=.buildConfig.tmp
+CONFIG_CACHE=.buildConfig.sh
 PATCH_SCRIPT=patchScript
 
 #
@@ -1355,6 +1356,7 @@ createBuildConfig() {
     fi
     cat $CONFIG_SRC >>$CONFIG_H
     chmod 444 $CONFIG_H
+    rm -f ${BLD_OUT_DIR}/include/${CONFIG_CACHE}
 
     >$CONFIG_ARGS
     for t in ANT AR BREW CC DOXYGEN CXX JAVAC JDK JAR LD LDXX MT MUNCH NM RANLIB RC STRIP
@@ -1510,7 +1512,7 @@ else
 _#endif /* IGNORE_IN_C_CODE */
 _#if IGNORE_IN_C_CODE
 endif
-_#endif
+_#endif /* IGNORE_IN_C_CODE */
 !EOF_CONFIG_FOOTER_H
     fi
 }
