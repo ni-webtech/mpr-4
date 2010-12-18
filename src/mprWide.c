@@ -732,11 +732,11 @@ ssize wtom(char *dest, ssize destCount, MprChar *src, ssize len)
     mprAssert(0 <= len && len < MAXINT);
 
     if (destCount < 0) {
-        destCount = MAXSIZE;
+        destCount = MAXSSIZE;
     }
 #if UNUSED
     if (len < 0) {
-        len = MAXSIZE;
+        len = MAXSSIZE;
     }
 #endif
     size = min(destCount, len + 1);
@@ -778,7 +778,7 @@ ssize mtow(MprChar *dest, ssize destCount, cchar *src, ssize len)
     mprAssert(0 <= len && len < MAXINT);
 
     if (destCount < 0) {
-        destCount = MAXSIZE;
+        destCount = MAXSSIZE;
     }
     size = min(destCount, len + 1);
     if (size > 0) {
@@ -810,7 +810,7 @@ MprChar *amtow(cchar *src, ssize *lenp)
     MprChar     *dest;
     ssize       len;
 
-    len = mtow(NULL, MAXSIZE, src, 0);
+    len = mtow(NULL, MAXSSIZE, src, 0);
     if (len < 0) {
         return NULL;
     }
@@ -829,7 +829,7 @@ char *awtom(MprChar *src, ssize *lenp)
     char    *dest;
     ssize   len;
 
-    len = wtom(NULL, MAXSIZE, src, 0);
+    len = wtom(NULL, MAXSSIZE, src, 0);
     if (len < 0) {
         return NULL;
     }

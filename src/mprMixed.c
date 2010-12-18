@@ -29,7 +29,7 @@ MprChar *mcontains(MprChar *str, cchar *pattern, ssize limit)
     cchar       *s2;
     ssize       lim;
 
-    mprAssert(0 <= limit && limit < MAXSIZE);
+    mprAssert(0 <= limit && limit < MAXSSIZE);
 
     if (str == 0) {
         return 0;
@@ -188,7 +188,7 @@ int mncasecmp(MprChar *s1, cchar *s2, ssize n)
 {
     int     rc;
 
-    mprAssert(0 <= n && n < MAXSIZE);
+    mprAssert(0 <= n && n < MAXSSIZE);
 
     if (s1 == 0 || s2 == 0) {
         return -1;
@@ -218,7 +218,7 @@ int mncasecmp(MprChar *s1, cchar *s2, ssize n)
 
 int mncmp(MprChar *s1, cchar *s2, ssize n)
 {
-    mprAssert(0 <= n && n < MAXSIZE);
+    mprAssert(0 <= n && n < MAXSSIZE);
 
     if (s1 == 0 && s2 == 0) {
         return 0;
@@ -247,8 +247,8 @@ int mncmp(MprChar *s1, cchar *s2, ssize n)
 
 ssize mncopy(MprChar *dest, ssize destMax, cchar *src, ssize len)
 {
-    mprAssert(0 <= len && len < MAXSIZE);
-    mprAssert(0 < destMax && destMax < MAXSIZE);
+    mprAssert(0 <= len && len < MAXSSIZE);
+    mprAssert(0 < destMax && destMax < MAXSSIZE);
 
     return mtow(dest, destMax, src, len);
 }

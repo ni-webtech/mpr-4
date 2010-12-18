@@ -1215,7 +1215,7 @@ MprMemStats *mprGetMemStats()
     size_t          len;
     int             fd;
 
-    heap->stats.ram = MAXSIZE;
+    heap->stats.ram = MAXSSIZE;
     if ((fd = open("/proc/meminfo", O_RDONLY)) >= 0) {
         if ((len = read(fd, buf, sizeof(buf) - 1)) > 0) {
             buf[len] = '\0';
