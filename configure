@@ -1504,7 +1504,7 @@ createConfigFooter()
         cat >>$FILE <<!EOF_CONFIG_FOOTER_MAKE
 # End of Makefile definitions
 else
-#else /* !IGNORE_IN_CODE */
+#else /* !IGNORE_IN_C_CODE */
 
 !EOF_CONFIG_FOOTER_MAKE
     else
