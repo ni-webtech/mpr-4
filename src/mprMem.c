@@ -324,7 +324,6 @@ void mprFree(void *ptr)
             GET_MANAGER(mp)(GET_PTR(mp), MPR_MANAGE_FREE);
             mp->hasManager = 0;
         }
-        mprAssert(mp->gen != heap->dead);
         if (mp->gen != heap->eternal) {
             mp->gen = heap->stale;
         }
@@ -1682,7 +1681,6 @@ void mprMarkBlock(cvoid *ptr)
         BREAKPOINT(mp);
         INC(marked);
         mp->mark = heap->active;
-        mprAssert(mp->gen != heap->dead);
         if (mp->gen != heap->eternal) {
             mp->gen = heap->active;
         }
