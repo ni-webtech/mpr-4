@@ -183,8 +183,6 @@ static void manageAngel(void *ptr, int flags)
 {
     if (flags & MPR_MANAGE_MARK) {
         mprMark(serviceArgs);
-    } else {
-        ;
     }
 }
 
@@ -233,7 +231,6 @@ static void angel()
     mark = mprGetTime();
 
     while (! exiting) {
-        mprCollectGarbage(MPR_GC_FROM_EVENTS);
         if (mprGetElapsedTime(mark) > (3600 * 1000)) {
             mark = mprGetTime();
             restartCount = 0;

@@ -33,11 +33,14 @@ static void testCriticalSection(MprTestGroup *gp)
     dispatcher = mprGetDispatcher(gp);
     event = mprCreateEvent(dispatcher, "testCriticalSection", 0, callback, (void*) cond, 0);
     assert(event != 0);
+    mprAddRoot(event);
+
     save = cond->triggered;
+    mprStickyYield(NULL, 1);
     rc = mprWaitForCond(cond, MPR_TEST_TIMEOUT);
+    mprStickyYield(NULL, 0);
     assert(rc == 0);
-    mprFree(cond);
-    mprFree(event);
+    mprRemoveRoot(event);
     
     //  TODO - add test with longer event delay to catch when wait runs first
 }

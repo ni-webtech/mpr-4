@@ -24,8 +24,9 @@ static void testCreateEvent(MprTestGroup *gp)
 
     event = mprCreateEvent(mprGetDispatcher(gp), "testCreateEvent", 0, eventCallback, (void*) gp, 0);
     assert(event != 0);
+    mprAddRoot(event);
     assert(mprWaitForTestToComplete(gp, MPR_TEST_SLEEP));
-    mprFree(event);
+    mprRemoveRoot(event);
 }
 
 
@@ -35,7 +36,6 @@ static void testCancelEvent(MprTestGroup *gp)
 
     event = mprCreateEvent(mprGetDispatcher(gp), "testCancelEvent", 20000, eventCallback, (void*) gp, 0);
     assert(event != 0);
-    mprFree(event);
 }
 
 
@@ -47,8 +47,9 @@ static void testReschedEvent(MprTestGroup *gp)
     assert(event != 0);
 
     mprRescheduleEvent(event, 20);
+    mprAddRoot(event);
     assert(mprWaitForTestToComplete(gp, MPR_TEST_SLEEP));
-    mprFree(event);
+    mprRemoveRoot(event);
 }
 
 

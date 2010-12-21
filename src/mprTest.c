@@ -24,7 +24,7 @@ static void     runInit(MprTestGroup *parent);
 static void     runTerm(MprTestGroup *parent);
 static void     runTestGroup(MprTestGroup *gp);
 static void     runTestProc(MprTestGroup *gp, MprTestCase *test);
-static void     runTestThread(MprList *groups, void *threadp);
+static void     runTestThread(MprList *groups, MprThread *tp);
 static int      setLogging(Mpr *mpr, char *logSpec);
 
 static MprList  *copyGroups(MprTestService *sp, MprList *groups);
@@ -348,7 +348,7 @@ int mprRunTests(MprTestService *sp)
         }
     }
     while (!mprIsComplete()) {
-        mprServiceEvents(NULL, -1, 0);
+        mprServiceEvents(mprGetDispatcher(), -1, 0);
     }
     return (sp->totalFailedCount == 0) ? 0 : 1;
 }
@@ -383,7 +383,7 @@ static MprList *copyGroups(MprTestService *sp, MprList *groups)
 /*
     Run the test groups. One invocation per thread. Used even if not multithreaded.
  */
-void runTestThread(MprList *groups, void *threadp)
+void runTestThread(MprList *groups, MprThread *tp)
 {
     MprTestService  *sp;
     MprTestGroup    *gp;
@@ -416,7 +416,7 @@ void runTestThread(MprList *groups, void *threadp)
     for (next = 0; (gp = mprGetNextItem(groups, &next)) != 0; ) {
         runTerm(gp);
     }
-    if (threadp) {
+    if (tp) {
         adjustThreadCount(sp, -1);
     }
 }
@@ -784,7 +784,6 @@ static void runTestProc(MprTestGroup *gp, MprTestCase *test)
             }
         }
     } else {
-        mprCollectGarbage(MPR_GC_FROM_USER);
         mprResetCond(gp->cond);
         (test->proc)(gp);
     
@@ -882,8 +881,10 @@ bool mprWaitForTestToComplete(MprTestGroup *gp, int timeout)
     
     mprAssert(gp->cond);
 
+    mprStickyYield(NULL, 1);
     rc = mprWaitForCond(gp->cond, timeout) == 0;
     mprResetCond(gp->cond);
+    mprStickyYield(NULL, 0);
     return rc;
 }
 

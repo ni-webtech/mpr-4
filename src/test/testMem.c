@@ -19,19 +19,16 @@ static void testBasicAlloc(MprTestGroup *gp)
     cp = mprAlloc(size);
     assert(cp != 0);
     memset(cp, 0x77, size);
-    mprFree(cp);
 
     cp = mprAlloc(size);
     assert(cp != 0);
     memset(cp, 0x77, size);
     cp = mprRealloc(cp, size * 2);
     assert(cp != 0);
-    mprFree(cp);
 
     cp = sclone("Hello World");
     assert(cp != 0);
     assert(strcmp(cp, "Hello World") == 0);
-    mprFree(cp);
 
     /*
         Test special MPR allowances
@@ -40,8 +37,37 @@ static void testBasicAlloc(MprTestGroup *gp)
     cp = sclone(NULL);
     assert(cp != 0);
     assert(cp[0] == '\0');
-    mprFree(cp);
 }
+
+
+#if UNUSED
+static void allocManager(int **dp, int flags)
+{
+    mprAssert(flags & MPR_MANAGE_FREE);
+    if (flags & MPR_MANAGE_FREE) {
+        mprAssert(*dp);
+        mprAssert(**dp == 0);
+        **dp = 1;
+    }
+}
+
+
+static void testManager(MprTestGroup *gp)
+{
+    int     done, **dp;
+
+    done = 0;
+    dp = mprAllocObj(int*, allocManager);
+    assert(dp);
+    assert(*dp == 0);
+    *dp = &done;
+    assert(!done);
+    //  MOB - free does not invoke destructors immediately
+    mprFree(dp);
+    mprRequestGC(1);
+    assert(done == 1);
+}
+#endif
 
 
 static void testBigAlloc(MprTestGroup *gp)
@@ -78,7 +104,7 @@ static void testLotsOfAlloc(MprTestGroup *gp)
         mp = mprAlloc(i);
         assert(mp != 0);
         mprFree(mp);
-        mprCollectGarbage(MPR_GC_FROM_USER);
+        mprRequestGC(0);
     }
     if (mprGetMem() > memsize) {
         assert((mprGetMem() - memsize) < (4 * 1024 * 1024));
@@ -164,7 +190,7 @@ static void cacheManager(Cache *cache, int flags)
 static void testAllocLongevity(MprTestGroup *gp)
 {
     Cache       *cache;
-    ssize       memsize, len, actual, total;
+    ssize       memsize, len, actual;
     uchar       *cp;
     int         i, j, index, blockSize, iterations, depth;
     
@@ -180,7 +206,7 @@ static void testAllocLongevity(MprTestGroup *gp)
     assert(cache != 0);
     mprAddRoot(cache);
 
-    for (i = 0, total = 0; i < iterations; i++) {
+    for (i = 0; i < iterations; i++) {
         index = mprRandom() % CACHE_MAX;
         if ((cp = cache->blocks[index]) != NULL) {
             len = mprGetBlockSize(cp);
@@ -190,24 +216,11 @@ static void testAllocLongevity(MprTestGroup *gp)
         }
         len = mprRandom() % blockSize;
         cp = cache->blocks[index] = mprAlloc(len);
-        total += len;
         actual = mprGetBlockSize(cp);
-        assert(actual >= len);
-        
+        assert(actual >= len);        
         memset(cp, index, actual);
-        if ((i % CACHE_MAX) == 0) {
-            mprLog(1, "ITER %,d, DELTA %,d K, total allocated this pass %,d\n", i, (mprGetMem() - memsize) / 1024, total);
-            if (mprGetMem() > memsize) {
-                assert((mprGetMem() - memsize) < (4 * 1024 * 1024));
-            }
-            mprCollectGarbage(MPR_GC_FROM_USER);
-            total = 0;
-        }
     }
     mprRemoveRoot(cache);
-    if (mprGetMem() > memsize) {
-        assert((mprGetMem() - memsize) < (4 * 1024 * 1024));
-    }
 }
 
 

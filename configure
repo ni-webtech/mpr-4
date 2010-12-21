@@ -1849,6 +1849,8 @@ createCrossConfig()
         if [ $HAS_CYGPATH = 1 ] ; then
             top=`cygpath "${top}"`
             out=`cygpath "${top}/${out}"`
+        else
+            out="${top}/${out}"
         fi
 
         if [ "${BLD_HOST_OS}" = "LINUX" ] ; then

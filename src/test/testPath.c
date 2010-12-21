@@ -39,7 +39,6 @@ static int initPath(MprTestGroup *gp)
     ts->dir1 = makePath(DIR1);
     ts->dir2 = mprAsprintf("%s%s", ts->dir1, DIR2);
     if (ts->dir1 == 0 || ts->dir2 == 0) {
-        mprFree(gp->data);
         gp->data = 0;
         return MPR_ERR_MEMORY;
     }
@@ -65,7 +64,6 @@ static void manageTestPath(TestPath *tp, int flags)
 
 static int termPath(MprTestGroup *gp)
 {
-    mprFree(gp->data);
     gp->data = 0;
     return 0;
 }
@@ -84,7 +82,7 @@ static void testCopyPath(MprTestGroup *gp)
     file = mprOpen(from, O_CREAT | O_TRUNC | O_WRONLY, 0664);
     assert(file != 0);
     mprWriteString(file, "Hello World");
-    mprFree(file);
+    mprCloseFile(file);
 
     to = mprAsprintf("newTest-%s.tmp", mprGetCurrentThreadName(gp));
     assert(mprPathExists(from, F_OK));
@@ -326,7 +324,6 @@ static void testTemp(MprTestGroup *gp)
     assert(mprIsAbsPath(path));
     assert(mprPathExists(path, F_OK));
     mprDeletePath(path);
-    mprFree(path);
 }
 
 

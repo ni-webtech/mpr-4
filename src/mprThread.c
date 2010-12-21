@@ -85,31 +85,39 @@ bool mprStopThreadService(int timeout)
     Called by thread code to signify that it is safe for GC. If the GC marker is synchronizing, this call will block at 
     the GC sync point (should be brief).
  */
-void mprYieldThread(MprThread *tp)
+void mprYield(MprThread *tp, int block)
 {
     if (tp == NULL) {
         tp = mprGetCurrentThread();
     }
-    mprLog(7, "mprYieldThread %s yielded was %d", tp->name, tp->yielded);
+    mprLog(7, "mprYieldThread %s yielded was %d, block %d", tp->name, tp->yielded, block);
     tp->yielded = 1;
 
     /*
         Wake the marker to check if all threads are yielded and wait for the all clear
      */
     mprSignalCond(MPR->threadService->cond);
-    while (tp->yielded && mprWaitForSync()) {
+    while (tp->yielded && (mprWaitForSync() || block)) {
         mprLog(7, "mprYieldThread %s must wait", tp->name);
         mprWaitForCond(tp->cond, -1);
+    }
+    if (!tp->stickyYield) {
+        tp->yielded = 0;
     }
 }
 
 
-void mprSetStickyYield(MprThread *tp, int enable)
+void mprStickyYield(MprThread *tp, int enable)
 {
     if (tp == NULL) {
         tp = mprGetCurrentThread();
     }
     tp->stickyYield = enable;
+    if (enable) {
+        mprYield(tp, 0);
+    } else {
+        tp->yielded = enable;
+    }
 }
 
 
@@ -131,14 +139,16 @@ void mprResumeThread(MprThread *tp)
 /*
     Pause until all threads have yielded. Called by the GC marker only.
  */
-int mprPauseForGCSync(int timeout)
+int mprSyncThreads(int timeout)
 {
     MprThreadService    *ts;
     MprThread           *tp;
+    MprTime             mark;
     int                 i, allYielded;
 
     ts = mprGetMpr()->threadService;
-    mprLog(7, "mprPauseForGCSync timeout %d", timeout);
+    mprLog(7, "mprSyncThreads timeout %d", timeout);
+    mark = mprGetTime();
 
     //  MOB timeout
     do {
@@ -155,20 +165,20 @@ int mprPauseForGCSync(int timeout)
         if (allYielded) {
             break;
         }
-        mprLog(7, "mprPauseForGCSync: waiting for threads to yield");
+        mprLog(7, "mprSyncThreads: waiting for threads to yield");
         mprWaitForCond(ts->cond, MPR_GC_TIMEOUT);
-    } while (!allYielded);
 
-    mprLog(7, "mprPauseForGCSync: complete %d", allYielded);
-    //  MOB -- return if timeout failed
+    } while (!allYielded && mprGetElapsedTime(mark) < timeout);
+
+    mprLog(7, "mprSyncThreads: complete %d", allYielded);
     return (allYielded) ? 1 : 0;
 }
 
 
 /*
-    Resume all threads. Called by the GC marker only.
+    Resume all yielded threads. Called by the GC marker only.
  */
-void mprResumeThreadsAfterGC()
+void mprResumeThreads()
 {
     MprThreadService    *ts;
     MprThread           *tp;
@@ -208,7 +218,9 @@ MprThread *mprGetCurrentThread()
     int                 i;
 
     ts = mprGetMpr()->threadService;
-    mprLock(ts->mutex);
+    if (ts->mutex) {
+        mprLock(ts->mutex);
+    }
     id = mprGetCurrentOsThread();
     for (i = 0; i < ts->threads->length; i++) {
         tp = (MprThread*) mprGetItem(ts->threads, i);
@@ -217,7 +229,9 @@ MprThread *mprGetCurrentThread()
             return tp;
         }
     }
-    mprUnlock(ts->mutex);
+    if (ts->mutex) {
+        mprUnlock(ts->mutex);
+    }
     return 0;
 }
 
@@ -1045,10 +1059,9 @@ static void workerMain(MprWorker *worker, MprThread *tp)
         /*
             Sleep till there is more work to do. Yield for GC first.
          */
-        tp->stickyYield = 1;
-        mprCollectGarbage(MPR_GC_FROM_WORKER);
+        mprStickyYield(NULL, 1);
         rc = mprWaitForCond(worker->idleCond, -1);
-        tp->stickyYield = 0;
+        mprStickyYield(NULL, 0);
         mprLock(ws->mutex);
     }
     changeState(worker, 0);

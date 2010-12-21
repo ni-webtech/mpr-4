@@ -108,6 +108,9 @@ bool mprTryLock(MprMutex *lock)
 #elif VXWORKS
     rc = semTake(lock->cs, NO_WAIT) != OK;
 #endif
+#if BLD_DEBUG
+    lock->owner = mprGetCurrentOsThread();
+#endif
     return (rc) ? 0 : 1;
 }
 
@@ -291,6 +294,10 @@ void mprLock(MprMutex *lock)
     EnterCriticalSection(&lock->cs);
 #elif VXWORKS
     semTake(lock->cs, WAIT_FOREVER);
+#endif
+#if BLD_DEBUG
+    /* Store last locker only */ 
+    lock->owner = mprGetCurrentOsThread();
 #endif
 }
 

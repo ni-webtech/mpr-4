@@ -117,9 +117,7 @@ static void manageMpr(Mpr *mpr, int flags)
         mprMark(mpr->version);
         mprMark(mpr->waitService);
         mprMark(mpr->workerService);
-#if UNUSED
-        mprMark(mpr->heap.cond);
-#endif
+        mprMark(mpr->heap.markerCond);
 
     } else if (flags & MPR_MANAGE_FREE) {
         if ((mpr->flags & MPR_STARTED) && !(mpr->flags & MPR_STOPPED)) {
@@ -161,6 +159,7 @@ bool mprStop()
     MPR->flags |= MPR_STOPPED;
 
     mprTerminate(MPR_GRACEFUL);
+    mprStopGCService();
     mprStopSocketService();
     if (!mprStopWorkerService(MPR_TIMEOUT_STOP_TASK)) {
         stopped = 0;
@@ -174,46 +173,23 @@ bool mprStop()
 }
 
 
-//  MOB - problem on windows. Causes the message pump to run in a thread that does not own the HWND.
 static void startThreads(int flags)
 {
     MprThread   *tp;
 
-#if UNUSED
-        mprStartMemService(flags);
+#if WIN
+    mprAssert(0);
+//  MOB - problem on windows. Causes the message pump to run in a thread that does not own the HWND.
 #endif
-    if (flags & MPR_EVENTS_THREAD) {
+    if (!(flags & MPR_USER_EVENTS_THREAD)) {
         if ((tp = mprCreateThread("events", serviceEventsThread, NULL, 0)) == 0) {
             MPR->hasError = 1;
         } else {
-#if UNUSED
-            MPR->hasDedicatedService = 1;
-#endif
             mprStartThread(tp);
         }
     }
+    mprStartGCService();
 }
-
-
-#if UNUSED
-//  MOB -- is this being used?
-//  MOB - problem on windows. Causes the message pump to run in a thread that does not own the HWND.
-/*
-    Thread to service the event queue. Used if the user does not have their own main event loop.
- */
-int mprStartEventsThread()
-{
-    MprThread   *tp;
-
-    mprLog(MPR_CONFIG, "Starting service thread");
-    if ((tp = mprCreateThread("events", serviceEventsThread, NULL, 0)) == 0) {
-        return MPR_ERR_CANT_CREATE;
-    }
-    MPR->hasDedicatedService = 1;
-    mprStartThread(tp);
-    return 0;
-}
-#endif
 
 
 static void serviceEventsThread(void *data, MprThread *tp)
@@ -404,10 +380,7 @@ cchar *mprGetAppTitle()
  */
 void mprSetHostName(cchar *s)
 {
-    mprLock(MPR->mutex);
-    mprFree(MPR->hostName);
     MPR->hostName = sclone(s);
-    mprUnlock(MPR->mutex);
     return;
 }
 

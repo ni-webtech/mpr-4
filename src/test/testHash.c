@@ -20,15 +20,12 @@ static void testCreateTable(MprTestGroup *gp)
 
     table = mprCreateHash(211, 0);
     assert(table != 0);
-    mprFree(table);
 
     table = mprCreateHash(0, 0);
     assert(table != 0);
-    mprFree(table);
 
     table = mprCreateHash(1, 0);
     assert(table != 0);
-    mprFree(table);
 }
 
 
@@ -42,8 +39,6 @@ static void testIsTableEmpty(MprTestGroup *gp)
     assert(mprGetHashLength(table) == 0);
     assert(mprGetFirstHash(table) == 0);
     assert(mprLookupHash(table, "") == 0);
-
-    mprFree(table);
 }
 
 
@@ -86,8 +81,6 @@ static void testInsertAndRemoveHash(MprTestGroup *gp)
 
     str = mprLookupHash(table, "Peter");
     assert(str == 0);
-
-    mprFree(table);
 }
 
 
@@ -124,8 +117,6 @@ static void testHashScale(MprTestGroup *gp)
         mprSprintf(address, sizeof(address), "%d Park Ave", i);
         assert(strcmp(str, address) == 0);
     }
-
-    mprFree(table);
 }
 
 
@@ -178,8 +169,6 @@ static void testIterateHash(MprTestGroup *gp)
         }
     }
     assert(count == 1000);
-    
-    mprFree(table);
 }
 
 //  MOB -- test caseless nad unicode

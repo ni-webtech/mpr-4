@@ -59,8 +59,10 @@ static void manageTestFile(TestFile *tf, int flags)
 
 static int termFile(MprTestGroup *gp)
 {
+#if UNUSED
     mprFree(gp->data);
     gp->data = 0;
+#endif
     return 0;
 }
 

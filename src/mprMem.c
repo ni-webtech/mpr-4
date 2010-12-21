@@ -115,14 +115,14 @@ static int initFree();
 static void initGen();
 static void linkFreeBlock(MprMem *mp); 
 static void mark();
-static void marker(void *unused, MprWorker *worker);
+static void marker(void *unused, MprThread *tp);
 static void markRoots();
 static int memoryNotifier(int flags, ssize size);
 static void nextGen();
 static MprMem *searchFree(ssize size, int *indexp);
 static MprMem *splitBlock(MprMem *mp, ssize required, int qspare);
 static void sweep();
-static void sweeper(void *unused, MprWorker *worker);
+static void sweeper(void *unused, MprThread *tp);
 static void synchronize();
 static void unlinkFreeBlock(MprFreeMem *fp);
 
@@ -137,19 +137,6 @@ static void unlinkFreeBlock(MprFreeMem *fp);
     static MprFreeMem *getQueue(ssize size);
     static void printQueueStats();
     static void printGCStats();
-#endif
-
-#if UNUSED
-void checkPrior(MprMem *mp)
-{
-#if CHECK_PRIOR
-    MprMem  *p;
-
-    for (p = mp; p; p = p->prior) {
-        CHECK(p);
-    }
-#endif
-}
 #endif
 
 /************************************* Code ***********************************/
@@ -203,17 +190,7 @@ Mpr *mprCreateMemService(MprManager manager, int flags)
     heap->newQuota = MPR_NEW_QUOTA;
     heap->regions = region;
     heap->enabled = 1;
-    heap->flags = flags ? flags : MPR_THREAD_PATTERN;
-
-    if (heap->flags & MPR_MARK_THREAD) {
-        heap->from |= MPR_GC_FROM_ALL;
-    }
-    if (heap->flags & (MPR_EVENTS_THREAD | MPR_USER_EVENTS_THREAD)) {
-        heap->from |= MPR_GC_FROM_EVENTS;
-    }
-    if (heap->flags & MPR_USER_GC) {
-        heap->from |= MPR_GC_FROM_USER;
-    }
+    heap->flags |= MPR_THREAD_PATTERN;
 
     heap->stats.bytesAllocated += size;
     mprInitSpinLock(&heap->heapLock);
@@ -224,6 +201,7 @@ Mpr *mprCreateMemService(MprManager manager, int flags)
     initGen();
     linkFreeBlock(spare);
 
+    heap->markerCond = mprCreateCond();
     heap->roots = mprCreateList();
     mprAddRoot(MPR);
     return MPR;
@@ -320,10 +298,14 @@ void mprFree(void *ptr)
         if (unlikely(mp->isRoot)) {
             mprRemoveRoot(mp);
         }
+#if UNUSED
         if (unlikely(mp->hasManager)) {
             GET_MANAGER(mp)(GET_PTR(mp), MPR_MANAGE_FREE);
             mp->hasManager = 0;
         }
+#endif
+        mprAssert(mp->gen != heap->eternal);
+        //  MOB -- should not protect this with test
         if (mp->gen != heap->eternal) {
             mp->gen = heap->stale;
         }
@@ -332,26 +314,6 @@ void mprFree(void *ptr)
         }
     }
 }
-
-
-#if BLD_DEBUG
-void mprFreeBlock(void *ptr, cchar *loc)
-{
-    MprMem      *mp;
-    ssize       usize, len;
-
-    if (ptr) {
-        mp = GET_MEM(ptr);
-        usize = GET_USIZE(mp);
-        
-        mprFree(ptr);
-        
-        len = min(slen(loc), usize - 1);
-        strncpy(ptr, loc, len);
-        ((char*) ptr)[len] = '\0';
-    }
-}
-#endif
 
 
 void *mprRealloc(void *ptr, ssize usize)
@@ -712,17 +674,17 @@ static MprMem *searchFree(ssize size, int *indexp)
                 Put GC here so it is no in the common path above where the block can be satisfied from the free list
              */
             unlockHeap();
-            if (!heap->notified && heap->newCount > heap->newQuota) {
-                heap->notified = 1;
-                mprCollectGarbage(MPR_GC_FROM_SEARCH);
+            if (!heap->requested && heap->newCount > heap->newQuota) {
+                heap->requested = 1;
+                mprRequestGC(0);
             }
             lockHeap();
         }
     }
     unlockHeap();
-    if (!heap->notified && heap->newCount > heap->newQuota) {
-        heap->notified = 1;
-        mprCollectGarbage(MPR_GC_FROM_SEARCH);
+    if (!heap->requested && heap->newCount > heap->newQuota) {
+        heap->requested = 1;
+        mprRequestGC(0);
     }
     return NULL;
 }
@@ -908,7 +870,6 @@ static MprMem *freeBlock(MprMem *mp)
     } else
 #endif
     {
-        //  MOB -- move after linkFreeBlock
         RESET_MEM(mp);
         linkFreeBlock(mp);
     }
@@ -1437,120 +1398,44 @@ static void breakpoint(MprMem *mp)
 
 /***************************************************** Garbage Colllector *************************************************/
 
-static void startMemWorkers()
+void mprStartGCService()
 {
     if (heap->flags & MPR_MARK_THREAD) {
         mprLog(7, "DEBUG: startMemWorkers: start marker");
-        mprStartWorker(marker, NULL);
+        if ((heap->marker = mprCreateThread("marker", marker, NULL, 0)) == 0) {
+            mprError("Can't create marker thread");
+            MPR->hasError = 1;
+        } else {
+            mprStartThread(heap->marker);
+        }
     }
     if (heap->flags & MPR_SWEEP_THREAD) {
         mprLog(7, "DEBUG: startMemWorkers: start sweeper");
         heap->hasSweeper = 1;
-        mprStartWorker(sweeper, NULL);
+        if ((heap->sweeper = mprCreateThread("sweeper", sweeper, NULL, 0)) == 0) {
+            mprError("Can't create sweeper thread");
+            MPR->hasError = 1;
+        } else {
+            mprStartThread(heap->sweeper);
+        }
     }
 }
 
 
-/*
-    Initiate a garbage collection. This can be called by any thread and will block until GC is complete.
- */
-static void collectGarbage(int flags)
+void mprStopGCService()
 {
-    if (!heap->enabled) {
-        mprLog(7, "DEBUG: collectGarbage: Abort GC - GC disabled");
-        return;
-    }
-    lockHeap();
-    heap->newCount = 0;
-    if (heap->collecting) {
-        mprLog(7, "DEBUG: collectGarbage: already collecting, returning");
-        mprYieldThread(NULL);
-        unlockHeap();
-        return;
-    }
-    heap->collecting = 1;
-    heap->notified = 0;
-    unlockHeap();
-
-#if UNUSED
-    if (!(flags & MPR_GC_FROM_EVENTS)) {
-        mprLog(3, "DEBUG: collectGarbage: wakeWaitService");
-        mprWakeWaitService();
-    }
-#endif
-    mprAssert(mprGetCurrentThread()->yielded == 1);
-
-    if (heap->flags & MPR_MARK_THREAD) {
-        mprLog(7, "DEBUG: collectGarbage: startMemWorkers");
-        startMemWorkers();
-    } else {
-        mprLog(7, "DEBUG: collectGarbage: mark");
-        mark();
-    }
+    mprSignalCond(heap->markerCond);
 }
 
 
-void mprCollectGarbage(int flags)
+void mprRequestGC(int complete)
 {
-//  MOB Cleanup
-    cchar   *from;
-
-    if (flags & MPR_GC_FROM_EVENTS) {
-        from = "events";
-    } else if (flags & MPR_GC_FROM_WORKER) {
-        from = "worker";
-    } else if (flags & MPR_GC_FROM_SEARCH) {
-        from = "search";
-    } else if (flags & MPR_GC_FROM_USER) {
-        from = "user";
-    } else {
-        from = "other";
+    mprLog(7, "DEBUG: mprRequestGC");
+    if (complete) {
+        heap->sweeps = 3;
     }
-    if (!heap->enabled) {
-        mprLog(7, "DEBUG: mprCollectGarbage: Abort GC from %s -  GC disabled", from);
-        return;
-    }
-    /*
-        Yield to marker if required
-     */
-    if (flags & MPR_GC_FROM_SEARCH) {
-        /* Not safe to yield from search */
-        mprLog(7, "DEBUG: mprCollectGarbage: abort collection from %s", from);
-    } else {
-        mprLog(7, "DEBUG: mprCollectGarbage: yield %s, thread %s", from, mprGetCurrentThreadName());
-        mprYieldThread(NULL);
-    }
-    if (heap->newCount < heap->newQuota && !(flags & MPR_GC_FORCE)) {
-        mprLog(7, "DEBUG: mprCollectGarbage: GC not yet required from %s, new %d quota %d", 
-            from, heap->newCount, heap->newQuota);
-        return;
-    }
-
-    /*
-        Initiate GC
-     */
-    if (heap->notifier && (heap->notifier)(MPR_MEM_GC, 0) == MPR_DELAY_GC) {
-        mprLog(7, "DEBUG: mprCollectGarbage: GC delay requested", from);
-        /* Delayed GC requested - user must re-initiate GC when ready */
-        return;
-    }
-    if (flags & heap->from) {
-        mprLog(7, "DEBUG: mprCollectGarbage: proceed with collection from %s", from);
-        collectGarbage(flags);
-    } else {
-        mprLog(7, "DEBUG: mprCollectGarbage: skip collection from %s %x/%x", from, flags, heap->from);
-    }
-}
-
-
-void mprCollectAllGarbage(int flags)
-{
-    int     i;
-
-    mprLog(7, "DEBUG: mprCollectAllGarbage");
-    for (i = 0; i < 3; i++) {
-        mprCollectGarbage(MPR_GC_FORCE);
-    }
+    mprSignalCond(heap->markerCond);
+    mprYield(NULL, 0);
 }
 
 
@@ -1569,11 +1454,11 @@ static void synchronize()
         (heap->notifier)(MPR_MEM_YIELD, 0);
     }
     //  MOB - Need proper timeout here - should be short
-    if (mprPauseForGCSync(120 * 1000)) {
+    if (mprSyncThreads(120 * 1000)) {
         mprLog(7, "DEBUG: Advance generation");
         nextGen();
         heap->mustYield = 0;
-        mprResumeThreadsAfterGC();
+        mprResumeThreads();
     } else {
         mprLog(7, "DEBUG: Pause for GC sync timed out");
         heap->mustYield = 0;
@@ -1585,7 +1470,11 @@ static void mark()
 {
     ssize     priorFree;
 
+    heap->requested = 0;
+    heap->newCount = 0;
     priorFree = heap->stats.bytesFree;
+
+    mprLog(1, "DEBUG: mark started");
     markRoots();
     if (!heap->hasSweeper) {
         sweep();
@@ -1594,7 +1483,6 @@ static void mark()
         heap->stats.marked, heap->stats.markVisited, 
         heap->stats.swept, heap->stats.sweepVisited, (int) heap->stats.bytesFree, priorFree);
     synchronize();
-    heap->collecting = 0;
 }
 
 
@@ -1608,6 +1496,8 @@ static void sweep()
         mprLog(7, "DEBUG: sweep: Abort sweep - GC disabled");
         return;
     }
+    mprLog(1, "DEBUG: sweep started");
+
     /*
         Run all destructors so all can guarantee dependant memory blocks will still exist
      */
@@ -1693,96 +1583,6 @@ void mprMarkBlock(cvoid *ptr)
 }
 
 
-#if UNUSED
-void mprEternalize(void *ptr)
-{
-    MprMem  *mp;
-    int     save;
-
-    if (ptr) {
-        mprPrintMem("Before Eternalize", 0);
-        mp = GET_MEM(ptr);
-        CHECK(mp);
-        heap->stats.marked = 0;
-
-        if (mp->hasManager) {
-            lockHeap();
-            while (heap->collecting) {
-                unlockHeap();
-                mprYieldThread(NULL);
-                lockHeap();
-            }
-            save = heap->active;
-            heap->active = heap->eternal;
-            mprMarkBlock(ptr);
-            heap->active = save;
-            unlockHeap();
-        } else {
-            mp->gen = heap->eternal;
-        }
-        printf("Eternalize Complete: Eternalized %d\n", heap->stats.marked);
-        mprPrintMem("Eternalized", 0);
-    }
-}
-#endif
-
-
-#if UNUSED && KEEP
-void mprHold(void *ptr)
-{
-    MprMem  *mp;
-    int     save;
-
-    if (ptr) {
-        mp = GET_MEM(ptr);
-        CHECK(mp);
-        if (mp->hasManager) {
-            lockHeap();
-            while (heap->collecting) {
-                unlockHeap();
-                mprYieldThread(NULL);
-                lockHeap();
-            }
-            save = heap->active;
-            heap->active = heap->eternal;
-            mprMarkBlock(ptr);
-            heap->active = save;
-            unlockHeap();
-        } else {
-            mp->gen = heap->eternal;
-        }
-    }
-}
-
-
-void mprRelease(void *ptr)
-{
-    MprMem  *mp;
-    int     save;
-
-    if (ptr) {
-        mp = GET_MEM(ptr);
-        CHECK(mp);
-        if (mp->hasManager) {
-            lockHeap();
-            while (heap->collecting) {
-                unlockHeap();
-                mprYieldThread(NULL);
-                lockHeap();
-            }
-            save = heap->active;
-            heap->active = heap->eternal;
-            mprMarkBlock(ptr);
-            heap->active = save;
-            unlockHeap();
-        } else {
-            mp->gen = heap->eternal;
-        }
-    }
-}
-#endif
-
-
 void mprHold(void *ptr)
 {
     if (ptr) {
@@ -1804,20 +1604,30 @@ void mprRelease(void *ptr)
 }
 
 
-static void marker(void *unused, MprWorker *worker)
+static void marker(void *unused, MprThread *tp)
 {
-    mprLog(7, "DEBUG: marker thread started");
-    mprYieldThread(NULL);
-    mark();
+    mprLog(2, "DEBUG: marker thread started");
+    mprStickyYield(NULL, 1);
+
+    while (!mprIsExiting()) {
+        if (heap->sweeps <= 0) {
+            mprWaitForCond(heap->markerCond, -1);
+        } else {
+            --heap->sweeps;
+        }
+        mark();
+    }
 }
 
 
-static void sweeper(void *unused, MprWorker *worker) 
+static void sweeper(void *unused, MprThread *tp) 
 {
-    mprLog(7, "DEBUG: sweeper thread started");
-    sweep();
-    /* Sync with marker */
-    mprYieldThread(NULL);
+    mprLog(2, "DEBUG: sweeper thread started");
+
+    while (!mprIsExiting()) {
+        sweep();
+        mprYield(NULL, 1);
+    }
 }
 
 
@@ -1889,9 +1699,6 @@ static int memoryNotifier(int flags, ssize size)
     } else if (flags & MPR_MEM_LOW) {
         mprPrintfError("Memory request for %d bytes exceeds memory red-line\n", size);
         mprPrintfError("Total memory used %d\n", mprGetMem());
-
-    } else if (flags & MPR_MEM_GC) {
-        ;
     }
     return 0;
 }

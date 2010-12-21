@@ -50,9 +50,7 @@ MAIN(runProgramMain, int argc, char* argv[])
         }
         mprPutc(out, '\n');
 
-        /*
-            Echo the CMD_ENV environment variable value
-         */
+        /* Echo the CMD_ENV environment variable value */
         ep = getenv("CMD_ENV");
         if (ep) {
             mprPuts(out, "CMD_ENV=");

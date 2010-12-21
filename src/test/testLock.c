@@ -37,7 +37,6 @@ static int termLock(MprTestGroup *gp)
     mprGlobalLock(gp);
     if (mutex) {
         mprRemoveRoot(mutex);
-        mprFree(mutex);
         mutex = 0;
     }
     mprGlobalUnlock(gp);

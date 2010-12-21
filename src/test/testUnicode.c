@@ -28,7 +28,6 @@ static void testBasicUnicode(MprTestGroup *gp)
     count = (int) strlen(str);
     assert(count == 8);
     assert(strcmp(str, "12345678") == 0);
-    mprFree(str);
 }
 
 

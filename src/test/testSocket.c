@@ -59,7 +59,7 @@ static int initSocket(MprTestGroup *gp)
          */
         if ((sp = openServer(gp, "::1")) != 0) {
             gp->hasIPv6 = 1;
-            mprFree(sp);
+            mprCloseSocket(sp->sock, 0);
         }
     }
     return 0;
@@ -206,7 +206,6 @@ static void testCreateSocket(MprTestGroup *gp)
 
     sp = mprCreateSocket(NULL);
     assert(sp != 0);
-    mprFree(sp);
 }
 
 
@@ -221,7 +220,7 @@ static void testClient(MprTestGroup *gp)
     
         rc = mprOpenClientSocket(sp, "www.google.com", 80, 0);
         assert(rc >= 0);
-        mprFree(sp);
+        mprCloseSocket(sp, 0);
         
     } else if (warnNoInternet++ == 0) {
         mprPrintf("\n%12s Skipping test %s.testClient: no internet connection.\n", "[Notice]", gp->fullName);
@@ -256,6 +255,7 @@ static void testClientServer(MprTestGroup *gp, cchar *host)
     rc = mprOpenClientSocket(client, host, ts->port, 0);
     assert(rc >= 0);
 
+    mprAddRoot(client);
     mprWaitForTestToComplete(gp, MPR_TEST_SLEEP);
     /*  Set in acceptFn() */
     assert(ts->accepted);
@@ -279,20 +279,12 @@ static void testClientServer(MprTestGroup *gp, cchar *host)
             assert(nbytes >= 0);
             thisLen -= nbytes;
             thisBuf += nbytes;
-#if UNUSED
-            if (nbytes == 0) {
-                mprServiceEvents(NULL, 50, MPR_SERVICE_ONE_THING | MPR_SERVICE_NO_GC);
-            }
-#endif
         }
     }
     mprCloseSocket(client, 1);
 
     mark = mprGetTime(gp);
     do {
-#if UNUSED
-        mprServiceEvents(NULL, 50, MPR_SERVICE_ONE_THING | MPR_SERVICE_NO_GC);
-#endif
         if (mprWaitForTestToComplete(gp, MPR_TEST_SLEEP)) {
             break;
         }
@@ -304,9 +296,9 @@ static void testClientServer(MprTestGroup *gp, cchar *host)
     }
     assert(mprGetBufLength(ts->inBuf) == (count * len));
     mprFlushBuf(ts->inBuf);
-    mprFree(client); 
+    mprRemoveRoot(client);
+    mprCloseSocket(client, 0); 
     gp->data = 0;
-    mprFree(ts); 
 }
 
 
@@ -336,7 +328,7 @@ static void testClientSslv4(MprTestGroup *gp)
             assert(sp->provider != 0);
             rc = mprOpenClientSocket(sp, "www.google.com", 443, 0);
             assert(rc >= 0);
-            mprFree(sp);
+            mprCloseSocket(sp, 0);
         }
     } else if (warnNoInternet++ == 0) {
         mprPrintf("\n%12s Skipping test %s.testClientSslv4: no internet connection.\n", "[Notice]", gp->fullName);

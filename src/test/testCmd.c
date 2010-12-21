@@ -45,7 +45,6 @@ static void testCreateCmd(MprTestGroup *gp)
 
     cmd = mprCreateCmd(NULL);
     assert(cmd != 0);
-    mprFree(cmd);
 }
 
 
@@ -71,7 +70,6 @@ static void testRunCmd(MprTestGroup *gp)
     rc = mprGetCmdExitStatus(cmd, &exitStatus);
     assert(rc == 0);
     assert(exitStatus == 0);
-    mprFree(cmd);
 }
 
 
@@ -226,7 +224,6 @@ static void testWithData(MprTestGroup *gp)
     rc = mprGetCmdExitStatus(cmd, &status);
     assert(rc == 0);
     assert(status == 0);
-    mprFree(cmd);
 }
 
 
@@ -250,7 +247,6 @@ static void testExitCode(MprTestGroup *gp)
             mprLog(0, "Status %d, result %s", status, result);
         }
     }
-    mprFree(cmd);
 }
 
 
@@ -275,7 +271,6 @@ static void testNoCapture(MprTestGroup *gp)
     rc = mprGetCmdExitStatus(cmd, &status);
     assert(rc == 0);
     assert(status == 99);
-    mprFree(cmd);
 }
 
 

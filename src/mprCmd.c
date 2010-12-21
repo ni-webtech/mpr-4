@@ -111,12 +111,12 @@ static void manageCmd(MprCmd *cmd, int flags)
         mprMark(cmd->arg0);
 #endif
     } else if (flags & MPR_MANAGE_FREE) {
+        cs = MPR->cmdService;
+        mprLock(cs->mutex);
         resetCmd(cmd);
 #if VXWORKS
         vxCmdManager(cmd);
 #endif
-        cs = mprGetMpr()->cmdService;
-        mprLock(cs->mutex);
         mprAddItem(cs->cmds, cmd);
         mprUnlock(cs->mutex);
     }
@@ -673,11 +673,10 @@ int mprWaitForCmd(MprCmd *cmd, int timeout)
 #else
         delay = remaining;
 #endif
-        if (MPR->heap.flags & (MPR_EVENTS_THREAD | MPR_USER_EVENTS_THREAD)) {
-            mprWaitForCond(cmd->cond, (int) delay);
-        } else {
-            mprServiceEvents(cmd->dispatcher, (int) delay, MPR_SERVICE_ONE_THING);
-        }
+        mprStickyYield(NULL, 1);
+        mprWaitForCond(cmd->cond, (int) delay);
+        mprStickyYield(NULL, 0);
+
         remaining = (expires - mprGetTime());
     } while (cmd->pid && remaining >= 0);
 

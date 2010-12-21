@@ -197,6 +197,7 @@ int mprServiceEvents(MprDispatcher *primary, int timeout, int flags)
     MprEventService     *es;
     MprDispatcher       *dp;
     MprTime             expires, delay, idle;
+    static int          reentrant = 0;
     int                 count, wasRunning, beginEventCount, eventCount, justOne;
 
     es = MPR->eventService;
@@ -208,9 +209,14 @@ int mprServiceEvents(MprDispatcher *primary, int timeout, int flags)
     justOne = (flags & MPR_SERVICE_ONE_THING) ? 1 : 0;
 
     lock(es);
+    if (reentrant++ > 0) {
+        mprAssert(--reentrant == 0);
+        unlock(es);
+        return 0;
+    }
     if (primary) {
         /*
-            We are pumping a specific dispatcher for events. Must make runnable if not already.
+            This thread owns the primary dispatcher. So ensure it is runnable.
          */
         wasRunning = isRunning(primary);
         if (!isRunning(primary)) {
@@ -234,7 +240,9 @@ int mprServiceEvents(MprDispatcher *primary, int timeout, int flags)
                 break;
             }
         }
+#if UNUSED
         if (!(flags & MPR_SERVICE_ONLY)) {
+#endif
             while ((dp = getNextReadyDispatcher(es)) != NULL && !mprIsComplete()) {
                 mprAssert(isRunning(dp));
                 serviceEvent(dp);
@@ -242,7 +250,9 @@ int mprServiceEvents(MprDispatcher *primary, int timeout, int flags)
                     break;
                 }
             } 
+#if UNUSED
         }
+#endif
         lock(es);
         delay = (expires - es->now);
         if (delay > 0) {
@@ -251,24 +261,12 @@ int mprServiceEvents(MprDispatcher *primary, int timeout, int flags)
         }
         if (delay > 0) {
             if (es->eventCount == eventCount && isIdle(es, primary)) {
-                mprSetStickyYield(NULL, 1);
-                if (delay >= MPR_MIN_TIME_FOR_GC) {
-                    mprCollectGarbage(MPR_GC_FROM_EVENTS);
-                } else {
-                    mprYieldThread(NULL);
-                }
-                if (es->waiting) {
-                    unlock(es);
-                    mprWaitForMultiCond(es->waitCond, (int) delay);
-                } else {
-                    es->waiting = 1;
-                    MPR->waitService->willAwake = es->now + delay;
-                    unlock(es);
-                    mprWaitForIO(MPR->waitService, (int) delay);
-                    es->waiting = 0;
-                    mprSignalMultiCond(es->waitCond);
-                }
-                mprSetStickyYield(NULL, 0);
+                unlock(es);
+                mprStickyYield(NULL, 1);
+                es->waiting = 1;
+                unlock(es);
+                mprWaitForIO(MPR->waitService, (int) delay);
+                mprStickyYield(NULL, 0);
             } else unlock(es);
         } else unlock(es);
 
@@ -281,6 +279,7 @@ int mprServiceEvents(MprDispatcher *primary, int timeout, int flags)
         mprScheduleDispatcher(primary);
         unlock(es);
     }
+    reentrant = 0;
     return abs(es->eventCount - beginEventCount);
 }
 
@@ -608,12 +607,6 @@ void mprReleaseWorkerFromDispatcher(MprDispatcher *dispatcher, MprWorker *worker
 {
     dispatcher->requiredWorker = 0;
     mprReleaseWorker(worker);
-}
-
-
-int mprHasEventsThread()
-{
-    return (MPR->heap.flags & (MPR_EVENTS_THREAD | MPR_USER_EVENTS_THREAD)) ? 1 : 0;
 }
 
 /*

@@ -16,7 +16,6 @@ static void testCreateBuf(MprTestGroup *gp)
 
     bp = mprCreateBuf(512, 512);
     assert(bp != 0);
-    mprFree(bp);
 }
 
 
@@ -34,7 +33,6 @@ static void testIsBufEmpty(MprTestGroup *gp)
     assert(mprGetBufSpace(bp) >= (size - 1));
     assert(mprGetBufLength(bp) == 0);
     assert(mprGetBufStart(bp) == mprGetBufEnd(bp));
-    mprFree(bp);
 }
 
 
@@ -59,7 +57,6 @@ static void testPutAndGetToBuf(MprTestGroup *gp)
     }
     c = mprGetCharFromBuf(bp);
     assert(c == -1);
-    mprFree(bp);
 }
 
 
@@ -87,7 +84,6 @@ static void testFlushBuf(MprTestGroup *gp)
         assert(mprGetCharFromBuf(bp) == -1);
         assert(mprGetBlockFromBuf(bp, buf, sizeof(buf)) == 0);
     }
-    mprFree(bp);
 }
 
 
@@ -119,7 +115,6 @@ static void testGrowBuf(MprTestGroup *gp)
     }
     c = mprGetCharFromBuf(bp);
     assert(c == -1);
-    mprFree(bp);
 
     /*
         Test a fixed buffer (should not grow) 
@@ -136,9 +131,6 @@ static void testGrowBuf(MprTestGroup *gp)
     
     rc = mprPutCharToBuf(bp, 'c');
     assert(rc == -1);
-
-
-    mprFree(bp);
 }
 
 
@@ -178,8 +170,6 @@ static void testMiscBuf(MprTestGroup *gp)
 
     c = mprLookAtNextCharInBuf(bp);
     assert(c == 'A');
-    
-    mprFree(bp);
 }
 
 
@@ -250,7 +240,6 @@ static void testBufLoad(MprTestGroup *gp)
         }
         mprFlushBuf(bp);
     }
-    mprFree(bp);
 }
 
 
