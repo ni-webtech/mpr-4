@@ -16,3 +16,11 @@ $(BLD_BIN_DIR)/makerom$(BLD_EXE): $(BLD_OBJ_DIR)/makerom$(BLD_OBJ) $(BLD_LIB_DIR
 
 $(BLD_BIN_DIR)/charGen$(BLD_EXE): $(BLD_OBJ_DIR)/charGen$(BLD_OBJ)
 	@bld --exe $(BLD_BIN_DIR)/charGen$(BLD_EXE) --search "$(BLD_MPR_LIBPATHS)" --libs "$(BLD_MPR_LIBS)" charGen
+
+#
+#   Local variables:
+#   tab-width: 4
+#   c-basic-offset: 4
+#   End:
+#   vim: sw=4 ts=4
+#

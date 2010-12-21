@@ -55,3 +55,11 @@ ifeq ($(BLD_WIN_LIKE),1)
 		--search "$(LIBPATH)" $(MODE) --libs "mpr" --syslibs "$(SYSLIBS)" angel$(BLD_OBJ) 
 endif
 
+
+#
+#   Local variables:
+#   tab-width: 4
+#   c-basic-offset: 4
+#   End:
+#   vim: sw=4 ts=4
+#

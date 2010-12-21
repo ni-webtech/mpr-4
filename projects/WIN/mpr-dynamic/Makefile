@@ -55,3 +55,11 @@ runProgram.vcproj: Makefile buildConfig.override
 
 cleanExtra:
 	rm -rf Upgrade* _Upgrade*
+
+#
+#   Local variables:
+#   tab-width: 4
+#   c-basic-offset: 4
+#   End:
+#   vim: sw=4 ts=4
+#
