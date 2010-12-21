@@ -455,8 +455,8 @@ static void decode(uint *output, uchar *input, uint len)
 /*
     @copy   custom
     
-    Copyright (c) Embedthis Software LLC, 2003-2010. All Rights Reserved.
-    Copyright (c) Michael O'Brien, 1994-2010. All Rights Reserved.
+    Copyright (c) Embedthis Software LLC, 2003-2011. All Rights Reserved.
+    Copyright (c) Michael O'Brien, 1994-2011. All Rights Reserved.
     Portions Copyright (C) 1991-2, RSA Data Security, Inc. All rights reserved. 
     
     RSA License:
