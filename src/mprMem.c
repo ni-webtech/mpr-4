@@ -206,13 +206,13 @@ Mpr *mprCreateMemService(MprManager manager, int flags)
     heap->flags = flags ? flags : MPR_THREAD_PATTERN;
 
     if (heap->flags & MPR_MARK_THREAD) {
-        heap->from = MPR_GC_FROM_ALL;
+        heap->from |= MPR_GC_FROM_ALL;
     }
     if (heap->flags & (MPR_EVENTS_THREAD | MPR_USER_EVENTS_THREAD)) {
-        heap->from = MPR_GC_FROM_EVENTS;
+        heap->from |= MPR_GC_FROM_EVENTS;
     }
     if (heap->flags & MPR_USER_GC) {
-        heap->from = MPR_GC_FROM_USER;
+        heap->from |= MPR_GC_FROM_USER;
     }
 
     heap->stats.bytesAllocated += size;

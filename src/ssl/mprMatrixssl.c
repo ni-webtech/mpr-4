@@ -24,10 +24,11 @@ static int      flushMss(MprSocket *sp);
 static MprSsl   *getDefaultMatrixSsl();
 static int      innerRead(MprSocket *sp, char *userBuf, int len);
 static int      listenMss(MprSocket *sp, cchar *host, int port, int flags);
-static int      matrixSslDestructor(MprSsl *ssl);
-static int      matrixSslSocketDestructor(MprSslSocket *msp);
-static ssize   readMss(MprSocket *sp, void *buf, ssize len);
-static ssize   writeMss(MprSocket *sp, void *buf, ssize len);
+static void     manageMatrixSocket(MprSslSocket *msp, int flags);
+static void     manageMatrixSsl(MprSsl *ssl, int flags);
+static void     manageMatrixProvider(MprSocketProvider *provider, int flags);
+static ssize    readMss(MprSocket *sp, void *buf, ssize len);
+static ssize    writeMss(MprSocket *sp, void *buf, ssize len);
 
 /************************************ Code ************************************/
 
@@ -80,11 +81,9 @@ static MprSsl *getDefaultMatrixSsl()
 
 static MprSocketProvider *createMatrixSslProvider()
 {
-    Mpr                 *mpr;
     MprSocketProvider   *provider;
 
-    mpr = mprGetMpr();
-    if ((provider = mprAllocObj(MprSocketProvider, NULL)) == NULL) {
+    if ((provider = mprAllocObj(MprSocketProvider, manageMatrixProvider)) == NULL) {
         return 0;
     }
     provider->name = "MatrixSsl";
@@ -102,14 +101,22 @@ static MprSocketProvider *createMatrixSslProvider()
 }
 
 
+static void manageMatrixProvider(MprSocketProvider *provider, int flags)
+{
+    if (flags & MPR_MANAGE_MARK) {
+        mprMark(provider->defaultSsl);
+    } else if (flags & MPR_MANAGE_FREE) {
+    }
+}
+
+
 static int configureMss(MprSsl *ssl)
 {
     MprSocketService    *ss;
     char                *password;
 
     ss = mprGetMpr()->socketService;
-
-    mprSetManager(ssl, (MprManager) matrixSslDestructor);
+    mprSetManager(ssl, (MprManager) manageMatrixSsl);
 
     /*
         Read the certificate and the key file for this server. FUTURE - If using encrypted private keys, 
@@ -142,12 +149,23 @@ static int configureMss(MprSsl *ssl)
 }
 
 
-static int matrixSslDestructor(MprSsl *ssl)
+static void manageMatrixSsl(MprSsl *ssl, int flags)
 {
-    if (ssl->keys) {
-        matrixSslFreeKeys(ssl->keys);
+    if (flags & MPR_MANAGE_MARK) {
+        mprMark(ssl->key);
+        mprMark(ssl->cert);
+        mprMark(ssl->keyFile);
+        mprMark(ssl->certFile);
+        mprMark(ssl->caFile);
+        mprMark(ssl->caPath);
+        mprMark(ssl->ciphers);
+
+    } else if (flags & MPR_MANAGE_FREE) {
+        if (ssl->keys) {
+            matrixSslFreeKeys(ssl->keys);
+            ssl->keys = 0;
+        }
     }
-    return 0;
 }
 
 
@@ -177,7 +195,7 @@ static MprSocket *createMss(MprSsl *ssl)
     lock(sp);
     sp->provider = ss->secureProvider;
 
-    msp = (MprSslSocket*) mprAllocObj(MprSslSocket, matrixSslSocketDestructor);
+    msp = (MprSslSocket*) mprAllocObj(MprSslSocket, manageMatrixSocket);
     if (msp == 0) {
         mprFree(sp);
         return 0;
@@ -194,20 +212,25 @@ static MprSocket *createMss(MprSsl *ssl)
 }
 
 
-/*
-    Called on mprFree
- */
-static int matrixSslSocketDestructor(MprSslSocket *msp)
+static void manageMatrixSocket(MprSslSocket *msp, int flags)
 {
-    if (msp->ssl) {
-        mprFree(msp->insock.buf);
-        mprFree(msp->outsock.buf);
-        if (msp->inbuf.buf) {
-            mprFree(msp->inbuf.buf);
+    if (flags & MPR_MANAGE_MARK) {
+        mprMark(msp->sock);
+        mprMark(msp->ssl);
+
+    } else if (flags & MPR_MANAGE_FREE) {
+        if (msp->ssl) {
+#if UNUSED
+            mprFree(msp->insock.buf);
+            mprFree(msp->outsock.buf);
+            if (msp->inbuf.buf) {
+                mprFree(msp->inbuf.buf);
+                msp->inbuf.buf = 0;
+            }
+#endif
+            matrixSslDeleteSession(msp->mssl);
         }
-        matrixSslDeleteSession(msp->mssl);
     }
-    return 0;
 }
 
 

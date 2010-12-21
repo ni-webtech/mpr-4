@@ -63,7 +63,7 @@ MprModule *mprSslInit(cchar *path)
 }
 
 
-static int dummySslDestructor() { return 0; }
+static void dummySslDestructor(void *ptr, int flags) {}
 
 /*
     Create a new Ssl context object

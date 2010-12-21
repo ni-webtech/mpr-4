@@ -45,12 +45,13 @@ static void     disconnectOss(MprSocket *sp);
 static int      flushOss(MprSocket *sp);
 static int      listenOss(MprSocket *sp, cchar *host, int port, int flags);
 static int      lockDestructor(void *ptr);
-static int      openSslDestructor(MprSsl *ssl);
-static int      openSslSocketDestructor(MprSslSocket *ssp);
-static ssize   readOss(MprSocket *sp, void *buf, ssize len);
+static void     manageOpenProvider(MprSocketProvider *provider, int flags);
+static void     manageOpenSocket(MprSslSocket *ssp, int flags);
+static void     manageOpenSsl(MprSsl *ssl, int flags);
+static ssize    readOss(MprSocket *sp, void *buf, ssize len);
 static RSA      *rsaCallback(SSL *ssl, int isExport, int keyLength);
 static int      verifyX509Certificate(int ok, X509_STORE_CTX *ctx);
-static ssize   writeOss(MprSocket *sp, void *buf, ssize len);
+static ssize    writeOss(MprSocket *sp, void *buf, ssize len);
 
 static DynLock  *sslCreateDynLock(const char *file, int line);
 static void     sslDynLock(int mode, DynLock *dl, const char *file, int line);
@@ -164,7 +165,7 @@ static MprSocketProvider *createOpenSslProvider()
     MprSocketProvider   *provider;
 
     mpr = mprGetMpr();
-    if ((provider = mprAllocObj(MprSocketProvider, NULL)) == NULL) {
+    if ((provider = mprAllocObj(MprSocketProvider, manageOpenProvider)) == NULL) {
         return 0;
     }
     provider->name = "OpenSsl";
@@ -182,6 +183,15 @@ static MprSocketProvider *createOpenSslProvider()
 }
 
 
+static void manageOpenProvider(MprSocketProvider *provider, int flags)
+{
+    if (flags & MPR_MANAGE_MARK) {
+        mprMark(provider->defaultSsl);
+    } else if (flags & MPR_MANAGE_FREE) {
+    }
+}
+
+
 /*
     Configure the SSL configuration. Called from connect or explicitly in server code
     to setup various SSL contexts. Appweb uses this from location.c.
@@ -194,7 +204,7 @@ static int configureOss(MprSsl *ssl)
     uchar               resume[16];
 
     ss = mprGetMpr()->socketService;
-    mprSetManager(ssl, (MprManager) openSslDestructor);
+    mprSetManager(ssl, (MprManager) manageOpenSsl);
 
     context = SSL_CTX_new(SSLv23_method());
     if (context == 0) {
@@ -333,24 +343,34 @@ static int configureOss(MprSsl *ssl)
 /*
     Update the destructor for the MprSsl object. 
  */
-static int openSslDestructor(MprSsl *ssl)
+static void manageOpenSsl(MprSsl *ssl, int flags)
 {
-    if (ssl->context != 0) {
-        SSL_CTX_free(ssl->context);
+    if (flags & MPR_MANAGE_MARK) {
+        mprMark(ssl->key);
+        mprMark(ssl->cert);
+        mprMark(ssl->keyFile);
+        mprMark(ssl->certFile);
+        mprMark(ssl->caFile);
+        mprMark(ssl->caPath);
+        mprMark(ssl->ciphers);
+
+    } else if (flags & MPR_MANAGE_FREE) {
+        if (ssl->context != 0) {
+            SSL_CTX_free(ssl->context);
+        }
+        if (ssl->rsaKey512) {
+            RSA_free(ssl->rsaKey512);
+        }
+        if (ssl->rsaKey1024) {
+            RSA_free(ssl->rsaKey1024);
+        }
+        if (ssl->dhKey512) {
+            DH_free(ssl->dhKey512);
+        }
+        if (ssl->dhKey1024) {
+            DH_free(ssl->dhKey1024);
+        }
     }
-    if (ssl->rsaKey512) {
-        RSA_free(ssl->rsaKey512);
-    }
-    if (ssl->rsaKey1024) {
-        RSA_free(ssl->rsaKey1024);
-    }
-    if (ssl->dhKey512) {
-        DH_free(ssl->dhKey512);
-    }
-    if (ssl->dhKey1024) {
-        DH_free(ssl->dhKey1024);
-    }
-    return 0;
 }
 
 
@@ -447,7 +467,7 @@ static MprSocket *createOss(MprSsl *ssl)
     /*
         Create a SslSocket object for ssl state. This logically extends MprSocket.
      */
-    osp = (MprSslSocket*) mprAllocObj(MprSslSocket, openSslSocketDestructor);
+    osp = (MprSslSocket*) mprAllocObj(MprSslSocket, manageOpenSocket);
     if (osp == 0) {
         mprFree(sp);
         return 0;
@@ -467,14 +487,19 @@ static MprSocket *createOss(MprSsl *ssl)
 /*
     Destructor for an MprSslSocket object
  */
-static int openSslSocketDestructor(MprSslSocket *osp)
+static void manageOpenSocket(MprSslSocket *osp, int flags)
 {
-    if (osp->osslStruct) {
-        SSL_set_shutdown(osp->osslStruct, SSL_SENT_SHUTDOWN | SSL_RECEIVED_SHUTDOWN);
-        SSL_free(osp->osslStruct);
-        osp->osslStruct = 0;
+    if (flags & MPR_MANAGE_MARK) {
+        mprMark(osp->sock);
+        mprMark(osp->ssl);
+
+    } else if (flags & MPR_MANAGE_FREE) {
+        if (osp->osslStruct) {
+            SSL_set_shutdown(osp->osslStruct, SSL_SENT_SHUTDOWN | SSL_RECEIVED_SHUTDOWN);
+            SSL_free(osp->osslStruct);
+            osp->osslStruct = 0;
+        }
     }
-    return 0;
 }
 
 

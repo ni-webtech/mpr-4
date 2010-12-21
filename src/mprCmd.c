@@ -318,7 +318,6 @@ int mprRunCmdV(MprCmd *cmd, int argc, char **argv, char **out, char **err, int f
     if (mprWaitForCmd(cmd, -1) < 0) {
         return MPR_ERR_NOT_READY;
     }
-
     lock(cmd);
     if (mprGetCmdExitStatus(cmd, &status) < 0) {
         unlock(cmd);
@@ -638,8 +637,8 @@ void mprPollCmdPipes(MprCmd *cmd, int timeout)
 
 
 /*
-    Wait for a command to complete. Return 0 if successful. This will call mprReapCmd if required. If the call times out,
-    it will kill the command and return MPR_ERR_TIMEOUT.
+    Wait for a command to complete. Return 0 if the command completed, otherwise it will return MPR_ERR_TIMEOUT. 
+    This will call mprReapCmd if required.
  */
 int mprWaitForCmd(MprCmd *cmd, int timeout)
 {
