@@ -3,7 +3,6 @@
 #
 #	Copyright (c) Embedthis Software LLC, 2003-2011. All Rights Reserved.
 #
-#
 #	Standard Make targets supported are:
 #	
 #		make 						# Does a "make compile"
