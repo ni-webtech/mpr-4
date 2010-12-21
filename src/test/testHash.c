@@ -39,7 +39,7 @@ static void testIsTableEmpty(MprTestGroup *gp)
     table = mprCreateHash(0, 0);
     assert(table != 0);
 
-    assert(mprGetHashCount(table) == 0);
+    assert(mprGetHashLength(table) == 0);
     assert(mprGetFirstHash(table) == 0);
     assert(mprLookupHash(table, "") == 0);
 
@@ -80,7 +80,7 @@ static void testInsertAndRemoveHash(MprTestGroup *gp)
     rc = mprRemoveHash(table, "Peter");
     assert(rc == 0);
 
-    assert(mprGetHashCount(table) == 0);
+    assert(mprGetHashLength(table) == 0);
     sp = mprGetFirstHash(table);
     assert(sp == 0);
 
@@ -100,7 +100,7 @@ static void testHashScale(MprTestGroup *gp)
     int             i;
 
     table = mprCreateHash(0, 0);
-    assert(mprGetHashCount(table) == 0);
+    assert(mprGetHashLength(table) == 0);
 
     /*
         All inserts below will insert allocated strings. We must free before
@@ -112,7 +112,7 @@ static void testHashScale(MprTestGroup *gp)
         sp = mprAddHash(table, name, address);
         assert(sp != 0);
     }
-    assert(mprGetHashCount(table) == HASH_COUNT);
+    assert(mprGetHashLength(table) == HASH_COUNT);
 
     /*
         Check data entered into the hash
@@ -152,7 +152,7 @@ static void testIterateHash(MprTestGroup *gp)
         sp = mprAddHash(table, name, sclone(address));
         assert(sp != 0);
     }
-    assert(mprGetHashCount(table) == HASH_COUNT);
+    assert(mprGetHashLength(table) == HASH_COUNT);
 
     /*
         Check data entered into the table

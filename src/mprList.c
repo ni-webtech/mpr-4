@@ -435,7 +435,7 @@ cvoid *mprPopItem(MprList *lp)
 }
 
 
-int mprGetListCount(MprList *lp)
+int mprGetListLength(MprList *lp)
 {
     if (lp == 0) {
         return 0;

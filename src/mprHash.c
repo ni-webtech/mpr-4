@@ -39,7 +39,7 @@ MprHashTable *mprCreateHash(int hashSize, int flags)
     }
     table->hashSize = hashSize;
     table->flags = flags;
-    table->count = 0;
+    table->length = 0;
     table->hashSize = hashSize;
     table->buckets = mprAllocZeroed(sizeof(MprHash*) * hashSize);
 #if BLD_CHAR_LEN > 1
@@ -136,7 +136,7 @@ MprHash *mprAddHash(MprHashTable *table, cvoid *key, cvoid *ptr)
     sp->bucket = index;
     sp->next = table->buckets[index];
     table->buckets[index] = sp;
-    table->count++;
+    table->length++;
     return sp;
 }
 
@@ -166,7 +166,7 @@ MprHash *mprAddDuplicateHash(MprHashTable *table, cvoid *key, cvoid *ptr)
     sp->bucket = index;
     sp->next = table->buckets[index];
     table->buckets[index] = sp;
-    table->count++;
+    table->length++;
     return sp;
 }
 
@@ -187,7 +187,7 @@ int mprRemoveHash(MprHashTable *table, cvoid *key)
     } else {
         table->buckets[index] = sp->next;
     }
-    table->count--;
+    table->length--;
     mprFree(sp);
     return 0;
 }
@@ -271,9 +271,9 @@ static MprHash *lookupHash(int *bucketIndex, MprHash **prevSp, MprHashTable *tab
 }
 
 
-int mprGetHashCount(MprHashTable *table)
+int mprGetHashLength(MprHashTable *table)
 {
-    return table->count;
+    return table->length;
 }
 
 

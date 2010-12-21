@@ -325,7 +325,7 @@ int mprMakeArgv(cchar *program, cchar *cmd, int *argcp, char ***argvp)
 bool mprServicesAreIdle()
 {
 #if MOB
-    return mprGetListCount(MPR->workerService->busyThreads) == 0 && mprGetListCount(MPR->cmdService->cmds) == 0 && 
+    return mprGetListLength(MPR->workerService->busyThreads) == 0 && mprGetListLength(MPR->cmdService->cmds) == 0 && 
         //MOB -- dispatcher here not right
        !(MPR->dispatcher->flags & MPR_DISPATCHER_DO_EVENT);
 #endif

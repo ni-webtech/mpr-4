@@ -1107,7 +1107,7 @@ static int changeState(MprWorker *worker, int state)
             lp = ws->idleThreads;
         }
 #if UNUSED
-        if (mprGetListCount(ws->busyThreads) == 0) {
+        if (mprGetListLength(ws->busyThreads) == 0) {
             print("NOW IDLE");
         }
 #endif

@@ -78,7 +78,7 @@ MprWaitHandler *mprInitWaitHandler(MprWaitHandler *wp, int fd, int mask, MprDisp
     mprAssert(fd >= 0);
 
     ws = mprGetMpr()->waitService;
-    if (mprGetListCount(ws->handlers) == FD_SETSIZE) {
+    if (mprGetListLength(ws->handlers) == FD_SETSIZE) {
         mprError("io: Too many io handlers: %d\n", FD_SETSIZE);
         return 0;
     }
