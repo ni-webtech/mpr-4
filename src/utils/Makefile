@@ -22,5 +22,5 @@ $(BLD_BIN_DIR)/charGen$(BLD_EXE): $(BLD_OBJ_DIR)/charGen$(BLD_OBJ)
 #   tab-width: 4
 #   c-basic-offset: 4
 #   End:
-#   vim: sw=4 ts=4
+#   vim: sw=4 ts=4 noexpandtab
 #
