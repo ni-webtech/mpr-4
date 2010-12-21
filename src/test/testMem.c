@@ -164,7 +164,7 @@ static void cacheManager(Cache *cache, int flags)
 static void testAllocLongevity(MprTestGroup *gp)
 {
     Cache       *cache;
-	ssize	    memsize, len, actual, total;
+    ssize       memsize, len, actual, total;
     uchar       *cp;
     int         i, j, index, blockSize, iterations, depth;
     
@@ -198,16 +198,16 @@ static void testAllocLongevity(MprTestGroup *gp)
         if ((i % CACHE_MAX) == 0) {
             mprLog(1, "ITER %,d, DELTA %,d K, total allocated this pass %,d\n", i, (mprGetMem() - memsize) / 1024, total);
             if (mprGetMem() > memsize) {
-				assert((mprGetMem() - memsize) < (4 * 1024 * 1024));
-			}
+                assert((mprGetMem() - memsize) < (4 * 1024 * 1024));
+            }
             mprCollectGarbage(MPR_GC_FROM_USER);
             total = 0;
         }
     }
     mprRemoveRoot(cache);
-	if (mprGetMem() > memsize) {
-	    assert((mprGetMem() - memsize) < (4 * 1024 * 1024));
-	}
+    if (mprGetMem() > memsize) {
+        assert((mprGetMem() - memsize) < (4 * 1024 * 1024));
+    }
 }
 
 

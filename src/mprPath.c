@@ -349,7 +349,7 @@ MprList *mprGetPathFiles(cchar *dir, bool enumDirs)
     MprDirEntry     *dp;
     MprPath         fileInfo;
     MprList         *list;
-	cchar			*seps;
+    cchar           *seps;
     char            *path, pbuf[MPR_MAX_PATH];
 #if WINCE
     WIN32_FIND_DATAA findData;

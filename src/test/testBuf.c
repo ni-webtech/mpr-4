@@ -94,7 +94,7 @@ static void testFlushBuf(MprTestGroup *gp)
 static void testGrowBuf(MprTestGroup *gp)
 {
     MprBuf      *bp;
-	ssize	    size, rc, bytes;
+    ssize       size, rc, bytes;
     int         i, c;
 
     /*
