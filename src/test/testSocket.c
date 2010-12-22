@@ -40,7 +40,7 @@ static int readEvent(MprTestGroup *gp, MprEvent *event);
 static int initSocket(MprTestGroup *gp)
 {
     MprSocket       *sock;
-    MprTestSocket   *sp;
+    MprTestSocket   *ts;
 
     if (getenv("NO_INTERNET")) {
         warnNoInternet = 1;
@@ -57,9 +57,10 @@ static int initSocket(MprTestGroup *gp)
         /*
             Check for IPv6 support
          */
-        if ((sp = openServer(gp, "::1")) != 0) {
+        if ((ts = openServer(gp, "::1")) != 0) {
             gp->hasIPv6 = 1;
-            mprCloseSocket(sp->sock, 0);
+            mprRemoveWaitHandler(ts->listenHandler);
+            mprCloseSocket(ts->sock, 0);
         }
     }
     return 0;
@@ -215,13 +216,14 @@ static void testClient(MprTestGroup *gp)
     int             rc;
 
     if (gp->hasInternet) {
-        sp = mprCreateSocket(NULL);
-        assert(sp != 0);
-    
-        rc = mprOpenClientSocket(sp, "www.google.com", 80, 0);
-        assert(rc >= 0);
-        mprCloseSocket(sp, 0);
+        if (gp->service->testDepth > 1 && mprHasSecureSockets(gp)) {
+            sp = mprCreateSocket(NULL);
+            assert(sp != 0);
         
+            rc = mprOpenClientSocket(sp, "www.google.com", 80, 0);
+            assert(rc >= 0);
+            mprCloseSocket(sp, 0);
+        }
     } else if (warnNoInternet++ == 0) {
         mprPrintf("\n%12s Skipping test %s.testClient: no internet connection.\n", "[Notice]", gp->fullName);
     }
@@ -297,7 +299,7 @@ static void testClientServer(MprTestGroup *gp, cchar *host)
     assert(mprGetBufLength(ts->inBuf) == (count * len));
     mprFlushBuf(ts->inBuf);
     mprRemoveRoot(client);
-    mprCloseSocket(client, 0); 
+    mprRemoveWaitHandler(ts->listenHandler);
     gp->data = 0;
 }
 
@@ -322,7 +324,7 @@ static void testClientSslv4(MprTestGroup *gp)
     int             rc;
 
     if (gp->hasInternet) {
-        if (mprHasSecureSockets(gp)) {
+        if (gp->service->testDepth > 1 && mprHasSecureSockets(gp)) {
             sp = mprCreateSocket(NULL);
             assert(sp != 0);
             assert(sp->provider != 0);
@@ -339,17 +341,13 @@ static void testClientSslv4(MprTestGroup *gp)
 MprTestDef testSocket = {
     "socket", 0, initSocket, termSocket,
     {
-#if 1 || UNUSED
         MPR_TEST(0, testCreateSocket),
         MPR_TEST(0, testClient),
-#endif
 #if !WIN
         MPR_TEST(0, testClientServerIPv4),
         MPR_TEST(0, testClientServerIPv6),
 #endif
-#if 1 || UNUSED
         MPR_TEST(0, testClientSslv4),
-#endif
         MPR_TEST(0, 0),
     },
 };

@@ -26,7 +26,7 @@ Mpr *mprCreate(int argc, char **argv, int flags)
 
     srand((uint) time(NULL));
 
-    if ((mpr = (Mpr*) mprCreateMemService((MprManager) manageMpr, flags)) == 0) {
+    if ((mpr = mprCreateMemService((MprManager) manageMpr, flags)) == 0) {
         mprAssert(mpr);
         return 0;
     }

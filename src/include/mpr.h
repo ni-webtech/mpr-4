@@ -731,13 +731,14 @@ typedef struct MprMemStats {
 
 
 /**
-   Memmory regions allocated from the O/S. On some systems, these are virtual.
+   Memmory regions allocated from the O/S
  */
 typedef struct MprRegion {
-    struct MprRegion *next;                 /* Next region */
-    MprMem           *start;                /* Start of region data */
-    ssize            size;                  /* Size of region including region header */
-    void             *pad;
+    struct MprRegion *next;                 /**< Next region */
+    MprMem           *start;                /**< Start of region data */
+    MprSpin          lock;                  /**< Region multithread lock */
+    ssize            size;                  /**< Size of region including region header */
+    int              freeable;              /**< Set to true when completely unused */
 } MprRegion;
 
 
@@ -754,6 +755,7 @@ typedef struct MprHeap {
     MprMemNotifier   notifier;               /**< Memory allocation failure callback */
     MprCond          *markerCond;            /**< Marker sleep cond var */
     MprSpin          heapLock;               /**< Heap allocation lock */
+    MprSpin          heapLock2;              /**< Heap allocation lock */
     MprSpin          rootLock;               /**< Root locking */
     MprRegion        *regions;               /**< List of memory regions */
     struct MprThread *marker;                /**< Marker thread */
@@ -4503,6 +4505,7 @@ extern void mprWaitForIO(MprWaitService *ws, int timeout);
     Handler Flags
  */
 #define MPR_WAIT_RECALL_HANDLER 0x1     /* Must recall the handler asap */
+#define MPR_WAIT_ADDED          0x2     /* Handler added to wait service */
 
 /**
     Wait Handler Service

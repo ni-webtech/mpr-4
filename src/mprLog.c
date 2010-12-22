@@ -151,19 +151,19 @@ void mprAssertError(cchar *loc, cchar *msg)
 #if BLD_DEBUG
     char    buf[MPR_MAX_STRING];
 
+    if (loc) {
 #if BLD_UNIX_LIKE
-    snprintf(buf, sizeof(buf), "Assertion %s, failed at %s\n", msg, loc);
+        snprintf(buf, sizeof(buf), "Assertion %s, failed at %s\n", msg, loc);
 #else
-    sprintf(buf, "Assertion %s, failed at %s\n", msg, loc);
+        sprintf(buf, "Assertion %s, failed at %s\n", msg, loc);
 #endif
+        msg = buf;
+    }
     
 #if BLD_UNIX_LIKE || VXWORKS
-    (void) write(2, buf, strlen(buf));
+    (void) write(2, msg, strlen(msg));
 #elif BLD_WIN_LIKE
-    /*
-        Only time we use printf. We can't get an alloc context so we have to use real print
-     */
-    fprintf(stderr, "%s\n", buf);
+    fprintf(stderr, "%s\n", msg);
 #endif
     mprBreakpoint();
 #endif

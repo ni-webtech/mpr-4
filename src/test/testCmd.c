@@ -193,7 +193,8 @@ static void testWithData(MprTestGroup *gp)
         }
     }
     mprCloseCmdFd(cmd, MPR_CMD_STDIN);
-    assert(mprWaitForCmd(cmd, MPR_TEST_SLEEP) == 0);
+    //  MOB
+    assert(mprWaitForCmd(cmd, MPR_TEST_SLEEP * 50) == 0);
 
     /*
         Now analyse returned data

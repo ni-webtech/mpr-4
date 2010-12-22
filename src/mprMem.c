@@ -20,7 +20,7 @@ static int stopSeqno = -1;
 #define GET_MEM(ptr)            ((MprMem*) (((char*) (ptr)) - sizeof(MprMem)))
 #define GET_PTR(mp)             ((char*) (((char*) (mp)) + sizeof(MprMem)))
 #define GET_NEXT(mp)            ((mp)->last) ? NULL : ((MprMem*) ((char*) mp + mp->size))
-#define GET_REGION(mp)          ((MprRegion*) (((char*) mp) - sizeof(MprRegion)))
+#define GET_REGION(mp)          ((MprRegion*) (((char*) mp) - MPR_ALLOC_ALIGN(sizeof(MprRegion))))
 #define GET_USIZE(mp)           ((ssize) (mp->size - sizeof(MprMem) - (mp->hasManager * sizeof(void*))))
 
 /*
@@ -39,11 +39,9 @@ static int stopSeqno = -1;
 #define BREAKPOINT(mp)          breakpoint(mp);
 #define CHECK(mp)               mprCheckBlock((MprMem*) mp)
 #define CHECK_PTR(ptr)          CHECK(GET_MEM(ptr))
-
-/*
-    WARN: this will reset pad words too.
- */
-#define RESET_MEM(mp)           if (mp != GET_MEM(MPR)) { memset(GET_PTR(mp), 0xFE, mp->size - sizeof(MprMem)); } else
+#define RESET_MEM(mp)           if (mp != GET_MEM(MPR)) { \
+                                    memset((char*) mp + sizeof(MprFreeMem), 0xFE, mp->size - sizeof(MprFreeMem)); \
+                                } else
 #define SET_MAGIC(mp)           if (1) { (mp)->magic = MPR_ALLOC_MAGIC; } else
 #define SET_SEQ(mp)             if (1) { (mp)->seqno = heap->nextSeqno++; } else
 #define INIT_BLK(mp, len)       if (1) { \
@@ -55,7 +53,7 @@ static int stopSeqno = -1;
                                 } else
 #define VALID_BLK(mp)           validBlk(mp)
 
-#else
+#else /* Release mode */
 #define BREAKPOINT(mp)
 #define CHECK(mp)           
 #define CHECK_PTR(mp)           
@@ -104,8 +102,6 @@ static int      padding[] = { 0, MANAGER_SIZE };
 /***************************** Forward Declarations ***************************/
 
 static void allocException(ssize size, bool granted);
-static void deq(MprFreeMem *fp);
-static void enq(MprFreeMem *head, MprFreeMem *fp);
 static MprMem *freeBlock(MprMem *mp);
 static void *getNextRoot(int *indexp);
 static int getQueueIndex(ssize size, int roundup);
@@ -113,18 +109,17 @@ static void getSystemInfo();
 static MprMem *growHeap(ssize size);
 static int initFree();
 static void initGen();
-static void linkFreeBlock(MprMem *mp); 
+static void linkBlock(MprMem *mp); 
 static void mark();
 static void marker(void *unused, MprThread *tp);
 static void markRoots();
 static int memoryNotifier(int flags, ssize size);
 static void nextGen();
-static MprMem *searchFree(ssize size, int *indexp);
-static MprMem *splitBlock(MprMem *mp, ssize required, int qspare);
+static MprMem *searchFree(ssize size);
 static void sweep();
 static void sweeper(void *unused, MprThread *tp);
 static void synchronize();
-static void unlinkFreeBlock(MprFreeMem *fp);
+static void unlinkBlock(MprFreeMem *fp);
 
 #if BLD_WIN_LIKE
     static int winPageModes(int flags);
@@ -163,7 +158,7 @@ Mpr *mprCreateMemService(MprManager manager, int flags)
     regionSize = MPR_ALLOC_ALIGN(sizeof(MprRegion));
     size = max(mprSize + regionSize, MPR_REGION_MIN_SIZE);
 
-    if ((region = (MprRegion*) mprVirtAlloc(size, MPR_MAP_READ | MPR_MAP_WRITE)) == NULL) {
+    if ((region = mprVirtAlloc(size, MPR_MAP_READ | MPR_MAP_WRITE)) == NULL) {
         return NULL;
     }
     mp = region->start = (MprMem*) (((char*) region) + regionSize);
@@ -191,15 +186,18 @@ Mpr *mprCreateMemService(MprManager manager, int flags)
     heap->regions = region;
     heap->enabled = 1;
     heap->flags |= MPR_THREAD_PATTERN;
+    heap->stats.bytesAllocated += size;
+    INC(allocs);
 
     heap->stats.bytesAllocated += size;
     mprInitSpinLock(&heap->heapLock);
+    mprInitSpinLock(&heap->heapLock2);
     mprInitSpinLock(&heap->rootLock);
     getSystemInfo();
 
     initFree();
     initGen();
-    linkFreeBlock(spare);
+    linkBlock(spare);
 
     heap->markerCond = mprCreateCond();
     heap->roots = mprCreateList();
@@ -237,31 +235,22 @@ void *mprAllocBlock(ssize usize, int flags)
 {
     MprMem      *mp;
     void        *ptr;
-    ssize       maxBlock, size;
-    int         bucket, group, index, padWords;
+    ssize       size;
+    int         padWords;
 
+    int grew = 0;
     usize = max(usize, sizeof(MprFreeMem) - sizeof(MprMem));
     padWords = padding[flags & MPR_ALLOC_PAD_MASK];
     size = MPR_ALLOC_ALIGN(usize + sizeof(MprMem) + (padWords * sizeof(void*)));
     
-    if ((mp = searchFree(size, &index)) == NULL) {
+    if ((mp = searchFree(size)) == NULL) {
+        grew = 1;
         if ((mp = growHeap(size)) == NULL) {
             return NULL;
         }
     }
     BREAKPOINT(mp);
     mprAssert(mp->size >= size);
-
-    if (mp->size >= ((ssize) (size + MPR_ALLOC_MIN_SPLIT))) {
-        index = getQueueIndex(size, 1);
-        group = index / MPR_ALLOC_NUM_BUCKETS;
-        bucket = index % MPR_ALLOC_NUM_BUCKETS;
-        maxBlock = (((ssize) 1 ) << group | (((ssize) bucket) << (max(0, group - 1)))) << MPR_ALIGN_SHIFT;
-        maxBlock += sizeof(MprMem);
-        if (mp->size > maxBlock) {
-            splitBlock(mp, size, 1);
-        }
-    }
     ptr = GET_PTR(mp);
     if (flags & MPR_ALLOC_ZERO) {
         memset(ptr, 0, usize);
@@ -270,23 +259,14 @@ void *mprAllocBlock(ssize usize, int flags)
         mp->hasManager = 1;
         *((MprManager*) PAD_PTR(mp, padWords)) = NULL;
     }
-    CHECK(mp);
     mp->gen = heap->active;
-#if NEW_SEQ_ON_EACH_ALLOC || 1
     SET_SEQ(mp);
+    CHECK(mp);
     BREAKPOINT(mp);
-#endif
     return ptr;
 }
 
 
-#if BLD_DEBUG
-#undef mprFree
-#endif
-
-/*
-    Free a block of memory
- */
 void mprFree(void *ptr)
 {
     MprMem  *mp;
@@ -298,17 +278,8 @@ void mprFree(void *ptr)
         if (unlikely(mp->isRoot)) {
             mprRemoveRoot(mp);
         }
-#if UNUSED
-        if (unlikely(mp->hasManager)) {
-            GET_MANAGER(mp)(GET_PTR(mp), MPR_MANAGE_FREE);
-            mp->hasManager = 0;
-        }
-#endif
         mprAssert(mp->gen != heap->eternal);
-        //  MOB -- should not protect this with test
-        if (mp->gen != heap->eternal) {
-            mp->gen = heap->stale;
-        }
+        mp->gen = heap->stale;
         if (mp->size >= MPR_ALLOC_BIG) {
             heap->newCount += getQueueIndex(mp->size, 0);
         }
@@ -341,11 +312,9 @@ void *mprRealloc(void *ptr, ssize usize)
         SET_MANAGER(newb, GET_MANAGER(mp));
     }
     memcpy(newptr, ptr, mp->size - sizeof(MprMem));
-    /* Preserves hold status */
+    /* Preserves mprHold() */
     newb->gen = mp->gen;
-    lockHeap();
     freeBlock(mp);
-    unlockHeap();
     return newptr;
 }
 
@@ -405,100 +374,6 @@ ssize mprMemcpy(void *dest, ssize destMax, cvoid *src, ssize nbytes)
     } else {
         return 0;
     }
-}
-
-
-#if BLD_WIN_LIKE
-Mpr *mprGetMpr()
-{
-    return MPR;
-}
-#endif
-
-
-int mprGetPageSize()
-{
-    return heap->pageSize;
-}
-
-
-ssize mprGetBlockSize(cvoid *ptr)
-{
-    MprMem      *mp;
-
-    mp = GET_MEM(ptr);
-    if (ptr == 0 || !VALID_BLK(mp)) {
-        return 0;
-    }
-    return GET_USIZE(mp);
-}
-
-
-void mprSetMemNotifier(MprMemNotifier cback)
-{
-    heap->notifier = cback;
-}
-
-
-void mprSetMemLimits(ssize redLine, ssize maxMemory)
-{
-    if (redLine > 0) {
-        heap->stats.redLine = redLine;
-    }
-    if (maxMemory > 0) {
-        heap->stats.maxMemory = maxMemory;
-    }
-}
-
-
-void mprSetMemPolicy(int policy)
-{
-    heap->allocPolicy = policy;
-}
-
-
-void mprSetMemError()
-{
-    heap->hasError = 1;
-}
-
-
-bool mprHasMemError()
-{
-    return heap->hasError;
-}
-
-
-void mprResetMemError()
-{
-    heap->hasError = 0;
-}
-
-
-int mprIsValid(cvoid *ptr)
-{
-    return ptr && VALID_BLK(GET_MEM(ptr));
-}
-
-
-static int dummyManager(void *ptr, int flags) { 
-    return 0; 
-}
-
-
-void *mprSetManager(void *ptr, void *manager)
-{
-    MprMem      *mp;
-
-    mp = GET_MEM(ptr);
-    mprAssert(mp->hasManager);
-    if (mp->hasManager) {
-        if (!manager) {
-            manager = dummyManager;
-        }
-        SET_MANAGER(mp, manager);
-    }
-    return ptr;
 }
 
 
@@ -630,13 +505,15 @@ static MprFreeMem *getQueue(ssize size)
 #endif
 
 
-static MprMem *searchFree(ssize size, int *indexp)
+static MprMem *searchFree(ssize required)
 {
     MprFreeMem  *freeq, *fp;
+    MprMem      *mp, *after, *spare;
+    ssize       size, maxBlock;
     ulong       groupMap, bucketMap;
     int         bucket, baseGroup, group, index;
     
-    *indexp = index = getQueueIndex(size, 1);
+    index = getQueueIndex(required, 1);
     baseGroup = index / MPR_ALLOC_NUM_BUCKETS;
     bucket = index % MPR_ALLOC_NUM_BUCKETS;
     heap->newCount += index;
@@ -659,11 +536,57 @@ static MprMem *searchFree(ssize size, int *indexp)
                 freeq = &heap->freeq[index];
                 if (freeq->next != freeq) {
                     fp = freeq->next;
-                    unlinkFreeBlock(fp);
+                    unlinkBlock(fp);
                     INC(reuse);
+                    mp = (MprMem*) fp;
+                    CHECK(mp);
+                    
+                    if (mp->size >= (required + MPR_ALLOC_MIN_SPLIT)) {
+                        //  MOB -- what is this trying to do?
+                        maxBlock = (((ssize) 1 ) << group | (((ssize) bucket) << (max(0, group - 1)))) << MPR_ALIGN_SHIFT;
+                        maxBlock += sizeof(MprMem);
+
+                        if (mp->size > maxBlock) {
+                            size = mp->size;
+                            spare = (MprMem*) ((char*) mp + required);
+                            INIT_BLK(spare, size - required);
+                            spare->last = mp->last;
+                            spare->prior = mp;
+                            if ((after = GET_NEXT(spare)) != NULL) {
+                                after->prior = spare;
+                            }
+                            mp->last = 0;
+                            mp->size = required;
+                            INC(splits);
+                            linkBlock(spare);
+                            
+                            MprMem *mp, *next, *prev;    
+                            mp = (MprMem*) fp;
+                            next = GET_NEXT(mp);
+                            prev = mp->prior;
+                            mprAssert(next->free);
+                            mprAssert(prev == 0 || !prev->free);
+                            
+                        } else {
+                            
+                            MprMem *mp, *next, *prev;    
+                            mp = (MprMem*) fp;
+                            next = GET_NEXT(mp);
+                            prev = mp->prior;
+                            mprAssert(next == 0 || !next->free);
+                            mprAssert(prev == 0 || !prev->free);
+                        }
+                    } else {
+                        
+                        MprMem *mp, *next, *prev;    
+                        mp = (MprMem*) fp;
+                        next = GET_NEXT(mp);
+                        prev = mp->prior;
+                        mprAssert(next == 0 || !next->free);
+                        mprAssert(prev == 0 || !prev->free);
+                    }
                     unlockHeap();
-                    CHECK(fp);
-                    return (MprMem*) fp;
+                    return mp;
                 }
                 bucketMap &= ~(((ssize) 1) << bucket);
                 heap->bucketMap[group] &= ~(((ssize) 1) << bucket);
@@ -676,7 +599,7 @@ static MprMem *searchFree(ssize size, int *indexp)
             unlockHeap();
             if (!heap->requested && heap->newCount > heap->newQuota) {
                 heap->requested = 1;
-                mprRequestGC(0);
+                mprSignalCond(heap->markerCond);
             }
             lockHeap();
         }
@@ -684,96 +607,9 @@ static MprMem *searchFree(ssize size, int *indexp)
     unlockHeap();
     if (!heap->requested && heap->newCount > heap->newQuota) {
         heap->requested = 1;
-        mprRequestGC(0);
+        mprSignalCond(heap->markerCond);
     }
     return NULL;
-}
-
-
-static void enq(MprFreeMem *head, MprFreeMem *fp)
-{
-    CHECK(fp);
-    mprAssert(fp != head);
-    mprAssert(fp->next == NULL);
-    mprAssert(fp->prev == NULL);
-
-    fp->next = head->next;
-    fp->prev = head;
-    head->next->prev = fp;
-    head->next = fp;
-
-    mprAssert(fp != fp->next);
-    mprAssert(fp != fp->prev);
-}
-
-
-static void deq(MprFreeMem *fp)
-{
-    CHECK(fp);
-
-    fp->prev->next = fp->next;
-    fp->next->prev = fp->prev;
-#if BLD_MEMORY_DEBUG
-    fp->next = fp->prev = NULL;
-#endif
-}
-
-
-/*
-    Add a block to a free q. Must be called locked.
- */
-static void linkFreeBlock(MprMem *mp) 
-{
-    MprFreeMem  *freeq, *fp;
-    int         index, group, bucket;
-
-    mp->dynamic = 0;
-    mp->visited = 0;
-    mp->builtin = 0;
-    mp->isRoot = 0;
-
-    mp->free = 1;
-    mp->gen = heap->eternal;
-    mp->mark = heap->eternal;
-    mp->hasManager = 0;
-    fp = (MprFreeMem*) mp;
-#if BLD_DEBUG
-    fp->next = fp->prev = NULL;
-#endif
-    index = getQueueIndex(mp->size, 0);
-    group = index / MPR_ALLOC_NUM_BUCKETS;
-    bucket = index % MPR_ALLOC_NUM_BUCKETS;
-    heap->groupMap |= (((ssize) 1) << group);
-    heap->bucketMap[group] |= (((ssize) 1) << bucket);
-
-    freeq = &heap->freeq[index];
-    enq(freeq, fp);
-
-    heap->stats.bytesFree += mp->size;
-#if BLD_MEMORY_STATS
-    freeq->info.stats.count++;
-#endif
-}
-
-
-/*
-    Remove a block from a free q. Must be called locked.
- */
-static void unlinkFreeBlock(MprFreeMem *fp) 
-{
-    MprMem  *mp;
-
-    deq(fp);
-    mp = (MprMem*) fp;
-    heap->stats.bytesFree -= mp->size;
-    mp->free = 0;
-#if BLD_MEMORY_STATS
-{
-    MprFreeMem *freeq = getQueue(mp->size);
-    freeq->info.stats.count--;
-    mprAssert(freeq->info.stats.count >= 0);
-}
-#endif
 }
 
 
@@ -797,21 +633,25 @@ static MprMem *freeBlock(MprMem *mp)
     MprMem      *prev, *next, *after;
     ssize       size;
 #if BLD_CC_MMU
-    MprRegion   *region, *rp, *prior;
+    MprRegion   *region;
 #endif
-
+    int a, b;
+    
+    a = b = 0;
     BREAKPOINT(mp);
 
     size = mp->size;
     after = next = prev = NULL;
     
     /*
-        Coalesce with next if it is also free.
+        Coalesce with next if it is free
      */
+    lockHeap();
     next = GET_NEXT(mp);
     if (next && next->free) {
+        a = 1;
         BREAKPOINT(next);
-        unlinkFreeBlock((MprFreeMem*) next);
+        unlinkBlock((MprFreeMem*) next);
         if ((after = GET_NEXT(next)) != NULL) {
             mprAssert(after->prior == next);
             after->prior = mp;
@@ -820,15 +660,20 @@ static MprMem *freeBlock(MprMem *mp)
         }
         size += next->size;
         mp->size = size;
+        // printf("  JOIN NEXT %x size %d\n", next, size);
         INC(joins);
+        next = GET_NEXT(mp);
+        if (next) CHECK(next);
+        mprAssert(next == 0 || !next->free);
     }
     /*
-        Coalesce with previous if it is also free.
+        Coalesce with previous if it is free
      */
     prev = mp->prior;
     if (prev && prev->free) {
+        b = 1;
         BREAKPOINT(prev);
-        unlinkFreeBlock((MprFreeMem*) prev);
+        unlinkBlock((MprFreeMem*) prev);
         if ((after = GET_NEXT(mp)) != NULL) {
             mprAssert(after->prior == mp);
             after->prior = prev;
@@ -837,82 +682,44 @@ static MprMem *freeBlock(MprMem *mp)
         }
         size += prev->size;
         prev->size = size;
+        // printf("  JOIN PREV %x size %d\n", prev, size);
         mp = prev;
         INC(joins);
+        prev = mp->prior;
+        if (prev) CHECK(prev);
+        mprAssert(prev == 0 || !prev->free);
     }
     next = GET_NEXT(mp);
-#if BLD_CC_MMU
-    /*
-        Release entire regions back to the O/S. (Region has no prior and is also last when complete)
-     */
+
 #if BLD_MEMORY_DEBUG
     if (mp->prior == NULL) {
         mprAssert(isFirst(mp) || mp->seqno == 0);
     }
+    /* Next block must never be free - should all be coalesced */
+    mprAssert(next == 0 || !next->free);
 #endif
+
+    /*
+        Release entire regions back to the O/S. (Blocks equal to Empty regions have no prior and are last)
+     */
+#if BLD_CC_MMU
     if (mp->prior == NULL && mp->last && heap->stats.bytesFree > (MPR_REGION_MIN_SIZE * 4)) {
         INC(unpins);
+        unlockHeap();
         region = GET_REGION(mp);
-        prior = NULL;
-        for (rp = heap->regions; rp; rp = rp->next) {
-            if (rp == region) {
-                break;
-            }
-            prior = rp;
-        }
-        if (prior) {
-            prior->next = region->next;
-        } else {
-            heap->regions = region->next;
-        }
-        mprVirtFree(region, region->size);
-        mprAssert(next == NULL);
+        region->freeable = 1;
     } else
 #endif
     {
-        RESET_MEM(mp);
-        linkFreeBlock(mp);
+        linkBlock(mp);
+        // RESET_MEM(mp);
+        unlockHeap();
     }
+    /*
+        WARN: there is a race here. Another thread may allocate and split the block just freed. So next will be
+        pessimistic and there may be newly created intervening blocks.
+     */
     return next;
-}
-
-
-/*
-    Split a block. Required specifies the number of bytes needed in the block. If swap, then put mp back on the free
-    queue instead of the second half.
- */
-static MprMem *splitBlock(MprMem *mp, ssize required, int qspare)
-{
-    MprMem      *spare, *after;
-    ssize       size, extra;
-
-    mprAssert(mp);
-    mprAssert(required > 0);
-
-    CHECK(mp);
-    size = mp->size;
-    extra = size - required;
-    mprAssert(extra >= MPR_ALLOC_MIN_SPLIT);
-
-    spare = (MprMem*) ((char*) mp + required);
-    INIT_BLK(spare, extra);
-    spare->last = mp->last;
-    spare->prior = mp;
-
-    lockHeap();
-    mp->size = required;
-    mp->last = 0;
-    if ((after = GET_NEXT(spare)) != NULL) {
-        after->prior = spare;
-    }
-    INC(splits);
-    if (qspare) {
-        linkFreeBlock(spare);
-    }
-    CHECK(spare);
-    CHECK(mp);
-    unlockHeap();
-    return (qspare) ? NULL : spare;
 }
 
 
@@ -922,7 +729,7 @@ static MprMem *splitBlock(MprMem *mp, ssize required, int qspare)
 static MprMem *growHeap(ssize required)
 {
     MprRegion   *region;
-    MprMem      *mp;
+    MprMem      *mp, *spare;
     ssize       size, rsize;
 
     mprAssert(required > 0);
@@ -930,7 +737,7 @@ static MprMem *growHeap(ssize required)
     rsize = MPR_ALLOC_ALIGN(sizeof(MprRegion));
     size = max(required + rsize, (ssize) heap->chunkSize);
     size = MPR_PAGE_ALIGN(size, heap->pageSize);
-#if FUTURE && KEEP
+#if FUTURE && KEEP && MOB
     if (size >= MPR_ALLOC_MAX_BLOCK) {
         mprAssert(size < MPR_ALLOC_MAX_BLOCK);
         return 0;
@@ -939,19 +746,123 @@ static MprMem *growHeap(ssize required)
     if ((region = mprVirtAlloc(size, MPR_MAP_READ | MPR_MAP_WRITE)) == NULL) {
         return 0;
     }
-    lockHeap();
-    region->next = heap->regions;
+    mprInitSpinLock(&region->lock);
     region->size = size;
     region->start = (MprMem*) (((char*) region) + rsize);
-    heap->regions = region;
-
     mp = (MprMem*) region->start;
-    INIT_BLK(mp, size - rsize);
-    mp->last = 1;
-    unlockHeap();
-    mprAssert(mp->size >= (size - rsize));
+    INIT_BLK(mp, required);
     CHECK(mp);
+
+    spare = (MprMem*) ((char*) mp + required);
+    INIT_BLK(spare, size - required - rsize);
+    spare->last = 1;
+    spare->prior = mp;
+    CHECK(spare);
+
+    /*
+        RACE: Put region onto the front of the regions list. Racing with sweep().
+     */
+    lockHeap();
+    region->next = heap->regions;
+    heap->regions = region;
+    heap->stats.bytesAllocated += size;
+    INC(allocs);
+    linkBlock(spare);
+    
+    MprMem *next, *prev;    
+    next = GET_NEXT(mp);
+    prev = mp->prior;
+    mprAssert(mp->last || next->free);
+    mprAssert(prev == 0);
+    
+    unlockHeap();
     return mp;
+}
+
+
+/*
+    Add a block to a free q. Must be called locked.
+ */
+static void linkBlock(MprMem *mp) 
+{
+    MprFreeMem  *freeq, *fp;
+    int         index, group, bucket;
+
+    CHECK(mp);
+
+    mp->dynamic = 0;
+    mp->visited = 0;
+    mp->builtin = 0;
+    mp->isRoot = 0;
+    mp->hasManager = 0;
+
+    /* 
+        Mark block as free and eternal so sweeper will skip 
+     */
+    mp->free = 1;
+    mp->gen = heap->eternal;
+    mp->mark = heap->eternal;
+    
+    /*
+        Set free space bitmap
+     */
+    index = getQueueIndex(mp->size, 0);
+    group = index / MPR_ALLOC_NUM_BUCKETS;
+    bucket = index % MPR_ALLOC_NUM_BUCKETS;
+    heap->groupMap |= (((ssize) 1) << group);
+    heap->bucketMap[group] |= (((ssize) 1) << bucket);
+
+    /*
+        Link onto free queue
+     */
+    fp = (MprFreeMem*) mp;
+    freeq = &heap->freeq[index];
+    mprAssert(fp != freeq);
+    fp->next = freeq->next;
+    fp->prev = freeq;
+    freeq->next->prev = fp;
+    freeq->next = fp;
+    mprAssert(fp != fp->next);
+    mprAssert(fp != fp->prev);
+
+    heap->stats.bytesFree += mp->size;
+#if BLD_MEMORY_STATS
+    freeq->info.stats.count++;
+#endif
+
+    MprMem *next, *prev;    
+    next = GET_NEXT(mp);
+    prev = mp->prior;
+    mprAssert(next == 0 || !next->free);
+    mprAssert(prev == 0 || !prev->free);
+}
+
+
+/*
+    Remove a block from a free q. Must be called locked.
+ */
+static void unlinkBlock(MprFreeMem *fp) 
+{
+    MprMem  *mp;
+
+    CHECK(fp);
+    fp->prev->next = fp->next;
+    fp->next->prev = fp->prev;
+#if BLD_MEMORY_DEBUG
+    fp->next = fp->prev = NULL;
+#endif
+
+    mp = (MprMem*) fp;
+    heap->stats.bytesFree -= mp->size;
+    mprAssert(mp->free);
+    mp->free = 0;
+#if BLD_MEMORY_STATS
+{
+    MprFreeMem *freeq = getQueue(mp->size);
+    freeq->info.stats.count--;
+    mprAssert(freeq->info.stats.count >= 0);
+}
+#endif
 }
 
 
@@ -1033,10 +944,6 @@ void *mprVirtAlloc(ssize size, int mode)
         allocException(size, 0);
         return 0;
     }
-    lockHeap();
-    INC(allocs);
-    heap->stats.bytesAllocated += size;
-    unlockHeap();
     return ptr;
 }
 
@@ -1384,7 +1291,14 @@ static int validBlk(MprMem *mp)
 
 void mprCheckBlock(MprMem *mp)
 {
-    mprAssert(VALID_BLK(mp));
+    char    msg[80];
+
+    if (mp->magic != MPR_ALLOC_MAGIC || mp->size <= 0) {
+        mprSprintf(msg, sizeof(msg), 
+            "Memory corruption in memory at %x (MprBlk %x, seqno %d)\n"
+            "This most likely happend earlier in the program execution", GET_PTR(mp), mp, mp->seqno);
+        mprAssertError(NULL, msg);
+    }
 }
 
 
@@ -1453,9 +1367,8 @@ static void synchronize()
         mprLog(4, "DEBUG: Call notifier");
         (heap->notifier)(MPR_MEM_YIELD, 0);
     }
-    //  MOB - Need proper timeout here - should be short
-    if (mprSyncThreads(120 * 1000)) {
-        mprLog(7, "DEBUG: Advance generation");
+    if (mprSyncThreads(MPR_TIMEOUT_GC_SYNC)) {
+        mprLog(7, "DEBUG: GC Advance generation");
         nextGen();
         heap->mustYield = 0;
         mprResumeThreads();
@@ -1479,16 +1392,18 @@ static void mark()
     if (!heap->hasSweeper) {
         sweep();
     }
+#if BLD_MEMORY_STATS
     mprLog(5, "GC Complete: MARKED %d/%d, SWEPT %d/%d, bytesFree %d (before %d)\n", 
         heap->stats.marked, heap->stats.markVisited, 
         heap->stats.swept, heap->stats.sweepVisited, (int) heap->stats.bytesFree, priorFree);
+#endif
     synchronize();
 }
 
 
 static void sweep()
 {
-    MprRegion   *region, *nextRegion;
+    MprRegion   *region, *nextRegion, *prior;
     MprMem      *mp, *next;
     ssize       total;
     
@@ -1514,27 +1429,45 @@ static void sweep()
     heap->stats.swept = 0;
     total = 0;
 
-    //  MOB - opt. Could lock regions?
-    lockHeap();
+    /*
+        growHeap() will append new regions to the front of heap->regions and so will not race with this code. This code
+        is the only code that frees regions.
+        RACE: Take from the front. Racing with growHeap.
+     */
+    prior = NULL;
     for (region = heap->regions; region; region = nextRegion) {
         nextRegion = region->next;
+        MprMem *prev = NULL;
         for (mp = region->start; mp; mp = next) {
+            CHECK(mp);
             INC(sweepVisited);
             if (unlikely(mp->gen == heap->dead)) {
+                mprAssert(!mp->free);
                 CHECK(mp);
                 BREAKPOINT(mp);
                 INC(swept);
                 total += mp->size;
                 next = freeBlock(mp);
             } else {
+                /*
+                    RACE: Block could be allocated here, but will never be coalesced (sweeper is the only one to do that).
+                    So mp->size may be reduced so we may skip a newly created block -- no problem. Get it next scan.
+                 */
                 next = GET_NEXT(mp);
             }
-            if (next) {
-                CHECK(next);
+            prev = mp;
+        }
+        if (region->freeable) {
+            if (prior) {
+                prior->next = nextRegion;
+            } else {
+                heap->regions = nextRegion;
             }
+            mprVirtFree(region, region->size);
+        } else {
+            prior = region;
         }
     }
-    unlockHeap();
     mprLog(7, "DEBUG: sweep swept %,d", total);
 }
 
@@ -1604,6 +1537,9 @@ void mprRelease(void *ptr)
 }
 
 
+/*
+    Marker thread main program
+ */
 static void marker(void *unused, MprThread *tp)
 {
     mprLog(2, "DEBUG: marker thread started");
@@ -1620,6 +1556,9 @@ static void marker(void *unused, MprThread *tp)
 }
 
 
+/*
+    Sweeper thread main program. May be called from the marker thread.
+ */
 static void sweeper(void *unused, MprThread *tp) 
 {
     mprLog(2, "DEBUG: sweeper thread started");
@@ -1701,6 +1640,100 @@ static int memoryNotifier(int flags, ssize size)
         mprPrintfError("Total memory used %d\n", mprGetMem());
     }
     return 0;
+}
+
+
+#if BLD_WIN_LIKE
+Mpr *mprGetMpr()
+{
+    return MPR;
+}
+#endif
+
+
+int mprGetPageSize()
+{
+    return heap->pageSize;
+}
+
+
+ssize mprGetBlockSize(cvoid *ptr)
+{
+    MprMem      *mp;
+
+    mp = GET_MEM(ptr);
+    if (ptr == 0 || !VALID_BLK(mp)) {
+        return 0;
+    }
+    return GET_USIZE(mp);
+}
+
+
+void mprSetMemNotifier(MprMemNotifier cback)
+{
+    heap->notifier = cback;
+}
+
+
+void mprSetMemLimits(ssize redLine, ssize maxMemory)
+{
+    if (redLine > 0) {
+        heap->stats.redLine = redLine;
+    }
+    if (maxMemory > 0) {
+        heap->stats.maxMemory = maxMemory;
+    }
+}
+
+
+void mprSetMemPolicy(int policy)
+{
+    heap->allocPolicy = policy;
+}
+
+
+void mprSetMemError()
+{
+    heap->hasError = 1;
+}
+
+
+bool mprHasMemError()
+{
+    return heap->hasError;
+}
+
+
+void mprResetMemError()
+{
+    heap->hasError = 0;
+}
+
+
+int mprIsValid(cvoid *ptr)
+{
+    return ptr && VALID_BLK(GET_MEM(ptr));
+}
+
+
+static int dummyManager(void *ptr, int flags) { 
+    return 0; 
+}
+
+
+void *mprSetManager(void *ptr, void *manager)
+{
+    MprMem      *mp;
+
+    mp = GET_MEM(ptr);
+    mprAssert(mp->hasManager);
+    if (mp->hasManager) {
+        if (!manager) {
+            manager = dummyManager;
+        }
+        SET_MANAGER(mp, manager);
+    }
+    return ptr;
 }
 
 

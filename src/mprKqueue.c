@@ -95,24 +95,31 @@ int mprAddNotifier(MprWaitService *ws, MprWaitHandler *wp, int mask)
     lock(ws);
     if (wp->desiredMask != mask) {
         fd = wp->fd;
+        mprAssert(fd >= 0);
+        mprAssert(ws->handlerMap[fd] != wp);
+        // mprLog(0, "AddNotifier %d %X", fd, wp);
         while ((ws->interestCount + 4) >= ws->interestMax) {
             growEvents(ws);
         }
         start = kp = &ws->interest[ws->interestCount];
         if (wp->desiredMask & MPR_READABLE && !(mask & MPR_READABLE)) {
             EV_SET(kp, fd, EVFILT_READ, EV_DELETE, 0, 0, 0);
+            // mprLog(0, "DELETE READ %d", fd);
             kp++;
         }
         if (wp->desiredMask & MPR_WRITABLE && !(mask & MPR_WRITABLE)) {
             EV_SET(kp, fd, EVFILT_WRITE, EV_DELETE, 0, 0, 0);
+            // mprLog(0, "DELETE WRITE %d", fd);
             kp++;
         }
         if (mask & MPR_READABLE) {
             EV_SET(kp, fd, EVFILT_READ, EV_ADD, 0, 0, 0);
+            // mprLog(0, "ADD READ %d", fd);
             kp++;
         }
         if (mask & MPR_WRITABLE) {
             EV_SET(kp, fd, EVFILT_WRITE, EV_ADD, 0, 0, 0);
+            // mprLog(0, "ADD WRITE %d", fd);
             kp++;
         }
         ws->interestCount += kp - start;
@@ -120,6 +127,7 @@ int mprAddNotifier(MprWaitService *ws, MprWaitHandler *wp, int mask)
         if (fd >= ws->handlerMax) {
             oldlen = ws->handlerMax;
             ws->handlerMax = fd + 32;
+mprLog(0, "REALLOC HANDLER MAP");
             if ((ws->handlerMap = mprRealloc(ws->handlerMap, sizeof(MprWaitHandler*) * ws->handlerMax)) == 0) {
                 return MPR_ERR_MEMORY;
             }
@@ -128,6 +136,7 @@ int mprAddNotifier(MprWaitService *ws, MprWaitHandler *wp, int mask)
         mprAssert(ws->handlerMap[fd] == 0);
         ws->handlerMap[fd] = wp;
         wp->desiredMask = mask;
+        wp->flags |= MPR_WAIT_ADDED;;
     }
     unlock(ws);
     return 0;
@@ -137,24 +146,37 @@ int mprAddNotifier(MprWaitService *ws, MprWaitHandler *wp, int mask)
 void mprRemoveNotifier(MprWaitHandler *wp)
 {
     MprWaitService  *ws;
-    int             fd;
+    int             fd, old;
 
     ws = wp->service;
-    fd = wp->fd;
-    mprAssert(fd >= 0);
     lock(ws);
-    if ((ws->interestCount + 2) >= ws->interestMax) {
-        growEvents(ws);
+
+    if (wp->flags & MPR_WAIT_ADDED) {
+        fd = wp->fd;
+        mprAssert(fd >= 0);
+        old = ws->interestMax;
+        mprAssert(ws->handlerMap[fd] == wp);
+        //MOB - remove test
+        if (ws->handlerMap[fd]) {
+            if ((ws->interestCount + 2) >= ws->interestMax) {
+                growEvents(ws);
+            }
+            if (wp->desiredMask & MPR_READABLE) {
+                EV_SET(&ws->interest[ws->interestCount++], fd, EVFILT_READ, EV_DELETE, 0, 0, 0);
+                // mprLog(0, "REMOVE DELETE READ %d", fd);
+            }
+            if (wp->desiredMask & MPR_WRITABLE) {
+                EV_SET(&ws->interest[ws->interestCount++], fd, EVFILT_WRITE, EV_DELETE, 0, 0, 0);
+                // mprLog(0, "REMOVE DELETE WRITE %d", fd);
+            }
+            ws->handlerMap[fd] = 0;
+            wp->desiredMask = 0;
+        } else {
+            mprAssert(wp->desiredMask == 0);
+        }
+        wp->flags &= ~MPR_WAIT_ADDED;;
+        // mprLog(0, "RemoveNotifier %d %X", fd, wp);
     }
-    if (wp->desiredMask & MPR_READABLE) {
-        EV_SET(&ws->interest[ws->interestCount++], fd, EVFILT_READ, EV_DELETE, 0, 0, 0);
-    }
-    if (wp->desiredMask & MPR_WRITABLE) {
-        EV_SET(&ws->interest[ws->interestCount++], fd, EVFILT_WRITE, EV_DELETE, 0, 0, 0);
-    }
-    mprAssert(ws->handlerMap[fd] == 0 || ws->handlerMap[fd] == wp);
-    ws->handlerMap[fd] = 0;
-    wp->desiredMask = 0;
     unlock(ws);
 }
 
@@ -249,6 +271,7 @@ static void serviceIO(MprWaitService *ws, int count)
 {
     MprWaitHandler      *wp;
     struct kevent       *kev;
+    char                buf[128];
     int                 fd, i, mask, err, rc;
 
     lock(ws);
@@ -257,7 +280,6 @@ static void serviceIO(MprWaitService *ws, int count)
         fd = kev->ident;
         mprAssert(fd < ws->handlerMax);
         if ((wp = ws->handlerMap[fd]) == 0) {
-            char    buf[128];
             if (kev->filter == EVFILT_READ && fd == ws->breakPipe[MPR_READ_PIPE]) {
                 rc = read(fd, buf, sizeof(buf));
             }
@@ -266,12 +288,15 @@ static void serviceIO(MprWaitService *ws, int count)
         if (kev->flags & EV_ERROR) {
             err = kev->data;
             if (err == ENOENT) {
-                int mask = wp->desiredMask;
+                /* File descriptor was closed and re-opened */
+                mask = wp->desiredMask;
                 mprRemoveNotifier(wp);
                 mprAddNotifier(ws, wp, mask);
             } else if (err == EBADF) {
+                /* File descriptor was closed */
                 mprRemoveNotifier(wp);
             }
+            continue;
         }
         mask = 0;
         if (kev->filter == EVFILT_READ) {
@@ -284,10 +309,9 @@ static void serviceIO(MprWaitService *ws, int count)
             continue;
         }
         wp->presentMask = mask & wp->desiredMask;
-        mprRemoveNotifier(wp);
-
         LOG(7, "Got I/O event mask %x", wp->presentMask);
         if (wp->presentMask) {
+            mprRemoveNotifier(wp);            
             mprQueueIOEvent(wp);
         }
     }

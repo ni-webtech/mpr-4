@@ -309,16 +309,20 @@ static void manageDispatcher(MprDispatcher *dispatcher, int flags)
     MprEventService     *es;
     MprEvent            *q, *event;
 
+    es = dispatcher->service;
+
     if (flags & MPR_MANAGE_MARK) {
         mprMark(dispatcher->name);
+        lock(es);
         q = &dispatcher->eventQ;
         for (event = q->next; event != q; event = event->next) {
             if (!(event->flags & MPR_EVENT_STATIC)) {
                 mprMark(event);
             }
         }
+        unlock(es);
+        
     } else if (flags & MPR_MANAGE_FREE) {
-        es = dispatcher->service;
         if (es->mutex) {
             lock(es);
             dequeueDispatcher(dispatcher);

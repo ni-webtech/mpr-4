@@ -786,6 +786,7 @@ static void runTestProc(MprTestGroup *gp, MprTestCase *test)
     } else {
         mprResetCond(gp->cond);
         (test->proc)(gp);
+        mprYield(NULL, 0);
     
         mprLock(sp->mutex);
         if (gp->success) {
