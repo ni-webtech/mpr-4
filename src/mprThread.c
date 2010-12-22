@@ -150,7 +150,6 @@ int mprSyncThreads(int timeout)
     mprLog(7, "mprSyncThreads timeout %d", timeout);
     mark = mprGetTime();
 
-    //  MOB timeout
     do {
         allYielded = 1;
         mprLock(ts->mutex);
@@ -166,9 +165,9 @@ int mprSyncThreads(int timeout)
             break;
         }
         mprLog(7, "mprSyncThreads: waiting for threads to yield");
-        mprWaitForCond(ts->cond, MPR_GC_TIMEOUT);
+        mprWaitForCond(ts->cond, 10);
 
-    } while (!allYielded && mprGetElapsedTime(mark) < timeout);
+    } while (!allYielded && mprGetElapsedTime(mark) < timeout && !mprIsExiting());
 
     mprLog(7, "mprSyncThreads: complete %d", allYielded);
     return (allYielded) ? 1 : 0;
@@ -317,7 +316,6 @@ static void manageThread(MprThread *tp, int flags)
         mprMark(tp->mutex);
 
     } else if (flags & MPR_MANAGE_FREE) {
-        mprLock(tp->mutex);
         mprRemoveItem(MPR->threadService->threads, tp);
 #if BLD_WIN_LIKE
         if (tp->threadHandle) {
@@ -370,7 +368,7 @@ static void threadProc(MprThread *tp)
     tp->pid = getpid();
 #endif
     (tp->entry)(tp->data, tp);
-    mprFree(tp);
+    mprRemoveItem(MPR->threadService->threads, tp);
 }
 
 

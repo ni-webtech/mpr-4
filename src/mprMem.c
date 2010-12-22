@@ -1367,14 +1367,16 @@ static void synchronize()
         mprLog(4, "DEBUG: Call notifier");
         (heap->notifier)(MPR_MEM_YIELD, 0);
     }
-    if (mprSyncThreads(MPR_TIMEOUT_GC_SYNC)) {
-        mprLog(7, "DEBUG: GC Advance generation");
-        nextGen();
-        heap->mustYield = 0;
-        mprResumeThreads();
-    } else {
-        mprLog(7, "DEBUG: Pause for GC sync timed out");
-        heap->mustYield = 0;
+    if (!mprIsExiting()) {
+        if (mprSyncThreads(MPR_TIMEOUT_GC_SYNC)) {
+            mprLog(7, "DEBUG: GC Advance generation");
+            nextGen();
+            heap->mustYield = 0;
+            mprResumeThreads();
+        } else {
+            mprLog(7, "DEBUG: Pause for GC sync timed out");
+            heap->mustYield = 0;
+        }
     }
 }
 
@@ -1510,8 +1512,6 @@ void mprMarkBlock(cvoid *ptr)
         if (mp->hasManager) {
             (GET_MANAGER(mp))((void*) ptr, MPR_MANAGE_MARK);
         }
-    } else {
-        mprAssert(mp->gen == heap->active || mp->gen == heap->eternal);
     }
 }
 
