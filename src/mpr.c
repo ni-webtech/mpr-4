@@ -177,10 +177,6 @@ static void startThreads(int flags)
 {
     MprThread   *tp;
 
-#if WIN
-    mprAssert(0);
-//  MOB - problem on windows. Causes the message pump to run in a thread that does not own the HWND.
-#endif
     if (!(flags & MPR_USER_EVENTS_THREAD)) {
         if ((tp = mprCreateThread("events", serviceEventsThread, NULL, 0)) == 0) {
             MPR->hasError = 1;

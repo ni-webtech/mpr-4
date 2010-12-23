@@ -49,7 +49,7 @@ static void testCriticalSection(MprTestGroup *gp)
     int     i, size;
 
     mprLock(mutex);
-    size = sizeof(critical) / sizeof(MprThread*);
+    size = sizeof(critical) / sizeof(MprOsThread);
     for (i = 0; i < size; i++) {
         critical[i] = mprGetCurrentOsThread(gp);
     }

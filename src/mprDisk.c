@@ -121,8 +121,9 @@ static int deletePath(MprDiskFileSystem *fileSystem, cchar *path)
     }
 #if WIN
 {
-    int i, rc;
-    for (i = 0; i < 100; i++) {
+    int i, rc, retries;
+    retries = 20;
+    for (i = 0; i < retries; i++) {
         rc = DeleteFile((char*) path);
         if (rc != 0) {
             rc = 0;
@@ -130,7 +131,7 @@ static int deletePath(MprDiskFileSystem *fileSystem, cchar *path)
         }
         mprSleep(10);
     }
-    return rc;
+    return (i == retries) ? MPR_ERR_CANT_DELETE : 0;
 }
 #else
     return unlink((char*) path);

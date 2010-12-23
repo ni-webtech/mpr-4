@@ -55,7 +55,7 @@ static void manageLock(MprMutex *lock, int flags)
     } else if (flags & MPR_MANAGE_FREE) {
         mprAssert(lock);
 #if BLD_UNIX_LIKE
-        pthread_mutex_unlock(&lock->cs);
+        //  MOB pthread_mutex_unlock(&lock->cs);
         pthread_mutex_destroy(&lock->cs);
 #elif BLD_WIN_LIKE
         DeleteCriticalSection(&lock->cs);

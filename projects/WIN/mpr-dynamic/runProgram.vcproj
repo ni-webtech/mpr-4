@@ -3,7 +3,7 @@
     ProjectType="Visual C++"
     Version="8.00"
     Name="runProgram"
-    ProjectGUID="7fa257dc-888c-4019-be57-530d807f776b"
+    ProjectGUID="85ffa6a4-a0eb-43b4-a475-3cef8fdf0c80"
     RootNamespace=""
     Keyword="Win32Proj"
     TargetFrameworkVersion="0"
@@ -160,7 +160,7 @@
         <Filter
             Name="Header Files"
             Filter="h;hpp;hxx;hm;inl;inc;xsd"
-            UniqueIdentifier="{b9ba3b8c-857e-4910-b6bd-cb2f45d39da7}"
+            UniqueIdentifier="{2b0c1ce5-a896-4985-ad57-a641955b5d23}"
             >
             <File
                 RelativePath="..\..\..\out\include\buildConfig.h"
@@ -190,7 +190,7 @@
         <Filter
             Name="Source Files"
             Filter="cpp;c;cc;cxx;def;odl;idl;hpj;bat;asm;asmx"
-            UniqueIdentifier="{d006e44e-24eb-422e-a317-8fe738579575}"
+            UniqueIdentifier="{48e8b160-218e-4834-be08-9ea27d3815fb}"
             >
             <File
                 RelativePath="..\..\..\src\test\runProgram.c"

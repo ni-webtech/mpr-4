@@ -1,6 +1,5 @@
 LIBRARY libmpr.dll
 EXPORTS
-__mask@@NegDouble@
 amtow
 assertTrue
 awtom
@@ -39,8 +38,6 @@ mprCloseCmd
 mprCloseCmdFd
 mprCloseFile
 mprCloseSocket
-mprCollectAllGarbage
-mprCollectGarbage
 mprCompactBuf
 mprCompareTime
 mprCopyList
@@ -109,7 +106,6 @@ mprFormatLocalTime
 mprFormatTime
 mprFprintf
 mprFree
-mprFreeBlock
 mprGet
 mprGetAbsPath
 mprGetAppDir
@@ -148,7 +144,7 @@ mprGetFileSize
 mprGetFirstHash
 mprGetFirstItem
 mprGetFirstPathSeparator
-mprGetHashCount
+mprGetHashLength
 mprGetHostName
 mprGetHwnd
 mprGetInst
@@ -157,7 +153,7 @@ mprGetItem
 mprGetLastItem
 mprGetLastPathSeparator
 mprGetListCapacity
-mprGetListCount
+mprGetListLength
 mprGetLogFd
 mprGetLogHandler
 mprGetLogLevel
@@ -209,7 +205,6 @@ mprGets
 mprGlobalLock
 mprGlobalUnlock
 mprGrowBuf
-mprHasEventsThread
 mprHasMemError
 mprHasSecureSockets
 mprHold
@@ -274,7 +269,6 @@ mprParseIp
 mprParseTestArgs
 mprParseTime
 mprPathExists
-mprPauseForGCSync
 mprPeekc
 mprPollCmdPipes
 mprPopItem
@@ -317,6 +311,7 @@ mprRemoveRangeOfItems
 mprRemoveRoot
 mprRemoveWaitHandler
 mprReportTestResults
+mprRequestGC
 mprRescheduleEvent
 mprResetBufIfEmpty
 mprResetCond
@@ -324,7 +319,7 @@ mprResetMemError
 mprResetTestGroup
 mprResolvePath
 mprRestartContinuousEvent
-mprResumeThreadsAfterGC
+mprResumeThreads
 mprRunCmd
 mprRunCmdV
 mprRunTests
@@ -378,7 +373,6 @@ mprSetSocketEof
 mprSetSocketMessage
 mprSetSocketNoDelay
 mprSetSocketPrebindCallback
-mprSetStickyYield
 mprSetThreadData
 mprSetThreadPriority
 mprSetThreadStackSize
@@ -397,20 +391,24 @@ mprSprintf
 mprSprintfv
 mprStart
 mprStartCmd
+mprStartGCService
 mprStartModuleService
 mprStartOsService
 mprStartSocketService
 mprStartThread
 mprStartWorker
 mprStartWorkerService
+mprStickyYield
 mprStop
 mprStopCmd
 mprStopContinuousEvent
+mprStopGCService
 mprStopModuleService
 mprStopOsService
 mprStopSocketService
 mprStopThreadService
 mprStopWorkerService
+mprSyncThreads
 mprTerminate
 mprTrimPathExtension
 mprTruncate
@@ -449,7 +447,7 @@ mprXmlParse
 mprXmlSetInputStream
 mprXmlSetParseArg
 mprXmlSetParserHandler
-mprYieldThread
+mprYield
 print
 scasecmp
 schr
