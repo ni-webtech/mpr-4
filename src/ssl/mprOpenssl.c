@@ -55,7 +55,9 @@ static ssize    writeOss(MprSocket *sp, void *buf, ssize len);
 
 static DynLock  *sslCreateDynLock(const char *file, int line);
 static void     sslDynLock(int mode, DynLock *dl, const char *file, int line);
+#if UNUSED
 static void     sslDestroyDynLock(DynLock *dl, const char *file, int line);
+#endif
 static void     sslStaticLock(int mode, int n, const char *file, int line);
 static ulong    sslThreadId(void);
 
@@ -66,14 +68,12 @@ static DH       *get_dh1024();
 
 int mprCreateOpenSslModule(bool lazy)
 {
-    Mpr                 *mpr;
     MprSocketService    *ss;
     MprSocketProvider   *provider;
     RandBuf             randBuf;
     int                 i;
 
-    mpr = mprGetMpr();
-    ss = mpr->socketService;
+    ss = MPR->socketService;
 
     /*
         Get some random bytes
@@ -95,13 +95,15 @@ int mprCreateOpenSslModule(bool lazy)
     locks = mprAllocBlock(numLocks * sizeof(MprMutex*), MPR_ALLOC_MANAGER);
     mprSetManager(locks, (MprManager) lockDestructor);
     for (i = 0; i < numLocks; i++) {
-        locks[i] = mprCreateLock(mpr);
+        locks[i] = mprCreateLock();
     }
     CRYPTO_set_id_callback(sslThreadId);
     CRYPTO_set_locking_callback(sslStaticLock);
 
     CRYPTO_set_dynlock_create_callback(sslCreateDynLock);
+#if UNUSED
     CRYPTO_set_dynlock_destroy_callback(sslDestroyDynLock);
+#endif
     CRYPTO_set_dynlock_lock_callback(sslDynLock);
 
 #if !BLD_WIN_LIKE
@@ -130,12 +132,10 @@ static int lockDestructor(void *ptr)
 
 static MprSsl *getDefaultOpenSsl()
 {
-    Mpr                 *mpr;
     MprSocketService    *ss;
     MprSsl              *ssl;
 
-    mpr = mprGetMpr();
-    ss = mpr->socketService;
+    ss = MPR->socketService;
 
     if (ss->secureProvider->defaultSsl) {
         return ss->secureProvider->defaultSsl;
@@ -143,7 +143,6 @@ static MprSsl *getDefaultOpenSsl()
     if ((ssl = mprCreateSsl(ss)) == 0) {
         return 0;
     }
-
     /*
         Pre-generate some keys that are slow to compute.
      */
@@ -161,10 +160,8 @@ static MprSsl *getDefaultOpenSsl()
  */
 static MprSocketProvider *createOpenSslProvider()
 {
-    Mpr                 *mpr;
     MprSocketProvider   *provider;
 
-    mpr = mprGetMpr();
     if ((provider = mprAllocObj(MprSocketProvider, manageOpenProvider)) == NULL) {
         return 0;
     }
@@ -203,7 +200,7 @@ static int configureOss(MprSsl *ssl)
     SSL_CTX             *context;
     uchar               resume[16];
 
-    ss = mprGetMpr()->socketService;
+    ss = MPR->socketService;
     mprSetManager(ssl, (MprManager) manageOpenSsl);
 
     context = SSL_CTX_new(SSLv23_method());
@@ -443,7 +440,6 @@ static int configureCertificateFiles(MprSsl *ssl, SSL_CTX *ctx, char *key, char 
  */
 static MprSocket *createOss(MprSsl *ssl)
 {
-    Mpr                 *mpr;
     MprSocketService    *ss;
     MprSocket           *sp;
     MprSslSocket        *osp;
@@ -455,8 +451,7 @@ static MprSocket *createOss(MprSsl *ssl)
     /*
         First get a standard socket
      */
-    mpr = mprGetMpr();
-    ss = mpr->socketService;
+    ss = MPR->socketService;
     sp = ss->standardProvider->createSocket(ssl);
     if (sp == 0) {
         return 0;
@@ -469,7 +464,6 @@ static MprSocket *createOss(MprSsl *ssl)
      */
     osp = (MprSslSocket*) mprAllocObj(MprSslSocket, manageOpenSocket);
     if (osp == 0) {
-        mprFree(sp);
         return 0;
     }
     sp->sslSocket = osp;
@@ -921,10 +915,11 @@ static DynLock *sslCreateDynLock(const char *file, int line)
 }
 
 
+#if UNUSED
 static void sslDestroyDynLock(DynLock *dl, const char *file, int line)
 {
-    mprFree(dl);
 }
+#endif
 
 
 static void sslDynLock(int mode, DynLock *dl, const char *file, int line)

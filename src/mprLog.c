@@ -41,9 +41,7 @@ void mprLog(int level, cchar *fmt, ...)
     va_start(args, fmt);
     buf = mprAsprintfv(fmt, args);
     va_end(args);
-
     logOutput(MPR_LOG_SRC, level, buf);
-    mprFree(buf);
 }
 
 
@@ -58,9 +56,8 @@ void mprRawLog(int level, cchar *fmt, ...)
     va_start(args, fmt);
     buf = mprAsprintfv(fmt, args);
     va_end(args);
-    
+
     logOutput(MPR_RAW, 0, buf);
-    mprFree(buf);
 }
 
 
@@ -74,8 +71,6 @@ void mprError(cchar *fmt, ...)
     va_end(args);
     
     logOutput(MPR_ERROR_MSG | MPR_ERROR_SRC, 0, buf);
-
-    mprFree(buf);
     mprBreakpoint();
 }
 
@@ -92,7 +87,6 @@ void mprMemoryError(cchar *fmt, ...)
         buf = mprAsprintfv(fmt, args);
         va_end(args);
         logOutput(MPR_ERROR_MSG | MPR_ERROR_SRC, 0, buf);
-        mprFree(buf);
     }
 }
 
@@ -107,7 +101,6 @@ void mprUserError(cchar *fmt, ...)
     va_end(args);
     
     logOutput(MPR_USER_MSG | MPR_ERROR_SRC, 0, buf);
-    mprFree(buf);
 }
 
 
@@ -121,7 +114,6 @@ void mprFatalError(cchar *fmt, ...)
     va_end(args);
     
     logOutput(MPR_USER_MSG | MPR_FATAL_SRC, 0, buf);
-    mprFree(buf);
     exit(2);
 }
 
@@ -177,20 +169,20 @@ int mprGetLogLevel()
     /*
         Leave the code like this so debuggers can patch logLevel before returning.
      */
-    mpr = mprGetMpr();
+    mpr = MPR;
     return mpr->logLevel;
 }
 
 
 void mprSetLogLevel(int level)
 {
-    mprGetMpr()->logLevel = level;
+    MPR->logLevel = level;
 }
 
 
 void mprSetAltLogData(void *data)
 {
-    mprGetMpr()->altLogData = data;
+    MPR->altLogData = data;
 }
 
 
@@ -201,7 +193,7 @@ static void logOutput(int flags, int level, cchar *msg)
 {
     MprLogHandler   handler;
 
-    handler = mprGetMpr()->logHandler;
+    handler = MPR->logHandler;
     if (handler != 0) {
         (handler)(flags, level, msg);
         return;
@@ -212,12 +204,9 @@ static void logOutput(int flags, int level, cchar *msg)
 
 static void defaultLogHandler(int flags, int level, cchar *msg)
 {
-    Mpr     *mpr;
     char    *prefix;
 
-    mpr = mprGetMpr();
-    prefix = mpr->name;
-
+    prefix = MPR->name;
     if (msg == 0) {
         return;
     }
@@ -263,13 +252,13 @@ int mprGetOsError()
 
 int mprGetLogFd()
 {
-    return mprGetMpr()->logFd;
+    return MPR->logFd;
 }
 
 
 int mprSetLogFd(int fd)
 {
-    return mprGetMpr()->logFd = fd;
+    return MPR->logFd = fd;
 }
 
 

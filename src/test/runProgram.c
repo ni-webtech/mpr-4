@@ -28,7 +28,7 @@ MAIN(runProgramMain, int argc, char* argv[])
     for (i = 0; i < argc; i++) {
         mprWriteFormat(f, "runProgram: arg[%d] = %s\n", i, argv[i]);
     }
-    mprFree(f);
+    mprClose(f);
 #endif
 
     if (argc < 2) {

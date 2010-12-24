@@ -393,7 +393,6 @@ ssize mprPutFmtToBuf(MprBuf *bp, cchar *fmt, ...)
     space += (bp->maxsize - bp->buflen);
     buf = mprAsprintfv(fmt, ap);
     rc = mprPutStringToBuf(bp, buf);
-    mprFree(buf);
     va_end(ap);
     return rc;
 }
@@ -423,7 +422,6 @@ int mprGrowBuf(MprBuf *bp, ssize need)
     }
     if (bp->data) {
         memcpy(newbuf, bp->data, bp->buflen);
-        mprFree(bp->data);
     }
     bp->buflen += growBy;
     bp->end = newbuf + (bp->end - bp->data);
@@ -565,8 +563,6 @@ int mprPutFmtToWideBuf(MprBuf *bp, cchar *fmt, ...)
     buf = mprAsprintfv(fmt, ap);
     wbuf = amtow(bp, buf, &len);
     rc = mprPutBlockToBuf(bp, (char*) wbuf, len * sizeof(MprChar));
-    mprFree(buf);
-    mprFree(wbuf);
     va_end(ap);
     return rc;
 }
@@ -575,14 +571,11 @@ int mprPutFmtToWideBuf(MprBuf *bp, cchar *fmt, ...)
 int mprPutStringToWideBuf(MprBuf *bp, cchar *str)
 {
     MprChar     *wstr;
-    ssize      len;
-    int         result;
+    ssize       len;
 
     if (str) {
         wstr = amtow(bp, str, &len);
-        result = mprPutBlockToBuf(bp, (char*) wstr, len);
-        mprFree(wstr);
-        return result;
+        return mprPutBlockToBuf(bp, (char*) wstr, len);
     }
     return 0;
 }

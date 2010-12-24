@@ -86,7 +86,7 @@ MprCmd *mprCreateCmd(MprDispatcher *dispatcher)
     cmd->mutex = mprCreateLock();
     cmd->cond = mprCreateCond();
 
-    cs = mprGetMpr()->cmdService;
+    cs = MPR->cmdService;
     mprLock(cs->mutex);
     mprAddItem(cs->cmds, cmd);
     mprUnlock(cs->mutex);
@@ -153,9 +153,9 @@ static void vxCmdManager(MprCmd *cmd)
 #endif
 
 
-void mprCloseCmd(MprCmd *cmd)
+void mprDestroyCmd(MprCmd *cmd)
 {
-    mprFree(cmd);
+    resetCmd(cmd);
 }
 
 
@@ -167,7 +167,7 @@ static void resetCmd(MprCmd *cmd)
     files = cmd->files;
     for (i = 0; i < MPR_CMD_MAX_PIPE; i++) {
         if (cmd->handlers[i]) {
-            mprFree(cmd->handlers[i]);
+            mprDestroyWaitHandler(cmd->handlers[i]);
             cmd->handlers[i] = 0;
         }
         if (files[i].clientFd >= 0) {
@@ -278,11 +278,9 @@ int mprRunCmdV(MprCmd *cmd, int argc, char **argv, char **out, char **err, int f
         flags &= ~MPR_CMD_OUT;
     }
     if (flags & MPR_CMD_OUT) {
-        mprFree(cmd->stdoutBuf);
         cmd->stdoutBuf = mprCreateBuf(MPR_BUFSIZE, -1);
     }
     if (flags & MPR_CMD_ERR) {
-        mprFree(cmd->stderrBuf);
         cmd->stderrBuf = mprCreateBuf(MPR_BUFSIZE, -1);
     }
     mprSetCmdCallback(cmd, cmdCallback, NULL);
@@ -909,7 +907,6 @@ void mprSetCmdDir(MprCmd *cmd, cchar *dir)
 {
     mprAssert(dir && *dir);
 
-    mprFree(cmd->dir);
     cmd->dir = sclone(dir);
 }
 
@@ -1199,11 +1196,10 @@ static int makeChannel(MprCmd *cmd, int index)
         file->fd = readFd;
         file->handle = readHandle;
     }
-    mprFree(path);
     return 0;
 }
-#else /* !WINCE */
 
+#else /* !WINCE */
 static int makeChannel(MprCmd *cmd, int index)
 {
     SECURITY_ATTRIBUTES clientAtt, serverAtt, *att;
@@ -1263,7 +1259,6 @@ static int makeChannel(MprCmd *cmd, int index)
         file->fd = readFd;
         file->handle = readHandle;
     }
-    mprFree(pipeBuf);
     return 0;
 }
 #endif /* WINCE */
@@ -1427,12 +1422,9 @@ int startProcess(MprCmd *cmd)
 
     if (cmd->pid < 0) {
         mprError("start: can't create task %s, errno %d", entryPoint, mprGetOsError());
-        mprFree(entryPoint);
         return MPR_ERR_CANT_CREATE;
     }
-
     mprLog(7, "cmd, child taskId %d", cmd->pid);
-    mprFree(entryPoint);
 
     if (semTake(cmd->startCond, MPR_TIMEOUT_START_TASK) != OK) {
         mprError("start: child %s did not initialize, errno %d", cmd->program, mprGetOsError());
@@ -1496,7 +1488,6 @@ static void cmdTaskEntry(char *program, MprCmdTaskFn entry, int cmdArg)
     } else {
         dir = mprGetPathDir(cmd->program);
         rc = chdir(dir);
-        mprFree(dir);
     }
     if (rc < 0) {
         mprLog(0, "cmd: Can't change directory to %s", cmd->dir);

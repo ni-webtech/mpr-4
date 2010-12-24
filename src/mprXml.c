@@ -123,7 +123,7 @@ static int parseNext(MprXml *xp, int state)
 
         if (token == MPR_XMLTOK_TOO_BIG) {
             xmlError(xp, "XML token is too big");
-            goto err;
+            return MPR_ERR_WONT_FIT;
         }
 
         switch (state) {
@@ -133,7 +133,7 @@ static int parseNext(MprXml *xp, int state)
              */
             switch (token) {
             case MPR_XMLTOK_EOF:
-                goto exit;
+                return 0;
 
             case MPR_XMLTOK_LS:
                 /*
@@ -141,13 +141,13 @@ static int parseNext(MprXml *xp, int state)
                  */
                 rc = parseNext(xp, MPR_XML_AFTER_LS);
                 if (rc < 0) {
-                    goto exit;
+                    return rc;
                 }
                 break;
 
             default:
                 xmlError(xp, "Syntax error");
-                goto err;
+                return MPR_ERR_BAD_SYNTAX;
             }
             break;
 
@@ -157,41 +157,37 @@ static int parseNext(MprXml *xp, int state)
                 state = MPR_XML_COMMENT;
                 rc = (*handler)(xp, state, "!--", 0, mprGetBufStart(tokBuf));
                 if (rc < 0) {
-                    goto err;
+                    return rc;
                 }
-                rc = 1;
-                goto exit;
+                return 1;
 
             case MPR_XMLTOK_CDATA:
                 state = MPR_XML_CDATA;
                 rc = (*handler)(xp, state, "!--", 0, mprGetBufStart(tokBuf));
                 if (rc < 0) {
-                    goto err;
+                    return rc;
                 }
-                rc = 1;
-                goto exit;
+                return 1;
 
             case MPR_XMLTOK_INSTRUCTIONS:
                 /* Just ignore processing instructions */
-                rc = 1;
-                goto exit;
+                return 1;
 
             case MPR_XMLTOK_TEXT:
                 state = MPR_XML_NEW_ELT;
                 tname = sclone(mprGetBufStart(tokBuf));
                 if (tname == 0) {
-                    rc = MPR_ERR_MEMORY;
-                    goto exit;
+                    return MPR_ERR_MEMORY;
                 }
                 rc = (*handler)(xp, state, tname, 0, 0);
                 if (rc < 0) {
-                    goto err;
+                    return rc;
                 }
                 break;
 
             default:
                 xmlError(xp, "Syntax error");
-                goto err;
+                return MPR_ERR_BAD_SYNTAX;
             }
             break;
 
@@ -209,18 +205,18 @@ static int parseNext(MprXml *xp, int state)
                 token = getToken(xp, state);
                 if (token != MPR_XMLTOK_EQ) {
                     xmlError(xp, "Missing assignment for attribute \"%s\"", aname);
-                    goto err;
+                    return MPR_ERR_BAD_SYNTAX;
                 }
 
                 token = getToken(xp, state);
                 if (token != MPR_XMLTOK_TEXT) {
                     xmlError(xp, "Missing value for attribute \"%s\"", aname);
-                    goto err;
+                    return MPR_ERR_BAD_SYNTAX;
                 }
                 state = MPR_XML_NEW_ATT;
                 rc = (*handler)(xp, state, tname, aname, mprGetBufStart(tokBuf));
                 if (rc < 0) {
-                    goto err;
+                    return rc;
                 }
                 state = MPR_XML_NEW_ELT;
                 break;
@@ -231,7 +227,7 @@ static int parseNext(MprXml *xp, int state)
                  */
                 if (*tname == '\0') {
                     xmlError(xp, "Missing element name");
-                    goto err;
+                    return MPR_ERR_BAD_SYNTAX;
                 }
 
                 /*
@@ -240,7 +236,7 @@ static int parseNext(MprXml *xp, int state)
                 state = MPR_XML_ELT_DEFINED;
                 rc = (*handler)(xp, state, tname, 0, 0);
                 if (rc < 0) {
-                    goto err;
+                    return rc;
                 }
                 state = MPR_XML_ELT_DATA;
                 break;
@@ -251,19 +247,18 @@ static int parseNext(MprXml *xp, int state)
                  */
                 if (*tname == '\0') {
                     xmlError(xp, "Missing element name");
-                    goto err;
+                    return MPR_ERR_BAD_SYNTAX;
                 }
                 state = MPR_XML_SOLO_ELT_DEFINED;
                 rc = (*handler)(xp, state, tname, 0, 0);
                 if (rc < 0) {
-                    goto err;
+                    return rc;
                 }
-                rc = 1;
-                goto exit;
+                return 1;
     
             default:
                 xmlError(xp, "Syntax error");
-                goto err;
+                return MPR_ERR_BAD_SYNTAX;
             }
             break;
 
@@ -277,7 +272,7 @@ static int parseNext(MprXml *xp, int state)
                  */
                 rc = parseNext(xp, MPR_XML_AFTER_LS);
                 if (rc < 0) {
-                    goto exit;
+                    return rc;
                 }
                 break;
 
@@ -286,7 +281,7 @@ static int parseNext(MprXml *xp, int state)
                 break;
 
             } else if (token != MPR_XMLTOK_TEXT) {
-                goto err;
+                return rc;
             }
             if (mprGetBufLength(tokBuf) > 0) {
                 /*
@@ -294,7 +289,7 @@ static int parseNext(MprXml *xp, int state)
                  */
                 rc = (*handler)(xp, state, tname, 0, mprGetBufStart(tokBuf));
                 if (rc < 0) {
-                    goto err;
+                    return rc;
                 }
             }
             break;
@@ -302,7 +297,7 @@ static int parseNext(MprXml *xp, int state)
         case MPR_XML_END_ELT:           /* -------------------------------------- */
             if (token != MPR_XMLTOK_TEXT) {
                 xmlError(xp, "Missing closing element name for \"%s\"", tname);
-                goto err;
+                return MPR_ERR_BAD_SYNTAX;
             }
             /*
                 The closing element name must match the opening element name 
@@ -310,36 +305,27 @@ static int parseNext(MprXml *xp, int state)
             if (strcmp(tname, mprGetBufStart(tokBuf)) != 0) {
                 xmlError(xp, "Closing element name \"%s\" does not match on line %d. Opening name \"%s\"",
                     mprGetBufStart(tokBuf), xp->lineNumber, tname);
-                goto err;
+                return MPR_ERR_BAD_SYNTAX;
             }
             rc = (*handler)(xp, state, tname, 0, 0);
             if (rc < 0) {
-                goto err;
+                return rc;
             }
             if (getToken(xp, state) != MPR_XMLTOK_GR) {
                 xmlError(xp, "Syntax error");
-                goto err;
+                return MPR_ERR_BAD_SYNTAX;
             }
             return 1;
 
         case MPR_XML_EOF:       /* ---------------------------------------------- */
-            goto exit;
+            return 0;
 
         case MPR_XML_ERR:   /* ---------------------------------------------- */
         default:
-            goto err;
+            return MPR_ERR;
         }
     }
     mprAssert(0);
-
-err:
-    rc = -1;
-
-exit:
-    mprFree(tname);
-    mprFree(aname);
-
-    return rc;
 }
 
 
@@ -637,10 +623,7 @@ static void xmlError(MprXml *xp, char *fmt, ...)
     va_start(args, fmt);
     buf = mprAsprintfv(fmt, args);
     va_end(args);
-
-    mprFree(xp->errMsg);
     xp->errMsg = mprAsprintf("XML error: %s\nAt line %d\n", buf, xp->lineNumber);
-    mprFree(buf);
 }
 
 

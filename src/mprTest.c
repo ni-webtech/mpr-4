@@ -13,6 +13,7 @@
 static void     adjustFailedCount(MprTestService *sp, int adj);
 static void     adjustThreadCount(MprTestService *sp, int adj);
 static void     buildFullNames(MprTestGroup *gp, cchar *runName);
+static MprList  *copyGroups(MprTestService *sp, MprList *groups);
 static MprTestFailure *createFailure(MprTestGroup *gp, cchar *loc, cchar *message);
 static MprTestGroup *createTestGroup(MprTestService *sp, MprTestDef *def, MprTestGroup *parent);
 static bool     filterTestGroup(MprTestGroup *gp);
@@ -25,9 +26,7 @@ static void     runTerm(MprTestGroup *parent);
 static void     runTestGroup(MprTestGroup *gp);
 static void     runTestProc(MprTestGroup *gp, MprTestCase *test);
 static void     runTestThread(MprList *groups, MprThread *tp);
-static int      setLogging(Mpr *mpr, char *logSpec);
-
-static MprList  *copyGroups(MprTestService *sp, MprList *groups);
+static int      setLogging(char *logSpec);
 
 /******************************************************************************/
 
@@ -71,7 +70,6 @@ static void manageTestService(MprTestService *ts, int flags)
 
 int mprParseTestArgs(MprTestService *sp, int argc, char *argv[])
 {
-    Mpr         *mpr;
     cchar       *programName;
     char        *argp, *logSpec;
     int         err, i, depth, nextArg, outputVersion;
@@ -81,7 +79,6 @@ int mprParseTestArgs(MprTestService *sp, int argc, char *argv[])
     outputVersion = 0;
     logSpec = "stderr:1";
 
-    mpr = mprGetMpr();
     programName = mprGetPathBase(argv[0]);
     sp->name = BLD_PRODUCT;
 
@@ -139,7 +136,7 @@ int mprParseTestArgs(MprTestService *sp, int argc, char *argv[])
             if (nextArg >= argc) {
                 err++;
             } else {
-                setLogging(mpr, argv[++nextArg]);
+                setLogging(argv[++nextArg]);
             }
 
         } else if (strcmp(argp, "--name") == 0) {
@@ -221,10 +218,8 @@ int mprParseTestArgs(MprTestService *sp, int argc, char *argv[])
 
     if (outputVersion) {
         mprPrintfError("%s: Version: %s\n", BLD_NAME, BLD_VERSION);
-        mprFree(mpr);
         return MPR_ERR_BAD_ARGS;
     }
-
     sp->argc = argc;
     sp->argv = argv;
     sp->firstArg = nextArg;
@@ -259,7 +254,6 @@ static int parseFilter(MprTestService *sp, cchar *filter)
         }
         word = stok(0, " \t\r\n", &tok);
     }
-    mprFree(str);
     return 0;
 }
 
@@ -368,11 +362,9 @@ static MprList *copyGroups(MprTestService *sp, MprList *groups)
     while ((gp = mprGetNextItem(groups, &next)) != 0) {
         newGp = createTestGroup(sp, gp->def, NULL);
         if (newGp == 0) {
-            mprFree(lp);
             return 0;
         }
         if (mprAddItem(lp, newGp) < 0) {
-            mprFree(lp);
             return 0;
         }
     }
@@ -521,17 +513,14 @@ static MprTestGroup *createTestGroup(MprTestService *sp, MprTestDef *def, MprTes
 
     gp->failures = mprCreateList();
     if (gp->failures == 0) {
-        mprFree(gp);
         return 0;
     }
     gp->cases = mprCreateList();
     if (gp->cases == 0) {
-        mprFree(gp);
         return 0;
     }
     gp->groups = mprCreateList();
     if (gp->groups == 0) {
-        mprFree(gp);
         return 0;
     }
     gp->def = def;
@@ -540,7 +529,6 @@ static MprTestGroup *createTestGroup(MprTestService *sp, MprTestDef *def, MprTes
 
     for (tc = def->caseDefs; tc->proc; tc++) {
         if (mprAddItem(gp->cases, tc) < 0) {
-            mprFree(gp);
             return 0;
         }
     }
@@ -548,11 +536,9 @@ static MprTestGroup *createTestGroup(MprTestService *sp, MprTestDef *def, MprTes
         for (dp = &def->groupDefs[0]; *dp && (*dp)->name; dp++) {
             child = createTestGroup(sp, *dp, gp);
             if (child == 0) {
-                mprFree(gp);
                 return 0;
             }
             if (mprAddItem(gp->groups, child) < 0) {
-                mprFree(gp);
                 return 0;
             }
             child->parent = gp;
@@ -566,10 +552,6 @@ static MprTestGroup *createTestGroup(MprTestService *sp, MprTestDef *def, MprTes
 void mprResetTestGroup(MprTestGroup *gp)
 {
     gp->success = 1;
-
-    if (gp->mutex) {
-        mprFree(gp->mutex);
-    }
     gp->mutex = mprCreateLock();
 }
 
@@ -750,7 +732,6 @@ static bool filterTestCast(MprTestGroup *gp, MprTestCase *tc)
             }
             pattern = mprGetNextItem(testFilter, &next);
         }
-        mprFree(fullName);
         if (pattern == 0) {
             return 0;
         }
@@ -917,13 +898,11 @@ static void adjustFailedCount(MprTestService *sp, int adj)
 
 static void logHandler(int flags, int level, cchar *msg)
 {
-    Mpr         *mpr;
     MprFile     *file;
     char        *prefix;
 
-    mpr = mprGetMpr();
-    file = (MprFile*) mpr->logData;
-    prefix = mpr->name;
+    file = (MprFile*) MPR->logData;
+    prefix = MPR->name;
 
     while (*msg == '\n') {
         mprFprintf(file, "\n");
@@ -944,7 +923,7 @@ static void logHandler(int flags, int level, cchar *msg)
 }
 
 
-static int setLogging(Mpr *mpr, char *logSpec)
+static int setLogging(char *logSpec)
 {
     MprFile     *file;
     char        *levelSpec;
@@ -958,10 +937,10 @@ static int setLogging(Mpr *mpr, char *logSpec)
     }
 
     if (strcmp(logSpec, "stdout") == 0) {
-        file = mpr->fileSystem->stdOutput;
+        file = MPR->fileSystem->stdOutput;
 
     } else if (strcmp(logSpec, "stderr") == 0) {
-        file = mpr->fileSystem->stdError;
+        file = MPR->fileSystem->stdError;
 
     } else {
         if ((file = mprOpen(logSpec, O_CREAT | O_WRONLY | O_TRUNC | O_TEXT, 0664)) == 0) {
@@ -969,10 +948,8 @@ static int setLogging(Mpr *mpr, char *logSpec)
             return MPR_ERR_CANT_OPEN;
         }
     }
-
     mprSetLogLevel(level);
     mprSetLogHandler(logHandler, (void*) file);
-
     return 0;
 }
 

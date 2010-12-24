@@ -146,7 +146,7 @@ int mprSyncThreads(int timeout)
     MprTime             mark;
     int                 i, allYielded;
 
-    ts = mprGetMpr()->threadService;
+    ts = MPR->threadService;
     mprLog(7, "mprSyncThreads timeout %d", timeout);
     mark = mprGetTime();
 
@@ -183,7 +183,7 @@ void mprResumeThreads()
     MprThread           *tp;
     int                 i;
 
-    ts = mprGetMpr()->threadService;
+    ts = MPR->threadService;
     mprLog(7, "mprResumeThreadsAfterGC sync");
 
     mprLock(ts->mutex);
@@ -202,7 +202,7 @@ void mprResumeThreads()
 
 void mprSetThreadStackSize(int size)
 {
-    mprGetMpr()->threadService->stackSize = size;
+    MPR->threadService->stackSize = size;
 }
 
 
@@ -216,7 +216,7 @@ MprThread *mprGetCurrentThread()
     MprOsThread         id;
     int                 i;
 
-    ts = mprGetMpr()->threadService;
+    ts = MPR->threadService;
     if (ts->mutex) {
         mprLock(ts->mutex);
     }
@@ -273,7 +273,7 @@ MprThread *mprCreateThread(cchar *name, MprThreadProc entry, void *data, int sta
     MprThreadService    *ts;
     MprThread           *tp;
 
-    ts = mprGetMpr()->threadService;
+    ts = MPR->threadService;
     tp = mprAllocObj(MprThread, manageThread);
     if (tp == 0) {
         return 0;
@@ -298,7 +298,6 @@ MprThread *mprCreateThread(cchar *name, MprThreadProc entry, void *data, int sta
     if (ts && ts->threads) {
         mprLock(ts->mutex);
         if (mprAddItem(ts->threads, tp) < 0) {
-            mprFree(tp);
             mprUnlock(ts->mutex);
             return 0;
         }
@@ -491,7 +490,6 @@ MprThreadLocal *mprCreateThreadLocal()
 #if BLD_UNIX_LIKE
     if (pthread_key_create(&tls->key, NULL) != 0) {
         tls->key = 0;
-        mprFree(tls);
         return 0;
     }
 #elif BLD_WIN_LIKE
@@ -715,8 +713,7 @@ bool mprStopWorkerService(int timeout)
     ws = MPR->workerService;
     mprLock(ws->mutex);
     if (ws->pruneTimer) {
-        mprFree(ws->pruneTimer);
-        ws->pruneTimer = 0;
+        mprRemoveEvent(ws->pruneTimer);
     }
     /*
         Wait until all tasks and threads have exited
@@ -750,7 +747,7 @@ void mprSetMinWorkers(int n)
     MprWorker           *worker;
     MprWorkerService    *ws;
 
-    ws = mprGetMpr()->workerService;
+    ws = MPR->workerService;
 
     mprLock(ws->mutex);
     ws->minThreads = n; 
@@ -774,7 +771,7 @@ void mprSetMaxWorkers(int n)
 {
     MprWorkerService  *ws;
 
-    ws = mprGetMpr()->workerService;
+    ws = MPR->workerService;
 
     mprLock(ws->mutex);
     ws->maxThreads = n; 
@@ -790,7 +787,7 @@ void mprSetMaxWorkers(int n)
 
 int mprGetMaxWorkers()
 {
-    return mprGetMpr()->workerService->maxThreads;
+    return MPR->workerService->maxThreads;
 }
 
 
@@ -804,7 +801,7 @@ MprWorker *mprGetCurrentWorker()
     MprThread           *thread;
     int                 next;
 
-    ws = mprGetMpr()->workerService;
+    ws = MPR->workerService;
 
     mprLock(ws->mutex);
     thread = mprGetCurrentThread();
@@ -859,7 +856,7 @@ int mprStartWorker(MprWorkerProc proc, void *data)
     MprWorker           *worker;
     int                 next;
 
-    ws = mprGetMpr()->workerService;
+    ws = MPR->workerService;
     mprLock(ws->mutex);
 
     /*
@@ -944,7 +941,7 @@ int mprGetAvailableWorkers()
 {
     MprWorkerService  *ws;
 
-    ws = mprGetMpr()->workerService;
+    ws = MPR->workerService;
     return (int) ws->idleThreads->length + (ws->maxThreads - ws->numThreads); 
 }
 
@@ -965,10 +962,7 @@ static int getNextThreadNum(MprWorkerService *ws)
  */
 void mprSetWorkerStackSize(int n)
 {
-    MprWorkerService  *ws;
-
-    ws = mprGetMpr()->workerService;
-    ws->stackSize = n; 
+    MPR->workerService->stackSize = n; 
 }
 
 
@@ -1032,7 +1026,7 @@ static void workerMain(MprWorker *worker, MprThread *tp)
     MprWorkerService    *ws;
     int                 rc;
 
-    ws = mprGetMpr()->workerService;
+    ws = MPR->workerService;
     mprAssert(worker->state == MPR_WORKER_BUSY);
     mprAssert(!worker->idleCond->triggered);
 

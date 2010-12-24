@@ -55,15 +55,12 @@ MprSocketService *mprCreateSocketService()
 
     ss->standardProvider = createStandardProvider(ss);
     if (ss->standardProvider == NULL) {
-        mprFree(ss);
-        return 0;
+        return NULL;
     }
     ss->secureProvider = NULL;
-
     ss->mutex = mprCreateLock();
     if (ss->mutex == 0) {
-        mprFree(ss);
-        return 0;
+        return NULL;
     }
     return ss;
 }
@@ -87,7 +84,7 @@ int mprStartSocketService()
     MprSocketService    *ss;
     char                hostName[MPR_MAX_IP_NAME], serverName[MPR_MAX_IP_NAME], domainName[MPR_MAX_IP_NAME], *dp;
 
-    ss = mprGetMpr()->socketService;
+    ss = MPR->socketService;
     mprAssert(ss);
 
     serverName[0] = '\0';
@@ -143,24 +140,21 @@ static MprSocketProvider *createStandardProvider(MprSocketService *ss)
 
 void mprSetSecureProvider(MprSocketProvider *provider)
 {
-    mprGetMpr()->socketService->secureProvider = provider;
+    MPR->socketService->secureProvider = provider;
 }
 
 
 bool mprHasSecureSockets()
 {
-    return (mprGetMpr()->socketService->secureProvider != 0);
+    return (MPR->socketService->secureProvider != 0);
 }
 
 
 int mprSetMaxSocketClients(int max)
 {
-    MprSocketService    *ss;
-
     mprAssert(max >= 0);
 
-    ss = mprGetMpr()->socketService;
-    ss->maxClients = max;
+    MPR->socketService->maxClients = max;
     return 0;
 }
 
@@ -180,8 +174,8 @@ static MprSocket *createSocket(struct MprSsl *ssl)
     sp->fd = -1;
     sp->flags = 0;
 
-    sp->provider = mprGetMpr()->socketService->standardProvider;
-    sp->service = mprGetMpr()->socketService;
+    sp->provider = MPR->socketService->standardProvider;
+    sp->service = MPR->socketService;
     sp->mutex = mprCreateLock();
     mprHold(sp->mutex);
     return sp;
@@ -203,7 +197,6 @@ static void manageSocket(MprSocket *sp, int flags)
         if (sp->fd >= 0) {
             mprCloseSocket(sp, 1);
         }
-        mprFree(sp->mutex);
     }
 }
 
@@ -213,7 +206,7 @@ MprSocket *mprCreateSocket(struct MprSsl *ssl)
     MprSocketService    *ss;
     MprSocket           *sp;
 
-    ss = mprGetMpr()->socketService;
+    ss = MPR->socketService;
 
     if (ssl) {
 #if !BLD_FEATURE_SSL
@@ -247,7 +240,6 @@ static void resetSocket(MprSocket *sp)
         sp->flags = 0;
         sp->port = -1;
         sp->fd = -1;
-        mprFree(sp->ip);
         sp->ip = 0;
     }
     mprAssert(sp->provider);
@@ -314,7 +306,6 @@ static int listenSocket(MprSocket *sp, cchar *ip, int port, int initialFlags)
 #endif
     if (sp->service->prebind) {
         if ((sp->service->prebind)(sp) < 0) {
-            mprFree(addr);
             closesocket(sp->fd);
             sp->fd = -1;
             unlock(sp);
@@ -327,14 +318,12 @@ static int listenSocket(MprSocket *sp, cchar *ip, int port, int initialFlags)
         if (rc == EADDRINUSE) {
             mprLog(3, "Can't bind, address %s:%d already in use", ip, port);
         }
-        mprFree(addr);
         closesocket(sp->fd);
         sp->fd = -1;
         unlock(sp);
         return MPR_ERR_CANT_OPEN;
     }
     unlock(sp);
-    mprFree(addr);
     return sp->fd;
 }
 
@@ -410,8 +399,6 @@ static int connectSocket(MprSocket *sp, cchar *ip, int port, int initialFlags)
         (MPR_SOCKET_BROADCAST | MPR_SOCKET_DATAGRAM | MPR_SOCKET_BLOCK |
          MPR_SOCKET_LISTENER | MPR_SOCKET_NOREUSE | MPR_SOCKET_NODELAY | MPR_SOCKET_THREAD));
     sp->flags |= MPR_SOCKET_CLIENT;
-
-    mprFree(sp->ip);
     sp->ip = sclone(ip);
 
     broadcast = sp->flags & MPR_SOCKET_BROADCAST;
@@ -479,12 +466,10 @@ static int connectSocket(MprSocket *sp, cchar *ip, int port, int initialFlags)
                 closesocket(sp->fd);
                 sp->fd = -1;
                 unlock(sp);
-                mprFree(addr);
                 return MPR_ERR_CANT_COMPLETE;
             }
         }
     }
-    mprFree(addr);
     mprSetSocketBlockingMode(sp, (bool) (sp->flags & MPR_SOCKET_BLOCK));
 
     /*  
@@ -566,8 +551,8 @@ static void closeSocket(MprSocket *sp, bool gracefully)
     MprTime             timesUp;
     char                buf[16];
 
-    service = mprGetMpr()->waitService;
-    ss = mprGetMpr()->socketService;
+    service = MPR->waitService;
+    ss = MPR->socketService;
 
     lock(sp);
     if (sp->flags & MPR_SOCKET_CLOSED) {
@@ -631,7 +616,7 @@ static MprSocket *acceptSocket(MprSocket *listen)
     socklen_t                   addrlen, saddrlen;
     int                         fd, port, acceptPort;
 
-    ss = mprGetMpr()->socketService;
+    ss = MPR->socketService;
     addr = (struct sockaddr*) &addrStorage;
     addrlen = sizeof(addrStorage);
 
@@ -655,7 +640,7 @@ static MprSocket *acceptSocket(MprSocket *listen)
     if (++ss->numClients >= ss->maxClients) {
         mprUnlock(ss->mutex);
         mprLog(2, "Rejecting connection, too many client connections (%d)", ss->numClients);
-        mprFree(nsp);
+        mprCloseSocket(nsp, 0);
         return 0;
     }
     mprUnlock(ss->mutex);
@@ -681,7 +666,7 @@ static MprSocket *acceptSocket(MprSocket *listen)
      */
     if (getSocketIpAddr(addr, addrlen, ip, sizeof(ip), &port) != 0) {
         mprAssert(0);
-        mprFree(nsp);
+        mprCloseSocket(nsp, 0);
         return 0;
     }
     nsp->ip = sclone(ip);
@@ -1226,7 +1211,7 @@ int mprGetSocketInfo(cchar *ip, int port, int *family, int *protocol, struct soc
     mprAssert(ip);
     mprAssert(addr);
 
-    ss = mprGetMpr()->socketService;
+    ss = MPR->socketService;
 
     mprLock(ss->mutex);
     memset((char*) &hints, '\0', sizeof(hints));
@@ -1309,7 +1294,7 @@ int mprGetSocketInfo(cchar *ip, int port, int *family, int *protocol, struct soc
     int                 len, err;
 
     mprAssert(addr);
-    ss = mprGetMpr()->socketService;
+    ss = MPR->socketService;
 
     mprLock(ss->mutex);
     len = sizeof(struct sockaddr_in);
@@ -1358,7 +1343,7 @@ int mprGetSocketInfo(cchar *ip, int port, int *family, int *protocol, struct soc
     MprSocketService    *ss;
     struct sockaddr_in  *sa;
 
-    ss = mprGetMpr()->socketService;
+    ss = MPR->socketService;
 
     if ((sa = mprAllocObj(struct sockaddr_in, NULL)) == NULL) {
         return MPR_ERR_MEMORY;
@@ -1525,14 +1510,12 @@ int mprParseIp(cchar *ipAddrPort, char **ipAddrRef, int *port, int defaultPort)
                 *port = atoi(cp);
             }
             if (*ipAddr == '*') {
-                mprFree(ipAddr);
                 ipAddr = sclone("127.0.0.1");
             }
 
         } else {
             if (isdigit((int) *ipAddr)) {
                 *port = atoi(ipAddr);
-                mprFree(ipAddr);
                 ipAddr = sclone("127.0.0.1");
 
             } else {
@@ -1556,7 +1539,7 @@ bool mprIsSocketSecure(MprSocket *sp)
 
 void mprSetSocketPrebindCallback(MprSocketPrebind callback)
 {
-    mprGetMpr()->socketService->prebind = callback;
+    MPR->socketService->prebind = callback;
 }
 
 

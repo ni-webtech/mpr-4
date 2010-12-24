@@ -78,10 +78,16 @@ Mpr *mprCreate(int argc, char **argv, int flags)
     startThreads(flags);
 
     if (MPR->hasError || mprHasMemError()) {
-        mprFree(mpr);
+        mprStop(mpr);
         return 0;
     }
     return mpr;
+}
+
+
+void mprDestroy(mpr)
+{
+    mprStop();
 }
 
 
@@ -222,7 +228,7 @@ bool mprIsComplete()
 //  MOB - order file
 
 /*
-    Make an argv array. Caller must free by calling mprFree(argv) to free everything.
+    Make an argv array
  */
 int mprMakeArgv(cchar *program, cchar *cmd, int *argcp, char ***argvp)
 {
@@ -251,7 +257,6 @@ int mprMakeArgv(cchar *program, cchar *cmd, int *argcp, char ***argvp)
     for (cp = args; cp && *cp != '\0'; argc++) {
         if (argc >= MPR_MAX_ARGC) {
             mprAssert(argc < MPR_MAX_ARGC);
-            mprFree(buf);
             *argvp = 0;
             if (argcp) {
                 *argcp = 0;
@@ -335,7 +340,6 @@ int mprSetAppName(cchar *name, cchar *title, cchar *version)
     char    *cp;
 
     if (name) {
-        mprFree(MPR->name);
         if ((MPR->name = (char*) mprGetPathBase(name)) == 0) {
             return MPR_ERR_CANT_ALLOCATE;
         }
@@ -344,13 +348,11 @@ int mprSetAppName(cchar *name, cchar *title, cchar *version)
         }
     }
     if (title) {
-        mprFree(MPR->title);
         if ((MPR->title = sclone(title)) == 0) {
             return MPR_ERR_CANT_ALLOCATE;
         }
     }
     if (version) {
-        mprFree(MPR->version);
         if ((MPR->version = sclone(version)) == 0) {
             return MPR_ERR_CANT_ALLOCATE;
         }
@@ -377,7 +379,6 @@ cchar *mprGetAppTitle()
 void mprSetHostName(cchar *s)
 {
     MPR->hostName = sclone(s);
-    return;
 }
 
 
@@ -395,11 +396,7 @@ cchar *mprGetHostName()
  */
 void mprSetServerName(cchar *s)
 {
-    if (MPR->serverName) {
-        mprFree(MPR->serverName);
-    }
     MPR->serverName = sclone(s);
-    return;
 }
 
 
@@ -417,9 +414,7 @@ cchar *mprGetServerName()
  */
 void mprSetDomainName(cchar *s)
 {
-    mprFree(MPR->domainName);
     MPR->domainName = sclone(s);
-    return;
 }
 
 
@@ -437,11 +432,7 @@ cchar *mprGetDomainName()
  */
 void mprSetIpAddr(cchar *s)
 {
-    if (MPR->ip) {
-        mprFree(MPR->ip);
-    }
     MPR->ip = sclone(s);
-    return;
 }
 
 

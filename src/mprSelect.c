@@ -175,7 +175,7 @@ int mprWaitForSingleIO(int fd, int mask, int timeout)
     if (timeout < 0) {
         timeout = MAXINT;
     }
-    ws = mprGetMpr()->waitService;
+    ws = MPR->waitService;
     tval.tv_sec = timeout / 1000;
     tval.tv_usec = (timeout % 1000) * 1000;
 
@@ -282,7 +282,7 @@ void mprWakeNotifier()
     MprWaitService  *ws;
     int             c, rc;
 
-    ws = mprGetMpr()->waitService;
+    ws = MPR->waitService;
     if (!ws->wakeRequested) {
         ws->wakeRequested = 1;
         c = 0;

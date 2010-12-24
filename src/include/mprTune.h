@@ -54,7 +54,7 @@ extern "C" {
     #define MPR_LIST_INCR           8             /**< Default list growth inc */
     #define MPR_FILES_HASH_SIZE     29            /**< Hash size for rom file system */
     #define MPR_TIME_HASH_SIZE      67            /**< Hash size for time token lookup */
-    #define MPR_MEM_CHUNK_SIZE      (128 * 1024)  /**< Memory allocation chunk size */
+    #define MPR_MEM_REGION_SIZE     (128 * 1024)  /**< Memory allocation chunk size */
     #define MPR_GC_LOW_MEM          (32 * 1024)   /**< Free memory low water mark before invoking GC */
     #define MPR_NEW_QUOTA           (4 * 1024)    /**< new allocations before a GC is worthwhile */
     #define MPR_GC_WORKERS          0             /**< Run garbage collection non-concurrently */
@@ -82,7 +82,7 @@ extern "C" {
     #define MPR_LIST_INCR           16
     #define MPR_FILES_HASH_SIZE     61
     #define MPR_TIME_HASH_SIZE      89
-    #define MPR_MEM_CHUNK_SIZE      (256 * 1024)
+    #define MPR_MEM_REGION_SIZE     (256 * 1024)
     #define MPR_GC_LOW_MEM          (64 * 1024)
     #define MPR_NEW_QUOTA           (16 * 1024) 
     #define MPR_GC_WORKERS          1
@@ -109,7 +109,7 @@ extern "C" {
     #define MPR_BUF_INCR            1024
     #define MPR_FILES_HASH_SIZE     61
     #define MPR_TIME_HASH_SIZE      97
-    #define MPR_MEM_CHUNK_SIZE      (1024 * 1024)
+    #define MPR_MEM_REGION_SIZE     (1024 * 1024)
     #define MPR_GC_LOW_MEM          (128 * 1024)
     #define MPR_NEW_QUOTA           (1024 * 32) 
     #define MPR_GC_WORKERS          2

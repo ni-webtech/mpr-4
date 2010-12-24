@@ -34,12 +34,10 @@ static ssize    writeMss(MprSocket *sp, void *buf, ssize len);
 
 int mprCreateMatrixSslModule(bool lazy)
 {
-    Mpr                 *mpr;
     MprSocketService    *ss;
     MprSocketProvider   *provider;
 
-    mpr = mprGetMpr();
-    ss = mpr->socketService;
+    ss = MPR->socketService;
 
     /*
         Install this module as the SSL provider (can only have 1)
@@ -61,12 +59,10 @@ int mprCreateMatrixSslModule(bool lazy)
 
 static MprSsl *getDefaultMatrixSsl()
 {
-    Mpr                 *mpr;
     MprSocketService    *ss;
     MprSsl              *ssl;
 
-    mpr = mprGetMpr();
-    ss = mpr->socketService;
+    ss = MPR->socketService;
 
     if (ss->secureProvider->defaultSsl) {
         return ss->secureProvider->defaultSsl;
@@ -115,7 +111,7 @@ static int configureMss(MprSsl *ssl)
     MprSocketService    *ss;
     char                *password;
 
-    ss = mprGetMpr()->socketService;
+    ss = MPR->socketService;
     mprSetManager(ssl, (MprManager) manageMatrixSsl);
 
     /*
@@ -174,7 +170,6 @@ static void manageMatrixSsl(MprSsl *ssl, int flags)
  */
 static MprSocket *createMss(MprSsl *ssl)
 {
-    Mpr                 *mpr;
     MprSocketService    *ss;
     MprSocket           *sp;
     MprSslSocket        *msp;
@@ -186,8 +181,7 @@ static MprSocket *createMss(MprSsl *ssl)
     /*
         First get a standard socket
      */
-    mpr = mprGetMpr();
-    ss = mpr->socketService;
+    ss = MPR->socketService;
     sp = ss->standardProvider->createSocket(ssl);
     if (sp == 0) {
         return 0;
@@ -197,7 +191,6 @@ static MprSocket *createMss(MprSsl *ssl)
 
     msp = (MprSslSocket*) mprAllocObj(MprSslSocket, manageMatrixSocket);
     if (msp == 0) {
-        mprFree(sp);
         return 0;
     }
     sp->sslSocket = msp;
@@ -220,14 +213,6 @@ static void manageMatrixSocket(MprSslSocket *msp, int flags)
 
     } else if (flags & MPR_MANAGE_FREE) {
         if (msp->ssl) {
-#if UNUSED
-            mprFree(msp->insock.buf);
-            mprFree(msp->outsock.buf);
-            if (msp->inbuf.buf) {
-                mprFree(msp->inbuf.buf);
-                msp->inbuf.buf = 0;
-            }
-#endif
             matrixSslDeleteSession(msp->mssl);
         }
     }
@@ -548,7 +533,6 @@ static int innerRead(MprSocket *sp, char *userBuf, int len)
             inbuf->start += bytes;
             return bytes;
         }
-        mprFree(inbuf->buf);
         inbuf->buf = NULL;
     }
 
@@ -687,7 +671,6 @@ decodeMore:
         }
         if (!performRead) {
             performRead = 1;
-            mprFree(inbuf->buf);
             inbuf->buf = 0;
             goto readMore;
         }
@@ -701,7 +684,6 @@ decodeMore:
         mprAssert(inbuf->start == inbuf->end);
         inbuf->size *= 2;
         if (inbuf->buf != buf) {
-            mprFree(inbuf->buf);
             inbuf->buf = 0;
         }
         inbuf->start = mprAlloc(inbuf->size);

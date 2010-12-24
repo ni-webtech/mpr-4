@@ -77,7 +77,7 @@ MprWaitHandler *mprInitWaitHandler(MprWaitHandler *wp, int fd, int mask, MprDisp
 
     mprAssert(fd >= 0);
 
-    ws = mprGetMpr()->waitService;
+    ws = MPR->waitService;
     if (mprGetListLength(ws->handlers) == FD_SETSIZE) {
         mprError("io: Too many io handlers: %d\n", FD_SETSIZE);
         return 0;
@@ -98,7 +98,6 @@ MprWaitHandler *mprInitWaitHandler(MprWaitHandler *wp, int fd, int mask, MprDisp
     lock(ws);
     if (mprAddItem(ws->handlers, wp) < 0) {
         unlock(ws);
-        mprFree(wp);
         return 0;
     }
     mprAddNotifier(ws, wp, mask);
@@ -115,12 +114,18 @@ MprWaitHandler *mprCreateWaitHandler(int fd, int mask, MprDispatcher *dispatcher
 
     mprAssert(fd >= 0);
 
-    ws = mprGetMpr()->waitService;
+    ws = MPR->waitService;
     wp = mprAllocObj(MprWaitHandler, manageWaitHandler);
     if (wp == 0) {
         return 0;
     }
     return mprInitWaitHandler(wp, fd, mask, dispatcher, proc, data);
+}
+
+
+void mprDestroyWaitHandler(MprWaitHandler *wp)
+{
+    mprRemoveWaitHandler(wp);
 }
 
 
@@ -207,7 +212,7 @@ void mprRecallWaitHandler(int fd)
     MprWaitHandler  *wp;
     int             index;
 
-    ws = mprGetMpr()->waitService;
+    ws = MPR->waitService;
     lock(ws);
     for (index = 0; (wp = (MprWaitHandler*) mprGetNextItem(ws->handlers, &index)) != 0; ) {
         if (wp->fd == fd) {

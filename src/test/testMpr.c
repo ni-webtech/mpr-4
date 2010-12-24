@@ -77,7 +77,6 @@ MAIN(testMain, int argc, char *argv[])
         exit(2);
     }
     if (mprParseTestArgs(ts, argc, argv) < 0) {
-        mprFree(mpr);
         exit(3);
     }  
     gp = mprAddTestGroup(ts, &master);

@@ -83,7 +83,7 @@ static void testBasicIO(MprTestGroup *gp)
 
     len = mprWrite(file, "abcdef", 6);
     assert(len == 6);
-    mprCloseFile(file);
+    mprClose(file);
 
     assert(mprPathExists(ts->name, R_OK));
     rc = mprGetPathInfo(ts->name, &info);
@@ -123,7 +123,7 @@ static void testBasicIO(MprTestGroup *gp)
     assert(mprGetFilePosition(file) == 12);
     buf[12] = '\0';
     assert(strcmp(buf, "Hello\nWorld\n") == 0);
-    mprCloseFile(file);
+    mprClose(file);
 
     rc = mprDeletePath(ts->name);
     assert(rc == 0);
@@ -171,7 +171,7 @@ static void testBufferedIO(MprTestGroup *gp)
     
     rc = mprFlush(file);
     assert(rc == 0);
-    mprCloseFile(file);
+    mprClose(file);
     
     /*
         Now the length should be set
@@ -200,7 +200,7 @@ static void testBufferedIO(MprTestGroup *gp)
     len = strlen(str);
     assert(len == 5);   
     assert(strcmp(str, "bcdef") == 0);
-    mprCloseFile(file);
+    mprClose(file);
 
     mprDeletePath(ts->name);
     assert(!mprPathExists(ts->name, R_OK));

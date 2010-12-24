@@ -34,9 +34,8 @@ mprClearList
 mprCloneBuf
 mprCloneHash
 mprCloneList
-mprCloseCmd
+mprClose
 mprCloseCmdFd
-mprCloseFile
 mprCloseSocket
 mprCompactBuf
 mprCompareTime
@@ -80,7 +79,10 @@ mprDecodeUniversalTime
 mprDedicateWorker
 mprDedicateWorkerToDispatcher
 mprDeletePath
+mprDestroy
+mprDestroyCmd
 mprDestroyMemService
+mprDestroyWaitHandler
 mprDisableCmdEvents
 mprDisableFileBuffering
 mprDisableWaitEvents
@@ -105,7 +107,6 @@ mprFlushSocket
 mprFormatLocalTime
 mprFormatTime
 mprFprintf
-mprFree
 mprGet
 mprGetAbsPath
 mprGetAppDir

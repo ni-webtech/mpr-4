@@ -96,7 +96,6 @@ int mends(MprChar *str, cchar *suffix)
 
 MprChar *mfmt(cchar *fmt, ...)
 {
-    MprChar     *result;
     va_list     ap;
     char        *mresult;
 
@@ -105,22 +104,17 @@ MprChar *mfmt(cchar *fmt, ...)
     va_start(ap, fmt);
     mresult = mprAsprintfv(fmt, ap);
     va_end(ap);
-    result = amtow(mresult, NULL);
-    mprFree(mresult);
-    return result;
+    return amtow(mresult, NULL);
 }
 
 
 MprChar *mfmtv(cchar *fmt, va_list arg)
 {
-    MprChar     *result;
-    char        *mresult;
+    char    *mresult;
 
     mprAssert(fmt);
     mresult = mprAsprintfv(fmt, arg);
-    result = amtow(mresult, NULL);
-    mprFree(mresult);
-    return result;
+    return amtow(mresult, NULL);
 }
 
 

@@ -351,8 +351,9 @@ typedef off_t MprOffset;
 
 #if __WORDSIZE == 64 || __amd64 || __x86_64 || __x86_64__ || _WIN64
     #define MPR_64_BIT 1
+    #define MPR_BITS 64
 #else
-    #define MPR_64_BIT 0
+    #define MPR_BITS 32
 #endif
 
 #ifndef BITSPERBYTE

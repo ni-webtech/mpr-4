@@ -204,7 +204,7 @@ int mprSetRomFileSystem(MprRomInode *inodeList)
     MprRomFileSystem     rfs;
     MprRomInode         *ri;
 
-    rfs = (MprRomFileSystem*) mprGetMpr()->fileSystem;
+    rfs = (MprRomFileSystem*) MPR->fileSystem;
     rfs->romInodes = inodeList;
     rfs->fileIndex = mprCreateHash(rfs, MPR_FILES_HASH_SIZE, MPR_HASH_PERM_KEYS);
 
@@ -242,7 +242,7 @@ MprRomFileSystem *mprCreateRomFileSystem(cchar *path)
 #if !WINCE
     fs->stdError = mprAllocZeroed(sizeof(MprFile));
     if (fs->stdError == 0) {
-        mprFree(fs);
+        return NULL;
     }
     fs->stdError->fd = 2;
     fs->stdError->fileSystem = fs;
@@ -250,7 +250,7 @@ MprRomFileSystem *mprCreateRomFileSystem(cchar *path)
 
     fs->stdInput = mprAllocZeroed(sizeof(MprFile));
     if (fs->stdInput == 0) {
-        mprFree(fs);
+        return NULL;
     }
     fs->stdInput->fd = 0;
     fs->stdInput->fileSystem = fs;
@@ -258,7 +258,7 @@ MprRomFileSystem *mprCreateRomFileSystem(cchar *path)
 
     fs->stdOutput = mprAllocZeroed(sizeof(MprFile));
     if (fs->stdOutput == 0) {
-        mprFree(fs);
+        return NULL;
     }
     fs->stdOutput->fd = 1;
     fs->stdOutput->fileSystem = fs;

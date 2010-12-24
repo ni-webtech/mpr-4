@@ -168,7 +168,6 @@ char *mprDecode64(cchar *s)
         for (i = 0; i < 4 && *s && *s != '='; i++, s++) {
             c = decodeMap[*s & 0xff];
             if (c == -1) {
-                mprFree(buffer);
                 return NULL;
             } 
             bitBuf = bitBuf | (c << shift);

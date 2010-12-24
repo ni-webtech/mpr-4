@@ -98,16 +98,13 @@ MprModule *mprLoadModule(cchar *name, cchar *initFunction, void *data)
                         if ((fn)(data) < 0) {
                             mprError("Initialization for %s failed.", path);
                         } else {
-                            mprFree(mp);
-                            mp = 0;
+                            mp = NULL;
                         }
                     }
                 }
             }
         }
     }
-    mprFree(path);
-    mprFree(module);
     return mp;
 }
 

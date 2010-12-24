@@ -116,7 +116,6 @@ MprModule *mprLoadModule(cchar *moduleName, cchar *initFunction)
                 } else {
                     mp->handle = handle;
                 }
-
             } else {
                 mprError("Can't load module %s\nReason: can't find function \"%s\"\n",  name, initFunction);
                 FreeLibrary((HINSTANCE) handle);
@@ -124,9 +123,6 @@ MprModule *mprLoadModule(cchar *moduleName, cchar *initFunction)
             }
         }
     }
-    mprFree(name);
-    mprFree(path);
-    mprFree(module);
     return mp;
 }
 
@@ -188,10 +184,8 @@ int mprReadRegistry(char **buf, int max, cchar *key, cchar *name)
     }
     wkey = mprToUni(key);
     if (RegOpenKeyEx(top, wkey, 0, KEY_READ, &h) != ERROR_SUCCESS) {
-        mprFree(wkey);
         return MPR_ERR_CANT_ACCESS;
     }
-    mprFree(wkey);
 
     /*
         Get the type
@@ -199,28 +193,22 @@ int mprReadRegistry(char **buf, int max, cchar *key, cchar *name)
     wname = mprToUni(name);
     if (RegQueryValueEx(h, wname, 0, &type, 0, &size) != ERROR_SUCCESS) {
         RegCloseKey(h);
-        mprFree(wname);
         return MPR_ERR_CANT_READ;
     }
     if (type != REG_SZ && type != REG_EXPAND_SZ) {
         RegCloseKey(h);
-        mprFree(wname);
         return MPR_ERR_BAD_TYPE;
     }
     value = mprAlloc(size);
     if ((int) size > max) {
         RegCloseKey(h);
-        mprFree(wname);
         mprAssert(!MPR_ERR_WONT_FIT);
         return MPR_ERR_WONT_FIT;
     }
     if (RegQueryValueEx(h, wname, 0, &type, (uchar*) value, &size) != ERROR_SUCCESS) {
-        mprFree(value);
-        mprFree(wname);
         RegCloseKey(h);
         return MPR_ERR_CANT_READ;
     }
-    mprFree(wname);
     RegCloseKey(h);
     *buf = value;
     return 0;
@@ -235,19 +223,13 @@ void mprSetInst(Mpr *mpr, long inst)
 
 void mprSetHwnd(HWND h)
 {
-    Mpr     *mpr;
-
-    mpr = mprGetMpr();
-    mpr->service->hwnd = h;
+    MPR->service->hwnd = h;
 }
 
 
 void mprSetSocketMessage(int socketMessage)
 {
-    Mpr     *mpr;
-
-    mpr = mprGetMpr();
-    mpr->service->socketMessage = socketMessage;
+    MPR->service->socketMessage = socketMessage;
 }
 #endif /* WINCE */
 
@@ -265,7 +247,7 @@ void mprUnloadModule(MprModule *mp)
     if (mp->stop) {
         mp->stop();
     }
-    mprRemoveItem(mprGetMpr()->moduleService->modules, mp);
+    mprRemoveItem(MPR->moduleService->modules, mp);
     FreeLibrary((HINSTANCE) mp->handle);
 }
 
@@ -387,20 +369,13 @@ int access(cchar *path, int flags)
         tmpPath = 0;
     }
     rc = GetFileAttributesA(path) != -1 ? 0 : -1;
-
-    mprFree(tmpPath);
     return rc;
 }
 
 
 int chdir(cchar *dir)
 {
-    char    *newDir;
-
-    newDir = mprGetAbsPath(MPR, dir);
-    mprFree(currentDir);
-    currentDir = newDir;
-
+    currentDir = mprGetAbsPath(MPR, dir);
     return 0;
 }
 
@@ -472,8 +447,6 @@ int mkdir(cchar *dir, int mode)
 
     wdir = mprToUni(MPR, dir);
     rc = CreateDirectoryW(wdir, NULL);
-    mprFree(wdir);
-    mprFree(tmpDir);
     return (rc != 0) ? 0 : -1;
 }
 
@@ -537,8 +510,6 @@ uint open(cchar *path, int mode, va_list arg)
     }
     wpath = mprToUni(MPR, path);
     h = CreateFileW(wpath, accessFlags, shareFlags, NULL, createFlags, FILE_ATTRIBUTE_NORMAL, NULL);
-    mprFree(wpath);
-    mprFree(tmpPath);
 
     return h == INVALID_HANDLE_VALUE ? -1 : addHandle(h);
 }
@@ -572,12 +543,6 @@ int rename(cchar *oldname, cchar *newname)
     from = mprToUni(MPR, oldname);
     to = mprToUni(MPR, newname);
     rc = MoveFileW(from, to);
-
-    mprFree(tmpOld);
-    mprFree(tmpNew);
-    mprFree(from);
-    mprFree(to);
-
     return rc == 0 ? 0 : -1;
 }
 
@@ -595,10 +560,6 @@ int rmdir(cchar *dir)
     }
     wdir = mprToUni(MPR, dir);
     rc = RemoveDirectoryW(wdir);
-
-    mprFree(tmpDir);
-    mprFree(wdir);
-
     return rc == 0 ? 0 : -1;
 }
 
@@ -627,10 +588,8 @@ int stat(cchar *path, struct stat *sbuf)
 
     attributes = GetFileAttributesW(wpath);
     if (attributes == -1) {
-        mprFree(wpath);
         return -1;
     }
-
     if ((attributes & FILE_ATTRIBUTE_DIRECTORY) != 0) {
         sbuf->st_mode += S_IFDIR;
     } else {
@@ -643,26 +602,18 @@ int stat(cchar *path, struct stat *sbuf)
             wpath[wcslen(wpath)-1] = L'\0';
             h = FindFirstFileW(wpath, &fd);
             if (h == INVALID_HANDLE_VALUE) {
-                mprFree(tmpPath);
-                mprFree(wpath);
                 return 0;
             }
         } else {
-            mprFree(tmpPath);
-            mprFree(wpath);
             return 0;
         }
     }
-
     sbuf->st_atime = (time_t) fileTimeToTime(fd.ftLastAccessTime);
     sbuf->st_mtime = (time_t) fileTimeToTime(fd.ftLastWriteTime);
     sbuf->st_ctime = (time_t) fileTimeToTime(fd.ftCreationTime);
     sbuf->st_size  = fd.nFileSizeLow;
 
     FindClose(h);
-    mprFree(tmpPath);
-    mprFree(wpath);
-
     return 0;
 }
 
@@ -820,7 +771,6 @@ int unlink(cchar *file)
 
     wpath = mprToUni(MPR, file);
     rc = DeleteFileW(wpath);
-    mprFree(wpath);
     return rc == 0 ? 0 : -1;
 }
 
@@ -835,7 +785,6 @@ WINBASEAPI HANDLE WINAPI CreateFileA(LPCSTR path, DWORD access, DWORD sharing,
 
     wpath = mprToUni(MPR, path);
     h = CreateFileW(wpath, access, sharing, security, create, flags, template);
-    mprFree(wpath);
     return h;
 }
 
@@ -844,18 +793,12 @@ BOOL WINAPI CreateProcessA(LPCSTR app, LPCSTR cmd, LPSECURITY_ATTRIBUTES att, LP
     BOOL options, DWORD flags, LPVOID env, LPSTR dir, LPSTARTUPINFO lpsi, LPPROCESS_INFORMATION info)
 {
     LPWSTR      wapp, wcmd, wdir;
-    int         result;
 
     wapp  = mprToUni(MPR, app);
     wcmd  = mprToUni(MPR, cmd);
     wdir  = mprToUni(MPR, dir);
 
-    result = CreateProcessW(wapp, wcmd, att, threadatt, options, flags, env, wdir, lpsi, info);
-
-    mprFree(wapp);
-    mprFree(wcmd);
-    mprFree(wdir);
-    return result;
+    return CreateProcessW(wapp, wcmd, att, threadatt, options, flags, env, wdir, lpsi, info);
 }
 
 
@@ -868,11 +811,9 @@ HANDLE FindFirstFileA(LPCSTR path, WIN32_FIND_DATAA *data)
 
     wpath = mprToUni(MPR, path);
     h = FindFirstFileW(wpath, &wdata);
-    mprFree(wpath);
     
     file = mprToMulti(MPR, wdata.cFileName);
     strcpy(data->cFileName, file);
-    mprFree(file);
     return h;
 }
 
@@ -886,7 +827,6 @@ BOOL FindNextFileA(HANDLE handle, WIN32_FIND_DATAA *data)
     result = FindNextFileW(handle, &wdata);
     file = mprToMulti(MPR, wdata.cFileName);
     strcpy(data->cFileName, file);
-    mprFree(file);
     return result;
 }
 
@@ -898,7 +838,6 @@ DWORD GetFileAttributesA(cchar *path)
 
     wpath = mprToUni(MPR, path);
     result = GetFileAttributesW(wpath);
-    mprFree(wpath);
     return result;
 }
 
@@ -913,8 +852,6 @@ DWORD GetModuleFileNameA(HMODULE module, LPSTR buf, DWORD size)
     ret = GetModuleFileNameW(module, wpath, size);
     mb = mprToMulti(MPR, wpath);
     strcpy(buf, mb);
-    mprFree(mb);
-    mprFree(wpath);
     return ret;
 }
 
@@ -922,12 +859,9 @@ DWORD GetModuleFileNameA(HMODULE module, LPSTR buf, DWORD size)
 WINBASEAPI HMODULE WINAPI GetModuleHandleA(LPCSTR path)
 {
     LPWSTR      wpath;
-    HANDLE      result;
 
     wpath = mprToUni(MPR, path);
-    result = GetModuleHandleW(wpath);
-    mprFree(wpath);
-    return result;
+    return GetModuleHandleW(wpath);
 }
 
 
@@ -942,13 +876,10 @@ void GetSystemTimeAsFileTime(FILETIME *ft)
 
 HINSTANCE WINAPI LoadLibraryA(LPCSTR path)
 {
-    HINSTANCE   h;
     LPWSTR      wpath;
 
     wpath = mprToUni(MPR, path);
-    h = LoadLibraryW(wpath);
-    mprFree(wpath);
-    return h;
+    return LoadLibraryW(wpath);
 }
 
 void mprWriteToOsLog(cchar *message, int flags, int level)

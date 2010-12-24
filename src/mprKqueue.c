@@ -327,7 +327,7 @@ void mprWakeNotifier()
     MprWaitService  *ws;
     int             c, rc;
 
-    ws = mprGetMpr()->waitService;
+    ws = MPR->waitService;
     if (!ws->wakeRequested) {
         ws->wakeRequested = 1;
         c = 0;

@@ -3,7 +3,7 @@
     ProjectType="Visual C++"
     Version="8.00"
     Name="libmpr"
-    ProjectGUID="dfc9b53a-e47f-46fa-aebb-90f60fc1f1a2"
+    ProjectGUID="c23b01d9-8b0f-4fd7-b73d-51b26a145922"
     RootNamespace=""
     Keyword="Win32Proj"
     TargetFrameworkVersion="0"
@@ -162,7 +162,7 @@
         <Filter
             Name="Header Files"
             Filter="h;hpp;hxx;hm;inl;inc;xsd"
-            UniqueIdentifier="{d463ffb1-7bef-4c59-8bb7-e69786664b9a}"
+            UniqueIdentifier="{ec40eba1-ee18-4410-bbab-06eeffbc7671}"
             >
             <File
                 RelativePath="..\..\..\out\include\buildConfig.h"
@@ -170,6 +170,10 @@
             </File>
             <File
                 RelativePath="..\..\..\src\include\mpr.h"
+                >
+            </File>
+            <File
+                RelativePath="..\..\..\src\include\mprField.h"
                 >
             </File>
             <File
@@ -192,7 +196,7 @@
         <Filter
             Name="Source Files"
             Filter="cpp;c;cc;cxx;def;odl;idl;hpj;bat;asm;asmx"
-            UniqueIdentifier="{f94fc104-9d95-4ac9-863c-e6d796deb159}"
+            UniqueIdentifier="{09932dc6-adc0-43b1-83f1-5caedbcccc74}"
             >
             <File
                 RelativePath="..\..\..\src\deps\dtoa.c"
@@ -348,18 +352,6 @@
             </File>
             <File
                 RelativePath="..\..\..\src\mprXml.c"
-                >
-            </File>
-            <File
-                RelativePath="..\..\..\src\ssl\mprMatrixssl.c"
-                >
-            </File>
-            <File
-                RelativePath="..\..\..\src\ssl\mprOpenssl.c"
-                >
-            </File>
-            <File
-                RelativePath="..\..\..\src\ssl\mprSsl.c"
                 >
             </File>
         </Filter>

@@ -33,41 +33,10 @@ static void testBasicAlloc(MprTestGroup *gp)
     /*
         Test special MPR allowances
      */
-    mprFree(0);
     cp = sclone(NULL);
     assert(cp != 0);
     assert(cp[0] == '\0');
 }
-
-
-#if UNUSED
-static void allocManager(int **dp, int flags)
-{
-    mprAssert(flags & MPR_MANAGE_FREE);
-    if (flags & MPR_MANAGE_FREE) {
-        mprAssert(*dp);
-        mprAssert(**dp == 0);
-        **dp = 1;
-    }
-}
-
-
-static void testManager(MprTestGroup *gp)
-{
-    int     done, **dp;
-
-    done = 0;
-    dp = mprAllocObj(int*, allocManager);
-    assert(dp);
-    assert(*dp == 0);
-    *dp = &done;
-    assert(!done);
-    //  MOB - free does not invoke destructors immediately
-    mprFree(dp);
-    mprRequestGC(1);
-    assert(done == 1);
-}
-#endif
 
 
 static void testBigAlloc(MprTestGroup *gp)
@@ -80,7 +49,6 @@ static void testBigAlloc(MprTestGroup *gp)
     mp = mprAlloc(len);
     assert(mp != 0);
     memset(mp, 0, len);
-    mprFree(mp);
     
     if (mprGetMem() > memsize) {
         assert((mprGetMem() - memsize) < (len * 2));
@@ -97,13 +65,11 @@ static void testLotsOfAlloc(MprTestGroup *gp)
     for (i = 0; i < 10000; i++) {
         mp = mprAlloc(64);
         assert(mp != 0);
-        mprFree(mp);
     }
     memsize = mprGetMem();
     for (i = 2; i < (1024 * 1024); i *= 2) {
         mp = mprAlloc(i);
         assert(mp != 0);
-        mprFree(mp);
         mprRequestGC(0);
     }
     if (mprGetMem() > memsize) {
@@ -137,7 +103,6 @@ static void testAllocIntegrityChecks(MprTestGroup *gp)
         for (j = 0; j < size; j++) {
             assert(cp[j] == (i % 0xff));
         }
-        mprFree(blocks[i]);
     }
 
     /*
@@ -151,7 +116,6 @@ static void testAllocIntegrityChecks(MprTestGroup *gp)
         memset(blocks[i], i % 0xff, size);
     }
     for (i = 1; i < count; i += 3) {
-        mprFree(blocks[i]);
         blocks[i] = 0;
     }
     for (i = 1; i < count; i++) {
@@ -163,7 +127,6 @@ static void testAllocIntegrityChecks(MprTestGroup *gp)
         for (j = 0; j < size; j++) {
             assert(cp[j] == (i % 0xff));
         }
-        mprFree(blocks[i]);
     }
 }
 

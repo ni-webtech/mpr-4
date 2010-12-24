@@ -13,6 +13,7 @@
 #if !BLD_FEATURE_ROMFS
 /********************************** Forwards **********************************/
 
+static int closeFile(MprFile *file);
 static void manageDiskFile(MprFile *file, int flags);
 static int getPathInfo(MprDiskFileSystem *fileSystem, cchar *path, MprPath *info);
 
@@ -28,13 +29,12 @@ static MprFile *openFile(MprFileSystem *fileSystem, cchar *path, int omode, int 
     dfs = (MprDiskFileSystem*) fileSystem;
     file = mprAllocObj(MprFile, manageDiskFile);
     if (file == 0) {
-        return 0;
+        return NULL;
     }
     file->path = sclone(path);
     file->fd = open(path, omode, perms);
     if (file->fd < 0) {
-        mprFree(file);
-        return 0;
+        return NULL;
     }
     return file;
 }
@@ -47,12 +47,12 @@ static void manageDiskFile(MprFile *file, int flags)
         mprMark(file->path);
 
     } else if (flags & MPR_MANAGE_FREE) {
-        mprCloseFile(file);
+        closeFile(file);
     }
 }
 
 
-int mprCloseFile(MprFile *file)
+static int closeFile(MprFile *file)
 {
     MprBuf  *bp;
 
@@ -168,17 +168,14 @@ static int getPathInfo(MprDiskFileSystem *fileSystem, cchar *path, MprPath *info
     struct stat s;
 #if BLD_WIN_LIKE
     cchar       *ext;
-    char        *allocPath;
 
     mprAssert(path);
     mprAssert(info);
 
-    allocPath = 0;
     info->checked = 1;
     info->valid = 0;
 
     if (stat(path, &s) < 0) {
-        mprFree(allocPath);
         return -1;
     }
     info->valid = 1;
@@ -203,7 +200,6 @@ static int getPathInfo(MprDiskFileSystem *fileSystem, cchar *path, MprPath *info
         long    att;
 
         if ((att = GetFileAttributes(path)) == -1) {
-            mprFree(allocPath);
             return -1;
         }
         if (att & (FILE_ATTRIBUTE_REPARSE_POINT | FILE_ATTRIBUTE_DIRECTORY | FILE_ATTRIBUTE_ENCRYPTED |
@@ -233,7 +229,7 @@ static int getPathInfo(MprDiskFileSystem *fileSystem, cchar *path, MprPath *info
     }
 
 #endif
-    mprFree(allocPath);
+
 #else /* !BLD_WIN_LIKE */
     mprAssert(path);
     mprAssert(info);
@@ -368,7 +364,7 @@ MprDiskFileSystem *mprCreateDiskFileSystem(cchar *path)
     dfs->makeDir = makeDir;
     dfs->makeLink = makeLink;
     dfs->openFile = openFile;
-    dfs->closeFile = mprCloseFile;
+    dfs->closeFile = closeFile;
     dfs->readFile = readFile;
     dfs->seekFile = seekFile;
     dfs->truncateFile = truncateFile;
@@ -377,7 +373,7 @@ MprDiskFileSystem *mprCreateDiskFileSystem(cchar *path)
 #if !WINCE
     dfs->stdError = mprAllocObj(MprFile, NULL);
     if (dfs->stdError == 0) {
-        mprFree(dfs);
+        return NULL;
     }
     mprSetName(dfs->stdError, "stderr");
     dfs->stdError->fd = 2;
@@ -386,7 +382,7 @@ MprDiskFileSystem *mprCreateDiskFileSystem(cchar *path)
 
     dfs->stdInput = mprAllocObj(MprFile, NULL);
     if (dfs->stdInput == 0) {
-        mprFree(dfs);
+        return NULL;
     }
     mprSetName(dfs->stdInput, "stdin");
     dfs->stdInput->fd = 0;
@@ -395,7 +391,7 @@ MprDiskFileSystem *mprCreateDiskFileSystem(cchar *path)
 
     dfs->stdOutput = mprAllocObj(MprFile, NULL);
     if (dfs->stdOutput == 0) {
-        mprFree(dfs);
+        return NULL;
     }
     mprSetName(dfs->stdOutput, "stdout");
     dfs->stdOutput->fd = 1;

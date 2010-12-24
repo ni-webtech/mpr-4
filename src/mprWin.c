@@ -99,8 +99,7 @@ MprModule *mprLoadModule(cchar *name, cchar *fun, void *data)
                 if ((fn)(data) < 0) {
                     mprError("Initialization for module %s failed", name);
                     FreeLibrary((HINSTANCE) handle);
-                    mprFree(mp);
-                    mp = 0;
+                    mp = NULL;
                 }
 
             } else {
@@ -109,8 +108,6 @@ MprModule *mprLoadModule(cchar *name, cchar *fun, void *data)
             }
         }
     }
-    mprFree(path);
-    mprFree(moduleName);
     return mp;
 }
 
@@ -154,11 +151,9 @@ int mprReadRegistry(char **buf, ssize max, cchar *key, cchar *name)
         return MPR_ERR_WONT_FIT;
     }
     if (RegQueryValueEx(h, name, 0, &type, (uchar*) value, &size) != ERROR_SUCCESS) {
-        mprFree(value);
         RegCloseKey(h);
         return MPR_ERR_CANT_READ;
     }
-
     RegCloseKey(h);
     *buf = value;
     return 0;

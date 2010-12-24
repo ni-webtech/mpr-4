@@ -16,11 +16,9 @@
  */
 static MprModule *loadSsl(bool lazy)
 {
-    Mpr         *mpr;
     MprModule   *mp;
 
-    mpr = mprGetMpr();
-    if (mpr->flags & MPR_SSL_PROVIDER_LOADED) {
+    if (MPR->flags & MPR_SSL_PROVIDER_LOADED) {
         return mprLookupModule("sslModule");
     }
 
@@ -43,7 +41,7 @@ static MprModule *loadSsl(bool lazy)
     if ((mp = mprCreateModule("sslModule", NULL)) == 0) {
         return 0;
     }
-    mpr->flags |= MPR_SSL_PROVIDER_LOADED;
+    MPR->flags |= MPR_SSL_PROVIDER_LOADED;
     return mp;
 }
 
@@ -89,7 +87,7 @@ void mprConfigureSsl(MprSsl *ssl)
 {
     MprSocketProvider   *provider;
 
-    provider = mprGetMpr()->socketService->secureProvider;
+    provider = MPR->socketService->secureProvider;
     if (provider) {
         provider->configureSsl(ssl);
     } else {
@@ -102,7 +100,6 @@ void mprSetSslCiphers(MprSsl *ssl, cchar *ciphers)
 {
     mprAssert(ssl);
     
-    mprFree(ssl->ciphers);
     ssl->ciphers = sclone(ciphers);
 }
 
@@ -111,7 +108,6 @@ void mprSetSslKeyFile(MprSsl *ssl, cchar *keyFile)
 {
     mprAssert(ssl);
     
-    mprFree(ssl->keyFile);
     ssl->keyFile = sclone(keyFile);
 }
 
@@ -120,7 +116,6 @@ void mprSetSslCertFile(MprSsl *ssl, cchar *certFile)
 {
     mprAssert(ssl);
     
-    mprFree(ssl->certFile);
     ssl->certFile = sclone(certFile);
 }
 
@@ -129,7 +124,6 @@ void mprSetSslCaFile(MprSsl *ssl, cchar *caFile)
 {
     mprAssert(ssl);
     
-    mprFree(ssl->caFile);
     ssl->caFile = sclone(caFile);
 }
 
@@ -138,7 +132,6 @@ void mprSetSslCaPath(MprSsl *ssl, cchar *caPath)
 {
     mprAssert(ssl);
     
-    mprFree(ssl->caPath);
     ssl->caPath = sclone(caPath);
 }
 

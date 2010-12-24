@@ -180,7 +180,6 @@ int wends(MprChar *str, MprChar *suffix)
 
 MprChar *wfmt(MprChar *fmt, ...)
 {
-    MprChar     *result;
     va_list     ap;
     char        *mfmt, *mresult;
 
@@ -190,25 +189,18 @@ MprChar *wfmt(MprChar *fmt, ...)
     mfmt = awtom(fmt, NULL);
     mresult = mprAsprintfv(mfmt, ap);
     va_end(ap);
-    mprFree(mfmt);
-    result = amtow(mresult, NULL);
-    mprFree(mresult);
-    return result;
+    return amtow(mresult, NULL);
 }
 
 
 MprChar *wfmtv(MprChar *fmt, va_list arg)
 {
-    MprChar     *result;
     char        *mfmt, *mresult;
 
     mprAssert(fmt);
     mfmt = awtom(fmt, NULL);
     mresult = mprAsprintfv(mfmt, arg);
-    mprFree(mfmt);
-    result = amtow(mresult, NULL);
-    mprFree(mresult);
-    return result;
+    return amtow(mresult, NULL);
 }
 
 

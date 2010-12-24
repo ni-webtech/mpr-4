@@ -68,7 +68,7 @@ int mprStartModuleService()
     MprModule           *mp;
     int                 next;
 
-    ms = mprGetMpr()->moduleService;
+    ms = MPR->moduleService;
     mprAssert(ms);
 
     for (next = 0; (mp = mprGetNextItem(ms->modules, &next)) != 0; ) {
@@ -92,7 +92,7 @@ void mprStopModuleService()
     MprModule           *mp;
     int                 next;
 
-    ms = mprGetMpr()->moduleService;
+    ms = MPR->moduleService;
     mprAssert(ms);
     mprLock(ms->mutex);
     for (next = 0; (mp = mprGetNextItem(ms->modules, &next)) != 0; ) {
@@ -111,11 +111,9 @@ MprModule *mprCreateModule(cchar *name, void *data)
 {
     MprModuleService    *ms;
     MprModule           *mp;
-    Mpr                 *mpr;
     int                 index;
 
-    mpr = mprGetMpr();
-    ms = mpr->moduleService;
+    ms = MPR->moduleService;
     mprAssert(ms);
 
     if ((mp = mprAllocObj(MprModule, NULL)) == 0) {
@@ -127,9 +125,7 @@ MprModule *mprCreateModule(cchar *name, void *data)
     mp->handle = 0;
     mp->start = 0;
     mp->stop = 0;
-
     if (index < 0 || mp->name == 0) {
-        mprFree(mp);
         return 0;
     }
     return mp;
@@ -147,7 +143,7 @@ MprModule *mprLookupModule(cchar *name)
 
     mprAssert(name && name);
 
-    ms = mprGetMpr()->moduleService;
+    ms = MPR->moduleService;
     mprAssert(ms);
 
     for (next = 0; (mp = mprGetNextItem(ms->modules, &next)) != 0; ) {
@@ -174,15 +170,10 @@ void *mprLookupModuleData(cchar *name)
 void mprSetModuleSearchPath(char *searchPath)
 {
     MprModuleService    *ms;
-    Mpr                 *mpr;
 
     mprAssert(searchPath && *searchPath);
 
-    mpr = mprGetMpr();
-    mprAssert(mpr);
-    ms = mpr->moduleService;
-
-    mprFree(ms->searchPath);
+    ms = MPR->moduleService;
     ms->searchPath = sclone(searchPath);
 
 #if BLD_WIN_LIKE && !WINCE
@@ -195,7 +186,6 @@ void mprSetModuleSearchPath(char *searchPath)
         path = sjoin("PATH=", searchPath, ";", getenv("PATH"), NULL);
         mprMapSeparators(path, '\\');
         putenv(path);
-        mprFree(path);
     }
 #endif
 }
@@ -203,14 +193,7 @@ void mprSetModuleSearchPath(char *searchPath)
 
 cchar *mprGetModuleSearchPath()
 {
-    MprModuleService    *ms;
-    Mpr                 *mpr;
-
-    mpr = mprGetMpr();
-    mprAssert(mpr);
-    ms = mpr->moduleService;
-
-    return ms->searchPath;
+    return MPR->moduleService->searchPath;
 }
 
 
@@ -240,7 +223,6 @@ static int probe(cchar *filename, char **pathp)
             *pathp = path;
             return 1;
         }
-        mprFree(path);
     }
     return 0;
 }
@@ -271,14 +253,11 @@ int mprSearchForModule(cchar *name, char **path)
     while (dir && *dir) {
         fileName = mprJoinPath(dir, name);
         if (probe(fileName, path)) {
-            mprFree(fileName);
             mprLog(6, "Found native module %s at %s", name, *path);
             return 0;
         }
-        mprFree(fileName);
         dir = stok(0, MPR_SEARCH_SEP, &tok);
     }
-    mprFree(searchPath);
     return MPR_ERR_CANT_FIND;
 }
 #endif

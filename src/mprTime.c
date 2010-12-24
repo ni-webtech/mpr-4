@@ -197,7 +197,7 @@ int mprCreateTimeService()
     Mpr                 *mpr;
     TimeToken           *tt;
 
-    mpr = mprGetMpr();
+    mpr = MPR;
     mpr->timeTokens = mprCreateHash(-1, MPR_HASH_PERM_KEYS);
     for (tt = days; tt->name; tt++) {
         mprAddHash(mpr->timeTokens, tt->name, (void*) tt);
@@ -932,7 +932,7 @@ char *mprFormatTime(cchar *fmt, struct tm *tp)
 {
     struct tm       tm;
     MprBuf          *buf;
-    char            *result, *zone;
+    char            *zone;
     int             w, value;
 
     if (fmt == 0) {
@@ -973,7 +973,6 @@ char *mprFormatTime(cchar *fmt, struct tm *tp)
             mprPutStringToBuf(buf, zone);
             mprPutCharToBuf(buf, ' ');
             digits(buf, 4, 0, tp->tm_year + 1900);
-            mprFree(zone);
             break;
 
         case 'A' :                                      /* full weekday (Sunday) */
@@ -1184,7 +1183,6 @@ char *mprFormatTime(cchar *fmt, struct tm *tp)
         case 'Z':                                       /* Timezone */
             zone = getTimeZoneName(tp);
             mprPutStringToBuf(buf, zone);
-            mprFree(zone);
             break;
 
         case 'z':
@@ -1209,21 +1207,18 @@ char *mprFormatTime(cchar *fmt, struct tm *tp)
         }
     }
     mprAddNullToBuf(buf);
-    MOB - not supported
-    result = mprStealBuf(, buf);
-    mprFree(buf);
-    return result;
+    return sclone(mprGetBufStart(buf));
 }
 #endif /* HAS_STRFTIME */
 
 
 /*************************************** Parsing ************************************/
 
-static int lookupSym(Mpr *mpr, cchar *token, int kind)
+static int lookupSym(cchar *token, int kind)
 {
     TimeToken   *tt;
 
-    if ((tt = (TimeToken*) mprLookupHash(mpr->timeTokens, token)) == 0) {
+    if ((tt = (TimeToken*) mprLookupHash(MPR->timeTokens, token)) == 0) {
         return -1;
     }
     if (kind != (tt->value & TOKEN_MASK)) {
@@ -1233,7 +1228,7 @@ static int lookupSym(Mpr *mpr, cchar *token, int kind)
 }
 
 
-static int getNum(Mpr *mpr, char **token, int sep)
+static int getNum(char **token, int sep)
 {
     int     num;
 
@@ -1250,7 +1245,7 @@ static int getNum(Mpr *mpr, char **token, int sep)
 }
 
 
-static int getNumOrSym(Mpr *mpr, char **token, int sep, int kind, int *isAlpah)
+static int getNumOrSym(char **token, int sep, int kind, int *isAlpah)
 {
     char    *cp;
     int     num;
@@ -1266,7 +1261,7 @@ static int getNumOrSym(Mpr *mpr, char **token, int sep, int kind, int *isAlpah)
         if (cp) {
             *cp++ = '\0';
         }
-        num = lookupSym(mpr, *token, kind);
+        num = lookupSym(*token, kind);
         *token = cp;
         return num;
     }
@@ -1309,15 +1304,12 @@ static void swapDayMonth(struct tm *tp)
  */ 
 int mprParseTime(MprTime *time, cchar *dateString, int zoneFlags, struct tm *defaults)
 {
-    Mpr             *mpr;
     TimeToken       *tt;
     struct tm       tm;
     char            *str, *next, *token, *cp, *sep;
     int64           value;
     int             kind, hour, min, negate, value1, value2, value3, alpha, alpha2, alpha3;
     int             dateSep, offset, zoneOffset, explicitZone, fullYear;
-
-    mpr = mprGetMpr();
 
     offset = 0;
     zoneOffset = 0;
@@ -1367,7 +1359,6 @@ int mprParseTime(MprTime *time, cchar *dateString, int zoneFlags, struct tm *def
             value = stoi(token, 10, NULL);
             if (value > 3000) {
                 *time = value;
-                mprFree(str);
                 return 0;
             } else if (value > 32 || (tm.tm_mday >= 0 && tm.tm_year == -MAXINT)) {
                 if (value >= 1000) {
@@ -1389,16 +1380,16 @@ int mprParseTime(MprTime *time, cchar *dateString, int zoneFlags, struct tm *def
             }
             negate = *cp == '-' ? -1 : 1;
             cp++;
-            hour = getNum(mpr, &cp, timeSep);
+            hour = getNum(&cp, timeSep);
             if (hour >= 100) {
                 hour /= 100;
             }
-            min = getNum(mpr, &cp, timeSep);
+            min = getNum(&cp, timeSep);
             zoneOffset = negate * (hour * 60 + min);
             explicitZone = 1;
 
         } else if (isalpha((int) *token)) {
-            if ((tt = (TimeToken*) mprLookupHash(mpr->timeTokens, token)) != 0) {
+            if ((tt = (TimeToken*) mprLookupHash(MPR->timeTokens, token)) != 0) {
                 kind = tt->value & TOKEN_MASK;
                 value = tt->value & ~TOKEN_MASK; 
                 switch (kind) {
@@ -1433,9 +1424,9 @@ int mprParseTime(MprTime *time, cchar *dateString, int zoneFlags, struct tm *def
                 Time:  10:52[:23]
                 Must not parse GMT-07:30
              */
-            tm.tm_hour = getNum(mpr, &token, timeSep);
-            tm.tm_min = getNum(mpr, &token, timeSep);
-            tm.tm_sec = getNum(mpr, &token, timeSep);
+            tm.tm_hour = getNum(&token, timeSep);
+            tm.tm_min = getNum(&token, timeSep);
+            tm.tm_sec = getNum(&token, timeSep);
 
         } else {
             dateSep = '/';
@@ -1454,9 +1445,9 @@ int mprParseTime(MprTime *time, cchar *dateString, int zoneFlags, struct tm *def
                     Support order: dd/mm/yy, mm/dd/yy and yyyy/mm/dd
                     Support separators "/", ".", "-"
                  */
-                value1 = getNumOrSym(mpr, &token, dateSep, TOKEN_MONTH, &alpha);
-                value2 = getNumOrSym(mpr, &token, dateSep, TOKEN_MONTH, &alpha2);
-                value3 = getNumOrSym(mpr, &token, dateSep, TOKEN_MONTH, &alpha3);
+                value1 = getNumOrSym(&token, dateSep, TOKEN_MONTH, &alpha);
+                value2 = getNumOrSym(&token, dateSep, TOKEN_MONTH, &alpha2);
+                value3 = getNumOrSym(&token, dateSep, TOKEN_MONTH, &alpha3);
 
                 if (value1 > 31) {
                     /* yy/mm/dd */
@@ -1485,7 +1476,6 @@ int mprParseTime(MprTime *time, cchar *dateString, int zoneFlags, struct tm *def
         }
         token = stok(NULL, sep, &next);
     }
-    mprFree(str);
 
     /*
         Y2K fix and rebias

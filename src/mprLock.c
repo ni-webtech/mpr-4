@@ -40,7 +40,6 @@ MprMutex *mprCreateLock()
     lock->cs = semMCreate(SEM_Q_PRIORITY | SEM_DELETE_SAFE);
     if (lock->cs == 0) {
         mprAssert(0);
-        mprFree(lock);
         return 0;
     }
 #endif
@@ -86,7 +85,6 @@ MprMutex *mprInitLock(MprMutex *lock)
     lock->cs = semMCreate(SEM_Q_PRIORITY | SEM_DELETE_SAFE);
     if (lock->cs == 0) {
         mprAssert(0);
-        mprFree(lock);
         return 0;
     }
 #endif
@@ -147,7 +145,6 @@ MprSpin *mprCreateSpinLock()
     lock->cs = semMCreate(SEM_Q_PRIORITY | SEM_DELETE_SAFE);
     if (lock->cs == 0) {
         mprAssert(0);
-        mprFree(lock);
         return 0;
     }
 #endif
@@ -208,7 +205,6 @@ MprSpin *mprInitSpinLock(MprSpin *lock)
     lock->cs = semMCreate(SEM_Q_PRIORITY | SEM_DELETE_SAFE);
     if (lock->cs == 0) {
         mprAssert(0);
-        mprFree(lock);
         return 0;
     }
 #endif
@@ -262,13 +258,8 @@ void mprGlobalLock()
 
 void mprGlobalUnlock()
 {
-    Mpr *mpr;
-
-    mpr = mprGetMpr();
-    mprAssert(mpr);
-
-    if (mpr && mpr->mutex) {
-        mprUnlock(mpr->mutex);
+    if (MPR && MPR->mutex) {
+        mprUnlock(MPR->mutex);
     }
 }
 

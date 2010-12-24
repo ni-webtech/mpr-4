@@ -17,12 +17,8 @@
 MprFileSystem *mprCreateFileSystem(cchar *path)
 {
     MprFileSystem   *fs;
-    Mpr             *mpr;
     char            *cp;
 
-    mpr = mprGetMpr();
-    mprAssert(mpr);
-    
     /*
         TODO - evolve this to support multiple file systems in a single system
      */
@@ -50,8 +46,8 @@ MprFileSystem *mprCreateFileSystem(cchar *path)
     fs->hasDriveSpecs = 1;
 #endif
 
-    if (mpr->fileSystem == NULL) {
-        mpr->fileSystem = fs;
+    if (MPR->fileSystem == NULL) {
+        MPR->fileSystem = fs;
     }
     fs->root = mprGetAbsPath(path);
     if ((cp = strpbrk(fs->root, fs->separators)) != 0) {
@@ -70,7 +66,7 @@ void mprAddFileSystem(MprFileSystem *fs)
     mprAssert(fs);
     
     //  TODO - this does not currently add a file system. It merely replaces the existing.
-    mprGetMpr()->fileSystem = fs;
+    MPR->fileSystem = fs;
 }
 
 
@@ -79,7 +75,7 @@ void mprAddFileSystem(MprFileSystem *fs)
  */
 MprFileSystem *mprLookupFileSystem(cchar *path)
 {
-    return mprGetMpr()->fileSystem;
+    return MPR->fileSystem;
 }
 
 
@@ -113,7 +109,6 @@ void mprSetPathSeparators(cchar *path, cchar *separators)
     mprAssert(separators);
     
     fs = mprLookupFileSystem(path);
-    mprFree(fs->separators);
     fs->separators = sclone(separators);
 }
 
@@ -126,7 +121,6 @@ void mprSetPathNewline(cchar *path, cchar *newline)
     mprAssert(newline);
     
     fs = mprLookupFileSystem(path);
-    mprFree(fs->newline);
     fs->newline = sclone(newline);
 }
 

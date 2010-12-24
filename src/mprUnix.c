@@ -74,16 +74,14 @@ MprModule *mprLoadModule(cchar *name, cchar *fun, void *data)
 #if BLD_CC_DYN_LOAD
     MprModuleEntry  fn;
     MprModule       *mp;
-    Mpr             *mpr;
     char            *path, *moduleName;
     void            *handle;
 
     mprAssert(name && *name);
 
-    mp = 0;
-    mpr = mprGetMpr();
     moduleName = mprGetNormalizedPath(name);
 
+    mp = 0;
     path = 0;
     if (mprSearchForModule(moduleName, &path) < 0) {
         mprError("Can't find module \"%s\" in search path \"%s\"", name, mprGetModuleSearchPath());
@@ -98,7 +96,6 @@ MprModule *mprLoadModule(cchar *name, cchar *fun, void *data)
                 if ((fn)(data) < 0) {
                     mprError("Initialization for module %s failed", name);
                     dlclose(handle);
-                    mprFree(mp);
                     mp = 0;
                 }
             } else {
@@ -107,8 +104,6 @@ MprModule *mprLoadModule(cchar *name, cchar *fun, void *data)
             }
         }
     }
-    mprFree(path);
-    mprFree(moduleName);
     return mp;
 #else
     mprError("Product built without the ability to load modules dynamically");
@@ -139,7 +134,7 @@ void mprUnloadModule(MprModule *mp)
     if (mp->handle) {
         dlclose(mp->handle);
     }
-    mprRemoveItem(mprGetMpr()->moduleService->modules, mp);
+    mprRemoveItem(MPR->moduleService->modules, mp);
 }
 
 

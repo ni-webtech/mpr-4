@@ -100,7 +100,7 @@ int benchMain(int argc, char *argv[])
         mprServiceEvents(mprGetDispatcher(), 250, 0);
     }
     mprPrintMem("Memory Report", 0);
-    mprFree(mpr);
+    mprDestroy(mpr);
     return 0;
 }
 
@@ -152,7 +152,6 @@ static void doBenchmark(void *thread)
             mprUnlock(lock);
         }
         endMark(start, count, "Mutex lock|unlock");
-        mprFree(lock);
 
         /*
             Condition signal / wait
@@ -179,7 +178,6 @@ static void doBenchmark(void *thread)
             mprRemoveItem(list, (void*) (long) i);
         }
         endMark(start, count, "Link insert|remove");
-        mprFree(list);
 
         /*
             Events
@@ -219,9 +217,8 @@ static void doBenchmark(void *thread)
         start = startMark();
         for (i = 0; i < count; i++) {
             mp = mprAlloc(1024);
-            mprFree(mp);
         }
-        endMark(start, count, "Alloc mprAlloc(1K)|mprFree");
+        endMark(start, count, "Alloc mprAlloc(1K)");
     }
     testComplete = 1;
 }
@@ -241,7 +238,6 @@ static void testMalloc()
      */
     ptr = mprAlloc(1024);
     memset(ptr, 0, 1024 + (2 * sizeof(void*)));
-    mprFree(ptr);
 #endif
 
     mprPrintf("Alloc/Malloc overhead\n");
@@ -359,15 +355,14 @@ static void testMalloc()
     // mprPrintf("\tMpr overhead per block %d (approx)\n\n", ((memsize() - base) / count) - 32);
 
     /*
-        mprAlloc + mprFree(8)
+        mprAlloc(8)
      */
     start = startMark();
     for (i = 0; i < count; i++) {
         ptr = mprAlloc(8);
         memset(ptr, 0, 8);
-        mprFree(ptr);
     }
-    endMark(start, count, "Alloc mprAlloc + mprFree(8)");
+    endMark(start, count, "Alloc mprAlloc(8)");
     mprPrintf("\n");
 }
 
@@ -381,9 +376,8 @@ static void eventCallback(void *data, MprEvent *event)
     if (--markCount == 0) {
         mprSignalCond(complete);
     }
-    mprStopContinuousEvent(event);
+    mprRemoveEvent(event);
     mprUnlock(mutex);
-    mprFree(event);
 }
 
 
@@ -396,9 +390,8 @@ static void timerCallback(void *data, MprEvent *event)
     if (--markCount == 0) {
         mprSignalCond(complete);
     }
-    mprStopContinuousEvent(event);
+    mprRemoveEvent(event);
     mprUnlock(mutex);
-    mprFree(event);
 }
 
 

@@ -144,7 +144,6 @@ ssize mprPrintf(cchar *fmt, ...)
     } else {
         len = -1;
     }
-    mprFree(buf);
     return len;
 }
 
@@ -169,7 +168,6 @@ ssize mprPrintfError(cchar *fmt, ...)
     } else {
         len = -1;
     }
-    mprFree(buf);
     return len;
 }
 
@@ -191,7 +189,6 @@ ssize mprFprintf(MprFile *file, cchar *fmt, ...)
     } else {
         len = -1;
     }
-    mprFree(buf);
     return len;
 }
 
@@ -902,7 +899,7 @@ int mprIsZero(double value) {
 char *mprDtoa(double value, int ndigits, int mode, int flags)
 {
     MprBuf  *buf;
-    char    *intermediate, *ip, *result;
+    char    *intermediate, *ip;
     int     period, sign, len, exponentForm, fixedForm, exponent, count, totalDigits, npad;
 
     buf = mprCreateBuf(MPR_MAX_STRING, -1);
@@ -1030,9 +1027,7 @@ char *mprDtoa(double value, int ndigits, int mode, int flags)
     if (intermediate) {
         freedtoa(intermediate);
     }
-    result = sclone(mprGetBufStart(buf));
-    mprFree(buf);
-    return result;
+    return sclone(mprGetBufStart(buf));
 }
 #endif /* BLD_FEATURE_FLOAT */
 
@@ -1062,9 +1057,7 @@ static int growBuf(Format *fmt)
     }
     if (fmt->buf) {
         memcpy(newbuf, fmt->buf, buflen);
-        mprFree(fmt->buf);
     }
-
     buflen += fmt->growBy;
     fmt->end = newbuf + (fmt->end - fmt->buf);
     fmt->start = newbuf + (fmt->start - fmt->buf);
@@ -1072,7 +1065,7 @@ static int growBuf(Format *fmt)
     fmt->endbuf = &fmt->buf[buflen];
 
     /*
-     *  Increase growBy to reduce overhead
+        Increase growBy to reduce overhead
      */
     if ((buflen + (fmt->growBy * 2)) < fmt->maxsize) {
         fmt->growBy *= 2;

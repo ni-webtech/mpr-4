@@ -212,7 +212,6 @@ void mprWaitForIO(MprWaitService *ws, int timeout)
     } else if (rc > 0) {
         serviceIO(ws, fds, count);
     }
-    mprFree(fds);
     ws->wakeRequested = 0;
 }
 
@@ -265,7 +264,7 @@ void mprWakeNotifier()
     MprWaitService  *ws;
     int             c, rc;
 
-    ws = mprGetMpr()->waitService;
+    ws = MPR->waitService;
     if (!ws->wakeRequested) {
         ws->wakeRequested = 1;
         c = 0;

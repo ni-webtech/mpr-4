@@ -22,8 +22,7 @@ static void manageHash(MprHashTable *table, int flags);
 
 /*********************************** Code *************************************/
 /*
-    Create a new hash table of a given size. Caller should provide a size that is a prime number for the greatest
-    efficiency. Caller should use mprFree to free the hash table.
+    Create a new hash table of a given size. Caller should provide a size that is a prime number for the greatest efficiency.
  */
 
 MprHashTable *mprCreateHash(int hashSize, int flags)
@@ -59,7 +58,6 @@ MprHashTable *mprCreateHash(int hashSize, int flags)
         }
     }
     if (table->buckets == 0) {
-        mprFree(table);
         return 0;
     }
     return table;
@@ -188,7 +186,6 @@ int mprRemoveHash(MprHashTable *table, cvoid *key)
         table->buckets[index] = sp->next;
     }
     table->length--;
-    mprFree(sp);
     return 0;
 }
 

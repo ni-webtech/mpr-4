@@ -149,8 +149,6 @@ int mprCopyPath(cchar *fromName, cchar *toName, int mode)
     while ((count = mprRead(from, buf, sizeof(buf))) > 0) {
         mprWrite(to, buf, count);
     }
-    mprFree(from);
-    mprFree(to);
     return 0;
 }
 
@@ -204,7 +202,6 @@ char *mprGetAbsPath(cchar *pathArg)
     if (hasDrive(fs, pathArg)) {
         dir = mprGetCurrentPath();
         path = mprJoinPath(dir, &strchr(pathArg, ':')[1]);
-        mprFree(dir);
 
     } else {
         if (isAbsPath(fs, pathArg)) {
@@ -213,11 +210,9 @@ char *mprGetAbsPath(cchar *pathArg)
              */
             dir = mprGetCurrentPath();
             path = mprJoinPath(dir, pathArg);
-            mprFree(dir);
         } else {
             dir = mprGetCurrentPath();
             path = mprJoinPath(dir, pathArg);
-            mprFree(dir);
         }
     }
 }
@@ -226,7 +221,6 @@ char *mprGetAbsPath(cchar *pathArg)
     char   *dir;
     dir = mprGetCurrentPath();
     path = mprJoinPath(dir, pathArg);
-    mprFree(dir);
 }
 #endif
     return path;
@@ -367,7 +361,6 @@ MprList *mprGetPathFiles(cchar *dir, bool enumDirs)
 
     h = FindFirstFile(path, &findData);
     if (h == INVALID_HANDLE_VALUE) {
-        mprFree(path);
         return 0;
     }
     list = mprCreateList();
@@ -379,12 +372,10 @@ MprList *mprGetPathFiles(cchar *dir, bool enumDirs)
         if (enumDirs || !(findData.dwFileAttributes & FILE_ATTRIBUTE_DIRECTORY)) {
             dp = mprAlloc(sizeof(MprDirEntry));
             if (dp == 0) {
-                mprFree(path);
                 return 0;
             }
             dp->name = sclone(findData.cFileName);
             if (dp->name == 0) {
-                mprFree(path);
                 return 0;
             }
 
@@ -413,7 +404,6 @@ MprList *mprGetPathFiles(cchar *dir, bool enumDirs)
         }
     } while (FindNextFile(h, &findData) != 0);
 
-    mprFree(path);
     FindClose(h);
     return list;
 }
@@ -445,7 +435,6 @@ MprList *mprGetPathFiles(cchar *path, bool enumDirs)
         }
         fileName = mprJoinPath(path, dirent->d_name);
         rc = mprGetPathInfo(fileName, &fileInfo);
-        mprFree(fileName);
         if (enumDirs || (rc == 0 && !fileInfo.isDir)) { 
             dp = mprAlloc(sizeof(MprDirEntry));
             if (dp == 0) {
@@ -519,7 +508,7 @@ int mprGetPathInfo(cchar *path, MprPath *info)
 char *mprGetPathParent(cchar *path)
 {
     MprFileSystem   *fs;
-    char            *dir, *parent;
+    char            *dir;
 
     fs = mprLookupFileSystem(path);
 
@@ -531,9 +520,7 @@ char *mprGetPathParent(cchar *path)
             No parents in the path, so convert to absolute
          */
         dir = mprGetAbsPath(path);
-        parent = mprGetPathDir(dir);
-        mprFree(dir);
-        return parent;
+        return mprGetPathDir(dir);
     }
     return mprGetPathDir(path);
 }
@@ -656,7 +643,6 @@ char *mprGetRelPath(cchar *pathArg)
         strcpy(result, ".");
     }
     mprMapSeparators(result, sep);
-    mprFree(tmp);
     return result;
 }
 
@@ -688,7 +674,7 @@ bool mprIsRelPath(cchar *path)
 char *mprJoinPath(cchar *path, cchar *other)
 {
     MprFileSystem   *fs;
-    char            *join, *result, *drive, *cp;
+    char            *join, *drive, *cp;
     int             sep;
 
     fs = mprLookupFileSystem(path);
@@ -704,9 +690,7 @@ char *mprJoinPath(cchar *path, cchar *other)
             if ((cp = strchr(drive, ':')) != 0) {
                 *++cp = '\0';
             }
-            result = sjoin(drive, other, NULL);
-            mprFree(drive);
-            return result;
+            return sjoin(drive, other, NULL);
         } else {
             return mprGetNormalizedPath(other);
         }
@@ -724,9 +708,7 @@ char *mprJoinPath(cchar *path, cchar *other)
     if ((join = mprAsprintf("%s%c%s", path, sep, other)) == 0) {
         return 0;
     }
-    result = mprGetNormalizedPath(join);
-    mprFree(join);
-    return result;
+    return mprGetNormalizedPath(join);
 }
 
 
@@ -770,7 +752,6 @@ int mprMakeDir(cchar *path, int perms, bool makeMissing)
     if (makeMissing && !isRoot(fs, path)) {
         parent = mprGetPathParent(path);
         rc = mprMakeDir(parent, perms, makeMissing);
-        mprFree(parent);
         return fs->makeDir(fs, path, perms);
     }
     return MPR_ERR_CANT_CREATE;
@@ -820,17 +801,14 @@ char *mprGetTempPath(cchar *tempDir)
     path = 0;
 
     for (i = 0; i < 128; i++) {
-        mprFree(path);
         path = mprAsprintf("%s/MPR_%d_%d_%d.tmp", dir, getpid(), now, ++tempSeed);
         file = mprOpen(path, O_CREAT | O_EXCL | O_BINARY, 0664);
         if (file) {
-            mprFree(file);
+            mprClose(file);
             break;
         }
     }
-    mprFree(dir);
     if (file == 0) {
-        mprFree(path);
         return 0;
     }
     return path;
@@ -843,22 +821,19 @@ char *mprGetTempPath(cchar *tempDir)
  */
 static char *toCygPath(cchar *path)
 {
-    Mpr     *mpr;
     char    *absPath, *result;
     int     len;
 
-    mpr = mprGetMpr();
-
     absPath = NULL;
-    if (!isFullPath(mpr, path)) {
+    if (!isFullPath(path)) {
         absPath = mprGetAbsPath(path);
         path = (cchar*) absPath;
     }
-    mprAssert(isFullPath(mpr, path);
+    mprAssert(isFullPath(path);
         
     if (fs->cygdrive) {
         len = strlen(fs->cygdrive);
-        if (sncasecmp(fs->cygdrive, &path[2], len) == 0 && isSep(mpr, path[len+2])) {
+        if (sncasecmp(fs->cygdrive, &path[2], len) == 0 && isSep(path[len+2])) {
             /*
                 If path is like: "c:/cygdrive/c/..."
                 Just strip the "c:" portion. Still validly qualified.
@@ -871,7 +846,7 @@ static char *toCygPath(cchar *path)
              */
             result = mprAsprintf("%s/%c%s", fs->cygdrive, path[0], &path[2]);
             len = strlen(result);
-            if (isSep(mpr, result[len-1])) {
+            if (isSep(result[len-1])) {
                 result[len-1] = '\0';
             }
         }
@@ -881,7 +856,6 @@ static char *toCygPath(cchar *path)
          */
         result = mprGetRelPath(pathArg);
     }
-    mprFree(absPath);
     return result;
 }
 
@@ -891,19 +865,16 @@ static char *toCygPath(cchar *path)
  */
 static char *fromCygPath(cchar *path)
 {
-    Mpr     *mpr;
     char    *buf, *result;
     int     len;
 
-    mpr = mprGetMpr();
-
-    if (isFullPath(mpr, path)) {
+    if (isFullPath(path)) {
         return sclone(path);
     }
     if (fs->cygdrive) {
         len = strlen(fs->cygdrive);
-        if (mprComparePath(mpr, fs->cygdrive, path, len) == 0 && isSep(mpr, path[len]) && 
-                isalpha(path[len+1]) && isSep(mpr, path[len+2])) {
+        if (mprComparePath(fs->cygdrive, path, len) == 0 && isSep(path[len]) && 
+                isalpha(path[len+1]) && isSep(path[len+2])) {
             /*
                 Has a "/cygdrive/c/" style prefix
              */
@@ -916,7 +887,6 @@ static char *fromCygPath(cchar *path)
             buf = mprAsprintf("%s/%s", fs->cygdrive, path);
         }
         result = mprGetAbsPath(buf);
-        mprFree(buf);
 
     } else {
         result = mprGetAbsPath(path);
@@ -984,7 +954,6 @@ char *mprGetNormalizedPath(cchar *pathArg)
             last = path[strlen(path) - 1];
             if (last == ':') {
                 path = sjoin(path, ".", NULL);
-                mprFree(dupPath);
             }
         }
         return path;
@@ -1001,7 +970,6 @@ char *mprGetNormalizedPath(cchar *pathArg)
      */
     mprAssert(segmentCount > 0);
     if ((segments = mprAlloc(sizeof(char*) * (segmentCount + 1))) == 0) {
-        mprFree(dupPath);
         return NULL;
     }
 
@@ -1055,8 +1023,6 @@ char *mprGetNormalizedPath(cchar *pathArg)
     segmentCount = i;
 
     if (segmentCount <= 0) {
-        mprFree(dupPath);
-        mprFree(segments);
         return sclone(".");
     }
 
@@ -1075,8 +1041,6 @@ char *mprGetNormalizedPath(cchar *pathArg)
     }
 #endif
     if ((path = mprAlloc(len + segmentCount + 1)) == 0) {
-        mprFree(segments);
-        mprFree(dupPath);
         return NULL;
     }
     mprAssert(segmentCount > 0);
@@ -1098,8 +1062,6 @@ char *mprGetNormalizedPath(cchar *pathArg)
         dp += strlen(segments[i]);
     }
     *dp = '\0';
-    mprFree(dupPath);
-    mprFree(segments);
     return path;
 }
 
@@ -1177,7 +1139,7 @@ bool mprPathExists(cchar *path, int omode)
 char *mprResolvePath(cchar *path, cchar *other)
 {
     MprFileSystem   *fs;
-    char            *join, *result, *drive, *cp, *dir;
+    char            *join, *drive, *cp, *dir;
 
     fs = mprLookupFileSystem(path);
     if (other == NULL || *other == '\0' || strcmp(other, ".") == 0) {
@@ -1192,9 +1154,7 @@ char *mprResolvePath(cchar *path, cchar *other)
             if ((cp = strchr(drive, ':')) != 0) {
                 *++cp = '\0';
             }
-            result = sjoin(drive, other, NULL);
-            mprFree(drive);
-            return result;
+            return sjoin(drive, other, NULL);
         }
         return mprGetNormalizedPath(other);
     }
@@ -1203,13 +1163,9 @@ char *mprResolvePath(cchar *path, cchar *other)
     }
     dir = mprGetPathDir(path);
     if ((join = mprAsprintf("%s/%s", dir, other)) == 0) {
-        mprFree(dir);
         return 0;
     }
-    mprFree(dir);
-    result = mprGetNormalizedPath(join);
-    mprFree(join);
-    return result;
+    return mprGetNormalizedPath(join);
 }
 
 
@@ -1220,7 +1176,6 @@ int mprSamePath(cchar *path1, cchar *path2)
 {
     MprFileSystem   *fs;
     cchar           *p1, *p2;
-    int             rc;
 
     fs = mprLookupFileSystem(path1);
 
@@ -1250,10 +1205,7 @@ int mprSamePath(cchar *path1, cchar *path2)
             }
         }
     }
-    rc = (*p1 == *p2);
-    mprFree((char*) path1);
-    mprFree((char*) path2);
-    return rc;
+    return (*p1 == *p2);
 }
 
 
@@ -1293,8 +1245,6 @@ int mprSamePathCount(cchar *path1, cchar *path2, ssize len)
             }
         }
     }
-    mprFree(tmpPath1);
-    mprFree(tmpPath2);
     return len == 0;
 }
 
@@ -1302,7 +1252,7 @@ int mprSamePathCount(cchar *path1, cchar *path2, ssize len)
 char *mprSearchPath(cchar *file, int flags, cchar *search, ...)
 {
     va_list     args;
-    char        *path, *dir, *result, *nextDir, *tok;
+    char        *path, *dir, *nextDir, *tok;
     int         access;
 
     va_start(args, search);
@@ -1319,24 +1269,17 @@ char *mprSearchPath(cchar *file, int flags, cchar *search, ...)
                 path = mprJoinPath(dir, file);
                 if (mprPathExists(path, R_OK)) {
                     mprLog(5, "mprSearchForFile: found %s", path);
-                    result = mprGetNormalizedPath(path);
-                    mprFree(path);
-                    mprFree(nextDir);
-                    return result;
+                    return mprGetNormalizedPath(path);
                 }
-                mprFree(path);
                 dir = stok(0, MPR_SEARCH_SEP, &tok);
             }
-            mprFree(nextDir);
 
         } else {
             mprLog(5, "mprSearchForFile: %s in directory %s", file, nextDir);
             path = mprJoinPath(nextDir, file);
             if (mprPathExists(path, R_OK)) {
                 mprLog(5, "mprSearchForFile: found %s", path);
-                result = mprGetNormalizedPath(path);
-                mprFree(path);
-                return result;
+                return mprGetNormalizedPath(path);
             }
         }
     }
@@ -1411,11 +1354,8 @@ char *mprTrimPathExtension(cchar *path)
  */
 char *mprGetAppPath()
 { 
-    Mpr     *mpr;
-
-    mpr = mprGetMpr();
-    if (mpr->appPath) {
-        return sclone(mpr->appPath);
+    if (MPR->appPath) {
+        return sclone(MPR->appPath);
     }
 
 #if MACOSX
@@ -1434,8 +1374,7 @@ char *mprGetAppPath()
         return mprGetAbsPath(path);
     }
     pbuf[len] = '\0';
-    mpr->appPath = mprGetAbsPath(pbuf);
-    return sclone(mpr->appPath);
+    MPR->appPath = mprGetAbsPath(pbuf);
 }
 #elif FREEBSD 
 {
@@ -1447,8 +1386,7 @@ char *mprGetAppPath()
         return mprGetAbsPath(".");
      }
      pbuf[len] = '\0';
-     mpr->appPath = mprGetAbsPath(pbuf);
-     return sclone(mpr->appPath);
+     MPR->appPath = mprGetAbsPath(pbuf);
 }
 #elif BLD_UNIX_LIKE 
 {
@@ -1461,13 +1399,10 @@ char *mprGetAppPath()
 #endif
     len = readlink(path, pbuf, sizeof(pbuf) - 1);
     if (len < 0) {
-        mprFree(path);
         return mprGetAbsPath(".");
     }
     pbuf[len] = '\0';
-    mprFree(path);
-    mpr->appPath = mprGetAbsPath(pbuf);
-    return sclone(mpr->appPath);
+    MPR->appPath = mprGetAbsPath(pbuf);
 }
 #elif BLD_WIN_LIKE
 {
@@ -1476,13 +1411,12 @@ char *mprGetAppPath()
     if (GetModuleFileName(0, pbuf, sizeof(pbuf) - 1) <= 0) {
         return 0;
     }
-    mpr->appPath = mprGetAbsPath(pbuf);
-    return sclone(mpr->appPath);
+    MPR->appPath = mprGetAbsPath(pbuf);
 }
 #else
-    mpr->appPath = mprGetCurrentPath();
-    return sclone(mpr->appPath);
+    MPR->appPath = mprGetCurrentPath();
 #endif
+    return sclone(MPR->appPath);
 }
 
  
@@ -1491,16 +1425,10 @@ char *mprGetAppPath()
  */
 char *mprGetAppDir()
 { 
-    Mpr     *mpr;
-    char    *path;
-
-    mpr = mprGetMpr();
-    if (mpr->appDir == 0) {
-        path = sclone(mprGetAppPath());
-        mpr->appDir = mprGetPathDir(path);
-        mprFree(path);
+    if (MPR->appDir == 0) {
+        MPR->appDir = mprGetPathDir(mprGetAppPath());
     }
-    return sclone(mpr->appDir); 
+    return sclone(MPR->appDir); 
 } 
 
 /*

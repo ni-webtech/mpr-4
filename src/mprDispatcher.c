@@ -130,7 +130,6 @@ static int dispatchEvents(MprDispatcher *dispatcher)
         (*event->proc)(event->data, event);
 
         if (--dispatcher->inUse == 0 && dispatcher->deleted) {
-            mprFree(dispatcher);
             return -1;
         }
     }
@@ -297,7 +296,7 @@ MprDispatcher *mprCreateDispatcher(cchar *name, int enable)
     }
     dispatcher->name = sclone(name);
     dispatcher->enabled = enable;
-    es = dispatcher->service = mprGetMpr()->eventService;
+    es = dispatcher->service = MPR->eventService;
     mprInitEventQ(&dispatcher->eventQ);
     queueDispatcher(&es->idleQ, dispatcher);
     return dispatcher;
@@ -384,9 +383,10 @@ void mprRelayEvent(MprDispatcher *dispatcher, MprEventProc proc, void *data, Mpr
     dispatcher->inUse++;
     (proc)(data, event);
 
-    if (--dispatcher->inUse == 0 && dispatcher->deleted) {
-        mprFree(dispatcher);
-    } else if (!wasRunning) {
+    if (--dispatcher->inUse > 0 && dispatcher->deleted) {
+        return;
+    }
+    if (!wasRunning) {
         lock(es);
         dequeueDispatcher(dispatcher);
         /* ScheduleDispatcher will requeue on the right run/idle/wait queue */
@@ -412,7 +412,7 @@ void mprScheduleDispatcher(MprDispatcher *dispatcher)
     mprAssert(dispatcher->enabled);
 
     es = dispatcher->service;
-    ws = mprGetMpr()->waitService;
+    ws = MPR->waitService;
 
     lock(es);
     if (isRunning(dispatcher) || !dispatcher->enabled) {

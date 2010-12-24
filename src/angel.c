@@ -805,7 +805,6 @@ static void angel()
         GetModuleFileName(0, path, sizeof(path));
         dir = mprGetPathDir(path);
         mprSprintf(path, sizeof(path), "\"%s\\%s.exe\"", dir, BLD_PRODUCT);
-        mprFree(dir);
     } else {
         mprSprintf(path, sizeof(path), "\"%s\"", serviceProgram);
     }
@@ -869,8 +868,6 @@ static void angel()
             mprPrintf("%s will be restarted in 10 seconds\n", serviceProgram);
         }
     }
-    mprFree(homeDir);
-    mprFree(serviceArgs);
 }
 
 

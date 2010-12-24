@@ -45,7 +45,7 @@ static void manageFile(MprFile *file, int flags)
 
     } else if (flags & MPR_MANAGE_FREE) {
         if (!file->attached) {
-            mprCloseFile(file);
+            mprClose(file);
         }
     }
 }
@@ -270,6 +270,15 @@ MprFile *mprOpen(cchar *path, int omode, int perms)
         file->perms = perms;
     }
     return file;
+}
+
+
+int mprClose(MprFile *file)
+{
+    MprFileSystem   *fs;
+
+    fs = mprLookupFileSystem(file->path);
+    return fs->closeFile(file);
 }
 
 
@@ -524,7 +533,6 @@ ssize mprWriteFormat(MprFile *file, cchar *fmt, ...)
     va_start(ap, fmt);
     if ((buf = mprAsprintfv(fmt, ap)) != NULL) {
         rc = mprWriteString(file, buf);
-        mprFree(buf);
     }
     va_end(ap);
     return rc;
@@ -584,7 +592,6 @@ int mprEnableFileBuffering(MprFile *file, ssize initialSize, ssize maxSize)
 void mprDisableFileBuffering(MprFile *file)
 {
     mprFlush(file);
-    mprFree(file->buf);
     file->buf = 0;
 }
 

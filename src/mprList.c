@@ -21,7 +21,7 @@ static void manageList(MprList *lp, int flags);
 
 /************************************ Code ************************************/
 /*
-    Create a general growable list structure. Use mprFree to destroy.
+    Create a general growable list structure
  */
 MprList *mprCreateList()
 {
@@ -77,7 +77,6 @@ int mprSetListLimits(MprList *lp, int initialSize, int maxSize)
     if (lp->items == 0) {
         lp->items = mprAlloc(size);
         if (lp->items == 0) {
-            mprFree(lp);
             return MPR_ERR_MEMORY;
         }
         memset(lp->items, 0, size);
@@ -116,7 +115,6 @@ MprList *mprCloneList(MprList *src)
         return 0;
     }
     if (mprCopyList(list, src) < 0) {
-        mprFree(list);
         return 0;
     }
     return list;
@@ -132,7 +130,6 @@ MprList *mprAppendList(MprList *list, MprList *add)
 
     for (next = 0; ((item = mprGetNextItem(add, &next)) != 0); ) {
         if (mprAddItem(list, item) < 0) {
-            mprFree(list);
             return 0;
         }
     }

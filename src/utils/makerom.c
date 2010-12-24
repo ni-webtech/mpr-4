@@ -123,7 +123,7 @@ static int binToC(MprList *files, char *romName, char *prefix)
             }
         }
         mprPrintf("    0 };\n\n");
-        mprFree(file);
+        mprClose(file);
     }
 
     /*
