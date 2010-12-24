@@ -943,7 +943,7 @@ static int setLogging(char *logSpec)
         file = MPR->fileSystem->stdError;
 
     } else {
-        if ((file = mprOpen(logSpec, O_CREAT | O_WRONLY | O_TRUNC | O_TEXT, 0664)) == 0) {
+        if ((file = mprOpenFile(logSpec, O_CREAT | O_WRONLY | O_TRUNC | O_TEXT, 0664)) == 0) {
             mprPrintfError("Can't open log file %s\n", logSpec);
             return MPR_ERR_CANT_OPEN;
         }

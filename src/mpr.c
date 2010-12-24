@@ -78,14 +78,14 @@ Mpr *mprCreate(int argc, char **argv, int flags)
     startThreads(flags);
 
     if (MPR->hasError || mprHasMemError()) {
-        mprStop(mpr);
+        mprStop();
         return 0;
     }
     return mpr;
 }
 
 
-void mprDestroy(mpr)
+void mprDestroy(Mpr *mpr)
 {
     mprStop();
 }

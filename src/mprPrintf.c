@@ -140,7 +140,7 @@ ssize mprPrintf(cchar *fmt, ...)
     buf = mprAsprintfv(fmt, ap);
     va_end(ap);
     if (buf != 0 && fs->stdOutput) {
-        len = mprWriteString(fs->stdOutput, buf);
+        len = mprWriteFileString(fs->stdOutput, buf);
     } else {
         len = -1;
     }
@@ -164,7 +164,7 @@ ssize mprPrintfError(cchar *fmt, ...)
     buf = mprAsprintfv(fmt, ap);
     va_end(ap);
     if (buf && fs->stdError) {
-        len = mprWriteString(fs->stdError, buf);
+        len = mprWriteFileString(fs->stdError, buf);
     } else {
         len = -1;
     }
@@ -185,7 +185,7 @@ ssize mprFprintf(MprFile *file, cchar *fmt, ...)
     buf = mprAsprintfv(fmt, ap);
     va_end(ap);
     if (buf) {
-        len = mprWriteString(file, buf);
+        len = mprWriteFileString(file, buf);
     } else {
         len = -1;
     }
@@ -208,7 +208,7 @@ int mprStaticPrintf(cchar *fmt, ...)
     va_start(ap, fmt);
     sprintfCore(buf, MPR_MAX_STRING, fmt, ap);
     va_end(ap);
-    return mprWrite(fs->stdOutput, buf, strlen(buf));
+    return mprWriteFile(fs->stdOutput, buf, strlen(buf));
 }
 
 
@@ -226,7 +226,7 @@ int mprStaticPrintfError(cchar *fmt, ...)
     va_start(ap, fmt);
     sprintfCore(buf, MPR_MAX_STRING, fmt, ap);
     va_end(ap);
-    return mprWrite(fs->stdError, buf, strlen(buf));
+    return mprWriteFile(fs->stdError, buf, strlen(buf));
 }
 #endif
 

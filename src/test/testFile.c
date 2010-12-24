@@ -77,13 +77,13 @@ static void testBasicIO(MprTestGroup *gp)
     rc = mprDeletePath(ts->name);
     assert(!mprPathExists(ts->name, R_OK));
     
-    file = mprOpen(ts->name, O_CREAT | O_TRUNC | O_RDWR, FILEMODE);
+    file = mprOpenFile(ts->name, O_CREAT | O_TRUNC | O_RDWR, FILEMODE);
     assert(file != 0);
     assert(mprPathExists(ts->name, R_OK));
 
-    len = mprWrite(file, "abcdef", 6);
+    len = mprWriteFile(file, "abcdef", 6);
     assert(len == 6);
-    mprClose(file);
+    mprCloseFile(file);
 
     assert(mprPathExists(ts->name, R_OK));
     rc = mprGetPathInfo(ts->name, &info);
@@ -100,30 +100,30 @@ static void testBasicIO(MprTestGroup *gp)
     assert(!info.isDir);
     assert(info.isReg);
     
-    file = mprOpen(ts->name, O_RDWR, FILEMODE);
+    file = mprOpenFile(ts->name, O_RDWR, FILEMODE);
     assert(file != 0);
 
-    pos = mprSeek(file, SEEK_SET, 1);
-    len = mprRead(file, buf, sizeof(buf));
+    pos = mprSeekFile(file, SEEK_SET, 1);
+    len = mprReadFile(file, buf, sizeof(buf));
     assert(len == 5);
     buf[len] = '\0';
     
     assert(strcmp(buf, "bcdef") == 0);
 
-    pos = mprSeek(file, SEEK_SET, 0);
+    pos = mprSeekFile(file, SEEK_SET, 0);
     assert(pos == 0);
     assert(mprGetFilePosition(file) == 0);
 
-    len = mprWriteString(file, "Hello\nWorld\n");
+    len = mprWriteFileString(file, "Hello\nWorld\n");
     assert(len == 12);
-    mprSeek(file, SEEK_SET, 0);
+    mprSeekFile(file, SEEK_SET, 0);
 
-    rc = mprRead(file, buf, sizeof(buf));
+    rc = mprReadFile(file, buf, sizeof(buf));
     assert(rc == 12);
     assert(mprGetFilePosition(file) == 12);
     buf[12] = '\0';
     assert(strcmp(buf, "Hello\nWorld\n") == 0);
-    mprClose(file);
+    mprCloseFile(file);
 
     rc = mprDeletePath(ts->name);
     assert(rc == 0);
@@ -145,19 +145,19 @@ static void testBufferedIO(MprTestGroup *gp)
     rc = mprDeletePath(ts->name);
     assert(!mprPathExists(ts->name, R_OK));
     
-    file = mprOpen(ts->name, O_CREAT | O_TRUNC | O_RDWR | O_BINARY, FILEMODE);
+    file = mprOpenFile(ts->name, O_CREAT | O_TRUNC | O_RDWR | O_BINARY, FILEMODE);
     assert(file != 0);
     assert(mprPathExists(ts->name, R_OK));
     
     mprEnableFileBuffering(file, 0, 512);
     
-    len = mprWrite(file, "abc", 3);
+    len = mprWriteFile(file, "abc", 3);
     assert(len == 3);
     
-    len = mprPutc(file, 'd');
+    len = mprPutFileChar(file, 'd');
     assert(len == 1);
     
-    len = mprPuts(file, "ef\n");
+    len = mprPutFileString(file, "ef\n");
     assert(len == 3);
     
     assert(mprPathExists(ts->name, R_OK));
@@ -169,9 +169,9 @@ static void testBufferedIO(MprTestGroup *gp)
     assert(rc == 0);
     assert(info.size == 0);
     
-    rc = mprFlush(file);
+    rc = mprFlushFile(file);
     assert(rc == 0);
-    mprClose(file);
+    mprCloseFile(file);
     
     /*
         Now the length should be set
@@ -188,19 +188,19 @@ static void testBufferedIO(MprTestGroup *gp)
     }
     assert(info.size == 7);
 
-    file = mprOpen(ts->name, O_RDONLY | O_BINARY, FILEMODE);
+    file = mprOpenFile(ts->name, O_RDONLY | O_BINARY, FILEMODE);
     assert(file != 0);
     
-    pos = mprSeek(file, SEEK_SET, 0);
-    assert(mprPeekc(file) == 'a');
-    c = mprGetc(file);
+    pos = mprSeekFile(file, SEEK_SET, 0);
+    assert(mprPeekFileChar(file) == 'a');
+    c = mprGetFileChar(file);
     assert(c == 'a');
-    str = mprGets(file, 0, NULL);
+    str = mprGetFileString(file, 0, NULL);
     assert(str != 0);
     len = strlen(str);
     assert(len == 5);   
     assert(strcmp(str, "bcdef") == 0);
-    mprClose(file);
+    mprCloseFile(file);
 
     mprDeletePath(ts->name);
     assert(!mprPathExists(ts->name, R_OK));

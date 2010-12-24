@@ -85,7 +85,6 @@
 		C9EAE708110A61C10062863F /* mprEpoll.c in Sources */ = {isa = PBXBuildFile; fileRef = C9EAE706110A61C10062863F /* mprEpoll.c */; };
 		C9EAE70A110A61D00062863F /* dtoa.c in Sources */ = {isa = PBXBuildFile; fileRef = C9EAE709110A61D00062863F /* dtoa.c */; };
 		C9EC264A12B18D220087E7D9 /* testMem.c in Sources */ = {isa = PBXBuildFile; fileRef = C9EC264812B18D220087E7D9 /* testMem.c */; };
-		C9F3AA711252431200183E33 /* libmatrixsslstatic.a in Frameworks */ = {isa = PBXBuildFile; fileRef = C9F8E4B6102B659C00492AB2 /* libmatrixsslstatic.a */; };
 		C9F3AAA61252447B00183E33 /* libmpr.dylib in Frameworks */ = {isa = PBXBuildFile; fileRef = C90A19EE0FD6DCAD006A9E86 /* libmpr.dylib */; };
 		C9F3AAAA1252449F00183E33 /* libmprssl.dylib in Frameworks */ = {isa = PBXBuildFile; fileRef = C90A19FE0FD6DCD8006A9E86 /* libmprssl.dylib */; };
 		C9F3AAAB125244AB00183E33 /* libmpr.dylib in Frameworks */ = {isa = PBXBuildFile; fileRef = C90A19EE0FD6DCAD006A9E86 /* libmpr.dylib */; };
@@ -221,7 +220,6 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				C9F3AA711252431200183E33 /* libmatrixsslstatic.a in Frameworks */,
 				C9F3AAA61252447B00183E33 /* libmpr.dylib in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
@@ -653,7 +651,7 @@
 		C90A19DD0FD6DC5E006A9E86 /* Debug */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
-				ARCHS = "$(ONLY_ACTIVE_ARCH_PRE_XCODE_3_1)";
+				ARCHS = i386;
 				COPY_PHASE_STRIP = NO;
 				GCC_C_LANGUAGE_STANDARD = gnu99;
 				GCC_PREPROCESSOR_DEFINITIONS = (
@@ -665,7 +663,7 @@
 					../../../src/include,
 				);
 				LIBRARY_SEARCH_PATHS = ../../../out/lib;
-				ONLY_ACTIVE_ARCH_PRE_XCODE_3_1 = "$(NATIVE_ARCH_64)";
+				ONLY_ACTIVE_ARCH = YES;
 				OTHER_LDFLAGS = (
 					"-lcrypto",
 					"-lssl",

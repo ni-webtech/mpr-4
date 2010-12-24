@@ -362,6 +362,70 @@ void mprSpinUnlock(MprSpin *lock)
 }
 
 
+/******************************************* Lock Free Primitives **********************************/
+
+#if 0
+    volatile
+    Windows
+        InerlockedCompareExchange
+        _ReadBarrier
+        _WriteBarrier
+
+    sfence
+    lfence
+    mfence
+
+    MAC
+        libkern/OSAtomic.h
+        OSMemoryBarrier
+
+    Linux
+        barrier() - may be kernel only
+
+    int cas(void *addr, void *expected, void *value) {
+        if (*addr == *expected) {
+            *addr = *value;
+            return 1;
+        }
+        return 0;
+    }
+
+    do {
+        rp->next = heap->regions;
+    } while (mprCas(&heap->regions, rp, rp->next);
+
+    mprLfLink(&heap->regions, &rp->next, rp);
+#endif
+
+
+int mprCasPtr(void **addr, void *expected, void *value)
+{
+#if MACOSX
+    //  MOB -- is barrier required to flush writes?
+    return OSAtomicCompareAndSwapPtrBarrier(expected, value, addr);
+#elif BLD_UNIX_LIKE
+#elif BLD_WIN_LIKE
+#elif VXWORKS
+#else
+    //  Create a global spin lock
+    mprGlobalLock();
+    if (*addr == expected) {
+        *addr = value;
+        return 1;
+    }
+    return 0;
+    mprGlobalUnlock();
+#endif
+}
+
+
+void mprAtomListInsert(void **head, void **link, void *item)
+{
+    do {
+        *link = *head;
+    } while (mprCasPtr(head, *link, item));
+}
+
 /*
     @copy   default
 
@@ -395,35 +459,5 @@ void mprSpinUnlock(MprSpin *lock)
     End:
     vim: sw=4 ts=4 expandtab
 
-    volatile
-    Windows
-        InerlockedCompareExchange
-        _ReadBarrier
-        _WriteBarrier
-
-    sfence
-    lfence
-    mfence
-
-    int cas(void *addr, void *expected, void *value) {
-        if (*addr == *expected) {
-            *addr = *value;
-            return 1;
-        }
-        return 0;
-    }
-
-    do {
-        rp->next = heap->regions;
-    } while (mprCas(&heap->regions, rp, rp->next);
-
-    mprLfLink(&heap->regions, &rp->next, rp);
-
-    static void mprLfFree(void *head, void *item, void *link) 
-    {
-        do {
-            *link = head;
-        } while (mprCas(head, item, *link);
-    }
     @end
  */

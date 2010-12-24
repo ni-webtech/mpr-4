@@ -23,12 +23,12 @@ MAIN(runProgramMain, int argc, char* argv[])
     signal(SIGPIPE, SIG_IGN);
 #endif
 #if TRACE_PROGRESS
-    MprFile *f = mprOpen("/tmp/r.log", O_CREAT|O_TRUNC|O_WRONLY, 0664);
+    MprFile *f = mprOpenFile("/tmp/r.log", O_CREAT|O_TRUNC|O_WRONLY, 0664);
     mprWriteFormat(f, "runProgram: argc %d\n", argc);
     for (i = 0; i < argc; i++) {
         mprWriteFormat(f, "runProgram: arg[%d] = %s\n", i, argv[i]);
     }
-    mprClose(f);
+    mprCloseFile(f);
 #endif
 
     if (argc < 2) {
@@ -43,23 +43,23 @@ MAIN(runProgramMain, int argc, char* argv[])
             Echo the args
          */
         for (i = 2; i < argc; ) {
-            mprPuts(out, argv[i]);
+            mprPutFileString(out, argv[i]);
             if (++i != argc) {
-                mprPutc(out, ' ');
+                mprPutFileChar(out, ' ');
             }
         }
-        mprPutc(out, '\n');
+        mprPutFileChar(out, '\n');
 
         /* Echo the CMD_ENV environment variable value */
         ep = getenv("CMD_ENV");
         if (ep) {
-            mprPuts(out, "CMD_ENV=");
-            mprPuts(out, ep);
+            mprPutFileString(out, "CMD_ENV=");
+            mprPutFileString(out, ep);
         } else {
-            mprPuts(out, "Can't find CMD_ENV");
+            mprPutFileString(out, "Can't find CMD_ENV");
         }
-        mprPutc(out, '\n');
-        mprFlush(out);
+        mprPutFileChar(out, '\n');
+        mprFlushFile(out);
     }
 
     /*
@@ -71,10 +71,10 @@ MAIN(runProgramMain, int argc, char* argv[])
         buf[len] = '\0';
     }
     if (exitCode != 99) {
-        mprPuts(out, "END");
-        mprPutc(out, '\n');
+        mprPutFileString(out, "END");
+        mprPutFileChar(out, '\n');
     }
-    mprFlush(out);
+    mprFlushFile(out);
     return exitCode;
 }
 

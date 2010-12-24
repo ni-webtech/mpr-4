@@ -138,16 +138,16 @@ int mprCopyPath(cchar *fromName, cchar *toName, int mode)
     ssize       count;
     char        buf[MPR_BUFSIZE];
 
-    if ((from = mprOpen(fromName, O_RDONLY | O_BINARY, 0)) == 0) {
+    if ((from = mprOpenFile(fromName, O_RDONLY | O_BINARY, 0)) == 0) {
         mprError("Can't open %s", fromName);
         return MPR_ERR_CANT_OPEN;
     }
-    if ((to = mprOpen(toName, O_WRONLY | O_TRUNC | O_CREAT | O_BINARY, mode)) == 0) {
+    if ((to = mprOpenFile(toName, O_WRONLY | O_TRUNC | O_CREAT | O_BINARY, mode)) == 0) {
         mprError("Can't open %s", toName);
         return MPR_ERR_CANT_OPEN;
     }
-    while ((count = mprRead(from, buf, sizeof(buf))) > 0) {
-        mprWrite(to, buf, count);
+    while ((count = mprReadFile(from, buf, sizeof(buf))) > 0) {
+        mprWriteFile(to, buf, count);
     }
     return 0;
 }
@@ -802,9 +802,9 @@ char *mprGetTempPath(cchar *tempDir)
 
     for (i = 0; i < 128; i++) {
         path = mprAsprintf("%s/MPR_%d_%d_%d.tmp", dir, getpid(), now, ++tempSeed);
-        file = mprOpen(path, O_CREAT | O_EXCL | O_BINARY, 0664);
+        file = mprOpenFile(path, O_CREAT | O_EXCL | O_BINARY, 0664);
         if (file) {
-            mprClose(file);
+            mprCloseFile(file);
             break;
         }
     }

@@ -63,7 +63,7 @@ static int closeFile(MprFile *file)
     }
     bp = file->buf;
     if (bp && (file->mode & (O_WRONLY | O_RDWR))) {
-        mprFlush(file);
+        mprFlushFile(file);
     }
     if (file->fd >= 0) {
         close(file->fd);

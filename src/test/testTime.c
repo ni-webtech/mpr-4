@@ -23,7 +23,7 @@ static void testTimeBasics(MprTestGroup *gp)
     elapsed = mprGetElapsedTime(mark);
     assert(0 <= elapsed && elapsed < 30000);
 
-    mprSleep(20);
+    mprSleep(10);
     now = mprGetTime(gp);
     assert(mprCompareTime(mark, now) < 0);
 }

@@ -118,6 +118,11 @@ checkSetup() {
         echo "Install this file and retry." 1>&2
         exit 255
     fi
+
+    if [ -d ../packages ] ; then
+        rm -f extensions
+        ln -s ../packages extensions
+    fi
 }
 
 
@@ -2024,11 +2029,6 @@ postGen() {
         chmod +x "${BLD_TOP}/build/bin/$f" >/dev/null 2>&1
     done
 
-    if [ -d ../packages ] ; then
-        rm -f extensions
-        ln -s ../packages extensions
-    fi
-
     #
     #   Touch all headers and remove objects to force a (somewhat) clean build
     #
@@ -2036,6 +2036,8 @@ postGen() {
     build/bin/makedep
     touch "${CONFIG_H}"
     touch ${BLD_OUT_DIR}/.needDepend
+    echo -e "  # Clean old objects ..."
+    make clean 2>&1 >/dev/null
 }
 
 

@@ -907,9 +907,9 @@ static ssize localSendfile(MprSocket *sp, MprFile *file, MprOffset offset, ssize
 {
     char    buf[MPR_BUFSIZE];
 
-    mprSeek(file, SEEK_SET, (int) offset);
+    mprSeekFile(file, SEEK_SET, (int) offset);
     len = min(len, sizeof(buf));
-    if ((len = mprRead(file, buf, len)) < 0) {
+    if ((len = mprReadFile(file, buf, len)) < 0) {
         mprAssert(0);
         return MPR_ERR_CANT_READ;
     }

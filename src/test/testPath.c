@@ -79,10 +79,10 @@ static void testCopyPath(MprTestGroup *gp)
 
     from = mprAsprintf("copyTest-%s.tmp", mprGetCurrentThreadName(gp));
     assert(from != 0);
-    file = mprOpen(from, O_CREAT | O_TRUNC | O_WRONLY, 0664);
+    file = mprOpenFile(from, O_CREAT | O_TRUNC | O_WRONLY, 0664);
     assert(file != 0);
-    mprWriteString(file, "Hello World");
-    mprClose(file);
+    mprWriteFileString(file, "Hello World");
+    mprCloseFile(file);
 
     to = mprAsprintf("newTest-%s.tmp", mprGetCurrentThreadName(gp));
     assert(mprPathExists(from, F_OK));

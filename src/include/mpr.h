@@ -499,6 +499,9 @@ extern void mprGlobalLock();
  */
 extern void mprGlobalUnlock();
 
+extern int mprCasPtr(void **addr, void *expected, void *value);
+extern void mprAtomListInsert(void **head, void **link, void *item);
+
 /***************************************************** Memory Allocator ****************************************************/
 /*
     Allocator debug and stats selection
@@ -3136,7 +3139,7 @@ typedef struct MprFile {
     @param file File instance returned from #mprOpen
     @return Returns zero if successful, otherwise a negative MPR error code..
 */
-extern int mprClose(MprFile *file);
+extern int mprCloseFile(MprFile *file);
 
 /**
     Attach to an existing file descriptor
@@ -3157,7 +3160,7 @@ extern int mprClose(MprFile *file);
     @return Returns an MprFile object to use in other file operations.
     @ingroup MprFile
  */
-extern MprFile *mprAttachFd(int fd, cchar *name, int omode);
+extern MprFile *mprAttachFileFd(int fd, cchar *name, int omode);
 
 /**
     Disable file buffering
@@ -3184,7 +3187,7 @@ extern int mprEnableFileBuffering(MprFile *file, ssize size, ssize maxSize);
     @return Zero if successful, otherwise a negative MPR error code.
     @ingroup MprFile
  */
-extern int mprFlush(MprFile *file);
+extern int mprFlushFile(MprFile *file);
 
 /**
     Return the current file position
@@ -3214,7 +3217,7 @@ extern MprOffset mprGetFileSize(MprFile *file);
     @return An allocated string and sets *len to the number of bytes read. 
     @ingroup MprFile
  */
-extern char *mprGets(MprFile *file, ssize size, ssize *len);
+extern char *mprGetFileString(MprFile *file, ssize size, ssize *len);
 
 /**
     Read a character from the file.
@@ -3224,7 +3227,7 @@ extern char *mprGets(MprFile *file, ssize size, ssize *len);
         End of file is signified by reading 0.
     @ingroup MprFile
  */
-extern int mprGetc(MprFile *file);
+extern int mprGetFileChar(MprFile *file);
 
 /**
     Return a file object for the Stdout I/O channel
@@ -3263,7 +3266,7 @@ extern MprFile *mprGetStderr();
     @return Returns an MprFile object to use in other file operations.
     @ingroup MprFile
  */
-extern MprFile *mprOpen(cchar *filename, int omode, int perms);
+extern MprFile *mprOpenFile(cchar *filename, int omode, int perms);
 
 /**
     Non-destructively read a character from the file.
@@ -3273,7 +3276,7 @@ extern MprFile *mprOpen(cchar *filename, int omode, int perms);
         End of file is signified by reading 0.
     @ingroup MprFile
  */
-extern int mprPeekc(MprFile *file);
+extern int mprPeekFileChar(MprFile *file);
 
 /**
     Write a character to the file.
@@ -3284,7 +3287,7 @@ extern int mprPeekc(MprFile *file);
     @return One if successful, otherwise returns a negative MPR error code on errors.
     @ingroup MprFile
  */
-extern ssize mprPutc(MprFile *file, int c);
+extern ssize mprPutFileChar(MprFile *file, int c);
 
 /**
     Write a string to the file.
@@ -3294,7 +3297,7 @@ extern ssize mprPutc(MprFile *file, int c);
     @return The number of characters written to the file. Returns a negative MPR error code on errors.
     @ingroup MprFile
  */
-extern ssize mprPuts(MprFile *file, cchar *str);
+extern ssize mprPutFileString(MprFile *file, cchar *str);
 
 /**
     Read data from a file.
@@ -3305,7 +3308,7 @@ extern ssize mprPuts(MprFile *file, cchar *str);
     @return The number of characters read from the file. Returns a negative MPR error code on errors.
     @ingroup MprFile
  */
-extern ssize mprRead(MprFile *file, void *buf, ssize size);
+extern ssize mprReadFile(MprFile *file, void *buf, ssize size);
 
 /**
     Seek the I/O pointer to a new location in the file.
@@ -3320,7 +3323,7 @@ extern ssize mprRead(MprFile *file, void *buf, ssize size);
     @return Returns the new file position if successful otherwise a negative MPR error code is returned.
     @ingroup MprFile
  */
-extern MprOffset mprSeek(MprFile *file, int seekType, MprOffset distance);
+extern MprOffset mprSeekFile(MprFile *file, int seekType, MprOffset distance);
 
 /**
     Truncate a file
@@ -3330,7 +3333,7 @@ extern MprOffset mprSeek(MprFile *file, int seekType, MprOffset distance);
     @returns Zero if successful.
     @ingroup MprFile
  */
-extern int mprTruncate(cchar *path, MprOffset size);
+extern int mprTruncateFile(cchar *path, MprOffset size);
 
 /**
     Write data to a file.
@@ -3341,7 +3344,7 @@ extern int mprTruncate(cchar *path, MprOffset size);
     @return The number of characters actually written to the file. Returns a negative MPR error code on errors.
     @ingroup MprFile
  */
-extern ssize mprWrite(MprFile *file, cvoid *buf, ssize count);
+extern ssize mprWriteFile(MprFile *file, cvoid *buf, ssize count);
 
 /**
     Write a string to a file.
@@ -3351,7 +3354,7 @@ extern ssize mprWrite(MprFile *file, cvoid *buf, ssize count);
     @return The number of characters actually written to the file. Returns a negative MPR error code on errors.
     @ingroup MprFile
  */
-extern ssize mprWriteString(MprFile *file, cchar *str);
+extern ssize mprWriteFileString(MprFile *file, cchar *str);
 
 /**
     Write formatted data to a file.
@@ -3361,7 +3364,7 @@ extern ssize mprWriteString(MprFile *file, cchar *str);
     @return The number of characters actually written to the file. Returns a negative MPR error code on errors.
     @ingroup MprFile
  */
-extern ssize mprWriteFormat(MprFile *file, cchar *fmt, ...);
+extern ssize mprWriteFileFormat(MprFile *file, cchar *fmt, ...);
 
 extern int mprGetFileFd(MprFile *file);
 
@@ -5441,13 +5444,6 @@ typedef struct MprCmd {
 
 
 /**
-    Destroy the command
-    @param cmd MprCmd object created via mprCreateCmd
-    @ingroup MprCmd
- */
-extern void mprDestroyCmd(MprCmd *cmd);
-
-/**
     Close the command channel
     @param cmd MprCmd object created via mprCreateCmd
     @param channel Channel number to close. Should be either MPR_CMD_STDIN, MPR_CMD_STDOUT or MPR_CMD_STDERR.
@@ -5477,6 +5473,13 @@ extern void mprDisconnectCmd(MprCmd *cmd);
     @ingroup MprCmd
  */
 extern void mprDisableCmdEvents(MprCmd *cmd, int channel);
+
+/**
+    Destroy the command
+    @param cmd MprCmd object created via mprCreateCmd
+    @ingroup MprCmd
+ */
+extern void mprDestroyCmd(MprCmd *cmd);
 
 /**
     Enable command I/O events. This enables events on a given channel.
