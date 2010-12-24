@@ -395,5 +395,35 @@ void mprSpinUnlock(MprSpin *lock)
     End:
     vim: sw=4 ts=4 expandtab
 
+    volatile
+    Windows
+        InerlockedCompareExchange
+        _ReadBarrier
+        _WriteBarrier
+
+    sfence
+    lfence
+    mfence
+
+    int cas(void *addr, void *expected, void *value) {
+        if (*addr == *expected) {
+            *addr = *value;
+            return 1;
+        }
+        return 0;
+    }
+
+    do {
+        rp->next = heap->regions;
+    } while (mprCas(&heap->regions, rp, rp->next);
+
+    mprLfLink(&heap->regions, &rp->next, rp);
+
+    static void mprLfFree(void *head, void *item, void *link) 
+    {
+        do {
+            *link = head;
+        } while (mprCas(head, item, *link);
+    }
     @end
  */
