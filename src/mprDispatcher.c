@@ -279,7 +279,7 @@ int mprWaitForEvent(MprDispatcher *dispatcher, int timeout)
     if (!wasRunning) {
         scheduleDispatcher(dispatcher);
         if (claimed) {
-            dispatcher->owner = NULL;
+            dispatcher->owner = 0;
         }
     }
     return signalled ? 0 : MPR_ERR_TIMEOUT;
@@ -292,7 +292,7 @@ int mprWaitForEvent(MprDispatcher *dispatcher, int timeout)
 void mprRelayEvent(MprDispatcher *dispatcher, MprEventProc proc, void *data, MprEvent *event)
 {
     mprAssert(!isRunning(dispatcher));
-    mprAssert(dispatcher->owner == NULL);
+    mprAssert(dispatcher->owner == 0);
 
     if (event) {
         event->timestamp = dispatcher->service->now;
@@ -394,7 +394,7 @@ static void serviceDispatcher(MprDispatcher *dispatcher)
     MprEventService     *es;
 
     mprAssert(isRunning(dispatcher));
-    mprAssert(dispatcher->owner == NULL);
+    mprAssert(dispatcher->owner == 0);
     
     es = dispatcher->service;
     dispatcher->owner = mprGetCurrentOsThread();
@@ -423,7 +423,7 @@ static void serviceDispatcherMain(MprDispatcher *dispatcher)
 
     dispatcher->owner = mprGetCurrentOsThread();
     dispatchEvents(dispatcher);
-    dispatcher->owner = NULL;
+    dispatcher->owner = 0;
     scheduleDispatcher(dispatcher);
 }
 
@@ -469,7 +469,7 @@ static MprDispatcher *getNextReadyDispatcher(MprEventService *es)
         dispatcher = readyQ->next;
         queueDispatcher(&es->runQ, dispatcher);
         mprAssert(dispatcher->enabled);
-        dispatcher->owner = NULL;
+        dispatcher->owner = 0;
     } else {
         dispatcher = NULL;
     }

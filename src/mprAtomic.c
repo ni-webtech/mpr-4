@@ -74,21 +74,21 @@ int mprAtomCas(volatile void **addr, void *expected, cvoid *value)
         InterlockedCompareExchangePointer(addr, value, expected);
     #elif BLD_CC_SYNC
         __sync_bool_compare_and_swap(addr, expected, value);
-    #elif MPR_CPU_IX86
+    #elif BLD_CPU_ARCH == MPR_CPU_IX86
     {
-        int prev;
+        void *prev;
         asm volatile ("lock; cmpxchgl %2, %1"
             : "=a" (prev), "=m" (*addr)
             : "r" (value), "m" (*addr), "0" (expected));
         return expected == prev;
     }
-    #elif MPR_CPU_IX64
+    #elif BLD_CPU_ARCH == MPR_CPU_IX64
     {
-        int prev;
-        asm volatile ("lock; cmpxchgq %2, %1"
+        void *prev;
+        asm volatile ("lock; cmpxchgq %q2, %1"
             : "=a" (prev), "=m" (*addr)
             : "r" (value), "m" (*addr),
-            : "0" expected);
+              "0" (expected));
         return expected == prev;
     }
     #else
@@ -112,7 +112,7 @@ void mprAtomAdd(volatile int *ptr, int value)
         OSAtomicAdd32(value, ptr);
     #elif BLD_WIN_LIKE
             return InterlockedExchangeAdd(mem, value);
-    #elif (MPR_CPU_IX86 || MPR_CPU_IX64) && 0
+    #elif (BLD_CPU_ARCH == MPR_CPU_IX86 || BLD_CPU_ARCH == MPR_CPU_IX64) && 0
         asm volatile ("lock; xaddl %0,%1"
             : "=r" (value), "=m" (*ptr)
             : "0" (value), "m" (*ptr)
