@@ -47,7 +47,7 @@ void mprAtomTest()
 void mprAtomBarrier()
 {
     #if MACOSX
-        return OSMemoryBarrier();
+        OSMemoryBarrier();
     #elif BLD_WIN_LIKE
         MemoryBarrier();
     #elif BLD_CC_SYNC
@@ -129,7 +129,7 @@ void mprAtomAdd64(volatile int64 *ptr, int value)
 {
 #if MACOSX
     OSAtomicAdd64(value, ptr);
-#elif BLD_WIN_LIKE
+#elif BLD_WIN_LIKE && MPR_64_BIT
     return InterlockedExchangeAdd64(ptr, value);
 #elif BLD_UNIX_LIKE && 0
     MOB
