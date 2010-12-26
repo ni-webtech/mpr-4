@@ -29,7 +29,7 @@ MprEvent *mprCreateEvent(MprDispatcher *dispatcher, cchar *name, int period, Mpr
         return 0;
     }
     if (dispatcher == 0) {
-        dispatcher = mprGetDispatcher();
+        dispatcher = (flags & MPR_EVENT_QUICK) ? MPR->nonBlock : MPR->dispatcher;
     }
     mprInitEvent(dispatcher, event, name, period, proc, data, flags);
     mprQueueEvent(dispatcher, event);
@@ -40,7 +40,9 @@ MprEvent *mprCreateEvent(MprDispatcher *dispatcher, cchar *name, int period, Mpr
 static void manageEvent(MprEvent *event, int flags)
 {
     if (flags & MPR_MANAGE_MARK) {
-        ;
+        /*
+            Events in dispatcher queues are marked by the dispatcher managers, not via event->next,prev
+         */
 
     } else if (flags & MPR_MANAGE_FREE) {
         if (event->next) {
@@ -121,12 +123,17 @@ void mprQueueEvent(MprDispatcher *dispatcher, MprEvent *event)
 
 void mprRemoveEvent(MprEvent *event)
 {
-    MprEventService    *es;
+    MprEventService     *es;
+    MprDispatcher       *dispatcher;
 
-    es = event->dispatcher->service;
+    dispatcher = event->dispatcher;
+    es = dispatcher->service;
     lock(es);
     if (event->next) {
         dequeueEvent(event);
+    }
+    if (dispatcher->enabled && event->due == es->willAwake) {
+        mprScheduleDispatcher(dispatcher);
     }
     unlock(es);
 }

@@ -166,6 +166,7 @@ int mprWaitForSingleIO(int fd, int mask, int timeout)
         fds[0].events |= POLLOUT;
     }
     mask = 0;
+
     rc = poll(fds, 1, timeout);
     if (rc < 0) {
         mprLog(2, "Poll returned %d, errno %d", rc, mprGetOsError());

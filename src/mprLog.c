@@ -140,7 +140,7 @@ void mprStaticError(cchar *fmt, ...)
  */
 void mprAssertError(cchar *loc, cchar *msg)
 {
-#if BLD_DEBUG
+#if BLD_FEATURE_ASSERT
     char    buf[MPR_MAX_STRING];
 
     if (loc) {

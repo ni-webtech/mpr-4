@@ -20,20 +20,18 @@ static void testCriticalSection(MprTestGroup *gp)
 {
     MprCond         *cond;
     MprEvent        *event;
-    int             rc, save;
+    int             rc, save, delay;
 
     cond = mprCreateCond(gp);
     assert(cond != 0);
     mprAssert(cond->triggered == 0);
 
-    /*
-        Create an event to signal the condition var in 10 msec
-     */
-    event = mprCreateEvent(NULL, "testCriticalSection", 0, callback, (void*) cond, 0);
+    event = mprCreateEvent(NULL, "testCriticalSection", 0, callback, cond, MPR_EVENT_QUICK);
     assert(event != 0);
 
     save = cond->triggered;
-    rc = mprWaitForCond(cond, MPR_TEST_TIMEOUT);
+    delay = MPR_TEST_TIMEOUT + (mprGetDebugMode() * 1200 * 1000);
+    rc = mprWaitForCond(cond, delay);
     assert(rc == 0);
     
     //  TODO - add test with longer event delay to catch when wait runs first

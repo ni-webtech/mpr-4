@@ -54,7 +54,6 @@ static void manageLock(MprMutex *lock, int flags)
     } else if (flags & MPR_MANAGE_FREE) {
         mprAssert(lock);
 #if BLD_UNIX_LIKE
-        //  MOB pthread_mutex_unlock(&lock->cs);
         pthread_mutex_destroy(&lock->cs);
 #elif BLD_WIN_LIKE
         DeleteCriticalSection(&lock->cs);
@@ -401,9 +400,30 @@ void mprSpinUnlock(MprSpin *lock)
 int mprCasPtr(void **addr, void *expected, void *value)
 {
 #if MACOSX
-    //  MOB -- is barrier required to flush writes?
     return OSAtomicCompareAndSwapPtrBarrier(expected, value, addr);
 #elif BLD_UNIX_LIKE
+    //  MOB -- COMPLETE
+#elif BLD_WIN_LIKE
+#elif VXWORKS
+#else
+    //  Create a global spin lock
+    mprGlobalLock();
+    if (*addr == expected) {
+        *addr = value;
+        return 1;
+    }
+    return 0;
+    mprGlobalUnlock();
+#endif
+}
+
+
+void mprAtomAdd(int *ptr, int adj)
+{
+#if MACOSX
+    OSAtomicAdd32(adj, ptr);
+#elif BLD_UNIX_LIKE
+    //  MOB -- COMPLETE
 #elif BLD_WIN_LIKE
 #elif VXWORKS
 #else

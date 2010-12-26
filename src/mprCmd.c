@@ -71,8 +71,7 @@ MprCmd *mprCreateCmd(MprDispatcher *dispatcher)
     cmd->timeoutPeriod = MPR_TIMEOUT_CMD;
     cmd->timestamp = mprGetTime();
     cmd->forkCallback = (MprForkCallback) closeFiles;
-    cmd->dispatcher = dispatcher ? dispatcher : mprGetDispatcher();
-    mprAssert(cmd->dispatcher);
+    cmd->dispatcher = dispatcher ? dispatcher : MPR->dispatcher;
 
 #if VXWORKS
     cmd->startCond = semCCreate(SEM_Q_PRIORITY, SEM_EMPTY);
@@ -84,12 +83,11 @@ MprCmd *mprCreateCmd(MprDispatcher *dispatcher)
         files[i].fd = -1;
     }
     cmd->mutex = mprCreateLock();
-    cmd->cond = mprCreateCond();
 
     cs = MPR->cmdService;
-    mprLock(cs->mutex);
+    lock(cs);
     mprAddItem(cs->cmds, cmd);
-    mprUnlock(cs->mutex);
+    unlock(cs);
     return cmd;
 }
 
@@ -97,6 +95,7 @@ MprCmd *mprCreateCmd(MprDispatcher *dispatcher)
 static void manageCmd(MprCmd *cmd, int flags)
 {
     MprCmdService   *cs;
+    int             i;
 
     if (flags & MPR_MANAGE_MARK) {
         mprMark(cmd->dir);
@@ -105,20 +104,30 @@ static void manageCmd(MprCmd *cmd, int flags)
         mprMark(cmd->stdoutBuf);
         mprMark(cmd->stderrBuf);
         mprMark(cmd->mutex);
-        mprMark(cmd->cond);
+        mprMark(cmd->dispatcher);
 #if BLD_WIN_LIKE
         mprMark(cmd->command);
         mprMark(cmd->arg0);
 #endif
+#if UNUSED
+        for (i = 0; i < cmd->argc; i++) {
+            mprMark(cmd->argv[i]);
+        }
+#endif
+        if (cmd->env) {
+            for (i = 0; cmd->env[i]; i++) {
+                mprMark(cmd->env);
+            }
+        }
     } else if (flags & MPR_MANAGE_FREE) {
         cs = MPR->cmdService;
-        mprLock(cs->mutex);
+        lock(cs);
         resetCmd(cmd);
 #if VXWORKS
         vxCmdManager(cmd);
 #endif
         mprAddItem(cs->cmds, cmd);
-        mprUnlock(cs->mutex);
+        unlock(cs);
     }
 }
 
@@ -217,7 +226,7 @@ void mprCloseCmdFd(MprCmd *cmd, int channel)
     /*
         Disconnect but don't free. This prevents some races with callbacks.
      */
-    mprLock(cmd->mutex);
+    lock(cmd);
     if (cmd->handlers[channel]) {
         mprRemoveWaitHandler(cmd->handlers[channel]);
         cmd->handlers[channel] = 0;
@@ -234,7 +243,7 @@ void mprCloseCmdFd(MprCmd *cmd, int channel)
             }
         }
     }
-    mprUnlock(cmd->mutex);
+    unlock(cmd);
 }
 
 
@@ -356,7 +365,6 @@ int mprStartCmd(MprCmd *cmd, int argc, char **argv, char **envp, int flags)
     cmd->program = sclone(program);
     cmd->flags = flags;
 
-//MOB MARK all sanitized args
     if (sanitizeArgs(cmd, argc, argv, envp) < 0) {
         return MPR_ERR_MEMORY;
     }
@@ -565,11 +573,11 @@ int mprWriteCmdPipe(MprCmd *cmd, int channel, char *buf, int bufsize)
 void mprEnableCmdEvents(MprCmd *cmd, int channel)
 {
 #if BLD_UNIX_LIKE || VXWORKS
-    mprLock(cmd->mutex);
+    lock(cmd);
     if (cmd->handlers[channel]) {
         mprEnableWaitEvents(cmd->handlers[channel], MPR_READABLE);
     }
-    mprUnlock(cmd->mutex);
+    unlock(cmd);
 #endif
 }
 
@@ -651,15 +659,15 @@ int mprWaitForCmd(MprCmd *cmd, int timeout)
     expires = mprGetTime() + timeout;
     remaining = timeout;
     do {
-        mprLock(cmd->mutex);
+        lock(cmd);
         if (cmd->eofCount >= cmd->requiredEof) {
             /* WARNING: will block here if requiredEof is zero */
             if (mprReapCmd(cmd, 0) == 0) {
-                mprUnlock(cmd->mutex);
+                unlock(cmd);
                 return 0;
             }
         }
-        mprUnlock(cmd->mutex);
+        unlock(cmd);
 
 #if BLD_WIN_LIKE && !WINCE
         mprPollCmdPipes(cmd, timeout);
@@ -671,10 +679,7 @@ int mprWaitForCmd(MprCmd *cmd, int timeout)
 #else
         delay = remaining;
 #endif
-        mprStickyYield(NULL, 1);
-        mprWaitForCond(cmd->cond, (int) delay);
-        mprStickyYield(NULL, 0);
-
+        mprWaitForEvent(cmd->dispatcher, (int) delay);
         remaining = (expires - mprGetTime());
     } while (cmd->pid && remaining >= 0);
 
@@ -697,7 +702,7 @@ int mprReapCmd(MprCmd *cmd, int timeout)
     int         flags, rc, status, waitrc;
 
     flags = rc = status = waitrc = 0;
-    mprLock(cmd->mutex);
+    lock(cmd);
     if (timeout < 0) {
         timeout = MAXINT;
     }
@@ -712,7 +717,7 @@ int mprReapCmd(MprCmd *cmd, int timeout)
         flags = (cmd->requiredEof) ? WNOHANG | __WALL : 0;
         if ((waitrc = waitpid(cmd->pid, &status, flags)) < 0) {
             mprLog(0, "waitpid failed for pid %d, errno %d", cmd->pid, errno);
-            mprUnlock(cmd->mutex);
+            unlock(cmd);
             return MPR_ERR_CANT_READ;
 
         } else if (waitrc == cmd->pid) {
@@ -723,11 +728,11 @@ int mprReapCmd(MprCmd *cmd, int timeout)
                 } else if (WIFSIGNALED(status)) {
                     cmd->status = WTERMSIG(status);
                 } else {
-                    mprLog(0, "MOB waitpid FUNNY pid %d, errno %d", cmd->pid, errno);
+                    mprLog(7, "waitpid FUNNY pid %d, errno %d", cmd->pid, errno);
                 }
                 cmd->pid = 0;
             } else {
-                mprLog(0, "MOB waitpid ELSE pid %d, errno %d", cmd->pid, errno);
+                mprLog(7, "waitpid ELSE pid %d, errno %d", cmd->pid, errno);
             }
             break;
             
@@ -755,12 +760,12 @@ int mprReapCmd(MprCmd *cmd, int timeout)
                 return -MPR_ERR_TIMEOUT;
             }
             mprLog(6, "cmd: WaitForSingleObject no child to reap rc %d, %d", rc, GetLastError());
-            mprUnlock(cmd->mutex);
+            unlock(cmd);
             return MPR_ERR_CANT_READ;
         }
         if (GetExitCodeProcess(cmd->process, (ulong*) &status) == 0) {
             mprLog(7, "cmd: GetExitProcess error");
-            mprUnlock(cmd->mutex);
+            unlock(cmd);
             return MPR_ERR_CANT_READ;
         }
         if (status != STILL_ACTIVE) {
@@ -779,9 +784,9 @@ int mprReapCmd(MprCmd *cmd, int timeout)
         }
     }
     if (cmd->pid == 0) {
-        mprSignalCond(cmd->cond);
+        mprSignalDispatcher(cmd->dispatcher);
     }
-    mprUnlock(cmd->mutex);
+    unlock(cmd);
     return (cmd->pid == 0) ? 0 : 1;
 }
 

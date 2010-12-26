@@ -22,7 +22,19 @@ static void testCreateEvent(MprTestGroup *gp)
 {
     MprEvent    *event;
 
-    event = mprCreateEvent(mprGetDispatcher(gp), "testCreateEvent", 0, eventCallback, (void*) gp, 0);
+    /*
+        Without spawning a thread
+     */
+    event = mprCreateEvent(NULL, "testCreateEvent", 0, eventCallback, (void*) gp, MPR_EVENT_QUICK);
+    assert(event != 0);
+    mprAddRoot(event);
+    assert(mprWaitForTestToComplete(gp, MPR_TEST_SLEEP));
+    mprRemoveRoot(event);
+
+    /*
+        Run event callback on a separate thread
+     */
+    event = mprCreateEvent(NULL, "testCreateEvent", 0, eventCallback, (void*) gp, 0);
     assert(event != 0);
     mprAddRoot(event);
     assert(mprWaitForTestToComplete(gp, MPR_TEST_SLEEP));
@@ -34,8 +46,9 @@ static void testCancelEvent(MprTestGroup *gp)
 {
     MprEvent    *event;
 
-    event = mprCreateEvent(mprGetDispatcher(gp), "testCancelEvent", 20000, eventCallback, (void*) gp, 0);
+    event = mprCreateEvent(NULL, "testCancelEvent", 20000, eventCallback, (void*) gp, MPR_EVENT_QUICK);
     assert(event != 0);
+    mprRemoveEvent(event);
 }
 
 
@@ -43,11 +56,11 @@ static void testReschedEvent(MprTestGroup *gp)
 {
     MprEvent        *event;
 
-    event = mprCreateEvent(mprGetDispatcher(gp), "testReschedEvent", 50000000, eventCallback, (void*) gp, 0);
+    event = mprCreateEvent(NULL, "testReschedEvent", 50000000, eventCallback, (void*) gp, MPR_EVENT_QUICK);
     assert(event != 0);
-
-    mprRescheduleEvent(event, 20);
     mprAddRoot(event);
+    
+    mprRescheduleEvent(event, 20);
     assert(mprWaitForTestToComplete(gp, MPR_TEST_SLEEP));
     mprRemoveRoot(event);
 }

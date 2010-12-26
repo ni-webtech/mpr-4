@@ -82,9 +82,12 @@ static char *mimeTypes[] = {
     NULL, NULL,
 };
 
-/*  Max size of the port specification in a URL
+/*  
+    Max size of the port specification in a URL
  */
 #define MAX_PORT_LEN 8
+
+#define MIME_HASH_SIZE 67
 
 /************************************ Code ************************************/
 /*  
@@ -288,8 +291,7 @@ cchar *mprLookupMimeType(cchar *ext)
         return "";
     }
     if (MPR->mimeTable == 0) {
-        //  MOB -- define for this
-        MPR->mimeTable = mprCreateHash(67, MPR_HASH_PERM_KEYS);
+        MPR->mimeTable = mprCreateHash(MIME_HASH_SIZE, MPR_HASH_PERM_KEYS);
         for (cp = mimeTypes; cp[0]; cp += 2) {
             mprAddHash(MPR->mimeTable, cp[0], cp[1]);
         }

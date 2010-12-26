@@ -75,6 +75,9 @@ Mpr *mprCreate(int argc, char **argv, int flags)
     mpr->waitService = mprCreateWaitService();
     mpr->socketService = mprCreateSocketService();
 
+    mpr->dispatcher = mprCreateDispatcher("main", 1);
+    mpr->nonBlock = mprCreateDispatcher("nonblock", 1);
+
     startThreads(flags);
 
     if (MPR->hasError || mprHasMemError()) {
@@ -197,7 +200,7 @@ static void startThreads(int flags)
 static void serviceEventsThread(void *data, MprThread *tp)
 {
     mprLog(MPR_CONFIG, "Service thread started");
-    mprServiceEvents(NULL, -1, 0);
+    mprServiceEvents(-1, 0);
 }
 
 
@@ -225,7 +228,25 @@ bool mprIsComplete()
 }
 
 
-//  MOB - order file
+/*
+    Test if the Mpr services are idle. Use mprIsIdle to determine if the entire process is idle.
+ */
+bool mprServicesAreIdle()
+{
+#if MOB
+    return mprGetListLength(MPR->workerService->busyThreads) == 0 && mprGetListLength(MPR->cmdService->cmds) == 0 && 
+        //MOB -- dispatcher here not right
+       !(MPR->dispatcher->flags & MPR_DISPATCHER_DO_EVENT);
+#endif
+    return 1;
+}
+
+
+bool mprIsIdle()
+{
+    return (MPR->idleCallback)();
+}
+
 
 /*
     Make an argv array
@@ -293,26 +314,6 @@ int mprMakeArgv(cchar *program, cchar *cmd, int *argcp, char ***argvp)
     *argvp = argv;
 
     return argc;
-}
-
-
-/*
-    Just the Mpr services are idle. Use mprIsIdle to determine if the entire process is idle
- */
-bool mprServicesAreIdle()
-{
-#if MOB
-    return mprGetListLength(MPR->workerService->busyThreads) == 0 && mprGetListLength(MPR->cmdService->cmds) == 0 && 
-        //MOB -- dispatcher here not right
-       !(MPR->dispatcher->flags & MPR_DISPATCHER_DO_EVENT);
-#endif
-    return 1;
-}
-
-
-bool mprIsIdle()
-{
-    return (MPR->idleCallback)();
 }
 
 
@@ -400,27 +401,18 @@ void mprSetServerName(cchar *s)
 }
 
 
-/*
-    Return the server name
- */
 cchar *mprGetServerName()
 {
     return MPR->serverName;
 }
 
 
-/*
-    Set the domain name
- */
 void mprSetDomainName(cchar *s)
 {
     MPR->domainName = sclone(s);
 }
 
 
-/*
-    Return the domain name
- */
 cchar *mprGetDomainName()
 {
     return MPR->domainName;
@@ -473,6 +465,18 @@ void mprSetLogHandler(MprLogHandler handler, void *handlerData)
 MprLogHandler mprGetLogHandler()
 {
     return MPR->logHandler;
+}
+
+
+MprDispatcher *mprGetDispatcher()
+{
+    return MPR->dispatcher;
+}
+
+
+MprDispatcher *mprGetNonBlockDispatcher()
+{
+    return MPR->nonBlock;
 }
 
 

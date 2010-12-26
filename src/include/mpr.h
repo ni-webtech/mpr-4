@@ -499,8 +499,13 @@ extern void mprGlobalLock();
  */
 extern void mprGlobalUnlock();
 
+/*
+    Lock free primitives
+    TODO DOC
+ */
 extern int mprCasPtr(void **addr, void *expected, void *value);
 extern void mprAtomListInsert(void **head, void **link, void *item);
+extern void mprAtomAdd(int *ptr, int adj);
 
 /***************************************************** Memory Allocator ****************************************************/
 /*
@@ -3934,7 +3939,7 @@ extern void mprUnloadModule(MprModule *mp);
  */
 #define MPR_EVENT_CONTINUOUS    0x1
 #define MPR_EVENT_STATIC        0x2
-#define MPR_EVENT_NO_THREAD     0x4
+#define MPR_EVENT_QUICK         0x4     /* Execute inline without executing via a thread */
 
 /**
     Event callback function
@@ -3956,7 +3961,7 @@ typedef void (*MprEventProc)(void *data, struct MprEvent *event);
     @defgroup MprEvent MprEvent
  */
 typedef struct MprEvent {
-    cchar               *name;          /**< Debug name of the event */
+    cchar               *name;          /**< Static debug name of the event */
     MprEventProc        proc;           /**< Callback procedure */
     MprTime             timestamp;      /**< When was the event created */
     MprTime             due;            /**< When is the event due */
@@ -3977,22 +3982,21 @@ typedef struct MprEvent {
 typedef struct MprDispatcher {
     cchar           *name;              /**< Dispatcher name / purpose */
     MprEvent        eventQ;             /**< Event queue */
-    int             deleted;            /**< Dispatcher deleted in callback */
+    MprCond         *cond;              /**< Multi-thread sync */
     int             enabled;            /**< Dispatcher enabled to run events */
-    int             inUse;              /**< Safe delete flag */
+    int             waitingOnCond;      /**< Waiting on the cond */
     struct MprDispatcher *next;         /**< Next dispatcher linkage */
     struct MprDispatcher *prev;         /**< Previous dispatcher linkage */
     struct MprDispatcher *parent;       /**< Queue pointer */
     struct MprEventService *service;
     struct MprWorker *requiredWorker;   /**< Worker affinity */
-#if BLD_DEBUG
-    struct MprThread *active;           /**< Dispatcher is servicing events */
-#endif
+    MprOsThread     owner;              /**< Owning thread of the dispatcher */
 } MprDispatcher;
 
 
 typedef struct MprEventService {
     MprTime         now;                /**< Current notion of time for the dispatcher service */
+    MprTime         willAwake;          /**< Time the even service will next awake */
     MprDispatcher   runQ;               /**< Queue of running dispatchers */
     MprDispatcher   readyQ;             /**< Queue of dispatchers with events ready to run */
     MprDispatcher   waitQ;              /**< Queue of waiting (future) events */
@@ -4017,6 +4021,7 @@ extern MprDispatcher *mprCreateDispatcher(cchar *name, int enable);
     @returns the MPR dispatcher object
  */
 extern MprDispatcher *mprGetDispatcher();
+extern MprDispatcher *mprGetNonBlockDispatcher();
 
 /**
     Enable a dispatcher to service events. The mprCreateDispatcher routiner creates dispatchers in the disabled state.
@@ -4045,7 +4050,9 @@ extern void mprEnableDispatcher(MprDispatcher *dispatcher);
     @returns The number of events serviced. Returns MPR_ERR_BUSY is another thread is servicing events and timeout is zero.
     @ingroup MprEvent
  */
-extern int mprServiceEvents(MprDispatcher *dispatcher, int delay, int flags);
+extern int mprServiceEvents(int delay, int flags);
+extern int mprWaitForEvent(MprDispatcher *dispatcher, int timeout);
+extern void mprSignalDispatcher(MprDispatcher *dispatcher);
 
 /**
     Create a new event
@@ -4416,10 +4423,9 @@ typedef struct MprWaitService {
     MprList         *handlers;              /* List of handlers */
     int             needRecall;             /* A handler needs a recall due to buffered data */
     int             wakeRequested;          /* Wakeup of the wait service has been requested */
-    MprTime         willAwake;              /* Latest time the dispatcher service will next awaken */
 #if MPR_EVENT_EPOLL
     int             epoll;                  /* Kqueue() return descriptor */
-    struct epoll_event *events;                /* Events triggered */
+    struct epoll_event *events;             /* Events triggered */
     int             eventsMax;              /* Max size of events/interest */
     struct MprWaitHandler **handlerMap;     /* Map of fds to handlers */
     int             handlerMax;             /* Size of the handlers array */
@@ -5730,6 +5736,7 @@ typedef struct Mpr {
     struct MprWaitService   *waitService;   /**< IO Waiting service object */
 
     struct MprDispatcher    *dispatcher;    /**< Primary dispatcher */
+    struct MprDispatcher    *nonBlock;      /**< Nonblocking dispatcher */
 
     void            *ejsService;            /**< Ejscript service */
     void            *httpService;           /**< Http service object */

@@ -510,9 +510,9 @@ static int growList(MprList *lp, int incr)
     }
     memsize = len * sizeof(void*);
 
-    //  MOB - RC
-    lp->items = mprRealloc(lp->items, memsize);
-
+    if ((lp->items = mprRealloc(lp->items, memsize)) == NULL) {
+        return MPR_ERR_MEMORY;
+    }
     /*
         Zero the new portion (required for no-compact lists)
      */

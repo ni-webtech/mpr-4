@@ -156,7 +156,6 @@ void mprRemoveNotifier(MprWaitHandler *wp)
         mprAssert(fd >= 0);
         old = ws->interestMax;
         mprAssert(ws->handlerMap[fd] == wp);
-        //MOB - remove test
         if (ws->handlerMap[fd]) {
             if ((ws->interestCount + 2) >= ws->interestMax) {
                 growEvents(ws);

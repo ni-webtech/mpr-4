@@ -11,6 +11,7 @@
 /*********************************** Locals ***********************************/
 
 typedef struct TestCmd {
+    MprCmd  *cmd;
     MprBuf  *buf;
     char    *program;
 } TestCmd;
@@ -32,6 +33,7 @@ static int initCmd(MprTestGroup *gp)
 static void manageTestCmd(TestCmd *tc, int flags)
 {
     if (flags & MPR_MANAGE_MARK) {
+        mprMark(tc->cmd);
         mprMark(tc->buf);
         mprMark(tc->program);
     } else if (flags & MPR_MANAGE_FREE) {
@@ -156,10 +158,11 @@ static void testWithData(MprTestGroup *gp)
     tc = gp->data;
     assert(tc != NULL);
 
-    cmd = mprCreateCmd(NULL);
+    tc->cmd = cmd = mprCreateCmd(NULL);
     assert(cmd != 0);
 
     tc->buf = mprCreateBuf(MPR_BUFSIZE, -1);
+    assert(tc->buf != 0);
 
     argc = 0;
     argv[argc++] = tc->program;
@@ -220,10 +223,12 @@ static void testWithData(MprTestGroup *gp)
         s = stok(0, "\n\r", &tok);
         assert(match(s, "END") == 0);
     }
-
     rc = mprGetCmdExitStatus(cmd, &status);
     assert(rc == 0);
     assert(status == 0);
+
+    mprDestroyCmd(cmd);
+    tc->cmd = 0;
 }
 
 

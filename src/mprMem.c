@@ -239,10 +239,6 @@ Mpr *mprCreateMemService(MprManager manager, int flags)
     __sync_synchronize();
     OSMemoryBarrier();
 #endif
-#if BLD_MEMORY_STATS
-    //  MOB - remove
-    (void) showMem;
-#endif
     return MPR;
 }
 
@@ -411,15 +407,14 @@ ssize mprMemcpy(void *dest, ssize destMax, cvoid *src, ssize nbytes)
 static int initFree() 
 {
     MprFreeMem  *freeq;
-//  MOB -- reverse || 1
-#if BLD_MEMORY_STATS || 1
+#if BLD_MEMORY_STATS
     ssize       bit, size, groupBits, bucketBits;
     int         index, group, bucket;
 #endif
     
     heap->freeEnd = &heap->freeq[MPR_ALLOC_NUM_GROUPS * MPR_ALLOC_NUM_BUCKETS];
     for (freeq = heap->freeq; freeq != heap->freeEnd; freeq++) {
-#if BLD_MEMORY_STATS || 1
+#if BLD_MEMORY_STATS
         /*
             NOTE: skip the buckets with MSB == 0 (round up)
          */

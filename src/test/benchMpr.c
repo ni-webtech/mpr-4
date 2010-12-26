@@ -97,7 +97,7 @@ int benchMain(int argc, char *argv[])
     mprStartThread(thread);
     
     while (!testComplete) {
-        mprServiceEvents(mprGetDispatcher(), 250, 0);
+        mprServiceEvents(250, 0);
     }
     mprPrintMem("Memory Report", 0);
     mprDestroy(mpr);
@@ -126,7 +126,6 @@ static void doBenchmark(void *thread)
 {
     MprTime         start;
     MprList         *list;
-    MprDispatcher   *dispatcher;
     void            *mp;
     int             count, i;
     MprMutex        *lock;
@@ -187,9 +186,8 @@ static void doBenchmark(void *thread)
         count = 100000 * iterations;
         markCount = count;
         start = startMark();
-        dispatcher = mprGetDispatcher();
         for (i = 0; i < count; i++) {
-            mprCreateEvent(dispatcher, "eventBenchmark", 0, eventCallback, (void*) (long) i, 0);
+            mprCreateEvent(NULL, "eventBenchmark", 0, eventCallback, ITOP(i), MPR_EVENT_QUICK);
         }
         mprWaitForCond(complete, -1);
         endMark(start, count, "Event (create|run|delete)");
@@ -204,7 +202,7 @@ static void doBenchmark(void *thread)
         markCount = count;
         start = startMark();
         for (i = 0; i < count; i++) {
-            mprCreateTimerEvent(mprGetDispatcher(), "timerBenchmark", 0, timerCallback, (void*) (long) i, 0);
+            mprCreateTimerEvent(NULL, "timerBenchmark", 0, timerCallback, (void*) (long) i, 0);
         }
         mprWaitForCond(complete, -1);
         endMark(start, count, "Timer (create|delete)");
@@ -372,6 +370,7 @@ static void testMalloc()
  */
 static void eventCallback(void *data, MprEvent *event)
 {
+    //  MOB - should have atomic Inc
     mprLock(mutex);
     if (--markCount == 0) {
         mprSignalCond(complete);

@@ -277,6 +277,9 @@ int mprCloseFile(MprFile *file)
 {
     MprFileSystem   *fs;
 
+    if (file == 0) {
+        return MPR_ERR_CANT_ACCESS;
+    }
     fs = mprLookupFileSystem(file->path);
     return fs->closeFile(file);
 }

@@ -109,7 +109,7 @@ int mprParseTestArgs(MprTestService *sp, int argc, char *argv[])
                 }
             }
 
-        } else if (strcmp(argp, "--debug") == 0 || strcmp(argp, "-d") == 0) {
+        } else if (strcmp(argp, "--debugger") == 0 || strcmp(argp, "-d") == 0) {
             mprSetDebugMode(1);
             sp->debugOnFailures = 1;
 
@@ -342,7 +342,7 @@ int mprRunTests(MprTestService *sp)
         }
     }
     while (!mprIsComplete()) {
-        mprServiceEvents(mprGetDispatcher(), -1, 0);
+        mprServiceEvents(-1, 0);
     }
     return (sp->totalFailedCount == 0) ? 0 : 1;
 }
