@@ -5451,6 +5451,8 @@ typedef struct MprCmd {
 #endif
     MprMutex        *mutex;             /* Multithread sync */
     MprCond         *cond;              /* Multithread signalling */
+    //  MOB
+    int lastRead;
 } MprCmd;
 
 

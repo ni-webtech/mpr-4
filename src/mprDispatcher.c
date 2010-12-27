@@ -264,6 +264,7 @@ int mprWaitForEvent(MprDispatcher *dispatcher, int timeout)
                 if (mprWaitForCond(dispatcher->cond, (int) delay) == 0) {
                     signalled++;
                     dispatcher->waitingOnCond = 0;
+                    mprStickyYield(NULL, 0);
                     break;
                 }
                 dispatcher->waitingOnCond = 0;
@@ -291,11 +292,13 @@ int mprWaitForEvent(MprDispatcher *dispatcher, int timeout)
 void mprRelayEvent(MprDispatcher *dispatcher, MprEventProc proc, void *data, MprEvent *event)
 {
     mprAssert(!isRunning(dispatcher));
+    mprAssert(dispatcher->owner == NULL);
 
     if (event) {
         event->timestamp = dispatcher->service->now;
     }
     dispatcher->enabled = 1;
+    dispatcher->owner = mprGetCurrentOsThread();
     makeRunnable(dispatcher);
     (proc)(data, event);
     scheduleDispatcher(dispatcher);

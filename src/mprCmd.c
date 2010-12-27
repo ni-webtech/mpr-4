@@ -294,7 +294,7 @@ int mprRunCmdV(MprCmd *cmd, int argc, char **argv, char **out, char **err, int f
     }
     mprSetCmdCallback(cmd, cmdCallback, NULL);
     lock(cmd);
-
+    cmd->lastRead = 0;
     rc = mprStartCmd(cmd, argc, argv, NULL, flags);
 
     /*
@@ -814,7 +814,6 @@ static void cmdCallback(MprCmd *cmd, int channel, void *data)
         buf = cmd->stderrBuf;
         break;
     }
-
     /*
         Read and aggregate the result into a single string
      */
@@ -826,8 +825,8 @@ static void cmdCallback(MprCmd *cmd, int channel, void *data)
         }
         space = mprGetBufSpace(buf);
     }
-
     len = mprReadCmdPipe(cmd, channel, mprGetBufEnd(buf), space);
+cmd->lastRead = len;
     if (len <= 0) {
         if (len == 0 || (len < 0 && !(errno == EAGAIN || EWOULDBLOCK))) {
             if (channel == MPR_CMD_STDOUT && cmd->flags & MPR_CMD_ERR) {

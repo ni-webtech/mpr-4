@@ -163,7 +163,9 @@ static void unlinkBlock(MprFreeMem *fp);
     static int validBlk(MprMem *mp);
 #endif
 #if BLD_MEMORY_STATS
+#if FUTURE
     static void showMem(MprMem *mp);
+#endif
     static MprFreeMem *getQueue(ssize size);
     static void printQueueStats();
     static void printGCStats();
@@ -1888,7 +1890,7 @@ void *mprSetManager(void *ptr, void *manager)
 }
 
 
-#if BLD_MEMORY_STATS
+#if BLD_MEMORY_STATS && FUTURE
 static void showMem(MprMem *mp)
 {
     char    *gen, *mark, buf[MPR_MAX_STRING];
