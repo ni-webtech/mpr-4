@@ -153,7 +153,7 @@ void mprAssertError(cchar *loc, cchar *msg)
     }
     
 #if BLD_UNIX_LIKE || VXWORKS
-    (void) write(2, msg, strlen(msg));
+    (void) write(2, (char*) msg, strlen(msg));
 #elif BLD_WIN_LIKE
     fprintf(stderr, "%s\n", msg);
 #endif

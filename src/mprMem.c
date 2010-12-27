@@ -743,7 +743,7 @@ static MprMem *freeBlock(MprMem *mp)
     }
     next = GET_NEXT(mp);
 
-#if BLD_MEMORY_DEBUG
+#if BLD_CC_MMU && BLD_MEMORY_DEBUG
     if (GET_PRIOR(mp) == NULL) {
         mprAssert(isFirst(mp) || mp->seqno == 0);
     }
