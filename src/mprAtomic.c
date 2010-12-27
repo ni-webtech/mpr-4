@@ -23,7 +23,7 @@ void mprAtomTest()
     mprAtomBarrier();
 
     a = "1";
-    mprAtomCas((void * volatile ) &a, (void*) a, "2");
+    mprAtomCas((void * volatile *) &a, (void*) a, "2");
     mprAssert(*(char*) a == '2');
 
     x = 0;
@@ -71,7 +71,7 @@ int mprAtomCas(void * volatile *addr, void *expected, cvoid *value)
     #if MACOSX
         return OSAtomicCompareAndSwapPtrBarrier(expected, (void*) value, (void*) addr);
     #elif BLD_WIN_LIKE
-        InterlockedCompareExchangePointer(addr, value, expected);
+        InterlockedCompareExchangePointer(addr, (void*) value, expected);
     #elif BLD_CC_SYNC
         __sync_bool_compare_and_swap(addr, expected, value);
     #elif BLD_CPU_ARCH == MPR_CPU_IX86
@@ -111,7 +111,7 @@ void mprAtomAdd(volatile int *ptr, int value)
     #if MACOSX
         OSAtomicAdd32(value, ptr);
     #elif BLD_WIN_LIKE
-            return InterlockedExchangeAdd(mem, value);
+            return InterlockedExchangeAdd(ptr, value);
     #elif (BLD_CPU_ARCH == MPR_CPU_IX86 || BLD_CPU_ARCH == MPR_CPU_IX64) && 0
         asm volatile ("lock; xaddl %0,%1"
             : "=r" (value), "=m" (*ptr)
@@ -130,7 +130,7 @@ void mprAtomAdd64(volatile int64 *ptr, int value)
 #if MACOSX
     OSAtomicAdd64(value, ptr);
 #elif BLD_WIN_LIKE
-    return InterlockedExchangeAdd64(mem, value);
+    return InterlockedExchangeAdd64(ptr, value);
 #elif BLD_UNIX_LIKE && 0
     MOB
     asm volatile ("lock; xaddl %0,%1"
