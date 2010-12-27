@@ -235,18 +235,16 @@ Mpr *mprCreateMemService(MprManager manager, int flags)
     heap->markerCond = mprCreateCond();
     heap->roots = mprCreateList();
     mprAddRoot(MPR);
-#if UNUSED
-    __sync_synchronize();
-    OSMemoryBarrier();
-#endif
+
+    mprAtomTest();
     return MPR;
 }
 
 
 void mprDestroyMemService()
 {
-    MprRegion   *region;
-    MprMem      *mp, *next;
+    volatile MprRegion  *region;
+    MprMem              *mp, *next;
 
     if (heap->destroying) {
         return;
@@ -754,10 +752,10 @@ static MprMem *freeBlock(MprMem *mp)
  */
 static MprMem *growHeap(ssize required, int flags)
 {
-    MprRegion   *region;
-    MprMem      *mp, *spare;
-    ssize       size, rsize;
-    int         hasManager;
+    MprRegion           *region;
+    MprMem              *mp, *spare;
+    ssize               size, rsize;
+    int                 hasManager;
 
     mprAssert(required > 0);
 
@@ -768,7 +766,7 @@ static MprMem *growHeap(ssize required, int flags)
     if ((region = mprVirtAlloc(size, MPR_MAP_READ | MPR_MAP_WRITE)) == NULL) {
         return 0;
     }
-    mprInitSpinLock(&region->lock);
+    mprInitSpinLock(&((MprRegion*) region)->lock);
     region->size = size;
     region->start = (MprMem*) (((char*) region) + rsize);
     mp = (MprMem*) region->start;
@@ -788,7 +786,7 @@ static MprMem *growHeap(ssize required, int flags)
 #endif
     do {
         region->next = heap->regions;
-    } while (!mprCasPtr((void**) &heap->regions, region->next, region));
+    } while (!mprAtomCas((volatile void**) &heap->regions, region->next, region));
 
     lockHeap();
     INC(allocs);
@@ -1152,7 +1150,11 @@ static void sweep()
             if (prior) {
                 prior->next = nextRegion;
             } else {
-                if (!mprCasPtr((void**) &heap->regions, region, nextRegion)) {
+                /*
+                    The region was the first in the list. If the update to the list head fails, some other thread beta us. 
+                    Thereafter, we can guarantee there is a prior entry, so rescan for the region and then update the prior.
+                 */
+                if (!mprAtomCas((volatile void**) &heap->regions, region, nextRegion)) {
                     for (rp = heap->regions; rp; rp = rp->next) {
                         if (rp->next == region) {
                             rp->next = nextRegion;
@@ -1161,9 +1163,6 @@ static void sweep()
                     }
                     mprAssert(rp != NULL);
                 }
-#if UNUSED
-                heap->regions = nextRegion;
-#endif
             }
             mprVirtFree(region, region->size);
         } else {

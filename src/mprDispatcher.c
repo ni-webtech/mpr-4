@@ -12,7 +12,6 @@
 
 /***************************** Forward Declarations ***************************/
 
-static int claimDispatcher(MprDispatcher *dispatcher);
 static void dequeueDispatcher(MprDispatcher *dispatcher);
 static void dispatchEvents(MprDispatcher *dispatcher);
 static MprTime getIdleTime(MprEventService *es);
@@ -23,7 +22,6 @@ static int makeRunnable(MprDispatcher *dispatcher);
 static void manageDispatcher(MprDispatcher *dispatcher, int flags);
 static void manageEventService(MprEventService *es, int flags);
 static void queueDispatcher(MprDispatcher *prior, MprDispatcher *dispatcher);
-static void disclaimDispatcher(MprDispatcher *dispatcher);
 static void scheduleDispatcher(MprDispatcher *dispatcher);
 static void serviceDispatcherMain(MprDispatcher *dispatcher);
 static void serviceDispatcher(MprDispatcher *dp);
@@ -586,6 +584,7 @@ static int makeRunnable(MprDispatcher *dispatcher)
 }
 
 
+#if UNUSED
 static int claimDispatcher(MprDispatcher *dispatcher)
 {
     MprEventService     *es;
@@ -608,6 +607,7 @@ static void disclaimDispatcher(MprDispatcher *dispatcher)
         dispatcher->owner = NULL;
     }
 }
+#endif
 
 
 /*
