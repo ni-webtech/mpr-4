@@ -278,7 +278,7 @@ void *mprAllocBlock(ssize usize, int flags)
     int grew = 0;
     padWords = padding[flags & MPR_ALLOC_PAD_MASK];
     size = usize + sizeof(MprMem) + (padWords * sizeof(void*));
-    size = max(size, usize + sizeof(MprFreeMem));
+    size = max(size, usize + (ssize) sizeof(MprFreeMem));
     size = MPR_ALLOC_ALIGN(size);
     
     if ((mp = searchFree(size, flags)) == NULL) {
@@ -760,8 +760,6 @@ static MprMem *freeBlock(MprMem *mp)
         unlockHeap();
         region = GET_REGION(mp);
         region->freeable = 1;
-        int s = GET_SIZE(mp) + MPR_ALLOC_ALIGN(sizeof(MprRegion));
-        mprAssert(s == region->size);
         mprAssert(next == NULL);
 #if UNUSED
         int s = GET_SIZE(mp) + MPR_ALLOC_ALIGN(sizeof(MprRegion));
