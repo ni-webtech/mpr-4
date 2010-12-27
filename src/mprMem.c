@@ -788,7 +788,7 @@ static MprMem *growHeap(ssize required, int flags)
 #endif
     do {
         region->next = heap->regions;
-    } while (!mprAtomCas((volatile void**) &heap->regions, region->next, region));
+    } while (!mprAtomCas((void* volatile*) &heap->regions, region->next, region));
 
     lockHeap();
     INC(allocs);
@@ -1156,7 +1156,7 @@ static void sweep()
                     The region was the first in the list. If the update to the list head fails, some other thread beta us. 
                     Thereafter, we can guarantee there is a prior entry, so rescan for the region and then update the prior.
                  */
-                if (!mprAtomCas((volatile void**) &heap->regions, region, nextRegion)) {
+                if (!mprAtomCas((void*volatile*) &heap->regions, region, nextRegion)) {
                     for (rp = heap->regions; rp; rp = rp->next) {
                         if (rp->next == region) {
                             rp->next = nextRegion;

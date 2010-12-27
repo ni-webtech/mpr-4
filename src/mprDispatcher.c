@@ -14,6 +14,7 @@
 
 static void dequeueDispatcher(MprDispatcher *dispatcher);
 static void dispatchEvents(MprDispatcher *dispatcher);
+static MprTime getDispatcherIdleTime(MprDispatcher *dispatcher);
 static MprTime getIdleTime(MprEventService *es);
 static MprDispatcher *getNextReadyDispatcher(MprEventService *es);
 static void initDispatcherQ(MprEventService *es, MprDispatcher *q, cchar *name);
@@ -195,6 +196,7 @@ int mprServiceEvents(int timeout, int flags)
             lock(es);
             idle = getIdleTime(es);
             delay = min(expires - es->now, idle);
+            delay = max(delay, 0);
             if (delay > 0) {
                 es->waiting = 1;
                 es->willAwake = es->now + delay;
@@ -220,7 +222,7 @@ int mprServiceEvents(int timeout, int flags)
 int mprWaitForEvent(MprDispatcher *dispatcher, int timeout)
 {
     MprEventService     *es;
-    MprTime             expires, delay;
+    MprTime             expires, delay, idle;
     MprOsThread         thread;
     int                 claimed, signalled, wasRunning, runEvents;
 
@@ -254,25 +256,22 @@ int mprWaitForEvent(MprDispatcher *dispatcher, int timeout)
             makeRunnable(dispatcher);
             dispatchEvents(dispatcher);
         }
-        delay = (expires - es->now);
-        if (delay > 0) {
-            lock(es);
-            if (!runEvents || !hasPendingEvents(dispatcher)) {
-                dispatcher->waitingOnCond = 1;
-                unlock(es);
-                mprStickyYield(NULL, 1);
-                if (mprWaitForCond(dispatcher->cond, (int) delay) == 0) {
-                    signalled++;
-                    dispatcher->waitingOnCond = 0;
-                    mprStickyYield(NULL, 0);
-                    break;
-                }
-                dispatcher->waitingOnCond = 0;
-                mprStickyYield(NULL, 0);
-            } else {
-                unlock(es);
-            }
+        lock(es);
+        idle = getDispatcherIdleTime(dispatcher);
+        delay = min(expires - es->now, idle);
+        delay = max(delay, 0);
+        dispatcher->waitingOnCond = 1;
+        unlock(es);
+        
+        mprStickyYield(NULL, 1);
+        if (mprWaitForCond(dispatcher->cond, (int) delay) == 0) {
+            signalled++;
+            dispatcher->waitingOnCond = 0;
+            mprStickyYield(NULL, 0);
+            break;
         }
+        dispatcher->waitingOnCond = 0;
+        mprStickyYield(NULL, 0);
         es->now = mprGetTime();
     } while (es->now < expires && !mprIsComplete());
 
@@ -429,18 +428,6 @@ static void serviceDispatcherMain(MprDispatcher *dispatcher)
 
 
 /*
-    Must be called locked
- */
-static bool hasPendingEvents(MprDispatcher *dispatcher)
-{
-    MprEvent        *next;
-
-    next = dispatcher->eventQ.next;
-    return (next != &dispatcher->eventQ && next->due <= dispatcher->service->now);
-}
-
-
-/*
     Get the next (ready) dispatcher off given runQ and move onto the runQ
  */
 static MprDispatcher *getNextReadyDispatcher(MprEventService *es)
@@ -509,6 +496,32 @@ static MprTime getIdleTime(MprEventService *es)
         }
     }
     return delay;
+}
+
+
+static MprTime getDispatcherIdleTime(MprDispatcher *dispatcher)
+{
+    MprEvent    *next;
+    MprTime     delay;
+
+    delay = MPR_MAX_TIMEOUT;
+    next = dispatcher->eventQ.next;
+    if (next != &dispatcher->eventQ) {
+        delay = (next->due - dispatcher->service->now);
+    }
+    return delay;
+}
+
+
+/*
+    Must be called locked
+ */
+static bool hasPendingEvents(MprDispatcher *dispatcher)
+{
+    MprEvent        *next;
+
+    next = dispatcher->eventQ.next;
+    return (next != &dispatcher->eventQ && next->due <= dispatcher->service->now);
 }
 
 

@@ -862,6 +862,7 @@ bool mprWaitForTestToComplete(MprTestGroup *gp, int timeout)
     int     rc;
     
     mprAssert(gp->cond);
+    mprAssert(timeout >= 0);
 
     mprStickyYield(NULL, 1);
     rc = mprWaitForCond(gp->cond, timeout) == 0;

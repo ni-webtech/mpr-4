@@ -16,14 +16,14 @@ typedef char* pp;
 
 void mprAtomTest() 
 {
-    volatile void    *a, *b;
+    void    *a, *b;
     int64   l;
     int     x;
 
     mprAtomBarrier();
 
     a = "1";
-    mprAtomCas(&a, (void*) a, "2");
+    mprAtomCas((void * volatile ) &a, (void*) a, "2");
     mprAssert(*(char*) a == '2');
 
     x = 0;
@@ -66,7 +66,7 @@ void mprAtomBarrier()
 /*
     Atomic Compare and swap a pointer with a full memory barrier
  */
-int mprAtomCas(volatile void **addr, void *expected, cvoid *value)
+int mprAtomCas(void * volatile *addr, void *expected, cvoid *value)
 {
     #if MACOSX
         return OSAtomicCompareAndSwapPtrBarrier(expected, (void*) value, (void*) addr);
@@ -145,7 +145,7 @@ void mprAtomAdd64(volatile int64 *ptr, int value)
 }
 
 
-void *mprAtomExchange(volatile void **addr, cvoid *value)
+void *mprAtomExchange(void * volatile *addr, cvoid *value)
 {
 #if MACOSX && 0
     return OSAtomicCompareAndSwapPtrBarrier(expected, value, addr);
@@ -171,7 +171,7 @@ void *mprAtomExchange(volatile void **addr, cvoid *value)
 /*
     Atomic list insertion. Inserts "item" at the "head" of the list. The "link" field is the next field in item.
  */
-void mprAtomListInsert(volatile void **head, volatile void **link, void *item)
+void mprAtomListInsert(void * volatile *head, volatile void **link, void *item)
 {
     do {
         *link = *head;
