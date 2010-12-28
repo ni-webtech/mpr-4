@@ -98,6 +98,8 @@ bool mprTryLock(MprMutex *lock)
 {
     int     rc;
 
+    if (lock == 0) return 0;
+
 #if BLD_UNIX_LIKE
     rc = pthread_mutex_trylock(&lock->cs) != 0;
 #elif BLD_WIN_LIKE
@@ -221,6 +223,8 @@ bool mprTrySpinLock(MprSpin *lock)
 {
     int     rc;
 
+    if (lock == 0) return 0;
+
 #if USE_MPR_LOCK
     mprTryLock(&lock->cs);
 #elif MACOSX
@@ -278,6 +282,7 @@ void mprGlobalUnlock()
  */
 void mprLock(MprMutex *lock)
 {
+    if (lock == 0) return;
 #if BLD_UNIX_LIKE
     pthread_mutex_lock(&lock->cs);
 #elif BLD_WIN_LIKE
@@ -294,6 +299,7 @@ void mprLock(MprMutex *lock)
 
 void mprUnlock(MprMutex *lock)
 {
+    if (lock == 0) return;
 #if BLD_UNIX_LIKE
     pthread_mutex_unlock(&lock->cs);
 #elif BLD_WIN_LIKE
@@ -312,6 +318,8 @@ void mprUnlock(MprMutex *lock)
  */
 void mprSpinLock(MprSpin *lock)
 {
+    if (lock == 0) return;
+
 #if BLD_DEBUG
     /*
         Spin locks don't support recursive locking on all operating systems.
@@ -341,6 +349,8 @@ void mprSpinLock(MprSpin *lock)
 
 void mprSpinUnlock(MprSpin *lock)
 {
+    if (lock == 0) return;
+
 #if BLD_DEBUG
     lock->owner = 0;
 #endif

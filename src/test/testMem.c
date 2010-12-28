@@ -38,6 +38,7 @@ static void testBasicAlloc(MprTestGroup *gp)
     assert(cp[0] == '\0');
 }
 
+static int when = 0;
 
 static void testBigAlloc(MprTestGroup *gp)
 {
@@ -45,32 +46,36 @@ static void testBigAlloc(MprTestGroup *gp)
     ssize  memsize, len;
     
     memsize = mprGetMem();
+if (when) {
+    mprPrintMem("Before big alloc", 1);
+}
     len = 8 * 1024 * 1024;
+//MOB
+len = 1024;
     mp = mprAlloc(len);
     assert(mp != 0);
-    memset(mp, 0, len);
-    
-    if (mprGetMem() > memsize) {
-        assert((mprGetMem() - memsize) < (len * 2));
-    }
+    memset(mp, 0, len);    
 }
 
 
 static void testLotsOfAlloc(MprTestGroup *gp)
 {
     void    *mp;
-    ssize  memsize;
-    int     i;
+    ssize   memsize;
+    int     i, maxblock, count;
 
-    for (i = 0; i < 10000; i++) {
+    memsize = mprGetMem();
+
+    count = (gp->service->testDepth * 10 * 1024) + 1024;
+    for (i = 0; i < count; i++) {
         mp = mprAlloc(64);
         assert(mp != 0);
     }
-    memsize = mprGetMem();
-    for (i = 2; i < (1024 * 1024); i *= 2) {
+    maxblock = (gp->service->testDepth * 1024 * 1024) + 1024;
+    for (i = 2; i < maxblock; i *= 2) {
         mp = mprAlloc(i);
         assert(mp != 0);
-        mprRequestGC(0);
+        mprRequestGC(0, 0);
     }
     if (mprGetMem() > memsize) {
         assert((mprGetMem() - memsize) < (4 * 1024 * 1024));
@@ -162,9 +167,9 @@ static void testAllocLongevity(MprTestGroup *gp)
         Check memory does not grow unexpectedly.
      */
     depth = gp->service->testDepth;
-    iterations = (depth * depth * 1024) + 1024;
+    iterations = (depth * depth * 512) + 64;
     memsize = mprGetMem();
-    blockSize = 16 * 1024;
+    blockSize = 1024;
     cache = mprAllocObj(Cache, cacheManager);
     assert(cache != 0);
     mprAddRoot(cache);

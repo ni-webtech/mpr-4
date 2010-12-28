@@ -109,11 +109,6 @@ static void manageCmd(MprCmd *cmd, int flags)
         mprMark(cmd->command);
         mprMark(cmd->arg0);
 #endif
-#if UNUSED
-        for (i = 0; i < cmd->argc; i++) {
-            mprMark(cmd->argv[i]);
-        }
-#endif
         if (cmd->env) {
             for (i = 0; cmd->env[i]; i++) {
                 mprMark(cmd->env);

@@ -18,7 +18,6 @@ static MprTime getDispatcherIdleTime(MprDispatcher *dispatcher);
 static MprTime getIdleTime(MprEventService *es);
 static MprDispatcher *getNextReadyDispatcher(MprEventService *es);
 static void initDispatcherQ(MprEventService *es, MprDispatcher *q, cchar *name);
-static bool hasPendingEvents(MprDispatcher *dispatcher);
 static int makeRunnable(MprDispatcher *dispatcher);
 static void manageDispatcher(MprDispatcher *dispatcher, int flags);
 static void manageEventService(MprEventService *es, int flags);
@@ -57,12 +56,14 @@ MprEventService *mprCreateEventService()
 
 static void manageEventService(MprEventService *es, int flags)
 {
-    MprDispatcher   *dp, *q;
-
     if (flags & MPR_MANAGE_MARK) {
         mprMark(es->waitCond);
         mprMark(es->mutex);
 
+#if UNUSED || 1
+    MprDispatcher   *dp, *q;
+
+        lock(es);
         q = &es->runQ;
         for (dp = q->next; dp != q; dp = dp->next) {
             mprMark(dp);
@@ -79,6 +80,9 @@ static void manageEventService(MprEventService *es, int flags)
         for (dp = q->next; dp != q; dp = dp->next) {
             mprMark(dp);
         }
+        unlock(es);
+#endif
+
     } else if (flags & MPR_MANAGE_FREE) {
         /* Needed for race with manageDispatcher */
         es->mutex = 0;
@@ -513,6 +517,7 @@ static MprTime getDispatcherIdleTime(MprDispatcher *dispatcher)
 }
 
 
+#if UNUSED
 /*
     Must be called locked
  */
@@ -523,6 +528,7 @@ static bool hasPendingEvents(MprDispatcher *dispatcher)
     next = dispatcher->eventQ.next;
     return (next != &dispatcher->eventQ && next->due <= dispatcher->service->now);
 }
+#endif
 
 
 static void initDispatcherQ(MprEventService *es, MprDispatcher *q, cchar *name)

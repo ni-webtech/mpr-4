@@ -682,9 +682,11 @@ MprWorkerService *mprCreateWorkerService()
 static void manageWorkerService(MprWorkerService *ws, int flags)
 {
     if (flags & MPR_MANAGE_MARK) {
+        mprLock(ws->mutex);
         mprMarkList(ws->busyThreads);
         mprMarkList(ws->idleThreads);
         mprMark(ws->mutex);
+        mprUnlock(ws->mutex);
     }
 }
 

@@ -42,12 +42,7 @@ MprWaitService *mprCreateWaitService()
 static void manageWaitService(MprWaitService *ws, int flags)
 {
     if (flags & MPR_MANAGE_MARK) {
-#if UNUSED
-        //  Some are static so can't be managed here
-        mprMarkList(ws->handlers);
-#else
         mprMark(ws->handlers);
-#endif
         mprMark(ws->handlerMap);
         mprMark(ws->mutex);
         mprMark(ws->spin);

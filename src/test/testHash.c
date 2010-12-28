@@ -10,7 +10,7 @@
 
 /*********************************** Locals ***********************************/
 
-#define HASH_COUNT  1000                /* Number of items to enter */
+#define HASH_COUNT  256                /* Number of items to enter */
 
 /************************************ Code ************************************/
 
@@ -168,7 +168,7 @@ static void testIterateHash(MprTestGroup *gp)
             count++;
         }
     }
-    assert(count == 1000);
+    assert(count == HASH_COUNT);
 }
 
 //  MOB -- test caseless nad unicode

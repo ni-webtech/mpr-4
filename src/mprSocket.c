@@ -177,7 +177,6 @@ static MprSocket *createSocket(struct MprSsl *ssl)
     sp->provider = MPR->socketService->standardProvider;
     sp->service = MPR->socketService;
     sp->mutex = mprCreateLock();
-    mprHold(sp->mutex);
     return sp;
 }
 
@@ -195,6 +194,7 @@ static void manageSocket(MprSocket *sp, int flags)
     } else if (flags & MPR_MANAGE_FREE) {
         ss = sp->service;
         if (sp->fd >= 0) {
+            sp->mutex = 0;
             mprCloseSocket(sp, 1);
         }
     }

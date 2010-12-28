@@ -115,6 +115,7 @@ static void manageMpr(Mpr *mpr, int flags)
         mprMark(mpr->moduleService);
         mprMark(mpr->mutex);
         mprMark(mpr->name);
+        mprMark(mpr->nonBlock);
         mprMark(mpr->osService);
         mprMark(mpr->serverName);
         mprMark(mpr->spin);

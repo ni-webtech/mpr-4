@@ -351,10 +351,10 @@ typedef struct MprSpin {
 } MprSpin;
 
 
-#define lock(arg) mprLock(arg->mutex)
-#define unlock(arg) mprUnlock(arg->mutex)
-#define spinlock(arg) mprSpinLock(arg->spin)
-#define spinunlock(arg) mprSpinUnlock(arg->spin)
+#define lock(arg)       if (arg) mprLock(arg->mutex)
+#define unlock(arg)     if (arg) mprUnlock(arg->mutex)
+#define spinlock(arg)   if (arg) mprSpinLock(arg->spin)
+#define spinunlock(arg) if (arg) mprSpinUnlock(arg->spin)
 
 /**
     Create a Mutex lock object.
@@ -422,34 +422,34 @@ extern bool mprTrySpinLock(MprSpin *lock);
         Spin lock macros
      */
     #if MACOSX
-        #define mprSpinLock(lock)   OSSpinLockLock(&((lock)->cs))
-        #define mprSpinUnlock(lock) OSSpinLockUnlock(&((lock)->cs))
+        #define mprSpinLock(lock)   if (lock) OSSpinLockLock(&((lock)->cs))
+        #define mprSpinUnlock(lock) if (lock) OSSpinLockUnlock(&((lock)->cs))
     #elif BLD_UNIX_LIKE && BLD_HAS_SPINLOCK
-        #define mprSpinLock(lock)   pthread_spin_lock(&((lock)->cs))
-        #define mprSpinUnlock(lock) pthread_spin_unlock(&((lock)->cs))
+        #define mprSpinLock(lock)   if (lock) pthread_spin_lock(&((lock)->cs))
+        #define mprSpinUnlock(lock) if (lock) pthread_spin_unlock(&((lock)->cs))
     #elif BLD_UNIX_LIKE
-        #define mprSpinLock(lock)   pthread_mutex_lock(&((lock)->cs))
-        #define mprSpinUnlock(lock) pthread_mutex_unlock(&((lock)->cs))
+        #define mprSpinLock(lock)   if (lock) pthread_mutex_lock(&((lock)->cs))
+        #define mprSpinUnlock(lock) if (lock) pthread_mutex_unlock(&((lock)->cs))
     #elif BLD_WIN_LIKE
-        #define mprSpinLock(lock)   EnterCriticalSection(&((lock)->cs))
-        #define mprSpinUnlock(lock) LeaveCriticalSection(&((lock)->cs))
+        #define mprSpinLock(lock)   if (lock) EnterCriticalSection(&((lock)->cs))
+        #define mprSpinUnlock(lock) if (lock) LeaveCriticalSection(&((lock)->cs))
     #elif VXWORKS
-        #define mprSpinLock(lock)   semTake((lock)->cs, WAIT_FOREVER)
-        #define mprSpinUnlock(lock) semGive((lock)->cs)
+        #define mprSpinLock(lock)   if (lock) semTake((lock)->cs, WAIT_FOREVER)
+        #define mprSpinUnlock(lock) if (lock) semGive((lock)->cs)
     #endif
 
     /*
         Lock macros
      */
     #if BLD_UNIX_LIKE
-        #define mprLock(lock)       pthread_mutex_lock(&((lock)->cs))
-        #define mprUnlock(lock)     pthread_mutex_unlock(&((lock)->cs))
+        #define mprLock(lock)       if (lock) pthread_mutex_lock(&((lock)->cs))
+        #define mprUnlock(lock)     if (lock) pthread_mutex_unlock(&((lock)->cs))
     #elif BLD_WIN_LIKE
-        #define mprUnlock(lock)     LeaveCriticalSection(&((lock)->cs))
-        #define mprLock(lock)       EnterCriticalSection(&((lock)->cs))
+        #define mprUnlock(lock)     if (lock) LeaveCriticalSection(&((lock)->cs))
+        #define mprLock(lock)       if (lock) EnterCriticalSection(&((lock)->cs))
     #elif VXWORKS
-        #define mprUnlock(lock)     semGive((lock)->cs)
-        #define mprLock(lock)       semTake((lock)->cs, WAIT_FOREVER)
+        #define mprUnlock(lock)     if (lock) semGive((lock)->cs)
+        #define mprLock(lock)       if (lock) semTake((lock)->cs, WAIT_FOREVER)
     #endif
 #else
 
@@ -740,6 +740,7 @@ typedef struct MprMemStats {
         Optional memory stats
      */
     uint64          allocs;                 /* Count of times a block was split Calls to allocate memory from the O/S */
+    uint64          freed;                  /* Bytes freed in last sweep */
     uint64          joins;                  /* Count of times a block was joined (coalesced) with its neighbours */
     uint64          requests;               /* Count of memory requests */
     uint64          reuse;                  /* Count of times a block was reused from a free queue */
@@ -1136,7 +1137,7 @@ extern void mprAddRoot(void *ptr);
 extern void mprGC(int flags);
 #endif
 
-extern void mprRequestGC(int all);
+extern void mprRequestGC(int force, int complete);
 
 /**
     Enable or disable the garbage collector

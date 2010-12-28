@@ -130,13 +130,13 @@ static void doBenchmark(void *thread)
     int             count, i;
     MprMutex        *lock;
 
-    mprRequestGC(1);
+    mprRequestGC(1, 1);
 
     mprPrintf("Group\t%-30s\t%13s\t%12s\n", "Benchmark", "Microsec", "Elapsed-sec");
     complete = mprCreateCond();
 
     testMalloc();
-    mprRequestGC(1);
+    mprRequestGC(1, 1);
 
     if (!testAllocOnly) {
         /*
