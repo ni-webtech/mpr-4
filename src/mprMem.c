@@ -681,7 +681,7 @@ static MprMem *freeBlock(MprMem *mp)
 {
     MprMem      *prev, *next, *after;
     ssize       size;
-#if BLD_CC_MMU
+#if BLD_CC_MMU && 0
     MprRegion   *region;
 #endif
     int a, b;
@@ -756,21 +756,18 @@ static MprMem *freeBlock(MprMem *mp)
     /*
         Release entire regions back to the O/S. (Blocks equal to Empty regions have no prior and are last)
      */
-#if BLD_CC_MMU
+#if BLD_CC_MMU && 0
     if (GET_PRIOR(mp) == NULL && IS_LAST(mp) && heap->stats.bytesFree > (MPR_MEM_REGION_SIZE * 4)) {
         INC(unpins);
+        mprAssert(IS_FREE(mp));
+        mprAssert(GET_GEN(mp) == heap->eternal);
+#if BLD_MEMORY_DEBUG
+        mprAssert(fp->next == NULL && fp->prev == NULL);
+#endif
         unlockHeap();
         region = GET_REGION(mp);
         region->freeable = 1;
         mprAssert(next == NULL);
-#if UNUSED
-        int s = GET_SIZE(mp) + MPR_ALLOC_ALIGN(sizeof(MprRegion));
-        linkBlock(mp);
-        region = GET_REGION(mp);
-        RESET_MEM(mp);
-        mprAssert(s == region->size);
-        unlockHeap();
-#endif
     } else
 #endif
     {
@@ -812,10 +809,10 @@ static MprMem *growHeap(ssize required, int flags)
     region->start = (MprMem*) (((char*) region) + rsize);
     mp = (MprMem*) region->start;
     hasManager = (flags & MPR_ALLOC_MANAGER) ? 1 : 0;
+    INIT_BLK(mp, required, hasManager, 0, NULL);
     if (hasManager) {
         SET_MANAGER(mp, dummyManager);
     }
-    INIT_BLK(mp, required, hasManager, 0, NULL);
     CHECK(mp);
 
     spare = (MprMem*) ((char*) mp + required);

@@ -68,7 +68,7 @@ flat $(REL_DIR)/$(FLAT_VER_NAME):
 	ln -s $(FLAT_VER_NAME) $(REL_DIR)/$(FLAT_PERM_NAME)
 
 cleanup:
-	rm -rf $(STAGE_DIR)
+	echo rm -rf $(STAGE_DIR)
 
 cleanExtra:
 	rm -fr $(STAGE_DIR) $(REL_DIR)/$(DIST_VER_NAME) $(REL_DIR)/$(DIST_PERM_NAME) 
