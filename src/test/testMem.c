@@ -43,9 +43,8 @@ static int when = 0;
 static void testBigAlloc(MprTestGroup *gp)
 {
     void    *mp;
-    ssize  memsize, len;
+    ssize  len;
     
-    memsize = mprGetMem();
 if (when) {
     mprPrintMem("Before big alloc", 1);
 }
@@ -61,10 +60,7 @@ len = 1024;
 static void testLotsOfAlloc(MprTestGroup *gp)
 {
     void    *mp;
-    ssize   memsize;
     int     i, maxblock, count;
-
-    memsize = mprGetMem();
 
     count = (gp->service->testDepth * 10 * 1024) + 1024;
     for (i = 0; i < count; i++) {
@@ -76,9 +72,6 @@ static void testLotsOfAlloc(MprTestGroup *gp)
         mp = mprAlloc(i);
         assert(mp != 0);
         mprRequestGC(0, 0);
-    }
-    if (mprGetMem() > memsize) {
-        assert((mprGetMem() - memsize) < (4 * 1024 * 1024));
     }
 }
 
@@ -158,7 +151,7 @@ static void cacheManager(Cache *cache, int flags)
 static void testAllocLongevity(MprTestGroup *gp)
 {
     Cache       *cache;
-    ssize       memsize, len, actual;
+    ssize       len, actual;
     uchar       *cp;
     int         i, j, index, blockSize, iterations, depth;
     
@@ -168,7 +161,6 @@ static void testAllocLongevity(MprTestGroup *gp)
      */
     depth = gp->service->testDepth;
     iterations = (depth * depth * 512) + 64;
-    memsize = mprGetMem();
     blockSize = 1024;
     cache = mprAllocObj(Cache, cacheManager);
     assert(cache != 0);
