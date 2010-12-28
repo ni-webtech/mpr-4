@@ -55,7 +55,7 @@ void mprAtomBarrier()
     #elif BLD_UNIX_LIKE
         asm volatile ("" : : : "memory");
     #elif MPR_CPU_IX86
-        asm volatile ("lock; add ax,0")
+        asm volatile ("lock; add %eax,0");
     #else
         mprGlobalLock();
         mprGlobalUnlock();
@@ -154,7 +154,6 @@ void *mprAtomExchange(void * volatile *addr, cvoid *value)
 #elif BLD_UNIX_LIKE && 0
     return __sync_lock_test_and_set(addr, value);
     //  MOB -- COMPLETE
-#elif VXWORKS
 #else
     {
         void    *old;

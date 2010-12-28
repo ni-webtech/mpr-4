@@ -60,7 +60,7 @@ static void manageEventService(MprEventService *es, int flags)
         mprMark(es->waitCond);
         mprMark(es->mutex);
 
-#if UNUSED || 1
+#if UNUSED
     MprDispatcher   *dp, *q;
 
         lock(es);
