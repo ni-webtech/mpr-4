@@ -730,6 +730,7 @@ typedef struct MprMemStats {
     ssize           rss;                    /* OS calculated resident stack size in bytes */
     ssize           ram;                    /* System RAM size in bytes */
     ssize           user;                   /* System user RAM size in bytes (excludes kernel) */
+    int             freed;                  /* Bytes freed in last sweep */
     int             markVisited;
     int             marked;
     int             sweepVisited;
@@ -740,7 +741,6 @@ typedef struct MprMemStats {
         Optional memory stats
      */
     uint64          allocs;                 /* Count of times a block was split Calls to allocate memory from the O/S */
-    uint64          freed;                  /* Bytes freed in last sweep */
     uint64          joins;                  /* Count of times a block was joined (coalesced) with its neighbours */
     uint64          requests;               /* Count of memory requests */
     uint64          reuse;                  /* Count of times a block was reused from a free queue */
