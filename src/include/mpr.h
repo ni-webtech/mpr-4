@@ -585,6 +585,26 @@ extern void *mprAtomExchange(void * volatile *addr, cvoid *value);
         mprHold, mprRelease, mprMark, mprAddRoot, mprRemoveRoot, mprSetName, mprGetMpr, mprGetPageSize, mprGetBlockSize,
  */
 typedef struct MprMem {
+#if FUTURE
+    union {
+        size_t      field1;                     /**< Pointer to adjacent, prior block in memory with last, manager fields */
+        struct {
+            ssize   pbits: MPR_BITS - 2;
+            uint    last: 1;
+            uint    hasManager: 1;
+        } prior;
+    }
+    union {
+        size_t      field2;                   /**< Internal block length including header with gen and mark fields */
+        struct {
+            uint    gen: 2;
+            uint    free: 1;
+            ssize   size: MPR_BITS - 5;
+            uint    mark: 2;
+        } size;
+    }
+#endif
+
     /*
         Accesses to prior must only be done while locked. This includes read access as concurrent writes may leave "prior"
         in a partially updated state. These bites are ored into the low order bits of "prior".
