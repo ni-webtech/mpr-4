@@ -569,6 +569,7 @@ mprAssert(IS_FREE(mp));
                     unlinkBlock(fp);
 mprAssert(GET_GEN(mp) == heap->eternal);
                     SET_GEN(mp, heap->active);
+                    mprAtomBarrier();
                     if (flags & MPR_ALLOC_MANAGER) {
                         SET_MANAGER(mp, dummyManager);
                         SET_HAS_MANAGER(mp, 1);
@@ -590,8 +591,9 @@ mprAssert(!IS_FREE(mp));
                                 SET_PRIOR(after, spare);
                             }
                             SET_SIZE(mp, required);
-//  MOB - do we need a fence here to ensure size is written before last?
+                            mprAtomBarrier();
                             SET_LAST(mp, 0);
+                            mprAtomBarrier();
                             INC(splits);
 mprAssert(GET_GEN(spare) != heap->dead);
                             linkBlock(spare);
@@ -926,6 +928,7 @@ static void unlinkBlock(MprFreeMem *fp)
     heap->stats.bytesFree -= size;
     mprAssert(IS_FREE(mp));
     SET_FREE(mp, 0);
+    mprAtomBarrier();
 #if BLD_MEMORY_STATS
 {
     MprFreeMem *freeq = getQueue(size);
