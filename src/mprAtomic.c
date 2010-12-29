@@ -71,26 +71,30 @@ int mprAtomCas(void * volatile *addr, void *expected, cvoid *value)
     #if MACOSX
         return OSAtomicCompareAndSwapPtrBarrier(expected, (void*) value, (void*) addr);
     #elif BLD_WIN_LIKE
-        InterlockedCompareExchangePointer(addr, (void*) value, expected);
+        {
+            void *prev;
+            prev = InterlockedCompareExchangePointer(addr, (void*) value, expected);
+            return expected == prev;
+        }
     #elif BLD_CC_SYNC
-        __sync_bool_compare_and_swap(addr, expected, value);
+        return __sync_bool_compare_and_swap(addr, expected, value);
     #elif BLD_CPU_ARCH == MPR_CPU_IX86
-    {
-        void *prev;
-        asm volatile ("lock; cmpxchgl %2, %1"
-            : "=a" (prev), "=m" (*addr)
-            : "r" (value), "m" (*addr), "0" (expected));
-        return expected == prev;
-    }
+        {
+            void *prev;
+            asm volatile ("lock; cmpxchgl %2, %1"
+                : "=a" (prev), "=m" (*addr)
+                : "r" (value), "m" (*addr), "0" (expected));
+            return expected == prev;
+        }
     #elif BLD_CPU_ARCH == MPR_CPU_IX64
-    {
-        void *prev;
-        asm volatile ("lock; cmpxchgq %q2, %1"
-            : "=a" (prev), "=m" (*addr)
-            : "r" (value), "m" (*addr),
-              "0" (expected));
-        return expected == prev;
-    }
+        {
+            void *prev;
+            asm volatile ("lock; cmpxchgq %q2, %1"
+                : "=a" (prev), "=m" (*addr)
+                : "r" (value), "m" (*addr),
+                  "0" (expected));
+            return expected == prev;
+        }
     #else
         mprGlobalLock();
         if (*addr == expected) {
