@@ -285,7 +285,7 @@ static void testClientServer(MprTestGroup *gp, cchar *host)
     }
     mprCloseSocket(client, 1);
 
-    mark = mprGetTime(gp);
+    mark = mprGetTime();
     do {
         if (mprWaitForTestToComplete(gp, MPR_TEST_SLEEP)) {
             break;

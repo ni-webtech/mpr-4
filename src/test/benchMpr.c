@@ -396,10 +396,7 @@ static void timerCallback(void *data, MprEvent *event)
 
 static MprTime startMark()
 {
-    MprTime     now;
-
-    now = mprGetTime();
-    return now;
+    return mprGetTime();
 }
 
 

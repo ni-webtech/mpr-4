@@ -197,7 +197,7 @@ static void testBufLoad(MprTestGroup *gp)
 
         count = 0;
         while (mprGetBufLength(bp) > 0) {
-            size = 0xFFFF & (int) mprGetTime(gp);
+            size = 0xFFFF & (int) mprGetTime();
             bytes = (int) ((size % sizeof(obuf)) / 9) + 1;
             bytes = min(bytes, ((int) sizeof(obuf) - count));
             rc = mprGetBlockFromBuf(bp, &obuf[count], bytes);

@@ -14,7 +14,7 @@ static void testTimeBasics(MprTestGroup *gp)
 {
     MprTime     mark, now, remaining, elapsed;
 
-    mark = mprGetTime(gp);
+    mark = mprGetTime();
     assert(mark != 0);
     
     remaining = mprGetRemainingTime(mark, 30000);
@@ -24,7 +24,7 @@ static void testTimeBasics(MprTestGroup *gp)
     assert(0 <= elapsed && elapsed < 30000);
 
     mprSleep(10);
-    now = mprGetTime(gp);
+    now = mprGetTime();
     assert(mprCompareTime(mark, now) < 0);
 }
 
@@ -35,7 +35,7 @@ static void testZones(MprTestGroup *gp)
     struct  tm  tm;
 
     /* TODO - need some tests here */
-    now = mprGetTime(gp);
+    now = mprGetTime();
     mprDecodeLocalTime(&tm, now);
     mprDecodeUniversalTime(&tm, now);
 }
@@ -48,7 +48,7 @@ static void testFormatTime(MprTestGroup *gp)
     char        *str;
 
     /* TODO - need some tests here */
-    now = mprGetTime(gp);
+    now = mprGetTime();
     mprDecodeLocalTime(&tm, now);
     str = mprFormatTime(NULL, &tm);
     assert(str && *str);
