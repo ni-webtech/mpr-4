@@ -2108,7 +2108,11 @@ int mprIsValid(cvoid *ptr)
     }
     return 0;
 #else
+#if BLD_DEBUG
     return ptr && mp->magic == MPR_ALLOC_MAGIC && GET_SIZE(mp) > 0;
+#else
+    return ptr && GET_SIZE(mp) > 0;
+#endif
 #endif
 }
 
