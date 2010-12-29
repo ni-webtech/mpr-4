@@ -75,12 +75,14 @@ static void manageHashTable(MprHashTable *table, int flags)
         lock(table);
         for (i = 0; i < table->hashSize; i++) {
             for (sp = (MprHash*) table->buckets[i]; sp; sp = sp->next) {
+                mprAssert(mprIsValid(sp));
                 mprMark(sp);
                 if (!(table->flags & MPR_HASH_STATIC_VALUES)) {
-                    mprAssert(mprIsValid(sp));
-                    mprMark(sp);
+                    mprAssert(mprIsValid(sp->data));
+                    mprMark(sp->data);
                 }
                 if (!(table->flags & MPR_HASH_STATIC_KEYS)) {
+                    mprAssert(mprIsValid(sp->key));
                     mprMark(sp->key);
                 }
             }
