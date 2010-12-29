@@ -70,8 +70,8 @@ static void manageHashTable(MprHashTable *table, int flags)
     int         i;
 
     if (flags & MPR_MANAGE_MARK) {
+        mprMark(table->mutex);
         mprMark(table->buckets);
-
         lock(table);
         for (i = 0; i < table->hashSize; i++) {
             for (sp = (MprHash*) table->buckets[i]; sp; sp = sp->next) {

@@ -45,6 +45,7 @@ static void manageList(MprList *lp, int flags)
     int     i;
 
     if (flags & MPR_MANAGE_MARK) {
+        mprMark(lp->mutex);
         lock(lp);
         mprMark(lp->items);
         if (!(lp->flags & MPR_LIST_STATIC_VALUES)) {
