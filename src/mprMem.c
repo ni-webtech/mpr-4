@@ -144,7 +144,6 @@ static MprMem *growHeap(ssize size, int flags);
 static int initFree();
 static void initGen();
 static void linkBlock(MprMem *mp); 
-static void manualGC();
 static void mark();
 static void marker(void *unused, MprThread *tp);
 static void markRoots();
@@ -666,7 +665,9 @@ mprAssert(GET_GEN(spare) != heap->dead);
             unlockHeap();
             if (!heap->gc && heap->newCount > heap->newQuota) {
                 heap->gc = 1;
-                mprSignalCond(heap->markerCond);
+                if (heap->flags & MPR_MARK_THREAD) {
+                    mprSignalCond(heap->markerCond);
+                }
             }
             lockHeap();
         }
@@ -677,7 +678,9 @@ mprAssert(GET_GEN(spare) != heap->dead);
     unlockHeap();
     if (!heap->gc && heap->newCount > heap->newQuota) {
         heap->gc = 1;
-        mprSignalCond(heap->markerCond);
+        if (heap->flags & MPR_MARK_THREAD) {
+            mprSignalCond(heap->markerCond);
+        }
     }
     return NULL;
 }
@@ -1151,7 +1154,8 @@ static void sweep()
     heap->stats.freed = 0;
 
     /*
-        Run all destructors so all can guarantee dependant memory blocks will still exist
+        Run all destructors first so all destructors can guarantee dependant memory blocks will still exist.
+        Actually free the memory in a 2nd pass below.
      */
     for (region = heap->regions; region; region = region->next) {
         /*
@@ -1347,25 +1351,44 @@ static void sweeper(void *unused, MprThread *tp)
 }
 
 
-static void manualGC()
+
+
+/*
+    Called by user code to signify the thread is ready for GC and all object references are saved. 
+    If the GC marker is synchronizing, this call will block at the GC sync point (should be brief).
+ */
+void mprGC(int force)
 {
     MprThread   *tp;
     int         sweeps, i;
 
-    mprAssert(!(heap->flags & (MPR_MARK_THREAD | MPR_SWEEP_THREAD)));
-    mprAssert(heap->enabled);
-
-    if (!heap->gc) {
+    if (!heap->enabled || (!heap->gc && !force)) {
+        return;
+    }
+    if (heap->flags & (MPR_MARK_THREAD | MPR_SWEEP_THREAD)) {
+        mprYield(NULL, 0);
         return;
     }
     tp = mprGetCurrentThread();
-    tp->yielded = 1;
-    sweeps = heap->extraSweeps + 1;
-    heap->extraSweeps = 0;
-    for (i = 0; i < sweeps; i++) {
-        mark();
+    lockHeap();
+    if (heap->collecting) {
+        unlockHeap();
+        while (tp->yielded && mprWaitForSync()) {
+            mprLog(7, "mprYieldThread %s must wait", tp->name);
+            mprWaitForCond(tp->cond, -1);
+        }
+    } else {
+        heap->collecting = 1;
+        unlockHeap();
+        tp->yielded = 1;
+        sweeps = heap->extraSweeps + 1;
+        heap->extraSweeps = 0;
+        for (i = 0; i < sweeps; i++) {
+            mark();
+        }
+        tp->yielded = 0;
+        heap->collecting = 0;
     }
-    tp->yielded = 0;
 }
 
 
@@ -1378,35 +1401,21 @@ void mprYield(MprThread *tp, int block)
     if (tp == NULL) {
         tp = mprGetCurrentThread();
     }
-    if (MPR->heap.flags & MPR_OWN_GC) {
-        lockHeap();
-        if (heap->collecting) {
-            unlockHeap();
-            while (tp->yielded && (mprWaitForSync() || block)) {
-                mprLog(7, "mprYieldThread %s must wait", tp->name);
-                mprWaitForCond(tp->cond, -1);
-            }
-        } else {
-            heap->collecting = 1;
-            unlockHeap();
-            manualGC();
-            heap->collecting = 0;
-        }
+    mprLog(7, "mprYieldThread %s yielded was %d, block %d", tp->name, tp->yielded, block);
+    tp->yielded = 1;
 
-    } else {
-        mprLog(7, "mprYieldThread %s yielded was %d, block %d", tp->name, tp->yielded, block);
-        tp->yielded = 1;
-        /*
-            Wake the marker to check if all threads are yielded and wait for the all clear
-         */
+    /*
+        Wake the marker to check if all threads are yielded and wait for the all clear
+     */
+    if (heap->flags & MPR_MARK_THREAD) {
         mprSignalCond(MPR->threadService->cond);
-        while (tp->yielded && (mprWaitForSync() || block)) {
-            mprLog(7, "mprYieldThread %s must wait", tp->name);
-            mprWaitForCond(tp->cond, -1);
-        }
-        if (!tp->stickyYield) {
-            tp->yielded = 0;
-        }
+    }
+    while (tp->yielded && (mprWaitForSync() || block)) {
+        mprLog(7, "mprYieldThread %s must wait", tp->name);
+        mprWaitForCond(tp->cond, -1);
+    }
+    if (!tp->stickyYield) {
+        tp->yielded = 0;
     }
 }
 
@@ -2201,6 +2210,3 @@ static void showMem(MprMem *mp)
 
     @end
  */
-
-
-//  MOB - test max block allocatoin

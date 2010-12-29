@@ -363,7 +363,7 @@ MprList *mprGetPathFiles(cchar *dir, bool enumDirs)
     if (h == INVALID_HANDLE_VALUE) {
         return 0;
     }
-    list = mprCreateList();
+    list = mprCreateList(-1, 0);
 
     do {
         if (findData.cFileName[0] == '.' && (findData.cFileName[1] == '\0' || findData.cFileName[1] == '.')) {

@@ -19,7 +19,7 @@
 
 static void *dupKey(MprHashTable *table, MprHash *sp, cvoid *key);
 static MprHash  *lookupHash(int *bucketIndex, MprHash **prevSp, MprHashTable *table, cvoid *key);
-static void manageHash(MprHashTable *table, int flags);
+static void manageHashTable(MprHashTable *table, int flags);
 
 /*********************************** Code *************************************/
 /*
@@ -30,7 +30,7 @@ MprHashTable *mprCreateHash(int hashSize, int flags)
 {
     MprHashTable    *table;
 
-    if ((table = mprAllocObj(MprHashTable, manageHash)) == 0) {
+    if ((table = mprAllocObj(MprHashTable, manageHashTable)) == 0) {
         return 0;
     }
     /*  TODO -- should support rehashing */
@@ -64,7 +64,7 @@ MprHashTable *mprCreateHash(int hashSize, int flags)
 }
 
 
-static void manageHash(MprHashTable *table, int flags)
+static void manageHashTable(MprHashTable *table, int flags)
 {
     MprHash     *sp;
     int         i;
@@ -72,21 +72,20 @@ static void manageHash(MprHashTable *table, int flags)
     if (flags & MPR_MANAGE_MARK) {
         mprMark(table->buckets);
 
-        if ((table->flags & MPR_HASH_STATIC_ALL) != MPR_HASH_STATIC_ALL) {
-            lock(table);
-            for (i = 0; i < table->hashSize; i++) {
-                for (sp = (MprHash*) table->buckets[i]; sp; sp = sp->next) {
-                    if (!(table->flags & MPR_HASH_STATIC_VALUES)) {
-                        mprAssert(mprIsValid(sp));
-                        mprMark(sp);
-                    }
-                    if (!(table->flags & MPR_HASH_STATIC_KEYS)) {
-                        mprMark(sp->key);
-                    }
+        lock(table);
+        for (i = 0; i < table->hashSize; i++) {
+            for (sp = (MprHash*) table->buckets[i]; sp; sp = sp->next) {
+                mprMark(sp);
+                if (!(table->flags & MPR_HASH_STATIC_VALUES)) {
+                    mprAssert(mprIsValid(sp));
+                    mprMark(sp);
+                }
+                if (!(table->flags & MPR_HASH_STATIC_KEYS)) {
+                    mprMark(sp->key);
                 }
             }
-            unlock(table);
         }
+        unlock(table);
     }
 }
 
@@ -128,6 +127,9 @@ MprHash *mprAddHash(MprHashTable *table, cvoid *key, cvoid *ptr)
         unlock(table);
         return sp;
     }
+    /*
+        Hash entries are managed by manageHashTable
+     */
     if ((sp = mprAllocObj(MprHash, NULL)) == NULL) {
         unlock(table);
         return 0;

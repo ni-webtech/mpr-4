@@ -2339,7 +2339,7 @@ extern MprTime mprGetTime();
     @return Time in milliseconds until the timeout elapses  
     @ingroup MprTime
  */
-extern MprTime mprGetRemainingTime(MprTime mark, uint timeout);
+extern MprTime mprGetRemainingTime(MprTime mark, MprTime timeout);
 
 /**
     Get the elapsed time since a time mark. Create the time mark with mprGetTime()
@@ -4438,6 +4438,7 @@ extern MprThreadLocal *mprCreateThreadLocal();
 //  MOB DOC
 extern void mprYield(MprThread *tp, int block);
 extern void mprStickyYield(MprThread *tp, int enable);
+extern void mprGC(int force);
 
 #if UNUSED
 extern void mprResumeThread(MprThread *tp);

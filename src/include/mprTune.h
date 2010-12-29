@@ -162,7 +162,7 @@ extern "C" {
 #define MPR_TIMEOUT_STOP        5000        /**< Wait when stopping resources */
 #define MPR_TIMEOUT_LINGER      2000        /**< Close socket linger timeout */
 #define MPR_TIMEOUT_HANDLER     10000       /**< Wait period when removing a wait handler */
-#define MPR_TIMEOUT_GC_SYNC     15000       /**< Wait period for threads to synchronize */
+#define MPR_TIMEOUT_GC_SYNC     5000        /**< Wait period for threads to synchronize */
 
 #define MPR_TICKS_PER_SEC       1000        /**< Time ticks per second */
 #define MPR_MAX_TIMEOUT         (MAXINT / MPR_TICKS_PER_SEC)

@@ -275,7 +275,7 @@ MprTime mprGetTime()
 /*
     Return the number of milliseconds until the given timeout has expired.
  */
-MprTime mprGetRemainingTime(MprTime mark, uint timeout)
+MprTime mprGetRemainingTime(MprTime mark, MprTime timeout)
 {
     MprTime     now, diff;
 
