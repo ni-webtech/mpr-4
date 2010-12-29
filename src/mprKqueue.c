@@ -59,7 +59,6 @@ void mprManageKqueue(MprWaitService *ws, int flags)
     } else if (flags & MPR_MANAGE_FREE) {
         if (ws->kq) {
             close(ws->kq);
-            ws->kq = 0;
         }
         if (ws->breakPipe[0] >= 0) {
             close(ws->breakPipe[0]);

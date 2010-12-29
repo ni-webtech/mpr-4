@@ -198,7 +198,7 @@ int mprCreateTimeService()
     TimeToken           *tt;
 
     mpr = MPR;
-    mpr->timeTokens = mprCreateHash(-1, MPR_HASH_PERM_KEYS);
+    mpr->timeTokens = mprCreateHash(-1, MPR_HASH_STATIC_KEYS | MPR_HASH_STATIC_VALUES);
     for (tt = days; tt->name; tt++) {
         mprAddHash(mpr->timeTokens, tt->name, (void*) tt);
     }

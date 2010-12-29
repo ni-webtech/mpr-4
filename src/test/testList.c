@@ -18,7 +18,7 @@ static void testCreateList(MprTestGroup *gp)
 {
     MprList *lp;
 
-    lp = mprCreateList(gp);
+    lp = mprCreateList(0, 0);
     assert(lp != 0);
 }
 
@@ -27,7 +27,7 @@ static void testIsListEmpty(MprTestGroup *gp)
 {
     MprList     *lp;
 
-    lp = mprCreateList(gp);
+    lp = mprCreateList(0, 0);
     assert(lp != 0);
 
     assert(mprGetListLength(lp) == 0);
@@ -40,7 +40,7 @@ static void testInsertAndRemove(MprTestGroup *gp)
     MprList     *lp;
     int         index;
 
-    lp = mprCreateList(gp);
+    lp = mprCreateList(0, 0);
     assert(lp != 0);
 
     /*
@@ -60,7 +60,7 @@ static void testLotsOfInserts(MprTestGroup *gp)
     MprList     *lp;
     int         i;
 
-    lp = mprCreateList(gp);
+    lp = mprCreateList(LIST_MAX_ITEMS, 0);
     assert(lp != 0);
 
     /*
@@ -86,10 +86,10 @@ static void testListIterate(MprTestGroup *gp)
     MprList     *lp;
     int         max, i, item, next;
 
-    lp = mprCreateList(gp);
+    max = 50;
+    lp = mprCreateList(max, 0);
     assert(lp != 0);
 
-    max = 50;
     for (i = 0; i < max; i++) {
         mprAddItem(lp, (void*) (long) (i + 1));
     }
@@ -121,7 +121,7 @@ static void testOrderedInserts(MprTestGroup *gp)
     MprList     *lp;
     int         i, item, next;
 
-    lp = mprCreateList(gp);
+    lp = mprCreateList(0, 0);
     assert(lp != 0);
 
     /*

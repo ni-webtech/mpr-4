@@ -421,13 +421,11 @@ MprList *mprGetPathFiles(cchar *path, bool enumDirs)
     char            *fileName;
     int             rc;
 
-    dp = 0;
-
     dir = opendir((char*) path);
     if (dir == 0) {
         return 0;
     }
-    list = mprCreateList();
+    list = mprCreateList(256, 0);
 
     while ((dirent = readdir(dir)) != 0) {
         if (dirent->d_name[0] == '.' && (dirent->d_name[1] == '\0' || dirent->d_name[1] == '.')) {

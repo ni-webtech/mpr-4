@@ -41,9 +41,9 @@ MprTestService *mprCreateTestService()
     sp->iterations = 1;
     sp->numThreads = 1;
     sp->workers = 0;
-    sp->testFilter = mprCreateList();
-    sp->groups = mprCreateList();
-    sp->threadData = mprCreateList();
+    sp->testFilter = mprCreateList(-1, 0);
+    sp->groups = mprCreateList(-1, 0);
+    sp->threadData = mprCreateList(-1, 0);
     sp->start = mprGetTime();
     sp->mutex = mprCreateLock();
     return sp;
@@ -52,18 +52,12 @@ MprTestService *mprCreateTestService()
 
 static void manageTestService(MprTestService *ts, int flags)
 {
-    MprList     *lp;
-    int         next;
-    
     if (flags & MPR_MANAGE_MARK) {
         mprMark(ts->commandLine);
         mprMark(ts->mutex);
-        mprMarkList(ts->groups);
-        mprMarkList(ts->testFilter);
+        mprMark(ts->groups);
+        mprMark(ts->testFilter);
         mprMark(ts->threadData);
-        for (next = 0; (lp = mprGetNextItem(ts->threadData, &next)) != 0; ) {
-            mprMarkList(lp);
-        }
     }
 }
 
@@ -354,8 +348,7 @@ static MprList *copyGroups(MprTestService *sp, MprList *groups)
     MprList         *lp;
     int             next;
 
-    lp = mprCreateList();
-    if (lp == 0) {
+    if ((lp = mprCreateList(0, 0)) == NULL) {
         return 0;
     }
     next = 0; 
@@ -484,8 +477,8 @@ static void manageTestGroup(MprTestGroup *gp, int flags)
     if (flags & MPR_MANAGE_MARK) {
         mprMark(gp->name);
         mprMark(gp->fullName);
-        mprMarkList(gp->failures);
-        mprMarkList(gp->groups);
+        mprMark(gp->failures);
+        mprMark(gp->groups);
         mprMark(gp->cases);
         mprMark(gp->cond);
         mprMark(gp->cond2);
@@ -511,15 +504,15 @@ static MprTestGroup *createTestGroup(MprTestService *sp, MprTestDef *def, MprTes
     gp->service = sp;
     gp->cond = mprCreateCond();
 
-    gp->failures = mprCreateList();
+    gp->failures = mprCreateList(0, 0);
     if (gp->failures == 0) {
         return 0;
     }
-    gp->cases = mprCreateList();
+    gp->cases = mprCreateList(0, 0);
     if (gp->cases == 0) {
         return 0;
     }
-    gp->groups = mprCreateList();
+    gp->groups = mprCreateList(0, 0);
     if (gp->groups == 0) {
         return 0;
     }

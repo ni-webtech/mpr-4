@@ -206,7 +206,7 @@ int mprSetRomFileSystem(MprRomInode *inodeList)
 
     rfs = (MprRomFileSystem*) MPR->fileSystem;
     rfs->romInodes = inodeList;
-    rfs->fileIndex = mprCreateHash(rfs, MPR_FILES_HASH_SIZE, MPR_HASH_PERM_KEYS);
+    rfs->fileIndex = mprCreateHash(rfs, MPR_FILES_HASH_SIZE, MPR_HASH_PERM_KEYS | MPR_HASH_STATIC_VALUES);
 
     for (ri = inodeList; ri->path; ri++) {
         if (mprAddHash(rfs->fileIndex, ri->path, ri) < 0) {

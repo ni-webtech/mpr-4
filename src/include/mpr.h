@@ -585,33 +585,20 @@ extern void *mprAtomExchange(void * volatile *addr, cvoid *value);
         mprHold, mprRelease, mprMark, mprAddRoot, mprRemoveRoot, mprSetName, mprGetMpr, mprGetPageSize, mprGetBlockSize,
  */
 typedef struct MprMem {
-#if FUTURE
-    union {
-        size_t      field1;                     /**< Pointer to adjacent, prior block in memory with last, manager fields */
-        struct {
-            ssize   pbits: MPR_BITS - 2;
-            uint    last: 1;
-            uint    hasManager: 1;
-        } prior;
-    }
-    union {
-        size_t      field2;                   /**< Internal block length including header with gen and mark fields */
-        struct {
-            uint    gen: 2;
-            uint    free: 1;
-            ssize   size: MPR_BITS - 5;
-            uint    mark: 2;
-        } size;
-    }
-#endif
-
     /*
         Accesses to prior must only be done while locked. This includes read access as concurrent writes may leave "prior"
         in a partially updated state. These bites are ored into the low order bits of "prior".
 
         prior | last << 1 | hasManager
      */
-    size_t          field1;                     /**< Pointer to adjacent, prior block in memory with last, manager fields */
+    union {
+        size_t      field1;                     /**< Pointer to adjacent, prior block in memory with last, manager fields */
+        struct {
+            uint    hasManager: 1;
+            uint    last: 1;
+            ssize   pbits: MPR_BITS - 2;
+        } bits1;
+    };
 
     /*
         Access to these fields may be done while unlocked as only the marker updates active blocks and does so in a 
@@ -619,7 +606,15 @@ typedef struct MprMem {
 
         gen/2 << 30 | isFree << 29 | size/29 | mark/2
      */ 
-    size_t          field2;                   /**< Internal block length including header with gen and mark fields */
+    union {
+        size_t      field2;                   /**< Internal block length including header with gen and mark fields */
+        struct {
+            uint    mark: 2;
+            ssize   size: MPR_BITS - 5;
+            uint    free: 1;
+            uint    gen: 2;
+        } bits2;
+    };
 #if BLD_MEMORY_DEBUG
     uint            magic;                      /**< Unique signature */
     uint            seqno;                      /**< Allocation sequence number */
@@ -808,11 +803,10 @@ typedef struct MprHeap {
 
     int              allocPolicy;            /**< Memory allocation depletion policy */
     int              chunkSize;              /**< O/S memory allocation chunk size */
-#if UNUSED
-    int              collecting;             /**< GC is running */
-#endif
+    int              collecting;             /**< Manual GC is running */
     int              destroying;             /**< Destroying the heap */
     int              enabled;                /**< GC is enabled */
+    int              extraSweeps;            /**< Number of requested GC sweeps (3 for complete) */
     int              flags;                  /**< GC operational control flags */
     int              from;                   /**< Eligible mprCollectGarbage flags */
     int              hasError;               /**< Memory allocation error */
@@ -821,10 +815,9 @@ typedef struct MprHeap {
     int              newCount;               /**< Count of new gen allocations */
     int              newQuota;               /**< Quota of new allocations before idle GC worthwhile */
     int              nextSeqno;              /**< Next sequence number */
-    uint             gc;                    /**< GC has been requested */
+    uint             gc;                     /**< GC has been requested */
     uint             pageSize;               /**< System page size */
     int              rootIndex;              /**< Marker root scan index */
-    int              sweeps;                 /**< Number of requested GC sweeps (3 for complete) */
 } MprHeap;
 
 /**
@@ -920,6 +913,10 @@ extern bool mprHasMemError();
     @param ptr Any memory context allocated by mprAlloc or mprCreate.
  */
 extern int mprIsValid(cvoid*);
+
+//  MOB DOC
+extern int mprIsDead(cvoid*);
+extern int mprRevive(cvoid*);
 
 /**
     Safe copy for a block of data.
@@ -2390,6 +2387,9 @@ extern int mprParseTime(MprTime *time, cchar *dateString, int timezone, struct t
 extern int mprGetTimeZoneOffset(MprTime when);
 
 /********************************************************* Lists ***********************************************************/
+
+#define MPR_LIST_STATIC_VALUES  0x1     /**< List values are permanent and should not be marked by GC */
+
 /**
     List Module.
     @description The MprList is a dynamic growable list suitable for storing pointers to arbitrary objects.
@@ -2401,10 +2401,12 @@ extern int mprGetTimeZoneOffset(MprTime when);
     @defgroup MprList MprList
  */
 typedef struct MprList {
-    void    **items;                    /**< List item data */
-    int     length;                     /**< Current length of the list contents */
-    int     capacity;                   /**< Current list size */ 
-    int     maxSize;                    /**< Maximum capacity */
+    MprMutex    *mutex;                 /**< GC thread safety */
+    void        **items;                /**< List item data */
+    int         length;                 /**< Current length of the list contents */
+    int         capacity;               /**< Current list size */ 
+    int         maxSize;                /**< Maximum capacity */
+    int         flags;                  /**< Control flags */
 } MprList;
 
 /*
@@ -2448,10 +2450,13 @@ extern MprList *mprAppendList(MprList *list, MprList *add);
     Create a list.
     @description Creates an empty list. MprList's can store generic pointers. They automatically grow as 
         required when items are added to the list.
+    @param size Initial capacity of the list.
+    @param flags Control flags. Possible values are: MPR_LIST_STATIC_VALUES to indicate list items are static
+        and should not be marked for GC.
     @return Returns a pointer to the list. 
     @ingroup MprList
  */
-extern MprList *mprCreateList();
+extern MprList *mprCreateList(int size, int flags);
 
 /**
     Copy a list
@@ -2686,6 +2691,7 @@ extern cvoid *mprPopItem(MprList *list);
   */
 extern int mprPushItem(MprList *list, cvoid *item);
 
+#if UNUSED
 /**
     Mark all items of the list 
     @description This is a Garbage collection helper. It marks the list items as being in-use. This is required if
@@ -2693,6 +2699,7 @@ extern int mprPushItem(MprList *list, cvoid *item);
     @param list List pointer returned from mprCreateList.
 */
 extern void mprMarkList(MprList *list);
+#endif
 
 /******************************************************** Logging **********************************************************/
 /**
@@ -2831,6 +2838,15 @@ extern void mprUserError(cchar *fmt, ...);
 extern int print(cchar *fmt, ...);
 
 /*********************************************** Hash **************************************************/
+/*
+    Flags for mprCreateHash
+ */
+#define MPR_HASH_CASELESS       0x1     /**< Key comparisons ignore case */
+#define MPR_HASH_UNICODE        0x2     /**< Hash keys are unicode strings */
+#define MPR_HASH_STATIC_KEYS    0x4     /**< Keys are permanent - don't dup or mark */
+#define MPR_HASH_STATIC_VALUES  0x8     /**< Values are permanent - don't mark */
+#define MPR_HASH_STATIC_ALL     (MPR_HASH_STATIC_KEYS | MPR_HASH_STATIC_VALUES)
+
 /**
     Hash table entry structure.
     @description Each hash entry has a descriptor entry. This is used to manage the hash table link chains.
@@ -2855,17 +2871,11 @@ typedef uint (*MprHashProc)(cvoid *name, ssize len);
 typedef struct MprHashTable {
     MprHash         **buckets;          /**< Hash collision bucket table */
     MprHashProc     hash;               /**< Hash function */             
+    MprMutex        *mutex;             /**< GC marker sync */
     int             hashSize;           /**< Size of the buckets array */
     int             length;             /**< Number of symbols in the table */
     int             flags;              /**< Hash control flags */
 } MprHashTable;
-
-/*
-    Flags for mprCreateHash
- */
-#define MPR_HASH_CASELESS       0x1     /**< Key comparisons ignore case */
-#define MPR_HASH_UNICODE        0x2     /**< Hash keys are unicode strings */
-#define MPR_HASH_PERM_KEYS      0x4     /**< Keys are permanent - don't need to dup */
 
 /**
     Add a symbol value into the hash table
@@ -2978,6 +2988,7 @@ extern MprHash *mprLookupHashEntry(MprHashTable *table, cvoid *key);
  */
 extern int mprRemoveHash(MprHashTable *table, cvoid *key);
 
+#if UNUSED
 /*
     Mark all items of the hash 
     @description This is a Garbage collection helper. It marks the hash items as being in-use. This is required if
@@ -2985,6 +2996,7 @@ extern int mprRemoveHash(MprHashTable *table, cvoid *key);
     @param table Hash pointer returned from mprCreateHash.
 */
 extern void mprMarkHash(MprHashTable *table);
+#endif
 
 /********************************************************* Files ***********************************************************/
 /*
@@ -5796,13 +5808,11 @@ extern Mpr *mprGetMpr();
     extern Mpr *MPR;
 #endif
 
-#define MPR_MARK_THREAD         0x1         /**< Start a dedicated marker thread for garbage collection */
-#define MPR_SWEEP_THREAD        0x2         /**< Start a dedicated sweeper thread for garbage collection */
-#define MPR_USER_EVENTS_THREAD  0x8         /**< User will explicitly manage own mprServiceEvents calls */
-#if UNUSED
-#define MPR_EVENTS_THREAD       0x4         /**< Invoke garbage collection from within mprServiceEvents */
-#define MPR_USER_GC             0x10        /**< User will managed garbage collection explicitly */
-#endif
+#define MPR_DISABLE_GC          0x1         /**< Disable GC */
+#define MPR_OWN_GC              0x2         /**< User will explicitly manage calls to mprManualGC */
+#define MPR_MARK_THREAD         0x4         /**< Start a dedicated marker thread for garbage collection */
+#define MPR_SWEEP_THREAD        0x8         /**< Start a dedicated sweeper thread for garbage collection */
+#define MPR_USER_EVENTS_THREAD  0x10        /**< User will explicitly manage own mprServiceEvents calls */
 
 #if BLD_TUNE == MPR_TUNE_SPEED
     #define MPR_THREAD_PATTERN (MPR_MARK_THREAD | MPR_SWEEP_THREAD)

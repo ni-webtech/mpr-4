@@ -170,7 +170,7 @@ static void doBenchmark(void *thread)
          */
         mprPrintf("List Benchmarks\n");
         count = 20000000 * iterations;
-        list = mprCreateList();
+        list = mprCreateList(count, 0);
         start = startMark();
         for (i = 0; i < count; i++) {
             mprAddItem(list, (void*) (long) i);

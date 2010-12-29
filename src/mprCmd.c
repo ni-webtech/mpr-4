@@ -39,7 +39,7 @@ MprCmdService *mprCreateCmdService(Mpr *mpr)
     if ((cs = (MprCmdService*) mprAllocObj(MprCmd, manageCmdService)) == 0) {
         return 0;
     }
-    cs->cmds = mprCreateList();
+    cs->cmds = mprCreateList(0, 0);
     cs->mutex = mprCreateLock();
     return cs;
 }
@@ -121,7 +121,7 @@ static void manageCmd(MprCmd *cmd, int flags)
 #if VXWORKS
         vxCmdManager(cmd);
 #endif
-        mprAddItem(cs->cmds, cmd);
+        mprRemoveItem(cs->cmds, cmd);
         unlock(cs);
     }
 }

@@ -6,6 +6,7 @@
     The chain in in collating sequence so search time through the chain is on average (N/hashSize)/2.
 
     This module is not thread-safe. It is the callers responsibility to perform all thread synchronization.
+    There is locking solely for the purpose of synchronization with the GC marker()
 
     Copyright (c) All Rights Reserved. See details at the end of the file.
  */
@@ -36,11 +37,13 @@ MprHashTable *mprCreateHash(int hashSize, int flags)
     if (hashSize < MPR_DEFAULT_HASH_SIZE) {
         hashSize = MPR_DEFAULT_HASH_SIZE;
     }
+    if ((table->buckets = mprAllocZeroed(sizeof(MprHash*) * hashSize)) == 0) {
+        return NULL;
+    }
     table->hashSize = hashSize;
     table->flags = flags;
     table->length = 0;
-    table->hashSize = hashSize;
-    table->buckets = mprAllocZeroed(sizeof(MprHash*) * hashSize);
+    table->mutex = mprCreateLock();
 #if BLD_CHAR_LEN > 1
     if (table->flags & MPR_HASH_UNICODE) {
         if (table->flags & MPR_HASH_CASELESS) {
@@ -57,9 +60,6 @@ MprHashTable *mprCreateHash(int hashSize, int flags)
             table->hash = (MprHashProc) shash;
         }
     }
-    if (table->buckets == 0) {
-        return 0;
-    }
     return table;
 }
 
@@ -71,13 +71,21 @@ static void manageHash(MprHashTable *table, int flags)
 
     if (flags & MPR_MANAGE_MARK) {
         mprMark(table->buckets);
-        for (i = 0; i < table->hashSize; i++) {
-            for (sp = (MprHash*) table->buckets[i]; sp; sp = sp->next) {
-                mprMark(sp);
-                if (!(table->flags & MPR_HASH_PERM_KEYS)) {
-                    mprMark(sp->key);
+
+        if ((table->flags & MPR_HASH_STATIC_ALL) != MPR_HASH_STATIC_ALL) {
+            lock(table);
+            for (i = 0; i < table->hashSize; i++) {
+                for (sp = (MprHash*) table->buckets[i]; sp; sp = sp->next) {
+                    if (!(table->flags & MPR_HASH_STATIC_VALUES)) {
+                        mprAssert(mprIsValid(sp));
+                        mprMark(sp);
+                    }
+                    if (!(table->flags & MPR_HASH_STATIC_KEYS)) {
+                        mprMark(sp->key);
+                    }
                 }
             }
+            unlock(table);
         }
     }
 }
@@ -110,23 +118,22 @@ MprHash *mprAddHash(MprHashTable *table, cvoid *key, cvoid *ptr)
     MprHash     *sp, *prevSp;
     int         index;
 
+    lock(table);
     sp = lookupHash(&index, &prevSp, table, key);
     if (sp != 0) {
         /*
             Already exists. Just update the data.
          */
         sp->data = ptr;
+        unlock(table);
         return sp;
     }
-    /*
-        New entry
-     */
-    sp = mprAllocObj(MprHash, NULL);
-    if (sp == 0) {
+    if ((sp = mprAllocObj(MprHash, NULL)) == NULL) {
+        unlock(table);
         return 0;
     }
     sp->data = ptr;
-    if (!(table->flags & MPR_HASH_PERM_KEYS)) {
+    if (!(table->flags & MPR_HASH_STATIC_KEYS)) {
         sp->key = dupKey(table, sp, key);
     } else {
         sp->key = (void*) key;
@@ -135,6 +142,7 @@ MprHash *mprAddHash(MprHashTable *table, cvoid *key, cvoid *ptr)
     sp->next = table->buckets[index];
     table->buckets[index] = sp;
     table->length++;
+    unlock(table);
     return sp;
 }
 
@@ -149,22 +157,22 @@ MprHash *mprAddDuplicateHash(MprHashTable *table, cvoid *key, cvoid *ptr)
     MprHash     *sp;
     int         index;
 
-    sp = mprAllocObj(MprHash, NULL);
-    if (sp == 0) {
+    if ((sp = mprAllocObj(MprHash, NULL)) == 0) {
         return 0;
     }
-    index = table->hash(key, -1) % table->hashSize;
-
     sp->data = ptr;
-    if (!(table->flags & MPR_HASH_PERM_KEYS)) {
+    if (!(table->flags & MPR_HASH_STATIC_KEYS)) {
         sp->key = dupKey(table, sp, key);
     } else {
         sp->key = (void*) key;
     }
+    lock(table);
+    index = table->hash(key, -1) % table->hashSize;
     sp->bucket = index;
     sp->next = table->buckets[index];
     table->buckets[index] = sp;
     table->length++;
+    unlock(table);
     return sp;
 }
 
@@ -177,7 +185,9 @@ int mprRemoveHash(MprHashTable *table, cvoid *key)
     MprHash     *sp, *prevSp;
     int         index;
 
+    lock(table);
     if ((sp = lookupHash(&index, &prevSp, table, key)) == 0) {
+        unlock(table);
         return MPR_ERR_CANT_FIND;
     }
     if (prevSp) {
@@ -186,6 +196,7 @@ int mprRemoveHash(MprHashTable *table, cvoid *key)
         table->buckets[index] = sp->next;
     }
     table->length--;
+    unlock(table);
     return 0;
 }
 
@@ -218,6 +229,9 @@ void *mprLookupHash(MprHashTable *table, cvoid *key)
 }
 
 
+/*
+    This is unlocked because it is read-only
+ */
 static MprHash *lookupHash(int *bucketIndex, MprHash **prevSp, MprHashTable *table, cvoid *key)
 {
     MprHash     *sp, *prev;
@@ -326,22 +340,6 @@ static void *dupKey(MprHashTable *table, MprHash *sp, cvoid *key)
     } else
 #endif
         return sclone(key);
-}
-
-
-void mprMarkHash(MprHashTable *table)
-{
-    MprHash     *sp;
-    int         i;
-
-    if (table) {
-        for (i = 0; i < table->hashSize; i++) {
-            for (sp = (MprHash*) table->buckets[i]; sp; sp = sp->next) {
-                mprMark((void*) sp->data);
-            }
-        }
-        mprMark(table);
-    }
 }
 
 

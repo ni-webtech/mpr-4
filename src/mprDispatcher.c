@@ -61,6 +61,7 @@ static void manageEventService(MprEventService *es, int flags)
         mprMark(es->mutex);
 
 #if UNUSED
+        //  MOB -- dispatchers should be managed by their owner
     MprDispatcher   *dp, *q;
 
         lock(es);

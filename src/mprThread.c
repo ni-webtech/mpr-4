@@ -39,7 +39,7 @@ MprThreadService *mprCreateThreadService()
     if ((ts->cond = mprCreateCond()) == 0) {
         return 0;
     }
-    if ((ts->threads = mprCreateList()) == 0) {
+    if ((ts->threads = mprCreateList(-1, 0)) == 0) {
         return 0;
     }
     MPR->mainOsThread = mprGetCurrentOsThread();
@@ -61,7 +61,7 @@ MprThreadService *mprCreateThreadService()
 static void manageThreadService(MprThreadService *ts, int flags)
 {
     if (flags & MPR_MANAGE_MARK) {
-        mprMarkList(ts->threads);
+        mprMark(ts->threads);
         mprMark(ts->cond);
         mprMark(ts->mutex);
     }
@@ -78,125 +78,6 @@ bool mprStopThreadService(int timeout)
         timeout -= 50;
     }
     return ts->threads->length <= 1;
-}
-
-
-/*
-    Called by thread code to signify that it is safe for GC. If the GC marker is synchronizing, this call will block at 
-    the GC sync point (should be brief).
- */
-void mprYield(MprThread *tp, int block)
-{
-    if (tp == NULL) {
-        tp = mprGetCurrentThread();
-    }
-    mprLog(7, "mprYieldThread %s yielded was %d, block %d", tp->name, tp->yielded, block);
-    tp->yielded = 1;
-
-    /*
-        Wake the marker to check if all threads are yielded and wait for the all clear
-     */
-    mprSignalCond(MPR->threadService->cond);
-    while (tp->yielded && (mprWaitForSync() || block)) {
-        mprLog(7, "mprYieldThread %s must wait", tp->name);
-        mprWaitForCond(tp->cond, -1);
-    }
-    if (!tp->stickyYield) {
-        tp->yielded = 0;
-    }
-}
-
-
-void mprStickyYield(MprThread *tp, int enable)
-{
-    if (tp == NULL) {
-        tp = mprGetCurrentThread();
-    }
-    tp->stickyYield = enable;
-    if (enable) {
-        mprYield(tp, 0);
-    } else {
-        tp->yielded = enable;
-    }
-}
-
-
-#if UNUSED
-/*
-    Called by worker thread code to signify that it is working and may have local object references that the marker
-    can't see. i.e. Can't do GC.
- */
-void mprResumeThread(MprThread *tp)
-{
-    if (tp == NULL) {
-        tp = mprGetCurrentThread();
-    }
-    tp->yielded = 0;
-}
-#endif
-
-
-/*
-    Pause until all threads have yielded. Called by the GC marker only.
- */
-int mprSyncThreads(int timeout)
-{
-    MprThreadService    *ts;
-    MprThread           *tp;
-    MprTime             mark;
-    int                 i, allYielded;
-
-    ts = MPR->threadService;
-    mprLog(7, "mprSyncThreads timeout %d", timeout);
-    mark = mprGetTime();
-
-    do {
-        allYielded = 1;
-        mprLock(ts->mutex);
-        for (i = 0; i < ts->threads->length; i++) {
-            tp = (MprThread*) mprGetItem(ts->threads, i);
-            if (!tp->yielded) {
-                allYielded = 0;
-                break;
-            }
-        }
-        mprUnlock(ts->mutex);
-        if (allYielded) {
-            break;
-        }
-        mprLog(7, "mprSyncThreads: waiting for threads to yield");
-        mprWaitForCond(ts->cond, 10);
-
-    } while (!allYielded && mprGetElapsedTime(mark) < timeout && !mprIsExiting());
-
-    mprLog(7, "mprSyncThreads: complete %d", allYielded);
-    return (allYielded) ? 1 : 0;
-}
-
-
-/*
-    Resume all yielded threads. Called by the GC marker only.
- */
-void mprResumeThreads()
-{
-    MprThreadService    *ts;
-    MprThread           *tp;
-    int                 i;
-
-    ts = MPR->threadService;
-    mprLog(7, "mprResumeThreadsAfterGC sync");
-
-    mprLock(ts->mutex);
-    for (i = 0; i < ts->threads->length; i++) {
-        tp = (MprThread*) mprGetItem(ts->threads, i);
-        if (tp->yielded) {
-            if (!tp->stickyYield) {
-                tp->yielded = 0;
-            }
-            mprSignalCond(tp->cond);
-        }
-    }
-    mprUnlock(ts->mutex);
 }
 
 
@@ -309,13 +190,19 @@ MprThread *mprCreateThread(cchar *name, MprThreadProc entry, void *data, int sta
 
 static void manageThread(MprThread *tp, int flags)
 {
+    MprThreadService    *ts;
+
+    ts = MPR->threadService;
+
     if (flags & MPR_MANAGE_MARK) {
         mprMark(tp->name);
         mprMark(tp->cond);
         mprMark(tp->mutex);
 
     } else if (flags & MPR_MANAGE_FREE) {
+        lock(ts);
         mprRemoveItem(MPR->threadService->threads, tp);
+        unlock(ts);
 #if BLD_WIN_LIKE
         if (tp->threadHandle) {
             CloseHandle(tp->threadHandle);
@@ -671,9 +558,9 @@ MprWorkerService *mprCreateWorkerService()
     /*
         Presize the lists so they cannot get memory allocation failures later on.
      */
-    ws->idleThreads = mprCreateList();
+    ws->idleThreads = mprCreateList(0, 0);
     mprSetListLimits(ws->idleThreads, ws->maxThreads, -1);
-    ws->busyThreads = mprCreateList();
+    ws->busyThreads = mprCreateList(0, 0);
     mprSetListLimits(ws->busyThreads, ws->maxThreads, -1);
     return ws;
 }
@@ -683,8 +570,8 @@ static void manageWorkerService(MprWorkerService *ws, int flags)
 {
     if (flags & MPR_MANAGE_MARK) {
         mprLock(ws->mutex);
-        mprMarkList(ws->busyThreads);
-        mprMarkList(ws->idleThreads);
+        mprMark(ws->busyThreads);
+        mprMark(ws->idleThreads);
         mprMark(ws->mutex);
         mprUnlock(ws->mutex);
     }

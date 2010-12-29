@@ -144,6 +144,7 @@ static MprMem *growHeap(ssize size, int flags);
 static int initFree();
 static void initGen();
 static void linkBlock(MprMem *mp); 
+static void manualGC();
 static void mark();
 static void marker(void *unused, MprThread *tp);
 static void markRoots();
@@ -187,6 +188,9 @@ Mpr *mprCreateMemService(MprManager manager, int flags)
     MprMem      *mp, *spare;
     ssize       regionSize, size, mprSize;
 
+    if (flags == 0) {
+        flags = MPR_THREAD_PATTERN;
+    }
     heap = &initHeap;
     memset(heap, 0, sizeof(MprHeap));
     heap->stats.maxMemory = MAXINT;
@@ -225,8 +229,11 @@ Mpr *mprCreateMemService(MprManager manager, int flags)
     heap->stats.redLine = MAXINT / 100 * 99;
     heap->newQuota = MPR_NEW_QUOTA;
     heap->regions = region;
-    heap->enabled = 1;
-    heap->flags |= MPR_THREAD_PATTERN;
+    heap->enabled = !(flags & MPR_DISABLE_GC);
+    if (scmp(getenv("DISABLE_GC"), "1") == 0) {
+        heap->enabled = 0;
+    }
+    heap->flags = flags;
     heap->stats.bytesAllocated += size;
     INC(allocs);
 
@@ -240,10 +247,8 @@ Mpr *mprCreateMemService(MprManager manager, int flags)
     linkBlock(spare);
 
     heap->markerCond = mprCreateCond();
-    heap->roots = mprCreateList();
+    heap->roots = mprCreateList(-1, 0);
     mprAddRoot(MPR);
-
-    mprAtomTest();
     return MPR;
 }
 
@@ -275,14 +280,12 @@ void *mprAllocBlock(ssize usize, int flags)
     ssize       size;
     int         padWords;
 
-    int grew = 0;
     padWords = padding[flags & MPR_ALLOC_PAD_MASK];
     size = usize + sizeof(MprMem) + (padWords * sizeof(void*));
     size = max(size, usize + (ssize) sizeof(MprFreeMem));
     size = MPR_ALLOC_ALIGN(size);
     
     if ((mp = searchFree(size, flags)) == NULL) {
-        grew = 1;
         if ((mp = growHeap(size, flags)) == NULL) {
             return NULL;
         }
@@ -296,6 +299,28 @@ void *mprAllocBlock(ssize usize, int flags)
     mprAssert(GET_GEN(mp) != heap->eternal);
     return ptr;
 }
+
+
+#if FUTURE
+void *mprAllocObj(ssize usize, int flags)
+{
+    MprMem      *mp;
+    void        *ptr;
+    ssize       size;
+
+    size = usize + sizeof(MprMem) + (1 * sizeof(void*));
+    //  MOB - OPT if freeMem is smaller than align, don't need this test
+    size = max(size, usize + (ssize) sizeof(MprFreeMem));
+    size = MPR_ALLOC_ALIGN(size);
+    
+    if ((mp = searchFree(size, flags)) == NULL && (mp = growHeap(size, flags)) == NULL) {
+        return NULL;
+    }
+    ptr = GET_PTR(mp);
+    memset(ptr, 0, usize);
+    return ptr;
+}
+#endif
 
 
 #if FUTURE
@@ -1038,10 +1063,10 @@ void mprRequestGC(int force, int complete)
 {
     mprLog(7, "DEBUG: mprRequestGC");
     if (force || (heap->newCount > heap->newQuota)) {
-        if (complete) {
-            heap->sweeps = 3;
+        heap->extraSweeps = (complete) ? 3 : 0;
+        if (!(heap->flags & MPR_OWN_GC)) {
+            mprSignalCond(heap->markerCond);
         }
-        mprSignalCond(heap->markerCond);
         mprYield(NULL, 0);
     }
 }
@@ -1294,13 +1319,14 @@ void mprRelease(void *ptr)
 static void marker(void *unused, MprThread *tp)
 {
     mprLog(2, "DEBUG: marker thread started");
-    mprStickyYield(NULL, 1);
+    tp->stickyYield = 1;
+    tp->yielded = 1;
 
     while (!mprIsExiting()) {
-        if (heap->sweeps <= 0) {
+        if (heap->extraSweeps <= 0) {
             mprWaitForCond(heap->markerCond, -1);
         } else {
-            --heap->sweeps;
+            heap->extraSweeps--;
         }
         mark();
     }
@@ -1321,6 +1347,179 @@ static void sweeper(void *unused, MprThread *tp)
 }
 
 
+static void manualGC()
+{
+    MprThread   *tp;
+    int         sweeps, i;
+
+    mprAssert(!(heap->flags & (MPR_MARK_THREAD | MPR_SWEEP_THREAD)));
+    mprAssert(heap->enabled);
+
+    if (!heap->gc) {
+        return;
+    }
+    tp = mprGetCurrentThread();
+    tp->yielded = 1;
+    sweeps = heap->extraSweeps + 1;
+    heap->extraSweeps = 0;
+    for (i = 0; i < sweeps; i++) {
+        mark();
+    }
+    tp->yielded = 0;
+}
+
+
+/*
+    Called by user code to signify the thread is ready for GC and all object references are saved. 
+    If the GC marker is synchronizing, this call will block at the GC sync point (should be brief).
+ */
+void mprYield(MprThread *tp, int block)
+{
+    if (tp == NULL) {
+        tp = mprGetCurrentThread();
+    }
+    if (MPR->heap.flags & MPR_OWN_GC) {
+        lockHeap();
+        if (heap->collecting) {
+            unlockHeap();
+            while (tp->yielded && (mprWaitForSync() || block)) {
+                mprLog(7, "mprYieldThread %s must wait", tp->name);
+                mprWaitForCond(tp->cond, -1);
+            }
+        } else {
+            heap->collecting = 1;
+            unlockHeap();
+            manualGC();
+            heap->collecting = 0;
+        }
+
+    } else {
+        mprLog(7, "mprYieldThread %s yielded was %d, block %d", tp->name, tp->yielded, block);
+        tp->yielded = 1;
+        /*
+            Wake the marker to check if all threads are yielded and wait for the all clear
+         */
+        mprSignalCond(MPR->threadService->cond);
+        while (tp->yielded && (mprWaitForSync() || block)) {
+            mprLog(7, "mprYieldThread %s must wait", tp->name);
+            mprWaitForCond(tp->cond, -1);
+        }
+        if (!tp->stickyYield) {
+            tp->yielded = 0;
+        }
+    }
+}
+
+
+void mprStickyYield(MprThread *tp, int enable)
+{
+    if (tp == NULL) {
+        tp = mprGetCurrentThread();
+    }
+    tp->stickyYield = enable;
+    if (enable) {
+        mprYield(tp, 0);
+    } else {
+        tp->yielded = enable;
+    }
+}
+
+
+/*
+    Pause until all threads have yielded. Called by the GC marker only.
+ */
+int mprSyncThreads(int timeout)
+{
+    MprThreadService    *ts;
+    MprThread           *tp;
+    MprTime             mark;
+    int                 i, allYielded;
+
+    ts = MPR->threadService;
+    mprLog(7, "mprSyncThreads timeout %d", timeout);
+    mark = mprGetTime();
+
+    do {
+        allYielded = 1;
+        mprLock(ts->mutex);
+        for (i = 0; i < ts->threads->length; i++) {
+            tp = (MprThread*) mprGetItem(ts->threads, i);
+            if (!tp->yielded) {
+                allYielded = 0;
+                break;
+            }
+        }
+        mprUnlock(ts->mutex);
+        if (allYielded) {
+            break;
+        }
+        mprLog(7, "mprSyncThreads: waiting for threads to yield");
+        mprWaitForCond(ts->cond, 10);
+
+    } while (!allYielded && mprGetElapsedTime(mark) < timeout && !mprIsExiting());
+
+    mprLog(7, "mprSyncThreads: complete %d", allYielded);
+    return (allYielded) ? 1 : 0;
+}
+
+
+/*
+    Resume all yielded threads. Called by the GC marker only.
+ */
+void mprResumeThreads()
+{
+    MprThreadService    *ts;
+    MprThread           *tp;
+    int                 i;
+
+    ts = MPR->threadService;
+    mprLog(7, "mprResumeThreadsAfterGC sync");
+
+    mprLock(ts->mutex);
+    for (i = 0; i < ts->threads->length; i++) {
+        tp = (MprThread*) mprGetItem(ts->threads, i);
+        if (tp->yielded) {
+            if (!tp->stickyYield) {
+                tp->yielded = 0;
+            }
+            mprSignalCond(tp->cond);
+        }
+    }
+    mprUnlock(ts->mutex);
+}
+
+
+/*
+    WARNING: Caller must be locked so that the sweeper will not free this block. 
+ */
+int mprIsDead(cvoid *ptr)
+{
+    MprMem      *mp;
+
+    mp = GET_MEM(ptr);
+    return GET_GEN(mp) == heap->dead;
+}
+
+
+/*
+    WARNING: Caller must be locked so that the sweeper will not free this block. 
+ */
+int mprRevive(cvoid *ptr)
+{
+    MprMem      *mp;
+
+    mp = GET_MEM(ptr);
+    return SET_GEN(mp, heap->active);
+}
+
+
+
+int mprWaitForSync()
+{
+    return heap->mustYield;
+}
+
+
 bool mprEnableGC(bool on)
 {
     bool    old;
@@ -1328,12 +1527,6 @@ bool mprEnableGC(bool on)
     old = heap->enabled;
     heap->enabled = on;
     return old;
-}
-
-
-int mprWaitForSync()
-{
-    return heap->mustYield;
 }
 
 
@@ -1842,6 +2035,12 @@ ssize mprGetBlockSize(cvoid *ptr)
 }
 
 
+int mprGetHeapFlags()
+{
+    return heap->flags;
+}
+
+
 void mprSetMemNotifier(MprMemNotifier cback)
 {
     heap->notifier = cback;
@@ -1900,7 +2099,7 @@ int mprIsValid(cvoid *ptr)
     }
     return 0;
 #else
-    return ptr && VALID_BLK(GET_MEM(ptr));
+    return ptr && mp->magic == MPR_ALLOC_MAGIC && GET_SIZE(mp) > 0;
 #endif
 }
 

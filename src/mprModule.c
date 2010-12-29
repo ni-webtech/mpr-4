@@ -25,7 +25,7 @@ MprModuleService *mprCreateModuleService()
     if (ms == 0) {
         return 0;
     }
-    ms->modules = mprCreateList();
+    ms->modules = mprCreateList(-1, 0);
 
     /*
         Define the default module search path
@@ -52,7 +52,7 @@ MprModuleService *mprCreateModuleService()
 static void manageModuleService(MprModuleService *ms, int flags)
 {
     if (flags & MPR_MANAGE_MARK) {
-        mprMarkList(ms->modules);
+        mprMark(ms->modules);
         mprMark(ms->searchPath);
         mprMark(ms->mutex);
     }

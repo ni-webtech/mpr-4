@@ -23,29 +23,39 @@ static void manageList(MprList *lp, int flags);
 /*
     Create a general growable list structure
  */
-MprList *mprCreateList()
+MprList *mprCreateList(int size, int flags)
 {
     MprList     *lp;
 
-    lp = mprAllocObj(MprList, manageList);
-    if (lp == 0) {
+    if ((lp = mprAllocObj(MprList, manageList)) == 0) {
         return 0;
     }
-    lp->capacity = 0;
-    lp->length = 0;
     lp->maxSize = MAXINT;
-    lp->items = 0;
+    lp->flags = flags;
+    lp->mutex = mprCreateLock();
+    if (size != 0) {
+        mprSetListLimits(lp, size, -1);
+    }
     return lp;
 }
 
 
 static void manageList(MprList *lp, int flags)
 {
+    int     i;
+
     if (flags & MPR_MANAGE_MARK) {
+        lock(lp);
         mprMark(lp->items);
+        if (!(lp->flags & MPR_LIST_STATIC_VALUES)) {
+            for (i = 0; i < lp->length; i++) {
+                mprAssert(mprIsValid(lp->items[i]));
+                mprMark(lp->items[i]);
+            }
+        }
+        unlock(lp);
     }
 }
-
 
 /*
     Initialize a list which may not be a memory context.
@@ -108,32 +118,32 @@ int mprCopyList(MprList *dest, MprList *src)
 
 MprList *mprCloneList(MprList *src)
 {
-    MprList     *list;
+    MprList     *lp;
 
-    list = mprCreateList();
-    if (list == 0) {
+    lp = mprCreateList(src->capacity, src->flags);
+    if (lp == 0) {
         return 0;
     }
-    if (mprCopyList(list, src) < 0) {
+    if (mprCopyList(lp, src) < 0) {
         return 0;
     }
-    return list;
+    return lp;
 }
 
 
-MprList *mprAppendList(MprList *list, MprList *add)
+MprList *mprAppendList(MprList *lp, MprList *add)
 {
     void        *item;
     int         next;
 
-    mprAssert(list);
+    mprAssert(lp);
 
     for (next = 0; ((item = mprGetNextItem(add, &next)) != 0); ) {
-        if (mprAddItem(list, item) < 0) {
+        if (mprAddItem(lp, item) < 0) {
             return 0;
         }
     }
-    return list;
+    return lp;
 }
 
 
@@ -143,22 +153,29 @@ MprList *mprAppendList(MprList *list, MprList *add)
 void *mprSetItem(MprList *lp, int index, cvoid *item)
 {
     void    *old;
+    int     length;
 
     mprAssert(lp);
     mprAssert(lp->capacity >= 0);
     mprAssert(lp->length >= 0);
     mprAssert(index >= 0);
 
-    if (index >= lp->length) {
-        lp->length = index + 1;
+    length = lp->length;
+
+    if (index >= length) {
+        length = index + 1;
     }
-    if (lp->length > lp->capacity) {
-        if (growList(lp, lp->length - lp->capacity) < 0) {
+    lock(lp);
+    if (length > lp->capacity) {
+        if (growList(lp, length - lp->capacity) < 0) {
+            unlock(lp);
             return 0;
         }
     }
     old = lp->items[index];
     lp->items[index] = (void*) item;
+    lp->length = length;
+    unlock(lp);
     return old;
 }
 
@@ -175,13 +192,16 @@ int mprAddItem(MprList *lp, cvoid *item)
     mprAssert(lp->capacity >= 0);
     mprAssert(lp->length >= 0);
 
+    lock(lp);
     if (lp->length >= lp->capacity) {
         if (growList(lp, 1) < 0) {
+            unlock(lp);
             return MPR_ERR_TOO_MANY;
         }
     }
     index = (int) lp->length++;
     lp->items[index] = (void*) item;
+    unlock(lp);
     return index;
 }
 
@@ -203,20 +223,21 @@ int mprInsertItemAtPos(MprList *lp, int index, cvoid *item)
     if (index < 0) {
         index = 0;
     }
+    lock(lp);
     if (index >= lp->capacity) {
         if (growList(lp, index - lp->capacity + 1) < 0) {
+            unlock(lp);
             return MPR_ERR_TOO_MANY;
         }
 
     } else if (lp->length >= lp->capacity) {
         if (growList(lp, 1) < 0) {
+            unlock(lp);
             return MPR_ERR_TOO_MANY;
         }
     }
-
     if (index >= lp->length) {
         lp->length = index + 1;
-
     } else {
         /*
             Copy up items to make room to insert
@@ -228,6 +249,7 @@ int mprInsertItemAtPos(MprList *lp, int index, cvoid *item)
         lp->length++;
     }
     lp->items[index] = (void*) item;
+    unlock(lp);
     return index;
 }
 
@@ -279,12 +301,14 @@ int mprRemoveItemAtPos(MprList *lp, int index)
     if (index < 0 || index >= lp->length) {
         return MPR_ERR_CANT_FIND;
     }
+    lock(lp);
     items = lp->items;
     for (i = index; i < (lp->length - 1); i++) {
         items[i] = items[i + 1];
     }
     lp->length--;
     lp->items[lp->length] = 0;
+    unlock(lp);
     return index;
 }
 
@@ -317,6 +341,7 @@ int mprRemoveRangeOfItems(MprList *lp, int start, int end)
      */
     items = lp->items;
     count = end - start;
+    lock(lp);
     for (i = start; i < (lp->length - count); i++) {
         items[i] = items[i + count];
     }
@@ -324,6 +349,7 @@ int mprRemoveRangeOfItems(MprList *lp, int start, int end)
     for (i = lp->length; i < lp->capacity; i++) {
         items[i] = 0;
     }
+    unlock(lp);
     return 0;
 }
 
@@ -485,7 +511,7 @@ int mprLookupItem(MprList *lp, cvoid *item)
  */
 static int growList(MprList *lp, int incr)
 {
-    int   len, memsize;
+    int     len, memsize;
 
     if (lp->maxSize <= 0) {
         lp->maxSize = MAXINT;
@@ -510,9 +536,13 @@ static int growList(MprList *lp, int incr)
     }
     memsize = len * sizeof(void*);
 
+    /*
+        Lock free realloc. Old list will be intact via lp->items until mprRealloc returns.
+     */
     if ((lp->items = mprRealloc(lp->items, memsize)) == NULL) {
         return MPR_ERR_MEMORY;
     }
+
     /*
         Zero the new portion (required for no-compact lists)
      */
@@ -528,30 +558,27 @@ void mprSortList(MprList *lp, MprListCompareProc compare)
 }
 
 
+static void manageKeyValue(MprKeyValue *pair, int flags)
+{
+    if (flags & MPR_MANAGE_MARK) {
+        mprMark(pair->key);
+        mprMark(pair->value);
+    } else if (flags & MPR_MANAGE_FREE) {
+    }
+}
+
+
 MprKeyValue *mprCreateKeyPair(cchar *key, cchar *value)
 {
     MprKeyValue     *pair;
     
-    pair = mprAlloc(sizeof(MprKeyValue));
+    pair = mprAllocObj(MprKeyValue, manageKeyValue);
     if (pair == 0) {
         return 0;
     }
     pair->key = sclone(key);
     pair->value = sclone(value);
     return pair;
-}
-
-
-void mprMarkList(MprList *lp)
-{
-    int     i;
-
-    if (lp) {
-        for (i = 0; i < lp->length; i++) {
-            mprMark(lp->items[i]);
-        }
-        mprMark(lp);
-    }
 }
 
 
