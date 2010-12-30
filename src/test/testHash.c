@@ -49,7 +49,7 @@ static void testInsertAndRemoveHash(MprTestGroup *gp)
     cchar           *str;
     int             rc;
 
-    table = mprCreateHash(0, 0);
+    table = mprCreateHash(0, MPR_HASH_STATIC_KEYS | MPR_HASH_STATIC_VALUES);
     assert(table != 0);
 
     /*
@@ -88,8 +88,8 @@ static void testHashScale(MprTestGroup *gp)
 {
     MprHashTable    *table;
     MprHash         *sp;
-    cchar           *str;
-    char            address[80], name[80];
+    cchar           *str, *address;
+    char            name[80];
     int             i;
 
     table = mprCreateHash(0, 0);
@@ -101,7 +101,7 @@ static void testHashScale(MprTestGroup *gp)
      */
     for (i = 0; i < HASH_COUNT; i++) {
         mprSprintf(name, sizeof(name), "name.%d", i);
-        mprSprintf(address, sizeof(address), "%d Park Ave", i);
+        address = mprAsprintf("%d Park Ave", i);
         sp = mprAddHash(table, name, address);
         assert(sp != 0);
     }
@@ -114,7 +114,7 @@ static void testHashScale(MprTestGroup *gp)
         mprSprintf(name, sizeof(name), "name.%d", i);
         str = mprLookupHash(table, name);
         assert(str != 0);
-        mprSprintf(address, sizeof(address), "%d Park Ave", i);
+        address = mprAsprintf("%d Park Ave", i);
         assert(strcmp(str, address) == 0);
     }
 }
@@ -138,8 +138,6 @@ static void testIterateHash(MprTestGroup *gp)
     for (i = 0; i < HASH_COUNT; i++) {
         mprSprintf(name, sizeof(name), "Bit longer name.%d", i);
         mprSprintf(address, sizeof(address), "%d Park Ave", i);
-
-        //  MOB -- this should be duped anyway?
         sp = mprAddHash(table, name, sclone(address));
         assert(sp != 0);
     }
@@ -171,7 +169,7 @@ static void testIterateHash(MprTestGroup *gp)
     assert(count == HASH_COUNT);
 }
 
-//  MOB -- test caseless nad unicode
+//  MOB -- test caseless and unicode
 
 MprTestDef testHash = {
     "hash", 0, 0, 0,

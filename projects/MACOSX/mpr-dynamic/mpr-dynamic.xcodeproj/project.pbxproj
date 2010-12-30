@@ -282,9 +282,9 @@
 		C90A19E60FD6DC6C006A9E86 /* Source */ = {
 			isa = PBXGroup;
 			children = (
-				C988254712C820FA0029051B /* mprAtomic.c */,
 				C9EAE709110A61D00062863F /* dtoa.c */,
 				C90A1A190FD6DD4C006A9E86 /* mpr.c */,
+				C988254712C820FA0029051B /* mprAtomic.c */,
 				C9E1001610D833E30085D594 /* mprAsync.c */,
 				C90A1A1D0FD6DD4C006A9E86 /* mprBuf.c */,
 				C90A1A1E0FD6DD4C006A9E86 /* mprCmd.c */,
