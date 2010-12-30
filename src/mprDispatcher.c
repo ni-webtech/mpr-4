@@ -308,11 +308,21 @@ void mprWakeDispatchers()
 int mprDispatchersAreIdle()
 {
     MprEventService     *es;
-    MprDispatcher       *runQ;
+    MprDispatcher       *runQ, *dispatcher;
+    int                 idle;
 
     es = MPR->eventService;
     runQ = &es->runQ;
-    return (&runQ->eventQ == runQ->eventQ.next);
+    idle = 0;
+    lock(es);
+    dispatcher = runQ->next;
+    if (dispatcher == runQ) {
+        idle = 1;
+    } else {
+        idle = (&dispatcher->eventQ == dispatcher->eventQ.next);
+    }
+    unlock(es);
+    return idle;
 }
 
 
