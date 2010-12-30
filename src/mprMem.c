@@ -1114,14 +1114,14 @@ static void mark()
     heap->newCount = 0;
     priorFree = heap->stats.bytesFree;
 
-    mprLog(1, "DEBUG: mark started");
+    mprLog(5, "DEBUG: mark started");
 
     markRoots();
     if (!heap->hasSweeper) {
         sweep();
     }
 #if BLD_MEMORY_STATS
-    mprLog(2, "GC Complete: MARKED %d/%d, SWEPT %d/%d, freed %d, bytesFree %d (before %d), newCount %d/%d \n",
+    mprLog(4, "GC Complete: MARKED %d/%d, SWEPT %d/%d, freed %d, bytesFree %d (before %d), newCount %d/%d \n",
         heap->stats.marked, heap->stats.markVisited,
         heap->stats.swept, heap->stats.sweepVisited, 
         (int) heap->stats.freed, (int) heap->stats.bytesFree, priorFree, oldCount, heap->newQuota);
@@ -1150,7 +1150,7 @@ static void sweep()
         mprLog(7, "DEBUG: sweep: Abort sweep - GC disabled");
         return;
     }
-    mprLog(1, "DEBUG: sweep started");
+    mprLog(5, "DEBUG: sweep started");
     heap->stats.freed = 0;
 
     /*
@@ -1227,7 +1227,7 @@ static void sweep()
                     mprAssert(rp != NULL);
                 }
             }
-            mprLog(2, "DEBUG: Unpin %p to %p size %d", region, ((char*) region) + region->size, region->size);
+            mprLog(5, "DEBUG: Unpin %p to %p size %d", region, ((char*) region) + region->size, region->size);
             mprVirtFree(region, region->size);
         } else {
             prior = region;
@@ -1322,7 +1322,7 @@ void mprRelease(void *ptr)
  */
 static void marker(void *unused, MprThread *tp)
 {
-    mprLog(2, "DEBUG: marker thread started");
+    mprLog(5, "DEBUG: marker thread started");
     tp->stickyYield = 1;
     tp->yielded = 1;
 
@@ -1342,7 +1342,7 @@ static void marker(void *unused, MprThread *tp)
  */
 static void sweeper(void *unused, MprThread *tp) 
 {
-    mprLog(2, "DEBUG: sweeper thread started");
+    mprLog(5, "DEBUG: sweeper thread started");
 
     while (!mprIsExiting()) {
         sweep();

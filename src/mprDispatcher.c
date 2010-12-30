@@ -290,6 +290,32 @@ int mprWaitForEvent(MprDispatcher *dispatcher, int timeout)
 }
 
 
+void mprWakeDispatchers()
+{
+    MprEventService     *es;
+    MprDispatcher       *runQ, *dp;
+
+    es = MPR->eventService;
+    lock(es);
+    runQ = &es->runQ;
+    for (dp = runQ->next; dp != runQ; dp = dp->next) {
+        mprSignalCond(dp->cond);
+    }
+    unlock(es);
+}
+
+
+int mprDispatchersAreIdle()
+{
+    MprEventService     *es;
+    MprDispatcher       *runQ;
+
+    es = MPR->eventService;
+    runQ = &es->runQ;
+    return (&runQ->eventQ == runQ->eventQ.next);
+}
+
+
 /*
     Relay an event to a new dispatcher. This invokes the callback proc as though it was invoked from the given dispatcher. 
  */

@@ -205,6 +205,16 @@ static void serviceEventsThread(void *data, MprThread *tp)
 }
 
 
+void mprSignalExit()
+{
+    mprSpinLock(MPR->spin);
+    MPR->flags |= MPR_EXITING;
+    mprSpinUnlock(MPR->spin);
+    mprWakeDispatchers();
+    mprWakeWaitService();
+}
+
+
 /*
     Exit the mpr gracefully. Instruct the event loop to exit.
  */
@@ -234,12 +244,7 @@ bool mprIsComplete()
  */
 bool mprServicesAreIdle()
 {
-#if MOB
-    return mprGetListLength(MPR->workerService->busyThreads) == 0 && mprGetListLength(MPR->cmdService->cmds) == 0 && 
-        //MOB -- dispatcher here not right
-       !(MPR->dispatcher->flags & MPR_DISPATCHER_DO_EVENT);
-#endif
-    return 1;
+    return mprGetListLength(MPR->workerService->busyThreads) == 0 && mprGetListLength(MPR->cmdService->cmds) == 0 && mprDispatchersAreIdle();
 }
 
 
@@ -325,15 +330,6 @@ MprIdleCallback mprSetIdleCallback(MprIdleCallback idleCallback)
     old = MPR->idleCallback;
     MPR->idleCallback = idleCallback;
     return old;
-}
-
-
-void mprSignalExit()
-{
-    mprSpinLock(MPR->spin);
-    MPR->flags |= MPR_EXITING;
-    mprSpinUnlock(MPR->spin);
-    mprWakeWaitService();
 }
 
 

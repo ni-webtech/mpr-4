@@ -4068,6 +4068,8 @@ extern MprDispatcher *mprCreateDispatcher(cchar *name, int enable);
  */
 extern MprDispatcher *mprGetDispatcher();
 extern MprDispatcher *mprGetNonBlockDispatcher();
+extern void mprWakeDispatchers();
+extern int mprDispatchersAreIdle();
 
 /**
     Enable a dispatcher to service events. The mprCreateDispatcher routiner creates dispatchers in the disabled state.
