@@ -146,6 +146,9 @@ void mprEnableDispatcher(MprDispatcher *dispatcher)
     MprEventService     *es;
     int                 mustWake;
 
+    if (dispatcher == 0) {
+        dispatcher = MPR->dispatcher;
+    }
     es = dispatcher->service;
     mustWake = 0;
     lock(es);

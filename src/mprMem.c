@@ -1261,10 +1261,11 @@ void mprMarkBlock(cvoid *ptr)
         return;
     }
     mp = MPR_GET_MEM(ptr);
-    CHECK(mp);
-    INC(markVisited);
-
 #if BLD_DEBUG
+    if (!mprIsValid(ptr)) {
+        mprAssertError(NULL, "Memory block is either not dynamically allocated, or is corrupted");
+        return;
+    }
     /*
         MOB - must never mark a dead block as it means we are racing with the sweeper. Should not be able to 
         reference a dead block.
@@ -1276,6 +1277,9 @@ void mprMarkBlock(cvoid *ptr)
         return;
     }
 #endif
+    CHECK(mp);
+    INC(markVisited);
+
     if (GET_MARK(mp) != heap->active) {
         BREAKPOINT(mp);
         INC(marked);
