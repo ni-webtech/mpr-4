@@ -184,7 +184,7 @@ static void manageApp(void *ptr, int flags)
 {
     if (flags & MPR_MANAGE_MARK) {
         mprMark(app->appName);
-        mprMark(app->homedir);
+        mprMark(app->homeDir);
         mprMark(app->logSpec);
         mprMark(app->pidDir);
         mprMark(app->pidPath);
