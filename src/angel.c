@@ -18,8 +18,8 @@
 typedef struct App {
     cchar        *appName;               /* Angel name */
     int          exiting;                /* Program should exit */
-    cchar        *homeDir;               /* Home directory for service */
-    cchar        *logSpec;               /* Log directive for service */
+    char         *homeDir;               /* Home directory for service */
+    char         *logSpec;               /* Log directive for service */
     char         *pidDir;                /* Location for pid file */
     char         *pidPath;               /* Path to the angel pid for this service */
     int          restartCount;           /* Service restart count */
@@ -27,8 +27,8 @@ typedef struct App {
     int          runAsDaemon;            /* Run as a daemon */
     int          servicePid;             /* Process ID for the service */
     char         *serviceArgs;           /* Args to pass to service */
-    char         *serviceProgram;        /* Program to start */
     char         *serviceName;           /* Basename of service program */
+    char         *serviceProgram;        /* Program to start */
     int          verbose;                /* Run in verbose mode */
 } App;
 
@@ -91,7 +91,7 @@ int main(int argc, char *argv[])
             if (nextArg >= argc) {
                 err++;
             } else {
-                heartBeatPeriod = atoi(argv[++nextArg]);
+                app->heartBeatPeriod = atoi(argv[++nextArg]);
             }
 #endif
 
@@ -102,7 +102,7 @@ int main(int argc, char *argv[])
             if (nextArg >= argc) {
                 err++;
             } else {
-                app->homeDir = argv[++nextArg];
+                app->homeDir = sclone(argv[++nextArg]);
             }
 
         } else if (strcmp(argp, "--log") == 0) {
@@ -112,7 +112,7 @@ int main(int argc, char *argv[])
             if (nextArg >= argc) {
                 err++;
             } else {
-                app->logSpec = argv[++nextArg];
+                app->logSpec = sclone(argv[++nextArg]);
             }
 
 #if UNUSED
@@ -183,7 +183,14 @@ int main(int argc, char *argv[])
 static void manageApp(void *ptr, int flags)
 {
     if (flags & MPR_MANAGE_MARK) {
+        mprMark(app->appName);
+        mprMark(app->homedir);
+        mprMark(app->logSpec);
+        mprMark(app->pidDir);
+        mprMark(app->pidPath);
         mprMark(app->serviceArgs);
+        mprMark(app->serviceName);
+        mprMark(app->serviceProgram);
     }
 }
 
@@ -505,10 +512,10 @@ static int makeDaemon()
 #define RESTART_MAX         (15)        /* Max restarts per hour */
 #define SERVICE_DESCRIPTION ("Manages " BLD_NAME)
 
-static Mpr          *mpr;               /* Global MPR App context */
+static Mpr          *mpr;            /* Global MPR App context */
 
 typedef struct App {
-    HWND         appHwnd;            /* Application window handle */
+    HWND         hwnd;               /* Application window handle */
     HINSTANCE    appInst;            /* Current application instance */
     cchar        *appName;           /* Angel name */
     cchar        *appTitle;          /* Angel title */
@@ -516,8 +523,11 @@ typedef struct App {
     int          exiting;            /* Program should exit */
     int          heartBeatPeriod;    /* Service heart beat interval */
     HANDLE       heartBeatEvent;     /* Heart beat event event to sleep on */
+    char         *homeDir;           /* Home directory for service */
     HWND         otherHwnd;          /* Existing instance window handle */
     int          restartCount;       /* Service restart count */
+    int          restartWarned;      /* Has user been notified */
+    char         *serviceArgs;       /* Args to pass to service */
     cchar        *serviceHome;       /* Service home */
     cchar        *serviceName;       /* Application name */
     char         *serviceProgram;    /* Service program name */
@@ -529,6 +539,8 @@ typedef struct App {
     int          verbose;            /* Run in verbose mode */
 } App;
 
+static App *app;
+
 static SERVICE_STATUS           svcStatus;
 static SERVICE_STATUS_HANDLE    svcHandle;
 static SERVICE_TABLE_ENTRY      svcTable[] = {
@@ -538,7 +550,7 @@ static SERVICE_TABLE_ENTRY      svcTable[] = {
 
 static void     WINAPI serviceCallback(ulong code);
 static void     initService();
-static int      installService(char *homeDir, char *args);
+static int      installService();
 static void     logHandler(int flags, int level, cchar *msg);
 static int      registerService();
 static int      removeService(int removeFromScmDb);
@@ -554,6 +566,7 @@ static void     angel();
 /***************************** Forward Declarations ***************************/
 
 static int      initWindow();
+static void     manageApp(void *unused, int flags);
 static void     mapPathDelim(char *s);
 static LRESULT  msgProc(HWND hwnd, uint msg, uint wp, long lp);
 
@@ -571,10 +584,10 @@ int APIENTRY WinMain(HINSTANCE inst, HINSTANCE junk, char *args, int junk2)
     app = mprAllocObj(App, manageApp);
     mprAddRoot(app);
 
-    appInst = inst;
     err = 0;
     installFlag = 0;
-    heartBeatPeriod = HEART_BEAT_PERIOD;
+    app->appInst = inst;
+    app->heartBeatPeriod = HEART_BEAT_PERIOD;
 
     initService();
 
@@ -618,7 +631,7 @@ int APIENTRY WinMain(HINSTANCE inst, HINSTANCE junk, char *args, int junk2)
             /*
                 Allow the service to interact with the console
              */
-            createConsole++;
+            app->createConsole++;
 
         } else if (strcmp(argp, "--daemon") == 0) {
             /* Ignored on windows */
@@ -630,7 +643,7 @@ int APIENTRY WinMain(HINSTANCE inst, HINSTANCE junk, char *args, int junk2)
             if (nextArg >= argc) {
                 err++;
             } else {
-                heartBeatPeriod = atoi(argv[++nextArg]) * 1000;
+                app->heartBeatPeriod = atoi(argv[++nextArg]) * 1000;
             }
 
         } else if (strcmp(argp, "--home") == 0) {
@@ -640,14 +653,14 @@ int APIENTRY WinMain(HINSTANCE inst, HINSTANCE junk, char *args, int junk2)
             if (nextArg >= argc) {
                 err++;
             } else {
-                homeDir = argv[++nextArg];
+                app->homeDir = sclone(argv[++nextArg]);
             }
 
         } else if (strcmp(argp, "--program") == 0) {
             if (nextArg >= argc) {
                 err++;
             } else {
-                app->serviceProgram = argv[++nextArg];
+                app->serviceProgram = sclone(argv[++nextArg]);
             }
 
         } else if (strcmp(argp, "--install") == 0) {
@@ -705,7 +718,7 @@ int APIENTRY WinMain(HINSTANCE inst, HINSTANCE junk, char *args, int junk2)
         /*
             Install the angel
          */
-        if (installService(homeDir, app->serviceArgs) < 0) {
+        if (installService(app->serviceArgs) < 0) {
             return FALSE;
         }
     }
@@ -720,6 +733,19 @@ int APIENTRY WinMain(HINSTANCE inst, HINSTANCE junk, char *args, int junk2)
     return 0;
 }
 
+static void manageApp(void *ptr, int flags)
+{
+    if (flags & MPR_MANAGE_MARK) {
+        mprMark(app->appName);
+        mprMark(app->appTitle);
+        mprMark(app->homeDir);
+        mprMark(app->serviceHome);
+        mprMark(app->serviceName);
+        mprMark(app->serviceProgram);
+        mprMark(app->serviceTitle);
+        mprMark(app->serviceArgs);
+    }
+}
 
 /*
     Secondary entry point when started by the service control manager. Remember 
@@ -730,28 +756,28 @@ static void WINAPI serviceMain(ulong argc, char **argv)
 {
     int     threadId;
 
-    serviceThreadEvent = CreateEvent(0, TRUE, FALSE, 0);
-    heartBeatEvent = CreateEvent(0, TRUE, FALSE, 0);
+    app->serviceThreadEvent = CreateEvent(0, TRUE, FALSE, 0);
+    app->heartBeatEvent = CreateEvent(0, TRUE, FALSE, 0);
 
-    if (serviceThreadEvent == 0 || heartBeatEvent == 0) {
+    if (app->serviceThreadEvent == 0 || app->heartBeatEvent == 0) {
         mprError("Can't create wait events");
         return;
     }
-    threadHandle = CreateThread(0, 0, (LPTHREAD_START_ROUTINE) serviceThread, (void*) 0, 0, (ulong*) &threadId);
+    app->threadHandle = CreateThread(0, 0, (LPTHREAD_START_ROUTINE) serviceThread, (void*) 0, 0, (ulong*) &threadId);
 
-    if (threadHandle == 0) {
+    if (app->threadHandle == 0) {
         mprError("Can't create service thread");
         return;
     }
-    WaitForSingleObject(serviceThreadEvent, INFINITE);
-    CloseHandle(serviceThreadEvent);
+    WaitForSingleObject(app->serviceThreadEvent, INFINITE);
+    CloseHandle(app->serviceThreadEvent);
 
     /*
         We are now exiting, so wakeup the heart beat thread
      */
-    exiting = 1;
-    SetEvent(heartBeatEvent);
-    CloseHandle(heartBeatEvent);
+    app->exiting = 1;
+    SetEvent(app->heartBeatEvent);
+    CloseHandle(app->heartBeatEvent);
 }
 
 
@@ -792,10 +818,9 @@ static void angel()
     /*
         Read the service home directory and args. Default to the current dir if none specified.
      */
-    homeDir = 0;
     mprSprintf(key, sizeof(key), "HKEY_LOCAL_MACHINE\\SYSTEM\\CurrentControlSet\\Services\\%s", app->serviceName);
-    mprReadRegistry(&homeDir, MPR_MAX_FNAME, key, "HomeDir");
-    mprReadRegistry(&serviceArgs, MPR_MAX_FNAME, key, "Args");
+    mprReadRegistry(&app->homeDir, MPR_MAX_FNAME, key, "HomeDir");
+    mprReadRegistry(&app->serviceArgs, MPR_MAX_FNAME, key, "Args");
 
     /*
         Expect to find the service executable in the same directory as this angel program.
@@ -807,12 +832,12 @@ static void angel()
     } else {
         mprSprintf(path, sizeof(path), "\"%s\"", app->serviceProgram);
     }
-    if (serviceArgs && *serviceArgs) {
-        mprSprintf(cmd, sizeof(cmd), "%s %s", path, serviceArgs);
+    if (app->serviceArgs && *app->serviceArgs) {
+        mprSprintf(cmd, sizeof(cmd), "%s %s", path, app->serviceArgs);
     } else {
         mprSprintf(cmd, sizeof(cmd), "%s", path);
     }
-    if (createConsole) {
+    if (app->createConsole) {
         createFlags |= CREATE_NEW_CONSOLE;
     }
     mark = mprGetTime();
@@ -823,16 +848,16 @@ static void angel()
             app->restartCount = 0;
             app->restartWarned = 0;
         }
-        if (app->servicePid == 0 && !serviceStopped) {
+        if (app->servicePid == 0 && !app->serviceStopped) {
             if (app->restartCount >= RESTART_MAX) {
                 if (! app->restartWarned) {
-                    mprError("Too many restarts for %s, %d in ths last hour", appTitle, app->restartCount);
+                    mprError("Too many restarts for %s, %d in ths last hour", app->appTitle, app->restartCount);
                     app->restartWarned++;
                 }
                 /*
                     This is not a real heart-beat. We are only waiting till the service process exits.
                  */
-                WaitForSingleObject(heartBeatEvent, heartBeatPeriod);
+                WaitForSingleObject(app->heartBeatEvent, app->heartBeatPeriod);
                 continue;
             }
             memset(&startInfo, 0, sizeof(startInfo));
@@ -841,14 +866,14 @@ static void angel()
             /*
                 Launch the process
              */
-            if (! CreateProcess(0, cmd, 0, 0, FALSE, createFlags, 0, homeDir, &startInfo, &procInfo)) {
+            if (! CreateProcess(0, cmd, 0, 0, FALSE, createFlags, 0, app->homeDir, &startInfo, &procInfo)) {
                 mprError("Can't create process: %s, %d", cmd, mprGetOsError());
             } else {
                 app->servicePid = (int) procInfo.hProcess;
             }
             app->restartCount++;
         }
-        WaitForSingleObject(heartBeatEvent, heartBeatPeriod);
+        WaitForSingleObject(app->heartBeatEvent, app->heartBeatPeriod);
 
         if (app->servicePid) {
             if (GetExitCodeProcess((HANDLE) app->servicePid, (ulong*) &status)) {
@@ -941,8 +966,8 @@ static void WINAPI serviceCallback(ulong cmd)
         break;
 
     case SERVICE_CONTROL_PAUSE:
-        serviceStopped = 1;
-        SuspendThread(threadHandle);
+        app->serviceStopped = 1;
+        SuspendThread(app->threadHandle);
         svcStatus.dwCurrentState = SERVICE_PAUSED;
         break;
 
@@ -951,8 +976,8 @@ static void WINAPI serviceCallback(ulong cmd)
         break;
 
     case SERVICE_CONTROL_CONTINUE:
-        serviceStopped = 0;
-        ResumeThread(threadHandle);
+        app->serviceStopped = 0;
+        ResumeThread(app->threadHandle);
         svcStatus.dwCurrentState = SERVICE_RUNNING;
         break;
 
@@ -970,7 +995,7 @@ static void WINAPI serviceCallback(ulong cmd)
 /*
     Install the window's service
  */ 
-static int installService(char *homeDir, char *args)
+static int installService()
 {
     SC_HANDLE   svc, mgr;
     char        cmd[MPR_MAX_FNAME], key[MPR_MAX_FNAME];
@@ -989,7 +1014,7 @@ static int installService(char *homeDir, char *args)
     svc = OpenService(mgr, app->serviceName, SERVICE_ALL_ACCESS);
     if (svc == NULL) {
         serviceType = SERVICE_WIN32_OWN_PROCESS;
-        if (createConsole) {
+        if (app->createConsole) {
             serviceType |= SERVICE_INTERACTIVE_PROCESS;
         }
         svc = CreateService(mgr, app->serviceName, app->serviceTitle, SERVICE_ALL_ACCESS, serviceType, SERVICE_AUTO_START, 
@@ -1015,18 +1040,18 @@ static int installService(char *homeDir, char *args)
     /*
         Write the home directory
      */
-    if (homeDir == 0) {
-        homeDir = mprGetPathParent(mprGetAppDir(mpr));
+    if (app->homeDir == 0) {
+        app->homeDir = mprGetPathParent(mprGetAppDir(mpr));
     }
-    if (mprWriteRegistry(key, "HomeDir", homeDir) < 0) {
+    if (mprWriteRegistry(key, "HomeDir", app->homeDir) < 0) {
         return MPR_ERR_CANT_WRITE;
     }
 
     /*
         Write the service args
      */
-    if (args && *args) {
-        if (mprWriteRegistry(key, "Args", args) < 0) {
+    if (app->serviceArgs && *app->serviceArgs) {
+        if (mprWriteRegistry(key, "Args", app->serviceArgs) < 0) {
             return MPR_ERR_CANT_WRITE;
         }
     }
@@ -1125,7 +1150,7 @@ static int stopService(int cmd)
     int     exitCode;
 
     app->exiting = 1;
-    serviceStopped = 1;
+    app->serviceStopped = 1;
 
     /*
         Gracefull shutdown 
@@ -1139,16 +1164,16 @@ static int stopService(int cmd)
     /*
         Wakeup service event. This will make it exit.
      */
-    SetEvent(serviceThreadEvent);
+    SetEvent(app->serviceThreadEvent);
 
     svcStatus.dwCurrentState = SERVICE_STOP_PENDING;
     tellSCM(svcStatus.dwCurrentState, NO_ERROR, 1000);
 
     exitCode = 0;
-    GetExitCodeThread(threadHandle, (ulong*) &exitCode);
+    GetExitCodeThread(app->threadHandle, (ulong*) &exitCode);
 
     while (exitCode == STILL_ACTIVE) {
-        GetExitCodeThread(threadHandle, (ulong*) &exitCode);
+        GetExitCodeThread(app->threadHandle, (ulong*) &exitCode);
         mprSleep(100);
         tellSCM(svcStatus.dwCurrentState, NO_ERROR, 125);
     }
@@ -1211,7 +1236,7 @@ static int initWindow()
     wc.hCursor          = LoadCursor(NULL, IDC_ARROW);
     wc.cbClsExtra       = 0;
     wc.cbWndExtra       = 0;
-    wc.hInstance        = (HINSTANCE) appInst;
+    wc.hInstance        = (HINSTANCE) app->appInst;
     wc.hIcon            = NULL;
     wc.lpfnWndProc      = (WNDPROC) msgProc;
     wc.lpszMenuName     = wc.lpszClassName = app->appName;
@@ -1221,8 +1246,9 @@ static int initWindow()
         mprError("Can't register windows class");
         return -1;
     }
-    appHwnd = CreateWindow(app->appName, app->appTitle, WS_OVERLAPPED, CW_USEDEFAULT, 0, 0, 0, NULL, NULL, appInst, NULL);
-    if (! appHwnd) {
+    app->hwnd = CreateWindow(app->appName, app->appTitle, WS_OVERLAPPED, CW_USEDEFAULT, 0, 0, 0, NULL, NULL, 
+        app->appInst, NULL);
+    if (! app->hwnd) {
         mprError("Can't create window");
         return -1;
     }
