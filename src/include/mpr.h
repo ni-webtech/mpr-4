@@ -211,10 +211,6 @@ struct  MprXml;
 #define MPR_BIG_ENDIAN      2
 #define MPR_ENDIAN          BLD_ENDIAN
 
-#if UNUSED
-typedef void *MprAny;
-#endif
-
 /********************************************************** Debug **********************************************************/
 /**
     Trigger a breakpoint.
@@ -695,13 +691,6 @@ typedef struct MprMem {
 #define MPR_MEM_LOW                 0x4         /**< Memory is low, no errors yet */
 #define MPR_MEM_DEPLETED            0x8         /**< Memory depleted. Cannot satisfy current request */
 
-#if UNUSED
-/*
-    Return values for MprMemNotifier callback
- */
-#define MPR_DELAY_GC                0x1         /**< Delay GC */
-#endif
-
 /**
     Memory allocation error callback. Notifiers are called if mprSetNotifier has been called on a context and a 
     memory allocation fails. All notifiers up the parent context chain are called in order.
@@ -1137,21 +1126,8 @@ extern void mprCheckBlock(MprMem *bp);
  */
 extern void mprAddRoot(void *ptr);
 
-#if UNUSED
-/*
-    Flags for mprGC()
-    MOB -- fix
- */
-#define MPR_GC_FROM_EVENTS  0x1     /**<  */
-#define MPR_GC_FROM_SEARCH  0x2     /**<  */
-#define MPR_GC_FROM_USER    0x4     /**<  */
-#define MPR_GC_FROM_WORKER  0x8     /**<  */
-#define MPR_GC_FORCE        0x10    /**<  */
-#define MPR_GC_FROM_ALL     0xf     /**<  */
-#endif
-
-#define MPR_FORCE_GC        0x1
-#define MPR_COMPLETE_GC     0x2
+#define MPR_FORCE_GC        0x1     /* Force a GC whether it is required or not */
+#define MPR_COMPLETE_GC     0x2     /* Do a complete collection (3 sweeps */
 
 /**
     Collect garbage
@@ -2701,16 +2677,6 @@ extern cvoid *mprPopItem(MprList *list);
   */
 extern int mprPushItem(MprList *list, cvoid *item);
 
-#if UNUSED
-/**
-    Mark all items of the list 
-    @description This is a Garbage collection helper. It marks the list items as being in-use. This is required if
-        the list contains the only reference to other allocated objects.
-    @param list List pointer returned from mprCreateList.
-*/
-extern void mprMarkList(MprList *list);
-#endif
-
 /******************************************************** Logging **********************************************************/
 /**
     Logging Services
@@ -2997,16 +2963,6 @@ extern MprHash *mprLookupHashEntry(MprHashTable *table, cvoid *key);
     @ingroup MprHash
  */
 extern int mprRemoveHash(MprHashTable *table, cvoid *key);
-
-#if UNUSED
-/*
-    Mark all items of the hash 
-    @description This is a Garbage collection helper. It marks the hash items as being in-use. This is required if
-        the hash contains the only reference to other allocated objects.
-    @param table Hash pointer returned from mprCreateHash.
-*/
-extern void mprMarkHash(MprHashTable *table);
-#endif
 
 /********************************************************* Files ***********************************************************/
 /*
@@ -4085,9 +4041,6 @@ extern void mprEnableDispatcher(MprDispatcher *dispatcher);
  */
 #define MPR_SERVICE_ONE_THING   0x4         /**< Wait for one event or one I/O */
 #define MPR_SERVICE_NO_GC       0x8         /**< Don't run GC */
-#if UNUSED
-#define MPR_SERVICE_PRIMARY     0x10        /**< Service only this dispatcher */
-#endif
 
 /*
     Schedule events. This can be called by any thread. Typically an app will dedicate one thread to be an event service 
@@ -4452,10 +4405,6 @@ extern MprThreadLocal *mprCreateThreadLocal();
 
 extern void mprYield(int flags);
 extern void mprResetYield();
-
-#if UNUSED
-extern void mprResumeThread(MprThread *tp);
-#endif
 
 /******************************************************** I/O Wait *********************************************************/
 /*
@@ -5770,9 +5719,6 @@ typedef struct Mpr {
     char            *appPath;               /**< Path name of application executable */
     char            *appDir;                /**< Path of directory containing app executable */
     int             flags;                  /**< Processing state */
-#if UNUSED
-    int             hasDedicatedService;    /**< Running a dedicated events thread */
-#endif
     int             hasError;               /**< Mpr has an initialization error */
     int             logFd;                  /**< Logging file descriptor */
 
