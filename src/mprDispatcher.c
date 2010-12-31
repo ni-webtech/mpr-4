@@ -205,13 +205,16 @@ int mprServiceEvents(int timeout, int flags)
             idle = getIdleTime(es);
             delay = min(expires - es->now, idle);
             delay = max(delay, 0);
+            if (delay && mprIsExiting()) {
+                delay = min(delay, 10);
+            }
             if (delay > 0) {
                 es->waiting = 1;
                 es->willAwake = es->now + delay;
                 unlock(es);
-                mprStickyYield(NULL, 1);
+                mprYield(NULL, MPR_YIELD_STICKY);
                 mprWaitForIO(MPR->waitService, (int) delay);
-                mprStickyYield(NULL, 0);
+                mprResetYield(NULL);
             } else {
                 unlock(es);
             }
@@ -271,15 +274,15 @@ int mprWaitForEvent(MprDispatcher *dispatcher, int timeout)
         dispatcher->waitingOnCond = 1;
         unlock(es);
         
-        mprStickyYield(NULL, 1);
+        mprYield(NULL, MPR_YIELD_STICKY);
         if (mprWaitForCond(dispatcher->cond, (int) delay) == 0) {
             signalled++;
             dispatcher->waitingOnCond = 0;
-            mprStickyYield(NULL, 0);
+            mprResetYield(NULL);
             break;
         }
         dispatcher->waitingOnCond = 0;
-        mprStickyYield(NULL, 0);
+        mprResetYield(NULL);
         es->now = mprGetTime();
     } while (es->now < expires && !mprIsComplete());
 

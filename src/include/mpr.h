@@ -1162,7 +1162,10 @@ extern void mprAddRoot(void *ptr);
 extern void mprGC(int flags);
 #endif
 
-extern void mprRequestGC(int force, int complete);
+#define MPR_FORCE_GC        0x1
+#define MPR_COMPLETE_GC     0x2
+
+extern void mprRequestGC(int flags);
 
 /**
     Enable or disable the garbage collector
@@ -4445,9 +4448,11 @@ extern int mprSetThreadData(MprThreadLocal *tls, void *value);
 extern void *mprGetThreadData(MprThreadLocal *tls);
 extern MprThreadLocal *mprCreateThreadLocal();
 
-//  MOB DOC
-extern void mprYield(MprThread *tp, int block);
-extern void mprStickyYield(MprThread *tp, int enable);
+#define MPR_YIELD_BLOCK     0x1
+#define MPR_YIELD_STICKY    0x2
+
+extern void mprYield(MprThread *tp, int flags);
+extern void mprResetYield(MprThread *tp);
 extern void mprGC(int force);
 
 #if UNUSED

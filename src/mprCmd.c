@@ -39,7 +39,7 @@ MprCmdService *mprCreateCmdService(Mpr *mpr)
     if ((cs = (MprCmdService*) mprAllocObj(MprCmd, manageCmdService)) == 0) {
         return 0;
     }
-    cs->cmds = mprCreateList(0, 0);
+    cs->cmds = mprCreateList(0, MPR_LIST_STATIC_VALUES);
     cs->mutex = mprCreateLock();
     return cs;
 }

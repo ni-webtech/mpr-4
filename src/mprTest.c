@@ -508,7 +508,7 @@ static MprTestGroup *createTestGroup(MprTestService *sp, MprTestDef *def, MprTes
     if (gp->failures == 0) {
         return 0;
     }
-    gp->cases = mprCreateList(0, 0);
+    gp->cases = mprCreateList(0, MPR_LIST_STATIC_VALUES);
     if (gp->cases == 0) {
         return 0;
     }
@@ -857,10 +857,10 @@ bool mprWaitForTestToComplete(MprTestGroup *gp, int timeout)
     mprAssert(gp->cond);
     mprAssert(timeout >= 0);
 
-    mprStickyYield(NULL, 1);
+    mprYield(NULL, MPR_YIELD_STICKY);
     rc = mprWaitForCond(gp->cond, timeout) == 0;
     mprResetCond(gp->cond);
-    mprStickyYield(NULL, 0);
+    mprResetYield(NULL);
     return rc;
 }
 

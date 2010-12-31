@@ -187,8 +187,8 @@ Mpr *mprCreateMemService(MprManager manager, int flags)
     MprMem      *mp, *spare;
     ssize       regionSize, size, mprSize;
 
-    if (flags == 0) {
-        flags = MPR_THREAD_PATTERN;
+    if (!(flags & MPR_OWN_GC)) {
+        flags |= MPR_THREAD_PATTERN;
     }
     heap = &initHeap;
     memset(heap, 0, sizeof(MprHeap));
@@ -1062,11 +1062,11 @@ void mprStopGCService()
 }
 
 
-void mprRequestGC(int force, int complete)
+void mprRequestGC(int flags)
 {
     mprLog(7, "DEBUG: mprRequestGC");
-    if (force || (heap->newCount > heap->newQuota)) {
-        heap->extraSweeps = (complete) ? 3 : 0;
+    if ((flags & MPR_FORCE_GC) || (heap->newCount > heap->newQuota)) {
+        heap->extraSweeps = (flags & MPR_COMPLETE_GC) ? 3 : 0;
         if (!(heap->flags & MPR_OWN_GC)) {
             mprSignalCond(heap->markerCond);
         }
@@ -1330,13 +1330,14 @@ static void marker(void *unused, MprThread *tp)
     tp->stickyYield = 1;
     tp->yielded = 1;
 
-    while (!mprIsExiting()) {
+    while (!mprIsExiting() || heap->extraSweeps > 0) {
         if (heap->extraSweeps <= 0) {
             mprWaitForCond(heap->markerCond, -1);
+            mark();
         } else {
+            mark();
             heap->extraSweeps--;
         }
-        mark();
     }
 }
 
@@ -1348,7 +1349,7 @@ static void sweeper(void *unused, MprThread *tp)
 {
     mprLog(5, "DEBUG: sweeper thread started");
 
-    while (!mprIsExiting()) {
+    while (!mprIsExiting() || heap->extraSweeps > 0) {
         sweep();
         mprYield(NULL, 1);
     }
@@ -1400,13 +1401,16 @@ void mprGC(int force)
     Called by user code to signify the thread is ready for GC and all object references are saved. 
     If the GC marker is synchronizing, this call will block at the GC sync point (should be brief).
  */
-void mprYield(MprThread *tp, int block)
+void mprYield(MprThread *tp, int flags)
 {
     if (tp == NULL) {
         tp = mprGetCurrentThread();
     }
-    mprLog(7, "mprYieldThread %s yielded was %d, block %d", tp->name, tp->yielded, block);
+    mprLog(7, "mprYield %s yielded was %d, block %d", tp->name, tp->yielded, flags & MPR_YIELD_BLOCK);
     tp->yielded = 1;
+    if (flags & MPR_YIELD_STICKY) {
+        tp->stickyYield = 1;
+    }
 
     /*
         Wake the marker to check if all threads are yielded and wait for the all clear
@@ -1414,7 +1418,7 @@ void mprYield(MprThread *tp, int block)
     if (heap->flags & MPR_MARK_THREAD) {
         mprSignalCond(MPR->threadService->cond);
     }
-    while (tp->yielded && (mprWaitForSync() || block)) {
+    while (tp->yielded && (mprWaitForSync() || (flags & MPR_YIELD_BLOCK))) {
         mprLog(7, "mprYieldThread %s must wait", tp->name);
         mprWaitForCond(tp->cond, -1);
     }
@@ -1424,17 +1428,13 @@ void mprYield(MprThread *tp, int block)
 }
 
 
-void mprStickyYield(MprThread *tp, int enable)
+void mprResetYield(MprThread *tp)
 {
     if (tp == NULL) {
         tp = mprGetCurrentThread();
     }
-    tp->stickyYield = enable;
-    if (enable) {
-        mprYield(tp, 0);
-    } else {
-        tp->yielded = enable;
-    }
+    tp->stickyYield = 0;
+    tp->yielded = 0;
 }
 
 

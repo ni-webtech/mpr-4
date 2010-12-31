@@ -71,7 +71,7 @@ static void testLotsOfAlloc(MprTestGroup *gp)
     for (i = 2; i < maxblock; i *= 2) {
         mp = mprAlloc(i);
         assert(mp != 0);
-        mprRequestGC(0, 0);
+        mprRequestGC(0);
     }
 }
 

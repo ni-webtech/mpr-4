@@ -210,6 +210,7 @@ void mprSignalExit()
     mprSpinLock(MPR->spin);
     MPR->flags |= MPR_EXITING;
     mprSpinUnlock(MPR->spin);
+    mprRequestGC(MPR_FORCE_GC | MPR_COMPLETE_GC);
     mprWakeDispatchers();
     mprWakeWaitService();
 }
@@ -244,7 +245,12 @@ bool mprIsComplete()
  */
 bool mprServicesAreIdle()
 {
-    return mprGetListLength(MPR->workerService->busyThreads) == 0 && mprGetListLength(MPR->cmdService->cmds) == 0 && mprDispatchersAreIdle();
+    bool    idle;
+
+    idle = mprGetListLength(MPR->workerService->busyThreads) == 0 && 
+           mprGetListLength(MPR->cmdService->cmds) == 0 && 
+           mprDispatchersAreIdle();
+    return idle;
 }
 
 
