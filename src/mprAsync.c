@@ -110,9 +110,11 @@ void mprWaitForIO(MprWaitService *ws, int timeout)
         }
         SetTimer(ws->hwnd, 0, timeout, NULL);
 
+        mprYield(MPR_YIELD_STICKY);
         if (GetMessage(&msg, NULL, 0, 0) == 0) {
             mprTerminate(1);
         } else {
+            mprResetYield();
             TranslateMessage(&msg);
             DispatchMessage(&msg);
         }

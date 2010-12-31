@@ -237,14 +237,6 @@ void mprTerminate(bool graceful)
     mprWakeDispatchers();
     mprWakeWaitService();
     mprResumeThreads();
-#if UNUSED
-    mprYield(MPR_YIELD_STICKY);
-    mprWakeGCService();
-    mprWakeDispatchers();
-    mprWakeWaitService();
-    //  Can't do this as it will run destructors on everything
-    mprDestroyMemService();
-#endif
 }
 
 

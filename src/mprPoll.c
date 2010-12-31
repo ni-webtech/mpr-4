@@ -218,8 +218,11 @@ void mprWaitForIO(MprWaitService *ws, int timeout)
         return;
     }
     unlock(ws);
+    mprYield(MPR_YIELD_STICKY);
 
     rc = poll(ws->pollFds, count, timeout);
+    mprResetYield();
+
     if (rc < 0) {
         mprLog(2, "Poll returned %d, errno %d", rc, mprGetOsError());
     } else if (rc > 0) {

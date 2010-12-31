@@ -600,6 +600,7 @@ mprAssert(IS_FREE(mp));
                     unlinkBlock(fp);
 mprAssert(GET_GEN(mp) == heap->eternal);
                     SET_GEN(mp, heap->active);
+                    //  MOB -- cleanup
                     mprAtomBarrier();
                     if (flags & MPR_ALLOC_MANAGER) {
                         SET_MANAGER(mp, dummyManager);
@@ -622,6 +623,7 @@ mprAssert(!IS_FREE(mp));
                                 SET_PRIOR(after, spare);
                             }
                             SET_SIZE(mp, required);
+                            //  MOB -- cleanup
                             mprAtomBarrier();
                             SET_LAST(mp, 0);
                             mprAtomBarrier();
@@ -803,8 +805,8 @@ static MprMem *freeBlock(MprMem *mp)
     {
         MprMem *prior;
         prior = GET_PRIOR(mp);
-        linkBlock(mp);
         RESET_MEM(mp);
+        linkBlock(mp);
         unlockHeap();
     }
     /*

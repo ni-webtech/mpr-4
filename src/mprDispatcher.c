@@ -60,30 +60,6 @@ static void manageEventService(MprEventService *es, int flags)
         mprMark(es->waitCond);
         mprMark(es->mutex);
 
-#if UNUSED
-        //  MOB -- dispatchers should be managed by their owner
-    MprDispatcher   *dp, *q;
-
-        lock(es);
-        q = &es->runQ;
-        for (dp = q->next; dp != q; dp = dp->next) {
-            mprMark(dp);
-        }
-        q = &es->readyQ;
-        for (dp = q->next; dp != q; dp = dp->next) {
-            mprMark(dp);
-        }
-        q = &es->waitQ;
-        for (dp = q->next; dp != q; dp = dp->next) {
-            mprMark(dp);
-        }
-        q = &es->idleQ;
-        for (dp = q->next; dp != q; dp = dp->next) {
-            mprMark(dp);
-        }
-        unlock(es);
-#endif
-
     } else if (flags & MPR_MANAGE_FREE) {
         /* Needed for race with manageDispatcher */
         es->mutex = 0;
@@ -213,9 +189,7 @@ int mprServiceEvents(int timeout, int flags)
                 es->waiting = 1;
                 es->willAwake = es->now + delay;
                 unlock(es);
-                mprYield(MPR_YIELD_STICKY);
                 mprWaitForIO(MPR->waitService, (int) delay);
-                mprResetYield();
             } else {
                 unlock(es);
             }
@@ -564,30 +538,20 @@ static MprTime getDispatcherIdleTime(MprDispatcher *dispatcher, MprTime timeout)
     MprEvent    *next;
     MprTime     delay;
 
-    delay = MPR_MAX_TIMEOUT;
-    next = dispatcher->eventQ.next;
-    if (next != &dispatcher->eventQ) {
-        delay = (next->due - dispatcher->service->now);
+    if (timeout < 0) {
+        timeout = 0;
+    } else {
+        next = dispatcher->eventQ.next;
+        if (next != &dispatcher->eventQ) {
+            delay = (next->due - dispatcher->service->now);
+            if (delay < 0) {
+                delay = 0;
+            }
+        }
+        timeout = min(delay, timeout);
     }
-    if (timeout >= 0) {
-        return min(delay, timeout);
-    } 
-    return max(delay, 0);
+    return timeout;
 }
-
-
-#if UNUSED
-/*
-    Must be called locked
- */
-static bool hasPendingEvents(MprDispatcher *dispatcher)
-{
-    MprEvent        *next;
-
-    next = dispatcher->eventQ.next;
-    return (next != &dispatcher->eventQ && next->due <= dispatcher->service->now);
-}
-#endif
 
 
 static void initDispatcherQ(MprEventService *es, MprDispatcher *q, cchar *name)
@@ -663,32 +627,6 @@ static int makeRunnable(MprDispatcher *dispatcher)
     unlock(es);
     return wasRunning;
 }
-
-
-#if UNUSED
-static int claimDispatcher(MprDispatcher *dispatcher)
-{
-    MprEventService     *es;
-    MprOsThread         thread;
-
-    es = dispatcher->service;
-    thread = mprGetCurrentOsThread();
-    lock(es);
-    if (dispatcher->owner == NULL) {
-        dispatcher->owner = thread;
-    }
-    unlock(es);
-    return (dispatcher->owner == thread);
-}
-
-
-static void disclaimDispatcher(MprDispatcher *dispatcher)
-{
-    if (dispatcher->owner == mprGetCurrentOsThread()) {
-        dispatcher->owner = NULL;
-    }
-}
-#endif
 
 
 /*

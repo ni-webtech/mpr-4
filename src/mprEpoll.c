@@ -195,7 +195,11 @@ void mprWaitForIO(MprWaitService *ws, int timeout)
         mprDoWaitRecall(ws);
         return;
     }
+
+    mprYield(MPR_YIELD_STICKY);
     rc = epoll_wait(ws->epoll, ws->events, ws->eventsMax, timeout);
+    mprResetYield();
+
     if (rc < 0) {
         if (errno != EINTR) {
             mprLog(2, "Kevent returned %d, errno %d", mprGetOsError());

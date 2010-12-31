@@ -248,11 +248,13 @@ void mprWaitForIO(MprWaitService *ws, int timeout)
     /* Preserve the wakeup pipe fd */
     ws->interestCount = 1;
     unlock(ws);
+    mprYield(MPR_YIELD_STICKY);
 
     LOG(8, "kevent sleep for %d", timeout);
     rc = kevent(ws->kq, ws->stableInterest, ws->stableInterestCount, ws->events, ws->eventsMax, &ts);
     LOG(8, "kevent wakes rc %d", rc);
 
+    mprResetYield();
     if (rc < 0) {
         mprLog(6, "Kevent returned %d, errno %d", rc, mprGetOsError());
     } else if (rc > 0) {
