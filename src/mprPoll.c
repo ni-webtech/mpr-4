@@ -14,7 +14,7 @@
 #if MPR_EVENT_POLL
 /********************************** Forwards **********************************/
 
-static void serviceIO(MprWaitService *ws);
+static void serviceIO(MprWaitService *ws, struct pollfd *fds, int count);
 
 /************************************ Code ************************************/
 
@@ -35,7 +35,7 @@ int mprCreateNotifierService(MprWaitService *ws)
         Initialize the "wakeup" pipe. This is used to wakeup the service thread if other threads need to wait for I/O.
      */
     if (pipe(ws->breakPipe) < 0) {
-        mprError(ws, "Can't open breakout pipe");
+        mprError("Can't open breakout pipe");
         return MPR_ERR_CANT_INITIALIZE;
     }
     fcntl(ws->breakPipe[0], F_SETFL, fcntl(ws->breakPipe[0], F_GETFL) | O_NONBLOCK);
@@ -50,7 +50,7 @@ int mprCreateNotifierService(MprWaitService *ws)
 }
 
 
-void mprManagePoll(MprWebService *ws, int flags)
+void mprManagePoll(MprWaitService *ws, int flags)
 {
     if (flags & MPR_MANAGE_FREE) {
         mprMark(ws->fds);
@@ -69,12 +69,12 @@ void mprManagePoll(MprWebService *ws, int flags)
 static int growFds(MprWaitService *ws)
 {
     ws->fdMax *= 2;
-    ws->fds = mprRealloc(ws->fds, sizeof(struct pollfd)   ws->fdMax);
+    ws->fds = mprRealloc(ws->fds, sizeof(struct pollfd) * ws->fdMax);
     ws->handlerMap = mprRealloc(ws->handlerMap, sizeof(MprWaitHandler*) * ws->fdMax);
     if (ws->fds == 0 || ws->handlerMap) {
         return MPR_ERR_MEMORY;
     }
-    memset(&ws->fds[ws->fdMax / 2], 0, sizeof(struct pollfd)   ws->fdMax / 2);
+    memset(&ws->fds[ws->fdMax / 2], 0, sizeof(struct pollfd) * ws->fdMax / 2);
     memset(&ws->handlerMap[ws->fdMax / 2], 0, sizeof(MprWaitHandler*) * ws->fdMax / 2);
     return 0;
 }
@@ -203,13 +203,13 @@ void mprWaitForIO(MprWaitService *ws, int timeout)
     count = ws->fdsCount;
     if ((fds = mprMemdup(ws->fds, sizeof(struct pollfd) * count)) == 0) {
         unlock(ws);
-        return MPR_ERR_MEMORY;
+        return;
     }
     unlock(ws);
 
     rc = poll(fds, count, timeout);
     if (rc < 0) {
-        mprLog(ws, 2, "Poll returned %d, errno %d", rc, mprGetOsError());
+        mprLog(2, "Poll returned %d, errno %d", rc, mprGetOsError());
     } else if (rc > 0) {
         serviceIO(ws, fds, count);
     }
@@ -220,14 +220,14 @@ void mprWaitForIO(MprWaitService *ws, int timeout)
 /*
     Service I/O events
  */
-static void serviceIO(MprWaitService *ws, struct poll *fds, int count)
+static void serviceIO(MprWaitService *ws, struct pollfd *fds, int count)
 {
     MprWaitHandler      *wp;
     struct pollfd       *fp;
     int                 mask;
 
     lock(ws);
-    for (fp = fds; fp < &fds[count]; fp++) {
+    for (fp = fds; fp < &ws->fds[count]; fp++) {
         if (fp->revents == 0) {
            continue;
         }
