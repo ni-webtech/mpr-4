@@ -43,35 +43,40 @@ static void manageTestCmd(TestCmd *tc, int flags)
 
 static void testCreateCmd(MprTestGroup *gp)
 {
-    MprCmd      *cmd;
-
-    cmd = mprCreateCmd(NULL);
-    assert(cmd != 0);
+    TestCmd     *tc;
+    
+    tc = gp->data;
+    tc->cmd = mprCreateCmd(gp->dispatcher);
+    assert(tc->cmd != 0);
+    tc->cmd = 0;
+    /* GC cleanup */
 }
 
 
 static void testRunCmd(MprTestGroup *gp)
 {
-    MprCmd      *cmd;
     TestCmd     *tc;
     char        *result, command[MPR_MAX_PATH];
     int         rc, status, exitStatus;
 
     tc = gp->data;
-    cmd = mprCreateCmd(NULL);
-    assert(cmd != 0);
+    tc->cmd = mprCreateCmd(gp->dispatcher);
+    assert(tc->cmd != 0);
 
     /*
         runProgram reads from the input, so it requires stdin to be connected
      */
     mprSprintf(command, sizeof(command), "%s 0", tc->program);
-    status = mprRunCmd(cmd, command, &result, NULL, MPR_CMD_IN);
+    status = mprRunCmd(tc->cmd, command, &result, NULL, MPR_CMD_IN);
     assert(result != NULL);
     assert(status == 0);
 
-    rc = mprGetCmdExitStatus(cmd, &exitStatus);
+    rc = mprGetCmdExitStatus(tc->cmd, &exitStatus);
     assert(rc == 0);
     assert(exitStatus == 0);
+
+    mprDestroyCmd(tc->cmd);
+    tc->cmd = 0;
 }
 
 
@@ -148,7 +153,6 @@ static int match(char *s1, char *s2)
 
 static void testWithData(MprTestGroup *gp)
 {
-    MprCmd      *cmd;
     MprBuf      *buf;
     TestCmd     *tc;
     char        *data, *env[16], *argv[16], line[80], *s, *tok;
@@ -158,8 +162,8 @@ static void testWithData(MprTestGroup *gp)
     tc = gp->data;
     assert(tc != NULL);
 
-    tc->cmd = cmd = mprCreateCmd(NULL);
-    assert(cmd != 0);
+    tc->cmd = mprCreateCmd(gp->dispatcher);
+    assert(tc->cmd != 0);
 
     tc->buf = mprCreateBuf(MPR_BUFSIZE, -1);
     assert(tc->buf != 0);
@@ -175,15 +179,15 @@ static void testWithData(MprTestGroup *gp)
     i = 0;
     env[i++] = "CMD_ENV=xyz";
     env[i++] = NULL;
-    mprSetCmdCallback(cmd, withDataCallback, gp);
+    mprSetCmdCallback(tc->cmd, withDataCallback, gp);
     
-    rc = mprStartCmd(cmd, argc, argv, env, MPR_CMD_IN | MPR_CMD_OUT | MPR_CMD_ERR);
+    rc = mprStartCmd(tc->cmd, argc, argv, env, MPR_CMD_IN | MPR_CMD_OUT | MPR_CMD_ERR);
     assert(rc == 0);
 
     /*
         Write data to the child's stdin. We write so little data, this can't block.
      */
-    fd = mprGetCmdFd(cmd, MPR_CMD_STDIN);
+    fd = mprGetCmdFd(tc->cmd, MPR_CMD_STDIN);
     assert(fd > 0);
 
     for (i = 0; i < 10; i++) {
@@ -195,8 +199,8 @@ static void testWithData(MprTestGroup *gp)
             break;
         }
     }
-    mprCloseCmdFd(cmd, MPR_CMD_STDIN);
-    assert(mprWaitForCmd(cmd, MPR_TEST_SLEEP) == 0);
+    mprCloseCmdFd(tc->cmd, MPR_CMD_STDIN);
+    assert(mprWaitForCmd(tc->cmd, MPR_TEST_SLEEP) == 0);
 
     /*
         Now analyse returned data
@@ -223,35 +227,36 @@ static void testWithData(MprTestGroup *gp)
         s = stok(0, "\n\r", &tok);
         assert(match(s, "END") == 0);
     }
-    rc = mprGetCmdExitStatus(cmd, &status);
+    rc = mprGetCmdExitStatus(tc->cmd, &status);
     assert(rc == 0);
     assert(status == 0);
 
-    mprDestroyCmd(cmd);
+    mprDestroyCmd(tc->cmd);
     tc->cmd = 0;
 }
 
 
 static void testExitCode(MprTestGroup *gp)
 {
-    MprCmd      *cmd;
     TestCmd     *tc;
     char        *result, command[MPR_MAX_PATH];
     int         i, status;
 
     tc = gp->data;
-    cmd = mprCreateCmd(NULL);
-    assert(cmd != 0);
+    tc->cmd = mprCreateCmd(gp->dispatcher);
+    assert(tc->cmd != 0);
 
     for (i = 0; i < 1; i++) {
         mprSprintf(command, sizeof(command), "%s %d", tc->program, i);
-        status = mprRunCmd(cmd, command, &result, NULL, MPR_CMD_IN);
+        status = mprRunCmd(tc->cmd, command, &result, NULL, MPR_CMD_IN);
         assert(result != NULL);
         assert(status == i);
         if (status != i) {
             mprLog(0, "Status %d, result %s", status, result);
         }
     }
+    mprDestroyCmd(tc->cmd);
+    tc->cmd = 0;
 }
 
 
@@ -266,7 +271,7 @@ static void testNoCapture(MprTestGroup *gp)
     int         rc, status;
 
     tc = gp->data;
-    cmd = mprCreateCmd(NULL);
+    cmd = mprCreateCmd(gp->dispatcher);
     assert(cmd != 0);
 
     mprSprintf(command, sizeof(command), "%s 99", tc->program);

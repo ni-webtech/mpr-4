@@ -8,7 +8,34 @@
 
 #include    "mprTest.h"
 
+/*********************************** Locals ***********************************/
+
+typedef struct TestCond {
+    MprCond     *cond;
+    MprEvent    *event;
+} TestCond;
+
+static void manageTestCond(TestCond *tc, int flags);
+
 /************************************ Code ************************************/
+
+static int initCond(MprTestGroup *gp)
+{
+    TestCond     *tc;
+
+    gp->data = tc = mprAllocObj(TestCond, manageTestCond);
+    return 0;
+}
+
+
+static void manageTestCond(TestCond *tc, int flags)
+{
+    if (flags & MPR_MANAGE_MARK) {
+        mprMark(tc->cond);
+    } else if (flags & MPR_MANAGE_FREE) {
+    }
+}
+
 
 static void callback(void *data, MprEvent *event)
 {
@@ -18,30 +45,34 @@ static void callback(void *data, MprEvent *event)
 
 static void testCriticalSection(MprTestGroup *gp)
 {
+    TestCond        *tc;
     MprCond         *cond;
     MprEvent        *event;
-    int             rc, save, delay;
+    int             rc, delay;
 
-    cond = mprCreateCond(gp);
-    assert(cond != 0);
-    mprAssert(cond->triggered == 0);
+    tc = gp->data;
+    tc->cond = mprCreateCond(gp);
+    assert(tc->cond != 0);
+    mprAssert(tc->cond->triggered == 0);
 
-    event = mprCreateEvent(NULL, "testCriticalSection", 0, callback, cond, MPR_EVENT_QUICK);
+    event = mprCreateEvent(NULL, "testCriticalSection", 0, callback, tc->cond, MPR_EVENT_QUICK);
     assert(event != 0);
 
-    save = cond->triggered;
     delay = MPR_TEST_TIMEOUT + (mprGetDebugMode() * 1200 * 1000);
     mprYield(MPR_YIELD_STICKY);
-    rc = mprWaitForCond(cond, delay);
+
+    rc = mprWaitForCond(tc->cond, delay);
     assert(rc == 0);
     mprResetYield();
+
+    tc->cond = 0;
     
     //  TODO - add test with longer event delay to catch when wait runs first
 }
 
 
 MprTestDef testCond = {
-    "cond", 0, 0, 0,
+    "cond", 0, initCond, 0,
     {
         MPR_TEST(0, testCriticalSection),
         MPR_TEST(0, 0),

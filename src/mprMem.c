@@ -1482,6 +1482,7 @@ int mprSyncThreads(int timeout)
 
     } while (!allYielded && mprGetElapsedTime(mark) < timeout);
 
+    mprAssert(allYielded);
     mprLog(6, "mprSyncThreads: complete %d", allYielded);
     return (allYielded) ? 1 : 0;
 }
@@ -1571,6 +1572,7 @@ static void nextGen()
     heap->active = active;
     heap->stale = (active - 1 + MPR_MAX_GEN) % MPR_MAX_GEN;
     heap->dead = (active - 2 + MPR_MAX_GEN) % MPR_MAX_GEN;
+    heap->iteration++;
 }
 
 

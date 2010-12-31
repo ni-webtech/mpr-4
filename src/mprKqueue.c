@@ -79,7 +79,6 @@ static int growEvents(MprWaitService *ws)
     if (ws->interest == 0 || ws->events == 0) {
         return MPR_ERR_MEMORY;
     }
-    memset(&ws->events[ws->eventsMax / 2], 0, sizeof(struct kevent) * ws->eventsMax / 2);
     return 0;
 }
 
@@ -129,7 +128,6 @@ int mprAddNotifier(MprWaitService *ws, MprWaitHandler *wp, int mask)
             if ((ws->handlerMap = mprRealloc(ws->handlerMap, sizeof(MprWaitHandler*) * ws->handlerMax)) == 0) {
                 return MPR_ERR_MEMORY;
             }
-            memset(&ws->handlerMap[oldlen], 0, sizeof(MprWaitHandler*) * (ws->handlerMax - oldlen));
         }
         mprAssert(ws->handlerMap[fd] == 0);
         ws->handlerMap[fd] = wp;

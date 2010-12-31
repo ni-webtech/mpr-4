@@ -70,8 +70,7 @@ void mprManageEpoll(MprWaitService *ws, int flags)
 static int growEvents(MprWaitService *ws)
 {
     ws->eventsMax *= 2;
-    ws->events = mprRealloc(ws->events, sizeof(struct epoll_event) * ws->eventsMax);
-    if (ws->events == 0) {
+    if ((ws->events = mprRealloc(ws->events, sizeof(struct epoll_event) * ws->eventsMax)) == 0) {
         return MPR_ERR_MEMORY;
     }
     return 0;
@@ -104,7 +103,6 @@ int mprAddNotifier(MprWaitService *ws, MprWaitHandler *wp, int mask)
             if ((ws->handlerMap = mprRealloc(ws->handlerMap, sizeof(MprWaitHandler*) * ws->handlerMax)) == 0) {
                 return MPR_ERR_MEMORY;
             }
-            memset(&ws->handlerMap[oldlen], 0, sizeof(MprWaitHandler*) * (ws->handlerMax - oldlen));
         }
         mprAssert(ws->handlerMap[fd] == 0);
         ws->handlerMap[fd] = wp;

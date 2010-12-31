@@ -93,12 +93,9 @@ static int growFds(MprWaitService *ws)
 {
     growFds(ws);
     ws->handlerMax *= 2;
-    ws->handlerMap = mprRealloc(ws->handlerMap, sizeof(MprWaitHandler*) * ws->handlerMax);
-    if (ws->handlerMap) {
-        unlock(ws);
+    if ((ws->handlerMap = mprRealloc(ws->handlerMap, sizeof(MprWaitHandler*) * ws->handlerMax)) == 0) {
         return MPR_ERR_MEMORY;
     }
-    memset(&ws->handlerMap[ws->handlerMax / 2], 0, sizeof(MprWaitHandler*) * ws->handlerMax / 2);
     return 0;
 }
 

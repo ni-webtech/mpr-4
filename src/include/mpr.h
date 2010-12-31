@@ -808,6 +808,7 @@ typedef struct MprHeap {
     int              from;                   /**< Eligible mprCollectGarbage flags */
     int              hasError;               /**< Memory allocation error */
     int              hasSweeper;             /**< Has dedicated sweeper thread */
+    int              iteration;              /**< GC iteration counter (debug only) */
     int              mustYield;              /**< Threads must yield for GC which is due */
     int              newCount;               /**< Count of new gen allocations */
     int              newQuota;               /**< Quota of new allocations before idle GC worthwhile */

@@ -543,11 +543,6 @@ static int growList(MprList *lp, int incr)
     if ((lp->items = mprRealloc(lp->items, memsize)) == NULL) {
         return MPR_ERR_MEMORY;
     }
-
-    /*
-        Zero the new portion (required for no-compact lists)
-     */
-    memset(&lp->items[lp->capacity], 0, sizeof(void*) * (len - lp->capacity));
     lp->capacity = len;
     return 0;
 }

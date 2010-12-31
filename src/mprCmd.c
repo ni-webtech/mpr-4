@@ -64,8 +64,7 @@ MprCmd *mprCreateCmd(MprDispatcher *dispatcher)
     MprCmdFile      *files;
     int             i;
     
-    cmd = mprAllocObj(MprCmd, manageCmd);
-    if (cmd == 0) {
+    if ((cmd = mprAllocObj(MprCmd, manageCmd)) == 0) {
         return 0;
     }
     cmd->timeoutPeriod = MPR_TIMEOUT_CMD;
@@ -113,6 +112,9 @@ static void manageCmd(MprCmd *cmd, int flags)
             for (i = 0; cmd->env[i]; i++) {
                 mprMark(cmd->env);
             }
+        }
+        for (i = 0; i < MPR_CMD_MAX_PIPE; i++) {
+            mprMark(cmd->handlers[i]);
         }
     } else if (flags & MPR_MANAGE_FREE) {
         cs = MPR->cmdService;
@@ -189,6 +191,7 @@ static void resetCmd(MprCmd *cmd)
     if (cmd->pid && !(cmd->flags & MPR_CMD_DETACH)) {
         mprStopCmd(cmd);
         mprReapCmd(cmd, 0);
+        cmd->pid = 0;
     }
 }
 
