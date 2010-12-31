@@ -20,7 +20,7 @@ config64:
 	./configure --host=x86_64-apple-darwin --build=x86_64-apple-darwin
 
 config32:
-	./configure --host=i386-apple-darwin --without-ssl
+	./configure --host=i386-apple-darwin --build=i386-apple-darwin --without-ssl
 
 wince:
 	./configure --host=arm-ms-wince --shared --without-ssl

@@ -14,8 +14,8 @@
 
 static void dequeueDispatcher(MprDispatcher *dispatcher);
 static void dispatchEvents(MprDispatcher *dispatcher);
-static MprTime getDispatcherIdleTime(MprDispatcher *dispatcher);
-static MprTime getIdleTime(MprEventService *es);
+static MprTime getDispatcherIdleTime(MprDispatcher *dispatcher, MprTime timeout);
+static MprTime getIdleTime(MprEventService *es, MprTime timeout);
 static MprDispatcher *getNextReadyDispatcher(MprEventService *es);
 static void initDispatcherQ(MprEventService *es, MprDispatcher *q, cchar *name);
 static int makeRunnable(MprDispatcher *dispatcher);
@@ -182,19 +182,25 @@ int mprServiceEvents(int timeout, int flags)
 {
     MprEventService     *es;
     MprDispatcher       *dp;
-    MprTime             expires, delay, idle;
+    MprTime             start, expires, delay;
     int                 beginEventCount, eventCount, justOne;
 
     es = MPR->eventService;
     beginEventCount = eventCount = es->eventCount;
 
-    es->now = mprGetTime();
+    start = es->now = mprGetTime();
     expires = timeout < 0 ? (es->now + MPR_MAX_TIMEOUT) : (es->now + timeout);
     justOne = (flags & MPR_SERVICE_ONE_THING) ? 1 : 0;
 
     do {
         eventCount = es->eventCount;
-        while ((dp = getNextReadyDispatcher(es)) != NULL && !mprIsComplete()) {
+        if (mprIsExiting()) {
+            if (mprIsComplete()) {
+                break;
+            }
+            expires = min(expires, start + MPR_TIMEOUT_STOP);
+        }
+        while ((dp = getNextReadyDispatcher(es)) != NULL) {
             serviceDispatcher(dp);
             if (justOne) {
                 return abs(es->eventCount - beginEventCount);
@@ -202,12 +208,7 @@ int mprServiceEvents(int timeout, int flags)
         } 
         if (es->eventCount == eventCount) {
             lock(es);
-            idle = getIdleTime(es);
-            delay = min(expires - es->now, idle);
-            delay = max(delay, 0);
-            if (delay && mprIsExiting()) {
-                delay = min(delay, 10);
-            }
+            delay = getIdleTime(es, expires - es->now);
             if (delay > 0) {
                 es->waiting = 1;
                 es->willAwake = es->now + delay;
@@ -220,7 +221,7 @@ int mprServiceEvents(int timeout, int flags)
             }
         }
         es->now = mprGetTime();
-    } while (es->now < expires && !justOne && !mprIsComplete());
+    } while (es->now < expires && !justOne);
 
     return abs(es->eventCount - beginEventCount);
 }
@@ -233,12 +234,12 @@ int mprServiceEvents(int timeout, int flags)
 int mprWaitForEvent(MprDispatcher *dispatcher, int timeout)
 {
     MprEventService     *es;
-    MprTime             expires, delay, idle;
+    MprTime             start, expires, delay;
     MprOsThread         thread;
     int                 claimed, signalled, wasRunning, runEvents;
 
     es = MPR->eventService;
-    es->now = mprGetTime();
+    start = es->now = mprGetTime();
 
     if (dispatcher == NULL) {
         dispatcher = MPR->dispatcher;
@@ -263,14 +264,18 @@ int mprWaitForEvent(MprDispatcher *dispatcher, int timeout)
     unlock(es);
 
     do {
+        if (mprIsExiting()) {
+            if (mprIsComplete()) {
+                break;
+            }
+            expires = min(expires, start + MPR_TIMEOUT_STOP);
+        }
         if (runEvents) {
             makeRunnable(dispatcher);
             dispatchEvents(dispatcher);
         }
         lock(es);
-        idle = getDispatcherIdleTime(dispatcher);
-        delay = min(expires - es->now, idle);
-        delay = max(delay, 0);
+        delay = getDispatcherIdleTime(dispatcher, expires - es->now);
         dispatcher->waitingOnCond = 1;
         unlock(es);
         
@@ -516,7 +521,7 @@ static MprDispatcher *getNextReadyDispatcher(MprEventService *es)
 /*
     Get the time to sleep till the next pending event. Must be called locked.
  */
-static MprTime getIdleTime(MprEventService *es)
+static MprTime getIdleTime(MprEventService *es, MprTime timeout)
 {
     MprDispatcher   *readyQ, *waitQ, *dp;
     MprEvent        *event;
@@ -527,6 +532,8 @@ static MprTime getIdleTime(MprEventService *es)
 
     if (readyQ->next != readyQ) {
         delay = 0;
+    } else if (mprIsExiting()) {
+        delay = 10;
     } else {
         delay = MPR_MAX_TIMEOUT;
         /*
@@ -541,12 +548,13 @@ static MprTime getIdleTime(MprEventService *es)
                 }
             }
         }
+        delay = min(delay, timeout);
     }
     return delay;
 }
 
 
-static MprTime getDispatcherIdleTime(MprDispatcher *dispatcher)
+static MprTime getDispatcherIdleTime(MprDispatcher *dispatcher, MprTime timeout)
 {
     MprEvent    *next;
     MprTime     delay;
@@ -556,6 +564,9 @@ static MprTime getDispatcherIdleTime(MprDispatcher *dispatcher)
     if (next != &dispatcher->eventQ) {
         delay = (next->due - dispatcher->service->now);
     }
+    if (timeout >= 0) {
+        return min(delay, timeout);
+    } 
     return delay;
 }
 

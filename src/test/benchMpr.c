@@ -100,7 +100,7 @@ int benchMain(int argc, char *argv[])
         mprServiceEvents(250, 0);
     }
     mprPrintMem("Memory Report", 0);
-    mprDestroy(mpr);
+    mprDestroy(0);
     return 0;
 }
 

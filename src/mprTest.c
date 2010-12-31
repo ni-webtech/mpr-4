@@ -335,9 +335,7 @@ int mprRunTests(MprTestService *sp)
             return MPR_ERR_CANT_INITIALIZE;
         }
     }
-    while (!mprIsComplete()) {
-        mprServiceEvents(-1, 0);
-    }
+    mprServiceEvents(-1, 0);
     return (sp->totalFailedCount == 0) ? 0 : 1;
 }
 

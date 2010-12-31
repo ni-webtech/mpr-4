@@ -825,7 +825,7 @@ typedef struct MprHeap {
  */
 extern struct Mpr *mprCreateMemService(MprManager manager, int flags);
 extern void mprStartGCService();
-extern void mprStopGCService();
+extern void mprWakeGCService();
 
 /**
     Destroy the memory service. Called as the last thing before exiting
@@ -5721,6 +5721,8 @@ typedef struct Mpr {
     int             flags;                  /**< Processing state */
     int             hasError;               /**< Mpr has an initialization error */
     int             logFd;                  /**< Logging file descriptor */
+    int             marking;                /**< Marker thread is active */
+    int             sweeping;               /**< Sweeper thread is active */
 
     /*
         Service pointers
@@ -5793,7 +5795,7 @@ extern Mpr *mprGetMpr();
     @ingroup Mpr
  */
 extern Mpr *mprCreate(int argc, char **argv, int flags);
-extern void mprDestroy(Mpr *mpr);
+extern bool mprDestroy(int flags);
 
 /**
     Start the Mpr services
@@ -5807,14 +5809,6 @@ extern int mprStart();
     @return True if all services have been successfully stopped. Otherwise false.
  */
 extern bool mprStop();
-
-/**
-    Signal the MPR to exit gracefully.
-    @description Set the must exit flag for the MPR.
-    @stability Evolving.
-    @ingroup Mpr
- */
-extern void mprSignalExit();
 
 /**
     Determine if the MPR should exit
