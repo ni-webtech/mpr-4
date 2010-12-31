@@ -242,7 +242,7 @@ static void testClientServer(MprTestGroup *gp, cchar *host)
 
     mprWaitForTestToComplete(gp, MPR_TEST_SLEEP);
     /*  Set in acceptFn() */
-    assert(ts->accepted);
+    assert(ts->accepted != 0);
 
     buf = "01234567890123456789012345678901234567890123456789\r\n";
     len = strlen(buf);
