@@ -244,6 +244,11 @@ int mprWaitForEvent(MprDispatcher *dispatcher, int timeout)
     if (dispatcher == NULL) {
         dispatcher = MPR->dispatcher;
     }
+    //  MOB -- should have a re-entrancy check
+    mprAssert(!dispatcher->waitingOnCond);
+    if (dispatcher->waitingOnCond) {
+        return MPR_ERR_BUSY;
+    }
     thread = mprGetCurrentOsThread();
     expires = timeout < 0 ? (es->now + MPR_MAX_TIMEOUT) : (es->now + timeout);
     claimed = signalled = 0;
@@ -567,7 +572,7 @@ static MprTime getDispatcherIdleTime(MprDispatcher *dispatcher, MprTime timeout)
     if (timeout >= 0) {
         return min(delay, timeout);
     } 
-    return delay;
+    return max(delay, 0);
 }
 
 

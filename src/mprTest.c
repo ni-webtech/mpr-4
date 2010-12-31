@@ -481,12 +481,7 @@ static void manageTestGroup(MprTestGroup *gp, int flags)
         mprMark(gp->failures);
         mprMark(gp->groups);
         mprMark(gp->cases);
-#if UNUSED
-        mprMark(gp->cond);
-        mprMark(gp->cond2);
-#else
         mprMark(gp->dispatcher);
-#endif
         mprMark(gp->conn);
         mprMark(gp->mutex);
         mprMark(gp->data);
@@ -512,9 +507,6 @@ static MprTestGroup *createTestGroup(MprTestService *sp, MprTestDef *def, MprTes
         return 0;
     }
     gp->service = sp;
-#if UNUSED
-    gp->cond = mprCreateCond();
-#endif
     if (parent) {
         gp->dispatcher = parent->dispatcher;
     } else {
@@ -776,10 +768,6 @@ static void runTestProc(MprTestGroup *gp, MprTestCase *test)
             }
         }
     } else {
-#if UNUSED
-        mprResetCond(gp->cond);
-#else
-#endif
         (test->proc)(gp);
         mprYield(0);
     
@@ -879,12 +867,9 @@ bool mprWaitForTestToComplete(MprTestGroup *gp, int timeout)
     mprAssert(gp->dispatcher);
     mprAssert(timeout >= 0);
 
-#if UNUSED
-    mprYield(MPR_YIELD_STICKY);
-    rc = mprWaitForCond(gp->cond, timeout) == 0;
-    mprResetCond(gp->cond);
-    mprResetYield();
-#else
+    if (mprGetDebugMode()) {
+        timeout *= 100;
+    }
     expires = mprGetTime() + timeout;
     remaining = timeout;
     do {
@@ -893,19 +878,14 @@ bool mprWaitForTestToComplete(MprTestGroup *gp, int timeout)
     } while (!gp->testComplete && remaining > 0);
     rc = gp->testComplete;
     gp->testComplete = 0;
-#endif
     return rc;
 }
 
 
 void mprSignalTestComplete(MprTestGroup *gp)
 {
-#if UNUSED
-    mprSignalCond(gp->cond);
-#else
     gp->testComplete = 1;
     mprSignalDispatcher(gp->dispatcher);
-#endif
 }
 
 

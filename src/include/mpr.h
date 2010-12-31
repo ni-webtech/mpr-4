@@ -285,8 +285,6 @@ extern void mprSignalCond(MprCond *cond);
 
 //  MOB DOC
 extern void mprSignalMultiCond(MprCond *cp);
-
-//  MOB DOC
 extern int mprWaitForMultiCond(MprCond *cp, int timeout);
 
 /**
@@ -4566,9 +4564,6 @@ typedef struct MprWaitHandler {
  */
 extern MprWaitHandler *mprCreateWaitHandler(int fd, int mask, MprDispatcher *dispatcher, MprEventProc proc, 
     void *data);
-#if UNUSED
-extern void mprDestroyWaitHandler(MprWaitHandler *hp);
-#endif
 
 /**
     Initialize a static wait handler
@@ -4955,15 +4950,6 @@ extern int mprGetSocketFd(MprSocket *sp);
  */
 extern int mprGetSocketPort(MprSocket *sp);
 
-#if UNUSED
-/**
-    Listen on a socket for incoming connections
-    @param sp Socket to listen on
-    @return Zero if successful.
- */
-extern int mprListenOnSocket(MprSocket *sp);
-#endif
-
 /**
     Set the socket blocking mode.
     @description Set the blocking mode for a socket. By default a socket is in non-blocking mode where read / write
@@ -5049,14 +5035,6 @@ extern ssize mprWriteSocketVector(MprSocket *sp, MprIOVec *iovec, int count);
     @param sp Socket object returned from #mprCreateSocket
  */
 extern void mprEnableSocketEvents(MprSocket *sp, int mask);
-
-#if UNUSED
-/**
-    Disable socket events for a socket callback
-    @param sp Socket object returned from #mprCreateSocket
- */
-extern void mprDisableSocketEvents(MprSocket *sp);
-#endif
 
 /**
     Parse an IP address. This parses a string containing an IP:PORT specification and returns the IP address and port 
