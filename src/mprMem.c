@@ -1070,7 +1070,7 @@ void mprRequestGC(int flags)
         if (!(heap->flags & MPR_OWN_GC)) {
             mprSignalCond(heap->markerCond);
         }
-        mprYield(NULL, 0);
+        mprYield(0);
     }
 }
 
@@ -1089,17 +1089,15 @@ static void synchronize()
         mprLog(4, "DEBUG: Call notifier");
         (heap->notifier)(MPR_MEM_YIELD, 0);
     }
-    if (!mprIsExiting()) {
-        if (mprSyncThreads(MPR_TIMEOUT_GC_SYNC)) {
-            mprLog(7, "DEBUG: GC Advance generation");
-            nextGen();
-            heap->mustYield = 0;
-            mprResumeThreads();
-        } else {
-            mprLog(7, "DEBUG: Pause for GC sync timed out");
-            heap->mustYield = 0;
-            mprResumeThreads();
-        }
+    if (mprIsExiting() || mprSyncThreads(MPR_TIMEOUT_GC_SYNC)) {
+        mprLog(7, "DEBUG: GC Advance generation");
+        nextGen();
+        heap->mustYield = 0;
+        mprResumeThreads();
+    } else {
+        mprLog(7, "DEBUG: Pause for GC sync timed out");
+        heap->mustYield = 0;
+        mprResumeThreads();
     }
 }
 
@@ -1351,7 +1349,7 @@ static void sweeper(void *unused, MprThread *tp)
 
     while (!mprIsExiting() || heap->extraSweeps > 0) {
         sweep();
-        mprYield(NULL, 1);
+        mprYield(1);
     }
 }
 
@@ -1371,7 +1369,7 @@ void mprGC(int force)
         return;
     }
     if (heap->flags & (MPR_MARK_THREAD | MPR_SWEEP_THREAD)) {
-        mprYield(NULL, 0);
+        mprYield(0);
         return;
     }
     tp = mprGetCurrentThread();
@@ -1401,17 +1399,16 @@ void mprGC(int force)
     Called by user code to signify the thread is ready for GC and all object references are saved. 
     If the GC marker is synchronizing, this call will block at the GC sync point (should be brief).
  */
-void mprYield(MprThread *tp, int flags)
+void mprYield(int flags)
 {
-    if (tp == NULL) {
-        tp = mprGetCurrentThread();
-    }
+    MprThread   *tp;
+
+    tp = mprGetCurrentThread();
     mprLog(7, "mprYield %s yielded was %d, block %d", tp->name, tp->yielded, flags & MPR_YIELD_BLOCK);
     tp->yielded = 1;
     if (flags & MPR_YIELD_STICKY) {
         tp->stickyYield = 1;
     }
-
     /*
         Wake the marker to check if all threads are yielded and wait for the all clear
      */
@@ -1428,11 +1425,11 @@ void mprYield(MprThread *tp, int flags)
 }
 
 
-void mprResetYield(MprThread *tp)
+void mprResetYield()
 {
-    if (tp == NULL) {
-        tp = mprGetCurrentThread();
-    }
+    MprThread   *tp;
+
+    tp = mprGetCurrentThread();
     tp->stickyYield = 0;
     tp->yielded = 0;
 }

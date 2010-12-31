@@ -31,10 +31,10 @@ static void testCriticalSection(MprTestGroup *gp)
 
     save = cond->triggered;
     delay = MPR_TEST_TIMEOUT + (mprGetDebugMode() * 1200 * 1000);
-    mprYield(NULL, MPR_YIELD_STICKY);
+    mprYield(MPR_YIELD_STICKY);
     rc = mprWaitForCond(cond, delay);
     assert(rc == 0);
-    mprResetYield(NULL);
+    mprResetYield();
     
     //  TODO - add test with longer event delay to catch when wait runs first
 }

@@ -940,9 +940,9 @@ static void workerMain(MprWorker *worker, MprThread *tp)
         /*
             Sleep till there is more work to do. Yield for GC first.
          */
-        mprYield(NULL, MPR_YIELD_STICKY);
+        mprYield(MPR_YIELD_STICKY);
         rc = mprWaitForCond(worker->idleCond, -1);
-        mprResetYield(NULL);
+        mprResetYield();
         mprLock(ws->mutex);
     }
     changeState(worker, 0);

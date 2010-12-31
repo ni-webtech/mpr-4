@@ -1148,6 +1148,10 @@ extern void mprAddRoot(void *ptr);
 #define MPR_GC_FROM_WORKER  0x8     /**<  */
 #define MPR_GC_FORCE        0x10    /**<  */
 #define MPR_GC_FROM_ALL     0xf     /**<  */
+#endif
+
+#define MPR_FORCE_GC        0x1
+#define MPR_COMPLETE_GC     0x2
 
 /**
     Collect garbage
@@ -1160,11 +1164,6 @@ extern void mprAddRoot(void *ptr);
     also blocks on mprServiceEvents. Similarly, use MPR_GC_FROM_OWN if managing garbage collections manually.
   */
 extern void mprGC(int flags);
-#endif
-
-#define MPR_FORCE_GC        0x1
-#define MPR_COMPLETE_GC     0x2
-
 extern void mprRequestGC(int flags);
 
 /**
@@ -4451,9 +4450,8 @@ extern MprThreadLocal *mprCreateThreadLocal();
 #define MPR_YIELD_BLOCK     0x1
 #define MPR_YIELD_STICKY    0x2
 
-extern void mprYield(MprThread *tp, int flags);
-extern void mprResetYield(MprThread *tp);
-extern void mprGC(int force);
+extern void mprYield(int flags);
+extern void mprResetYield();
 
 #if UNUSED
 extern void mprResumeThread(MprThread *tp);

@@ -760,7 +760,7 @@ static void runTestProc(MprTestGroup *gp, MprTestCase *test)
     } else {
         mprResetCond(gp->cond);
         (test->proc)(gp);
-        mprYield(NULL, 0);
+        mprYield(0);
     
         mprLock(sp->mutex);
         if (gp->success) {
@@ -857,10 +857,10 @@ bool mprWaitForTestToComplete(MprTestGroup *gp, int timeout)
     mprAssert(gp->cond);
     mprAssert(timeout >= 0);
 
-    mprYield(NULL, MPR_YIELD_STICKY);
+    mprYield(MPR_YIELD_STICKY);
     rc = mprWaitForCond(gp->cond, timeout) == 0;
     mprResetCond(gp->cond);
-    mprResetYield(NULL);
+    mprResetYield();
     return rc;
 }
 
