@@ -705,6 +705,9 @@ void mprReleaseWorkerFromDispatcher(MprDispatcher *dispatcher, MprWorker *worker
 
 void mprSignalDispatcher(MprDispatcher *dispatcher)
 {
+    if (dispatcher == NULL) {
+        dispatcher = MPR->dispatcher;
+    }
     mprSignalCond(dispatcher->cond);
 }
 

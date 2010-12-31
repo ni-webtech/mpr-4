@@ -171,7 +171,7 @@ static void resetCmd(MprCmd *cmd)
     files = cmd->files;
     for (i = 0; i < MPR_CMD_MAX_PIPE; i++) {
         if (cmd->handlers[i]) {
-            mprDestroyWaitHandler(cmd->handlers[i]);
+            mprRemoveWaitHandler(cmd->handlers[i]);
             cmd->handlers[i] = 0;
         }
         if (files[i].clientFd >= 0) {
@@ -220,6 +220,7 @@ void mprCloseCmdFd(MprCmd *cmd, int channel)
 
     /*
         Disconnect but don't free. This prevents some races with callbacks.
+        Wait handlers MUST be removed before closing the file handle.
      */
     lock(cmd);
     if (cmd->handlers[channel]) {

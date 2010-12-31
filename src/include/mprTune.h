@@ -210,6 +210,9 @@ extern "C" {
     #define MPR_EVENT_POLL      1
 #endif
 
+#undef MPR_EVENT_KQUEUE
+#define MPR_EVENT_POLL 1
+
 /*
     Garbage collector tuning
  */

@@ -110,17 +110,10 @@ MprWaitHandler *mprCreateWaitHandler(int fd, int mask, MprDispatcher *dispatcher
     mprAssert(fd >= 0);
 
     ws = MPR->waitService;
-    wp = mprAllocObj(MprWaitHandler, manageWaitHandler);
-    if (wp == 0) {
+    if ((wp = mprAllocObj(MprWaitHandler, manageWaitHandler)) == 0) {
         return 0;
     }
     return mprInitWaitHandler(wp, fd, mask, dispatcher, proc, data);
-}
-
-
-void mprDestroyWaitHandler(MprWaitHandler *wp)
-{
-    mprRemoveWaitHandler(wp);
 }
 
 

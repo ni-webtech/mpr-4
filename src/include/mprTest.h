@@ -100,9 +100,11 @@ typedef struct MprTestGroup {
     bool            success;                /* Result of last run */
     int             failedCount;            /* Total failures of this test */
     int             testCount;              /* Count of tests */
+    int             testComplete;           /* Test complete signal */
     MprList         *failures;              /* List of all failures */
 
     MprTestService  *service;               /* Reference to the service */
+    MprDispatcher   *dispatcher;            /* Per group thread dispatcher */
     struct MprTestGroup *parent;            /* Parent test group */
     struct MprTestGroup *root;              /* Top level test group parent */
 
@@ -110,8 +112,10 @@ typedef struct MprTestGroup {
     MprList         *cases;                 /* List of tests in this group */
     MprTestDef      *def;                   /* Test definition ref */
 
+#if UNUSED
     MprCond         *cond;                  /* Multi-thread sync */
     MprCond         *cond2;                 /* Second multi-thread sync */
+#endif
 
     struct Http     *http;                  /* Http service */
     struct HttpConn *conn;                  /* Http connection for this group */

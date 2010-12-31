@@ -345,11 +345,14 @@ void mprFreeX(void *ptr)
 #endif
 
 
+/*
+    New memory is zeroed
+ */
 void *mprRealloc(void *ptr, ssize usize)
 {
     MprMem      *mp, *newb;
     void        *newptr;
-    ssize       oldSize;
+    ssize       oldSize, oldUsize;
     int         flags, hasManager;
 
     mprAssert(usize > 0);
@@ -361,8 +364,9 @@ void *mprRealloc(void *ptr, ssize usize)
     CHECK(mp);
     mprAssert(!IS_FREE(mp));
     mprAssert(GET_GEN(mp) != heap->dead);
+    oldUsize = GET_USIZE(mp);
 
-    if (usize <= GET_USIZE(mp)) {
+    if (usize <= oldUsize) {
         return ptr;
     }
     hasManager = HAS_MANAGER(mp);
@@ -380,8 +384,7 @@ void *mprRealloc(void *ptr, ssize usize)
     }
     oldSize = GET_SIZE(mp);
     memcpy(newptr, ptr, oldSize - sizeof(MprMem));
-    // mprAssert(GET_GEN(newb) != heap->eternal);
-    // mprAssert(GET_GEN(mp) != heap->eternal);
+    memset(&((char*) newptr)[oldUsize], 0, usize - oldUsize);
     return newptr;
 }
 

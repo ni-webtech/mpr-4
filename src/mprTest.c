@@ -455,6 +455,9 @@ static void buildFullNames(MprTestGroup *gp, cchar *name)
 }
 
 
+/*
+    Used by main program to add the top level test group(s)
+ */
 MprTestGroup *mprAddTestGroup(MprTestService *sp, MprTestDef *def)
 {
     MprTestGroup    *gp;
@@ -478,8 +481,12 @@ static void manageTestGroup(MprTestGroup *gp, int flags)
         mprMark(gp->failures);
         mprMark(gp->groups);
         mprMark(gp->cases);
+#if UNUSED
         mprMark(gp->cond);
         mprMark(gp->cond2);
+#else
+        mprMark(gp->dispatcher);
+#endif
         mprMark(gp->conn);
         mprMark(gp->mutex);
         mprMark(gp->data);
@@ -494,13 +501,26 @@ static MprTestGroup *createTestGroup(MprTestService *sp, MprTestDef *def, MprTes
     MprTestGroup    *gp, *child;
     MprTestDef      **dp;
     MprTestCase     *tc;
+    char            name[80];
+    static int      counter = 0;
+
+    mprAssert(sp);
+    mprAssert(def);
 
     gp = mprAllocObj(MprTestGroup, manageTestGroup);
     if (gp == 0) {
         return 0;
     }
     gp->service = sp;
+#if UNUSED
     gp->cond = mprCreateCond();
+#endif
+    if (parent) {
+        gp->dispatcher = parent->dispatcher;
+    } else {
+        mprSprintf(name, sizeof(name), "Test-%d", counter++);
+        gp->dispatcher = mprCreateDispatcher(name, 1);
+    }
 
     gp->failures = mprCreateList(0, 0);
     if (gp->failures == 0) {
@@ -756,7 +776,10 @@ static void runTestProc(MprTestGroup *gp, MprTestCase *test)
             }
         }
     } else {
+#if UNUSED
         mprResetCond(gp->cond);
+#else
+#endif
         (test->proc)(gp);
         mprYield(0);
     
@@ -850,22 +873,39 @@ bool assertTrue(MprTestGroup *gp, cchar *loc, bool isTrue, cchar *msg)
 
 bool mprWaitForTestToComplete(MprTestGroup *gp, int timeout)
 {
-    int     rc;
+    MprTime     expires, remaining;
+    int         rc;
     
-    mprAssert(gp->cond);
+    mprAssert(gp->dispatcher);
     mprAssert(timeout >= 0);
 
+#if UNUSED
     mprYield(MPR_YIELD_STICKY);
     rc = mprWaitForCond(gp->cond, timeout) == 0;
     mprResetCond(gp->cond);
     mprResetYield();
+#else
+    expires = mprGetTime() + timeout;
+    remaining = timeout;
+    do {
+        mprWaitForEvent(gp->dispatcher, remaining);
+        remaining = expires - mprGetTime();
+    } while (!gp->testComplete && remaining > 0);
+    rc = gp->testComplete;
+    gp->testComplete = 0;
+#endif
     return rc;
 }
 
 
 void mprSignalTestComplete(MprTestGroup *gp)
 {
+#if UNUSED
     mprSignalCond(gp->cond);
+#else
+    gp->testComplete = 1;
+    mprSignalDispatcher(gp->dispatcher);
+#endif
 }
 
 

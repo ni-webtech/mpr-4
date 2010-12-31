@@ -25,9 +25,10 @@ int mprCreateNotifierService(MprWaitService *ws)
 
     ws->fdsCount = 0;
     ws->fdMax = MPR_FD_MIN;
+    ws->handlerMax = MPR_FD_MIN;
 
     ws->fds = mprAllocZeroed(sizeof(struct pollfd) * ws->fdMax);
-    ws->handlerMap = mprAllocZeroed(sizeof(MprWaitHandler*) * ws->fdMax);
+    ws->handlerMap = mprAllocZeroed(sizeof(MprWaitHandler*) * ws->handlerMax);
     if (ws->fds == 0 || ws->handlerMap == 0) {
         return MPR_ERR_CANT_INITIALIZE;
     }
@@ -52,8 +53,9 @@ int mprCreateNotifierService(MprWaitService *ws)
 
 void mprManagePoll(MprWaitService *ws, int flags)
 {
-    if (flags & MPR_MANAGE_FREE) {
+    if (flags & MPR_MANAGE_MARK) {
         mprMark(ws->fds);
+        mprMark(ws->pollFds);
 
     } else if (flags & MPR_MANAGE_FREE) {
         if (ws->breakPipe[0] >= 0) {
@@ -69,13 +71,19 @@ void mprManagePoll(MprWaitService *ws, int flags)
 static int growFds(MprWaitService *ws)
 {
     ws->fdMax *= 2;
-    ws->fds = mprRealloc(ws->fds, sizeof(struct pollfd) * ws->fdMax);
-    ws->handlerMap = mprRealloc(ws->handlerMap, sizeof(MprWaitHandler*) * ws->fdMax);
-    if (ws->fds == 0 || ws->handlerMap) {
+    if ((ws->fds = mprRealloc(ws->fds, sizeof(struct pollfd) * ws->fdMax)) == 0) {
         return MPR_ERR_MEMORY;
     }
-    memset(&ws->fds[ws->fdMax / 2], 0, sizeof(struct pollfd) * ws->fdMax / 2);
-    memset(&ws->handlerMap[ws->fdMax / 2], 0, sizeof(MprWaitHandler*) * ws->fdMax / 2);
+    return 0;
+}
+
+
+static int growHandlers(MprWaitService *ws, int fd)
+{
+    ws->handlerMax = fd + 1;
+    if ((ws->handlerMap = mprRealloc(ws->handlerMap, sizeof(MprWaitHandler*) * ws->handlerMax)) == 0) {
+        return MPR_ERR_MEMORY;
+    }
     return 0;
 }
 
@@ -93,6 +101,11 @@ int mprAddNotifier(MprWaitService *ws, MprWaitHandler *wp, int mask)
                 unlock(ws);
                 return MPR_ERR_MEMORY;
             }
+            if (fd >= ws->handlerMax && growHandlers(ws, fd) < 0) {
+                unlock(ws);
+                return MPR_ERR_MEMORY;
+            }
+            mprAssert(fd < ws->handlerMax);
             mprAssert(ws->handlerMap[fd] == 0);
             ws->handlerMap[fd] = wp;
             wp->notifierIndex = ws->fdsCount++;
@@ -187,8 +200,7 @@ int mprWaitForSingleIO(int fd, int mask, int timeout)
  */
 void mprWaitForIO(MprWaitService *ws, int timeout)
 {
-    struct pollfd   *fds;
-    int             count, rc;
+    int     count, rc;
 
 #if BLD_DEBUG
     if (mprGetDebugMode() && timeout > 30000) {
@@ -201,17 +213,17 @@ void mprWaitForIO(MprWaitService *ws, int timeout)
     }
     lock(ws);
     count = ws->fdsCount;
-    if ((fds = mprMemdup(ws->fds, sizeof(struct pollfd) * count)) == 0) {
+    if ((ws->pollFds = mprMemdup(ws->fds, sizeof(struct pollfd) * count)) == 0) {
         unlock(ws);
         return;
     }
     unlock(ws);
 
-    rc = poll(fds, count, timeout);
+    rc = poll(ws->pollFds, count, timeout);
     if (rc < 0) {
         mprLog(2, "Poll returned %d, errno %d", rc, mprGetOsError());
     } else if (rc > 0) {
-        serviceIO(ws, fds, count);
+        serviceIO(ws, ws->pollFds, count);
     }
     ws->wakeRequested = 0;
 }
@@ -226,8 +238,9 @@ static void serviceIO(MprWaitService *ws, struct pollfd *fds, int count)
     struct pollfd       *fp;
     int                 mask;
 
+    int x = 0;
     lock(ws);
-    for (fp = fds; fp < &ws->fds[count]; fp++) {
+    for (fp = fds; fp < &fds[count]; fp++) {
         if (fp->revents == 0) {
            continue;
         }
@@ -239,6 +252,7 @@ static void serviceIO(MprWaitService *ws, struct pollfd *fds, int count)
             mask |= MPR_WRITABLE;
         }
         mprAssert(mask);
+        mprAssert(fp->fd >= 0);
         if ((wp = ws->handlerMap[fp->fd]) == 0) {
             char    buf[128];
             if (fp->fd == ws->breakPipe[MPR_READ_PIPE]) {
@@ -252,6 +266,7 @@ static void serviceIO(MprWaitService *ws, struct pollfd *fds, int count)
         if (wp->presentMask) {
             mprQueueIOEvent(wp);
         }
+        x++;
     }
     unlock(ws);
 }

@@ -190,6 +190,7 @@ static void manageSocket(MprSocket *sp, int flags)
         mprMark(sp->ip);
         mprMark(sp->provider);
         mprMark(sp->mutex);
+        mprMark(sp->handler);
 
     } else if (flags & MPR_MANAGE_FREE) {
         ss = sp->service;
@@ -228,7 +229,7 @@ MprSocket *mprCreateSocket(struct MprSsl *ssl)
 
 
 /*  
-    Re-initialize all socket variables so the Socket can be reused.
+    Re-initialize all socket variables so the socket can be reused. This closes the socket and removes all wait handlers.
  */
 static void resetSocket(MprSocket *sp)
 {
@@ -249,7 +250,7 @@ static void resetSocket(MprSocket *sp)
 /*  
     Open a server connection
  */
-int mprOpenServerSocket(MprSocket *sp, cchar *ip, int port, int flags)
+int mprListenOnSocket(MprSocket *sp, cchar *ip, int port, int flags)
 {
     if (sp->provider == 0) {
         return MPR_ERR_NOT_INITIALIZED;
@@ -323,17 +324,6 @@ static int listenSocket(MprSocket *sp, cchar *ip, int port, int initialFlags)
         unlock(sp);
         return MPR_ERR_CANT_OPEN;
     }
-    unlock(sp);
-    return sp->fd;
-}
-
-
-int mprListenOnSocket(MprSocket *sp)
-{
-    int     datagram;
-
-    datagram = sp->flags & MPR_SOCKET_DATAGRAM;
-
     /*  TODO NOTE: Datagrams have not been used in a long while. Probably broken */
 
     lock(sp);
@@ -370,10 +360,42 @@ int mprListenOnSocket(MprSocket *sp)
 }
 
 
+MprWaitHandler *mprAddSocketHandler(MprSocket *sp, int mask, MprDispatcher *dispatcher, MprEventProc proc, void *data)
+{
+    mprAssert(sp);
+    mprAssert(sp->fd >= 0);
+    mprAssert(proc);
+
+    if (sp->fd < 0) {
+        return 0;
+    }
+    if (sp->handler) {
+        mprRemoveWaitHandler(sp->handler);
+    }
+    sp->handler = mprCreateWaitHandler(sp->fd, mask, dispatcher, proc, data);
+    return sp->handler;
+}
+
+
+void mprRemoveSocketHandler(MprSocket *sp)
+{
+    if (sp->handler) {
+        mprRemoveWaitHandler(sp->handler);
+        sp->handler = 0;
+    }
+}
+
+
+void mprEnableSocketEvents(MprSocket *sp, int mask)
+{
+    mprEnableWaitEvents(sp->handler, mask);
+}
+
+
 /*  
     Open a client socket connection
  */
-int mprOpenClientSocket(MprSocket *sp, cchar *ip, int port, int flags)
+int mprConnectSocket(MprSocket *sp, cchar *ip, int port, int flags)
 {
     if (sp->provider == 0) {
         return MPR_ERR_NOT_INITIALIZED;
@@ -537,6 +559,7 @@ void mprCloseSocket(MprSocket *sp, bool gracefully)
     if (sp->provider == 0) {
         return;
     }
+    mprRemoveSocketHandler(sp);
     sp->provider->closeSocket(sp, gracefully);
 }
 

@@ -4446,7 +4446,8 @@ typedef struct MprWaitService {
 #elif MPR_EVENT_POLL
     struct MprWaitHandler **handlerMap;     /* Map of fds to handlers (indexed by fd) */
     int             handlerMax;             /* Size of the handlers array */
-    struct pollfd   *fds;                   /* File descriptors to select on (linear index) */
+    struct pollfd   *fds;                   /* Master set of file descriptors to poll */
+    struct pollfd   *pollFds;               /* Set of descriptors used in poll() */
     int             fdsCount;               /* Last used entry in the fds array */
     int             fdMax;                  /* Size of the fds array */
     int             breakPipe[2];           /* Pipe to wakeup select */
@@ -4564,7 +4565,9 @@ typedef struct MprWaitHandler {
  */
 extern MprWaitHandler *mprCreateWaitHandler(int fd, int mask, MprDispatcher *dispatcher, MprEventProc proc, 
     void *data);
+#if UNUSED
 extern void mprDestroyWaitHandler(MprWaitHandler *hp);
+#endif
 
 /**
     Initialize a static wait handler
@@ -4748,7 +4751,7 @@ extern int mprSetMaxSocketClients(int max);
     The socket service integrates with the MPR worker thread pool and eventing services. Socket connections can be handled
     by threads from the worker thread pool for scalable, multithreaded applications.
     @stability Evolving
-    @see MprSocket, mprCreateSocket, mprOpenClientSocket, mprOpenServerSocket, mprCloseSocket, mprFree, mprFlushSocket,
+    @see MprSocket, mprCreateSocket, mprConnectSocket, mprListenSocket, mprCloseSocket, mprFree, mprFlushSocket,
         mprWriteSocket, mprWriteSocketString, mprReadSocket, mprSetSocketCallback, mprSetSocketEventMask, 
         mprGetSocketBlockingMode, mprIsSocketEof, mprGetSocketFd, mprGetSocketPort, mprGetSocketBlockingMode, 
         mprSetSocketNoDelay, mprGetSocketError, mprParseIp, mprSendFileToSocket, mprSetSocketEof, mprIsSocketSecure
@@ -4800,7 +4803,7 @@ typedef struct MprIOVec {
 extern MprSocket *mprCreateSocket(struct MprSsl *ssl);
 
 /**
-    Open a client socket
+    Connect a client socket
     @description Open a client connection
     @param sp Socket object returned via #mprCreateSocket
     @param hostName Host or IP address to connect to.
@@ -4815,7 +4818,7 @@ extern MprSocket *mprCreateSocket(struct MprSsl *ssl);
     @return Zero if the connection is successful. Otherwise a negative MPR error code.
     @ingroup MprSocket
  */
-extern int mprOpenClientSocket(MprSocket *sp, cchar *hostName, int port, int flags);
+extern int mprConnectSocket(MprSocket *sp, cchar *hostName, int port, int flags);
 
 /**
     Disconnect a socket by closing its underlying file descriptor. This is used to prevent further I/O wait events while
@@ -4825,7 +4828,7 @@ extern int mprOpenClientSocket(MprSocket *sp, cchar *hostName, int port, int fla
 extern void mprDisconnectSocket(MprSocket *sp);
 
 /**
-    Open a server socket
+    Listen on a server socket for incoming connections
     @description Open a server socket and listen for client connections.
     @param sp Socket object returned via #mprCreateSocket
     @param ip IP address to bind to. Set to 0.0.0.0 to bind to all possible addresses on a given port.
@@ -4840,7 +4843,7 @@ extern void mprDisconnectSocket(MprSocket *sp);
     @return Zero if the connection is successful. Otherwise a negative MPR error code.
     @ingroup MprSocket
  */
-extern int mprOpenServerSocket(MprSocket *sp, cchar *ip, int port, int flags);
+extern int mprListenOnSocket(MprSocket *sp, cchar *ip, int port, int flags);
 
 
 /**
@@ -4951,12 +4954,14 @@ extern int mprGetSocketFd(MprSocket *sp);
  */
 extern int mprGetSocketPort(MprSocket *sp);
 
+#if UNUSED
 /**
     Listen on a socket for incoming connections
     @param sp Socket to listen on
     @return Zero if successful.
  */
 extern int mprListenOnSocket(MprSocket *sp);
+#endif
 
 /**
     Set the socket blocking mode.
@@ -5042,13 +5047,15 @@ extern ssize mprWriteSocketVector(MprSocket *sp, MprIOVec *iovec, int count);
     Enable socket events for a socket callback
     @param sp Socket object returned from #mprCreateSocket
  */
-extern void mprEnableSocketEvents(MprSocket *sp);
+extern void mprEnableSocketEvents(MprSocket *sp, int mask);
 
+#if UNUSED
 /**
     Disable socket events for a socket callback
     @param sp Socket object returned from #mprCreateSocket
  */
 extern void mprDisableSocketEvents(MprSocket *sp);
+#endif
 
 /**
     Parse an IP address. This parses a string containing an IP:PORT specification and returns the IP address and port 
@@ -5062,6 +5069,10 @@ extern void mprDisableSocketEvents(MprSocket *sp);
     @param defaultPort The default port number to use if the ipSpec does not contain a port
  */
 extern int mprParseIp(cchar *ipSpec, char **ip, int *port, int defaultPort);
+
+//MOB DOC
+extern MprWaitHandler *mprAddSocketHandler(MprSocket *sp, int mask, MprDispatcher *dispatcher, MprEventProc proc, void *data);
+extern void mprRemoveSocketHandler(MprSocket *sp);
 
 /***************************************************** SSL *****************************************************************/
 /*

@@ -59,7 +59,6 @@ MAIN(testMain, int argc, char *argv[])
 {
     Mpr             *mpr;
     MprTestService  *ts;
-    MprTestGroup    *gp;
     int             rc;
 
     mpr = mprCreate(argc, argv, MPR_USER_EVENTS_THREAD);
@@ -79,8 +78,7 @@ MAIN(testMain, int argc, char *argv[])
     if (mprParseTestArgs(ts, argc, argv) < 0) {
         exit(3);
     }  
-    gp = mprAddTestGroup(ts, &master);
-    if (gp == 0) {
+    if (mprAddTestGroup(ts, &master) == 0) {
         exit(4);
     }
 #if BLD_FEATURE_SSL && (BLD_FEATURE_MATRIXSSL || BLD_FEATURE_OPENSSL)

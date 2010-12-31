@@ -54,7 +54,7 @@ static void testRunCmd(MprTestGroup *gp)
 {
     MprCmd      *cmd;
     TestCmd     *tc;
-    char        *result, command[80];
+    char        *result, command[MPR_MAX_PATH];
     int         rc, status, exitStatus;
 
     tc = gp->data;
@@ -236,7 +236,7 @@ static void testExitCode(MprTestGroup *gp)
 {
     MprCmd      *cmd;
     TestCmd     *tc;
-    char        *result, command[80];
+    char        *result, command[MPR_MAX_PATH];
     int         i, status;
 
     tc = gp->data;
@@ -262,7 +262,7 @@ static void testNoCapture(MprTestGroup *gp)
 {
     MprCmd      *cmd;
     TestCmd     *tc;
-    char        command[80];
+    char        command[MPR_MAX_PATH];
     int         rc, status;
 
     tc = gp->data;
