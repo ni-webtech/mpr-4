@@ -21,9 +21,7 @@ static void manageTestCond(TestCond *tc, int flags);
 
 static int initCond(MprTestGroup *gp)
 {
-    TestCond     *tc;
-
-    gp->data = tc = mprAllocObj(TestCond, manageTestCond);
+    gp->data = mprAllocObj(TestCond, manageTestCond);
     return 0;
 }
 
@@ -46,7 +44,6 @@ static void callback(void *data, MprEvent *event)
 static void testCriticalSection(MprTestGroup *gp)
 {
     TestCond        *tc;
-    MprCond         *cond;
     MprEvent        *event;
     int             rc, delay;
 
