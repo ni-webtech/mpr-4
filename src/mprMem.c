@@ -69,8 +69,9 @@ static int stopSeqno = -1;
 #if BLD_MEMORY_DEBUG
 #define BREAKPOINT(mp)          breakpoint(mp)
 #define CHECK(mp)               mprCheckBlock((MprMem*) mp)
+#define CHECK_FREE_MEMORY(mp)   checkFreeMem(mp)
 #define CHECK_PTR(ptr)          CHECK(GET_MEM(ptr))
-#define RESET_MEM(mp)           if (mp != GET_MEM(MPR)) { \
+#define RESET_MEMORY(mp)        if (heap->verify && mp != GET_MEM(MPR)) { \
                                     memset((char*) mp + sizeof(MprFreeMem), 0xFE, GET_SIZE(mp) - sizeof(MprFreeMem)); \
                                 } else
 #define SET_MAGIC(mp)           mp->magic = MPR_ALLOC_MAGIC
@@ -82,7 +83,8 @@ static int stopSeqno = -1;
 #define BREAKPOINT(mp)
 #define CHECK(mp)           
 #define CHECK_PTR(mp)           
-#define RESET_MEM(mp)           
+#define RESET_MEMORY(mp)           
+#define CHECK_FREE_MEMORY(mp)           
 #define SET_MAGIC(mp)
 #define SET_SEQ(mp)           
 #define VALID_BLK(mp)           1
@@ -161,6 +163,7 @@ static void unlinkBlock(MprFreeMem *fp);
 #if BLD_MEMORY_DEBUG
     static void breakpoint(MprMem *mp);
     static int validBlk(MprMem *mp);
+    static void checkFreeMem(MprMem *mp);
 #endif
 #if BLD_MEMORY_STATS
 #if FUTURE
@@ -229,8 +232,11 @@ Mpr *mprCreateMemService(MprManager manager, int flags)
     heap->newQuota = MPR_NEW_QUOTA;
     heap->regions = region;
     heap->enabled = !(flags & MPR_DISABLE_GC);
-    if (scmp(getenv("DISABLE_GC"), "1") == 0) {
+    if (scmp(getenv("MPR_DISABLE_GC"), "1") == 0) {
         heap->enabled = 0;
+    }
+    if (scmp(getenv("MPR_VERIFY_MEM"), "1") == 0) {
+        heap->verify = 1;
     }
     heap->flags = flags;
     heap->stats.bytesAllocated += size;
@@ -609,7 +615,7 @@ mprAssert(GET_GEN(mp) == heap->eternal);
 mprAssert(!IS_FREE(mp));
                     INC(reuse);
                     CHECK(mp);
-                    
+                    CHECK_FREE_MEMORY(mp);
                     if (GET_SIZE(mp) >= (ssize) (required + MPR_ALLOC_MIN_SPLIT)) {
                         //  MOB -- what is this trying to do?
                         maxBlock = (((ssize) 1 ) << group | (((ssize) bucket) << (max(0, group - 1)))) << MPR_ALIGN_SHIFT;
@@ -805,7 +811,6 @@ static MprMem *freeBlock(MprMem *mp)
     {
         MprMem *prior;
         prior = GET_PRIOR(mp);
-        RESET_MEM(mp);
         linkBlock(mp);
         unlockHeap();
     }
@@ -887,6 +892,7 @@ static void linkBlock(MprMem *mp)
     int         index, group, bucket;
 
     CHECK(mp);
+    RESET_MEMORY(mp);
 
     /* 
         Mark block as free and eternal so sweeper will skip 
@@ -1270,7 +1276,7 @@ void mprMarkBlock(cvoid *ptr)
     mp = MPR_GET_MEM(ptr);
 #if BLD_DEBUG
     if (!mprIsValid(ptr)) {
-        mprAssertError(NULL, "Memory block is either not dynamically allocated, or is corrupted");
+        mprStaticError("Memory block is either not dynamically allocated, or is corrupted");
         return;
     }
     /*
@@ -1516,6 +1522,46 @@ void mprResumeThreads()
 }
 
 
+void mprVerifyMem()
+{
+    MprRegion   *region;
+    MprMem      *mp;
+    MprFreeMem  *freeq, *fp;
+    uchar       *ptr;
+    int         i, usize, index;
+    
+    lockHeap();
+    for (region = heap->regions; region; region = region->next) {
+        for (mp = region->start; mp; mp = GET_NEXT(mp)) {
+            CHECK(mp);
+        }
+    }
+    for (i = 0, freeq = heap->freeq; freeq != heap->freeEnd; freeq++, i++) {
+        index = (int) (freeq - heap->freeq);
+        for (fp = freeq->next; fp != freeq; fp = fp->next) {
+            mp = (MprMem*) fp;
+            CHECK(mp);
+            mprAssert(GET_GEN(mp) == heap->eternal);
+            mprAssert(IS_FREE(mp));
+            if (heap->verify) {
+                ptr = (uchar*) ((char*) mp + sizeof(MprFreeMem));
+                usize = GET_SIZE(mp) - sizeof(MprFreeMem);
+                if (HAS_MANAGER(mp)) {
+                    usize -= sizeof(MprManager);
+                }
+                for (i = 0; i < usize; i++) {
+                    if (ptr[i] != 0xFE) {
+                        mprStaticError("Free memory block %x has been modified at offset %d (MprBlk %x, seqno %d)\n"
+                                       "Memory was last allocated by %s", GET_PTR(mp), i, mp, mp->seqno, mp->name);
+                    }
+                }
+            }
+        }
+    }
+    unlockHeap();
+}
+
+
 /*
     WARNING: Caller must be locked so that the sweeper will not free this block. 
  */
@@ -1727,13 +1773,31 @@ static int validBlk(MprMem *mp)
 
 void mprCheckBlock(MprMem *mp)
 {
-    char    msg[80];
-
     if (mp->magic != MPR_ALLOC_MAGIC || GET_SIZE(mp) <= 0) {
-        mprSprintf(msg, sizeof(msg), 
-            "Memory corruption in memory at %x (MprBlk %x, seqno %d)\n"
+        mprStaticError("Memory corruption in memory block %x (MprBlk %x, seqno %d)\n"
             "This most likely happend earlier in the program execution", GET_PTR(mp), mp, mp->seqno);
-        mprAssertError(NULL, msg);
+    }
+}
+
+
+static void checkFreeMem(MprMem *mp)
+{
+    uchar   *ptr;
+    int     usize, i;
+
+    if (heap->verify) {
+        ptr = (uchar*) ((char*) mp + sizeof(MprFreeMem));
+        usize = GET_SIZE(mp) - sizeof(MprFreeMem);
+        if (HAS_MANAGER(mp)) {
+            usize -= sizeof(MprManager);
+        }
+        for (i = 0; i < usize; i++) {
+            if (ptr[i] != 0xFE) {
+                mprStaticError("Free memory block %x has been modified at offset %d (MprBlk %x, seqno %d)\n"
+                    "Memory was last allocated by %s", GET_PTR(mp), i, mp, mp->seqno, mp->name);
+                break;
+            }
+        }
     }
 }
 

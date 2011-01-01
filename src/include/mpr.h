@@ -611,6 +611,7 @@ typedef struct MprMem {
 #if DEBUG_IDE && BLD_CC_UNNAMED_UNIONS
         struct {
             uint    mark: 2;
+            //  MOB -- this size bit field is useless as it needs to be << 2
             ssize   size: MPR_BITS - 5;
             uint    free: 1;
             uint    gen: 2;
@@ -804,6 +805,7 @@ typedef struct MprHeap {
     int              extraSweeps;            /**< Number of requested GC sweeps (3 for complete) */
     int              flags;                  /**< GC operational control flags */
     int              from;                   /**< Eligible mprCollectGarbage flags */
+    int              gc;                     /**< GC has been requested */
     int              hasError;               /**< Memory allocation error */
     int              hasSweeper;             /**< Has dedicated sweeper thread */
     int              iteration;              /**< GC iteration counter (debug only) */
@@ -811,9 +813,9 @@ typedef struct MprHeap {
     int              newCount;               /**< Count of new gen allocations */
     int              newQuota;               /**< Quota of new allocations before idle GC worthwhile */
     int              nextSeqno;              /**< Next sequence number */
-    uint             gc;                     /**< GC has been requested */
-    uint             pageSize;               /**< System page size */
+    int              pageSize;               /**< System page size */
     int              rootIndex;              /**< Marker root scan index */
+    int              verify;                 /**< Verify memory contents (slow) */
 } MprHeap;
 
 /**
@@ -911,6 +913,7 @@ extern bool mprHasMemError();
 extern int mprIsValid(cvoid*);
 
 //  MOB DOC
+extern void mprVerifyMem();
 extern int mprIsDead(cvoid*);
 extern int mprRevive(cvoid*);
 
@@ -2709,6 +2712,9 @@ typedef void (*MprLogHandler)(int flags, int level, cchar *msg);
     @ingroup MprLog
  */
 extern void mprError(cchar *fmt, ...);
+
+//  MOB DOC
+extern void mprStaticError(cchar *fmt, ...);
 
 /**
     Log a fatal error message and exit.

@@ -118,21 +118,28 @@ void mprFatalError(cchar *fmt, ...)
 }
 
 
-#if UNUSED
 /*
-    Handle an error without allocating memory.
+    Handle an error without allocating memory. Bypasses the logging mechanism.
  */
 void mprStaticError(cchar *fmt, ...)
 {
     va_list     args;
-    char        buf[MPR_MAX_STRING];
+    char        msg[MPR_MAX_STRING];
 
     va_start(args, fmt);
-    mprSprintfv(buf, sizeof(buf), fmt, args);
-    va_end(args);
-    logOutput(NULL, MPR_ERROR_MSG | MPR_ERROR_SRC, 0, buf);
-}
+#if BLD_UNIX_LIKE
+    vsnprintf(msg, sizeof(msg), fmt, args);
+#else
+    vsprintf(msg, fmt, args);
 #endif
+    va_end(args);
+#if BLD_UNIX_LIKE || VXWORKS
+    (void) write(2, (char*) msg, strlen(msg));
+#elif BLD_WIN_LIKE
+    fprintf(stderr, "%s\n", msg);
+#endif
+    mprBreakpoint();
+}
 
 
 /*
