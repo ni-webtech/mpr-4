@@ -6,10 +6,16 @@
 
 /********************************** Includes **********************************/
 
+#define _CRT_SECURE_NO_WARNINGS
+
+#include <io.h>
 #include <stdio.h>
 #include <stdlib.h>
 
-#if !_WIN32
+#if _WIN32
+#define read _read
+#define write _write
+#else
 #include <unistd.h>
 #endif
 

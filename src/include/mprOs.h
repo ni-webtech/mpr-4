@@ -96,7 +96,7 @@
     #include    <fcntl.h>
     #include    <errno.h>
 
-#if BLD_FEATURE_FLOAT || 1
+#if BLD_FEATURE_FLOAT
     #include    <float.h>
     #define __USE_ISOC99 1
     #include    <math.h>
@@ -115,10 +115,6 @@
 #endif
 
     #include    <limits.h>
-
-#if UNUSED && BLD_WIN_LIKE
-    #include    <malloc.h>
-#endif
 
 #if BLD_UNIX_LIKE || VXWORKS
     #include    <netdb.h>
@@ -140,10 +136,6 @@
     #include    <signal.h>
     #include    <stdarg.h>
 
-#if UNUSED && WINCE
-    #include    <stddef.h>
-#endif
-
 #if BLD_UNIX_LIKE
     #include    <stdint.h>
 #endif
@@ -163,9 +155,6 @@
 #if BLD_UNIX_LIKE
     #include    <sys/ioctl.h>
     #include    <sys/mman.h>
-#if UNUSED && MACOSX
-    #include    <sys/param.h>
-#endif
     #include    <sys/poll.h>
 #endif
 
@@ -180,18 +169,12 @@
 #if BLD_UNIX_LIKE
     #include    <sys/resource.h>
     #include    <sys/sem.h>
-#if UNUSED
-    #include    <sys/shm.h>
-#endif
     #include    <sys/socket.h>
     #include    <sys/select.h>
     #include    <sys/time.h>
     #include    <sys/times.h>
     #include    <sys/utsname.h>
     #include    <sys/uio.h>
-#if UNUSED
-    #include    <sys/un.h>
-#endif
     #include    <sys/wait.h>
 #endif
 
@@ -201,9 +184,6 @@
     #include    <unistd.h>
 #endif
 
-#if UNUSED && LINUX
-    #include    <values.h>
-#endif
 
 #if !VXWORKS
     #include    <wchar.h>
@@ -214,10 +194,6 @@
  */
 #if LINUX && !__UCLIBC__
     #include    <sys/sendfile.h>
-#endif
-
-#if UNUSED && FREEBSD
-    #include    <netinet/in_systm.h>
 #endif
 
 #if MACOSX
@@ -626,11 +602,6 @@ typedef off_t MprOffset;
     #undef SHUT_RDWR
     #define SHUT_RDWR       2
     
-#if UNUSED
-    #ifndef FILE_FLAG_FIRST_PIPE_INSTANCE
-        #define FILE_FLAG_FIRST_PIPE_INSTANCE   0x00080000
-    #endif
-#endif
     #define TIME_GENESIS UINT64(11644473600000000)
     #define va_copy(d, s) ((d) = (s))
 
