@@ -115,7 +115,7 @@ void mprAtomAdd(volatile int *ptr, int value)
     #if MACOSX
         OSAtomicAdd32(value, ptr);
     #elif BLD_WIN_LIKE
-            return InterlockedExchangeAdd(ptr, value);
+        InterlockedExchangeAdd(ptr, value);
     #elif (BLD_CPU_ARCH == MPR_CPU_IX86 || BLD_CPU_ARCH == MPR_CPU_IX64) && 0
         asm volatile ("lock; xaddl %0,%1"
             : "=r" (value), "=m" (*ptr)
@@ -154,7 +154,8 @@ void *mprAtomExchange(void * volatile *addr, cvoid *value)
 #if MACOSX && 0
     return OSAtomicCompareAndSwapPtrBarrier(expected, value, addr);
 #elif BLD_WIN_LIKE
-    return InterlockedExchange(addr, value);
+	//	MOB - windows 64 
+    return (void*) InterlockedExchange((volatile LONG*) addr, (LONG) value);
 #elif BLD_UNIX_LIKE && 0
     return __sync_lock_test_and_set(addr, value);
     //  MOB -- COMPLETE

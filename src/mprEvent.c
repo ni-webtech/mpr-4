@@ -210,6 +210,7 @@ int mprGetEventCount(MprDispatcher *dispatcher)
     es = dispatcher->service;
 
     lock(es);
+	count = 0;
     for (event = dispatcher->eventQ.next; event != &dispatcher->eventQ; event = event->next) {
         count++;
     }
