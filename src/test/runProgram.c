@@ -8,7 +8,10 @@
 
 #include <stdio.h>
 #include <stdlib.h>
+
+#if BLD_UNIX_LIKE
 #include <unistd.h>
+#endif
 
 /************************************ Code ************************************/
 
