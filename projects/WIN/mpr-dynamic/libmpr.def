@@ -20,6 +20,7 @@ EXPORTS
   mprAddNotifier
   mprAddNullToBuf
   mprAddRoot
+  mprAddSocketHandler
   mprAddTestGroup
   mprAdjustBufEnd
   mprAdjustBufStart
@@ -47,6 +48,7 @@ EXPORTS
   mprCloseSocket
   mprCompactBuf
   mprCompareTime
+  mprConnectSocket
   mprCopyList
   mprCopyPath
   mprCopyright
@@ -90,7 +92,6 @@ EXPORTS
   mprDestroy
   mprDestroyCmd
   mprDestroyMemService
-  mprDestroyWaitHandler
   mprDisableCmdEvents
   mprDisableFileBuffering
   mprDisableWaitEvents
@@ -104,6 +105,7 @@ EXPORTS
   mprEnableDispatcher
   mprEnableFileBuffering
   mprEnableGC
+  mprEnableSocketEvents
   mprEnableWaitEvents
   mprEncode64
   mprError
@@ -274,9 +276,7 @@ EXPORTS
   mprMemdup
   mprMemoryError
   mprNop
-  mprOpenClientSocket
   mprOpenFile
-  mprOpenServerSocket
   mprParseIp
   mprParseTestArgs
   mprParseTime
@@ -321,6 +321,7 @@ EXPORTS
   mprRemoveNotifier
   mprRemoveRangeOfItems
   mprRemoveRoot
+  mprRemoveSocketHandler
   mprRemoveWaitHandler
   mprReportTestResults
   mprRequestGC
@@ -329,6 +330,7 @@ EXPORTS
   mprResetCond
   mprResetMemError
   mprResetTestGroup
+  mprResetYield
   mprResolvePath
   mprRestartContinuousEvent
   mprResumeThreads
@@ -393,7 +395,6 @@ EXPORTS
   mprSetWorkerStackSize
   mprSignalCond
   mprSignalDispatcher
-  mprSignalExit
   mprSignalMultiCond
   mprSignalTestComplete
   mprSleep
@@ -412,11 +413,9 @@ EXPORTS
   mprStartThread
   mprStartWorker
   mprStartWorkerService
-  mprStickyYield
-  mprStop
+  mprStaticError
   mprStopCmd
   mprStopContinuousEvent
-  mprStopGCService
   mprStopModuleService
   mprStopOsService
   mprStopSocketService
@@ -433,6 +432,7 @@ EXPORTS
   mprUriDecode
   mprUriEncode
   mprUserError
+  mprVerifyMem
   mprVirtAlloc
   mprVirtFree
   mprWaitForCmd
@@ -444,6 +444,7 @@ EXPORTS
   mprWaitForSync
   mprWaitForTestToComplete
   mprWakeDispatchers
+  mprWakeGCService
   mprWakeNotifier
   mprWakeWaitService
   mprWriteCmdPipe
