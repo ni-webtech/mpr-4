@@ -497,14 +497,14 @@ extern void mprGlobalUnlock();
     Lock free primitives
     TODO DOC
  */
-extern void mprAtomListInsert(void * volatile *head, volatile void **link, void *item);
+extern void mprAtomicListInsert(void * volatile *head, volatile void **link, void *item);
 
-extern void mprAtomTest();
-extern void mprAtomBarrier();
-extern int mprAtomCas(void * volatile * addr, void *expected, cvoid *value);
-extern void mprAtomAdd(volatile int *ptr, int value);
-extern void mprAtomAdd64(volatile int64 *ptr, int value);
-extern void *mprAtomExchange(void * volatile *addr, cvoid *value);
+extern void mprAtomicTest();
+extern void mprAtomicBarrier();
+extern int mprAtomicCas(void * volatile * addr, void *expected, cvoid *value);
+extern void mprAtomicAdd(volatile int *ptr, int value);
+extern void mprAtomicAdd64(volatile int64 *ptr, int value);
+extern void *mprAtomicExchange(void * volatile *addr, cvoid *value);
 
 /***************************************************** Memory Allocator ****************************************************/
 /*

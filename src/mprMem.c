@@ -607,7 +607,7 @@ mprAssert(IS_FREE(mp));
 mprAssert(GET_GEN(mp) == heap->eternal);
                     SET_GEN(mp, heap->active);
                     //  MOB -- cleanup
-                    mprAtomBarrier();
+                    mprAtomicBarrier();
                     if (flags & MPR_ALLOC_MANAGER) {
                         SET_MANAGER(mp, dummyManager);
                         SET_HAS_MANAGER(mp, 1);
@@ -630,9 +630,9 @@ mprAssert(!IS_FREE(mp));
                             }
                             SET_SIZE(mp, required);
                             //  MOB -- cleanup
-                            mprAtomBarrier();
+                            mprAtomicBarrier();
                             SET_LAST(mp, 0);
-                            mprAtomBarrier();
+                            mprAtomicBarrier();
                             INC(splits);
                             linkBlock(spare);
                             
@@ -856,11 +856,11 @@ static MprMem *growHeap(ssize required, int flags)
     CHECK(spare);
 
 #if UNUSED
-    mprAtomListInsert(&heap->regions, &region->next, region);
+    mprAtomicListInsert(&heap->regions, &region->next, region);
 #endif
     do {
         region->next = heap->regions;
-    } while (!mprAtomCas((void* volatile*) &heap->regions, region->next, region));
+    } while (!mprAtomicCas((void* volatile*) &heap->regions, region->next, region));
 
     lockHeap();
     INC(allocs);
@@ -960,7 +960,7 @@ static void unlinkBlock(MprFreeMem *fp)
     heap->stats.bytesFree -= size;
     mprAssert(IS_FREE(mp));
     SET_FREE(mp, 0);
-    mprAtomBarrier();
+    mprAtomicBarrier();
 #if BLD_MEMORY_STATS
 {
     MprFreeMem *freeq = getQueue(size);
@@ -1233,7 +1233,7 @@ static void sweep()
                     The region was the first in the list. If the update to the list head fails, some other thread beta us. 
                     Thereafter, we can guarantee there is a prior entry, so rescan for the region and then update the prior.
                  */
-                if (!mprAtomCas((void*volatile*) &heap->regions, region, nextRegion)) {
+                if (!mprAtomicCas((void*volatile*) &heap->regions, region, nextRegion)) {
                     for (rp = heap->regions; rp; rp = rp->next) {
                         if (rp->next == region) {
                             rp->next = nextRegion;
