@@ -265,7 +265,7 @@ extern void mprResetCond(MprCond *cond);
 /**
     Wait for a condition lock variable.
     @description Wait for a condition lock variable to be signaled. If the condition is signaled before the timeout
-        expires this call will reset the condition variable and return. This way, it automatically resets the variable
+        expires, this call will reset the condition variable and return. This way, it automatically resets the variable
         for future waiters.
     @param cond Condition variable object created via #mprCreateCond
     @param timeout Time in milliseconds to wait for the condition variable to be signaled.
@@ -276,15 +276,34 @@ extern int mprWaitForCond(MprCond *cond, int timeout);
 
 /**
     Signal a condition lock variable.
-    @description Signal a condition variable and set it to the \a triggered status. Existing or future callers of
-        #mprWaitForCond will be awakened.
+    @description Signal a condition variable and set it to the \a triggered status. Existing or future caller of
+        #mprWaitForCond will be awakened. The condition variable will be automatically reset when the waiter awakes.
+        Should only be used for single waiters. Use mprSignalMultiCond for use with multiple waiters.
     @param cond Condition variable object created via #mprCreateCond
     @ingroup MprSynch
  */
 extern void mprSignalCond(MprCond *cond);
 
-//  MOB DOC
+/**
+    Signal a condition lock variable for use with multiple waiters.
+    @description Signal a condition variable and set it to the \a triggered status. Existing or future callers of
+        #mprWaitForCond will be awakened. The conditional variable will not be automatically reset and must be reset
+        manually via mprResetCond.
+    @param cond Condition variable object created via #mprCreateCond
+    @ingroup MprSynch
+ */
 extern void mprSignalMultiCond(MprCond *cp);
+
+/**
+    Wait for a condition lock variable for use with multiple waiters.
+    @description Wait for a condition lock variable to be signaled. Multiple waiters are supported and the 
+        condition variable must be manually reset via mprResetCond. The condition may signaled before calling 
+        mprWaitForMultiCond.
+    @param cond Condition variable object created via #mprCreateCond
+    @param timeout Time in milliseconds to wait for the condition variable to be signaled.
+    @return Zero if the event was signalled. Returns < 0 for a timeout.
+    @ingroup MprSynch
+ */
 extern int mprWaitForMultiCond(MprCond *cp, int timeout);
 
 /**
@@ -495,12 +514,18 @@ extern void mprGlobalUnlock();
 
 /*
     Lock free primitives
-    TODO DOC
  */
+
+/*
+    Apply a full (read+write) memory barrier
+ */ 
+extern void mprAtomicBarrier();
+
+/*
+    Apply a full (read+write) memory barrier
+ */ 
 extern void mprAtomicListInsert(void * volatile *head, volatile void **link, void *item);
 
-extern void mprAtomicTest();
-extern void mprAtomicBarrier();
 extern int mprAtomicCas(void * volatile * addr, void *expected, cvoid *value);
 extern void mprAtomicAdd(volatile int *ptr, int value);
 extern void mprAtomicAdd64(volatile int64 *ptr, int value);
@@ -580,10 +605,10 @@ extern void *mprAtomicExchange(void * volatile *addr, cvoid *value);
  */
 typedef struct MprMem {
     /*
-        Accesses to prior must only be done while locked. This includes read access as concurrent writes may leave "prior"
-        in a partially updated state. These bites are ored into the low order bits of "prior".
+        Accesses to field1 must only be done while locked. This includes read access as concurrent writes may leave 
+        field1 in a partially updated state.
 
-        prior | last << 1 | hasManager
+            prior | last << 1 | hasManager
      */
 #if DEBUG_IDE && BLD_CC_UNNAMED_UNIONS
     union {
@@ -593,16 +618,15 @@ typedef struct MprMem {
         struct {
             uint    hasManager: 1;
             uint    last: 1;
-            ssize   pbits: MPR_BITS - 2;
+            ssize   prior: MPR_BITS - 2;
         } bits1;
     };
 #endif
 
     /*
-        Access to these fields may be done while unlocked as only the marker updates active blocks and does so in a 
-        lock-free manner. The size field includes other fields ored into the size field.
-
-        gen/2 << 30 | isFree << 29 | size/29 | mark/2
+        Access to field2 may be done while unlocked as only the marker updates active blocks and it does so, in a 
+        lock-free manner.
+            gen/2 << 30 | isFree << 29 | size/29 | mark/2
      */ 
 #if DEBUG_IDE && BLD_CC_UNNAMED_UNIONS
     union {
@@ -610,9 +634,12 @@ typedef struct MprMem {
         size_t      field2;                   /**< Internal block length including header with gen and mark fields */
 #if DEBUG_IDE && BLD_CC_UNNAMED_UNIONS
         struct {
+            ssize   size: MPR_BITS - 3;       /**< This size field will have low order bits set from "mark" */
+            uint    padding: 3;
+        };
+        struct {
             uint    mark: 2;
-            //  MOB -- this size bit field is useless as it needs to be << 2
-            ssize   size: MPR_BITS - 5;
+            ssize   sizeFiller: MPR_BITS - 5;
             uint    free: 1;
             uint    gen: 2;
         } bits2;
@@ -626,13 +653,11 @@ typedef struct MprMem {
 } MprMem;
 
 
-#define MPR_ALLOC_MAGIC             0xe814ecab
-
-//  MOB - is this too small?
 #define MPR_ALLOC_MIN_SPLIT         (32 + sizeof(MprMem))
 #define MPR_ALLOC_ALIGN(x)          (((x) + MPR_ALIGN - 1) & ~(MPR_ALIGN - 1))
 #define MPR_PAGE_ALIGN(x, psize)    ((((ssize) (x)) + ((ssize) (psize)) - 1) & ~(((ssize) (psize)) - 1))
 #define MPR_PAGE_ALIGNED(x, psize)  ((((ssize) (x)) % ((ssize) (psize))) == 0)
+#define MPR_ALLOC_MAGIC             0xe814ecab
 
 /*
     The allocator free map is a two dimensional array of free queues. The first dimension is indexed by
@@ -712,6 +737,7 @@ typedef void (*MprManager)(void *ptr, int flags);
 
 /**
     Block structure when on a free list. This overlays MprMem and replaces sibling and children with forw/back
+    The implies a minimum memory block size of 8 bytes in 32 bits and 16 bytes in 64 bits.
  */
 typedef struct MprFreeMem {
     union {
@@ -912,10 +938,27 @@ extern bool mprHasMemError();
  */
 extern int mprIsValid(cvoid*);
 
-//  MOB DOC
+/**
+    Verify all memory. This checks the integrity of all memory blocks by verifying the block headers and contents
+    of all free memory blocks. Will only do anything meaningful when the product is compiled in debug mode.
+ */
 extern void mprVerifyMem();
-extern int mprIsDead(cvoid*);
-extern int mprRevive(cvoid*);
+
+/**
+    Test if a memory block is unreferenced by the last garbage collection sweep.
+    @param ptr Reference to an allocated memory block.
+    @return TRUE if the given memory block is unreferenced and ready for collection.
+    @hide
+ */
+extern int mprIsDead(cvoid* ptr);
+
+/**
+    Revive a memory block scheduled for collection. This should only ever be called in the manager routine for a block
+    when the manage flags parameter is set to MPR_MANAGE_FREE. Reviving a block aborts its collection.
+    @param ptr Reference to an allocated memory block.
+    @hide
+ */
+extern void mprRevive(cvoid* ptr);
 
 /**
     Safe copy for a block of data.
@@ -1197,18 +1240,15 @@ extern void mprRemoveRoot(void *ptr);
 } else {
 #endif
 
-//  MOB DOC
-extern void mprMarkBlock(cvoid *ptr);
-
 /*
     Internal
  */
-extern void mprEternalize(void *ptr);
 extern int  mprCreateGCService();
 extern void mprDestroyGCService();
-extern int  mprWaitForSync();
-extern int  mprSyncThreads(int timeout);
+extern void mprMarkBlock(cvoid *ptr);
 extern void mprResumeThreads();
+extern int  mprSyncThreads(int timeout);
+extern int  mprWaitForSync();
 
 /******************************************************* Safe Strings ******************************************************/
 /**
@@ -2714,7 +2754,14 @@ typedef void (*MprLogHandler)(int flags, int level, cchar *msg);
  */
 extern void mprError(cchar *fmt, ...);
 
-//  MOB DOC
+/**
+    Display an error message to the console without allocating any memory.
+    @description Display an error message to the console. This will bypass the MPR logging subsystem.
+        It will not allocated any memory and is used by low level memory allocating and garbage collection routines.
+    @param fmt Printf style format string. Variable number of arguments to 
+    @param ... Variable number of arguments for printf data
+    @ingroup MprLog
+ */
 extern void mprStaticError(cchar *fmt, ...);
 
 /**
@@ -4233,14 +4280,64 @@ typedef struct MprXml {
     char                *errMsg;            /* Error message text */
 } MprXml;
 
-//MOB MARK
+/**
+    Open an XML parser instance.
+    @param initialSize Initialize size of XML in-memory token buffer
+    @param maxSize Maximum size of XML in-memory token buffer. Set to -1 unlimited.
+    @return An XML parser instance
+ */
 extern MprXml *mprXmlOpen(ssize initialSize, ssize maxSize);
+
+/**
+    Set the XML parser data handle
+    @param xp XML parser instance returned from mprXmlOpen
+    @param h Arbitrary data to associate with the parser
+ */
 extern void mprXmlSetParserHandler(MprXml *xp, MprXmlHandler h);
-extern void mprXmlSetInputStream(MprXml *xp, MprXmlInputStream s, void *arg);
+
+/**
+    Define the XML parser input stream. This 
+    @param xp XML parser instance returned from mprXmlOpen
+    @param fn Callback function to provide data to the XML parser. The callback is invoked with the signature: 
+        ssize callbac(MprXml *xp, void *arg, char *buf, ssize size);
+    @param arg Callback argument to pass to the 
+ */
+extern void mprXmlSetInputStream(MprXml *xp, MprXmlInputStream fn, void *arg);
+
+/**
+    Run the XML parser
+    @param xp XML parser instance returned from mprXmlOpen
+    @return Zero if successful. Otherwise returns a negative MPR error code.
+ */
 extern int mprXmlParse(MprXml *xp);
+
+/**
+    Set the XML callback argument
+    @param xp XML parser instance returned from mprXmlOpen
+    @param parseArg Argument to use for the callback
+ */
 extern void mprXmlSetParseArg(MprXml *xp, void *parseArg);
+
+/**
+    Get the XML callback argument
+    @param xp XML parser instance returned from mprXmlOpen
+    @return Argument defined to use for the callback
+ */
 extern void *mprXmlGetParseArg(MprXml *xp);
+
+/**
+    Get the XML error message if mprXmlParse fails
+    @param xp XML parser instance returned from mprXmlOpen
+    @return A descriptive null-terminated string
+ */
 extern cchar *mprXmlGetErrorMsg(MprXml *xp);
+
+/**
+    Get the source XML line number. 
+    @description This call can be used from within the parser callback or when mprXmlParse fails.
+    @param xp XML parser instance returned from mprXmlOpen
+    @return The line number for the current token or error.
+ */
 extern int mprXmlGetLineNumber(MprXml *xp);
 
 /******************************************************* Threading *********************************************************/
@@ -4805,7 +4902,6 @@ typedef struct MprIOVec {
  */ 
 #define MPR_SECURE_CLIENT ((struct MprSsl*) 1)
 
-//  TODO - some of these names are not very consistent
 /**
     Create a socket
     @description Create a new socket
@@ -5064,18 +5160,34 @@ extern void mprEnableSocketEvents(MprSocket *sp, int mask);
     @param ip Pointer to receive a dynamically allocated IP string.
     @param port Pointer to an integer to receive the port value.
     @param defaultPort The default port number to use if the ipSpec does not contain a port
+    @ingroup MprSocket
  */
 extern int mprParseIp(cchar *ipSpec, char **ip, int *port, int defaultPort);
 
-//MOB DOC
-extern MprWaitHandler *mprAddSocketHandler(MprSocket *sp, int mask, MprDispatcher *dispatcher, MprEventProc proc, void *data);
+/**
+    Add a wait handler to a socket.
+    @description Create a wait handler that will be invoked when I/O of interest occurs on the specified socket.
+        The wait handler is registered with the MPR event I/O mechanism.
+    @param sp Socket object created via mprCreateSocket
+    @param mask Mask of events of interest. This is made by oring MPR_READABLE and MPR_WRITABLE
+    @param dispatcher Dispatcher object to use for scheduling the I/O event.
+    @param proc Callback function to invoke when an I/O event of interest has occurred.
+    @param data Data item to pass to the callback
+    @returns A new wait handler registered with the MPR event mechanism
+    @ingroup MprSocket
+ */
+extern MprWaitHandler *mprAddSocketHandler(MprSocket *sp, int mask, MprDispatcher *dispatcher, MprEventProc proc, 
+        void *data);
+
+/**
+    Remove a socket wait handler.
+    @description Removes the socket wait handler created via mprAddSocketHandler.
+    @param sp Socket object created via mprCreateSocket
+    @ingroup MprSocket
+ */
 extern void mprRemoveSocketHandler(MprSocket *sp);
 
 /***************************************************** SSL *****************************************************************/
-/*
-    Here so users who want SSL don't have to include mprSsl.h and thus pull in ssl headers.
- */
-
 /*
     SSL protocols
  */
@@ -5088,6 +5200,7 @@ extern void mprRemoveSocketHandler(MprSocket *sp);
     Default SSL configuration
  */
 #define MPR_DEFAULT_CIPHER_SUITE        "ALL:!ADH:!EXPORT56:RC4+RSA:+HIGH:+MEDIUM:+LOW:+SSLv2:+EXP:+eNULL"
+
 /**
     Load the SSL module.
     @param lazy Set to true to delay initialization until SSL is actually used.
@@ -5100,9 +5213,11 @@ extern MprModule *mprLoadSsl(bool lazy);
  */
 extern void mprConfigureSsl(struct MprSsl *ssl);
 
-extern int mprGetSocketInfo(cchar *host, int port, int *family, int *protocol, struct sockaddr **addr, 
-    socklen_t *addrlen);
+extern int mprGetSocketInfo(cchar *host, int port, int *family, int *protocol, struct sockaddr **addr, socklen_t *addrlen);
 
+/*
+    Internal
+ */
 extern MprModule *mprSslInit(cchar *path);
 extern struct MprSsl *mprCreateSsl();
 extern void mprSetSslCiphers(struct MprSsl *ssl, cchar *ciphers);
@@ -5455,8 +5570,6 @@ typedef struct MprCmd {
 #endif
     MprMutex        *mutex;             /* Multithread sync */
     MprCond         *cond;              /* Multithread signalling */
-    //  MOB
-    int lastRead;
 } MprCmd;
 
 
@@ -5819,17 +5932,41 @@ extern int mprStart();
 extern bool mprStop();
 
 /**
-    Determine if the MPR should exit
-    @description Returns true if the MPR should exit gracefully.
+    Determine if the MPR is exiting
+    @description Returns true if the MPR is in the process of exiting
     @returns True if the App has been instructed to exit.
     @stability Evolving.
     @ingroup Mpr
  */
-//  DOC
 extern bool mprIsExiting();
+
+/**
+    Determine if the MPR has completed. This is true if the MPR services have been shutdown completely. This is typically
+    used to determine if the App has been gracefully shutdown.
+    @returns True if the App has been instructed to exit and all the MPR services have completed.
+    @retu
+ */
 extern bool mprIsComplete();
+
+/**
+    Determine if the MPR services.
+    @description This is the default routine invoked by mprIsIdle().
+    @return True if the MPR services are idle.
+ */
 extern bool mprServicesAreIdle();
+
+/**
+    Determine if the App is idle. 
+    @description This call returns true if the App is not currently servicing any requests. By default this returns true
+    if the MPR dispatcher, thread, worker and command subsytems are idle. Callers can replace or augment the standard
+    idle testing by definining a new idle callback via mprSetIdleCallback.
+    @return True if the App are idle.
+ */
 extern bool mprIsIdle();
+
+/**
+    Define a new idle callback to be invoked by mprIsIdle().
+ */
 MprIdleCallback mprSetIdleCallback(MprIdleCallback idleCallback);
 
 /**
@@ -6032,9 +6169,17 @@ extern int mprGetRandomBytes(char *buf, int size, int block);
  */
 extern int mprGetEndian();
 
-//  TODO DOC
+/**
+    Get the file descriptor associated with the current log output stream
+    @return An integer file descriptor handle
+ */
 extern int mprGetLogFd();
-extern int mprSetLogFd(int fd);
+
+/**
+    Set the log output stream to the given file descriptor.
+    @param fd An integer file descriptor.
+ */
+extern void mprSetLogFd(int fd);
 
 /****************************************************** External ***********************************************************/
 /*

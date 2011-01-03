@@ -145,7 +145,9 @@ void mprRemoveWaitHandler(MprWaitHandler *wp)
      */
     lock(ws);
     if (wp->fd >= 0) {
-        mprRemoveNotifier(wp);
+        if (wp->desiredMask) {
+            mprRemoveNotifier(wp);
+        }
         mprRemoveItem(ws->handlers, wp);
         wp->fd = -1;
         if (wp->event.next) {

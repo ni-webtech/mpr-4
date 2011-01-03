@@ -1531,6 +1531,7 @@ void mprResumeThreads()
 
 void mprVerifyMem()
 {
+#if BLD_MEMORY_DEBUG
     MprRegion   *region;
     MprMem      *mp;
     MprFreeMem  *freeq, *fp;
@@ -1566,6 +1567,7 @@ void mprVerifyMem()
         }
     }
     unlockHeap();
+#endif
 }
 
 
@@ -1577,19 +1579,22 @@ int mprIsDead(cvoid *ptr)
     MprMem      *mp;
 
     mp = GET_MEM(ptr);
-    return GET_GEN(mp) == heap->dead;
+    if (VALID_BLK(mp)) {
+        return GET_GEN(mp) == heap->dead;
+    }
+    return 0;
 }
 
 
 /*
     WARNING: Caller must be locked so that the sweeper will not free this block. 
  */
-int mprRevive(cvoid *ptr)
+void mprRevive(cvoid *ptr)
 {
     MprMem      *mp;
 
     mp = GET_MEM(ptr);
-    return SET_GEN(mp, heap->active);
+    SET_GEN(mp, heap->active);
 }
 
 

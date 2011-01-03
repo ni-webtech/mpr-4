@@ -132,7 +132,7 @@ int mprAddNotifier(MprWaitService *ws, MprWaitHandler *wp, int mask)
         mprAssert(ws->handlerMap[fd] == 0);
         ws->handlerMap[fd] = wp;
         wp->desiredMask = mask;
-        wp->flags |= MPR_WAIT_ADDED;;
+        wp->flags |= MPR_WAIT_ADDED;
     }
     unlock(ws);
     return 0;
@@ -146,6 +146,7 @@ void mprRemoveNotifier(MprWaitHandler *wp)
 
     ws = wp->service;
     lock(ws);
+    mprAssert(wp->flags & MPR_WAIT_ADDED);
 
     if (wp->flags & MPR_WAIT_ADDED) {
         fd = wp->fd;
@@ -170,7 +171,7 @@ void mprRemoveNotifier(MprWaitHandler *wp)
         } else {
             mprAssert(wp->desiredMask == 0);
         }
-        wp->flags &= ~MPR_WAIT_ADDED;;
+        wp->flags &= ~MPR_WAIT_ADDED;
         // mprLog(0, "RemoveNotifier %d %X", fd, wp);
     }
     unlock(ws);
@@ -290,9 +291,11 @@ static void serviceIO(MprWaitService *ws, int count)
                 mask = wp->desiredMask;
                 mprRemoveNotifier(wp);
                 mprAddNotifier(ws, wp, mask);
+                mprLog(0, "kqueue: file descriptor closed and reopened, fd %d", wp->fd);
             } else if (err == EBADF) {
                 /* File descriptor was closed */
                 mprRemoveNotifier(wp);
+                mprLog(0, "kqueue: invalid file descriptor %d, fd %d", wp->fd);
             }
             continue;
         }

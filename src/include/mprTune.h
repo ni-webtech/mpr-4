@@ -222,7 +222,7 @@ extern "C" {
 /*
     Garbage collector tuning
  */
-#define MPR_MIN_TIME_FOR_GC     2                               /**< Wait till 2 milliseconds of idle time possible */
+#define MPR_MIN_TIME_FOR_GC     2       /**< Wait till 2 milliseconds of idle time possible */
     
 #ifdef __cplusplus
 }

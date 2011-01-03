@@ -8,41 +8,7 @@
 
 #include    "mpr.h"
 
-/***************************** Forward Declarations ***************************/
-
 /************************************ Code ************************************/
-
-typedef char* pp;
-
-void mprAtomicTest() 
-{
-    void    *a, *b;
-    int64   l;
-    int     x;
-
-    mprAtomicBarrier();
-
-    a = "1";
-    mprAtomicCas((void * volatile *) &a, (void*) a, "2");
-    mprAssert(*(char*) a == '2');
-
-    x = 0;
-    mprAtomicAdd(&x, 2);
-    mprAssert(x == 2);
-    mprAtomicAdd(&x, -1);
-    mprAssert(x == 1);
-
-    l = 0;
-    mprAtomicAdd64(&l, 1);
-    mprAssert(l == 1);
-    mprAtomicAdd64(&l, -2);
-    mprAssert(l == -1);
-
-    b = "1";
-    mprAtomicExchange(&b, "2");
-    mprAssert(*(char*)b == '2');
-}
-
 
 void mprAtomicBarrier()
 {

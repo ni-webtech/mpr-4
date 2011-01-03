@@ -18,13 +18,7 @@ h3 {
 	font-size: 100%;
 }
 
-/* Local variables:
-    tab-width: 4
-    c-basic-offset: 4
-    End:
-    vim: sw=4 ts=4 expandtab
-
-    @end */
+/* @end */
 
 caption {
 	font-weight: bold;
@@ -91,13 +85,7 @@ a.code {
 a.codeRef {
 }
 
-/* Local variables:
-    tab-width: 4
-    c-basic-offset: 4
-    End:
-    vim: sw=4 ts=4 expandtab
-
-    @end */
+/* @end */
 
 dl.el {
 	margin-left: -1cm;
@@ -219,13 +207,7 @@ span.vhdllogic {
 	color: #ff0000 
 }
 
-/* Local variables:
-    tab-width: 4
-    c-basic-offset: 4
-    End:
-    vim: sw=4 ts=4 expandtab
-
-    @end */
+/* @end */
 
 .search {
 	color: #003399;
@@ -289,13 +271,7 @@ hr {
 	color: #606060;
 }
 
-/* Local variables:
-    tab-width: 4
-    c-basic-offset: 4
-    End:
-    vim: sw=4 ts=4 expandtab
-
-    @end */
+/* @end */
 
 /* @group Member Details */
 
@@ -366,13 +342,7 @@ hr {
 	font-style: normal;
 }
 
-/* Local variables:
-    tab-width: 4
-    c-basic-offset: 4
-    End:
-    vim: sw=4 ts=4 expandtab
-
-    @end */
+/* @end */
 
 /* @group Directory (tree) */
 
@@ -463,13 +433,7 @@ proper pixel height of your image.
 	vertical-align: -30%;
 }
 
-/* Local variables:
-    tab-width: 4
-    c-basic-offset: 4
-    End:
-    vim: sw=4 ts=4 expandtab
-
-    @end */
+/* @end */
 
 address {
 	font-style: normal;

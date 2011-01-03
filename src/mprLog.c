@@ -263,9 +263,9 @@ int mprGetLogFd()
 }
 
 
-int mprSetLogFd(int fd)
+void mprSetLogFd(int fd)
 {
-    return MPR->logFd = fd;
+    MPR->logFd = fd;
 }
 
 

@@ -96,7 +96,6 @@ typedef struct MprTestGroup {
     int             testDepth;              /* Depth at which test should run */
     bool            skip;                   /* Skip this test */
     bool            skipWarned;             /* Warned that test will be skipped */
-
     bool            success;                /* Result of last run */
     int             failedCount;            /* Total failures of this test */
     int             testCount;              /* Count of tests */
@@ -111,11 +110,6 @@ typedef struct MprTestGroup {
     MprList         *groups;                /* List of groups */
     MprList         *cases;                 /* List of tests in this group */
     MprTestDef      *def;                   /* Test definition ref */
-
-#if UNUSED
-    MprCond         *cond;                  /* Multi-thread sync */
-    MprCond         *cond2;                 /* Second multi-thread sync */
-#endif
 
     struct Http     *http;                  /* Http service */
     struct HttpConn *conn;                  /* Http connection for this group */

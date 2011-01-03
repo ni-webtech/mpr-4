@@ -7,19 +7,15 @@
 include		.makedep
 
 doc:
-	rm -f ../../../all/*.c
-	make -C ../../../all
+	make SKIP_CLEAN=1 -C ../../../package dist
 	rm -fr xml html
 	mkdir -p xml html
 	doxygen mpr.spec
-	ejs $(BLD_TOOLS_DIR)/gendoc.es --bare --title "Mpr - Portable Runtime Native API" --tags ../mpr.tags \
+	ejs $(BLD_TOOLS_DIR)/gendoc.es --bare --title "MPR - Multithreaded Portable Runtime Native API" --tags ../mpr.tags \
 		xml/mpr_8h.xml xml/group* xml/struct_*.xml >../mprBare.html
-	ejs $(BLD_TOOLS_DIR)/gendoc.es --title "Mpr - Portable Runtime Native API" --tags ../mpr.tags \
+	ejs $(BLD_TOOLS_DIR)/gendoc.es --title "MPR - Multithreaded Portable Runtime Native API" --tags ../mpr.tags \
 		xml/mpr_8h.xml xml/group* xml/struct_*.xml >../mpr.html
-
-x:
-	ejs $(BLD_TOOLS_DIR)/gendoc.es --title "Mpr - Portable Runtime Native API" --tags ../mpr.tags \
-		xml/mpr_8h.xml xml/group* xml/struct_*.xml >../mpr.html
+	make -C ../../../package cleanup
 
 cleanExtra:
 	rm -rf xml html ../mpr.tags
