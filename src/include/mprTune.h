@@ -165,7 +165,7 @@ extern "C" {
 #define MPR_TIMEOUT_GC_SYNC     5000        /**< Wait period for threads to synchronize */
 
 #define MPR_TICKS_PER_SEC       1000        /**< Time ticks per second */
-#define MPR_MAX_TIMEOUT         (MAXINT / MPR_TICKS_PER_SEC)
+#define MPR_MAX_TIMEOUT         MAXINT
 
 
 /*

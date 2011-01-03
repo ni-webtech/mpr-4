@@ -240,9 +240,11 @@ static void serviceIO(MprWaitService *ws, int count)
             mask |= MPR_WRITABLE;
         }
         if (mask == 0) {
+            mprAssert(mask);
             continue;
         }
         wp->presentMask = mask & wp->desiredMask;
+        mprAssert(wp->presentMask);
         mprRemoveNotifier(wp);
         if (wp->presentMask) {
             mprQueueIOEvent(wp);
