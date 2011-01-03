@@ -171,7 +171,7 @@ void mprQueueIOEvent(MprWaitHandler *wp)
     mprInitEvent(dispatcher, event, "IOEvent", 0, (MprEventProc) wp->proc, (void*) wp->handlerData, MPR_EVENT_STATIC);
     event->fd = wp->fd;
     event->mask = wp->presentMask;
-    mprLog(0, "Queue event %s", dispatcher->name);
+    // mprLog(0, "Queue event %s", dispatcher->name);
     mprQueueEvent(dispatcher, event);
 }
 

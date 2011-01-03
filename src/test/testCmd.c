@@ -33,7 +33,6 @@ static int initCmd(MprTestGroup *gp)
 static void manageTestCmd(TestCmd *tc, int flags)
 {
     if (flags & MPR_MANAGE_MARK) {
-        mprLog(0, "Mark tc->cmd");
         mprMark(tc->cmd);
         mprMark(tc->buf);
         mprMark(tc->program);
@@ -111,7 +110,7 @@ static void withDataCallback(MprCmd *cmd, int channel, void *data)
             space = mprGetBufSpace(buf);
         }
         len = mprReadCmdPipe(cmd, channel, mprGetBufEnd(buf), space);            
-        mprLog(0, "Read %d (errno %d) from %s", len, errno, (channel == MPR_CMD_STDOUT) ? "stdout" : "stderr");
+        // mprLog(0, "Read %d (errno %d) from %s", len, errno, (channel == MPR_CMD_STDOUT) ? "stdout" : "stderr");
         if (len <= 0) {
             int status = mprGetError();
             mprLog(5, "Read %d (errno %d) from %s", len, status, (channel == MPR_CMD_STDOUT) ? "stdout" : "stderr");
@@ -124,7 +123,7 @@ static void withDataCallback(MprCmd *cmd, int channel, void *data)
                      */
                     if (cmd->handlers[MPR_CMD_STDERR]) {
                         mprEnableCmdEvents(cmd, MPR_CMD_STDERR);
-                        mprLog(0, "Enable stderr");
+                        // mprLog(0, "Enable stderr");
                     }
                 }
             } else {
@@ -186,7 +185,7 @@ static void testWithData(MprTestGroup *gp)
     env[i++] = NULL;
     mprSetCmdCallback(tc->cmd, withDataCallback, gp);
     
-    mprLog(0, "START");
+    // mprLog(0, "START");
     rc = mprStartCmd(tc->cmd, argc, argv, env, MPR_CMD_IN | MPR_CMD_OUT | MPR_CMD_ERR);
     assert(rc == 0);
 
@@ -207,8 +206,8 @@ static void testWithData(MprTestGroup *gp)
     }
     mprCloseCmdFd(tc->cmd, MPR_CMD_STDIN);
     assert(mprWaitForCmd(tc->cmd, MPR_TEST_SLEEP) == 0);
-    mprLog(0, "Eof count %d, requiredEof %d, dispatcher len %d", tc->cmd->eofCount, tc->cmd->requiredEof,
-        mprGetEventCount(tc->cmd->dispatcher));
+    // mprLog(0, "Eof count %d, requiredEof %d, dispatcher len %d", tc->cmd->eofCount, tc->cmd->requiredEof,
+    //     mprGetEventCount(tc->cmd->dispatcher));
 
     /*
         Now analyse returned data

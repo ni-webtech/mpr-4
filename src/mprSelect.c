@@ -289,7 +289,7 @@ void mprWakeNotifier()
         if (rc < 0) {
             static int warnOnce = 0;
             if (warnOnce++ == 0) {
-                mprLog(0, "Can't send wakeup to breakout socket: errno %d", errno);
+                mprError("Can't send wakeup to breakout socket: errno %d", errno);
             }
         }
     }

@@ -206,7 +206,7 @@ void mprDisconnectCmd(MprCmd *cmd)
     lock(cmd);
     for (i = 0; i < MPR_CMD_MAX_PIPE; i++) {
         if (cmd->handlers[i]) {
-            mprLog(0, "DISCONNECT CMD - remove handlers");
+            // mprLog(0, "DISCONNECT CMD - remove handlers");
             mprRemoveWaitHandler(cmd->handlers[i]);
             cmd->handlers[i] = 0;
         }
@@ -230,7 +230,7 @@ void mprCloseCmdFd(MprCmd *cmd, int channel)
     if (cmd->handlers[channel]) {
         mprRemoveWaitHandler(cmd->handlers[channel]);
         cmd->handlers[channel] = 0;
-        mprLog(0, "CLOSE Channel %d, remove handler", channel);
+        // mprLog(0, "CLOSE Channel %d, remove handler", channel);
     }
     if (cmd->files[channel].fd != -1) {
         close(cmd->files[channel].fd);
@@ -436,7 +436,7 @@ int mprStartCmd(MprCmd *cmd, int argc, char **argv, char **envp, int flags)
         if (stdoutFd >= 0) {
             cmd->handlers[MPR_CMD_STDOUT] = mprCreateWaitHandler(stdoutFd, MPR_READABLE, cmd->dispatcher,
                 (MprEventProc) stdoutCallback, cmd);
-            mprLog(0, "Set STDOUT wait handler %p desired %d", cmd->handlers[MPR_CMD_STDOUT], cmd->handlers[MPR_CMD_STDOUT]->desiredMask);
+            // mprLog(0, "Set STDOUT wait handler %p desired %d", cmd->handlers[MPR_CMD_STDOUT], cmd->handlers[MPR_CMD_STDOUT]->desiredMask);
         }
         if (stderrFd >= 0) {
             /*
@@ -1303,7 +1303,7 @@ static int startProcess(MprCmd *cmd)
         }
         if (cmd->dir) {
             if (chdir(cmd->dir) < 0) {
-                mprLog(0, "cmd: Can't change directory to %s", cmd->dir);
+                mprError("cmd: Can't change directory to %s", cmd->dir);
                 return MPR_ERR_CANT_INITIALIZE;
             }
         }
@@ -1502,7 +1502,7 @@ static void cmdTaskEntry(char *program, MprCmdTaskFn entry, int cmdArg)
         rc = chdir(dir);
     }
     if (rc < 0) {
-        mprLog(0, "cmd: Can't change directory to %s", cmd->dir);
+        mprError("cmd: Can't change directory to %s", cmd->dir);
         exit(255);
     }
 
