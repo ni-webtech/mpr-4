@@ -187,26 +187,27 @@ void mprResetCond(MprCond *cp)
  */
 int mprWaitForMultiCond(MprCond *cp, int timeout)
 {
-    MprTime     now, expire;
     int         rc;
 #if BLD_UNIX_LIKE
     struct timespec     waitTill;
     struct timeval      current;
     int                 usec;
+#else
+    MprTime     now, expire;
 #endif
 
-    rc = 0;
     if (timeout < 0) {
         timeout = MAXINT;
     }
-    now = mprGetTime();
-    expire = now + timeout;
 
 #if BLD_UNIX_LIKE
     gettimeofday(&current, NULL);
     usec = current.tv_usec + (timeout % 1000) * 1000;
     waitTill.tv_sec = current.tv_sec + (timeout / 1000) + (usec / 1000000);
     waitTill.tv_nsec = (usec % 1000000) * 1000;
+#else
+    now = mprGetTime();
+    expire = now + timeout;
 #endif
 
 #if BLD_WIN_LIKE

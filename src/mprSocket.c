@@ -183,8 +183,6 @@ static MprSocket *createSocket(struct MprSsl *ssl)
 
 static void manageSocket(MprSocket *sp, int flags)
 {
-    MprSocketService    *ss;
-
     if (flags & MPR_MANAGE_MARK) {
         mprMark(sp->acceptIp);
         mprMark(sp->ip);
@@ -193,7 +191,6 @@ static void manageSocket(MprSocket *sp, int flags)
         mprMark(sp->handler);
 
     } else if (flags & MPR_MANAGE_FREE) {
-        ss = sp->service;
         if (sp->fd >= 0) {
             sp->mutex = 0;
             mprCloseSocket(sp, 1);
@@ -430,7 +427,6 @@ static int connectSocket(MprSocket *sp, cchar *ip, int port, int initialFlags)
     datagram = sp->flags & MPR_SOCKET_DATAGRAM;
 
     if (mprGetSocketInfo(ip, port, &family, &protocol, &addr, &addrlen) < 0) {
-        err = mprGetSocketError(sp);
         closesocket(sp->fd);
         sp->fd = -1;
         unlock(sp);
@@ -438,7 +434,6 @@ static int connectSocket(MprSocket *sp, cchar *ip, int port, int initialFlags)
     }
     sp->fd = (int) socket(family, datagram ? SOCK_DGRAM: SOCK_STREAM, protocol);
     if (sp->fd < 0) {
-        err = mprGetSocketError(sp);
         unlock(sp);
         return MPR_ERR_CANT_OPEN;
     }
@@ -454,7 +449,6 @@ static int connectSocket(MprSocket *sp, cchar *ip, int port, int initialFlags)
     if (broadcast) {
         int flag = 1;
         if (setsockopt(sp->fd, SOL_SOCKET, SO_BROADCAST, (char *) &flag, sizeof(flag)) < 0) {
-            err = mprGetSocketError(sp);
             closesocket(sp->fd);
             sp->fd = -1;
             unlock(sp);
@@ -484,7 +478,6 @@ static int connectSocket(MprSocket *sp, cchar *ip, int port, int initialFlags)
                 }
             } 
             if (errno != EISCONN) {
-                err = mprGetSocketError(sp);
                 closesocket(sp->fd);
                 sp->fd = -1;
                 unlock(sp);
@@ -570,11 +563,9 @@ void mprCloseSocket(MprSocket *sp, bool gracefully)
 static void closeSocket(MprSocket *sp, bool gracefully)
 {
     MprSocketService    *ss;
-    MprWaitService      *service;
     MprTime             timesUp;
     char                buf[16];
 
-    service = MPR->waitService;
     ss = MPR->socketService;
 
     lock(sp);

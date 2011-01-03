@@ -86,7 +86,7 @@ static int growEvents(MprWaitService *ws)
 int mprAddNotifier(MprWaitService *ws, MprWaitHandler *wp, int mask)
 {
     struct kevent   *kp, *start;
-    int             fd, oldlen;
+    int             fd;
 
     mprAssert(wp);
 
@@ -123,7 +123,6 @@ int mprAddNotifier(MprWaitService *ws, MprWaitHandler *wp, int mask)
         ws->interestCount += kp - start;
 
         if (fd >= ws->handlerMax) {
-            oldlen = ws->handlerMax;
             ws->handlerMax = fd + 32;
             if ((ws->handlerMap = mprRealloc(ws->handlerMap, sizeof(MprWaitHandler*) * ws->handlerMax)) == 0) {
                 return MPR_ERR_MEMORY;
@@ -142,7 +141,7 @@ int mprAddNotifier(MprWaitService *ws, MprWaitHandler *wp, int mask)
 void mprRemoveNotifier(MprWaitHandler *wp)
 {
     MprWaitService  *ws;
-    int             fd, old;
+    int             fd;
 
     ws = wp->service;
     lock(ws);
@@ -151,7 +150,6 @@ void mprRemoveNotifier(MprWaitHandler *wp)
     if (wp->flags & MPR_WAIT_ADDED) {
         fd = wp->fd;
         mprAssert(fd >= 0);
-        old = ws->interestMax;
         mprAssert(ws->handlerMap[fd] == wp);
         if (ws->handlerMap[fd]) {
             if ((ws->interestCount + 2) >= ws->interestMax) {
@@ -186,7 +184,7 @@ int mprWaitForSingleIO(int fd, int mask, int timeout)
 {
     struct timespec ts;
     struct kevent   interest[2], events[1];
-    int             kq, interestCount, rc, err;
+    int             kq, interestCount, rc;
 
     if (timeout < 0) {
         timeout = MAXINT;
@@ -204,7 +202,6 @@ int mprWaitForSingleIO(int fd, int mask, int timeout)
 
     mask = 0;
     rc = kevent(kq, interest, interestCount, events, 1, &ts);
-    err = errno;
     close(kq);
     if (rc < 0) {
         mprLog(6, "Kevent returned %d, errno %d", rc, errno);
@@ -271,7 +268,7 @@ static void serviceIO(MprWaitService *ws, int count)
     MprWaitHandler      *wp;
     struct kevent       *kev;
     char                buf[128];
-    int                 fd, i, mask, err, rc;
+    int                 fd, i, mask, err;
 
     lock(ws);
     for (i = 0; i < count; i++) {
@@ -280,7 +277,7 @@ static void serviceIO(MprWaitService *ws, int count)
         mprAssert(fd < ws->handlerMax);
         if ((wp = ws->handlerMap[fd]) == 0) {
             if (kev->filter == EVFILT_READ && fd == ws->breakPipe[MPR_READ_PIPE]) {
-                rc = read(fd, buf, sizeof(buf));
+                (void) read(fd, buf, sizeof(buf));
             }
             continue;
         }
@@ -329,13 +326,13 @@ static void serviceIO(MprWaitService *ws, int count)
 void mprWakeNotifier()
 {
     MprWaitService  *ws;
-    int             c, rc;
+    int             c;
 
     ws = MPR->waitService;
     if (!ws->wakeRequested) {
         ws->wakeRequested = 1;
         c = 0;
-        rc = write(ws->breakPipe[MPR_WRITE_PIPE], (char*) &c, 1);
+        (void) write(ws->breakPipe[MPR_WRITE_PIPE], (char*) &c, 1);
     }
 }
 

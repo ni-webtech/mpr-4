@@ -198,10 +198,7 @@ static void resetCmd(MprCmd *cmd)
 
 void mprDisconnectCmd(MprCmd *cmd)
 {
-    MprCmdFile      *files;
-    int             i;
-
-    files = cmd->files;
+    int     i;
 
     lock(cmd);
     for (i = 0; i < MPR_CMD_MAX_PIPE; i++) {
@@ -406,23 +403,25 @@ int mprStartCmd(MprCmd *cmd, int argc, char **argv, char **envp, int flags)
 
 #if BLD_UNIX_LIKE || VXWORKS
     {
-        int     stdinFd, stdoutFd, stderrFd, nonBlock, mask;
+        int     stdoutFd, stderrFd, mask;
       
-        stdinFd = cmd->files[MPR_CMD_STDIN].fd; 
         stdoutFd = cmd->files[MPR_CMD_STDOUT].fd; 
         stderrFd = cmd->files[MPR_CMD_STDERR].fd; 
-        nonBlock = 1;
 
         /*
             Put the stdout and stderr into non-blocking mode. Windows can't do this because both ends of the pipe
             share the same blocking mode (Ugh!).
          */
 #if VXWORKS
-        if (stdoutFd >= 0) {
-            ioctl(stdoutFd, FIONBIO, (int) &nonBlock);
-        }
-        if (stderrFd >= 0) {
-            ioctl(stderrFd, FIONBIO, (int) &nonBlock);
+        {
+            int nonBlock = 1;
+
+            if (stdoutFd >= 0) {
+                ioctl(stdoutFd, FIONBIO, (int) &nonBlock);
+            }
+            if (stderrFd >= 0) {
+                ioctl(stderrFd, FIONBIO, (int) &nonBlock);
+            }
         }
 #else
         if (stdoutFd >= 0) {
@@ -466,10 +465,7 @@ int mprStartCmd(MprCmd *cmd, int argc, char **argv, char **envp, int flags)
 
 int mprMakeCmdIO(MprCmd *cmd)
 {
-    MprCmdFile  *files;
-    int         rc;
-
-    files = cmd->files;
+    int     rc;
 
     rc = 0;
     if (cmd->flags & MPR_CMD_IN) {
@@ -706,9 +702,9 @@ int mprWaitForCmd(MprCmd *cmd, int timeout)
 int mprReapCmd(MprCmd *cmd, int timeout)
 {
     MprTime     mark;
-    int         flags, rc, status, waitrc;
+    int         status;
 
-    flags = rc = status = waitrc = 0;
+    status = 0;
     lock(cmd);
     if (timeout < 0) {
         timeout = MAXINT;
@@ -717,6 +713,9 @@ int mprReapCmd(MprCmd *cmd, int timeout)
 
     while (cmd->pid) {
 #if BLD_UNIX_LIKE
+{
+        int     flags, waitrc;
+
         /*
             WARNING: this will block here if the process has not completed and requiredEof is zero. Only happens
             if creating a command and not opening any stdout or stderr output which users SHOULD do.
@@ -746,6 +745,7 @@ int mprReapCmd(MprCmd *cmd, int timeout)
         } else {
             mprAssert(waitrc == 0);
         }
+}
 #endif
 #if VXWORKS
         /*
@@ -761,6 +761,9 @@ int mprReapCmd(MprCmd *cmd, int timeout)
         cmd->pid = 0;
 #endif
 #if BLD_WIN_LIKE
+{
+        int     rc;
+
         if ((rc = WaitForSingleObject(cmd->process, 10)) != WAIT_OBJECT_0) {
             if (rc == WAIT_TIMEOUT) {
                 mprUnlock(cmd->mutex);
@@ -783,6 +786,7 @@ int mprReapCmd(MprCmd *cmd, int timeout)
             cmd->pid = 0;
             break;
         }
+}
 #endif
         /* Prevent busy waiting */
         mprSleep(10);
@@ -1307,7 +1311,7 @@ static int startProcess(MprCmd *cmd)
         }
         if (cmd->flags & MPR_CMD_IN) {
             if (files[MPR_CMD_STDIN].clientFd >= 0) {
-                rc = dup2(files[MPR_CMD_STDIN].clientFd, 0);
+                dup2(files[MPR_CMD_STDIN].clientFd, 0);
                 close(files[MPR_CMD_STDIN].fd);
             } else {
                 close(0);
@@ -1315,7 +1319,7 @@ static int startProcess(MprCmd *cmd)
         }
         if (cmd->flags & MPR_CMD_OUT) {
             if (files[MPR_CMD_STDOUT].clientFd >= 0) {
-                rc = dup2(files[MPR_CMD_STDOUT].clientFd, 1);
+                dup2(files[MPR_CMD_STDOUT].clientFd, 1);
                 close(files[MPR_CMD_STDOUT].fd);
             } else {
                 close(1);
@@ -1323,7 +1327,7 @@ static int startProcess(MprCmd *cmd)
         }
         if (cmd->flags & MPR_CMD_ERR) {
             if (files[MPR_CMD_STDERR].clientFd >= 0) {
-                rc = dup2(files[MPR_CMD_STDERR].clientFd, 2);
+                dup2(files[MPR_CMD_STDERR].clientFd, 2);
                 close(files[MPR_CMD_STDERR].fd);
             } else {
                 close(2);
@@ -1336,7 +1340,7 @@ static int startProcess(MprCmd *cmd)
             rc = execv(cmd->program, cmd->argv);
         }
         err = errno;
-        printf("Can't exec %s, err %d\n", cmd->program, err);
+        printf("Can't exec %s, rc %d, err %d\n", cmd->program, rc, err);
 
         /*
             Use _exit to avoid flushing I/O any other I/O.

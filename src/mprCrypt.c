@@ -189,7 +189,7 @@ char *mprEncode64(cchar *s)
     uint    shiftbuf;
     char    *buffer, *bp;
     ssize   len;
-    int     x, i, j, shift;
+    int     i, j, shift;
 
     len = strlen(s) * 2;
     if ((buffer = mprAlloc(len + 1)) == 0) {
@@ -204,7 +204,6 @@ char *mprEncode64(cchar *s)
         }
         shift = 18;
         for (i = ++j; i < 4 && bp < &buffer[len] ; i++) {
-            x = (shiftbuf >> shift) & 0x3f;
             *bp++ = encodeMap[(shiftbuf >> shift) & 0x3f];
             shift -= 6;
         }

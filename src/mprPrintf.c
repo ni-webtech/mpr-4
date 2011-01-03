@@ -491,12 +491,16 @@ static char *sprintfCore(char *buf, ssize maxsize, cchar *spec, va_list arg)
                     outString(&fmt, qname.name->value, qname.name->length);
                     BPUT(&fmt, ':');
                     BPUT(&fmt, ':');
+#if UNUSED
                     es = va_arg(arg, MprEjsString*);
+#endif
                     outString(&fmt, qname.space->value, qname.space->length);
 #else
                     outWideString(&fmt, qname.name->value, qname.name->length);
                     BPUT(&fmt, ':');
+#if UNUSED
                     es = va_arg(arg, MprEjsString*);
+#endif
                     outWideString(&fmt, qname.space->value, qname.space->length);
 #endif
                 } else {

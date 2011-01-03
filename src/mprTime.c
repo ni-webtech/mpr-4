@@ -335,18 +335,18 @@ MprTime mprMakeTime(struct tm *tp)
 {
     MprTime     when, alternate;
     struct tm   t;
-    int         offset, year, rc;
+    int         offset, year;
 
     when = makeTime(tp);
     year = tp->tm_year;
     if (MIN_YEAR <= year && year <= MAX_YEAR) {
-        rc = localTime(&t, when);
+        localTime(&t, when);
         offset = getTimeZoneOffsetFromTm(&t);
     } else {
         t = *tp;
         t.tm_year = 110;
         alternate = makeTime(&t);
-        rc = localTime(&t, alternate);
+        localTime(&t, alternate);
         offset = getTimeZoneOffsetFromTm(&t);
     }
     return when - offset;

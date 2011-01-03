@@ -21,12 +21,10 @@ static int getPathInfo(MprDiskFileSystem *fileSystem, cchar *path, MprPath *info
 
 static MprFile *openFile(MprFileSystem *fileSystem, cchar *path, int omode, int perms)
 {
-    MprDiskFileSystem   *dfs;
-    MprFile             *file;
+    MprFile     *file;
     
     mprAssert(path);
 
-    dfs = (MprDiskFileSystem*) fileSystem;
     file = mprAllocObj(MprFile, manageDiskFile);
     if (file == 0) {
         return NULL;

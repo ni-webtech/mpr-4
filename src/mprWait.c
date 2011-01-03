@@ -108,12 +108,10 @@ MprWaitHandler *mprInitWaitHandler(MprWaitHandler *wp, int fd, int mask, MprDisp
 
 MprWaitHandler *mprCreateWaitHandler(int fd, int mask, MprDispatcher *dispatcher, MprEventProc proc, void *data)
 {
-    MprWaitService  *ws;
     MprWaitHandler  *wp;
 
     mprAssert(fd >= 0);
 
-    ws = MPR->waitService;
     if ((wp = mprAllocObj(MprWaitHandler, manageWaitHandler)) == 0) {
         return 0;
     }

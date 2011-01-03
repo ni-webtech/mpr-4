@@ -726,14 +726,10 @@ static MprMem *freeBlock(MprMem *mp)
 #if BLD_CC_MMU
     MprRegion   *region;
 #endif
-    int a, b;
-    
-    a = b = 0;
     BREAKPOINT(mp);
 
     size = GET_SIZE(mp);
-    // mprAssert(size < 8 * 1024 * 1024);
-    after = next = prev = NULL;
+    prev = NULL;
     
     /*
         Coalesce with next if it is free
@@ -743,7 +739,6 @@ static MprMem *freeBlock(MprMem *mp)
     //  MOB - GET_NEXT should be safe lockfree in the sweeper.
     next = GET_NEXT(mp);
     if (next && IS_FREE(next)) {
-        a = 1;
         BREAKPOINT(next);
         //  MOB - lockfree race here as someone else may claim this block
         unlinkBlock((MprFreeMem*) next);
@@ -766,7 +761,6 @@ static MprMem *freeBlock(MprMem *mp)
      */
     prev = GET_PRIOR(mp);
     if (prev && IS_FREE(prev)) {
-        b = 1;
         BREAKPOINT(prev);
         //  MOB - lockfree race here as someone else may claim this block
         unlinkBlock((MprFreeMem*) prev);
@@ -808,8 +802,6 @@ static MprMem *freeBlock(MprMem *mp)
     } else
 #endif
     {
-        MprMem *prior;
-        prior = GET_PRIOR(mp);
         linkBlock(mp);
         unlockHeap();
     }
@@ -1159,8 +1151,6 @@ static void sweep()
     MprRegion   *rp, *region, *nextRegion, *prior;
     MprMem      *mp, *next;
     MprManager  mgr;
-//  MOB
-    MprMem *prev = NULL;
     
     if (!heap->enabled) {
         mprLog(7, "DEBUG: sweep: Abort sweep - GC disabled");
@@ -1201,7 +1191,6 @@ static void sweep()
         /*
             This code assumes that no other code coalesces blocks and that splitting blocks will be done lock-free
          */
-        prev = NULL;
         for (mp = region->start; mp; mp = next) {
             CHECK(mp);
             INC(sweepVisited);
@@ -1219,7 +1208,6 @@ static void sweep()
                  */
                 next = GET_NEXT(mp);
             }
-            prev = mp;
         }
 
         /*
@@ -1536,7 +1524,7 @@ void mprVerifyMem()
     MprMem      *mp;
     MprFreeMem  *freeq, *fp;
     uchar       *ptr;
-    int         i, usize, index;
+    int         i, usize;
     
     lockHeap();
     for (region = heap->regions; region; region = region->next) {
@@ -1545,7 +1533,7 @@ void mprVerifyMem()
         }
     }
     for (i = 0, freeq = heap->freeq; freeq != heap->freeEnd; freeq++, i++) {
-        index = (int) (freeq - heap->freeq);
+        // int index = (int) (freeq - heap->freeq);
         for (fp = freeq->next; fp != freeq; fp = fp->next) {
             mp = (MprMem*) fp;
             CHECK(mp);
@@ -1681,11 +1669,11 @@ static void *getNextRoot()
 static void printQueueStats() 
 {
     MprFreeMem  *freeq;
-    int         i, index;
+    int         i;
 
     printf("\nFree Queue Stats\n Bucket                     Size   Count\n");
     for (i = 0, freeq = heap->freeq; freeq != heap->freeEnd; freeq++, i++) {
-        index = (int) (freeq - heap->freeq);
+        // int index = (int) (freeq - heap->freeq);
         if (freeq->info.stats.count) {
             printf("%7d %24d %7d\n", i, freeq->info.stats.minSize, freeq->info.stats.count);
         }

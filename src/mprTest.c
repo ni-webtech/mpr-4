@@ -65,13 +65,12 @@ static void manageTestService(MprTestService *ts, int flags)
 int mprParseTestArgs(MprTestService *sp, int argc, char *argv[])
 {
     cchar       *programName;
-    char        *argp, *logSpec;
+    char        *argp;
     int         err, i, depth, nextArg, outputVersion;
 
     i = 0;
     err = 0;
     outputVersion = 0;
-    logSpec = "stderr:1";
 
     programName = mprGetPathBase(argv[0]);
     sp->name = BLD_PRODUCT;

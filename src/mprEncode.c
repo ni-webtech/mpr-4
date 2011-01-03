@@ -112,7 +112,6 @@ char *mprUriEncode(cchar *inbuf, int map)
     if ((result = mprAlloc(len)) == 0) {
         return 0;
     }
-    ip = inbuf;
     op = result;
 
     while ((c = (uchar) (*inbuf++)) != 0) {

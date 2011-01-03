@@ -48,7 +48,7 @@ char *itos(char *buf, int count, int64 value, int radix)
     while (dp < endp && *cp) {
         *dp++ = *cp++;
     }
-    *dp++ = '\0';
+    *dp = '\0';
     return buf;
 }
 
@@ -105,8 +105,8 @@ char *sclone(cchar *str)
     size = len + 1;
     if ((ptr = mprAlloc(size)) != NULL) {
         memcpy(ptr, str, len);
+        ptr[len] = '\0';
     }
-    ptr[len] = '\0';
     return ptr;
 }
 

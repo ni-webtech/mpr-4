@@ -303,7 +303,6 @@ int mprDispatchersAreIdle()
 
     es = MPR->eventService;
     runQ = &es->runQ;
-    idle = 0;
     lock(es);
     dispatcher = runQ->next;
     if (dispatcher == runQ) {
@@ -421,12 +420,9 @@ static void dispatchEvents(MprDispatcher *dispatcher)
 
 static void serviceDispatcher(MprDispatcher *dispatcher)
 {
-    MprEventService     *es;
-
     mprAssert(isRunning(dispatcher));
     mprAssert(dispatcher->owner == 0);
     
-    es = dispatcher->service;
     dispatcher->owner = mprGetCurrentOsThread();
 
     if (dispatcher == MPR->nonBlock) {

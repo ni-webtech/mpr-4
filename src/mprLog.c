@@ -135,6 +135,7 @@ void mprStaticError(cchar *fmt, ...)
     va_end(args);
 #if BLD_UNIX_LIKE || VXWORKS
     (void) write(2, (char*) msg, strlen(msg));
+    (void) write(2, (char*) "\n", 1);
 #elif BLD_WIN_LIKE
     fprintf(stderr, "%s\n", msg);
 #endif

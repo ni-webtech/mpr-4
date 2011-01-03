@@ -394,11 +394,12 @@ int mprSetThreadData(MprThreadLocal *tls, void *value)
 {
     bool    err;
 
-    err = 1;
 #if BLD_UNIX_LIKE
     err = pthread_setspecific(tls->key, value) != 0;
 #elif BLD_WIN_LIKE
     err = TlsSetValue(tls->key, value) != 0;
+#else
+    err = 1;
 #endif
     return (err) ? MPR_ERR_CANT_WRITE: 0;
 }
@@ -913,7 +914,6 @@ static void manageWorker(MprWorker *worker, int flags)
 static void workerMain(MprWorker *worker, MprThread *tp)
 {
     MprWorkerService    *ws;
-    int                 rc;
 
     ws = MPR->workerService;
     mprAssert(worker->state == MPR_WORKER_BUSY);
@@ -941,7 +941,7 @@ static void workerMain(MprWorker *worker, MprThread *tp)
             Sleep till there is more work to do. Yield for GC first.
          */
         mprYield(MPR_YIELD_STICKY);
-        rc = mprWaitForCond(worker->idleCond, -1);
+        mprWaitForCond(worker->idleCond, -1);
         mprResetYield();
         mprLock(ws->mutex);
     }

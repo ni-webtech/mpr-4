@@ -383,18 +383,14 @@ ssize mprPutFmtToBuf(MprBuf *bp, cchar *fmt, ...)
 {
     va_list     ap;
     char        *buf;
-    ssize       rc, space;
 
     if (fmt == 0) {
         return 0;
     }
     va_start(ap, fmt);
-    space = mprGetBufSpace(bp);
-    space += (bp->maxsize - bp->buflen);
     buf = mprAsprintfv(fmt, ap);
-    rc = mprPutStringToBuf(bp, buf);
     va_end(ap);
-    return rc;
+    return mprPutStringToBuf(bp, buf);
 }
 
 

@@ -232,17 +232,18 @@ char *mprGetAbsPath(cchar *pathArg)
  */
 char *mprGetCurrentPath()
 {
-    MprFileSystem   *fs;
     char            dir[MPR_MAX_PATH];
 
-    fs = mprLookupFileSystem(dir);
     if (getcwd(dir, sizeof(dir)) == 0) {
         return mprGetAbsPath("/");
     }
 
 #if VXWORKS
 {
-    char    sep[2];
+    MprFileSystem   *fs;
+    char            sep[2];
+
+    fs = mprLookupFileSystem(dir);
 
     /*
         Vx will sometimes just return a drive with no path.
@@ -254,6 +255,8 @@ char *mprGetCurrentPath()
     }
 }
 #elif BLD_WIN_LIKE
+    MprFileSystem   *fs;
+    fs = mprLookupFileSystem(dir);
     mprMapSeparators(dir, fs->separators[0]);
 #endif
     return sclone(dir);
@@ -526,10 +529,8 @@ char *mprGetPathParent(cchar *path)
 
 char *mprGetPortablePath(cchar *path)
 {
-    MprFileSystem   *fs;
-    char            *result, *cp;
+    char    *result, *cp;
 
-    fs = mprLookupFileSystem(path);
     result = mprGetTransformedPath(path, 0);
     for (cp = result; *cp; cp++) {
         if (*cp == '\\') {
@@ -546,8 +547,7 @@ char *mprGetPortablePath(cchar *path)
 char *mprGetRelPath(cchar *pathArg)
 {
     MprFileSystem   *fs;
-    char            home[MPR_MAX_FNAME], *hp, *cp, *result, *tmp, *path;
-    ssize           len;
+    char            home[MPR_MAX_FNAME], *hp, *cp, *result, *path;
     int             homeSegments, i, commonSegments, sep;
 
     fs = mprLookupFileSystem(pathArg);
@@ -559,7 +559,7 @@ char *mprGetRelPath(cchar *pathArg)
     /*
         Must clean to ensure a minimal relative path result.
      */
-    path = tmp = mprGetNormalizedPath(pathArg);
+    path = mprGetNormalizedPath(pathArg);
 
     if (!isAbsPath(fs, path)) {
         return path;
@@ -582,7 +582,6 @@ char *mprGetRelPath(cchar *pathArg)
         strcpy(home, ".");
     }
     home[sizeof(home) - 2] = '\0';
-    len = strlen(home);
 
     /*
         Count segments in home working directory. Ignore trailing separators.
@@ -749,7 +748,9 @@ int mprMakeDir(cchar *path, int perms, bool makeMissing)
     }
     if (makeMissing && !isRoot(fs, path)) {
         parent = mprGetPathParent(path);
-        rc = mprMakeDir(parent, perms, makeMissing);
+        if ((rc = mprMakeDir(parent, perms, makeMissing)) < 0) {
+            return rc;
+        }
         return fs->makeDir(fs, path, perms);
     }
     return MPR_ERR_CANT_CREATE;
@@ -770,20 +771,21 @@ int mprMakeLink(cchar *path, cchar *target, bool hard)
 
 char *mprGetTempPath(cchar *tempDir)
 {
-    MprFileSystem   *fs;
     MprFile         *file;
     char            *dir, *path;
     int             i, now;
     static int      tempSeed = 0;
 
-    fs = mprLookupFileSystem(tempDir ? tempDir : (cchar*) "/");
-
     if (tempDir == 0) {
 #if WINCE
         dir = sclone("/Temp");
 #elif BLD_WIN_LIKE
+{
+        MprFileSystem   *fs;
+        fs = mprLookupFileSystem(tempDir ? tempDir : (cchar*) "/");
         dir = sclone(getenv("TEMP"));
         mprMapSeparators(dir, defaultSep(fs));
+}
 #elif VXWORKS
         dir = sclone(".");
 #else
@@ -903,7 +905,7 @@ static char *fromCygPath(cchar *path)
 char *mprGetNormalizedPath(cchar *pathArg)
 {
     MprFileSystem   *fs;
-    char            *dupPath, *path, *sp, *dp, *mark, **segments;
+    char            *path, *sp, *dp, *mark, **segments;
     ssize           len;
     int             addSep, i, segmentCount, hasDot, last, sep;
 
@@ -920,7 +922,6 @@ char *mprGetNormalizedPath(cchar *pathArg)
     if ((path = mprAlloc(len + 2)) == 0) {
         return NULL;
     }
-    dupPath = path;
     strcpy(path, pathArg);
     sep = (sp = firstSep(fs, path)) ? *sp : defaultSep(fs);
 
@@ -929,14 +930,13 @@ char *mprGetNormalizedPath(cchar *pathArg)
         Map separators to the first separator found
      */
     hasDot = segmentCount = 0;
-    for (sp = dp = mark = path; *sp; ) {
+    for (sp = dp = path; *sp; ) {
         if (isSep(fs, *sp)) {
             *sp = sep;
             segmentCount++;
             while (isSep(fs, sp[1])) {
                 sp++;
             }
-            mark = sp + 1;
         } 
         if (*sp == '.') {
             hasDot++;
@@ -1062,17 +1062,6 @@ char *mprGetNormalizedPath(cchar *pathArg)
     *dp = '\0';
     return path;
 }
-
-
-#if UNUSED
-cchar *mprGetPathSeparator(cchar *path)
-{
-    MprFileSystem   *fs;
-
-    fs = mprLookupFileSystem(path);
-    return fs->separators;
-}
-#endif
 
 
 bool mprIsPathSeparator(cchar *path, cchar c)
@@ -1213,22 +1202,18 @@ int mprSamePath(cchar *path1, cchar *path2)
 int mprSamePathCount(cchar *path1, cchar *path2, ssize len)
 {
     MprFileSystem   *fs;
-    char            *tmpPath1, *tmpPath2;
     cchar           *p1, *p2;
 
     fs = mprLookupFileSystem(path1);
-    tmpPath1 = tmpPath2 = 0;
 
     /*
         Convert to absolute paths to compare. TODO - resolve symlinks.
      */
     if (!isFullPath(fs, path1)) {
-        tmpPath1 = mprGetAbsPath(path1);
-        path1 = tmpPath1;
+        path1 = mprGetAbsPath(path1);
     }
     if (!isFullPath(fs, path2)) {
-        tmpPath2 = mprGetAbsPath(path2);
-        path2 = tmpPath2;
+        path2 = mprGetAbsPath(path2);
     }
     if (fs->caseSensitive) {
         for (p1 = path1, p2 = path2; *p1 && *p2 && len > 0; p1++, p2++, len--) {
@@ -1265,7 +1250,7 @@ char *mprSearchPath(cchar *file, int flags, cchar *search, ...)
             while (dir && *dir) {
                 mprLog(5, "mprSearchForFile: %s in directory %s", file, nextDir);
                 path = mprJoinPath(dir, file);
-                if (mprPathExists(path, R_OK)) {
+                if (mprPathExists(path, access)) {
                     mprLog(5, "mprSearchForFile: found %s", path);
                     return mprGetNormalizedPath(path);
                 }
@@ -1275,7 +1260,7 @@ char *mprSearchPath(cchar *file, int flags, cchar *search, ...)
         } else {
             mprLog(5, "mprSearchForFile: %s in directory %s", file, nextDir);
             path = mprJoinPath(nextDir, file);
-            if (mprPathExists(path, R_OK)) {
+            if (mprPathExists(path, access)) {
                 mprLog(5, "mprSearchForFile: found %s", path);
                 return mprGetNormalizedPath(path);
             }
@@ -1293,10 +1278,7 @@ char *mprSearchPath(cchar *file, int flags, cchar *search, ...)
  */
 char *mprGetTransformedPath(cchar *path, int flags)
 {
-    MprFileSystem       *fs;
-    char                *result;
-
-    fs = mprLookupFileSystem(path);
+    char    *result;
 
 #if BLD_WIN_LIKE && FUTURE
     if (flags & MPR_PATH_CYGWIN) {

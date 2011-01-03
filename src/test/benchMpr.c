@@ -121,7 +121,6 @@ static void doBenchmark(void *thread)
 {
     MprTime         start;
     MprList         *list;
-    void            *mp;
     int             count, i;
     MprMutex        *lock;
 
@@ -207,7 +206,7 @@ static void doBenchmark(void *thread)
         count = 2000000 * app->iterations;
         start = startMark();
         for (i = 0; i < count; i++) {
-            mp = mprAlloc(1024);
+            mprAlloc(1024);
             mprRequestGC(MPR_WAIT_GC);
         }
         endMark(start, count, "Alloc mprAlloc(1K)");
@@ -219,7 +218,7 @@ static void doBenchmark(void *thread)
 static void testMalloc()
 {
     MprTime     start;
-    ssize      base;
+    ssize       base;
     char        *ptr;
     int         count, i;
 

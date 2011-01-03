@@ -337,14 +337,12 @@ static int parseNext(MprXml *xp, int state)
  */
 static MprXmlToken getToken(MprXml *xp, int state)
 {
-    MprBuf      *tokBuf, *inBuf;
+    MprBuf      *tokBuf;
     char        *cp;
     int         c, rc;
 
-    tokBuf = xp->tokBuf;
-    inBuf = xp->inBuf;
-
     mprAssert(state >= 0);
+    tokBuf = xp->tokBuf;
 
     if ((c = getNextChar(xp)) < 0) {
         return MPR_XMLTOK_EOF;
