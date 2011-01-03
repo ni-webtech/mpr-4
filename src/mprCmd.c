@@ -442,7 +442,7 @@ int mprStartCmd(MprCmd *cmd, int argc, char **argv, char **envp, int flags)
             /*
                 Delay enabling stderr events until stdout is complete. 
              */
-            mask = (stdoutFd >= 0) ? MPR_READABLE : 0;
+            mask = (stdoutFd < 0) ? MPR_READABLE : 0;
             cmd->handlers[MPR_CMD_STDERR] = mprCreateWaitHandler(stderrFd, mask, cmd->dispatcher,
                 (MprEventProc) stderrCallback, cmd);
 #if UNUSED

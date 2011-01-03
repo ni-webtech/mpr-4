@@ -304,9 +304,11 @@ static void serviceIO(MprWaitService *ws, int count)
             mask |= MPR_WRITABLE;
         }
         if (mask == 0) {
+mprAssert(0);
             continue;
         }
         wp->presentMask = mask & wp->desiredMask;
+mprAssert(wp->presentMask);
         LOG(7, "Got I/O event mask %x", wp->presentMask);
         if (wp->presentMask) {
             LOG(7, "ServiceIO for wp %p", wp);

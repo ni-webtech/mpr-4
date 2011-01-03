@@ -3984,6 +3984,7 @@ typedef struct MprEvent {
     struct MprEvent     *next;          /**< Next event linkage */
     struct MprEvent     *prev;          /**< Previous event linkage */
     struct MprDispatcher *dispatcher;   /**< Event dispatcher service */
+    struct MprWaitHandler *handler;     /**< Optional wait handler */
 } MprEvent;
 
 /*
@@ -4531,6 +4532,14 @@ extern void mprWaitForIO(MprWaitService *ws, int timeout);
 #define MPR_WAIT_RECALL_HANDLER 0x1     /* Must recall the handler asap */
 #define MPR_WAIT_ADDED          0x2     /* Handler added to wait service */
 
+/*
+    Handler states
+ */
+#define MPR_HANDLER_DISABLED    0
+#define MPR_HANDLER_ENABLED     1
+#define MPR_HANDLER_QUEUED      2
+#define MPR_HANDLER_ACTIVE      3
+
 /**
     Wait Handler Service
     @description Wait handlers provide callbacks for when I/O events occur. They provide a wait to service many
@@ -4542,6 +4551,7 @@ extern void mprWaitForIO(MprWaitService *ws, int timeout);
 typedef struct MprWaitHandler {
     int             desiredMask;        /**< Mask of desired events */
     int             presentMask;        /**< Mask of current events */
+    int             state;              /**< Wait handler state */
     int             fd;                 /**< O/S File descriptor (sp->sock) */
     int             notifierIndex;      /**< Index for notifier */
     int             flags;              /**< Control flags */

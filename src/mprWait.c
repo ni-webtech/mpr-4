@@ -15,6 +15,7 @@
 
 /***************************** Forward Declarations ***************************/
 
+static void ioEvent(void *data, MprEvent *event);
 static void manageWaitService(MprWaitService *ws, int flags);
 static void manageWaitHandler(MprWaitHandler *wp, int flags);
 
@@ -92,6 +93,7 @@ MprWaitHandler *mprInitWaitHandler(MprWaitHandler *wp, int fd, int mask, MprDisp
 
     if (mask) {
         lock(ws);
+        wp->state = MPR_HANDLER_ENABLED;
         if (mprAddItem(ws->handlers, wp) < 0) {
             unlock(ws);
             return 0;
@@ -166,18 +168,37 @@ void mprQueueIOEvent(MprWaitHandler *wp)
     MprDispatcher   *dispatcher;
     MprEvent        *event;
 
+    mprAssert(wp->state == MPR_HANDLER_ENABLED);
+    wp->state = MPR_HANDLER_QUEUED;
+
     dispatcher = (wp->dispatcher) ? wp->dispatcher: mprGetDispatcher();
     event = &wp->event;
-    mprInitEvent(dispatcher, event, "IOEvent", 0, (MprEventProc) wp->proc, (void*) wp->handlerData, MPR_EVENT_STATIC);
+    mprInitEvent(dispatcher, event, "IOEvent", 0, ioEvent, (void*) wp->handlerData, MPR_EVENT_STATIC);
     event->fd = wp->fd;
     event->mask = wp->presentMask;
-    // mprLog(0, "Queue event %s", dispatcher->name);
+    event->handler = wp;
     mprQueueEvent(dispatcher, event);
+}
+
+
+static void ioEvent(void *data, MprEvent *event)
+{
+    MprWaitHandler  *wp;
+
+    wp = event->handler;
+    mprAssert(wp->state == MPR_HANDLER_QUEUED);
+    wp->state = MPR_HANDLER_ACTIVE;
+    wp->proc(data, event);
 }
 
 
 void mprDisableWaitEvents(MprWaitHandler *wp)
 {
+    //  Check events already disabled - generally a programming error
+    mprAssert(wp->desiredMask);
+    mprAssert(wp->state == MPR_HANDLER_ENABLED);
+
+    wp->state = MPR_HANDLER_DISABLED;
     if (wp->desiredMask) {
         mprRemoveNotifier(wp);
         mprWakeWaitService();
@@ -187,6 +208,11 @@ void mprDisableWaitEvents(MprWaitHandler *wp)
 
 void mprEnableWaitEvents(MprWaitHandler *wp, int mask)
 {
+    //  Check events already enabled - generally a programming error
+    mprAssert(!(mask & wp->desiredMask));
+    mprAssert(wp->state == MPR_HANDLER_DISABLED || wp->state == MPR_HANDLER_ACTIVE);
+
+    wp->state = MPR_HANDLER_ENABLED;
     if (mask != wp->desiredMask) {
         mprAddNotifier(wp->service, wp, mask);
         mprWakeWaitService();

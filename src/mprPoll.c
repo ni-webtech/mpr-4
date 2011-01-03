@@ -241,7 +241,6 @@ static void serviceIO(MprWaitService *ws, struct pollfd *fds, int count)
     struct pollfd       *fp;
     int                 mask;
 
-    int x = 0;
     lock(ws);
     for (fp = fds; fp < &fds[count]; fp++) {
         if (fp->revents == 0) {
@@ -269,7 +268,6 @@ static void serviceIO(MprWaitService *ws, struct pollfd *fds, int count)
         if (wp->presentMask) {
             mprQueueIOEvent(wp);
         }
-        x++;
     }
     unlock(ws);
 }
