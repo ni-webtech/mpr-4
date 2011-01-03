@@ -353,7 +353,7 @@ int mprStartCmd(MprCmd *cmd, int argc, char **argv, char **envp, int flags)
 {
     MprPath     info;
     char        *program;
-    int         rc, mask;
+    int         rc;
 
     mprAssert(argv);
     mprAssert(argc > 0);
@@ -407,7 +407,7 @@ int mprStartCmd(MprCmd *cmd, int argc, char **argv, char **envp, int flags)
 
 #if BLD_UNIX_LIKE || VXWORKS
     {
-        int     stdinFd, stdoutFd, stderrFd, nonBlock;
+        int     stdinFd, stdoutFd, stderrFd, nonBlock, mask;
       
         stdinFd = cmd->files[MPR_CMD_STDIN].fd; 
         stdoutFd = cmd->files[MPR_CMD_STDOUT].fd; 
