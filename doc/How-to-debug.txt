@@ -1,0 +1,30 @@
+How to debug memory corruption
+
+Using a garbage collector to reclaim unused memory can make debugging somewhat more difficult. This document provides some useful tips to assist in your debugging efforts.
+
+The most common causes of memory corruption are caused by:
+
+1. Forgetting to mark allocating memory as "in-use" and then using this memory after the garbage collector has reclaimed it and allocated it to another caller.
+
+2. Overwriting the end of allocated memory and corrupting the next linear block in memory
+
+To debug memory corruption it is most helpful to revert to a state when the memory corruption did not exist in your application and then progressively add features or changes until the corruption appears. This can then greatly reduce the scope of your dubugging efforts.
+
+Then try to get the minimum test case that triggers the memory corruption. Don't just run the entire app with all features enabled. Try very hard to narrow the scope.
+
+Then try to get a reproducible, deterministic test case. If you can get a sequence of steps from a clean reboot of the application that provokes the error, your debugging will be much easier.
+
+Once you have narrowed the scope:
+
+1. Double check that all your objects have managers defined and that you are marking all fields as "in-use" via mprMark().
+
+2. Build the product in debug mode. This turns on memory asserts and enables memory checking code in the allocator and garbage collector.
+
+3. Run your app with memory verification enabled by setting MPR_VERIFY_MEM=1 in the environment. This causes the memory allocator to fill free blocks with a specific pattern and to lock for memory corruption.
+
+4. Run in the debugginer and set a breakpoint at mprBreakpoint(). The debugger will trap here for any memory corruption errors
+
+5. If possible, turn off garbage collection. Your app will grow in memory, perhaps alarmingly, but you won't reuse any memory blocks. This can be useful if the error shows up quickly. To disable GC, run the app with MPR_DISABLE_GC=1 set in the
+environment.
+
+6. If you find memory that is being corrupted, the allocator has two breakpoints that can be useful. The first is stopSeqno. All memory blocks have a sequence number. If stopSeqno is set to a valid sequence memory block sequence number, all accesses by the allocator to the block will cause mprBreakpoint to be invoked and to trap in the debugger. The second field is stopAlloc which can be set to the address of the memory block instead of the sequence number. This address of the memory block is the underlying MprMem structure which is equal to (ptr - sizeof(MprMem)). 
