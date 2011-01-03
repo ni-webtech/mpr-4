@@ -873,7 +873,7 @@ bool mprWaitForTestToComplete(MprTestGroup *gp, int timeout)
     expires = mprGetTime() + timeout;
     remaining = timeout;
     do {
-        mprWaitForEvent(gp->dispatcher, remaining);
+        mprWaitForEvent(gp->dispatcher, (int) remaining);
         remaining = expires - mprGetTime();
     } while (!gp->testComplete && remaining > 0);
     rc = gp->testComplete;

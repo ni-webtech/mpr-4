@@ -9,7 +9,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 
-#if BLD_UNIX_LIKE
+#if !_WIN32
 #include <unistd.h>
 #endif
 
