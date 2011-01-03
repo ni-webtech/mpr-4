@@ -10,14 +10,14 @@
 
 /*********************************** Locals ***********************************/
 
-typedef struct MprTestSocket {
+typedef struct TestSocket {
     MprTestGroup    *gp;                        /* Test group reference */
     MprSocket       *server;                    /* Server listen socket */
     MprSocket       *accepted;                  /* Server-side accepted client socket */
     MprSocket       *client;                    /* Client socket */
     MprBuf          *inBuf;                     /* Input buffer */
     int             port;                       /* Server port */
-} MprTestSocket;
+} TestSocket;
 
 static int warnNoInternet = 0;
 static int bufsize = 16 * 1024;
@@ -25,7 +25,7 @@ static int bufsize = 16 * 1024;
 /***************************** Forward Declarations ***************************/
 
 static int acceptFn(MprTestGroup *gp, MprEvent *event);
-static void manageTestSocket(MprTestSocket *ts, int flags);
+static void manageTestSocket(TestSocket *ts, int flags);
 static MprSocket *openServer(MprTestGroup *gp, cchar *host);
 static int readEvent(MprTestGroup *gp, MprEvent *event);
 
@@ -37,10 +37,10 @@ static int readEvent(MprTestGroup *gp, MprEvent *event);
  */
 static int initSocket(MprTestGroup *gp)
 {
-    MprTestSocket   *ts;
+    TestSocket      *ts;
     MprSocket       *sp;
 
-    if ((ts = mprAllocObj(MprTestSocket, manageTestSocket)) == 0) {
+    if ((ts = mprAllocObj(TestSocket, manageTestSocket)) == 0) {
         return 0;
     }
     ts->inBuf = mprCreateBuf(0, 0);
@@ -81,7 +81,7 @@ static int termSocket(MprTestGroup *gp)
  */
 static MprSocket *openServer(MprTestGroup *gp, cchar *host)
 {
-    MprTestSocket   *ts;
+    TestSocket      *ts;
     MprSocket       *sp;
     int             port;
     
@@ -100,7 +100,7 @@ static MprSocket *openServer(MprTestGroup *gp, cchar *host)
 }
 
 
-static void manageTestSocket(MprTestSocket *ts, int flags)
+static void manageTestSocket(TestSocket *ts, int flags)
 {
     if (flags & MPR_MANAGE_MARK) {
         mprMark(ts->server);
@@ -128,9 +128,9 @@ static void manageTestSocket(MprTestSocket *ts, int flags)
 static int acceptFn(MprTestGroup *gp, MprEvent *event)
 {
     MprSocket       *sp;
-    MprTestSocket   *ts;
+    TestSocket      *ts;
 
-    ts = (MprTestSocket*) gp->data;
+    ts = (TestSocket*) gp->data;
     sp = mprAcceptSocket(ts->server);
     assert(sp != NULL);
     if (sp) {
@@ -148,13 +148,13 @@ static int acceptFn(MprTestGroup *gp, MprEvent *event)
  */
 static int readEvent(MprTestGroup *gp, MprEvent *event)
 {
-    MprTestSocket   *ts;
+    TestSocket      *ts;
     MprSocket       *sp;
     ssize           len, nbytes, space;
     char            *buf;
     int             rc;
 
-    ts = (MprTestSocket*) gp->data;
+    ts = (TestSocket*) gp->data;
     sp = ts->accepted;
 
     len = mprGetBufLength(ts->inBuf);
@@ -217,7 +217,7 @@ static void testClient(MprTestGroup *gp)
 
 static void testClientServer(MprTestGroup *gp, cchar *host)
 {
-    MprTestSocket   *ts;
+    TestSocket      *ts;
     MprDispatcher   *dispatcher;
     MprTime         mark;
     ssize           len, thisLen, nbytes, sofar;

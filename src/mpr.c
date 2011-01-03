@@ -148,11 +148,13 @@ bool mprDestroy(int flags)
     MPR->flags |= MPR_STOPPED;
     mprYield(MPR_YIELD_STICKY);
 
+    if (flags & MPR_GRACEFUL) {
+        mprTerminate(MPR_GRACEFUL);
+        for (mark = mprGetTime(); !mprIsComplete() && mprGetRemainingTime(mark, 2000 * 100) > 0; mprSleep(10)) ;
+    } else {
+        mprTerminate(0);
+    }
     if (MPR->flags & MPR_STARTED) {
-        if (flags & MPR_GRACEFUL) {
-            mprTerminate(MPR_GRACEFUL);
-            for (mark = mprGetTime(); !mprIsComplete() && mprGetRemainingTime(mark, 2000 * 100) > 0; mprSleep(10)) ;
-        }
         mprStopSocketService();
         if (!mprStopWorkerService(MPR_TIMEOUT_STOP_TASK)) {
             stopped = 0;
@@ -216,9 +218,6 @@ static void serviceEventsThread(void *data, MprThread *tp)
  */
 void mprTerminate(bool graceful)
 {
-    if (! graceful) {
-        exit(0);
-    }
     mprLog(MPR_CONFIG, "Exiting started");
     
     mprSpinLock(MPR->spin);
@@ -237,6 +236,10 @@ void mprTerminate(bool graceful)
     mprWakeDispatchers();
     mprWakeWaitService();
     mprResumeThreads();
+
+    if (! graceful) {
+        exit(0);
+    }
 }
 
 

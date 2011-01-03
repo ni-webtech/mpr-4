@@ -1129,7 +1129,8 @@ extern void mprCheckBlock(MprMem *bp);
 extern void mprAddRoot(void *ptr);
 
 #define MPR_FORCE_GC        0x1     /* Force a GC whether it is required or not */
-#define MPR_COMPLETE_GC     0x2     /* Do a complete collection (3 sweeps */
+#define MPR_COMPLETE_GC     0x2     /* Do a complete collection (3 sweeps) */
+#define MPR_WAIT_GC         0x4     /* Wait for GC to complete */
 
 /**
     Collect garbage
@@ -4166,6 +4167,7 @@ extern void mprRescheduleEvent(MprEvent *event, int period);
 extern void mprRelayEvent(MprDispatcher *dispatcher, MprEventProc proc, void *data, MprEvent *event);
 extern MprEventService *mprCreateEventService();
 extern MprEvent *mprGetNextEvent(MprDispatcher *dispatcher);
+extern int mprGetEventCount(MprDispatcher *dispatcher);
 extern void mprInitEventQ(MprEvent *q);
 extern void mprScheduleDispatcher(MprDispatcher *dispatcher);
 extern void mprQueueTimerEvent(MprDispatcher *dispatcher, MprEvent *event);

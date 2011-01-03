@@ -63,7 +63,7 @@ static void testPutAndGetToBuf(MprTestGroup *gp)
 static void testFlushBuf(MprTestGroup *gp)
 {
     MprBuf      *bp;
-    ssize     rc;
+    ssize       rc;
     char        buf[512];
     int         size, i;
 
@@ -137,7 +137,7 @@ static void testGrowBuf(MprTestGroup *gp)
 static void testMiscBuf(MprTestGroup *gp)
 {
     MprBuf      *bp;
-    ssize     size, rc;
+    ssize       size, rc;
     int         c;
 
     size = 512;
@@ -177,7 +177,7 @@ static void testBufLoad(MprTestGroup *gp)
 {
     MprBuf      *bp;
     char        obuf[512], ibuf[512];
-    ssize     rc, count, bytes, sofar, size, len;
+    ssize       rc, count, bytes, sofar, size, len;
     int         i, j;
 
     /*

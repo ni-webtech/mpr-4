@@ -30,6 +30,7 @@ static void manageTestCond(TestCond *tc, int flags)
 {
     if (flags & MPR_MANAGE_MARK) {
         mprMark(tc->cond);
+        mprMark(tc->event);
     } else if (flags & MPR_MANAGE_FREE) {
     }
 }
@@ -44,7 +45,6 @@ static void callback(void *data, MprEvent *event)
 static void testCriticalSection(MprTestGroup *gp)
 {
     TestCond        *tc;
-    MprEvent        *event;
     int             rc, delay;
 
     tc = gp->data;
@@ -52,8 +52,8 @@ static void testCriticalSection(MprTestGroup *gp)
     assert(tc->cond != 0);
     mprAssert(tc->cond->triggered == 0);
 
-    event = mprCreateEvent(NULL, "testCriticalSection", 0, callback, tc->cond, MPR_EVENT_QUICK);
-    assert(event != 0);
+    tc->event = mprCreateEvent(NULL, "testCriticalSection", 0, callback, tc->cond, MPR_EVENT_QUICK);
+    assert(tc->event != 0);
 
     delay = MPR_TEST_TIMEOUT + (mprGetDebugMode() * 1200 * 1000);
     mprYield(MPR_YIELD_STICKY);
@@ -63,7 +63,7 @@ static void testCriticalSection(MprTestGroup *gp)
     mprResetYield();
 
     tc->cond = 0;
-    
+    tc->event = 0;
     //  TODO - add test with longer event delay to catch when wait runs first
 }
 

@@ -206,6 +206,7 @@ void mprDisconnectCmd(MprCmd *cmd)
     lock(cmd);
     for (i = 0; i < MPR_CMD_MAX_PIPE; i++) {
         if (cmd->handlers[i]) {
+            mprLog(0, "DISCONNECT CMD - remove handlers");
             mprRemoveWaitHandler(cmd->handlers[i]);
             cmd->handlers[i] = 0;
         }
@@ -229,6 +230,7 @@ void mprCloseCmdFd(MprCmd *cmd, int channel)
     if (cmd->handlers[channel]) {
         mprRemoveWaitHandler(cmd->handlers[channel]);
         cmd->handlers[channel] = 0;
+        mprLog(0, "CLOSE Channel %d, remove handler", channel);
     }
     if (cmd->files[channel].fd != -1) {
         close(cmd->files[channel].fd);
@@ -351,7 +353,7 @@ int mprStartCmd(MprCmd *cmd, int argc, char **argv, char **envp, int flags)
 {
     MprPath     info;
     char        *program;
-    int         rc;
+    int         rc, mask;
 
     mprAssert(argv);
     mprAssert(argc > 0);
@@ -434,10 +436,16 @@ int mprStartCmd(MprCmd *cmd, int argc, char **argv, char **envp, int flags)
         if (stdoutFd >= 0) {
             cmd->handlers[MPR_CMD_STDOUT] = mprCreateWaitHandler(stdoutFd, MPR_READABLE, cmd->dispatcher,
                 (MprEventProc) stdoutCallback, cmd);
+            mprLog(0, "Set STDOUT wait handler %p desired %d", cmd->handlers[MPR_CMD_STDOUT], cmd->handlers[MPR_CMD_STDOUT]->desiredMask);
         }
         if (stderrFd >= 0) {
-            cmd->handlers[MPR_CMD_STDERR] = mprCreateWaitHandler(stderrFd, MPR_READABLE, cmd->dispatcher,
+            /*
+                Delay enabling stderr events until stdout is complete. 
+             */
+            mask = (stdoutFd >= 0) ? MPR_READABLE : 0;
+            cmd->handlers[MPR_CMD_STDERR] = mprCreateWaitHandler(stderrFd, mask, cmd->dispatcher,
                 (MprEventProc) stderrCallback, cmd);
+#if UNUSED
             if (stdoutFd >= 0) {
                 /*
                     Delay enabling stderr events until stdout is complete. 
@@ -445,6 +453,7 @@ int mprStartCmd(MprCmd *cmd, int argc, char **argv, char **envp, int flags)
                  */
                 mprDisableWaitEvents(cmd->handlers[MPR_CMD_STDERR]);
             }
+#endif
         }
     }
 #endif

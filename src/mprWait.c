@@ -90,14 +90,16 @@ MprWaitHandler *mprInitWaitHandler(MprWaitHandler *wp, int fd, int mask, MprDisp
     wp->handlerData     = data;
     wp->service         = ws;
 
-    lock(ws);
-    if (mprAddItem(ws->handlers, wp) < 0) {
+    if (mask) {
+        lock(ws);
+        if (mprAddItem(ws->handlers, wp) < 0) {
+            unlock(ws);
+            return 0;
+        }
+        mprAddNotifier(ws, wp, mask);
         unlock(ws);
-        return 0;
+        mprWakeWaitService();
     }
-    mprAddNotifier(ws, wp, mask);
-    unlock(ws);
-    mprWakeWaitService();
     return wp;
 }
 
@@ -169,6 +171,7 @@ void mprQueueIOEvent(MprWaitHandler *wp)
     mprInitEvent(dispatcher, event, "IOEvent", 0, (MprEventProc) wp->proc, (void*) wp->handlerData, MPR_EVENT_STATIC);
     event->fd = wp->fd;
     event->mask = wp->presentMask;
+    mprLog(0, "Queue event %s", dispatcher->name);
     mprQueueEvent(dispatcher, event);
 }
 

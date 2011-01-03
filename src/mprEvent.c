@@ -201,6 +201,23 @@ MprEvent *mprGetNextEvent(MprDispatcher *dispatcher)
 }
 
 
+int mprGetEventCount(MprDispatcher *dispatcher)
+{
+    MprEventService     *es;
+    MprEvent            *event;
+    int                 count;
+
+    es = dispatcher->service;
+
+    lock(es);
+    for (event = dispatcher->eventQ.next; event != &dispatcher->eventQ; event = event->next) {
+        count++;
+    }
+    unlock(es);
+    return count;
+}
+
+
 void mprInitEventQ(MprEvent *q)
 {
     mprAssert(q);

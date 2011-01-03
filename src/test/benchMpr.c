@@ -10,21 +10,24 @@
 
 /********************************** Locals ************************************/
 
-static int      testAllocOnly = 0;      /* Test alloc only  */
-static int      iterations = 1;         /* Benchmark iterations */
-static int      workers = 0;            /* Number of worker threads */
+typedef struct App {
+    int      testAllocOnly;     /* Test alloc only  */
+    int      iterations;        /* Benchmark iterations */
+    int      workers;           /* Number of worker threads */
+    MprCond  *complete;         /* Condition set when benchmark complete */
+    MprMutex *mutex;            /* Test synchronization */
+    int      markCount;         /* Flag set when benchmark complete */
+} App;
 
-static Mpr      *mpr;
-static MprCond  *complete;              /* Condition set when benchmark complete */
-static int      markCount;              /* Flag set when benchmark complete */
-static MprMutex *mutex;                 /* Test synchronization */
+static App *app;
 
 /***************************** Forward Declarations ***************************/
 
 static void     doBenchmark(void *thread);
 static void     endMark(MprTime start, int count, char *msg);
 static void     eventCallback(void *data, MprEvent *ep);
-static ssize   memsize();
+static void     manageApp(App *app, int flags);
+static ssize    memsize();
 static MprTime  startMark();
 static void     testMalloc();
 static void     timerCallback(void *data, MprEvent *ep);
@@ -32,13 +35,22 @@ volatile int    testComplete;
 
 /*********************************** Code *************************************/
 
-int benchMain(int argc, char *argv[])
+int main(int argc, char *argv[])
 {
     MprThread       *thread;
+    Mpr             *mpr;
     char            *argp;
-    int             err, i, nextArg;
+    int             err, nextArg;
 
-    mpr = mprCreate(argc, argv, 0);
+    if ((mpr = mprCreate(argc, argv, 0)) == 0) {
+        return MPR_ERR_MEMORY;
+    }
+    if ((app = mprAllocObj(App, manageApp)) == 0) {
+        return MPR_ERR_MEMORY;
+    }
+    mprAddRoot(app);
+    app->mutex = mprCreateLock(mpr);
+    app->complete = mprCreateCond();
 
 #if VXWORKS || WINCE
     /*
@@ -47,7 +59,7 @@ int benchMain(int argc, char *argv[])
     mprMakeArgv("http", (char*) argc, &argc, &argv);
 #endif
 
-    iterations = 5;
+    app->iterations = 5;
     err = 0;
 
     for (nextArg = 1; nextArg < argc; nextArg++) {
@@ -59,38 +71,25 @@ int benchMain(int argc, char *argv[])
             if (nextArg >= argc) {
                 err++;
             } else {
-                iterations = atoi(argv[++nextArg]);
+                app->iterations = atoi(argv[++nextArg]);
             }
 
         } else if (strcmp(argp, "--alloc") == 0 || strcmp(argp, "-a") == 0) {
-            testAllocOnly++;
-        } else if (strcmp(argp, "--workers") == 0 || strcmp(argp, "-w") == 0) {
-            if (nextArg >= argc) {
-                err++;
-            } else {
-                i = atoi(argv[++nextArg]);
-                if (i <= 0 || i > 100) {
-                    mprError("%s: Bad number of worker threads (0-100)", mprGetAppName(mpr));
-                    exit(2);
-                
-                }
-                workers = i;
-            }
+            app->testAllocOnly++;
         } else {
             err++;
         }
     }
     if (err) {
-        mprPrintf("usage: bench [-em] [-i iterations] [-t workers]\n");
+        mprPrintf("usage: bench [-a] [-i iterations] [-t workers]\n");
         mprRawLog(0, "usage: %s [options]\n"
+            "    -a                  # Alloc test only\n"
             "    --iterations count  # Number of iterations to run the test\n"
             "    --workers count     # Set maximum worker threads\n",
             mprGetAppName(mpr));
         exit(2);
     }
 
-    mutex = mprCreateLock(mpr);
-    mprSetMaxWorkers(workers);
     mprStart(mpr);
 
     thread = mprCreateThread("bench", (MprThreadProc) doBenchmark, (void*) MPR, 0);
@@ -105,19 +104,15 @@ int benchMain(int argc, char *argv[])
 }
 
 
-#if WINCE
-int APIENTRY WinMain(HINSTANCE inst, HINSTANCE junk, LPWSTR args, int junk2)
+static void manageApp(App *app, int flags)
 {
-    return benchMain((int) args, NULL);
-}
+    if (flags & MPR_MANAGE_MARK) {
+        mprMark(app->complete);
+        mprMark(app->mutex);
 
-#elif !VXWORKS
-int main(int argc, char **argv)
-{
-    return benchMain(argc, argv);
+    } else if (flags & MPR_MANAGE_FREE) {
+    }
 }
-#endif
-
 
 /*
     Do a performance benchmark
@@ -130,21 +125,19 @@ static void doBenchmark(void *thread)
     int             count, i;
     MprMutex        *lock;
 
-    mprRequestGC(MPR_FORCE_GC | MPR_COMPLETE_GC);
+    mprYield(MPR_YIELD_STICKY);
 
     mprPrintf("Group\t%-30s\t%13s\t%12s\n", "Benchmark", "Microsec", "Elapsed-sec");
-    complete = mprCreateCond();
 
     testMalloc();
-    mprRequestGC(MPR_FORCE_GC | MPR_COMPLETE_GC);
 
-    if (!testAllocOnly) {
+    if (!app->testAllocOnly) {
         /*
             Locking primitives
          */
         mprPrintf("Lock Benchmarks\n");
         lock = mprCreateLock();
-        count = 5000000 * iterations;
+        count = 5000000 * app->iterations;
         start = startMark();
         for (i = 0; i < count; i++) {
             mprLock(lock);
@@ -156,12 +149,12 @@ static void doBenchmark(void *thread)
             Condition signal / wait
          */
         mprPrintf("Cond Benchmarks\n");
-        count = 1000000 * iterations;
+        count = 1000000 * app->iterations;
         start = startMark();
-        mprResetCond(complete);
+        mprResetCond(app->complete);
         for (i = 0; i < count; i++) {
-            mprSignalCond(complete);
-            mprWaitForCond(complete, -1);
+            mprSignalCond(app->complete);
+            mprWaitForCond(app->complete, -1);
         }
         endMark(start, count, "Cond signal|wait");
 
@@ -169,7 +162,7 @@ static void doBenchmark(void *thread)
             List
          */
         mprPrintf("List Benchmarks\n");
-        count = 20000000 * iterations;
+        count = 2000000 * app->iterations;
         list = mprCreateList(count, 0);
         start = startMark();
         for (i = 0; i < count; i++) {
@@ -182,14 +175,14 @@ static void doBenchmark(void *thread)
             Events
          */
         mprPrintf("Event Benchmarks\n");
-        mprResetCond(complete);
-        count = 100000 * iterations;
-        markCount = count;
+        mprResetCond(app->complete);
+        count = 100000 * app->iterations;
+        app->markCount = count;
         start = startMark();
         for (i = 0; i < count; i++) {
             mprCreateEvent(NULL, "eventBenchmark", 0, eventCallback, ITOP(i), MPR_EVENT_QUICK);
         }
-        mprWaitForCond(complete, -1);
+        mprWaitForCond(app->complete, -1);
         endMark(start, count, "Event (create|run|delete)");
 
 
@@ -197,24 +190,25 @@ static void doBenchmark(void *thread)
             Test timer creation, run and delete (make a million timers!)
          */
         mprPrintf("Timer\n");
-        mprResetCond(complete);
-        count = 50000 * iterations;
-        markCount = count;
+        mprResetCond(app->complete);
+        count = 50000 * app->iterations;
+        app->markCount = count;
         start = startMark();
         for (i = 0; i < count; i++) {
             mprCreateTimerEvent(NULL, "timerBenchmark", 0, timerCallback, (void*) (long) i, 0);
         }
-        mprWaitForCond(complete, -1);
+        mprWaitForCond(app->complete, -1);
         endMark(start, count, "Timer (create|delete)");
 
         /*
-            Malloc (1K)
+            Alloc (1K)
          */
-        mprPrintf("Malloc 1K Benchmarks\n");
-        count = 2000000 * iterations;
+        mprPrintf("Alloc 1K Benchmarks\n");
+        count = 2000000 * app->iterations;
         start = startMark();
         for (i = 0; i < count; i++) {
             mp = mprAlloc(1024);
+            mprRequestGC(MPR_WAIT_GC);
         }
         endMark(start, count, "Alloc mprAlloc(1K)");
     }
@@ -239,7 +233,7 @@ static void testMalloc()
 #endif
 
     mprPrintf("Alloc/Malloc overhead\n");
-    count = 200000 * iterations;
+    count = 200000 * app->iterations;
 
 #if MALLOC
     /*
@@ -351,16 +345,6 @@ static void testMalloc()
     }
     endMark(start, count, "Alloc mprAlloc(32)");
     // mprPrintf("\tMpr overhead per block %d (approx)\n\n", ((memsize() - base) / count) - 32);
-
-    /*
-        mprAlloc(8)
-     */
-    start = startMark();
-    for (i = 0; i < count; i++) {
-        ptr = mprAlloc(8);
-        memset(ptr, 0, 8);
-    }
-    endMark(start, count, "Alloc mprAlloc(8)");
     mprPrintf("\n");
 }
 
@@ -371,12 +355,12 @@ static void testMalloc()
 static void eventCallback(void *data, MprEvent *event)
 {
     //  MOB - should have atomic Inc
-    mprLock(mutex);
-    if (--markCount == 0) {
-        mprSignalCond(complete);
+    mprLock(app->mutex);
+    if (--app->markCount == 0) {
+        mprSignalCond(app->complete);
     }
     mprRemoveEvent(event);
-    mprUnlock(mutex);
+    mprUnlock(app->mutex);
 }
 
 
@@ -385,12 +369,12 @@ static void eventCallback(void *data, MprEvent *event)
  */
 static void timerCallback(void *data, MprEvent *event)
 {
-    mprLock(mutex);
-    if (--markCount == 0) {
-        mprSignalCond(complete);
+    mprLock(app->mutex);
+    if (--app->markCount == 0) {
+        mprSignalCond(app->complete);
     }
     mprRemoveEvent(event);
-    mprUnlock(mutex);
+    mprUnlock(app->mutex);
 }
 
 
@@ -406,6 +390,7 @@ static void endMark(MprTime start, int count, char *msg)
 
     elapsed = mprGetElapsedTime(start);
     mprPrintf("\t%-30s\t%13.2f\t%12.2f\n", msg, elapsed * 1000.0 / count, elapsed / 1000.0);
+    mprRequestGC(MPR_COMPLETE_GC | MPR_FORCE_GC | MPR_WAIT_GC);
 }
 
 

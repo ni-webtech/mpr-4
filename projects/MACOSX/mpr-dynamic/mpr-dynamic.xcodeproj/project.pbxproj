@@ -70,7 +70,6 @@
 		C90A1B020FD6E319006A9E86 /* testSprintf.c in Sources */ = {isa = PBXBuildFile; fileRef = C90A1AF10FD6E319006A9E86 /* testSprintf.c */; };
 		C90A1B030FD6E319006A9E86 /* testTime.c in Sources */ = {isa = PBXBuildFile; fileRef = C90A1AF20FD6E319006A9E86 /* testTime.c */; };
 		C90A1B040FD6E319006A9E86 /* testUnicode.c in Sources */ = {isa = PBXBuildFile; fileRef = C90A1AF30FD6E319006A9E86 /* testUnicode.c */; };
-		C940B30C12B3610700B75D63 /* libmpr.dylib in Frameworks */ = {isa = PBXBuildFile; fileRef = C90A19EE0FD6DCAD006A9E86 /* libmpr.dylib */; };
 		C941899512ADC7FE00AD31B5 /* mprMem.c in Sources */ = {isa = PBXBuildFile; fileRef = C941899212ADC7FE00AD31B5 /* mprMem.c */; };
 		C941899612ADC7FE00AD31B5 /* mprMixed.c in Sources */ = {isa = PBXBuildFile; fileRef = C941899312ADC7FE00AD31B5 /* mprMixed.c */; };
 		C941899712ADC7FE00AD31B5 /* mprWide.c in Sources */ = {isa = PBXBuildFile; fileRef = C941899412ADC7FE00AD31B5 /* mprWide.c */; };
@@ -229,8 +228,8 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				C9F3AAAA1252449F00183E33 /* libmprssl.dylib in Frameworks */,
 				C9418A1C12ADCD8100AD31B5 /* libmpr.dylib in Frameworks */,
+				C9F3AAAA1252449F00183E33 /* libmprssl.dylib in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -238,7 +237,6 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				C940B30C12B3610700B75D63 /* libmpr.dylib in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -853,6 +851,7 @@
 				OTHER_LDFLAGS = "";
 				PREBINDING = NO;
 				PRODUCT_NAME = runProgram;
+				STANDARD_C_PLUS_PLUS_LIBRARY_TYPE = dynamic;
 			};
 			name = Debug;
 		};
@@ -867,8 +866,10 @@
 				GCC_ENABLE_FIX_AND_CONTINUE = NO;
 				GCC_MODEL_TUNING = G5;
 				INSTALL_PATH = /usr/local/bin;
+				OTHER_LDFLAGS = "";
 				PREBINDING = NO;
 				PRODUCT_NAME = runProgram;
+				STANDARD_C_PLUS_PLUS_LIBRARY_TYPE = dynamic;
 				ZERO_LINK = NO;
 			};
 			name = Release;
@@ -877,8 +878,7 @@
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				ALWAYS_SEARCH_USER_PATHS = NO;
-				ARCHS = "$(ARCHS_STANDARD_32_BIT_PRE_XCODE_3_1)";
-				ARCHS_STANDARD_32_BIT_PRE_XCODE_3_1 = "ppc i386";
+				ARCHS = i386;
 				COPY_PHASE_STRIP = NO;
 				GCC_DYNAMIC_NO_PIC = NO;
 				GCC_ENABLE_FIX_AND_CONTINUE = YES;

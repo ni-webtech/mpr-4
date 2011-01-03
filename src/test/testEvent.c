@@ -8,7 +8,37 @@
 
 #include    "mprTest.h"
 
+/*********************************** Locals ***********************************/
+
+typedef struct TestEvent {
+    MprEvent    *event;
+} TestEvent;
+
+static void manageTestEvent(TestEvent *te, int flags);
+
 /************************************ Code ************************************/
+
+static int initEvent(MprTestGroup *gp)
+{
+    TestEvent   *te;
+
+    if ((te = mprAllocObj(TestEvent, manageTestEvent)) == 0) {
+        return 0;
+    }
+    gp->data = te;
+    return 0;
+}
+
+
+static void manageTestEvent(TestEvent *te, int flags)
+{
+    if (flags & MPR_MANAGE_MARK) {
+        mprMark(te->event);
+    } else if (flags & MPR_MANAGE_FREE) {
+    }
+}
+
+
 /*
     Event callback used by a few unit tests. This signals completion of the unit test.
  */
@@ -20,54 +50,57 @@ static void eventCallback(void *data, MprEvent *event)
 
 static void testCreateEvent(MprTestGroup *gp)
 {
-    MprEvent    *event;
+    TestEvent   *te;
+
+    te = gp->data;
 
     /*
         Without spawning a thread
      */
-    event = mprCreateEvent(NULL, "testCreateEvent", 0, eventCallback, (void*) gp, MPR_EVENT_QUICK);
-    assert(event != 0);
-    mprAddRoot(event);
+    te->event = mprCreateEvent(NULL, "testCreateEvent", 0, eventCallback, (void*) gp, MPR_EVENT_QUICK);
+    assert(te->event != 0);
     assert(mprWaitForTestToComplete(gp, MPR_TEST_SLEEP));
-    mprRemoveRoot(event);
 
     /*
         Run event callback on a separate thread
      */
-    event = mprCreateEvent(NULL, "testCreateEvent", 0, eventCallback, (void*) gp, 0);
-    assert(event != 0);
-    mprAddRoot(event);
+    te->event = mprCreateEvent(NULL, "testCreateEvent", 0, eventCallback, (void*) gp, 0);
+    assert(te->event != 0);
     assert(mprWaitForTestToComplete(gp, MPR_TEST_SLEEP));
-    mprRemoveRoot(event);
+    te->event = 0;
 }
 
 
 static void testCancelEvent(MprTestGroup *gp)
 {
-    MprEvent    *event;
+    TestEvent   *te;
 
-    event = mprCreateEvent(NULL, "testCancelEvent", 20000, eventCallback, (void*) gp, MPR_EVENT_QUICK);
-    assert(event != 0);
-    mprRemoveEvent(event);
+    te = gp->data;
+
+    te->event = mprCreateEvent(NULL, "testCancelEvent", 20000, eventCallback, (void*) gp, MPR_EVENT_QUICK);
+    assert(te->event != 0);
+    mprRemoveEvent(te->event);
+    te->event = 0;
 }
 
 
 static void testReschedEvent(MprTestGroup *gp)
 {
-    MprEvent        *event;
+    TestEvent   *te;
 
-    event = mprCreateEvent(NULL, "testReschedEvent", 50000000, eventCallback, (void*) gp, MPR_EVENT_QUICK);
-    assert(event != 0);
-    mprAddRoot(event);
+    te = gp->data;
+
+    te->event = mprCreateEvent(NULL, "testReschedEvent", 50000000, eventCallback, (void*) gp, MPR_EVENT_QUICK);
+    assert(te->event != 0);
     
-    mprRescheduleEvent(event, 20);
+    mprRescheduleEvent(te->event, 20);
     assert(mprWaitForTestToComplete(gp, MPR_TEST_SLEEP));
-    mprRemoveRoot(event);
+    te->event = 0;
 }
 
 
 MprTestDef testEvent = {
-    "event", 0, 0, 0,
+    "event", 0, initEvent, 0,
     {
         MPR_TEST(0, testCreateEvent),
         MPR_TEST(0, testCancelEvent),

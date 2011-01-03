@@ -542,6 +542,7 @@ static MprTime getDispatcherIdleTime(MprDispatcher *dispatcher, MprTime timeout)
         timeout = 0;
     } else {
         next = dispatcher->eventQ.next;
+        delay = MPR_MAX_TIMEOUT;
         if (next != &dispatcher->eventQ) {
             delay = (next->due - dispatcher->service->now);
             if (delay < 0) {

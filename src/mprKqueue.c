@@ -165,6 +165,7 @@ void mprRemoveNotifier(MprWaitHandler *wp)
                 // mprLog(0, "REMOVE DELETE WRITE %d", fd);
             }
             ws->handlerMap[fd] = 0;
+            mprLog(0, "mprRemove Notifier Clear desired mask");
             wp->desiredMask = 0;
         } else {
             mprAssert(wp->desiredMask == 0);
@@ -308,6 +309,7 @@ static void serviceIO(MprWaitService *ws, int count)
         wp->presentMask = mask & wp->desiredMask;
         LOG(7, "Got I/O event mask %x", wp->presentMask);
         if (wp->presentMask) {
+            LOG(7, "ServiceIO for wp %p", wp);
             mprRemoveNotifier(wp);            
             mprQueueIOEvent(wp);
         }

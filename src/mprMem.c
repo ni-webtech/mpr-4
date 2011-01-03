@@ -634,7 +634,6 @@ mprAssert(!IS_FREE(mp));
                             SET_LAST(mp, 0);
                             mprAtomBarrier();
                             INC(splits);
-mprAssert(GET_GEN(spare) != heap->dead);
                             linkBlock(spare);
                             
                             //  MOB -- REMOVE
@@ -1086,7 +1085,11 @@ void mprRequestGC(int flags)
         if (!(heap->flags & MPR_OWN_GC)) {
             mprSignalCond(heap->markerCond);
         }
-        mprYield(0);
+        if (flags & MPR_WAIT_GC) {
+            mprYield(MPR_YIELD_BLOCK);
+        } else {
+            mprYield(0);
+        }
     }
 }
 
@@ -1382,15 +1385,16 @@ static void sweeper(void *unused, MprThread *tp)
     Called by user code to signify the thread is ready for GC and all object references are saved. 
     If the GC marker is synchronizing, this call will block at the GC sync point (should be brief).
  */
-void mprGC(int force)
+void mprGC(int flags)
 {
     MprThread   *tp;
     int         sweeps, i;
 
-    if (!heap->enabled || (!heap->gc && !force)) {
+    if (!heap->enabled || (!heap->gc && !(flags & MPR_FORCE_GC))) {
         return;
     }
     if (heap->flags & (MPR_MARK_THREAD | MPR_SWEEP_THREAD)) {
+        heap->extraSweeps = (flags & MPR_COMPLETE_GC) ? 3 : 0;
         mprYield(0);
         return;
     }
@@ -1440,6 +1444,9 @@ void mprYield(int flags)
     while (tp->yielded && (mprWaitForSync() || (flags & MPR_YIELD_BLOCK))) {
         mprLog(7, "mprYieldThread %s must wait", tp->name);
         mprWaitForCond(tp->cond, -1);
+        if (heap->extraSweeps <= 0) {
+            flags &= ~MPR_YIELD_BLOCK;
+        }
     }
     if (!tp->stickyYield) {
         tp->yielded = 0;

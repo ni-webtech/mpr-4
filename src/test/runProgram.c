@@ -6,60 +6,56 @@
 
 /********************************** Includes **********************************/
 
-#include    "mpr.h"
+#include <stdio.h>
+#include <stdlib.h>
+#include <unistd.h>
 
 /************************************ Code ************************************/
 
-MAIN(runProgramMain, int argc, char* argv[])
+int main(int argc, char* argv[])
 {
-    Mpr     *mpr;
-    MprFile *out;
     char    buf[256], *ep;
     int     i, len, exitCode, sofar;
-
-    mpr = mprCreate(argc, argv, 0);
 
 #if BLD_UNIX_LIKE
     signal(SIGPIPE, SIG_IGN);
 #endif
 #if TRACE_PROGRESS
-    MprFile *f = mprOpenFile("/tmp/r.log", O_CREAT|O_TRUNC|O_WRONLY, 0664);
-    mprWriteFormat(f, "runProgram: argc %d\n", argc);
+    FILE    *fp;
+    FILE *fp = fopen("/tmp/r.log", O_CREAT|O_TRUNC|O_WRONLY, 0664);
+    fprintf(fp, "runProgram: argc %d\n", argc);
     for (i = 0; i < argc; i++) {
-        mprWriteFormat(f, "runProgram: arg[%d] = %s\n", i, argv[i]);
+        fprintf(fp, "runProgram: arg[%d] = %s\n", i, argv[i]);
     }
-    mprCloseFile(f);
+    fclose(fp);
 #endif
 
     if (argc < 2) {
-        mprPrintfError("Usage: runProgram exitCode args...\n");
+        fprintf(stderr, "Usage: runProgram exitCode args...\n");
         exit(3);
     }
     exitCode = atoi(argv[1]);
-    out = mprGetStdout();
 
     if (exitCode != 99) {
         /*
             Echo the args
          */
         for (i = 2; i < argc; ) {
-            mprPutFileString(out, argv[i]);
+            printf("%s", argv[i]);
             if (++i != argc) {
-                mprPutFileChar(out, ' ');
+                printf(" ");
             }
         }
-        mprPutFileChar(out, '\n');
+        printf("\n");
 
         /* Echo the CMD_ENV environment variable value */
         ep = getenv("CMD_ENV");
         if (ep) {
-            mprPutFileString(out, "CMD_ENV=");
-            mprPutFileString(out, ep);
+            printf("CMD_ENV=%s\n", ep);
         } else {
-            mprPutFileString(out, "Can't find CMD_ENV");
+            printf("Can't find CMD_ENV\n");
         }
-        mprPutFileChar(out, '\n');
-        mprFlushFile(out);
+        fflush(stdout);
     }
 
     /*
@@ -71,10 +67,9 @@ MAIN(runProgramMain, int argc, char* argv[])
         buf[len] = '\0';
     }
     if (exitCode != 99) {
-        mprPutFileString(out, "END");
-        mprPutFileChar(out, '\n');
+        printf("END\n");
     }
-    mprFlushFile(out);
+    fflush(stdout);
     return exitCode;
 }
 
