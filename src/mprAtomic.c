@@ -154,7 +154,8 @@ void *mprAtomExchange(void * volatile *addr, cvoid *value)
 #if MACOSX && 0
     return OSAtomicCompareAndSwapPtrBarrier(expected, value, addr);
 #elif BLD_WIN_LIKE
-    return InterlockedExchange(addr, value);
+	//	MOB - windows 64 
+    return (void*) InterlockedExchange((volatile LONG*) addr, (LONG) value);
 #elif BLD_UNIX_LIKE && 0
     return __sync_lock_test_and_set(addr, value);
     //  MOB -- COMPLETE

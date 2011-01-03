@@ -12,6 +12,7 @@
 #include <stdlib.h>
 
 #if _WIN32
+#include    <io.h>
 #define read _read
 #define write _write
 #else
