@@ -13,7 +13,7 @@
 /***************************** Forward Declarations ***************************/
 
 static void dequeueDispatcher(MprDispatcher *dispatcher);
-static void dispatchEvents(MprDispatcher *dispatcher);
+static int dispatchEvents(MprDispatcher *dispatcher);
 static MprTime getDispatcherIdleTime(MprDispatcher *dispatcher, MprTime timeout);
 static MprTime getIdleTime(MprEventService *es, MprTime timeout);
 static MprDispatcher *getNextReadyDispatcher(MprEventService *es);
@@ -263,7 +263,9 @@ int mprWaitForEvent(MprDispatcher *dispatcher, int timeout)
         }
         if (runEvents) {
             makeRunnable(dispatcher);
-            dispatchEvents(dispatcher);
+            if (dispatchEvents(dispatcher)) {
+                break;
+            }
         }
         lock(es);
         delay = getDispatcherIdleTime(dispatcher, expires - es->now);
@@ -400,7 +402,7 @@ void mprScheduleDispatcher(MprDispatcher *dispatcher)
 /*
     Dispatch events for a dispatcher. A dispatcher is ever only run on one thread, and so this code is single-threaded.
  */
-static void dispatchEvents(MprDispatcher *dispatcher)
+static int dispatchEvents(MprDispatcher *dispatcher)
 {
     MprEventService     *es;
     MprEvent            *event;
@@ -427,6 +429,7 @@ static void dispatchEvents(MprDispatcher *dispatcher)
         es->eventCount += count;
         mprWakeWaitService();
     }
+    return count;
 }
 
 

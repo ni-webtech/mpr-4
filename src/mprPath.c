@@ -255,9 +255,11 @@ char *mprGetCurrentPath()
     }
 }
 #elif BLD_WIN_LIKE
+{
     MprFileSystem   *fs;
     fs = mprLookupFileSystem(dir);
     mprMapSeparators(dir, fs->separators[0]);
+}
 #endif
     return sclone(dir);
 }

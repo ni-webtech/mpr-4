@@ -28,3 +28,5 @@ Once you have narrowed the scope:
 environment.
 
 6. If you find memory that is being corrupted, the allocator has two breakpoints that can be useful. The first is stopSeqno. All memory blocks have a sequence number. If stopSeqno is set to a valid sequence memory block sequence number, all accesses by the allocator to the block will cause mprBreakpoint to be invoked and to trap in the debugger. The second field is stopAlloc which can be set to the address of the memory block instead of the sequence number. This address of the memory block is the underlying MprMem structure which is equal to (ptr - sizeof(MprMem)). 
+
+7. Manual calls to mprVerifyMem() can help. This call will walk all memory blocks and verify the heap. It will trace to the stdout details about corrupted memory blocks.
