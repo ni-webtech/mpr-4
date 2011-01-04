@@ -1071,18 +1071,31 @@ void mprWakeGCService()
 
 void mprRequestGC(int flags)
 {
+    MprThread   *tp;
+    int         wasSticky;
+
     mprLog(7, "DEBUG: mprRequestGC");
+
+    tp = mprGetCurrentThread();
+    wasSticky = tp->stickyYield;
+    if (flags & MPR_COMPLETE_GC) {
+        mprYield(MPR_YIELD_STICKY);
+    }
+
     if ((flags & MPR_FORCE_GC) || (heap->newCount > heap->newQuota)) {
         heap->extraSweeps = (flags & MPR_COMPLETE_GC) ? 3 : 0;
-        if (!(heap->flags & MPR_OWN_GC)) {
-            mprSignalCond(heap->markerCond);
-        }
-        if (flags & MPR_WAIT_GC) {
-            mprYield(MPR_YIELD_BLOCK);
+        if (heap->flags & MPR_OWN_GC) {
+            mprGC(flags);
         } else {
-            mprYield(0);
+            mprSignalCond(heap->markerCond);
+            if (flags & MPR_WAIT_GC) {
+                mprYield(MPR_YIELD_BLOCK);
+            } else {
+                mprYield(0);
+            }
         }
     }
+    tp->stickyYield = wasSticky;
 }
 
 
@@ -1100,7 +1113,7 @@ static void synchronize()
     priorFree = heap->stats.bytesFree;
 
 #if BLD_MEMORY_STATS
-    mprLog(5, "GC Complete: MARKED %d/%d, SWEPT %d/%d, freed %d, bytesFree %d (before %d), newCount %d/%d \n",
+    mprLog(7, "GC Complete: MARKED %d/%d, SWEPT %d/%d, freed %d, bytesFree %d (before %d), newCount %d/%d \n",
            heap->stats.marked, heap->stats.markVisited,
            heap->stats.swept, heap->stats.sweepVisited, 
            (int) heap->stats.freed, (int) heap->stats.bytesFree, priorFree, oldCount, heap->newQuota);
@@ -1335,8 +1348,7 @@ static void marker(void *unused, MprThread *tp)
     tp->stickyYield = 1;
     tp->yielded = 1;
 
-    //  MOB - remove extraSweeps
-    while (!mprIsExiting() || heap->extraSweeps > 0) {
+    while (!mprIsStoppingCore()) {
         if (heap->extraSweeps <= 0) {
             mprWaitForCond(heap->markerCond, -1);
             mark();
@@ -1357,9 +1369,8 @@ static void sweeper(void *unused, MprThread *tp)
 {
     mprLog(5, "DEBUG: sweeper thread started");
 
-    //  MOB - remove extraSweeps
     MPR->sweeping = 1;
-    while (!mprIsExiting() || heap->extraSweeps > 0) {
+    while (!mprIsStoppingCore()) {
         sweep();
         mprYield(MPR_YIELD_BLOCK);
     }

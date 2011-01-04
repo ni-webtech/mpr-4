@@ -3872,9 +3872,10 @@ extern int mprStartModuleService();
 
 /**
     Stop the module service
+    @return True if all modules successfully stopped.
     @description This calls the stop entry point for all registered modules
  */
-extern void mprStopModuleService();
+extern int mprStopModuleService();
 
 /**
     Module start/stop point function signature
@@ -5264,7 +5265,7 @@ typedef struct MprWorkerService {
 
 extern MprWorkerService *mprCreateWorkerService();
 extern int mprStartWorkerService();
-extern bool mprStopWorkerService(int timeout);
+extern bool mprStopWorkerService();
 
 /**
     Get the count of available worker threads
@@ -5796,10 +5797,12 @@ extern int mprWriteCmdPipe(MprCmd *cmd, int channel, char *buf, int bufsize);
 /*
     Mpr flags
  */
-#define MPR_EXITING                 0x1     /* App is exiting */
-#define MPR_STOPPED                 0x2     /* Mpr services stopped */
-#define MPR_STARTED                 0x4     /* Mpr services started */
-#define MPR_SSL_PROVIDER_LOADED     0x8     /* SSL provider loaded */
+#define MPR_STARTED                 0x1      /* Mpr services started */
+#define MPR_STOPPING                0x2      /* App is stopping. Services should not take new requests */
+#define MPR_STOPPING_CORE           0x4      /* Stopping core services: GC and event dispatch */
+#define MPR_DESTROYING              0x8      /* Mpr object started self-destruction */
+#define MPR_FINISHED                0x10     /* Mpr object destroyed  */
+#define MPR_SSL_PROVIDER_LOADED     0x20     /* SSL provider loaded */
 
 /*
     Memory depletion policy (mprSetAllocPolicy)
@@ -5924,12 +5927,18 @@ extern bool mprDestroy(int flags);
  */
 extern int mprStart();
 
+#if UNUSED
 /**
     Stop the MPR and shutdown all services. After this call, the MPR cannot be used.
     @param mpr Mpr object created via mprCreate
     @return True if all services have been successfully stopped. Otherwise false.
  */
 extern bool mprStop();
+#endif
+
+//  MOB DOC
+extern bool mprIsStopping();
+extern bool mprIsStoppingCore();
 
 /**
     Determine if the MPR is exiting
@@ -5941,12 +5950,12 @@ extern bool mprStop();
 extern bool mprIsExiting();
 
 /**
-    Determine if the MPR has completed. This is true if the MPR services have been shutdown completely. This is typically
+    Determine if the MPR has finished. This is true if the MPR services have been shutdown completely. This is typically
     used to determine if the App has been gracefully shutdown.
     @returns True if the App has been instructed to exit and all the MPR services have completed.
     @retu
  */
-extern bool mprIsComplete();
+extern bool mprIsFinished();
 
 /**
     Determine if the MPR services.

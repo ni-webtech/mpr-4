@@ -73,10 +73,13 @@ bool mprStopThreadService(int timeout)
     MprThreadService    *ts;
 
     ts = MPR->threadService;
+#if UNUSED
+    //  MOB - moved to mprDestroy
     while (timeout > 0 && ts->threads->length > 1) {
         mprSleep(50);
         timeout -= 50;
     }
+#endif
     return ts->threads->length <= 1;
 }
 
@@ -594,7 +597,7 @@ int mprStartWorkerService()
 }
 
 
-bool mprStopWorkerService(int timeout)
+bool mprStopWorkerService()
 {
     MprWorkerService    *ws;
     MprWorker           *worker;
@@ -606,24 +609,13 @@ bool mprStopWorkerService(int timeout)
         mprRemoveEvent(ws->pruneTimer);
     }
     /*
-        Wait until all tasks and threads have exited
+        Wake up all idle threads. Busy threads take care of themselves. An idle thread will wakeup, exit and be 
+        removed from the busy list and then delete the thread. We progressively remove the last thread in the idle
+        list. ChangeState will move the threads to the busy queue.
      */
-    while (timeout > 0 && ws->numThreads > 0) {
-        /*
-            Wake up all idle threads. Busy threads take care of themselves. An idle thread will wakeup, exit and be 
-            removed from the busy list and then delete the thread. We progressively remove the last thread in the idle
-            list. ChangeState will move the threads to the busy queue.
-         */
-        for (next = -1; (worker = (MprWorker*) mprGetPrevItem(ws->idleThreads, &next)) != 0; ) {
-            changeState(worker, MPR_WORKER_BUSY);
-        }
-        mprUnlock(ws->mutex);
-        mprSleep(50);
-        timeout -= 50;
-        mprLock(ws->mutex);
+    for (next = -1; (worker = (MprWorker*) mprGetPrevItem(ws->idleThreads, &next)) != 0; ) {
+        changeState(worker, MPR_WORKER_BUSY);
     }
-    mprAssert(ws->idleThreads->length == 0);
-    mprAssert(ws->busyThreads->length == 0);
     mprUnlock(ws->mutex);
     return ws->numThreads == 0;
 }
@@ -921,7 +913,7 @@ static void workerMain(MprWorker *worker, MprThread *tp)
 
     mprLock(ws->mutex);
 
-    while (!(worker->state & MPR_WORKER_PRUNED) && !mprIsExiting()) {
+    while (!(worker->state & MPR_WORKER_PRUNED) && !mprIsStopping()) {
         if (worker->proc) {
             mprUnlock(ws->mutex);
             (*worker->proc)(worker->data, worker);

@@ -111,11 +111,6 @@ int mprStartSocketService()
 }
 
 
-void mprStopSocketService(MprSocketService *ss)
-{
-}
-
-
 static MprSocketProvider *createStandardProvider(MprSocketService *ss)
 {
     MprSocketProvider   *provider;

@@ -170,11 +170,17 @@ int mprServiceEvents(int timeout, int flags)
 
     do {
         eventCount = es->eventCount;
-        if (mprIsExiting()) {
-            if (mprIsComplete()) {
+        /* 
+            If stopping, switch to a short timeout. Keep servicing events until finished to allow upper level services 
+            to complete current requests.
+         */
+        if (mprIsStopping()) {
+            if (mprIsStoppingCore()) {
                 break;
             }
-            expires = min(expires, start + MPR_TIMEOUT_STOP);
+            if (!mprGetDebugMode()) {
+                expires = min(expires, start + MPR_TIMEOUT_STOP);
+            }
         }
         while ((dp = getNextReadyDispatcher(es)) != NULL) {
             serviceDispatcher(dp);
@@ -243,11 +249,17 @@ int mprWaitForEvent(MprDispatcher *dispatcher, int timeout)
     unlock(es);
 
     do {
-        if (mprIsExiting()) {
-            if (mprIsComplete()) {
+        /* 
+            If stopping, switch to a short timeout. Keep servicing events until finished to allow upper level services 
+            to complete current requests.
+         */
+        if (mprIsStopping()) {
+            if (mprIsStoppingCore()) {
                 break;
             }
-            expires = min(expires, start + MPR_TIMEOUT_STOP);
+            if (!mprGetDebugMode()) {
+                expires = min(expires, start + MPR_TIMEOUT_STOP);
+            }
         }
         if (runEvents) {
             makeRunnable(dispatcher);
@@ -268,7 +280,7 @@ int mprWaitForEvent(MprDispatcher *dispatcher, int timeout)
         dispatcher->waitingOnCond = 0;
         mprResetYield();
         es->now = mprGetTime();
-    } while (es->now < expires && !mprIsComplete());
+    } while (es->now < expires && !mprIsFinished());
 
     if (!wasRunning) {
         scheduleDispatcher(dispatcher);
@@ -507,7 +519,7 @@ static MprTime getIdleTime(MprEventService *es, MprTime timeout)
 
     if (readyQ->next != readyQ) {
         delay = 0;
-    } else if (mprIsExiting()) {
+    } else if (mprIsStoppingCore()) {
         delay = 10;
     } else {
         delay = MPR_MAX_TIMEOUT;

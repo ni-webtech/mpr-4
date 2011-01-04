@@ -86,21 +86,25 @@ int mprStartModuleService()
 /*
     Stop all modules
  */
-void mprStopModuleService()
+int mprStopModuleService()
 {
     MprModuleService    *ms;
     MprModule           *mp;
-    int                 next;
+    int                 next, stopped;
 
+    stopped = 1;
     ms = MPR->moduleService;
     mprAssert(ms);
     mprLock(ms->mutex);
     for (next = 0; (mp = mprGetNextItem(ms->modules, &next)) != 0; ) {
         if (mp->stop) {
-            mp->stop(mp);
+            if (mp->stop(mp) < 0) {
+                stopped = 0;
+            }
         }
     }
     mprUnlock(ms->mutex);
+    return stopped;
 }
 
 
