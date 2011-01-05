@@ -1120,7 +1120,6 @@ static void synchronize()
 #endif
     heap->mustYield = 1;
     if (heap->notifier) {
-        mprLog(4, "DEBUG: Call notifier");
         (heap->notifier)(MPR_MEM_YIELD, 0);
     }
     if (mprSyncThreads(MPR_TIMEOUT_GC_SYNC * 100)) {

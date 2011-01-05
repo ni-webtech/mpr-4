@@ -95,10 +95,14 @@ typedef struct Format {
     } else 
 
 /*
-    Just for Ejscript to be able to do %N and %S
+    Just for Ejscript to be able to do %N and %S. THIS MUST MATCH EjsString in ejs.h
  */
 typedef struct MprEjsString {
+    void            *xtype;
+#if BLD_DEBUG
+    char            *kind;
     void            *type;
+#endif
     void            *next;
     void            *prev;
     ssize           length;
