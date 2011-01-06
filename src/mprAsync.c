@@ -112,6 +112,7 @@ void mprWaitForIO(MprWaitService *ws, int timeout)
 
         mprYield(MPR_YIELD_STICKY);
         if (GetMessage(&msg, NULL, 0, 0) == 0) {
+            mprResetYield();
             mprTerminate(1);
         } else {
             mprResetYield();

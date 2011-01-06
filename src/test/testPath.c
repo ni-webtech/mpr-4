@@ -57,7 +57,6 @@ static void manageTestPath(TestPath *tp, int flags)
     if (flags & MPR_MANAGE_MARK) {
         mprMark(tp->dir1);
         mprMark(tp->dir2);
-    } else if (flags & MPR_MANAGE_FREE) {
     }
 }
 

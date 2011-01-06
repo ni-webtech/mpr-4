@@ -36,7 +36,6 @@ static void manageTestCmd(TestCmd *tc, int flags)
         mprMark(tc->cmd);
         mprMark(tc->buf);
         mprMark(tc->program);
-    } else if (flags & MPR_MANAGE_FREE) {
     }
 }
 

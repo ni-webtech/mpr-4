@@ -610,11 +610,11 @@ typedef struct MprMem {
 
             prior | last << 1 | hasManager
      */
-#if DEBUG_IDE && BLD_CC_UNNAMED_UNIONS
+#if UNUSED && DEBUG_IDE && BLD_CC_UNNAMED_UNIONS
     union {
 #endif
         size_t      field1;                     /**< Pointer to adjacent, prior block in memory with last, manager fields */
-#if DEBUG_IDE && BLD_CC_UNNAMED_UNIONS
+#if UNUSED && DEBUG_IDE && BLD_CC_UNNAMED_UNIONS
         struct {
             uint    hasManager: 1;
             uint    last: 1;
@@ -628,11 +628,11 @@ typedef struct MprMem {
         lock-free manner.
             gen/2 << 30 | isFree << 29 | size/29 | mark/2
      */ 
-#if DEBUG_IDE && BLD_CC_UNNAMED_UNIONS
+#if UNUSED && DEBUG_IDE && BLD_CC_UNNAMED_UNIONS
     union {
 #endif
         size_t      field2;                   /**< Internal block length including header with gen and mark fields */
-#if DEBUG_IDE && BLD_CC_UNNAMED_UNIONS
+#if UNUSED && DEBUG_IDE && BLD_CC_UNNAMED_UNIONS
         struct {
             ssize   size: MPR_BITS - 3;       /**< This size field will have low order bits set from "mark" */
             uint    padding: 3;
@@ -711,7 +711,7 @@ typedef struct MprMem {
 /*
     Flags for MprMemNotifier
  */
-#define MPR_MEM_YIELD               0x2         /**< GC complete, threads must yield to sync new generation */
+#define MPR_MEM_ATTENTION           0x2         /**< GC needs attention, threads should yield */
 #define MPR_MEM_LOW                 0x4         /**< Memory is low, no errors yet */
 #define MPR_MEM_DEPLETED            0x8         /**< Memory depleted. Cannot satisfy current request */
 
@@ -840,6 +840,8 @@ typedef struct MprHeap {
     int              newQuota;               /**< Quota of new allocations before idle GC worthwhile */
     int              nextSeqno;              /**< Next sequence number */
     int              pageSize;               /**< System page size */
+    int              priorNewCount;          /**< Last sweep new count */
+    int              priorFree;              /**< Last sweep free memory */
     int              rootIndex;              /**< Marker root scan index */
     int              verify;                 /**< Verify memory contents (slow) */
 } MprHeap;
@@ -1248,7 +1250,6 @@ extern void mprDestroyGCService();
 extern void mprMarkBlock(cvoid *ptr);
 extern void mprResumeThreads();
 extern int  mprSyncThreads(int timeout);
-extern int  mprWaitForSync();
 
 /******************************************************* Safe Strings ******************************************************/
 /**
@@ -2818,7 +2819,7 @@ extern void mprMemoryError(cchar *fmt, ...);
 extern void mprSetLogHandler(MprLogHandler handler, void *handlerData);
 
 /*
-    Optimized calling sequence.
+    Optimized calling sequence
  */
 #if BLD_DEBUG
 #define LOG mprLog
@@ -5531,6 +5532,7 @@ typedef struct MprCmdFile {
  */
 typedef struct MprCmd {
     char            *program;           /* Program path name */
+    char            **makeArgv;         /* Allocated argv */ 
     char            **argv;             /* List of args. Null terminated */
     char            **env;              /* List of environment variables. Null terminated */
     char            *dir;               /* Current working dir for the process */
@@ -5792,6 +5794,8 @@ extern void mprPollCmdPipes(MprCmd *cmd, int timeout);
     @ingroup MprCmd
  */
 extern int mprWriteCmdPipe(MprCmd *cmd, int channel, char *buf, int bufsize);
+
+extern int mprIsCmdComplete(MprCmd *cmd);
 
 /********************************************************** MPR ************************************************************/
 /*

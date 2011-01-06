@@ -34,7 +34,6 @@ static void manageTestEvent(TestEvent *te, int flags)
 {
     if (flags & MPR_MANAGE_MARK) {
         mprMark(te->event);
-    } else if (flags & MPR_MANAGE_FREE) {
     }
 }
 

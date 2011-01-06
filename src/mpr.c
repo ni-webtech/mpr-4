@@ -297,28 +297,27 @@ bool mprIsIdle()
  */
 int mprMakeArgv(cchar *program, cchar *cmd, int *argcp, char ***argvp)
 {
-    char        *cp, **argv, *buf, *args;
+    char        *cp, **argv, *vector, *args;
     ssize       size;
     int         argc;
 
     /*
-        Allocate one buffer for argv and the actual args themselves
+        Allocate one vector for argv and the actual args themselves
      */
     size = strlen(cmd) + 1;
 
-    buf = (char*) mprAlloc((MPR_MAX_ARGC * sizeof(char*)) + size);
-    if (buf == 0) {
+    vector = (char*) mprAlloc((MPR_MAX_ARGC * sizeof(char*)) + size);
+    if (vector == 0) {
         return MPR_ERR_MEMORY;
     }
-    args = &buf[MPR_MAX_ARGC * sizeof(char*)];
+    args = &vector[MPR_MAX_ARGC * sizeof(char*)];
     strcpy(args, cmd);
-    argv = (char**) buf;
+    argv = (char**) vector;
 
     argc = 0;
     if (program) {
         argv[argc++] = (char*) sclone(program);
     }
-
     for (cp = args; cp && *cp != '\0'; argc++) {
         if (argc >= MPR_MAX_ARGC) {
             mprAssert(argc < MPR_MAX_ARGC);
@@ -356,7 +355,6 @@ int mprMakeArgv(cchar *program, cchar *cmd, int *argcp, char ***argvp)
         *argcp = argc;
     }
     *argvp = argv;
-
     return argc;
 }
 

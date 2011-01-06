@@ -41,6 +41,7 @@ extern "C" {
     #define MPR_MAX_URL             512           /**< Max URL size. Also request URL size. */
     #define MPR_DEFAULT_STACK       (64 * 1024)   /**< Default thread stack size (64K) */
     #define MPR_MAX_STRING          1024          /**< Maximum (stack) string size */
+    #define MPR_MAX_LOG             (8 * 1024)    /**< Maximum log message size (impacts stack) */
     #define MPR_DEFAULT_ALLOC       64            /**< Default small alloc size */
     #define MPR_DEFAULT_HASH_SIZE   23            /**< Default size of hash table */ 
     #define MPR_MAX_ARGC            128           /**< Reasonable max of args */
@@ -69,6 +70,7 @@ extern "C" {
     #define MPR_MAX_URL             2048
     #define MPR_DEFAULT_STACK       (128 * 1024)
     #define MPR_MAX_STRING          2048
+    #define MPR_MAX_LOG             (32 * 1024)
     #define MPR_DEFAULT_ALLOC       256
     #define MPR_DEFAULT_HASH_SIZE   43
     #define MPR_MAX_ARGC            256
@@ -95,6 +97,7 @@ extern "C" {
     #define MPR_MAX_PATH            2048
     #define MPR_MAX_URL             4096
     #define MPR_DEFAULT_STACK       (256 * 1024)
+    #define MPR_MAX_LOG             (64 * 1024)
     #define MPR_MAX_STRING          4096
     #define MPR_DEFAULT_ALLOC       512
     #define MPR_DEFAULT_HASH_SIZE   97

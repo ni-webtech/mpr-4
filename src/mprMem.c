@@ -151,10 +151,12 @@ static void marker(void *unused, MprThread *tp);
 static void markRoots();
 static int memoryNotifier(int flags, ssize size);
 static void nextGen();
+static void ownGC(int flags);
 static MprMem *searchFree(ssize size, int flags);
 static void sweep();
 static void sweeper(void *unused, MprThread *tp);
 static void synchronize();
+static int syncThreads(int timeout);
 static void unlinkBlock(MprFreeMem *fp);
 
 #if BLD_WIN_LIKE
@@ -173,8 +175,7 @@ static void unlinkBlock(MprFreeMem *fp);
     static void printQueueStats();
     static void printGCStats();
 #endif
-
-#if MALLOC
+#if USE_MALLOC
 #define mprVirtAlloc(size, flags) malloc(size)
 #define mprVirtFree(ptr, size) free(ptr)
 #endif
@@ -681,19 +682,20 @@ mprAssert(!IS_FREE(mp));
                 heap->gc = 1;
                 if (heap->flags & MPR_MARK_THREAD) {
                     mprSignalCond(heap->markerCond);
+                } else if (heap->flags & MPR_OWN_GC && heap->notifier) {
+                    (heap->notifier)(MPR_MEM_ATTENTION, 0);
                 }
             }
             lockHeap();
         }
     }
-#if UNUSED
-    mprPrintMem("NEED ALLOC", 1);
-#endif
     unlockHeap();
     if (!heap->gc && heap->newCount > heap->newQuota) {
         heap->gc = 1;
         if (heap->flags & MPR_MARK_THREAD) {
             mprSignalCond(heap->markerCond);
+        } else if (heap->flags & MPR_OWN_GC && heap->notifier) {
+            (heap->notifier)(MPR_MEM_ATTENTION, 0);
         }
     }
     return NULL;
@@ -1040,7 +1042,7 @@ void mprStartGCService()
 {
     if (heap->enabled) {
         if (heap->flags & MPR_MARK_THREAD) {
-            mprLog(7, "DEBUG: startMemWorkers: start marker");
+            LOG(7, "DEBUG: startMemWorkers: start marker");
             if ((heap->marker = mprCreateThread("marker", marker, NULL, 0)) == 0) {
                 mprError("Can't create marker thread");
                 MPR->hasError = 1;
@@ -1049,7 +1051,7 @@ void mprStartGCService()
             }
         }
         if (heap->flags & MPR_SWEEP_THREAD) {
-            mprLog(7, "DEBUG: startMemWorkers: start sweeper");
+            LOG(7, "DEBUG: startMemWorkers: start sweeper");
             heap->hasSweeper = 1;
             if ((heap->sweeper = mprCreateThread("sweeper", sweeper, NULL, 0)) == 0) {
                 mprError("Can't create sweeper thread");
@@ -1074,7 +1076,7 @@ void mprRequestGC(int flags)
     MprThread   *tp;
     int         wasSticky;
 
-    mprLog(7, "DEBUG: mprRequestGC");
+    LOG(7, "DEBUG: mprRequestGC");
 
     tp = mprGetCurrentThread();
     wasSticky = tp->stickyYield;
@@ -1085,7 +1087,7 @@ void mprRequestGC(int flags)
     if ((flags & MPR_FORCE_GC) || (heap->newCount > heap->newQuota)) {
         heap->extraSweeps = (flags & MPR_COMPLETE_GC) ? 3 : 0;
         if (heap->flags & MPR_OWN_GC) {
-            mprGC(flags);
+            ownGC(flags);
         } else {
             mprSignalCond(heap->markerCond);
             if (flags & MPR_WAIT_GC) {
@@ -1106,29 +1108,22 @@ void mprRequestGC(int flags)
  */
 static void synchronize()
 {
-    ssize       priorFree;
-    int         oldCount;
-
-    oldCount = heap->newCount;
-    priorFree = heap->stats.bytesFree;
-
 #if BLD_MEMORY_STATS
-    mprLog(7, "GC Complete: MARKED %d/%d, SWEPT %d/%d, freed %d, bytesFree %d (before %d), newCount %d/%d \n",
-           heap->stats.marked, heap->stats.markVisited,
-           heap->stats.swept, heap->stats.sweepVisited, 
-           (int) heap->stats.freed, (int) heap->stats.bytesFree, priorFree, oldCount, heap->newQuota);
+    LOG(7, "synchronize: MARKED %d/%d, SWEPT %d/%d, freed %d, bytesFree %d (prior %d), newCount %d/%d",
+           heap->stats.marked, heap->stats.markVisited, heap->stats.swept, heap->stats.sweepVisited, 
+           (int) heap->stats.freed, (int) heap->stats.bytesFree, heap->priorFree, heap->priorNewCount, heap->newQuota);
 #endif
     heap->mustYield = 1;
     if (heap->notifier) {
-        (heap->notifier)(MPR_MEM_YIELD, 0);
+        (heap->notifier)(MPR_MEM_ATTENTION, 0);
     }
-    if (mprSyncThreads(MPR_TIMEOUT_GC_SYNC * 100)) {
-        mprLog(7, "DEBUG: GC Advance generation");
+    if (syncThreads(MPR_TIMEOUT_GC_SYNC)) {
+        LOG(7, "synchronize: advance generation, active %d, stale %d, dead %d", heap->active, heap->stale, heap->dead);
         nextGen();
         heap->mustYield = 0;
         mprResumeThreads();
     } else {
-        mprLog(7, "DEBUG: Pause for GC sync timed out");
+        LOG(7, "DEBUG: Pause for GC sync timed out");
         heap->mustYield = 0;
         mprResumeThreads();
     }
@@ -1137,16 +1132,20 @@ static void synchronize()
 
 static void mark()
 {
-    mprLog(5, "DEBUG: mark started");
+    LOG(5, "DEBUG: mark started");
 
-    heap->gc = 0;
+    heap->priorNewCount = heap->newCount;
+    heap->priorFree = (int) heap->stats.bytesFree;
     heap->newCount = 0;
-
+    heap->gc = 0;
     markRoots();
     if (!heap->hasSweeper) {
         sweep();
     }
     synchronize();
+    if (heap->priorNewCount > 25000) {
+        heap->extraSweeps = 2;
+    }
 }
 
 
@@ -1165,10 +1164,10 @@ static void sweep()
     MprManager  mgr;
     
     if (!heap->enabled) {
-        mprLog(7, "DEBUG: sweep: Abort sweep - GC disabled");
+        LOG(7, "DEBUG: sweep: Abort sweep - GC disabled");
         return;
     }
-    mprLog(5, "DEBUG: sweep started");
+    LOG(5, "DEBUG: sweep started");
     heap->stats.freed = 0;
 
     /*
@@ -1243,7 +1242,7 @@ static void sweep()
                     mprAssert(rp != NULL);
                 }
             }
-            mprLog(5, "DEBUG: Unpin %p to %p size %d", region, ((char*) region) + region->size, region->size);
+            LOG(5, "DEBUG: Unpin %p to %p size %d", region, ((char*) region) + region->size, region->size);
             mprVirtFree(region, region->size);
         } else {
             prior = region;
@@ -1312,6 +1311,7 @@ void mprMarkBlock(cvoid *ptr)
 }
 
 
+//  MOB - these are dangerous as they don't hold component allocations
 void mprHold(void *ptr)
 {
     MprMem  *mp;
@@ -1342,7 +1342,7 @@ void mprRelease(void *ptr)
  */
 static void marker(void *unused, MprThread *tp)
 {
-    mprLog(5, "DEBUG: marker thread started");
+    LOG(5, "DEBUG: marker thread started");
     MPR->marking = 1;
     tp->stickyYield = 1;
     tp->yielded = 1;
@@ -1366,7 +1366,7 @@ static void marker(void *unused, MprThread *tp)
  */
 static void sweeper(void *unused, MprThread *tp) 
 {
-    mprLog(5, "DEBUG: sweeper thread started");
+    LOG(5, "DEBUG: sweeper thread started");
 
     MPR->sweeping = 1;
     while (!mprIsStoppingCore()) {
@@ -1377,13 +1377,11 @@ static void sweeper(void *unused, MprThread *tp)
 }
 
 
-
-
 /*
     Called by user code to signify the thread is ready for GC and all object references are saved. 
     If the GC marker is synchronizing, this call will block at the GC sync point (should be brief).
  */
-void mprGC(int flags)
+static void ownGC(int flags)
 {
     MprThread   *tp;
     int         sweeps, i;
@@ -1400,8 +1398,8 @@ void mprGC(int flags)
     lockHeap();
     if (heap->collecting) {
         unlockHeap();
-        while (tp->yielded && mprWaitForSync()) {
-            mprLog(7, "mprYieldThread %s must wait", tp->name);
+        while (tp->yielded && heap->mustYield) {
+            LOG(7, "mprYieldThread %s must wait", tp->name);
             mprWaitForCond(tp->cond, -1);
         }
     } else {
@@ -1428,19 +1426,16 @@ void mprYield(int flags)
     MprThread   *tp;
 
     tp = mprGetCurrentThread();
-    mprLog(7, "mprYield %s yielded was %d, block %d", tp->name, tp->yielded, flags & MPR_YIELD_BLOCK);
+    LOG(7, "mprYield thread \"%s\" yielded was %d, block %d", tp->name, tp->yielded, flags & MPR_YIELD_BLOCK);
     tp->yielded = 1;
     if (flags & MPR_YIELD_STICKY) {
         tp->stickyYield = 1;
     }
-    /*
-        Wake the marker to check if all threads are yielded and wait for the all clear
-     */
-    if (heap->flags & MPR_MARK_THREAD) {
-        mprSignalCond(MPR->threadService->cond);
-    }
-    while (tp->yielded && (mprWaitForSync() || (flags & MPR_YIELD_BLOCK))) {
-        mprLog(7, "mprYieldThread %s must wait", tp->name);
+    while (tp->yielded && (heap->mustYield || (flags & MPR_YIELD_BLOCK))) {
+        if (heap->flags & MPR_MARK_THREAD) {
+            mprSignalCond(MPR->threadService->cond);
+        }
+        LOG(7, "mprYieldThread thread \"%s\" must wait", tp->name);
         mprWaitForCond(tp->cond, -1);
         if (heap->extraSweeps <= 0) {
             flags &= ~MPR_YIELD_BLOCK;
@@ -1465,7 +1460,7 @@ void mprResetYield()
 /*
     Pause until all threads have yielded. Called by the GC marker only.
  */
-int mprSyncThreads(int timeout)
+static int syncThreads(int timeout)
 {
     MprThreadService    *ts;
     MprThread           *tp;
@@ -1473,9 +1468,11 @@ int mprSyncThreads(int timeout)
     int                 i, allYielded;
 
     ts = MPR->threadService;
-    mprLog(7, "mprSyncThreads timeout %d", timeout);
+    LOG(7, "syncThreads: wait for threads to yield, timeout %d", timeout);
     mark = mprGetTime();
-
+    if (mprGetDebugMode()) {
+        timeout = timeout * 500;
+    }
     do {
         allYielded = 1;
         mprLock(ts->mutex);
@@ -1490,13 +1487,13 @@ int mprSyncThreads(int timeout)
         if (allYielded) {
             break;
         }
-        mprLog(7, "mprSyncThreads: waiting for threads to yield");
-        mprWaitForCond(ts->cond, 10);
+        LOG(7, "syncThreads: waiting for threads to yield");
+        mprWaitForCond(ts->cond, 20);
 
     } while (!allYielded && mprGetElapsedTime(mark) < timeout);
 
     mprAssert(allYielded);
-    mprLog(6, "mprSyncThreads: complete %d", allYielded);
+    LOG(7, "syncThreads: all yielded %d", allYielded);
     return (allYielded) ? 1 : 0;
 }
 
@@ -1511,7 +1508,7 @@ void mprResumeThreads()
     int                 i;
 
     ts = MPR->threadService;
-    mprLog(7, "mprResumeThreadsAfterGC sync");
+    LOG(7, "mprResumeThreadsAfterGC sync");
 
     mprLock(ts->mutex);
     for (i = 0; i < ts->threads->length; i++) {
@@ -1593,13 +1590,6 @@ void mprRevive(cvoid *ptr)
 
     mp = GET_MEM(ptr);
     SET_GEN(mp, heap->active);
-}
-
-
-
-int mprWaitForSync()
-{
-    return heap->mustYield;
 }
 
 

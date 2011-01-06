@@ -711,6 +711,10 @@ char *ssub(char *str, ssize offset, ssize len)
 }
 
 
+/*
+    WARNING: this modifies the original string
+    MOB -- should this allocate a new string -- probably
+ */
 char *strim(char *str, cchar *set, int where)
 {
     ssize   len;

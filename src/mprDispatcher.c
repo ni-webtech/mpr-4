@@ -345,6 +345,7 @@ void mprRelayEvent(MprDispatcher *dispatcher, MprEventProc proc, void *data, Mpr
     makeRunnable(dispatcher);
     (proc)(data, event);
     scheduleDispatcher(dispatcher);
+    dispatcher->owner = 0;
 }
 
 

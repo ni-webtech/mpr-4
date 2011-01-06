@@ -99,6 +99,7 @@ static void manageCmd(MprCmd *cmd, int flags)
     if (flags & MPR_MANAGE_MARK) {
         mprMark(cmd->dir);
         mprMark(cmd->env);
+        mprMark(cmd->makeArgv);
         mprMark(cmd->program);
         mprMark(cmd->stdoutBuf);
         mprMark(cmd->stderrBuf);
@@ -113,9 +114,12 @@ static void manageCmd(MprCmd *cmd, int flags)
                 mprMark(cmd->env);
             }
         }
+        lock(cmd);
         for (i = 0; i < MPR_CMD_MAX_PIPE; i++) {
             mprMark(cmd->handlers[i]);
         }
+        unlock(cmd);
+
     } else if (flags & MPR_MANAGE_FREE) {
         cs = MPR->cmdService;
         lock(cs);
@@ -245,6 +249,12 @@ void mprCloseCmdFd(MprCmd *cmd, int channel)
 }
 
 
+int mprIsCmdComplete(MprCmd *cmd)
+{
+    return cmd->eofCount >= cmd->requiredEof;
+}
+
+
 /*
     Run a simple blocking command. See arg usage below in mprRunCmdV.
  */
@@ -256,6 +266,7 @@ int mprRunCmd(MprCmd *cmd, cchar *command, char **out, char **err, int flags)
     if (mprMakeArgv(NULL, command, &argc, &argv) < 0 || argv == 0) {
         return 0;
     }
+    cmd->makeArgv = argv;
     return mprRunCmdV(cmd, argc, argv, out, err, flags);
 }
 
@@ -320,6 +331,7 @@ int mprRunCmdV(MprCmd *cmd, int argc, char **argv, char **out, char **err, int f
     unlock(cmd);
 
     if (mprWaitForCmd(cmd, -1) < 0) {
+        mprRemoveRoot(cmd);
         return MPR_ERR_NOT_READY;
     }
     lock(cmd);
@@ -682,7 +694,10 @@ int mprWaitForCmd(MprCmd *cmd, int timeout)
 #else
         delay = remaining;
 #endif
+        /* Add root to allow callers to use mprRunCmd without managing the cmd */
+        mprAddRoot(cmd);
         mprWaitForEvent(cmd->dispatcher, (int) delay);
+        mprRemoveRoot(cmd);
         remaining = (expires - mprGetTime());
     } while (cmd->pid && remaining >= 0);
 
@@ -930,6 +945,8 @@ void mprSetCmdDir(MprCmd *cmd, cchar *dir)
  */
 static int sanitizeArgs(MprCmd *cmd, int argc, char **argv, char **env)
 {
+    char        **envp;
+
 #if VXWORKS
     cmd->argv = argv;
     cmd->argc = argc;
@@ -948,7 +965,7 @@ static int sanitizeArgs(MprCmd *cmd, int argc, char **argv, char **env)
         for (i = 0; env && env[i]; i++) {
             mprLog(6, "cmd: env[%d]: %s", i, env[i]);
         }
-        if ((cmd->env = mprAlloc((i + 3) * sizeof(char*))) == NULL) {
+        if ((envp = mprAlloc((i + 3) * sizeof(char*))) == NULL) {
             return MPR_ERR_MEMORY;
         }
         hasPath = hasLibPath = 0;
@@ -959,25 +976,26 @@ static int sanitizeArgs(MprCmd *cmd, int argc, char **argv, char **env)
             } else if  (strncmp(env[i], LD_LIBRARY_PATH "=", 16) == 0) {
                 hasLibPath++;
             }
-            cmd->env[index++] = env[i];
+            envp[index++] = env[i];
         }
 
         /*
             Add PATH and LD_LIBRARY_PATH 
          */
         if (!hasPath && (cp = getenv("PATH")) != 0) {
-            cmd->env[index++] = mprAsprintf("PATH=%s", cp);
+            envp[index++] = mprAsprintf("PATH=%s", cp);
         }
         if (!hasLibPath && (cp = getenv(LD_LIBRARY_PATH)) != 0) {
-            cmd->env[index++] = mprAsprintf("%s=%s", LD_LIBRARY_PATH, cp);
+            envp[index++] = mprAsprintf("%s=%s", LD_LIBRARY_PATH, cp);
         }
-        cmd->env[index++] = '\0';
+        envp[index++] = '\0';
         for (i = 0; i < argc; i++) {
             mprLog(4, "cmd: arg[%d]: %s", i, argv[i]);
         }
-        for (i = 0; cmd->env[i]; i++) {
-            mprLog(4, "cmd: env[%d]: %s", i, cmd->env[i]);
+        for (i = 0; envp[i]; i++) {
+            mprLog(4, "cmd: env[%d]: %s", i, envp[i]);
         }
+        cmd->env = envp;
     }
 #endif
 

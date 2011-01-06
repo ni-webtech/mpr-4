@@ -42,6 +42,7 @@ MprWaitService *mprCreateWaitService()
 
 static void manageWaitService(MprWaitService *ws, int flags)
 {
+    lock(ws);
     if (flags & MPR_MANAGE_MARK) {
         mprMark(ws->handlers);
         mprMark(ws->handlerMap);
@@ -63,6 +64,7 @@ static void manageWaitService(MprWaitService *ws, int flags)
 #if MPR_EVENT_SELECT
     mprManageSelect(ws, flags);
 #endif
+    unlock(ws);
 }
 
 
@@ -122,7 +124,11 @@ MprWaitHandler *mprCreateWaitHandler(int fd, int mask, MprDispatcher *dispatcher
 static void manageWaitHandler(MprWaitHandler *wp, int flags)
 {
     if (flags & MPR_MANAGE_MARK) {
-        ;
+        mprMark(wp->thread);
+        mprMark(wp->callbackComplete);
+        mprMark(wp->requiredWorker);
+        mprMark(wp->handlerData);
+
     } else if (flags & MPR_MANAGE_FREE) {
         mprRemoveWaitHandler(wp);
     }

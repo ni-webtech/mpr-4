@@ -109,8 +109,6 @@ static void manageApp(App *app, int flags)
     if (flags & MPR_MANAGE_MARK) {
         mprMark(app->complete);
         mprMark(app->mutex);
-
-    } else if (flags & MPR_MANAGE_FREE) {
     }
 }
 

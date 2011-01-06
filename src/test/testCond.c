@@ -31,7 +31,6 @@ static void manageTestCond(TestCond *tc, int flags)
     if (flags & MPR_MANAGE_MARK) {
         mprMark(tc->cond);
         mprMark(tc->event);
-    } else if (flags & MPR_MANAGE_FREE) {
     }
 }
 

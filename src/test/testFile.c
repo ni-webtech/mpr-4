@@ -52,7 +52,6 @@ static void manageTestFile(TestFile *tf, int flags)
 {
     if (flags & MPR_MANAGE_MARK) {
         mprMark(tf->name);
-    } else if (flags & MPR_MANAGE_FREE) {
     }
 }
 

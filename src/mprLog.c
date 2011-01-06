@@ -33,18 +33,21 @@ void mprBreakpoint()
 void mprLog(int level, cchar *fmt, ...)
 {
     va_list     args;
-    char        *buf;
+    char        buf[MPR_MAX_LOG];
 
     if (level > mprGetLogLevel()) {
         return;
     }
     va_start(args, fmt);
-    buf = mprAsprintfv(fmt, args);
+    mprSprintfv(buf, sizeof(buf), fmt, args);
     va_end(args);
     logOutput(MPR_LOG_SRC, level, buf);
 }
 
 
+/*
+    RawLog will call alloc. 
+ */
 void mprRawLog(int level, cchar *fmt, ...)
 {
     va_list     args;
@@ -64,10 +67,10 @@ void mprRawLog(int level, cchar *fmt, ...)
 void mprError(cchar *fmt, ...)
 {
     va_list     args;
-    char        *buf;
+    char        buf[MPR_MAX_LOG];
 
     va_start(args, fmt);
-    buf = mprAsprintfv(fmt, args);
+    mprSprintfv(buf, sizeof(buf), fmt, args);
     va_end(args);
     
     logOutput(MPR_ERROR_MSG | MPR_ERROR_SRC, 0, buf);
@@ -78,13 +81,13 @@ void mprError(cchar *fmt, ...)
 void mprMemoryError(cchar *fmt, ...)
 {
     va_list     args;
-    char        *buf;
+    char        buf[MPR_MAX_LOG];
 
     if (fmt == 0) {
         logOutput(MPR_ERROR_MSG | MPR_ERROR_SRC, 0, "Memory allocation error");
     } else {
         va_start(args, fmt);
-        buf = mprAsprintfv(fmt, args);
+        mprSprintfv(buf, sizeof(buf), fmt, args);
         va_end(args);
         logOutput(MPR_ERROR_MSG | MPR_ERROR_SRC, 0, buf);
     }
@@ -94,10 +97,10 @@ void mprMemoryError(cchar *fmt, ...)
 void mprUserError(cchar *fmt, ...)
 {
     va_list     args;
-    char        *buf;
+    char        buf[MPR_MAX_LOG];
 
     va_start(args, fmt);
-    buf = mprAsprintfv(fmt, args);
+    mprSprintfv(buf, sizeof(buf), fmt, args);
     va_end(args);
     
     logOutput(MPR_USER_MSG | MPR_ERROR_SRC, 0, buf);
@@ -107,10 +110,10 @@ void mprUserError(cchar *fmt, ...)
 void mprFatalError(cchar *fmt, ...)
 {
     va_list     args;
-    char        *buf;
+    char        buf[MPR_MAX_LOG];
 
     va_start(args, fmt);
-    buf = mprAsprintfv(fmt, args);
+    mprSprintfv(buf, sizeof(buf), fmt, args);
     va_end(args);
     
     logOutput(MPR_USER_MSG | MPR_FATAL_SRC, 0, buf);
@@ -124,20 +127,21 @@ void mprFatalError(cchar *fmt, ...)
 void mprStaticError(cchar *fmt, ...)
 {
     va_list     args;
-    char        msg[MPR_MAX_STRING];
+    char        buf[MPR_MAX_LOG];
 
     va_start(args, fmt);
+    //  MOB - revert bback to mprSprintf when it doesn't use malloc
 #if BLD_UNIX_LIKE
-    vsnprintf(msg, sizeof(msg), fmt, args);
+    vsnprintf(buf, sizeof(buf), fmt, args);
 #else
-    vsprintf(msg, fmt, args);
+    vsprintf(buf, fmt, args);
 #endif
     va_end(args);
 #if BLD_UNIX_LIKE || VXWORKS
-    (void) write(2, (char*) msg, strlen(msg));
+    (void) write(2, (char*) buf, strlen(buf));
     (void) write(2, (char*) "\n", 1);
 #elif BLD_WIN_LIKE
-    fprintf(stderr, "%s\n", msg);
+    fprintf(stderr, "%s\n", buf);
 #endif
     mprBreakpoint();
 }
@@ -149,7 +153,7 @@ void mprStaticError(cchar *fmt, ...)
 void mprAssertError(cchar *loc, cchar *msg)
 {
 #if BLD_FEATURE_ASSERT
-    char    buf[MPR_MAX_STRING];
+    char    buf[MPR_MAX_LOG];
 
     if (loc) {
 #if BLD_UNIX_LIKE

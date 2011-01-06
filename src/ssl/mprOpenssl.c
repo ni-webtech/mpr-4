@@ -184,7 +184,6 @@ static void manageOpenProvider(MprSocketProvider *provider, int flags)
 {
     if (flags & MPR_MANAGE_MARK) {
         mprMark(provider->defaultSsl);
-    } else if (flags & MPR_MANAGE_FREE) {
     }
 }
 
