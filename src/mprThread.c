@@ -70,17 +70,7 @@ static void manageThreadService(MprThreadService *ts, int flags)
 
 bool mprStopThreadService(int timeout)
 {
-    MprThreadService    *ts;
-
-    ts = MPR->threadService;
-#if UNUSED
-    //  MOB - moved to mprDestroy
-    while (timeout > 0 && ts->threads->length > 1) {
-        mprSleep(50);
-        timeout -= 50;
-    }
-#endif
-    return ts->threads->length <= 1;
+    return MPR->threadService->threads->length <= 1;
 }
 
 
@@ -923,6 +913,7 @@ static void workerMain(MprWorker *worker, MprThread *tp)
         changeState(worker, MPR_WORKER_SLEEPING);
 
         //  MOB -- is this used?
+        mprAssert(worker->cleanup == 0);
         if (worker->cleanup) {
             (*worker->cleanup)(worker->data, worker);
             worker->cleanup = NULL;

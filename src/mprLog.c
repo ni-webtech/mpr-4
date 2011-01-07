@@ -130,12 +130,7 @@ void mprStaticError(cchar *fmt, ...)
     char        buf[MPR_MAX_LOG];
 
     va_start(args, fmt);
-    //  MOB - revert bback to mprSprintf when it doesn't use malloc
-#if BLD_UNIX_LIKE
-    vsnprintf(buf, sizeof(buf), fmt, args);
-#else
-    vsprintf(buf, fmt, args);
-#endif
+    mprSprintfv(buf, sizeof(buf), fmt, args);
     va_end(args);
 #if BLD_UNIX_LIKE || VXWORKS
     (void) write(2, (char*) buf, strlen(buf));

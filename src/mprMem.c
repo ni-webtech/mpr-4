@@ -85,10 +85,10 @@ static int stopSeqno = -1;
 #define CHECK_PTR(mp)           
 #define RESET_MEMORY(mp)           
 #define CHECK_FREE_MEMORY(mp)           
+#define SET_NAME(mp, value)
 #define SET_MAGIC(mp)
 #define SET_SEQ(mp)           
 #define VALID_BLK(mp)           1
-#define SET_NAME(mp, value)
 #endif
 
 #if BLD_MEMORY_STATS
@@ -260,7 +260,7 @@ Mpr *mprCreateMemService(MprManager manager, int flags)
 
 
 /*
-    Run managers on all allocated blocks
+    Shutdown memory service. Run managers on all allocated blocks
  */
 void mprDestroyMemService()
 {
@@ -311,49 +311,8 @@ void *mprAllocBlock(ssize usize, int flags)
 }
 
 
-#if FUTURE
-void *mprAllocObj(ssize usize, int flags)
-{
-    MprMem      *mp;
-    void        *ptr;
-    ssize       size;
-
-    size = usize + sizeof(MprMem) + (1 * sizeof(void*));
-    //  MOB - OPT if freeMem is smaller than align, don't need this test
-    size = max(size, usize + (ssize) sizeof(MprFreeMem));
-    size = MPR_ALLOC_ALIGN(size);
-    
-    if ((mp = searchFree(size, flags)) == NULL && (mp = growHeap(size, flags)) == NULL) {
-        return NULL;
-    }
-    ptr = GET_PTR(mp);
-    memset(ptr, 0, usize);
-    return ptr;
-}
-#endif
-
-
-#if FUTURE
-/*  
-    User free only supported when GC is disabled
- */
-void mprFreeX(void *ptr)
-{
-    MprMem      *mp;
-
-    if (ptr && !heap->enabled) {
-        mp = GET_MEM(ptr);
-        CHECK(mp);
-        BREAKPOINT(mp);
-        freeBlock(mp);
-        /* NOTE: not freeing regions */
-    }
-}
-#endif
-
-
 /*
-    New memory is zeroed
+    Realloc will always zero new memory
  */
 void *mprRealloc(void *ptr, ssize usize)
 {
@@ -429,7 +388,7 @@ int mprMemcmp(cvoid *s1, ssize s1Len, cvoid *s2, ssize s2Len)
 
 
 /*
-    Supports insitu copy where src and destination overlap
+    mprMemcpy will support insitu copy where src and destination overlap
  */
 ssize mprMemcpy(void *dest, ssize destMax, cvoid *src, ssize nbytes)
 {
@@ -562,8 +521,6 @@ static MprMem *searchFree(ssize required, int flags)
 {
     MprFreeMem  *freeq, *fp;
     MprMem      *mp, *after, *spare;
-//  MOB
-MprMem *next, *prev;    
     ssize       size, maxBlock;
     ulong       groupMap, bucketMap;
     int         bucket, baseGroup, group, index;
@@ -599,21 +556,21 @@ MprMem *next, *prev;
                 index = (group * MPR_ALLOC_NUM_BUCKETS) + bucket;
                 freeq = &heap->freeq[index];
 
-//  MOB -- this is singly linked - can use lock free here because we are taking off the front
                 if (freeq->next != freeq) {
                     fp = freeq->next;
                     mp = (MprMem*) fp;
-mprAssert(IS_FREE(mp));
+                    mprAssert(IS_FREE(mp));
                     unlinkBlock(fp);
-mprAssert(GET_GEN(mp) == heap->eternal);
+
+                    mprAssert(GET_GEN(mp) == heap->eternal);
                     SET_GEN(mp, heap->active);
+
                     //  MOB -- cleanup
                     mprAtomicBarrier();
                     if (flags & MPR_ALLOC_MANAGER) {
                         SET_MANAGER(mp, dummyManager);
                         SET_HAS_MANAGER(mp, 1);
                     }
-mprAssert(!IS_FREE(mp));
                     INC(reuse);
                     CHECK(mp);
                     CHECK_FREE_MEMORY(mp);
@@ -636,33 +593,7 @@ mprAssert(!IS_FREE(mp));
                             mprAtomicBarrier();
                             INC(splits);
                             linkBlock(spare);
-                            
-                            //  MOB -- REMOVE
-                            mp = (MprMem*) fp;
-                            next = GET_NEXT(mp);
-                            prev = GET_PRIOR(mp);
-                            mprAssert(IS_FREE(next));
-                            mprAssert(prev == 0 || !IS_FREE(prev));
-                            
-                        } else {
-                            
-                            //  MOB -- REMOVE
-                            MprMem *mp, *next, *prev;    
-                            mp = (MprMem*) fp;
-                            next = GET_NEXT(mp);
-                            prev = GET_PRIOR(mp);
-                            mprAssert(next == 0 || !IS_FREE(next));
-                            mprAssert(prev == 0 || !IS_FREE(prev));
                         }
-                    } else {
-                        
-                        //  MOB -- REMOVE
-                        MprMem *mp, *next, *prev;    
-                        mp = (MprMem*) fp;
-                        next = GET_NEXT(mp);
-                        prev = GET_PRIOR(mp);
-                        mprAssert(next == 0 || !IS_FREE(next));
-                        mprAssert(prev == 0 || !IS_FREE(prev));
                     }
                     unlockHeap();
                     return mp;
@@ -742,7 +673,7 @@ static MprMem *freeBlock(MprMem *mp)
     next = GET_NEXT(mp);
     if (next && IS_FREE(next)) {
         BREAKPOINT(next);
-        //  MOB - lockfree race here as someone else may claim this block
+//  MOB - lockfree race here as someone else may claim this block
         unlinkBlock((MprFreeMem*) next);
         if ((after = GET_NEXT(next)) != NULL) {
             mprAssert(GET_PRIOR(after) == next);
@@ -752,11 +683,7 @@ static MprMem *freeBlock(MprMem *mp)
         }
         size += GET_SIZE(next);
         SET_SIZE(mp, size);
-        // printf("  JOIN NEXT %x size %d\n", next, size);
         INC(joins);
-        next = GET_NEXT(mp);
-        if (next) CHECK(next);
-        mprAssert(next == 0 || !IS_FREE(next));
     }
     /*
         Coalesce with previous if it is free
@@ -849,7 +776,7 @@ static MprMem *growHeap(ssize required, int flags)
     INIT_BLK(spare, size - required - rsize, 0, 1, mp);
     CHECK(spare);
 
-#if UNUSED
+#if MOB
     mprAtomicListInsert(&heap->regions, &region->next, region);
 #endif
     do {
@@ -860,15 +787,6 @@ static MprMem *growHeap(ssize required, int flags)
     INC(allocs);
     heap->stats.bytesAllocated += size;
     linkBlock(spare);
-
-{
-    //  MOB -- REMOVE
-    MprMem *next, *prev;    
-    next = GET_NEXT(mp);
-    prev = GET_PRIOR(mp);
-    mprAssert(IS_LAST(mp) || IS_FREE(next));
-    mprAssert(prev == 0);
-}
     unlockHeap();
     return mp;
 }
@@ -920,17 +838,6 @@ static void linkBlock(MprMem *mp)
 #if BLD_MEMORY_STATS
     freeq->info.stats.count++;
 #endif
-
-{
-    //  MOB -- REMOVE
-    MprMem *next, *prev;    
-    next = GET_NEXT(mp);
-    prev = GET_PRIOR(mp);
-    mprAssert(next == 0 || !IS_FREE(next));
-    mprAssert(prev == 0 || !IS_FREE(prev));
-    mprAssert(IS_FREE(mp));
-    mprAssert(GET_GEN(mp) == heap->eternal);
-}
 }
 
 
@@ -1083,7 +990,6 @@ void mprRequestGC(int flags)
     if (flags & MPR_COMPLETE_GC) {
         mprYield(MPR_YIELD_STICKY);
     }
-
     if ((flags & MPR_FORCE_GC) || (heap->newCount > heap->newQuota)) {
         heap->extraSweeps = (flags & MPR_COMPLETE_GC) ? 3 : 0;
         if (heap->flags & MPR_OWN_GC) {
@@ -1552,7 +1458,6 @@ void mprVerifyMem()
         }
     }
     for (i = 0, freeq = heap->freeq; freeq != heap->freeEnd; freeq++, i++) {
-        // int index = (int) (freeq - heap->freeq);
         for (fp = freeq->next; fp != freeq; fp = fp->next) {
             mp = (MprMem*) fp;
             CHECK(mp);
@@ -1686,7 +1591,6 @@ static void printQueueStats()
 
     printf("\nFree Queue Stats\n Bucket                     Size   Count\n");
     for (i = 0, freeq = heap->freeq; freeq != heap->freeEnd; freeq++, i++) {
-        // int index = (int) (freeq - heap->freeq);
         if (freeq->info.stats.count) {
             printf("%7d %24d %7d\n", i, freeq->info.stats.minSize, freeq->info.stats.count);
         }
@@ -1910,19 +1814,12 @@ static void getSystemInfo()
         int     cmd[2];
         ssize   len;
 
-        /*
-            Get number of CPUs
-         */
         cmd[0] = CTL_HW;
         cmd[1] = HW_NCPU;
         len = sizeof(ap->numCpu);
         if (sysctl(cmd, 2, &ap->numCpu, &len, 0, 0) < 0) {
             ap->numCpu = 1;
         }
-
-        /*
-            Get page size
-         */
         ap->pageSize = sysconf(_SC_PAGESIZE);
     }
 #elif LINUX

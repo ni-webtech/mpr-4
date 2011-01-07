@@ -224,7 +224,6 @@ int mprWaitForEvent(MprDispatcher *dispatcher, int timeout)
     if (dispatcher == NULL) {
         dispatcher = MPR->dispatcher;
     }
-    //  MOB -- should have a re-entrancy check
     mprAssert(!dispatcher->waitingOnCond);
     if (dispatcher->waitingOnCond) {
         return MPR_ERR_BUSY;
