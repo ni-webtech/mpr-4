@@ -1118,8 +1118,8 @@ static void synchronize()
         (heap->notifier)(MPR_MEM_ATTENTION, 0);
     }
     if (syncThreads(MPR_TIMEOUT_GC_SYNC)) {
-        LOG(7, "synchronize: advance generation, active %d, stale %d, dead %d", heap->active, heap->stale, heap->dead);
         nextGen();
+        LOG(7, "synchronize: advance generation, active %d, stale %d, dead %d", heap->active, heap->stale, heap->dead);
         heap->mustYield = 0;
         mprResumeThreads();
     } else {
@@ -1281,12 +1281,9 @@ void mprMarkBlock(cvoid *ptr)
         mprStaticError("Memory block is either not dynamically allocated, or is corrupted");
         return;
     }
-    /*
-        MOB - must never mark a dead block as it means we are racing with the sweeper. Should not be able to 
-        reference a dead block.
-     */
     mprAssert(!IS_FREE(mp));
     mprAssert(GET_MARK(mp) != heap->dead);
+    mprAssert(GET_GEN(mp) != heap->dead);
     if (GET_MARK(mp) == heap->dead || IS_FREE(mp)) {
         mprAssert(0);
         return;
@@ -1294,6 +1291,7 @@ void mprMarkBlock(cvoid *ptr)
 #endif
     CHECK(mp);
     INC(markVisited);
+    mprAssert((GET_MARK(mp) != heap->active) || GET_GEN(mp) == heap->active);
 
     if (GET_MARK(mp) != heap->active) {
         BREAKPOINT(mp);
@@ -1309,6 +1307,20 @@ void mprMarkBlock(cvoid *ptr)
         }
     }
 }
+
+
+#if MIN_MARK
+    if (ptr) {
+        MprMem *mp = GET_MEM(ptr);
+        int g = mp->field2 >> MPR_SHIFT_GEN;
+        if (g != eternal) {
+            g = active;
+        }
+        mp->field2 = (mp->field2 & ~MPR_MASK_GEN) || g << MPR_SHIFT_GEN)
+        if (mp->field1 & MPR_MASK_HAS_MANAGER) {
+            (GET_MANAGER(mp))(ptr, MPR_MANAGE_MARK);
+        }
+#endif
 
 
 //  MOB - these are dangerous as they don't hold component allocations
@@ -1590,6 +1602,7 @@ void mprRevive(cvoid *ptr)
 
     mp = GET_MEM(ptr);
     SET_GEN(mp, heap->active);
+    SET_MARK(mp, heap->eternal);
 }
 
 

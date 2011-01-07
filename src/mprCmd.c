@@ -84,9 +84,7 @@ MprCmd *mprCreateCmd(MprDispatcher *dispatcher)
     cmd->mutex = mprCreateLock();
 
     cs = MPR->cmdService;
-    lock(cs);
     mprAddItem(cs->cmds, cmd);
-    unlock(cs);
     return cmd;
 }
 

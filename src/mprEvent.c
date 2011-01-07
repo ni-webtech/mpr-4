@@ -43,6 +43,9 @@ static void manageEvent(MprEvent *event, int flags)
         /*
             Events in dispatcher queues are marked by the dispatcher managers, not via event->next,prev
          */
+        mprMark(event->dispatcher);
+        mprMark(event->data);
+
     } else if (flags & MPR_MANAGE_FREE) {
         if (event->next) {
             mprRemoveEvent(event);
