@@ -109,7 +109,7 @@ MprModule *mprLoadModule(cchar *moduleName, cchar *initFunction)
         } else if (initFunction) {
             if ((fn = (MprModuleEntry) GetProcAddress((HINSTANCE) handle, initFunction)) != 0) {
                 mp = mprCreateModule(name, data);
-                if ((fn)(data)) < 0) {
+                if ((fn)(data, mp)) < 0) {
                     mprError("Initialization for module %s failed", name);
                     FreeLibrary((HINSTANCE) handle);
 
