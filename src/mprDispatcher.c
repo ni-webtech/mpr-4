@@ -88,6 +88,21 @@ MprDispatcher *mprCreateDispatcher(cchar *name, int enable)
 }
 
 
+void mprDestroyDispatcher(MprDispatcher *dispatcher)
+{
+    MprEventService     *es;
+
+    if (dispatcher) {
+        es = dispatcher->service;
+        if (es->mutex) {
+            lock(es);
+            dequeueDispatcher(dispatcher);
+            unlock(es);
+        }
+    }
+}
+
+
 static void manageDispatcher(MprDispatcher *dispatcher, int flags)
 {
     MprEventService     *es;
@@ -108,11 +123,7 @@ static void manageDispatcher(MprDispatcher *dispatcher, int flags)
         unlock(es);
         
     } else if (flags & MPR_MANAGE_FREE) {
-        if (es->mutex) {
-            lock(es);
-            dequeueDispatcher(dispatcher);
-            unlock(es);
-        }
+        mprDestroyDispatcher(dispatcher);
     }
 }
 
