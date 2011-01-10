@@ -661,6 +661,7 @@ int64 stoi(cchar *str, int radix, int *err)
 
 /*
     Note "str" is modifed as per strtok()
+    MOB - should this allocate the result
  */
 char *stok(char *str, cchar *delim, char **last)
 {
@@ -743,6 +744,7 @@ char *strim(char *str, cchar *set, int where)
 
 /*  
     Map a string to upper case (overwrites buffer)
+    MOB - should this allocate a new string? yes
  */
 char *supper(cchar *str)
 {
