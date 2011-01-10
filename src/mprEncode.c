@@ -292,7 +292,7 @@ cchar *mprLookupMimeType(cchar *ext)
     if (MPR->mimeTable == 0) {
         MPR->mimeTable = mprCreateHash(MIME_HASH_SIZE, MPR_HASH_STATIC_KEYS | MPR_HASH_STATIC_VALUES);
         for (cp = mimeTypes; cp[0]; cp += 2) {
-            mprAddHash(MPR->mimeTable, cp[0], cp[1]);
+            mprAddKey(MPR->mimeTable, cp[0], cp[1]);
         }
     }
     if ((ep = strrchr(ext, '.')) != 0) {

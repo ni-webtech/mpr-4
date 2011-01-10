@@ -548,8 +548,9 @@ char *scontains(cchar *str, cchar *pattern, ssize limit)
     cchar   *cp, *s1, *s2;
     ssize   lim;
 
-    mprAssert(0 <= limit && limit < MAXINT);
-    
+    if (limit < 0) {
+        limit = MAXINT;
+    }
     if (str == 0) {
         return 0;
     }
@@ -743,8 +744,7 @@ char *strim(char *str, cchar *set, int where)
 
 
 /*  
-    Map a string to upper case (overwrites buffer)
-    MOB - should this allocate a new string? yes
+    Map a string to upper case
  */
 char *supper(cchar *str)
 {

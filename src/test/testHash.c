@@ -55,7 +55,7 @@ static void testInsertAndRemoveHash(MprTestGroup *gp)
     /*
         Single insert
      */
-    sp = mprAddHash(table, "Peter", "123 Madison Ave");
+    sp = mprAddKey(table, "Peter", "123 Madison Ave");
     assert(sp != 0);
 
     sp = mprGetFirstHash(table);
@@ -102,7 +102,7 @@ static void testHashScale(MprTestGroup *gp)
     for (i = 0; i < HASH_COUNT; i++) {
         mprSprintf(name, sizeof(name), "name.%d", i);
         address = mprAsprintf("%d Park Ave", i);
-        sp = mprAddHash(table, name, address);
+        sp = mprAddKey(table, name, address);
         assert(sp != 0);
     }
     assert(mprGetHashLength(table) == HASH_COUNT);
@@ -138,7 +138,7 @@ static void testIterateHash(MprTestGroup *gp)
     for (i = 0; i < HASH_COUNT; i++) {
         mprSprintf(name, sizeof(name), "Bit longer name.%d", i);
         mprSprintf(address, sizeof(address), "%d Park Ave", i);
-        sp = mprAddHash(table, name, sclone(address));
+        sp = mprAddKey(table, name, sclone(address));
         assert(sp != 0);
     }
     assert(mprGetHashLength(table) == HASH_COUNT);

@@ -78,7 +78,7 @@ static void manageHashTable(MprHashTable *table, int flags)
                 mprAssert(mprIsValid(sp));
                 mprMark(sp);
                 if (!(table->flags & MPR_HASH_STATIC_VALUES)) {
-                    mprAssert(mprIsValid(sp->data));
+                    mprAssert(sp->data == 0 || mprIsValid(sp->data));
                     mprMark(sp->data);
                 }
                 if (!(table->flags & MPR_HASH_STATIC_KEYS)) {
@@ -103,7 +103,7 @@ MprHashTable *mprCloneHash(MprHashTable *master)
     }
     hp = mprGetFirstHash(master);
     while (hp) {
-        mprAddHash(table, hp->key, hp->data);
+        mprAddKey(table, hp->key, hp->data);
         hp = mprGetNextHash(master, hp);
     }
     return table;
@@ -114,7 +114,7 @@ MprHashTable *mprCloneHash(MprHashTable *master)
     Insert an entry into the hash table. If the entry already exists, update its value. 
     Order of insertion is not preserved.
  */
-MprHash *mprAddHash(MprHashTable *table, cvoid *key, cvoid *ptr)
+MprHash *mprAddKey(MprHashTable *table, cvoid *key, cvoid *ptr)
 {
     MprHash     *sp, *prevSp;
     int         index;
@@ -151,12 +151,24 @@ MprHash *mprAddHash(MprHashTable *table, cvoid *key, cvoid *ptr)
 }
 
 
+MprHash *mprAddKeyFmt(MprHashTable *table, cvoid *key, cchar *fmt, ...)
+{
+    va_list     ap;
+    char        *value;
+
+    va_start(ap, fmt);
+    value = mprAsprintfv(fmt, ap);
+    va_end(ap);
+    return mprAddKey(table, key, value);
+}
+
+
 /*
     Multiple insertion. Insert an entry into the hash table allowing for multiple entries with the same key.
     Order of insertion is not preserved. Lookup cannot be used to retrieve all duplicate keys, some will be shadowed. 
     Use enumeration to retrieve the keys.
  */
-MprHash *mprAddDuplicateHash(MprHashTable *table, cvoid *key, cvoid *ptr)
+MprHash *mprAddDuplicateKey(MprHashTable *table, cvoid *key, cvoid *ptr)
 {
     MprHash     *sp;
     int         index;

@@ -43,6 +43,7 @@ Mpr *mprCreate(int argc, char **argv, int flags)
     mpr->argv = argv;
     mpr->logFd = -1;
 
+    mpr->emptyString = sclone("");
     mpr->title = sclone(BLD_NAME);
     mpr->version = sclone(BLD_VERSION);
     mpr->idleCallback = mprServicesAreIdle;
@@ -528,6 +529,12 @@ int mprGetEndian()
     test = 1;
     probe = (char*) &test;
     return (*probe == 1) ? MPR_LITTLE_ENDIAN : MPR_BIG_ENDIAN;
+}
+
+
+char *mprEmptyString()
+{
+    return MPR->emptyString;
 }
 
 

@@ -2852,7 +2852,7 @@ extern int print(cchar *fmt, ...);
 /**
     Hash table entry structure.
     @description Each hash entry has a descriptor entry. This is used to manage the hash table link chains.
-    @see MprHash, mprAddHash, mprAddDuplicateHash, mprCloneHash, mprCreateHash, mprGetFirstHash, mprGetNextHash,
+    @see MprHash, mprAddKey, mprAddDuplicateHash, mprCloneHash, mprCreateHash, mprGetFirstHash, mprGetNextHash,
         mprGethashCount, mprLookupHash, mprLookupHashEntry, mprRemoveHash, mprFree, mprCreateKeyPair
     @stability Evolving.
     @defgroup MprHash MprHash
@@ -2888,7 +2888,10 @@ typedef struct MprHashTable {
     @return Integer count of the number of entries.
     @ingroup MprHash
  */
-extern MprHash *mprAddHash(MprHashTable *table, cvoid *key, cvoid *ptr);
+extern MprHash *mprAddKey(MprHashTable *table, cvoid *key, cvoid *ptr);
+
+//  MOB DOC
+extern MprHash *mprAddKeyFmt(MprHashTable *table, cvoid *key, cchar *fmt, ...);
 
 /**
     Add a duplicate symbol value into the hash table
@@ -5849,6 +5852,8 @@ typedef struct Mpr {
     MprOsThread     mainOsThread;           /**< Main OS thread ID */
     MprMutex        *mutex;                 /**< Thread synchronization */
     MprSpin         *spin;                  /**< Quick thread synchronization */
+
+    char            *emptyString;           /**< Empty string */
 #if BLD_WIN_LIKE
     long            appInstance;            /**< Application instance (windows) */
 #endif
@@ -6166,6 +6171,9 @@ extern int mprGetLogFd();
     @param fd An integer file descriptor.
  */
 extern void mprSetLogFd(int fd);
+
+//  MOB DOC
+extern char* mprEmptyString();
 
 /****************************************************** External ***********************************************************/
 /*

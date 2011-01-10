@@ -200,25 +200,25 @@ int mprCreateTimeService()
     mpr = MPR;
     mpr->timeTokens = mprCreateHash(-1, MPR_HASH_STATIC_KEYS | MPR_HASH_STATIC_VALUES);
     for (tt = days; tt->name; tt++) {
-        mprAddHash(mpr->timeTokens, tt->name, (void*) tt);
+        mprAddKey(mpr->timeTokens, tt->name, (void*) tt);
     }
     for (tt = fullDays; tt->name; tt++) {
-        mprAddHash(mpr->timeTokens, tt->name, (void*) tt);
+        mprAddKey(mpr->timeTokens, tt->name, (void*) tt);
     }
     for (tt = months; tt->name; tt++) {
-        mprAddHash(mpr->timeTokens, tt->name, (void*) tt);
+        mprAddKey(mpr->timeTokens, tt->name, (void*) tt);
     }
     for (tt = fullMonths; tt->name; tt++) {
-        mprAddHash(mpr->timeTokens, tt->name, (void*) tt);
+        mprAddKey(mpr->timeTokens, tt->name, (void*) tt);
     }
     for (tt = ampm; tt->name; tt++) {
-        mprAddHash(mpr->timeTokens, tt->name, (void*) tt);
+        mprAddKey(mpr->timeTokens, tt->name, (void*) tt);
     }
     for (tt = zones; tt->name; tt++) {
-        mprAddHash(mpr->timeTokens, tt->name, (void*) tt);
+        mprAddKey(mpr->timeTokens, tt->name, (void*) tt);
     }
     for (tt = offsets; tt->name; tt++) {
-        mprAddHash(mpr->timeTokens, tt->name, (void*) tt);
+        mprAddKey(mpr->timeTokens, tt->name, (void*) tt);
     }
     return 0;
 }

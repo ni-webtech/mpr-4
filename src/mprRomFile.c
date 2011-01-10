@@ -209,7 +209,7 @@ int mprSetRomFileSystem(MprRomInode *inodeList)
     rfs->fileIndex = mprCreateHash(rfs, MPR_FILES_HASH_SIZE, MPR_HASH_PERM_KEYS | MPR_HASH_STATIC_VALUES);
 
     for (ri = inodeList; ri->path; ri++) {
-        if (mprAddHash(rfs->fileIndex, ri->path, ri) < 0) {
+        if (mprAddKey(rfs->fileIndex, ri->path, ri) < 0) {
             return MPR_ERR_MEMORY;
         }
     }
