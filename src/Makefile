@@ -26,7 +26,7 @@ endif
 ifeq ($(BLD_FEATURE_OPENSSL),1)
 	SSL_SOURCES	+= ssl/mprOpenssl.c
 endif
-MPR_OBJECTS		+= $(patsubst %.c,$(BLD_OBJ_DIR)/%$(BLD_OBJ),$(shell ls -1 *.c | grep -v angel))
+MPR_OBJECTS		+= $(patsubst %.c,$(BLD_OBJ_DIR)/%$(BLD_OBJ),$(shell ls -1 *.c | egrep -v 'angel'))
 SSL_OBJECTS		+= $(patsubst %.c,$(BLD_OBJ_DIR)/%$(BLD_OBJ),$(notdir $(SSL_SOURCES)))
 DEP_OBJECTS		+= $(BLD_OBJ_DIR)/dtoa$(BLD_OBJ)
 SYSLIBS			+= shell32.lib
@@ -43,8 +43,9 @@ $(BLD_LIB_DIR)/libmpr$(BLD_LIB): $(MPR_OBJECTS)
 	bld --library $(BLD_LIB_DIR)/libmpr --search "$(BLD_MPR_LIBPATHS)" --libs "$(BLD_MPR_WITHLIBS)" \
 		$(MPR_OBJECTS) $(DEP_OBJECTS)
 
-$(BLD_LIB_DIR)/libmprssl$(BLD_LIB): $(SSL_OBJECTS) $(BLD_LIB_DIR)/libmpr$(BLD_LIB)
-	bld --library $(BLD_LIB_DIR)/libmprssl --libs "$(BLD_MPR_LIBS) $(BLD_SSL_WITHLIBS)" $(SSL_OBJECTS)
+$(BLD_LIB_DIR)/libmprssl$(BLD_LIB): $(SSL_OBJECTS)
+	bld --library $(BLD_LIB_DIR)/libmprssl --search "$(BLD_SSL_WITHPATHS)" --libs "$(BLD_MPR_LIBS) $(BLD_SSL_WITHLIBS)" \
+		$(SSL_OBJECTS)
 
 $(BLD_BIN_DIR)/angel$(BLD_EXE): $(BLD_LIB_DIR)/libmpr$(BLD_LIB) $(BLD_OBJ_DIR)/angel$(BLD_OBJ)
 ifeq ($(BLD_UNIX_LIKE),1)
@@ -55,7 +56,6 @@ ifeq ($(BLD_WIN_LIKE),1)
 		--search "$(LIBPATH)" $(MODE) --libs "mpr" --syslibs "$(SYSLIBS)" angel$(BLD_OBJ) 
 endif
 
-
 #
 #   Local variables:
 #   tab-width: 4
@@ -63,3 +63,4 @@ endif
 #   End:
 #   vim: sw=4 ts=4 noexpandtab
 #
+

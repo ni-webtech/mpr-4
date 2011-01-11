@@ -8,15 +8,15 @@ MAKE_IFLAGS		= $(BLD_OPENSSL_IFLAGS) $(BLD_MATRIXSSL_IFLAGS)
 
 include 		.makedep
 
-ifeq ($(BLD_FEATURE_SSL),1)
-	IMPORTS 	+= $(BLD_OPENSSL_IMPORTS) $(BLD_MATRIXSSL_IMPORTS)
-	IMPORTED	+= $(patsubst %,$(BLD_LIB_DIR)/%, $(notdir $(IMPORTS)))
-
-compileExtra:	$(IMPORTED)
-
-$(IMPORTED): $(IMPORTS)
-	getlib $^
-endif
+#	ifeq ($(BLD_FEATURE_SSL),1)
+#		IMPORTS 	+= $(BLD_OPENSSL_IMPORTS) $(BLD_MATRIXSSL_IMPORTS)
+#		IMPORTED	+= $(patsubst %,$(BLD_LIB_DIR)/%, $(notdir $(IMPORTS)))
+#	
+#	compileExtra:	$(IMPORTED)
+#	
+#	$(IMPORTED): $(IMPORTS)
+#		getlib $^
+#	endif
 
 #
 #	This should be done for OpenSSL for each new application to generate new DH parameters

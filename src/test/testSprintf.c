@@ -10,7 +10,7 @@
  */
 #define PRINTF_ATTRIBUTE(a,b)
 
-#include    "mprTest.h"
+#include    "mpr.h"
 
 /************************************ Code ************************************/
 
