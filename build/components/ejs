@@ -31,8 +31,6 @@ defineComponent() {
     withlibs="$withlibs pcre"
     libs="$libs pcre"
     builtin=`[ "$path" = "." ] && echo --builtin`
-    echo configureComponent --libs "ejs $libs" --libpaths "$libpaths" --iflags "$iflags" --withlibs "$withlibs" $builtin \
-        --dependencies "$deps" --optional-dependencies "$optional" --imports "$imports" ejs
     configureComponent --libs "ejs $libs" --libpaths "$libpaths" --iflags "$iflags" --withlibs "$withlibs" $builtin \
         --dependencies "$deps" --optional-dependencies "$optional" --imports "$imports" ejs
 }
