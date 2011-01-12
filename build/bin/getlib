@@ -19,7 +19,6 @@ do
         #
         path="${path%.*}"
         file=`basename $path`
-        printf "%12s %s\n" "[Import]" $path
         cp "${path}"* "${BLD_LIB_DIR}"
         chmod 755 ${BLD_LIB_DIR}/${file}*
         file=${file/.dll/.lib}
