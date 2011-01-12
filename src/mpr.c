@@ -121,6 +121,7 @@ static void manageMpr(Mpr *mpr, int flags)
         mprMark(mpr->version);
         mprMark(mpr->waitService);
         mprMark(mpr->workerService);
+        mprMark(mpr->emptyString);
         mprMark(mpr->heap.markerCond);
     }
 }
