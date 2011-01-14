@@ -102,6 +102,7 @@ typedef struct MprEjsString {
 #if BLD_DEBUG
     char            *kind;
     void            *type;
+    MprMem          *mem;
 #endif
     void            *next;
     void            *prev;

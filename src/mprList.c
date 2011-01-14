@@ -264,11 +264,16 @@ int mprRemoveItem(MprList *lp, void *item)
 
     mprAssert(lp);
 
+    lock(lp);
     index = mprLookupItem(lp, item);
     if (index < 0) {
+        unlock(lp);
         return index;
     }
-    return mprRemoveItemAtPos(lp, index);
+    index = mprRemoveItemAtPos(lp, index);
+    mprAssert(index >= 0);
+    unlock(lp);
+    return index;
 }
 
 
@@ -304,11 +309,28 @@ int mprRemoveItemAtPos(MprList *lp, int index)
     }
     lock(lp);
     items = lp->items;
+#if FUTURE
+    void    **ip;
+    if (index == (lp->length - 1)) {
+        /* Scan backwards to find last non-null item */
+        for (ip = &items[index - 1]; ip >= items && *ip == 0; ip--) ;
+        lp->length = ++ip - items;
+        mprAssert(lp->length >= 0);
+    } else {
+        /* Copy down following items */
+        for (ip = &items[index]; ip < &items[lp->length]; ip++) {
+            *ip = ip[1];
+        }
+        lp->length--;
+    }
+#else
     for (i = index; i < (lp->length - 1); i++) {
         items[i] = items[i + 1];
     }
     lp->length--;
+#endif
     lp->items[lp->length] = 0;
+    mprAssert(lp->length >= 0);
     unlock(lp);
     return index;
 }

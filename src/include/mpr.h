@@ -1644,9 +1644,13 @@ typedef struct MprMem {
     size_t      field2;             /**< Internal block length including header with gen and mark fields */
 
 #if BLD_MEMORY_DEBUG
-    uint            magic;          /**< Unique signature */
-    uint            seqno;          /**< Allocation sequence number */
-    cchar           *name;          /**< Debug name */
+    uint            magic;          /* Unique signature */
+    uint            seqno;          /* Allocation sequence number */
+    cchar           *name;          /* Debug name */
+#endif
+#if !BLD_FEATURE_VALLOC
+    struct MprMem   *next;          /* Pointer to next logical block */
+    struct MprMem   *prev;          /* Pointer to prev logical block */
 #endif
 } MprMem;
 
@@ -1828,7 +1832,6 @@ typedef struct MprHeap {
     int              collecting;             /**< Manual GC is running */
     int              destroying;             /**< Destroying the heap */
     int              enabled;                /**< GC is enabled */
-    int              extraSweeps;            /**< Number of requested GC sweeps (3 for complete) */
     int              flags;                  /**< GC operational control flags */
     int              from;                   /**< Eligible mprCollectGarbage flags */
     int              gc;                     /**< GC has been requested */
@@ -1837,11 +1840,12 @@ typedef struct MprHeap {
     int              iteration;              /**< GC iteration counter (debug only) */
     int              mustYield;              /**< Threads must yield for GC which is due */
     int              newCount;               /**< Count of new gen allocations */
+    int              earlyYieldQuota;        /**< Quota of new allocations before yielding threads early to cleanup */
     int              newQuota;               /**< Quota of new allocations before idle GC worthwhile */
     int              nextSeqno;              /**< Next sequence number */
     int              pageSize;               /**< System page size */
     int              priorNewCount;          /**< Last sweep new count */
-    int              priorFree;              /**< Last sweep free memory */
+    ssize            priorFree;              /**< Last sweep free memory */
     int              rootIndex;              /**< Marker root scan index */
     int              verify;                 /**< Verify memory contents (slow) */
 } MprHeap;
@@ -4876,10 +4880,9 @@ extern int mprStartModuleService();
 
 /**
     Stop the module service
-    @return True if all modules successfully stopped.
     @description This calls the stop entry point for all registered modules
  */
-extern int mprStopModuleService();
+extern void mprStopModuleService();
 
 /**
     Module start/stop point function signature
@@ -6806,13 +6809,16 @@ extern int mprIsCmdComplete(MprCmd *cmd);
 
 /********************************************************** MPR ************************************************************/
 /*
-    Mpr flags
+    Mpr state
  */
 #define MPR_STARTED                 0x1      /* Mpr services started */
 #define MPR_STOPPING                0x2      /* App is stopping. Services should not take new requests */
 #define MPR_STOPPING_CORE           0x4      /* Stopping core services: GC and event dispatch */
-#define MPR_DESTROYING              0x8      /* Mpr object started self-destruction */
-#define MPR_FINISHED                0x10     /* Mpr object destroyed  */
+#define MPR_FINISHED                0x8      /* Mpr object destroyed  */
+
+/*
+    MPR flags
+ */
 #define MPR_SSL_PROVIDER_LOADED     0x20     /* SSL provider loaded */
 
 /*
@@ -6853,10 +6859,11 @@ typedef struct Mpr {
     char            *serverName;            /**< Server name portion (no domain) */
     char            *appPath;               /**< Path name of application executable */
     char            *appDir;                /**< Path of directory containing app executable */
-    int             flags;                  /**< Processing state */
+    int             flags;                  /**< Misc flags */
     int             hasError;               /**< Mpr has an initialization error */
     int             logFd;                  /**< Logging file descriptor */
     int             marking;                /**< Marker thread is active */
+    int             state;                  /**< Processing state */
     int             sweeping;               /**< Sweeper thread is active */
 
     /*
@@ -6932,7 +6939,9 @@ extern Mpr *mprGetMpr();
     @ingroup Mpr
  */
 extern Mpr *mprCreate(int argc, char **argv, int flags);
-extern bool mprDestroy(int flags);
+
+//  TODO MOB DOC
+extern void mprDestroy(int flags);
 
 /**
     Start the Mpr services

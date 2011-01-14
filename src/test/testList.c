@@ -52,6 +52,18 @@ static void testInsertAndRemove(MprTestGroup *gp)
 
     mprRemoveItem(lp, (void*) 1);
     assert(mprGetListLength(lp) == 0);
+
+    /*
+        Test remove will compact
+     */
+    mprAddItem(lp, (void*) 1);
+    mprAddItem(lp, (void*) 2);
+    mprAddItem(lp, (void*) 3);
+
+    mprRemoveItem(lp, (void*) 2);
+    assert(mprGetListLength(lp) == 2);
+    mprRemoveItem(lp, (void*) 3);
+    assert(mprGetListLength(lp) == 1);
 }
 
 

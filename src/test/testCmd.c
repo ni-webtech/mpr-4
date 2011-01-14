@@ -271,22 +271,22 @@ static void testExitCode(MprTestGroup *gp)
  */
 static void testNoCapture(MprTestGroup *gp)
 {
-    MprCmd      *cmd;
     TestCmd     *tc;
     char        command[MPR_MAX_PATH];
     int         rc, status;
 
     tc = gp->data;
-    cmd = mprCreateCmd(gp->dispatcher);
-    assert(cmd != 0);
+    tc->cmd = mprCreateCmd(gp->dispatcher);
+    assert(tc->cmd != 0);
 
     mprSprintf(command, sizeof(command), "%s 99", tc->program);
-    status = mprRunCmd(cmd, command, NULL, NULL, MPR_CMD_IN);
+    status = mprRunCmd(tc->cmd, command, NULL, NULL, MPR_CMD_IN);
     assert(status == 99);
 
-    rc = mprGetCmdExitStatus(cmd, &status);
+    rc = mprGetCmdExitStatus(tc->cmd, &status);
     assert(rc == 0);
     assert(status == 99);
+    tc->cmd = 0;
 }
 
 

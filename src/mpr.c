@@ -128,46 +128,24 @@ static void manageMpr(Mpr *mpr, int flags)
 
 
 /*
-    Destroy the Mpr
+    Destroy the Mpr and all services
  */
-bool mprDestroy(int flags)
+void mprDestroy(int flags)
 {
     MprTime     mark;
-    int         stopped;
-
-    stopped = 1;
-
-    mprLock(MPR->mutex);
-    if (MPR->flags & MPR_DESTROYING) {
-        mprUnlock(MPR->mutex);
-        return 0;
-    }
-    MPR->flags |= MPR_DESTROYING;
 
     mprYield(MPR_YIELD_STICKY);
-
     if (flags & MPR_GRACEFUL) {
         mprTerminate(MPR_GRACEFUL);
         for (mark = mprGetTime(); !mprIsIdle() && mprGetRemainingTime(mark, MPR_TIMEOUT_STOP) > 0; mprSleep(10)) ;
     } else {
         mprTerminate(0);
+        /* App will be exited here */
     }
-    if (mprIsIdle()) {
-        MPR->flags |= MPR_FINISHED;
-    }
-
-    if (MPR->flags & MPR_STARTED) {
-        if (!mprStopModuleService()) {
-            stopped = 0;
-        }
-        mprStopOsService();
-    }
+    MPR->state = MPR_FINISHED;
+    mprStopModuleService();
+    mprStopOsService();
     mprDestroyMemService();
-
-    if (!mprIsIdle()) {
-        stopped = 0;
-    }
-    return stopped;
 }
 
 
@@ -176,19 +154,15 @@ bool mprDestroy(int flags)
  */
 void mprTerminate(bool graceful)
 {
-    mprLog(MPR_CONFIG, "Exiting started");
-    
     /*
         Set the stopping flag. Services should stop accepting new requests.
      */
-    mprSpinLock(MPR->spin);
-    if (MPR->flags & MPR_STOPPING) {
-        mprSpinUnlock(MPR->spin);
+    if (MPR->state >= MPR_STOPPING) {
         return;
     }
-    MPR->flags |= MPR_STOPPING;
-    mprSpinUnlock(MPR->spin);
-
+    MPR->state = MPR_STOPPING;
+    mprLog(MPR_CONFIG, "Exiting started");
+    
     /*
         Request a full GC sweep to allow managers to close files, commands and the like.
      */
@@ -196,9 +170,9 @@ void mprTerminate(bool graceful)
 
     /*
         Wake up everybody. Services and GC threads should exit immediately.
-        Disptachers will keep running until finished is true.
+        Disptachers will keep running until finished is true. Request a GC to wakeup the GC marker.
      */
-    MPR->flags |= MPR_STOPPING_CORE;
+    MPR->state = MPR_STOPPING_CORE;
     mprRequestGC(MPR_FORCE_GC);
     mprResumeThreads();
     mprStopWorkerService();
@@ -223,7 +197,7 @@ int mprStart()
         mprUserError("Can't start MPR services");
         return MPR_ERR_CANT_INITIALIZE;
     }
-    MPR->flags |= MPR_STARTED;
+    MPR->state = MPR_STARTED;
     mprLog(MPR_INFO, "MPR services are ready");
     return 0;
 }
@@ -256,19 +230,19 @@ static void serviceEventsThread(void *data, MprThread *tp)
  */
 bool mprIsStopping()
 {
-    return MPR->flags & MPR_STOPPING;
+    return MPR->state >= MPR_STOPPING;
 }
 
 
 bool mprIsStoppingCore()
 {
-    return MPR->flags & MPR_STOPPING_CORE;
+    return MPR->state >= MPR_STOPPING_CORE;
 }
 
 
 bool mprIsFinished()
 {
-    return (MPR->flags & MPR_FINISHED) ? 1 : 0;
+    return MPR->state >= MPR_FINISHED;
 }
 
 
@@ -284,6 +258,11 @@ bool mprServicesAreIdle()
            mprDispatchersAreIdle() &&
            MPR->marking == 0 &&
            MPR->sweeping == 0;
+    if (!idle) {
+        mprLog(1, "Testing idle: cmds %d, threads %d, dispatchers %d, marking %d, sweeping %d",
+            mprGetListLength(MPR->workerService->busyThreads),
+           mprDispatchersAreIdle(), mprGetListLength(MPR->cmdService->cmds), MPR->marking, MPR->sweeping);
+    }
     return idle;
 }
 

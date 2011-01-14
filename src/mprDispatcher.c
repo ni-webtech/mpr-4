@@ -347,6 +347,7 @@ void mprRelayEvent(MprDispatcher *dispatcher, MprEventProc proc, void *data, Mpr
 #if BLD_DEBUG
     //  MOB TEMP -- just for debug
     MprThread *tp = mprGetCurrentThread();
+    mprNop(tp);
 #endif
 
     mprAssert(!isRunning(dispatcher));

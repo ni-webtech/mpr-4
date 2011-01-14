@@ -16,6 +16,10 @@ compileExtra:	$(IMPORTED)
 
 $(IMPORTED): $(IMPORTS)
 	getlib $^
+ifeq ($(BLD_FEATURE_MATRIXSSL),1)
+	[ -x $(BLD_TOP)/projects/MACOSX ] && find $(BLD_TOP)/projects/MACOSX -name Debug | \
+		while read d ; do cp $(BLD_MATRIXSSL_IMPORTS) $$d ; done
+endif
 endif
 
 #
