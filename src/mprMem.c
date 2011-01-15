@@ -1031,6 +1031,9 @@ static void triggerGC(int force)
 {
     if (!heap->gc && (force || (heap->newCount > heap->newQuota))) {
         heap->gc = 1;
+#if !PARALLEL_GC
+        heap->mustYield = 1;
+#endif
         if (heap->flags & MPR_MARK_THREAD) {
             mprSignalCond(heap->markerCond);
         }
@@ -1358,10 +1361,10 @@ static void marker(void *unused, MprThread *tp)
     tp->yielded = 1;
 
     while (!mprIsStoppingCore()) {
-        mark();
         if (!heap->mustYield) {
             mprWaitForCond(heap->markerCond, -1);
         }
+        mark();
     }
     //  MOB - is this ever used?
     MPR->marking = 0;
@@ -1467,6 +1470,8 @@ void mprResetYield()
 
 /*
     Pause until all threads have yielded. Called by the GC marker only.
+    MOB - this functions differently if parallel. If so, then it will abort waiting. If !parallel, it waits for all
+    threads to yield.
  */
 static int syncThreads(int timeout)
 {
@@ -1496,6 +1501,7 @@ static int syncThreads(int timeout)
             break;
         }
         LOG(7, "syncThreads: waiting for threads to yield");
+        //  MOB -- should have a longer nap here. Should not matter if this is big
         mprWaitForCond(ts->cond, 20);
 
     } while (!allYielded && mprGetElapsedTime(mark) < timeout);
