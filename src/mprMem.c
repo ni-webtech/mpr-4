@@ -193,13 +193,15 @@ static void triggerGC(int force);
     static int initFree();
     static MprMem *allocFromHeap(ssize size, int flags);
     static MprMem *freeToHeap(MprMem *mp);
-    static MprFreeMem *getQueue(ssize size);
     static int getQueueIndex(ssize size, int roundup);
     static MprMem *growHeap(ssize size, int flags);
     static void linkBlock(MprMem *mp); 
     static void unlinkBlock(MprFreeMem *fp);
     #define valloc(size, flags) mprVirtAlloc(size, flags)
     #define vfree(ptr, size) mprVirtFree(ptr, size)
+    #if BLD_MEMORY_STATS
+        static MprFreeMem *getQueue(ssize size);
+    #endif
 #else
     #define allocBlock(required, flags) allocFromMalloc(required, flags)
     #define freeBlock(mp) freeToMalloc(mp)
@@ -276,7 +278,7 @@ Mpr *mprCreateMemService(MprManager manager, int flags)
         heap->verify = 1;
     }
     heap->stats.bytesAllocated += size;
-    heap->stats.allocs++;
+    INC(allocs);
 
     mprInitSpinLock(&heap->heapLock);
     mprInitSpinLock(&heap->heapLock2);
