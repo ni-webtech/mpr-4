@@ -20,7 +20,6 @@ static LRESULT msgProc(HWND hwnd, uint msg, uint wp, long lp);
 int mprCreateNotifierService(MprWaitService *ws)
 {   
     ws->socketMessage = MPR_SOCKET_MESSAGE;
-    mprInitWindow(ws);
     return 0;
 }
 
@@ -91,6 +90,7 @@ int mprWaitForSingleIO(int fd, int desiredMask, int timeout)
 
 /*
     Wait for I/O on all registered descriptors. Timeout is in milliseconds. Return the number of events serviced.
+    Should only be called by the thread that calls mprServiceEvents
  */
 void mprWaitForIO(MprWaitService *ws, int timeout)
 {
@@ -103,24 +103,22 @@ void mprWaitForIO(MprWaitService *ws, int timeout)
         timeout = 30000;
     }
 #endif
-    if (mprGetCurrentThread()->isMain) {
-        if (ws->needRecall) {
-            mprDoWaitRecall(ws);
-            return;
-        }
-        SetTimer(ws->hwnd, 0, timeout, NULL);
-
-        mprYield(MPR_YIELD_STICKY);
-        if (GetMessage(&msg, NULL, 0, 0) == 0) {
-            mprResetYield();
-            mprTerminate(MPR_GRACEFUL);
-        } else {
-            mprResetYield();
-            TranslateMessage(&msg);
-            DispatchMessage(&msg);
-        }
-        ws->wakeRequested = 0;
+    if (ws->needRecall) {
+        mprDoWaitRecall(ws);
+        return;
     }
+    SetTimer(ws->hwnd, 0, timeout, NULL);
+
+    mprYield(MPR_YIELD_STICKY);
+    if (GetMessage(&msg, NULL, 0, 0) == 0) {
+        mprResetYield();
+        mprTerminate(MPR_GRACEFUL);
+    } else {
+        mprResetYield();
+        TranslateMessage(&msg);
+        DispatchMessage(&msg);
+    }
+    ws->wakeRequested = 0;
 }
 
 
@@ -180,12 +178,14 @@ void mprWakeNotifier()
 /*
     Create a default window if the application has not already created one.
  */ 
-int mprInitWindow(MprWaitService *ws)
+int mprInitWindow()
 {
-    WNDCLASS    wc;
-    HWND        hwnd;
-    int         rc;
+    MprWaitService  *ws;
+    WNDCLASS        wc;
+    HWND            hwnd;
+    int             rc;
 
+    ws = MPR->waitService;
     if (ws->hwnd) {
         return 0;
     }
@@ -197,7 +197,6 @@ int mprInitWindow(MprWaitService *ws)
     wc.hInstance        = 0;
     wc.hIcon            = NULL;
     wc.lpfnWndProc      = (WNDPROC) msgProc;
-
     wc.lpszMenuName     = wc.lpszClassName = mprGetAppName();
 
     rc = RegisterClass(&wc);

@@ -179,6 +179,9 @@ int mprServiceEvents(int timeout, int flags)
     MprTime             start, expires, delay;
     int                 beginEventCount, eventCount, justOne;
 
+#if WIN
+    mprInitWindow();
+#endif
     es = MPR->eventService;
     beginEventCount = eventCount = es->eventCount;
 
