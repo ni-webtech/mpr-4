@@ -1044,12 +1044,6 @@ static void triggerGC(int flags)
 }
 
 
-void mprWakeGC()
-{
-    triggerGC(1);
-}
-
-
 void mprRequestGC(int flags)
 {
     int     i, count;
