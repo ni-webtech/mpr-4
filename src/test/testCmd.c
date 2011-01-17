@@ -286,6 +286,7 @@ static void testNoCapture(MprTestGroup *gp)
     rc = mprGetCmdExitStatus(tc->cmd, &status);
     assert(rc == 0);
     assert(status == 99);
+    mprDestroyCmd(tc->cmd);
     tc->cmd = 0;
 }
 

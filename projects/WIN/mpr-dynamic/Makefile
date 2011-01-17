@@ -16,12 +16,8 @@ PROJECTS	= libmpr.vcproj libmprssl.vcproj testMpr.vcproj benchMpr.vcproj runProg
 DFLAGS		= DEBUG_IDE
 
 MAKE_IFLAGS	= $(BLD_MPR_IFLAGS) -I$(BLD_TOP)/src/include/master 
-ifeq ($(BLD_FEATURE_OPENSSL),1)
-	SSL_IFLAGS	+= $(BLD_OPENSSL_IFLAGS)
-endif
-ifeq ($(BLD_FEATURE_MATRIXSSL),1)
-	SSL_IFLAGS	+= $(BLD_MATRIXSSL_IFLAGS)
-endif
+SSL_IFLAGS	+= $(BLD_OPENSSL_IFLAGS)
+SSL_IFLAGS	+= $(BLD_MATRIXSSL_IFLAGS)
 
 compileExtra: prep $(PROJECTS)
 
