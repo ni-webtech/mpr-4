@@ -57,6 +57,8 @@ static MprFile *openFile(MprFileSystem *fileSystem, cchar *path, int omode, int 
             if (file->fd < 0) {
                 file = NULL;
             }
+        } else {
+            file = NULL;
         }
 #else
         file = NULL;
