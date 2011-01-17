@@ -58,19 +58,23 @@ MprThreadService *mprCreateThreadService()
 }
 
 
+void mprStopThreadService()
+{
+    mprClearList(MPR->threadService->threads);
+    MPR->threadService->mutex = 0;
+}
+
+
 static void manageThreadService(MprThreadService *ts, int flags)
 {
     if (flags & MPR_MANAGE_MARK) {
         mprMark(ts->threads);
         mprMark(ts->cond);
         mprMark(ts->mutex);
+
+    } else if (flags & MPR_MANAGE_FREE) {
+        mprStopThreadService();
     }
-}
-
-
-bool mprStopThreadService(int timeout)
-{
-    return MPR->threadService->threads->length <= 1;
 }
 
 
@@ -170,6 +174,7 @@ MprThread *mprCreateThread(cchar *name, MprThreadProc entry, void *data, int sta
 #endif
 
     if (ts && ts->threads) {
+        //  MOB -- should be able to remove lock
         mprLock(ts->mutex);
         if (mprAddItem(ts->threads, tp) < 0) {
             mprUnlock(ts->mutex);
@@ -193,9 +198,11 @@ static void manageThread(MprThread *tp, int flags)
         mprMark(tp->mutex);
 
     } else if (flags & MPR_MANAGE_FREE) {
-        lock(ts);
-        mprRemoveItem(MPR->threadService->threads, tp);
-        unlock(ts);
+        if (ts->mutex) {
+            lock(ts);
+            mprRemoveItem(MPR->threadService->threads, tp);
+            unlock(ts);
+        }
 #if BLD_WIN_LIKE
         if (tp->threadHandle) {
             CloseHandle(tp->threadHandle);
@@ -587,7 +594,7 @@ int mprStartWorkerService()
 }
 
 
-bool mprStopWorkerService()
+void mprWakeWorkers()
 {
     MprWorkerService    *ws;
     MprWorker           *worker;
@@ -607,7 +614,6 @@ bool mprStopWorkerService()
         changeState(worker, MPR_WORKER_BUSY);
     }
     mprUnlock(ws->mutex);
-    return ws->numThreads == 0;
 }
 
 
@@ -884,11 +890,6 @@ static void manageWorker(MprWorker *worker, int flags)
     if (flags & MPR_MANAGE_MARK) {
         mprMark(worker->thread);
         mprMark(worker->idleCond);
-
-    } else if (flags & MPR_MANAGE_FREE) {
-        if (worker->thread != 0) {
-            mprAssert(worker->thread);
-        }
     }
 }
 
@@ -997,6 +998,7 @@ static int changeState(MprWorker *worker, int state)
     worker->state = state;
 
     if (lp) {
+        //  MOB -- should be able to remove lock
         if (mprAddItem(lp, worker) < 0) {
             mprUnlock(ws->mutex);
             return MPR_ERR_MEMORY;

@@ -1,6 +1,5 @@
 LIBRARY libmpr.dll
 EXPORTS
-__mask@@NegDouble@
 amtow
 assertTrue
 awtom
@@ -419,11 +418,12 @@ mprStartWorker
 mprStartWorkerService
 mprStaticError
 mprStopCmd
+mprStopCmdService
 mprStopContinuousEvent
+mprStopEventService
 mprStopModuleService
 mprStopOsService
 mprStopThreadService
-mprStopWorkerService
 mprTerminate
 mprTrimPathExtension
 mprTruncateFile
@@ -444,10 +444,13 @@ mprWaitForIO
 mprWaitForMultiCond
 mprWaitForSingleIO
 mprWaitForTestToComplete
+mprWaitTillIdle
 mprWakeDispatchers
+mprWakeGC
 mprWakeGCService
 mprWakeNotifier
 mprWakeWaitService
+mprWakeWorkers
 mprWriteCmdPipe
 mprWriteFile
 mprWriteFileFormat

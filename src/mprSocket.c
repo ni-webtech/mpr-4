@@ -186,6 +186,7 @@ static void manageSocket(MprSocket *sp, int flags)
         mprMark(sp->handler);
 
     } else if (flags & MPR_MANAGE_FREE) {
+        //  MOBZZ -OK
         if (sp->fd >= 0) {
             sp->mutex = 0;
             mprCloseSocket(sp, 1);

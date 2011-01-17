@@ -29,6 +29,7 @@ prep:
 	if ls $(BLD_BIN_DIR)/*.def >/dev/null 2>&1 ; then \
 		cp $(BLD_BIN_DIR)/*.def . ; \
 	fi
+	cp libmpr.def $$.tmp ; cat $$.tmp | grep -v mask@@NegDouble >libmpr.def ; rm -f $$.tmp
 
 libmpr.vcproj: Makefile buildConfig.override
 	@makeVsProj --project libmpr.vcproj --library mpr --dflags "$(DFLAGS)" \

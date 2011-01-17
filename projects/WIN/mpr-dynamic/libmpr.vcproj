@@ -3,7 +3,7 @@
     ProjectType="Visual C++"
     Version="8.00"
     Name="libmpr"
-    ProjectGUID="c23b01d9-8b0f-4fd7-b73d-51b26a145922"
+    ProjectGUID="8acd4936-7646-4e3b-aab8-d85f473b5f64"
     RootNamespace=""
     Keyword="Win32Proj"
     TargetFrameworkVersion="0"
@@ -65,7 +65,7 @@
                 CompileAs="0"
                 StringPooling="true"
                 MinimalRebuild="true"
-                AdditionalIncludeDirectories="../../../src/include/master;../../../out/include;../../../src/include"
+                AdditionalIncludeDirectories="../../../src/include;../../../src/include/master;../../../out/include;../../../src/include"
                 PreprocessorDefinitions="WIN32;_DEBUG;_WINDOWS;DEBUG_IDE;_REENTRANT;_MT"
                 Optimization="1"
                 FavorSizeOrSpeed="1"
@@ -136,7 +136,7 @@
                 CompileAs="0"
                 StringPooling="true"
                 MinimalRebuild="true"
-                AdditionalIncludeDirectories="../../../src/include/master;../../../out/include;../../../src/include"
+                AdditionalIncludeDirectories="../../../src/include;../../../src/include/master;../../../out/include;../../../src/include"
                 PreprocessorDefinitions="WIN32;_DEBUG;_WINDOWS;DEBUG_IDE;_REENTRANT;_MT"
                 Optimization="0"
                 FavorSizeOrSpeed="1"
@@ -162,7 +162,7 @@
         <Filter
             Name="Header Files"
             Filter="h;hpp;hxx;hm;inl;inc;xsd"
-            UniqueIdentifier="{ec40eba1-ee18-4410-bbab-06eeffbc7671}"
+            UniqueIdentifier="{2c5af805-904b-4384-b524-0ed97facbe45}"
             >
             <File
                 RelativePath="..\..\..\out\include\buildConfig.h"
@@ -173,30 +173,14 @@
                 >
             </File>
             <File
-                RelativePath="..\..\..\src\include\mprField.h"
-                >
-            </File>
-            <File
-                RelativePath="..\..\..\src\include\mprOs.h"
-                >
-            </File>
-            <File
                 RelativePath="..\..\..\src\include\mprSsl.h"
-                >
-            </File>
-            <File
-                RelativePath="..\..\..\src\include\mprTest.h"
-                >
-            </File>
-            <File
-                RelativePath="..\..\..\src\include\mprTune.h"
                 >
             </File>
         </Filter>
         <Filter
             Name="Source Files"
             Filter="cpp;c;cc;cxx;def;odl;idl;hpj;bat;asm;asmx"
-            UniqueIdentifier="{09932dc6-adc0-43b1-83f1-5caedbcccc74}"
+            UniqueIdentifier="{de0c2baa-c557-4cbd-8e75-0c23458e6cea}"
             >
             <File
                 RelativePath="..\..\..\src\deps\dtoa.c"
@@ -208,6 +192,10 @@
             </File>
             <File
                 RelativePath="..\..\..\src\mprAsync.c"
+                >
+            </File>
+            <File
+                RelativePath="..\..\..\src\mprAtomic.c"
                 >
             </File>
             <File

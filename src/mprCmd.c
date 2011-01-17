@@ -45,11 +45,21 @@ MprCmdService *mprCreateCmdService(Mpr *mpr)
 }
 
 
+void mprStopCmdService()
+{
+    mprClearList(MPR->cmdService->cmds);
+}
+
+
 static void manageCmdService(MprCmdService *cs, int flags)
 {
     if (flags & MPR_MANAGE_MARK) {
         mprMark(cs->cmds);
         mprMark(cs->mutex);
+
+    } else if (flags & MPR_MANAGE_FREE) {
+        mprStopCmdService();
+        cs->mutex = 0;
     }
 }
 
@@ -120,13 +130,17 @@ static void manageCmd(MprCmd *cmd, int flags)
 
     } else if (flags & MPR_MANAGE_FREE) {
         cs = MPR->cmdService;
-        lock(cs);
+        if (cs->mutex) {
+            lock(cs);
+        }
         resetCmd(cmd);
 #if VXWORKS
         vxCmdManager(cmd);
 #endif
         mprRemoveItem(cs->cmds, cmd);
-        unlock(cs);
+        if (cs->mutex) {
+            unlock(cs);
+        }
     }
 }
 
@@ -943,8 +957,6 @@ void mprSetCmdDir(MprCmd *cmd, cchar *dir)
  */
 static int sanitizeArgs(MprCmd *cmd, int argc, char **argv, char **env)
 {
-    char        **envp;
-
 #if VXWORKS
     cmd->argv = argv;
     cmd->argc = argc;
@@ -952,7 +964,7 @@ static int sanitizeArgs(MprCmd *cmd, int argc, char **argv, char **env)
 #endif
 
 #if BLD_UNIX_LIKE
-    char    *cp;
+    char    *cp, **envp;
     int     index, i, hasPath, hasLibPath;
 
     cmd->argv = argv;

@@ -132,18 +132,24 @@ static void manageMpr(Mpr *mpr, int flags)
  */
 void mprDestroy(int flags)
 {
-    MprTime     mark;
+    int     gcflags;
 
     mprYield(MPR_YIELD_STICKY);
+    mprTerminate(flags);
+
+    gcflags = MPR_FORCE_GC | MPR_COMPLETE_GC | ((flags & MPR_GRACEFUL) ? MPR_WAIT_GC : 0);
+    mprRequestGC(gcflags);
+
     if (flags & MPR_GRACEFUL) {
-        mprTerminate(MPR_GRACEFUL);
-        for (mark = mprGetTime(); !mprIsIdle() && mprGetRemainingTime(mark, MPR_TIMEOUT_STOP) > 0; mprSleep(10)) ;
-    } else {
-        mprTerminate(0);
-        /* App will be exited here */
+        mprWaitTillIdle();
     }
-    MPR->state = MPR_FINISHED;
+    MPR->state = MPR_STOPPING_CORE;
+    mprStopCmdService();
     mprStopModuleService();
+    mprStopEventService();
+    mprRequestGC(gcflags);
+    mprStopThreadService();
+    MPR->state = MPR_FINISHED;
     mprStopOsService();
     mprDestroyMemService();
 }
@@ -152,36 +158,28 @@ void mprDestroy(int flags)
 /*
     Start termination of the Mpr. May be called by mprDestroy or elsewhere.
  */
-void mprTerminate(bool graceful)
+void mprTerminate(int flags)
 {
+    if (! (flags & MPR_GRACEFUL)) {
+        exit(0);
+    }
+
     /*
         Set the stopping flag. Services should stop accepting new requests.
      */
     if (MPR->state >= MPR_STOPPING) {
         return;
     }
-    MPR->state = MPR_STOPPING;
     mprLog(MPR_CONFIG, "Exiting started");
     
     /*
-        Request a full GC sweep to allow managers to close files, commands and the like.
+        Set stopping state and wake up everybody
      */
-    mprRequestGC(MPR_FORCE_GC | MPR_COMPLETE_GC | ((graceful) ? MPR_WAIT_GC : 0));
-
-    /*
-        Wake up everybody. Services and GC threads should exit immediately.
-        Disptachers will keep running until finished is true. Request a GC to wakeup the GC marker.
-     */
-    MPR->state = MPR_STOPPING_CORE;
-    mprRequestGC(MPR_FORCE_GC);
-    mprResumeThreads();
-    mprStopWorkerService();
+    MPR->state = MPR_STOPPING;
     mprWakeDispatchers();
+    mprWakeWorkers();
+    mprWakeGCService();
     mprWakeWaitService();
-
-    if (! graceful) {
-        exit(0);
-    }
 }
 
 
@@ -246,6 +244,17 @@ bool mprIsFinished()
 }
 
 
+void mprWaitTillIdle()
+{
+    MprTime     mark;
+
+    mark = mprGetTime(); 
+    while (!mprIsIdle() && mprGetRemainingTime(mark, MPR_TIMEOUT_STOP) > 0) {
+        mprSleep(10);
+    }
+}
+
+
 /*
     Test if the Mpr services are idle. Use mprIsIdle to determine if the entire process is idle.
  */
@@ -255,9 +264,7 @@ bool mprServicesAreIdle()
 
     idle = mprGetListLength(MPR->workerService->busyThreads) == 0 && 
            mprGetListLength(MPR->cmdService->cmds) == 0 && 
-           mprDispatchersAreIdle() &&
-           MPR->marking == 0 &&
-           MPR->sweeping == 0;
+           mprDispatchersAreIdle();
     if (!idle) {
         mprLog(1, "Testing idle: cmds %d, threads %d, dispatchers %d, marking %d, sweeping %d",
             mprGetListLength(MPR->workerService->busyThreads),

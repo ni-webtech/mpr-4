@@ -47,6 +47,7 @@ static void manageEvent(MprEvent *event, int flags)
         mprMark(event->data);
 
     } else if (flags & MPR_MANAGE_FREE) {
+        //  MOBZZ - should be okay
         if (event->next) {
             mprRemoveEvent(event);
         }

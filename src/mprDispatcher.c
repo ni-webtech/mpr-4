@@ -67,6 +67,13 @@ static void manageEventService(MprEventService *es, int flags)
 }
 
 
+void mprStopEventService()
+{
+    mprWakeDispatchers();
+    mprWakeWaitService();
+}
+
+
 /*
     Create a disabled dispatcher. A dispatcher schedules events on a single dispatch queue.
  */
@@ -181,17 +188,8 @@ int mprServiceEvents(int timeout, int flags)
 
     do {
         eventCount = es->eventCount;
-        /* 
-            If stopping, switch to a short timeout. Keep servicing events until finished to allow upper level services 
-            to complete current requests.
-         */
         if (mprIsStopping()) {
-            if (mprIsStoppingCore()) {
-                break;
-            }
-            if (!mprGetDebugMode()) {
-                expires = min(expires, start + MPR_TIMEOUT_STOP);
-            }
+            break;
         }
         while ((dp = getNextReadyDispatcher(es)) != NULL) {
             serviceDispatcher(dp);
@@ -264,12 +262,7 @@ int mprWaitForEvent(MprDispatcher *dispatcher, int timeout)
             to complete current requests.
          */
         if (mprIsStopping()) {
-            if (mprIsStoppingCore()) {
-                break;
-            }
-            if (!mprGetDebugMode()) {
-                expires = min(expires, start + MPR_TIMEOUT_STOP);
-            }
+            break;
         }
         if (runEvents) {
             makeRunnable(dispatcher);
@@ -539,7 +532,7 @@ static MprTime getIdleTime(MprEventService *es, MprTime timeout)
 
     if (readyQ->next != readyQ) {
         delay = 0;
-    } else if (mprIsStoppingCore()) {
+    } else if (mprIsStopping()) {
         delay = 10;
     } else {
         delay = MPR_MAX_TIMEOUT;

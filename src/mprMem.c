@@ -169,7 +169,7 @@ static void sweep();
 static void sweeper(void *unused, MprThread *tp);
 static void synchronize();
 static int syncThreads(int timeout);
-static void triggerGC(int force);
+static void triggerGC(int flags);
 
 #if BLD_WIN_LIKE
     static int winPageModes(int flags);
@@ -226,9 +226,7 @@ Mpr *mprCreateMemService(MprManager manager, int flags)
     ssize       regionSize;
 #endif
 
-    if (!(flags & MPR_OWN_GC)) {
-        flags |= MPR_THREAD_PATTERN;
-    }
+    flags |= MPR_THREAD_PATTERN;
     heap = &initHeap;
     memset(heap, 0, sizeof(MprHeap));
     heap->stats.maxMemory = MAXINT;
@@ -1026,12 +1024,15 @@ void mprWakeGCService()
 {
     mprSignalCond(heap->markerCond);
     mprResumeThreads();
+#if UNUSED
+    triggerGC(1);
+#endif
 }
 
 
-static void triggerGC(int force)
+static void triggerGC(int flags)
 {
-    if (!heap->gc && (force || (heap->newCount > heap->newQuota))) {
+    if (!heap->gc && ((flags & MPR_FORCE_GC) || (heap->newCount > heap->newQuota))) {
         heap->gc = 1;
 #if !PARALLEL_GC
         heap->mustYield = 1;
@@ -1040,6 +1041,12 @@ static void triggerGC(int force)
             mprSignalCond(heap->markerCond);
         }
     }
+}
+
+
+void mprWakeGC()
+{
+    triggerGC(1);
 }
 
 
@@ -1053,34 +1060,10 @@ void mprRequestGC(int flags)
     for (i = 0; i < count; i++) {
         if ((flags & MPR_FORCE_GC) || (heap->newCount > heap->newQuota)) {
             heap->mustYield = 1;
-            triggerGC(1);
+            triggerGC(MPR_FORCE_GC);
         }
         mprYield((flags & MPR_WAIT_GC) ? MPR_YIELD_BLOCK: 0);
     }
-#if OLD
-    MprThread   *tp;
-    int         wasSticky;
-
-    tp = mprGetCurrentThread();
-    wasSticky = tp->stickyYield;
-
-    if (flags & MPR_COMPLETE_GC) {
-        mprYield(MPR_YIELD_STICKY);
-    }
-    if ((flags & MPR_FORCE_GC) || (heap->newCount > heap->newQuota)) {
-        if (heap->flags & MPR_OWN_GC) {
-            ownGC(flags);
-        } else {
-            mprSignalCond(heap->markerCond);
-            if (flags & MPR_WAIT_GC) {
-                mprYield(MPR_YIELD_BLOCK);
-            } else {
-                mprYield(0);
-            }
-        }
-    }
-    tp->stickyYield = wasSticky;
-#endif
 }
 
 
@@ -1446,7 +1429,7 @@ void mprYield(int flags)
     if (flags & MPR_YIELD_STICKY) {
         tp->stickyYield = 1;
     }
-    while (tp->yielded && (heap->mustYield || (flags & MPR_YIELD_BLOCK))) {
+    while (tp->yielded && MPR->marking && (heap->mustYield || (flags & MPR_YIELD_BLOCK))) {
         if (heap->flags & MPR_MARK_THREAD) {
             mprSignalCond(ts->cond);
         }
