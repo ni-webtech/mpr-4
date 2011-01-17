@@ -116,12 +116,14 @@ static void manageCmd(MprCmd *cmd, int flags)
 #if BLD_WIN_LIKE
         mprMark(cmd->command);
         mprMark(cmd->arg0);
-#endif
+        mprMark(cmd->env);
+#else
         if (cmd->env) {
             for (i = 0; cmd->env[i]; i++) {
                 mprMark(cmd->env);
             }
         }
+#endif
         lock(cmd);
         for (i = 0; i < MPR_CMD_MAX_PIPE; i++) {
             mprMark(cmd->handlers[i]);
@@ -980,7 +982,9 @@ static int sanitizeArgs(MprCmd *cmd, int argc, char **argv, char **env)
         if ((envp = mprAlloc((i + 3) * sizeof(char*))) == NULL) {
             return MPR_ERR_MEMORY;
         }
+        cmd->env = envp;
         hasPath = hasLibPath = 0;
+
         for (index = i = 0; env && env[i]; i++) {
             mprLog(6, "cmd: env[%d]: %s", i, env[i]);
             if (strncmp(env[i], "PATH=", 5) == 0) {
@@ -988,7 +992,7 @@ static int sanitizeArgs(MprCmd *cmd, int argc, char **argv, char **env)
             } else if  (strncmp(env[i], LD_LIBRARY_PATH "=", 16) == 0) {
                 hasLibPath++;
             }
-            envp[index++] = env[i];
+            envp[index++] = sclone(env[i]);
         }
 
         /*
@@ -1007,7 +1011,6 @@ static int sanitizeArgs(MprCmd *cmd, int argc, char **argv, char **env)
         for (i = 0; envp[i]; i++) {
             mprLog(4, "cmd: env[%d]: %s", i, envp[i]);
         }
-        cmd->env = envp;
     }
 #endif
 
@@ -1251,7 +1254,7 @@ static int makeChannel(MprCmd *cmd, int index)
     HANDLE              readHandle, writeHandle;
     MprCmdFile          *file;
     MprTime             now;
-    char                *pipeBuf;
+    char                *pipeName;
     int                 openMode, pipeMode, readFd, writeFd;
     static int          tempSeed = 0;
 
@@ -1269,7 +1272,9 @@ static int makeChannel(MprCmd *cmd, int index)
     file = &cmd->files[index];
     now = ((int) mprGetTime() & 0xFFFF) % 64000;
 
-    pipeBuf = mprAsprintf("\\\\.\\pipe\\MPR_%d_%d_%d.tmp", getpid(), (int) now, ++tempSeed);
+    lock(MPR->cmdService);
+    pipeName = mprAsprintf("\\\\.\\pipe\\MPR_%d_%d_%d.tmp", getpid(), (int) now, ++tempSeed);
+    unlock(MPR->cmdService);
 
     /*
         Pipes are always inbound. The file below is outbound. we swap whether the client or server
@@ -1280,19 +1285,20 @@ static int makeChannel(MprCmd *cmd, int index)
     pipeMode = 0;
 
     att = (index == MPR_CMD_STDIN) ? &clientAtt : &serverAtt;
-    readHandle = CreateNamedPipe(pipeBuf, openMode, pipeMode, 1, 0, 256 * 1024, 1, att);
+    //  MOB - buffer size should not be hard coded
+    readHandle = CreateNamedPipe(pipeName, openMode, pipeMode, 1, 0, 256 * 1024, 1, att);
     if (readHandle == INVALID_HANDLE_VALUE) {
-        mprError("Can't create stdio pipes %s. Err %d\n", pipeBuf, mprGetOsError());
+        mprError("Can't create stdio pipes %s. Err %d\n", pipeName, mprGetOsError());
         return MPR_ERR_CANT_CREATE;
     }
     readFd = (int) (int64) _open_osfhandle((long) readHandle, 0);
 
     att = (index == MPR_CMD_STDIN) ? &serverAtt: &clientAtt;
-    writeHandle = CreateFile(pipeBuf, GENERIC_WRITE, 0, att, OPEN_EXISTING, openMode, 0);
+    writeHandle = CreateFile(pipeName, GENERIC_WRITE, 0, att, OPEN_EXISTING, openMode, 0);
     writeFd = (int) _open_osfhandle((long) writeHandle, 0);
 
     if (readFd < 0 || writeFd < 0) {
-        mprError("Can't create stdio pipes %s. Err %d\n", pipeBuf, mprGetOsError());
+        mprError("Can't create stdio pipes %s. Err %d\n", pipeName, mprGetOsError());
         return MPR_ERR_CANT_CREATE;
     }
     if (index == MPR_CMD_STDIN) {
