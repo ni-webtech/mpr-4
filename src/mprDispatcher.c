@@ -182,6 +182,7 @@ int mprServiceEvents(int timeout, int flags)
 #if WIN
     mprInitWindow();
 #endif
+    MPR->eventing = 1;
     es = MPR->eventService;
     beginEventCount = eventCount = es->eventCount;
 
@@ -215,6 +216,7 @@ int mprServiceEvents(int timeout, int flags)
         es->now = mprGetTime();
     } while (es->now < expires && !justOne);
 
+    MPR->eventing = 0;
     return abs(es->eventCount - beginEventCount);
 }
 

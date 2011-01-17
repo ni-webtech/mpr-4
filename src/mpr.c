@@ -264,7 +264,7 @@ bool mprServicesAreIdle()
 
     idle = mprGetListLength(MPR->workerService->busyThreads) == 0 && 
            mprGetListLength(MPR->cmdService->cmds) == 0 && 
-           mprDispatchersAreIdle();
+           mprDispatchersAreIdle() && !MPR->eventing;
     if (!idle) {
         mprLog(1, "Testing idle: cmds %d, threads %d, dispatchers %d, marking %d, sweeping %d",
             mprGetListLength(MPR->workerService->busyThreads),

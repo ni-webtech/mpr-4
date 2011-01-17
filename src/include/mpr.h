@@ -6863,6 +6863,7 @@ typedef struct Mpr {
     char            *serverName;            /**< Server name portion (no domain) */
     char            *appPath;               /**< Path name of application executable */
     char            *appDir;                /**< Path of directory containing app executable */
+    int             eventing;               /**< Servicing events thread is active */
     int             flags;                  /**< Misc flags */
     int             hasError;               /**< Mpr has an initialization error */
     int             logFd;                  /**< Logging file descriptor */
