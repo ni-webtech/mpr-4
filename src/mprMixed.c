@@ -256,7 +256,7 @@ MprChar *mpbrk(MprChar *str, cchar *set)
     if (str == NULL || set == NULL) {
         return 0;
     }
-    for (count = 0; *str; count++) {
+    for (count = 0; *str; count++, str++) {
         for (sp = set; *sp; sp++) {
             if (*str == *sp) {
                 return str;
