@@ -49,14 +49,13 @@ MprMutex *mprCreateLock()
 
 static void manageLock(MprMutex *lock, int flags)
 {
-    if (flags & MPR_MANAGE_MARK) {
-        ;
-    } else if (flags & MPR_MANAGE_FREE) {
+    if (flags & MPR_MANAGE_FREE) {
         mprAssert(lock);
 #if BLD_UNIX_LIKE
         pthread_mutex_destroy(&lock->cs);
 #elif BLD_WIN_LIKE
         DeleteCriticalSection(&lock->cs);
+        lock->cs.SpinCount = 0;
 #elif VXWORKS
         semDelete(lock->cs);
 #endif
@@ -103,7 +102,12 @@ bool mprTryLock(MprMutex *lock)
 #if BLD_UNIX_LIKE
     rc = pthread_mutex_trylock(&lock->cs) != 0;
 #elif BLD_WIN_LIKE
-    rc = TryEnterCriticalSection(&lock->cs) == 0;
+    /* Rely on SpinCount being non-zero */
+    if (lock->cs.SpinCount) {
+        rc = TryEnterCriticalSection(&lock->cs) == 0;
+    } else {
+        rc = 0;
+    }
 #elif VXWORKS
     rc = semTake(lock->cs, NO_WAIT) != OK;
 #endif
@@ -140,6 +144,7 @@ MprSpin *mprCreateSpinLock()
 #elif WINCE
     InitializeCriticalSection(&lock->cs);
 #elif BLD_WIN_LIKE
+    //  MOB -- should use inline asm
     InitializeCriticalSectionAndSpinCount(&lock->cs, 5000);
 #elif VXWORKS
     /* Removed SEM_INVERSION_SAFE */
@@ -170,6 +175,7 @@ static void manageSpinLock(MprSpin *lock, int flags)
         pthread_mutex_destroy(&lock->cs);
 #elif BLD_WIN_LIKE
         DeleteCriticalSection(&lock->cs);
+        lock->cs.SpinCount = 0;
 #elif VXWORKS
         semDelete(lock->cs);
 #endif
@@ -234,7 +240,12 @@ bool mprTrySpinLock(MprSpin *lock)
 #elif BLD_UNIX_LIKE
     rc = pthread_mutex_trylock(&lock->cs) != 0;
 #elif BLD_WIN_LIKE
-    rc = TryEnterCriticalSection(&lock->cs) == 0;
+    /* Rely on SpinCount being non-zero */
+    if (lock->cs.SpinCount) {
+        rc = TryEnterCriticalSection(&lock->cs) == 0;
+    } else {
+        rc = 0;
+    }
 #elif VXWORKS
     rc = semTake(lock->cs, NO_WAIT) != OK;
 #endif
@@ -286,7 +297,10 @@ void mprLock(MprMutex *lock)
 #if BLD_UNIX_LIKE
     pthread_mutex_lock(&lock->cs);
 #elif BLD_WIN_LIKE
-    EnterCriticalSection(&lock->cs);
+    /* Rely on SpinCount being non-zero */
+    if (lock->cs.SpinCount) {
+        EnterCriticalSection(&lock->cs);
+    }
 #elif VXWORKS
     semTake(lock->cs, WAIT_FOREVER);
 #endif
@@ -336,7 +350,9 @@ void mprSpinLock(MprSpin *lock)
 #elif BLD_UNIX_LIKE
     pthread_mutex_lock(&lock->cs);
 #elif BLD_WIN_LIKE
-    EnterCriticalSection(&lock->cs);
+    if (lock->cs.SpinCount) {
+        EnterCriticalSection(&lock->cs);
+    }
 #elif VXWORKS
     semTake(lock->cs, WAIT_FOREVER);
 #endif

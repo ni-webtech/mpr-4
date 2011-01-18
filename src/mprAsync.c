@@ -28,6 +28,8 @@ int mprAddNotifier(MprWaitService *ws, MprWaitHandler *wp, int mask)
 {
     int     winMask;
 
+    mprAssert(ws->hwnd);
+
     lock(ws);
     winMask = 0;
     if (wp->desiredMask != mask) {
@@ -50,6 +52,7 @@ void mprRemoveNotifier(MprWaitHandler *wp)
     MprWaitService      *ws;
 
     ws = wp->service;
+    mprAssert(ws->hwnd);
     lock(ws);
     mprAssert(wp->fd >= 0);
     WSAAsyncSelect(wp->fd, ws->hwnd, ws->socketMessage, 0);

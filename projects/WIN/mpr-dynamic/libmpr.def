@@ -446,7 +446,6 @@ mprWaitForSingleIO
 mprWaitForTestToComplete
 mprWaitTillIdle
 mprWakeDispatchers
-mprWakeGC
 mprWakeGCService
 mprWakeNotifier
 mprWakeWaitService

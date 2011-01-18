@@ -145,7 +145,13 @@ static void testBufferedIO(MprTestGroup *gp)
     assert(!mprPathExists(ts->name, R_OK));
     
     file = mprOpenFile(ts->name, O_CREAT | O_TRUNC | O_RDWR | O_BINARY, FILEMODE);
-    assert(file != 0);
+    if (file == 0) {
+        int err = GetLastError();
+        printf("ERR is %d\n", err);
+        printf("RETRY %p\n", mprOpenFile(ts->name, O_CREAT | O_TRUNC | O_RDWR | O_BINARY, FILEMODE));
+        assert(file != 0);
+        return;
+    }
     assert(mprPathExists(ts->name, R_OK));
     
     mprEnableFileBuffering(file, 0, 512);
