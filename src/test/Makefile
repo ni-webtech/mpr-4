@@ -43,7 +43,8 @@ testExtra:
 			$(BLD_BIN_DIR)/testMpr -q -i 100 --threads $$t --depth $(BUILD_DEPTH) ; \
 		done ; \
 	fi
-	$(call log) "[Test]" "Unit tests complete" ; \
+	rm -f $(BLD_TOP)/.testFile.tmp*
+	$(call log) "[Test]" "Unit tests complete"
 
 testFinal:
 	killall testMpr >/dev/null 2>&1 ; true
