@@ -16,6 +16,7 @@ static MprOsThread      critical[2048];
     Single global mutex
  */
 static MprMutex     *mutex;
+static int          threadCount;    
 
 /************************************ Code ************************************/
 
@@ -27,6 +28,7 @@ static int initLock(MprTestGroup *gp)
         gp->data = mutex;
         mprAddRoot(mutex);
     }
+    threadCount++;
     mprGlobalUnlock(gp);
     return 0;
 }
@@ -35,9 +37,11 @@ static int initLock(MprTestGroup *gp)
 static int termLock(MprTestGroup *gp)
 {
     mprGlobalLock(gp);
-    if (mutex) {
-        mprRemoveRoot(mutex);
-        mutex = 0;
+    if (--threadCount == 0) {
+        if (mutex) {
+            mprRemoveRoot(mutex);
+            mutex = 0;
+        }
     }
     mprGlobalUnlock(gp);
     return 0;
@@ -49,6 +53,7 @@ static void testCriticalSection(MprTestGroup *gp)
     int     i, size;
 
     mprLock(mutex);
+    assert(mutex != 0);
     size = sizeof(critical) / sizeof(MprOsThread);
     for (i = 0; i < size; i++) {
         critical[i] = mprGetCurrentOsThread();
@@ -57,6 +62,7 @@ static void testCriticalSection(MprTestGroup *gp)
         assert(critical[i] == mprGetCurrentOsThread());
     }
     mprUnlock(mutex);
+    assert(mutex != 0);
 }
 
 
