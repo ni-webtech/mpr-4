@@ -26,15 +26,15 @@ ifneq	($(BLD_CROSS),1)
 testExtra: 
 	$(BLD_BIN_DIR)/testMpr -v -i 2 --depth $(BUILD_DEPTH)
 	if [ $(BUILD_DEPTH) -ge 3 ] ; then \
-		$(BLD_BIN_DIR)/testMpr -v -i 20 --depth $(BUILD_DEPTH) ; \
+		$(BLD_BIN_DIR)/testMpr -q -i 20 --depth $(BUILD_DEPTH) ; \
 		for t in 2 4 ; do \
-			$(BLD_BIN_DIR)/testMpr -v -i 2 --threads $$t --depth $(BUILD_DEPTH) ; \
+			$(BLD_BIN_DIR)/testMpr -q -i 2 --threads $$t --depth $(BUILD_DEPTH) ; \
 		done ; \
 	fi ; \
 	if [ $(BUILD_DEPTH) -ge 4 ] ; then \
-		$(BLD_BIN_DIR)/testMpr -v -i 100 --depth $(BUILD_DEPTH) ; \
+		$(BLD_BIN_DIR)/testMpr -q -i 100 --depth $(BUILD_DEPTH) ; \
 		for t in 8 16 ; do \
-			$(BLD_BIN_DIR)/testMpr -v -i 2 --threads $$t --depth $(BUILD_DEPTH) ; \
+			$(BLD_BIN_DIR)/testMpr -q -i 2 --threads $$t --depth $(BUILD_DEPTH) ; \
 		done ; \
 	fi
 
@@ -55,7 +55,6 @@ endif
 
 cleanExtra:
 	rm -f benchMpr$(BLD_EXE) trace*.txt *.txt.old testMpr$(BLD_LIB)
-
 
 #
 #   Local variables:
