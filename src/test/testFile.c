@@ -146,9 +146,6 @@ static void testBufferedIO(MprTestGroup *gp)
     
     file = mprOpenFile(ts->name, O_CREAT | O_TRUNC | O_RDWR | O_BINARY, FILEMODE);
     if (file == 0) {
-        int err = GetLastError();
-        printf("ERR is %d\n", err);
-        printf("RETRY %p\n", mprOpenFile(ts->name, O_CREAT | O_TRUNC | O_RDWR | O_BINARY, FILEMODE));
         assert(file != 0);
         return;
     }
