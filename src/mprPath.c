@@ -480,15 +480,15 @@ char *mprGetPathLink(cchar *path)
     Return the extension portion of a pathname.
     Return the extension without the "."
  */
-cchar *mprGetPathExtension(cchar *path)
+char *mprGetPathExtension(cchar *path)
 {
     MprFileSystem  *fs;
     char            *cp;
 
-    if ((cp = strrchr(path, '.')) != NULL) {
+    if ((cp = srchr(path, '.')) != NULL) {
         fs = mprLookupFileSystem(path);
         if (firstSep(fs, cp) == 0) {
-            return ++cp;
+            return sclone(++cp);
         }
     } 
     return 0;
@@ -723,7 +723,7 @@ char *mprJoinPathExt(cchar *path, cchar *ext)
     if (ext == NULL || *ext == '\0') {
         return sclone(path);
     }
-    cp = strrchr(path, '.');
+    cp = srchr(path, '.');
     if (cp && firstSep(fs, cp) == 0) {
         return sclone(path);
     }
@@ -1322,7 +1322,7 @@ char *mprTrimPathExtension(cchar *path)
 
     fs = mprLookupFileSystem(path);
     ext = sclone(path);
-    if ((cp = strrchr(ext, '.')) != NULL) {
+    if ((cp = srchr(ext, '.')) != NULL) {
         if (firstSep(fs, cp) == 0) {
             *cp = '\0';
         }
