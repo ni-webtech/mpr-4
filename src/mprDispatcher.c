@@ -179,10 +179,14 @@ int mprServiceEvents(int timeout, int flags)
     MprTime             start, expires, delay;
     int                 beginEventCount, eventCount, justOne;
 
+    if (MPR->eventing) {
+        mprError("mprServiceEvents() called reentrantly");
+        return 0;
+    }
+    MPR->eventing = 1;
 #if WIN
     mprInitWindow();
 #endif
-    MPR->eventing = 1;
     es = MPR->eventService;
     beginEventCount = eventCount = es->eventCount;
 

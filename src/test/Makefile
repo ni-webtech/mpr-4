@@ -28,13 +28,16 @@ testExtra:
 	if [ $(BUILD_DEPTH) -ge 3 ] ; then \
 		$(BLD_BIN_DIR)/testMpr -q -i 20 --depth $(BUILD_DEPTH) ; \
 		for t in 2 4 ; do \
-			$(BLD_BIN_DIR)/testMpr -q -i 2 --threads $$t --depth $(BUILD_DEPTH) ; \
+			echo @@ $(BLD_BIN_DIR)/testMpr -q -i 20 --threads $$t --depth $(BUILD_DEPTH) ; \
+			$(BLD_BIN_DIR)/testMpr -q -i 20 --threads $$t --depth $(BUILD_DEPTH) ; \
 		done ; \
 	fi ; \
 	if [ $(BUILD_DEPTH) -ge 4 ] ; then \
+		echo @@ $(BLD_BIN_DIR)/testMpr -q -i 100 --depth $(BUILD_DEPTH) ; \
 		$(BLD_BIN_DIR)/testMpr -q -i 100 --depth $(BUILD_DEPTH) ; \
 		for t in 8 16 ; do \
-			$(BLD_BIN_DIR)/testMpr -q -i 2 --threads $$t --depth $(BUILD_DEPTH) ; \
+			echo @@ $(BLD_BIN_DIR)/testMpr -q -i 100 --threads $$t --depth $(BUILD_DEPTH) ; \
+			$(BLD_BIN_DIR)/testMpr -q -i 100 --threads $$t --depth $(BUILD_DEPTH) ; \
 		done ; \
 	fi
 
