@@ -36,7 +36,6 @@ testExtra:
 	fi ; \
 	if [ $(BUILD_DEPTH) -ge 4 ] ; then \
 		$(call log) "[Test]" "Longevity load tests" ; \
-		echo @@ $(BLD_BIN_DIR)/testMpr -q -i 100 --depth $(BUILD_DEPTH) ; \
 		$(BLD_BIN_DIR)/testMpr -q -i 100 --depth $(BUILD_DEPTH) ; \
 		for t in 8 16 ; do \
 			$(call log) "[Test]" "Heavy thread load tests" ; \
