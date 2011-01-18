@@ -130,7 +130,7 @@ static MPR_INLINE char *lastSep(MprFileSystem *fs, cchar *path)
 
 /************************************ Code ************************************/
 /*
-    This copies the filename at the designated path
+    This copies a file.
  */
 int mprCopyPath(cchar *fromName, cchar *toName, int mode)
 {
@@ -149,6 +149,8 @@ int mprCopyPath(cchar *fromName, cchar *toName, int mode)
     while ((count = mprReadFile(from, buf, sizeof(buf))) > 0) {
         mprWriteFile(to, buf, count);
     }
+    mprCloseFile(from);
+    mprCloseFile(to);
     return 0;
 }
 
@@ -796,9 +798,7 @@ char *mprGetTempPath(cchar *tempDir)
     } else {
         dir = sclone(tempDir);
     }
-
     now = ((int) mprGetTime() & 0xFFFF) % 64000;
-
     file = 0;
     path = 0;
 

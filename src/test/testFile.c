@@ -10,7 +10,7 @@
 
 /*********************************** Locals **********************************/
 
-#define NAME        "testFile.tmp"
+#define NAME        ".testFile.tmp"
 #define FILEMODE    0644
 
 typedef struct TestFile {
@@ -125,7 +125,6 @@ static void testBasicIO(MprTestGroup *gp)
     mprCloseFile(file);
 
     rc = mprDeletePath(ts->name);
-    assert(rc == 0);
     assert(!mprPathExists(ts->name, R_OK));
 }
     

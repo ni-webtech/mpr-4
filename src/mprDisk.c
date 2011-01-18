@@ -11,6 +11,15 @@
 #include    "mpr.h"
 
 #if !BLD_FEATURE_ROMFS
+/*********************************** Defines **********************************/
+
+#if WIN
+/*
+    Open/Delete retries to circumvent windows pending delete problems
+ */
+#define RETRIES 40
+#endif
+
 /********************************** Forwards **********************************/
 
 static int closeFile(MprFile *file);
@@ -32,7 +41,26 @@ static MprFile *openFile(MprFileSystem *fileSystem, cchar *path, int omode, int 
     file->path = sclone(path);
     file->fd = open(path, omode, perms);
     if (file->fd < 0) {
-        return NULL;
+        /*
+            File opens can fail of immediately following a delete. Windows uses pending deletes which prevent opens.
+         */
+#if WIN
+        int i, err = GetLastError();
+        if (err == ERROR_ACCESS_DENIED) {
+            for (i = 0; i < RETRIES; i++) {
+                file->fd = open(path, omode, perms);
+                if (file->fd >= 0) {
+                    break;
+                }
+                mprSleep(10);
+            }
+            if (file->fd < 0) {
+                file = NULL;
+            }
+        }
+#else
+        file = NULL;
+#endif
     }
     return file;
 }
@@ -119,17 +147,27 @@ static int deletePath(MprDiskFileSystem *fileSystem, cchar *path)
     }
 #if WIN
 {
-    int i, rc, retries;
-    retries = 20;
-    for (i = 0; i < retries; i++) {
-        rc = DeleteFile((char*) path);
-        if (rc != 0) {
-            rc = 0;
+    /*
+        NOTE: Windows delete makes a file pending delete which prevents immediate recreation. Rename and then delete.
+     */
+    int i, err;
+    for (i = 0; i < RETRIES; i++) {
+        if (DeleteFile((char*) path) != 0) {
+            return 0;
+        }
+        err = GetLastError();
+        if (err != ERROR_SHARING_VIOLATION) {
             break;
         }
+#if UNUSED
+        if (err == ERROR_FILE_NOT_FOUND) {
+            break;
+        }
+#endif
+        //  MOB - must be a better way
         mprSleep(10);
     }
-    return (i == retries) ? MPR_ERR_CANT_DELETE : 0;
+    return MPR_ERR_CANT_DELETE;
 }
 #else
     return unlink((char*) path);
