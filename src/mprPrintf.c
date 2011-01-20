@@ -1062,6 +1062,7 @@ static int growBuf(Format *fmt)
     }
     newbuf = mprAlloc(buflen + fmt->growBy);
     if (newbuf == 0) {
+        mprAssert(!MPR_ERR_MEMORY);
         return MPR_ERR_MEMORY;
     }
     if (fmt->buf) {

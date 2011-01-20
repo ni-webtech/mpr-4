@@ -72,6 +72,7 @@ static int growFds(MprWaitService *ws)
 {
     ws->fdMax *= 2;
     if ((ws->fds = mprRealloc(ws->fds, sizeof(struct pollfd) * ws->fdMax)) == 0) {
+        mprAssert(!MPR_ERR_MEMORY);
         return MPR_ERR_MEMORY;
     }
     return 0;
@@ -82,6 +83,7 @@ static int growHandlers(MprWaitService *ws, int fd)
 {
     ws->handlerMax = fd + 1;
     if ((ws->handlerMap = mprRealloc(ws->handlerMap, sizeof(MprWaitHandler*) * ws->handlerMax)) == 0) {
+        mprAssert(!MPR_ERR_MEMORY);
         return MPR_ERR_MEMORY;
     }
     return 0;
@@ -99,6 +101,7 @@ int mprAddNotifier(MprWaitService *ws, MprWaitHandler *wp, int mask)
         if (wp->notifierIndex < 0) {
             if (ws->fdsCount >= ws->fdMax && growFds(ws) < 0) {
                 unlock(ws);
+                mprAssert(!MPR_ERR_MEMORY);
                 return MPR_ERR_MEMORY;
             }
             if (fd >= ws->handlerMax && growHandlers(ws, fd) < 0) {

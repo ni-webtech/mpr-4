@@ -177,6 +177,7 @@ static int parseNext(MprXml *xp, int state)
                 state = MPR_XML_NEW_ELT;
                 tname = sclone(mprGetBufStart(tokBuf));
                 if (tname == 0) {
+                    mprAssert(!MPR_ERR_MEMORY);
                     return MPR_ERR_MEMORY;
                 }
                 rc = (*handler)(xp, state, tname, 0, 0);

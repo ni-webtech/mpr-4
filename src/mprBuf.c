@@ -98,6 +98,7 @@ int mprSetBufSize(MprBuf *bp, ssize initialSize, ssize maxSize)
         return 0;
     }
     if ((bp->data = mprAlloc(initialSize)) == 0) {
+        mprAssert(!MPR_ERR_MEMORY);
         return MPR_ERR_MEMORY;
     }
     bp->growBy = initialSize;
@@ -310,6 +311,10 @@ int mprPutCharToBuf(MprBuf *bp, int c)
 }
 
 
+/*
+    Return the number of bytes written to the buffer. If no more bytes will fit, may return less than size.
+    Never returns < 0.
+ */
 ssize mprPutBlockToBuf(MprBuf *bp, cchar *str, ssize size)
 {
     ssize      thisLen, bytes, space;
@@ -414,6 +419,7 @@ int mprGrowBuf(MprBuf *bp, ssize need)
         growBy = bp->growBy;
     }
     if ((newbuf = mprAlloc(bp->buflen + growBy)) == 0) {
+        mprAssert(!MPR_ERR_MEMORY);
         return MPR_ERR_MEMORY;
     }
     if (bp->data) {

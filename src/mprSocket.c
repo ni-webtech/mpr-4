@@ -1317,6 +1317,7 @@ int mprGetSocketInfo(cchar *ip, int port, int *family, int *protocol, struct soc
         sa6 = mprAllocZeroed(len);
         if (sa6 == 0) {
             mprUnlock(ss->mutex);
+            mprAssert(!MPR_ERR_MEMORY);
             return MPR_ERR_MEMORY;
         }
         memcpy((char*) &sa6->sin6_addr, (char*) hostent->h_addr_list[0], (ssize) hostent->h_length);
@@ -1328,6 +1329,7 @@ int mprGetSocketInfo(cchar *ip, int port, int *family, int *protocol, struct soc
         sa = mprAllocZeroed(len);
         if (sa == 0) {
             mprUnlock(ss->mutex);
+            mprAssert(!MPR_ERR_MEMORY);
             return MPR_ERR_MEMORY;
         }
         memcpy((char*) &sa->sin_addr, (char*) hostent->h_addr_list[0], (ssize) hostent->h_length);
@@ -1356,6 +1358,7 @@ int mprGetSocketInfo(cchar *ip, int port, int *family, int *protocol, struct soc
     ss = MPR->socketService;
 
     if ((sa = mprAllocObj(struct sockaddr_in, NULL)) == NULL) {
+        mprAssert(!MPR_ERR_MEMORY);
         return MPR_ERR_MEMORY;
     }
     memset((char*) sa, '\0', sizeof(struct sockaddr_in));

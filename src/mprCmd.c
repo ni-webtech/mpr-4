@@ -389,6 +389,7 @@ int mprStartCmd(MprCmd *cmd, int argc, char **argv, char **envp, int flags)
     cmd->flags = flags;
 
     if (sanitizeArgs(cmd, argc, argv, envp) < 0) {
+        mprAssert(!MPR_ERR_MEMORY);
         return MPR_ERR_MEMORY;
     }
     if (access(program, X_OK) < 0) {
@@ -980,6 +981,7 @@ static int sanitizeArgs(MprCmd *cmd, int argc, char **argv, char **env)
             mprLog(6, "cmd: env[%d]: %s", i, env[i]);
         }
         if ((envp = mprAlloc((i + 3) * sizeof(char*))) == NULL) {
+            mprAssert(!MPR_ERR_MEMORY);
             return MPR_ERR_MEMORY;
         }
         cmd->env = envp;

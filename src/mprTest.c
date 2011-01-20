@@ -243,6 +243,7 @@ static int parseFilter(MprTestService *sp, cchar *filter)
     word = stok(str, " \t\r\n", &tok);
     while (word) {
         if (mprAddItem(sp->testFilter, sclone(word)) < 0) {
+            mprAssert(!MPR_ERR_MEMORY);
             return MPR_ERR_MEMORY;
         }
         word = stok(0, " \t\r\n", &tok);
@@ -313,9 +314,11 @@ int mprRunTests(MprTestService *sp)
     for (i = 0; i < sp->numThreads; i++) {
         mprSprintf(tName, sizeof(tName), "test.%d", i);
         if ((lp = copyGroups(sp, sp->groups)) == 0) {
+            mprAssert(!MPR_ERR_MEMORY);
             return MPR_ERR_MEMORY;
         }
         if (mprAddItem(sp->threadData, lp) < 0) {
+            mprAssert(!MPR_ERR_MEMORY);
             return MPR_ERR_MEMORY;
         }
         /*
@@ -327,6 +330,7 @@ int mprRunTests(MprTestService *sp)
         }
         tp = mprCreateThread(tName, (MprThreadProc) runTestThread, (void*) lp, 0);
         if (tp == 0) {
+            mprAssert(!MPR_ERR_MEMORY);
             return MPR_ERR_MEMORY;
         }
         if (mprStartThread(tp) < 0) {
@@ -811,6 +815,7 @@ static int addFailure(MprTestGroup *gp, cchar *loc, cchar *message)
     fp = createFailure(gp, loc, message);
     if (fp == 0) {
         mprAssert(fp);
+        mprAssert(!MPR_ERR_MEMORY);
         return MPR_ERR_MEMORY;
     }
     mprAddItem(gp->failures, fp);
