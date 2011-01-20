@@ -94,6 +94,7 @@ static int growFds(MprWaitService *ws)
     growFds(ws);
     ws->handlerMax *= 2;
     if ((ws->handlerMap = mprRealloc(ws->handlerMap, sizeof(MprWaitHandler*) * ws->handlerMax)) == 0) {
+        mprAssert(!MPR_ERR_MEMORY);
         return MPR_ERR_MEMORY;
     }
     return 0;
@@ -113,6 +114,7 @@ int mprAddNotifier(MprWaitService *ws, MprWaitHandler *wp, int mask)
     if (wp->desiredMask != mask) {
         if (fd >= ws->handlerMax && growFds(ws) < 0) {
             unlock(ws);
+            mprAssert(!MPR_ERR_MEMORY);
             return MPR_ERR_MEMORY;
         }
         if (mask & MPR_READABLE) {

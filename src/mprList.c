@@ -88,6 +88,7 @@ int mprSetListLimits(MprList *lp, int initialSize, int maxSize)
     if (lp->items == 0) {
         lp->items = mprAlloc(size);
         if (lp->items == 0) {
+            mprAssert(!MPR_ERR_MEMORY);
             return MPR_ERR_MEMORY;
         }
         memset(lp->items, 0, size);
@@ -106,10 +107,12 @@ int mprCopyList(MprList *dest, MprList *src)
     mprClearList(dest);
 
     if (mprSetListLimits(dest, src->capacity, src->maxSize) < 0) {
+        mprAssert(!MPR_ERR_MEMORY);
         return MPR_ERR_MEMORY;
     }
     for (next = 0; (item = mprGetNextItem(src, &next)) != 0; ) {
         if (mprAddItem(dest, item) < 0) {
+            mprAssert(!MPR_ERR_MEMORY);
             return MPR_ERR_MEMORY;
         }
     }
@@ -563,6 +566,7 @@ static int growList(MprList *lp, int incr)
         Lock free realloc. Old list will be intact via lp->items until mprRealloc returns.
      */
     if ((lp->items = mprRealloc(lp->items, memsize)) == NULL) {
+        mprAssert(!MPR_ERR_MEMORY);
         return MPR_ERR_MEMORY;
     }
     lp->capacity = len;

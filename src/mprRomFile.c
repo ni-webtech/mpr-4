@@ -210,6 +210,7 @@ int mprSetRomFileSystem(MprRomInode *inodeList)
 
     for (ri = inodeList; ri->path; ri++) {
         if (mprAddKey(rfs->fileIndex, ri->path, ri) < 0) {
+            mprAssert(!MPR_ERR_MEMORY);
             return MPR_ERR_MEMORY;
         }
     }

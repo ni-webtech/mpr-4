@@ -1665,7 +1665,7 @@ int gettimeofday(struct timeval *tv, struct timezone *tz)
 /*
     High resolution timer
  */
-#if BLD_HOST_CPU_ARCH == MPR_CPU_IX86 || BLD_HOST_CPU_ARCH == MPR_CPU_IX64
+#if MPR_HIGH_RES_TIMER
     #if BLD_UNIX_LIKE
         uint64 mprGetTicks() {
             uint64  now;
@@ -1688,7 +1688,6 @@ int gettimeofday(struct timeval *tv, struct timezone *tz)
         return (uint64) mprGetTime();
     }
 #endif
-
 
 
 /*

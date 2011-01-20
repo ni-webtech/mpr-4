@@ -71,6 +71,7 @@ static int growEvents(MprWaitService *ws)
 {
     ws->eventsMax *= 2;
     if ((ws->events = mprRealloc(ws->events, sizeof(struct epoll_event) * ws->eventsMax)) == 0) {
+        mprAssert(!MPR_ERR_MEMORY);
         return MPR_ERR_MEMORY;
     }
     return 0;
@@ -101,6 +102,7 @@ int mprAddNotifier(MprWaitService *ws, MprWaitHandler *wp, int mask)
             oldlen = ws->handlerMax;
             ws->handlerMax = fd + 32;
             if ((ws->handlerMap = mprRealloc(ws->handlerMap, sizeof(MprWaitHandler*) * ws->handlerMax)) == 0) {
+                mprAssert(!MPR_ERR_MEMORY);
                 return MPR_ERR_MEMORY;
             }
         }

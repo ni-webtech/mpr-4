@@ -296,6 +296,7 @@ int mprMakeArgv(cchar *program, cchar *cmd, int *argcp, char ***argvp)
 
     vector = (char*) mprAlloc((MPR_MAX_ARGC * sizeof(char*)) + size);
     if (vector == 0) {
+        mprAssert(!MPR_ERR_MEMORY);
         return MPR_ERR_MEMORY;
     }
     args = &vector[MPR_MAX_ARGC * sizeof(char*)];

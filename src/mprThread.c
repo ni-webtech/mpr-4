@@ -998,6 +998,7 @@ static int changeState(MprWorker *worker, int state)
         //  MOB -- should be able to remove lock
         if (mprAddItem(lp, worker) < 0) {
             mprUnlock(ws->mutex);
+            mprAssert(!MPR_ERR_MEMORY);
             return MPR_ERR_MEMORY;
         }
     }
