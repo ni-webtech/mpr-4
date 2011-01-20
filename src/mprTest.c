@@ -393,7 +393,7 @@ void runTestThread(MprList *groups, MprThread *tp)
         while ((gp = mprGetNextItem(groups, &next)) != 0) {
             runTestGroup(gp);
         }
-        mprPrintf("%12s Iteration %d complete\n", "[Notice]", count++);
+        mprPrintf("%12s Iteration %d complete (%s)\n", "[Notice]", count++, tp->name);
     }
     for (next = 0; (gp = mprGetNextItem(groups, &next)) != 0; ) {
         runTerm(gp);
