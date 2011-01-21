@@ -92,6 +92,7 @@ MprWaitHandler *mprInitWaitHandler(MprWaitHandler *wp, int fd, int mask, MprDisp
     wp->flags           = 0;
     wp->handlerData     = data;
     wp->service         = ws;
+    wp->state           = MPR_HANDLER_DISABLED;
 
     if (mask) {
         lock(ws);
@@ -176,6 +177,8 @@ void mprQueueIOEvent(MprWaitHandler *wp)
     MprEvent        *event;
 
     mprAssert(wp->state == MPR_HANDLER_ENABLED);
+    mprAssert(wp->desiredMask == 0);
+
     wp->state = MPR_HANDLER_QUEUED;
 
     dispatcher = (wp->dispatcher) ? wp->dispatcher: mprGetDispatcher();
@@ -194,6 +197,7 @@ static void ioEvent(void *data, MprEvent *event)
 
     wp = event->handler;
     mprAssert(wp->state == MPR_HANDLER_QUEUED);
+    mprAssert(wp->desiredMask == 0);
     wp->state = MPR_HANDLER_ACTIVE;
     wp->proc(data, event);
 }

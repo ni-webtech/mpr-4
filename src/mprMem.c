@@ -1233,7 +1233,7 @@ static void sweep()
                     mprAssert(rp != NULL);
                 }
             }
-            LOG(5, "DEBUG: Unpin %p to %p size %d", region, ((char*) region) + region->size, region->size);
+            LOG(9, "DEBUG: Unpin %p to %p size %d", region, ((char*) region) + region->size, region->size);
             mprVirtFree(region, region->size);
         } else {
             prior = region;
