@@ -1100,7 +1100,8 @@ static void mark()
 #if !PARALLEL_GC
     heap->mustYield = 1;
     if (!syncThreads(MPR_TIMEOUT_GC_SYNC)) {
-        LOG(0, "DEBUG: Pause for GC sync timed out");
+        LOG(0, "DEBUG: GC synchronization timed out, some threads did not yield.");
+        LOG(0, "This is most often caused by a thread doing a long running operation and not first calling mprYield.");
         return;
     }
 #else
