@@ -113,6 +113,7 @@ static void manageCmd(MprCmd *cmd, int flags)
         mprMark(cmd->stderrBuf);
         mprMark(cmd->mutex);
         mprMark(cmd->dispatcher);
+        mprMark(cmd->callbackData);
 #if BLD_WIN_LIKE
         mprMark(cmd->command);
         mprMark(cmd->arg0);
@@ -221,7 +222,6 @@ void mprDisconnectCmd(MprCmd *cmd)
     lock(cmd);
     for (i = 0; i < MPR_CMD_MAX_PIPE; i++) {
         if (cmd->handlers[i]) {
-            // mprLog(0, "DISCONNECT CMD - remove handlers");
             mprRemoveWaitHandler(cmd->handlers[i]);
             cmd->handlers[i] = 0;
         }
