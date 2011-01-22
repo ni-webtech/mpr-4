@@ -131,7 +131,6 @@ static void manageWaitHandler(MprWaitHandler *wp, int flags)
         mprMark(wp->handlerData);
 
     } else if (flags & MPR_MANAGE_FREE) {
-        //  MOBZZ
         mprRemoveWaitHandler(wp);
     }
 }

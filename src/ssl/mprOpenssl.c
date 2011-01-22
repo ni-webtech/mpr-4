@@ -353,18 +353,23 @@ static void manageOpenSsl(MprSsl *ssl, int flags)
     } else if (flags & MPR_MANAGE_FREE) {
         if (ssl->context != 0) {
             SSL_CTX_free(ssl->context);
+            ssl->context = 0;
         }
         if (ssl->rsaKey512) {
             RSA_free(ssl->rsaKey512);
+            ssl->rsaKey512 = 0;
         }
         if (ssl->rsaKey1024) {
             RSA_free(ssl->rsaKey1024);
+            ssl->rsaKey1024 = 0;
         }
         if (ssl->dhKey512) {
             DH_free(ssl->dhKey512);
+            ssl->dhKey512 = 0;
         }
         if (ssl->dhKey1024) {
             DH_free(ssl->dhKey1024);
+            ssl->dhKey1024 = 0;
         }
     }
 }
