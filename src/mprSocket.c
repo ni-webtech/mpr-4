@@ -184,6 +184,9 @@ static void manageSocket(MprSocket *sp, int flags)
         mprMark(sp->provider);
         mprMark(sp->mutex);
         mprMark(sp->handler);
+        mprMark(sp->sslSocket);
+        mprMark(sp->ssl);
+        mprMark(sp->listenSock);
 
     } else if (flags & MPR_MANAGE_FREE) {
         if (sp->fd >= 0) {

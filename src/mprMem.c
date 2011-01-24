@@ -168,7 +168,7 @@ static void nextGen();
 static void sweep();
 static void sweeper(void *unused, MprThread *tp);
 static void synchronize();
-static int syncThreads(int timeout);
+static int syncThreads();
 static void triggerGC(int flags);
 
 #if BLD_WIN_LIKE
@@ -1080,7 +1080,7 @@ static void synchronize()
     if (heap->notifier) {
         (heap->notifier)(MPR_MEM_ATTENTION, 0);
     }
-    if (syncThreads(MPR_TIMEOUT_GC_SYNC)) {
+    if (syncThreads()) {
         nextGen();
     } else {
         LOG(7, "DEBUG: Pause for GC sync timed out");
@@ -1113,7 +1113,7 @@ static void mark()
     }
 #else
     heap->mustYield = 1;
-    if (!syncThreads(MPR_TIMEOUT_GC_SYNC)) {
+    if (!syncThreads()) {
         LOG(0, "DEBUG: GC synchronization timed out, some threads did not yield.");
         LOG(0, "This is most often caused by a thread doing a long running operation and not first calling mprYield.");
         return;
@@ -1124,9 +1124,11 @@ static void mark()
     heap->priorFree = heap->stats.bytesFree;
     heap->newCount = 0;
     heap->gc = 0;
+    MPR->marking = 1;
     markRoots();
+    MPR->marking = 0;
     if (!heap->hasSweeper) {
-        sweep();
+        MEASURE("GC", "sweep", sweep());
     }
     synchronize();
 }
@@ -1355,7 +1357,7 @@ void mprRelease(void *ptr)
 static void marker(void *unused, MprThread *tp)
 {
     LOG(5, "DEBUG: marker thread started");
-    MPR->marking = 1;
+    MPR->marker = 1;
     tp->stickyYield = 1;
     tp->yielded = 1;
 
@@ -1363,11 +1365,10 @@ static void marker(void *unused, MprThread *tp)
         if (!heap->mustYield) {
             mprWaitForCond(heap->markerCond, -1);
         }
-        mark();
+        MEASURE("GC", "mark", mark());
     }
-    //  MOB - is this ever used?
-    MPR->marking = 0;
     heap->mustYield = 0;
+    MPR->marker = 0;
     mprResumeThreads();
 }
 
@@ -1379,12 +1380,12 @@ static void sweeper(void *unused, MprThread *tp)
 {
     LOG(5, "DEBUG: sweeper thread started");
 
-    MPR->sweeping = 1;
+    MPR->sweeper = 1;
     while (!mprIsStoppingCore()) {
-        sweep();
+        MEASURE("GC", "sweep", sweep());
         mprYield(MPR_YIELD_BLOCK);
     }
-    MPR->sweeping = 0;
+    MPR->sweeper = 0;
 }
 
 
@@ -1443,7 +1444,7 @@ void mprYield(int flags)
     if (flags & MPR_YIELD_STICKY) {
         tp->stickyYield = 1;
     }
-    while (tp->yielded && MPR->marking && (heap->mustYield || (flags & MPR_YIELD_BLOCK))) {
+    while (tp->yielded && MPR->marker && (heap->mustYield || (flags & MPR_YIELD_BLOCK))) {
         if (heap->flags & MPR_MARK_THREAD) {
             mprSignalCond(ts->cond);
         }
@@ -1454,6 +1455,7 @@ void mprYield(int flags)
     if (!tp->stickyYield) {
         tp->yielded = 0;
     }
+    mprAssert(!MPR->marking);
 }
 
 
@@ -1464,6 +1466,12 @@ void mprResetYield()
     tp = mprGetCurrentThread();
     tp->stickyYield = 0;
     tp->yielded = 0;
+    /* Flush yielded */
+    mprAtomicBarrier();
+    if (MPR->marking) {
+        mprYield(0);
+    }
+    mprAssert(!MPR->marking);
 }
 
 
@@ -1472,14 +1480,20 @@ void mprResetYield()
     MOB - this functions differently if parallel. If so, then it will abort waiting. If !parallel, it waits for all
     threads to yield.
  */
-static int syncThreads(int timeout)
+static int syncThreads()
 {
     MprThreadService    *ts;
     MprThread           *tp;
     MprTime             mark;
-    int                 i, allYielded;
+    int                 i, allYielded, timeout;
+
+#if BLD_DEBUG
+    uint64  ticks = mprGetTicks();
+#endif
 
     ts = MPR->threadService;
+    timeout = MPR_TIMEOUT_GC_SYNC;
+
     LOG(7, "syncThreads: wait for threads to yield, timeout %d", timeout);
     mark = mprGetTime();
     if (mprGetDebugMode()) {
@@ -1492,6 +1506,9 @@ static int syncThreads(int timeout)
             tp = (MprThread*) mprGetItem(ts->threads, i);
             if (!tp->yielded) {
                 allYielded = 0;
+                if (mprGetElapsedTime(mark) > 1000) {
+                    LOG(7, "Thread %s is not yielding", tp->name);
+                }
                 break;
             }
         }
@@ -1506,7 +1523,9 @@ static int syncThreads(int timeout)
     } while (!allYielded && mprGetElapsedTime(mark) < timeout);
 
     mprAssert(allYielded);
-    LOG(7, "syncThreads: all yielded %d", allYielded);
+#if BLD_DEBUG
+    LOG(5, "TIME: syncThreads elapsed %,d msec, %,d ticks", mprGetElapsedTime(mark), mprGetTicks() - ticks);
+#endif
     return (allYielded) ? 1 : 0;
 }
 

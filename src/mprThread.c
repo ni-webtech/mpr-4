@@ -33,6 +33,7 @@ MprThreadService *mprCreateThreadService()
     if (ts == 0) {
         return 0;
     }
+    //  MOB - not used
     if ((ts->mutex = mprCreateLock()) == 0) {
         return 0;
     }
@@ -95,19 +96,19 @@ MprThread *mprGetCurrentThread()
     int                 i;
 
     ts = MPR->threadService;
-    if (ts->mutex) {
-        mprLock(ts->mutex);
-    }
     id = mprGetCurrentOsThread();
+    if (ts->threads->mutex) {
+        lock(ts->threads);
+    }
     for (i = 0; i < ts->threads->length; i++) {
         tp = (MprThread*) mprGetItem(ts->threads, i);
         if (tp->osThread == id) {
-            mprUnlock(ts->mutex);
+            unlock(ts->threads);
             return tp;
         }
     }
-    if (ts->mutex) {
-        mprUnlock(ts->mutex);
+    if (ts->threads->mutex) {
+        unlock(ts->threads);
     }
     return 0;
 }
@@ -120,8 +121,7 @@ cchar *mprGetCurrentThreadName()
 {
     MprThread       *tp;
 
-    tp = mprGetCurrentThread();
-    if (tp == 0) {
+    if ((tp = mprGetCurrentThread()) == 0) {
         return 0;
     }
     return tp->name;
@@ -135,8 +135,7 @@ void mprSetCurrentThreadPriority(int pri)
 {
     MprThread       *tp;
 
-    tp = mprGetCurrentThread();
-    if (tp == 0) {
+    if ((tp = mprGetCurrentThread()) == 0) {
         return;
     }
     mprSetThreadPriority(tp, pri);
@@ -174,13 +173,9 @@ MprThread *mprCreateThread(cchar *name, MprThreadProc entry, void *data, int sta
 #endif
 
     if (ts && ts->threads) {
-        //  MOB -- should be able to remove lock
-        mprLock(ts->mutex);
         if (mprAddItem(ts->threads, tp) < 0) {
-            mprUnlock(ts->mutex);
             return 0;
         }
-        mprUnlock(ts->mutex);
     }
     return tp;
 }
@@ -198,10 +193,8 @@ static void manageThread(MprThread *tp, int flags)
         mprMark(tp->mutex);
 
     } else if (flags & MPR_MANAGE_FREE) {
-        if (ts->mutex) {
-            lock(ts);
-            mprRemoveItem(MPR->threadService->threads, tp);
-            unlock(ts);
+        if (ts->threads) {
+            mprRemoveItem(ts->threads, tp);
         }
 #if BLD_WIN_LIKE
         if (tp->threadHandle) {
@@ -263,7 +256,8 @@ static void threadProc(MprThread *tp)
  */
 int mprStartThread(MprThread *tp)
 {
-    mprLock(tp->mutex);
+    //  MOB - is this needed
+    lock(tp);
 
 #if BLD_WIN_LIKE
 {
@@ -311,7 +305,7 @@ int mprStartThread(MprThread *tp)
     pthread_attr_destroy(&attr);
 }
 #endif
-    mprUnlock(tp->mutex);
+    unlock(tp);
     return 0;
 }
 
@@ -332,8 +326,7 @@ void mprSetThreadPriority(MprThread *tp, int newPriority)
 {
     int     osPri;
 
-    mprLock(tp->mutex);
-
+    lock(tp);
     osPri = mprMapMprPriorityToOs(newPriority);
 
 #if BLD_WIN_LIKE
@@ -344,7 +337,7 @@ void mprSetThreadPriority(MprThread *tp, int newPriority)
     setpriority(PRIO_PROCESS, tp->pid, osPri);
 #endif
     tp->priority = newPriority;
-    mprUnlock(tp->mutex);
+    unlock(tp);
 }
 
 

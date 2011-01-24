@@ -209,6 +209,9 @@ static void manageMatrixSocket(MprSslSocket *msp, int flags)
     if (flags & MPR_MANAGE_MARK) {
         mprMark(msp->sock);
         mprMark(msp->ssl);
+        mprMark(msp->insock.start);
+        mprMark(msp->outsock.start);
+        mprMark(msp->inbuf.start);
 
     } else if (flags & MPR_MANAGE_FREE) {
         if (msp->ssl) {

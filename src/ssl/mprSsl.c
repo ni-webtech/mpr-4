@@ -31,7 +31,6 @@ static MprModule *loadSsl(bool lazy)
     if (mprCreateOpenSslModule(lazy) < 0) {
         return 0;
     }
-
 #elif BLD_FEATURE_MATRIXSSL
     mprLog(2, "Loading MatrixSSL module");
     if (mprCreateMatrixSslModule(lazy) < 0) {

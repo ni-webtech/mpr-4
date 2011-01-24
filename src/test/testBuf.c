@@ -8,7 +8,32 @@
 
 #include    "mpr.h"
 
+/*********************************** Locals ***********************************/
+
+typedef struct TestBuf {
+    MprBuf      *buf;
+} TestBuf;
+
+static void manageTestBuf(TestBuf *tb, int flags);
+
 /************************************ Code ************************************/
+
+static int initBuf(MprTestGroup *gp)
+{
+    TestBuf     *tb;
+
+    gp->data = tb = mprAllocObj(TestBuf, manageTestBuf);
+    return 0;
+}
+
+
+static void manageTestBuf(TestBuf *tb, int flags)
+{
+    if (flags & MPR_MANAGE_MARK) {
+        mprMark(tb->buf);
+    }
+}
+
 
 static void testCreateBuf(MprTestGroup *gp)
 {
@@ -175,16 +200,20 @@ static void testMiscBuf(MprTestGroup *gp)
 
 static void testBufLoad(MprTestGroup *gp)
 {
+    TestBuf     *tb;
     MprBuf      *bp;
     char        obuf[512], ibuf[512];
     ssize       rc, count, bytes, sofar, size, len;
     int         i, j;
 
+    tb = gp->data;
+    mprYield(MPR_YIELD_STICKY);
+
     /*
         Pick an odd size to guarantee put blocks are sometimes partial.
      */
     len = 981;
-    bp = mprCreateBuf(len, 0);
+    tb->buf = bp = mprCreateBuf(len, 0);
     assert(bp != 0);
 
     for (i = 0; i < (int) sizeof(ibuf); i++) {
@@ -240,6 +269,7 @@ static void testBufLoad(MprTestGroup *gp)
         }
         mprFlushBuf(bp);
     }
+    mprResetYield();
 }
 
 
@@ -254,7 +284,7 @@ static void testBufLoad(MprTestGroup *gp)
  */
 
 MprTestDef testBuf = {
-    "buf", 0, 0, 0,
+    "buf", 0, initBuf, 0,
     {
         MPR_TEST(0, testCreateBuf),
         MPR_TEST(0, testIsBufEmpty),
