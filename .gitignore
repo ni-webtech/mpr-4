@@ -62,3 +62,4 @@ project.xcworkspace
 UpgradeLog*.XML
 _UpgradeReport_Files
 projects/WIN/mpr-dynamic/ipch
+.testFile.tmp*

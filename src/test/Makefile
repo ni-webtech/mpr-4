@@ -61,7 +61,7 @@ benchExtra:
 endif
 
 cleanExtra:
-	rm -f benchMpr$(BLD_EXE) trace*.txt *.txt.old testMpr$(BLD_LIB)
+	rm -f benchMpr$(BLD_EXE) trace*.txt *.txt.old testMpr$(BLD_LIB) $(TOP)/.testFile*
 
 #
 #   Local variables:
