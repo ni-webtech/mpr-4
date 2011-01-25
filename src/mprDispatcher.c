@@ -101,9 +101,8 @@ void mprDestroyDispatcher(MprDispatcher *dispatcher)
     MprEventService     *es;
     MprEvent            *q, *event, *next;
 
-    mprAssert(dispatcher->magic == MPR_DISPATCHER_MAGIC);
-
-    if (dispatcher) {
+    if (dispatcher && dispatcher->service) {
+        mprAssert(dispatcher->magic == MPR_DISPATCHER_MAGIC);
         es = dispatcher->service;
         if (es->mutex) {
             lock(es);
@@ -114,6 +113,7 @@ void mprDestroyDispatcher(MprDispatcher *dispatcher)
                 next = event->next;
                 mprRemoveEvent(event);
             }
+            dispatcher->service = 0;
             unlock(es);
         }
     }
@@ -216,6 +216,7 @@ int mprServiceEvents(int timeout, int flags)
             break;
         }
         while ((dp = getNextReadyDispatcher(es)) != NULL) {
+            mprAssert(dp->magic == MPR_DISPATCHER_MAGIC);
             serviceDispatcher(dp);
             if (justOne) {
                 return abs(es->eventCount - beginEventCount);
@@ -535,6 +536,7 @@ static MprDispatcher *getNextReadyDispatcher(MprEventService *es)
             ReadyQ is empty, try to transfer a dispatcher with due events onto the readyQ
          */
         for (dp = waitQ->next; dp != waitQ; dp = next) {
+            mprAssert(dp->magic == MPR_DISPATCHER_MAGIC);
             next = dp->next;
             event = dp->eventQ.next;
             mprAssert(event->magic == MPR_EVENT_MAGIC);
@@ -602,6 +604,8 @@ static MprTime getDispatcherIdleTime(MprDispatcher *dispatcher, MprTime timeout)
     MprEvent    *next;
     MprTime     delay;
 
+    mprAssert(dispatcher->magic == MPR_DISPATCHER_MAGIC);
+
     if (timeout < 0) {
         timeout = 0;
     } else {
@@ -629,11 +633,10 @@ static void initDispatcherQ(MprEventService *es, MprDispatcher *q, cchar *name)
 }
 
 
-/*
-    Append a new dispatcher
- */
 static void queueDispatcher(MprDispatcher *prior, MprDispatcher *dispatcher)
 {
+    mprAssert(dispatcher->magic == MPR_DISPATCHER_MAGIC);
+
     lock(dispatcher->service);
     if (dispatcher->parent) {
         dequeueDispatcher(dispatcher);
@@ -652,6 +655,8 @@ static void queueDispatcher(MprDispatcher *prior, MprDispatcher *dispatcher)
  */
 static void dequeueDispatcher(MprDispatcher *dispatcher)
 {
+    mprAssert(dispatcher->magic == MPR_DISPATCHER_MAGIC);
+           
     lock(dispatcher->service);
     if (dispatcher->next) {
         dispatcher->next->prev = dispatcher->prev;
