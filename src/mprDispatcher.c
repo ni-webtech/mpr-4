@@ -88,6 +88,7 @@ MprDispatcher *mprCreateDispatcher(cchar *name, int enable)
     dispatcher->name = sclone(name);
     dispatcher->cond = mprCreateCond();
     dispatcher->enabled = enable;
+    dispatcher->magic = MPR_DISPATCHER_MAGIC;
     es = dispatcher->service = MPR->eventService;
     mprInitEventQ(&dispatcher->eventQ);
     queueDispatcher(&es->idleQ, dispatcher);
@@ -98,12 +99,21 @@ MprDispatcher *mprCreateDispatcher(cchar *name, int enable)
 void mprDestroyDispatcher(MprDispatcher *dispatcher)
 {
     MprEventService     *es;
+    MprEvent            *q, *event, *next;
+
+    mprAssert(dispatcher->magic == MPR_DISPATCHER_MAGIC);
 
     if (dispatcher) {
         es = dispatcher->service;
         if (es->mutex) {
             lock(es);
             dequeueDispatcher(dispatcher);
+            q = &dispatcher->eventQ;
+            for (event = q->next; event != q; event = next) {
+                mprAssert(event->magic == MPR_EVENT_MAGIC);
+                next = event->next;
+                mprRemoveEvent(event);
+            }
             unlock(es);
         }
     }
@@ -115,6 +125,7 @@ static void manageDispatcher(MprDispatcher *dispatcher, int flags)
     MprEventService     *es;
     MprEvent            *q, *event;
 
+    mprAssert(dispatcher->magic == MPR_DISPATCHER_MAGIC);
     es = dispatcher->service;
 
     if (flags & MPR_MANAGE_MARK) {
@@ -122,7 +133,11 @@ static void manageDispatcher(MprDispatcher *dispatcher, int flags)
         mprMark(dispatcher->cond);
         lock(es);
         q = &dispatcher->eventQ;
+        if (dispatcher->current && !(dispatcher->current->flags & MPR_EVENT_STATIC)) {
+            mprMark(dispatcher->current);
+        }
         for (event = q->next; event != q; event = event->next) {
+            mprAssert(event->magic == MPR_EVENT_MAGIC);
             if (!(event->flags & MPR_EVENT_STATIC)) {
                 mprMark(event);
             }
@@ -131,6 +146,7 @@ static void manageDispatcher(MprDispatcher *dispatcher, int flags)
         
     } else if (flags & MPR_MANAGE_FREE) {
         mprDestroyDispatcher(dispatcher);
+        dispatcher->magic = 1;
     }
 }
 
@@ -236,6 +252,7 @@ int mprWaitForEvent(MprDispatcher *dispatcher, int timeout)
     MprOsThread         thread;
     int                 claimed, signalled, wasRunning, runEvents;
 
+    mprAssert(dispatcher->magic == MPR_DISPATCHER_MAGIC);
     es = MPR->eventService;
     start = es->now = mprGetTime();
 
@@ -315,6 +332,7 @@ void mprWakeDispatchers()
     lock(es);
     runQ = &es->runQ;
     for (dp = runQ->next; dp != runQ; dp = dp->next) {
+        mprAssert(dp->magic == MPR_DISPATCHER_MAGIC);
         mprSignalCond(dp->cond);
     }
     unlock(es);
@@ -354,6 +372,7 @@ void mprRelayEvent(MprDispatcher *dispatcher, MprEventProc proc, void *data, Mpr
 
     mprAssert(!isRunning(dispatcher));
     mprAssert(dispatcher->owner == 0);
+    mprAssert(dispatcher->magic == MPR_DISPATCHER_MAGIC);
 
     if (event) {
         event->timestamp = dispatcher->service->now;
@@ -379,6 +398,7 @@ void mprScheduleDispatcher(MprDispatcher *dispatcher)
     int                 mustWakeWaitService, mustWakeCond;
    
     mprAssert(dispatcher);
+    mprAssert(dispatcher->magic == MPR_DISPATCHER_MAGIC);
     mprAssert(dispatcher->enabled);
     es = dispatcher->service;
 
@@ -395,6 +415,7 @@ void mprScheduleDispatcher(MprDispatcher *dispatcher)
             return;
         }
         event = dispatcher->eventQ.next;
+        mprAssert(event->magic == MPR_EVENT_MAGIC);
         mustWakeWaitService = mustWakeCond = 0;
         if (event->due > es->now) {
             queueDispatcher(&es->waitQ, dispatcher);
@@ -432,8 +453,12 @@ static int dispatchEvents(MprDispatcher *dispatcher)
     es = dispatcher->service;
     LOG(7, "dispatchEvents for %s", dispatcher->name);
 
-    /* No locking because this must run in a single owning thread */
+//  MOB -- locking because another thread may queue an event
+    lock(es);
+    /* MOB - not true. No locking because this must run in a single owning thread */
     for (count = 0; (event = mprGetNextEvent(dispatcher)) != 0; count++) {
+        mprAssert(event->magic == MPR_EVENT_MAGIC);
+        dispatcher->current = event;
         if (event->continuous) {
             /* Reschedule if continuous */
             event->timestamp = dispatcher->service->now;
@@ -441,9 +466,13 @@ static int dispatchEvents(MprDispatcher *dispatcher)
             mprQueueEvent(dispatcher, event);
         }
         mprAssert(event->proc);
+        unlock(es);
         LOG(7, "Call event %s", event->name);
         (*event->proc)(event->data, event);
+        dispatcher->current = 0;
+        lock(es);
     }
+    unlock(es);
     if (count && es->waiting) {
         es->eventCount += count;
         mprWakeWaitService();
@@ -480,6 +509,7 @@ static void serviceDispatcher(MprDispatcher *dispatcher)
 static void serviceDispatcherMain(MprDispatcher *dispatcher)
 {
     mprAssert(isRunning(dispatcher));
+    mprAssert(dispatcher->magic == MPR_DISPATCHER_MAGIC);
 
     dispatcher->owner = mprGetCurrentOsThread();
     dispatchEvents(dispatcher);
@@ -507,6 +537,7 @@ static MprDispatcher *getNextReadyDispatcher(MprEventService *es)
         for (dp = waitQ->next; dp != waitQ; dp = next) {
             next = dp->next;
             event = dp->eventQ.next;
+            mprAssert(event->magic == MPR_EVENT_MAGIC);
             if (event->due <= es->now) {
                 queueDispatcher(&es->readyQ, dp);
                 break;
@@ -523,6 +554,7 @@ static MprDispatcher *getNextReadyDispatcher(MprEventService *es)
     }
     unlock(es);
     mprAssert(dispatcher == NULL || isRunning(dispatcher));
+    mprAssert(dispatcher == NULL || dispatcher->magic == MPR_DISPATCHER_MAGIC);
     return dispatcher;
 }
 
@@ -549,7 +581,9 @@ static MprTime getIdleTime(MprEventService *es, MprTime timeout)
             Examine all the dispatchers on the waitQ
          */
         for (dp = waitQ->next; dp != waitQ; dp = dp->next) {
+            mprAssert(dp->magic == MPR_DISPATCHER_MAGIC);
             event = dp->eventQ.next;
+            mprAssert(event->magic == MPR_EVENT_MAGIC);
             if (event != &dp->eventQ) {
                 delay = min(delay, (event->due - es->now));
                 if (delay <= 0) {

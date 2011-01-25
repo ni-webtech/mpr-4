@@ -83,7 +83,7 @@ int stopSeqno = -1;
 #define CHECK(mp)               mprCheckBlock((MprMem*) mp)
 #define CHECK_FREE_MEMORY(mp)   checkFreeMem(mp)
 #define CHECK_PTR(ptr)          CHECK(GET_MEM(ptr))
-#define RESET_MEMORY(mp)        if (heap->verify && mp != GET_MEM(MPR)) { \
+#define RESET_MEMORY(mp)        if (mp != GET_MEM(MPR)) { \
                                     memset((char*) mp + sizeof(MprFreeMem), 0xFE, GET_SIZE(mp) - sizeof(MprFreeMem)); \
                                 } else
 #define SET_MAGIC(mp)           mp->magic = MPR_ALLOC_MAGIC
@@ -1053,7 +1053,9 @@ void mprRequestGC(int flags)
     count = (flags & MPR_COMPLETE_GC) ? 3 : 1;
     for (i = 0; i < count; i++) {
         if ((flags & MPR_FORCE_GC) || (heap->newCount > heap->newQuota)) {
+#if PARALLEL_GC
             heap->mustYield = 1;
+#endif
             triggerGC(MPR_FORCE_GC);
         }
         mprYield((flags & MPR_WAIT_GC) ? MPR_YIELD_BLOCK: 0);

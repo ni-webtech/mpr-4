@@ -321,7 +321,6 @@ static int listenSocket(MprSocket *sp, cchar *ip, int port, int initialFlags)
     }
     /*  TODO NOTE: Datagrams have not been used in a long while. Probably broken */
 
-    lock(sp);
     if (!datagram) {
         sp->flags |= MPR_SOCKET_LISTENER;
         if (listen(sp->fd, SOMAXCONN) < 0) {
