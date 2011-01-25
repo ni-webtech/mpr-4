@@ -45,7 +45,7 @@ static void manageEvent(MprEvent *event, int flags)
         /*
             Events in dispatcher queues are marked by the dispatcher managers, not via event->next,prev
          */
-        mprAssert(event->dispatcher->magic == MPR_DISPATCHER_MAGIC);
+        mprAssert(event->dispatcher == 0 || event->dispatcher->magic == MPR_DISPATCHER_MAGIC);
         mprMark(event->dispatcher);
         mprMark(event->data);
         mprMark(event->handler);
@@ -54,7 +54,7 @@ static void manageEvent(MprEvent *event, int flags)
         //  MOB - are these locks needed?
         lock(MPR->eventService);
         if (event->next) {
-            mprAssert(event->dispatcher->magic == MPR_DISPATCHER_MAGIC);
+            mprAssert(event->dispatcher == 0 || event->dispatcher->magic == MPR_DISPATCHER_MAGIC);
             mprRemoveEvent(event);
         }
         unlock(MPR->eventService);
@@ -140,19 +140,22 @@ void mprRemoveEvent(MprEvent *event)
     MprEventService     *es;
     MprDispatcher       *dispatcher;
 
-    mprAssert(event->dispatcher->magic == MPR_DISPATCHER_MAGIC);
+    mprAssert(event->dispatcher == 0 || event->dispatcher->magic == MPR_DISPATCHER_MAGIC);
     mprAssert(event->magic == MPR_EVENT_MAGIC);
 
     dispatcher = event->dispatcher;
-    es = dispatcher->service;
-    lock(es);
-    if (event->next) {
-        dequeueEvent(event);
+    if (dispatcher) {
+        es = dispatcher->service;
+        lock(es);
+        if (event->next) {
+            dequeueEvent(event);
+        }
+        event->dispatcher = 0;
+        if (dispatcher->enabled && event->due == es->willAwake) {
+            mprScheduleDispatcher(dispatcher);
+        }
+        unlock(es);
     }
-    if (dispatcher->enabled && event->due == es->willAwake) {
-        mprScheduleDispatcher(dispatcher);
-    }
-    unlock(es);
 }
 
 
@@ -264,7 +267,7 @@ static void queueEvent(MprEvent *prior, MprEvent *event)
     mprAssert(event);
     mprAssert(prior->next);
     mprAssert(event->magic == MPR_EVENT_MAGIC);
-    mprAssert(event->dispatcher->magic == MPR_DISPATCHER_MAGIC);
+    mprAssert(event->dispatcher == 0 || event->dispatcher->magic == MPR_DISPATCHER_MAGIC);
 
     if (event->next) {
         dequeueEvent(event);
@@ -284,7 +287,7 @@ static void dequeueEvent(MprEvent *event)
     mprAssert(event);
     mprAssert(event->next);
     mprAssert(event->magic == MPR_EVENT_MAGIC);
-    mprAssert(event->dispatcher->magic == MPR_DISPATCHER_MAGIC);
+    mprAssert(event->dispatcher == 0 || event->dispatcher->magic == MPR_DISPATCHER_MAGIC);
 
     if (event->next) {
         event->next->prev = event->prev;

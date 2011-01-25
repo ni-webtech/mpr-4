@@ -104,18 +104,18 @@ void mprDestroyDispatcher(MprDispatcher *dispatcher)
     if (dispatcher && dispatcher->service) {
         mprAssert(dispatcher->magic == MPR_DISPATCHER_MAGIC);
         es = dispatcher->service;
-        if (es->mutex) {
-            lock(es);
-            dequeueDispatcher(dispatcher);
-            q = &dispatcher->eventQ;
-            for (event = q->next; event != q; event = next) {
-                mprAssert(event->magic == MPR_EVENT_MAGIC);
-                next = event->next;
+        lock(es);
+        dequeueDispatcher(dispatcher);
+        q = &dispatcher->eventQ;
+        for (event = q->next; event != q; event = next) {
+            mprAssert(event->magic == MPR_EVENT_MAGIC);
+            next = event->next;
+            if (event->dispatcher) {
                 mprRemoveEvent(event);
             }
-            dispatcher->service = 0;
-            unlock(es);
         }
+        dispatcher->service = 0;
+        unlock(es);
     }
 }
 
