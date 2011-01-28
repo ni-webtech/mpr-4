@@ -71,7 +71,7 @@ int mprGetRandomBytes(char *buf, int length, int block)
 }
 
 
-int mprLoadModule(MprModule *mp)
+int mprLoadNativeModule(MprModule *mp)
 {
     MprModuleEntry  fn;
     char            *baseName;
@@ -79,8 +79,8 @@ int mprLoadModule(MprModule *mp)
 
     mprAssert(mp);
     baseName = mprGetPathBase(mp->path);
-    if ((handle = GetModuleHandle(baseName)) == 0 && (handle = LoadLibrary(path)) == 0) {
-        mprError("Can't load module %s\nReason: \"%d\"\n",  path, mprGetOsError());
+    if ((handle = GetModuleHandle(baseName)) == 0 && (handle = LoadLibrary(mp->path)) == 0) {
+        mprError("Can't load module %s\nReason: \"%d\"\n", mp->path, mprGetOsError());
         return MPR_ERR_CANT_READ;
     } 
     mp->handle = handle;
@@ -90,7 +90,7 @@ int mprLoadModule(MprModule *mp)
             FreeLibrary((HINSTANCE) handle);
             return MPR_ERR_CANT_ACCESS;
         }
-        if ((fn)(data, mp) < 0) {
+        if ((fn)(mp->moduleData, mp) < 0) {
             mprError("Initialization for module %s failed", mp->name);
             FreeLibrary((HINSTANCE) handle);
             return MPR_ERR_CANT_INITIALIZE;
@@ -100,10 +100,10 @@ int mprLoadModule(MprModule *mp)
 }
 
 
-void mprUnloadModule(MprModule *mp)
+int mprUnloadNativeModule(MprModule *mp)
 {
     mprAssert(mp->handle);
-    FreeLibrary((HINSTANCE) mp->handle);
+    return FreeLibrary((HINSTANCE) mp->handle) != 0 ? 0 : MPR_ERR_ABORTED;
 }
 
 

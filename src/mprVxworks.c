@@ -47,7 +47,7 @@ int mprGetRandomBytes(char *buf, int length, int block)
 }
 
 
-int mprLoadModule(MprModule *mp)
+int mprLoadNativeModule(MprModule *mp)
 {
     MprModuleEntry  fn;
     SYM_TYPE        symType;
@@ -96,7 +96,7 @@ int mprLoadModule(MprModule *mp)
 }
 
 
-void mprUnloadModule(MprModule *mp)
+void mprUnloadNativeModule(MprModule *mp)
 {
     unldByModuleId((MODULE_ID) mp->handle, 0);
 }
