@@ -1455,6 +1455,7 @@ static int makeChannel(MprCmd *cmd, int index)
 int startProcess(MprCmd *cmd)
 {
     MprCmdTaskFn    entryFn;
+    MprModule       *mp;
     SYM_TYPE        symType;
     char            *entryPoint, *program;
     int             i, pri;
