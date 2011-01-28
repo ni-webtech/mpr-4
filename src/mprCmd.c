@@ -1460,7 +1460,11 @@ int startProcess(MprCmd *cmd)
 #endif
     }
     if (symFindByName(sysSymTbl, entryPoint, (char**) &entryFn, &symType) < 0) {
-        if (mprLoadModule(cmd->program, NULL, NULL) < 0) {
+        if ((mp = mprCreateModule(cmd->program, cmd->program, entryPoint, NULL)) == 0) {
+            mprError("start: can't create module");
+            return MPR_ERR_CANT_CREATE;
+        }
+        if (mprLoadModule(mp) < 0) {
             mprError("start: can't load DLL %s, errno %d", program, mprGetOsError());
             return MPR_ERR_CANT_READ;
         }

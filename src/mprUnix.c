@@ -66,50 +66,44 @@ int mprGetRandomBytes(char *buf, int length, int block)
 }
 
 
-/*
-    Load a module specified by "name". The module is located by searching using the module search path
- */
-MprModule *mprLoadModule(cchar *name, cchar *fun, void *data)
-{
 #if BLD_CC_DYN_LOAD
+int mprLoadNativeModule(MprModule *mp)
+{
     MprModuleEntry  fn;
-    MprModule       *mp;
-    char            *path, *moduleName;
     void            *handle;
 
-    mprAssert(name && *name);
+    mprAssert(mp);
 
-    moduleName = mprGetNormalizedPath(name);
-
-    mp = 0;
-    path = 0;
-    if (mprSearchForModule(moduleName, &path) < 0) {
-        mprError("Can't find module \"%s\" in search path \"%s\"", name, mprGetModuleSearchPath());
-    } else {
-        mprLog(6, "Loading native module %s from %s", moduleName, path);
-        if ((handle = dlopen(path, RTLD_LAZY | RTLD_GLOBAL)) == 0) {
-            mprError("Can't load module %s\nReason: \"%s\"",  path, dlerror());
-        } else if (fun) {
-            if ((fn = (MprModuleEntry) dlsym(handle, fun)) != 0) {
-                mp = mprCreateModule(name, data);
-                mp->handle = handle;
-                if ((fn)(data, mp) < 0) {
-                    mprError("Initialization for module %s failed", name);
-                    dlclose(handle);
-                    mp = 0;
-                }
-            } else {
-                mprError("Can't load module %s\nReason: can't find function \"%s\"",  path, fun);
+    if ((handle = dlopen(mp->path, RTLD_LAZY | RTLD_GLOBAL)) == 0) {
+        mprError("Can't load module %s\nReason: \"%s\"", mp->path, dlerror());
+        return MPR_ERR_CANT_OPEN;
+    } 
+    if (mp->entry) {
+        if ((fn = (MprModuleEntry) dlsym(handle, mp->entry)) != 0) {
+            mp->handle = handle;
+            if ((fn)(mp->moduleData, mp) < 0) {
+                mprError("Initialization for module %s failed", mp->name);
                 dlclose(handle);
+                return MPR_ERR_CANT_INITIALIZE;
             }
+        } else {
+            mprError("Can't load module %s\nReason: can't find function \"%s\"", mp->path, mp->entry);
+            dlclose(handle);
+            return MPR_ERR_CANT_READ;
         }
     }
-    return mp;
-#else
-    mprError("Product built without the ability to load modules dynamically");
     return 0;
-#endif
 }
+
+
+int mprUnloadNativeModule(MprModule *mp)
+{
+    if (mp->handle) {
+        return dlclose(mp->handle);
+    }
+    return 0;
+}
+#endif
 
 
 void mprSleep(int milliseconds)
@@ -123,16 +117,6 @@ void mprSleep(int milliseconds)
     do {
         rc = nanosleep(&timeout, &timeout);
     } while (rc < 0 && errno == EINTR);
-}
-
-
-void mprUnloadModule(MprModule *mp)
-{
-    mprStopModule(mp);
-    if (mp->handle) {
-        dlclose(mp->handle);
-    }
-    mprRemoveItem(MPR->moduleService->modules, mp);
 }
 
 

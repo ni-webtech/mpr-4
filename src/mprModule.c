@@ -103,10 +103,7 @@ void mprStopModuleService()
 }
 
 
-/*
-    Create a new module
- */
-MprModule *mprCreateModule(cchar *name, void *data)
+MprModule *mprCreateModule(cchar *name, cchar *path, cchar *entry, void *data)
 {
     MprModuleService    *ms;
     MprModule           *mp;
@@ -115,11 +112,19 @@ MprModule *mprCreateModule(cchar *name, void *data)
     ms = MPR->moduleService;
     mprAssert(ms);
 
+    if (path) {
+        if ((path = mprSearchForModule(path)) == 0) {
+            mprError("Can't find module \"%s\" in search path \"%s\"", path, mprGetModuleSearchPath());
+            return 0;
+        }
+    }
     if ((mp = mprAllocObj(MprModule, manageModule)) == 0) {
         return 0;
     }
     index = mprAddItem(ms->modules, mp);
     mp->name = sclone(name);
+    mp->path = sclone(path);
+    mp->entry = sclone(entry);
     mp->moduleData = data;
     mp->lastActivity = mprGetTime();
     mp->handle = 0;
@@ -139,8 +144,10 @@ static void manageModule(MprModule *mp, int flags)
     if (flags & MPR_MANAGE_MARK) {
         mprMark(mp->name);
         mprMark(mp->path);
+        mprMark(mp->entry);
 
     } else if (flags & MPR_MANAGE_FREE) {
+        //  MOB - should this unload the module?
     }
 }
 
@@ -235,31 +242,57 @@ cchar *mprGetModuleSearchPath()
 }
 
 
+/*
+    Load a module. The module is located by searching for the filename by optionally using the module search path.
+ */
+int mprLoadModule(MprModule *mp)
+{
+#if BLD_CC_DYN_LOAD
+    mprAssert(mp);
+
+    mprLog(6, "Loading native module %s from %s", mp->name, mp->path);
+    if (mprLoadNativeModule(mp) < 0) {
+        return MPR_ERR_CANT_READ;
+    }
+    return 0;
+#else
+    mprError("Product built without the ability to load modules dynamically");
+    return MPR_ERR_BAD_STATE;
+#endif
+}
+
+
+void mprUnloadModule(MprModule *mp)
+{
+    mprStopModule(mp);
+#if BLD_CC_DYN_LOAD
+    mprUnloadNativeModule(mp);
+#endif
+    mprRemoveItem(MPR->moduleService->modules, mp);
+}
+
+
 #if BLD_CC_DYN_LOAD
 /*
     Return true if the shared library in "file" can be found. Return the actual path in *path. The filename
     may not have a shared library extension which is typical so calling code can be cross platform.
  */
-static int probe(cchar *filename, char **pathp)
+static char *probe(cchar *filename)
 {
     char    *path;
 
     mprAssert(filename && *filename);
-    mprAssert(pathp);
 
-    *pathp = 0;
     mprLog(6, "Probe for native module %s", filename);
     if (mprPathExists(filename, R_OK)) {
-        *pathp = sclone(filename);
-        return 1;
+        return sclone(filename);
     }
 
     if (strstr(filename, BLD_SHOBJ) == 0) {
         path = sjoin(filename, BLD_SHOBJ, NULL);
         mprLog(6, "Probe for native module %s", path);
         if (mprPathExists(path, R_OK)) {
-            *pathp = path;
-            return 1;
+            return path;
         }
     }
     return 0;
@@ -267,36 +300,37 @@ static int probe(cchar *filename, char **pathp)
 
 
 /*
-    Search for a module in the modulePath.
+    Search for a module "filename" in the modulePath. Return the result in "result"
  */
-int mprSearchForModule(cchar *name, char **path)
+char *mprSearchForModule(cchar *filename)
 {
-    char    *fileName, *searchPath, *dir, *tok;
+    char    *path, *f, *searchPath, *dir, *tok;
+
+    filename = mprGetNormalizedPath(filename);
 
     /*
-        Search for path directly
+        Search for the path directly
      */
-    if (probe(name, path)) {
-        mprLog(6, "Found native module %s at %s", name, *path);
-        return 0;
+    if ((path = probe(filename)) != 0) {
+        mprLog(6, "Found native module %s at %s", filename, path);
+        return path;
     }
 
     /*
         Search in the searchPath
      */
     searchPath = sclone(mprGetModuleSearchPath());
-
     tok = 0;
     dir = stok(searchPath, MPR_SEARCH_SEP, &tok);
     while (dir && *dir) {
-        fileName = mprJoinPath(dir, name);
-        if (probe(fileName, path)) {
-            mprLog(6, "Found native module %s at %s", name, *path);
-            return 0;
+        f = mprJoinPath(dir, filename);
+        if ((path = probe(f)) != 0) {
+            mprLog(6, "Found native module %s at %s", filename, path);
+            return path;
         }
         dir = stok(0, MPR_SEARCH_SEP, &tok);
     }
-    return MPR_ERR_CANT_FIND;
+    return 0;
 }
 #endif
 

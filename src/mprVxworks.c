@@ -47,65 +47,58 @@ int mprGetRandomBytes(char *buf, int length, int block)
 }
 
 
-MprModule *mprLoadModule(cchar *name, cchar *initFunction, void *data)
+int mprLoadModule(MprModule *mp)
 {
-    MprModule       *mp;
     MprModuleEntry  fn;
     SYM_TYPE        symType;
     void            *handle;
-    char            entryPoint[MPR_MAX_FNAME], *module, *path;
+    char            entryPoint[MPR_MAX_FNAME];
     int             fd;
 
-    mprAssert(name && *name);
+    mprAssert(mp);
 
-    mp = 0;
-    path = 0;
-    module = mprGetNormalizedPath(name);
-
-    if (mprSearchForModule(module, &path) < 0) {
-        mprError("Can't find module \"%s\" in search path \"%s\"", name, mprGetModuleSearchPath());
-
-    } else if (moduleFindByName((char*) path) == 0) {
-        if ((fd = open(path, O_RDONLY, 0664)) < 0) {
-            mprError("Can't open module \"%s\"", path);
-
-        } else {
-            mprLog(5, "Loading module %s", name);
-            errno = 0;
-            handle = loadModule(fd, LOAD_GLOBAL_SYMBOLS);
-            if (handle == 0 || errno != 0) {
-                close(fd);
-                if (handle) {
-                    unldByModuleId(handle, 0);
-                }
-                mprError("Can't load module %s", path);
-
-            } else {
-                close(fd);
-                if (initFunction) {
+    if (moduleFindByName(mp->path) != 0) {
+        return 0;
+    }
+    if ((fd = open(mp->path, O_RDONLY, 0664)) < 0) {
+        mprError("Can't open module \"%s\"", mp->path);
+        return MPR_ERR_CANT_OPEN;
+    }
+    errno = 0;
+    handle = loadModule(fd, LOAD_GLOBAL_SYMBOLS);
+    if (handle == 0 || errno != 0) {
+        close(fd);
+        if (handle) {
+            unldByModuleId(handle, 0);
+        }
+        mprError("Can't load module %s", mp->path);
+        return MPR_ERR_CANT_READ;
+    }
+    close(fd);
+    if (mp->entry) {
 #if BLD_HOST_CPU_ARCH == MPR_CPU_IX86 || BLD_HOST_CPU_ARCH == MPR_CPU_IX64
-                    mprSprintf(entryPoint, sizeof(entryPoint), "_%s", initFunction);
+        mprSprintf(entryPoint, sizeof(entryPoint), "_%s", mp->entry);
 #else
-                    scopy(entryPoint, sizeof(entryPoint), initFunction);
+        scopy(entryPoint, sizeof(entryPoint), mp->entry);
 #endif
-                    fn = 0;
-                    if (symFindByName(sysSymTbl, entryPoint, (char**) &fn, &symType) == -1) {
-                        mprError("Can't find symbol %s when loading %s", initFunction, path);
-
-                    } else {
-                        mp = mprCreateModule(name, data);
-                        mp->handle = handle;
-                        if ((fn)(data, mp) < 0) {
-                            mprError("Initialization for %s failed.", path);
-                        } else {
-                            mp = NULL;
-                        }
-                    }
-                }
-            }
+        fn = 0;
+        if (symFindByName(sysSymTbl, entryPoint, (char**) &fn, &symType) == -1) {
+            mprError("Can't find symbol %s when loading %s", mp->entry, mp->path);
+            return MPR_ERR_CANT_READ;
+        }
+        mp->handle = handle;
+        if ((fn)(mp->moduleData, mp) < 0) {
+            mprError("Initialization for %s failed.", mp->path);
+            return MPR_ERR_CANT_INITIALIZE;
         }
     }
-    return mp;
+    return 0;
+}
+
+
+void mprUnloadModule(MprModule *mp)
+{
+    unldByModuleId((MODULE_ID) mp->handle, 0);
 }
 
 
@@ -120,14 +113,6 @@ void mprSleep(int milliseconds)
     do {
         rc = nanosleep(&timeout, &timeout);
     } while (rc < 0 && errno == EINTR);
-}
-
-
-void mprUnloadModule(MprModule *mp)
-{
-    mprStopModule(mp);
-    mprRemoveItem(mprGetMpr()->moduleService->modules, mp);
-    unldByModuleId((MODULE_ID) mp->handle, 0);
 }
 
 

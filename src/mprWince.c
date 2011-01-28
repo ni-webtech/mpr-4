@@ -80,47 +80,32 @@ int mprGetRandomBytes(char *buf, int length, int block)
 }
 
 
-MprModule *mprLoadModule(cchar *moduleName, cchar *initFunction)
+int mprLoadModule(MprModule *mp)
+    cchar *moduleName, cchar *initFunction)
 {
-    MprModule       *mp;
     MprModuleEntry  fn;
-    char            *module;
-    char            *path, *name;
     void            *handle;
+    char            *baseName;
 
     mprAssert(moduleName && *moduleName);
 
-    mp = 0;
-    name = path = 0;
-    module = mprGetAbsPath(moduleName);
-
-    if (mprSearchForModule(module, &path) < 0) {
-        mprError("Can't find module \"%s\" in search path \"%s\"", moduleName, mprGetModuleSearchPath());
-
-    } else {
-        name = mprGetPathBase(module);
-        path = mprGetPathBase(path, path);
-
-        mprLog(MPR_INFO, "Loading native module %s from %s", moduleName, path);
-
-        if ((handle = GetModuleHandle(name)) == 0 && (handle = LoadLibrary(path)) == 0) {
-            mprError("Can't load module %s\nReason: \"%d\"\n",  path, mprGetOsError());
-
-        } else if (initFunction) {
-            if ((fn = (MprModuleEntry) GetProcAddress((HINSTANCE) handle, initFunction)) != 0) {
-                mp = mprCreateModule(name, data);
-                if ((fn)(data, mp)) < 0) {
-                    mprError("Initialization for module %s failed", name);
-                    FreeLibrary((HINSTANCE) handle);
-
-                } else {
-                    mp->handle = handle;
-                }
-            } else {
-                mprError("Can't load module %s\nReason: can't find function \"%s\"\n",  name, initFunction);
+    baseName = mprGetPathBase(mp->path);
+    if ((handle = GetModuleHandle(baseName)) == 0 && (handle = LoadLibrary(mp->path)) == 0) {
+        mprError("Can't load module %s\nReason: \"%d\"\n", mp->path, mprGetOsError());
+        return MPR_ERR_CANT_READ;
+    } 
+    mp->handle = handle;
+    if (mp->entry) {
+        if ((fn = (MprModuleEntry) GetProcAddress((HINSTANCE) handle, mp->entry)) != 0) {
+            if ((fn)(mp->moduleData, mp)) < 0) {
+                mprError("Initialization for module %s failed", mp->name);
                 FreeLibrary((HINSTANCE) handle);
-
+                return MPR_ERR_CANT_ACCESS;
             }
+        } else {
+            mprError("Can't load module %s\nReason: can't find function \"%s\"\n", mp->name, mp->entry);
+            FreeLibrary((HINSTANCE) handle);
+            return MPR_ERR_CANT_INITIALIZE;
         }
     }
     return mp;
