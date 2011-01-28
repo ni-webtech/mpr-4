@@ -154,25 +154,14 @@ static void manageDispatcher(MprDispatcher *dispatcher, int flags)
         mprMark(dispatcher->parent);
         mprMark(dispatcher->service);
         mprMark(dispatcher->requiredWorker);
+
         lock(es);
-#if UNUSED
-        if (dispatcher->current && !(dispatcher->current->flags & MPR_EVENT_STATIC)) {
-            mprMark(dispatcher->current);
-        }
-#else
-        mprMark(dispatcher->current);
-#endif
         q = dispatcher->eventQ;
         for (event = q->next; event != q; event = event->next) {
             mprAssert(event->magic == MPR_EVENT_MAGIC);
-#if UNUSED
-            if (!(event->flags & MPR_EVENT_STATIC)) {
-#endif
-                mprMark(event);
-#if UNUSED
-            }
-#endif
+            mprMark(event);
         }
+        mprMark(dispatcher->current);
         mprMark(dispatcher->eventQ);
         unlock(es);
         

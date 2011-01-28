@@ -316,9 +316,14 @@ void mprDestroyMemService()
 {
     volatile MprRegion  *region;
     MprMem              *mp, *next;
+    MprTime             mark;
 
     if (heap->destroying) {
         return;
+    }
+    mark = mprGetTime();
+    while (MPR->marker && mprGetRemainingTime(mark, MPR_TIMEOUT_STOP) > 0) {
+        mprSleep(1);
     }
     heap->destroying = 1;
     for (region = heap->regions; region; region = region->next) {
@@ -1034,9 +1039,6 @@ void mprWakeGCService()
 {
     mprSignalCond(heap->markerCond);
     mprResumeThreads();
-#if UNUSED
-    triggerGC(1);
-#endif
 }
 
 
@@ -1097,10 +1099,6 @@ static void synchronize()
     } else {
         LOG(7, "DEBUG: Pause for GC sync timed out");
     }
-#else
-#if UNUSED
-    nextGen();
-#endif
 #endif
     heap->mustYield = 0;
     mprResumeThreads();
@@ -1382,8 +1380,8 @@ static void marker(void *unused, MprThread *tp)
         MEASURE(7, "GC", "mark", mark());
     }
     heap->mustYield = 0;
-    MPR->marker = 0;
     mprResumeThreads();
+    MPR->marker = 0;
 }
 
 
