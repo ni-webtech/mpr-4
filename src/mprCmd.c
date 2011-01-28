@@ -566,10 +566,29 @@ static ssize asyncRead(MprCmd *cmd, int channel, char *buf, ssize bufsize)
 
 ssize mprReadCmdPipe(MprCmd *cmd, int channel, char *buf, ssize bufsize)
 {
+#if BLD_WIN_LIKE
+{
+    int     rc, count;
+    /*
+        Need to detect EOF in windows. Pipe always in blocking mode, but reads block even with noone on the other end.
+     */
+    rc = PeekNamedPipe(cmd->files[channel].handle, NULL, 0, NULL, &count, NULL);
+    if (rc > 0 && count > 0) {
+        return read(cmd->files[channel].fd, buf, bufsize);
+    } 
+    if (cmd->process == 0 || WaitForSingleObject(cmd->process, 0) == WAIT_OBJECT_0) {
+        /* Process has exited - EOF */
+        return 0;
+    }
+    errno = EAGAIN;
+    return -1;
+}
+#else
     if (cmd->flags & MPR_CMD_ASYNC) {
         return asyncRead(cmd, channel, buf, bufsize);
     }
     return read(cmd->files[channel].fd, buf, bufsize);
+#endif
 }
 
 
