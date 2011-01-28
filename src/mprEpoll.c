@@ -91,7 +91,7 @@ int mprAddNotifier(MprWaitService *ws, MprWaitHandler *wp, int mask)
         memset(&ev, 0, sizeof(ev));
         ev.data.fd = fd;
         if (mask & MPR_READABLE) {
-            ev.events |= EPOLLIN;
+            ev.events |= (EPOLLIN | EPOLLHUP);
         }
         if (mask & MPR_WRITABLE) {
             ev.events |= EPOLLOUT;
@@ -154,7 +154,7 @@ int mprWaitForSingleIO(int fd, int mask, int timeout)
         return MPR_ERR_CANT_INITIALIZE;
     }
     if (mask & MPR_READABLE) {
-        ev.events = EPOLLIN;
+        ev.events = (EPOLLIN | EPOLLHUP);
         epoll_ctl(epfd, EPOLL_CTL_ADD, fd, &ev);
     }
     if (mask & MPR_WRITABLE) {

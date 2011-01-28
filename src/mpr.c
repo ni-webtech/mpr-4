@@ -282,6 +282,7 @@ bool mprIsIdle()
 
 /*
     Make an argv array
+    MOB - genericize and remove "program"
  */
 int mprMakeArgv(cchar *program, cchar *cmd, int *argcp, char ***argvp)
 {
@@ -294,6 +295,7 @@ int mprMakeArgv(cchar *program, cchar *cmd, int *argcp, char ***argvp)
      */
     size = strlen(cmd) + 1;
 
+    //  MOB - remove MPR_MAX_ARGC and calculate it
     vector = (char*) mprAlloc((MPR_MAX_ARGC * sizeof(char*)) + size);
     if (vector == 0) {
         mprAssert(!MPR_ERR_MEMORY);
