@@ -128,9 +128,7 @@ void mprSleep(int milliseconds)
 
 void mprUnloadModule(MprModule *mp)
 {
-    /*
-        The Module stop entry point should have been called.
-     */
+    mprStopModule(mp);
     if (mp->handle) {
         dlclose(mp->handle);
     }

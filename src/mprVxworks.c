@@ -125,6 +125,7 @@ void mprSleep(int milliseconds)
 
 void mprUnloadModule(MprModule *mp)
 {
+    mprStopModule(mp);
     mprRemoveItem(mprGetMpr()->moduleService->modules, mp);
     unldByModuleId((MODULE_ID) mp->handle, 0);
 }
