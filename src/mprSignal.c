@@ -48,7 +48,7 @@ void mprStopSignalService()
 {
     int     i;
 
-    for (i = 0; i < MPR_MAX_SIGNALS; i++) {
+    for (i = 1; i < MPR_MAX_SIGNALS; i++) {
         unhookSignal(i);
     }
 }
@@ -63,7 +63,7 @@ static void hookSignal(int signo, MprSignal *sp)
     struct sigaction    act, old;
     int                 rc;
 
-    mprAssert(0 <= signo && signo < MPR_MAX_SIGNALS);
+    mprAssert(0 < signo && signo < MPR_MAX_SIGNALS);
 
     ssp = MPR->signalService;
     lock(ssp);
@@ -87,11 +87,12 @@ static void unhookSignal(int signo)
 {
     MprSignalService    *ssp;
     struct sigaction    act;
+    int                 rc;
 
     ssp = MPR->signalService;
     lock(ssp);
-    sigaction(signo, 0, &act);
-    if (act.sa_sigaction == signalHandler) {
+    rc = sigaction(signo, 0, &act);
+    if (rc == 0 && act.sa_sigaction == signalHandler) {
         if (sigaction(signo, &ssp->prior[signo], 0) != 0) {
             mprError("Can't unhook signal %d, errno %d", signo, mprGetOsError());
         }
@@ -130,7 +131,7 @@ static void signalHandler(int signo, siginfo_t *info, void *arg)
     MprSignalService    *ssp;
     MprSignalInfo       *ip;
 
-    if (signo < 0 || signo >= MPR_MAX_SIGNALS || MPR == 0) {
+    if (signo <= 0 || signo >= MPR_MAX_SIGNALS || MPR == 0) {
         return;
     }
     ssp = MPR->signalService;
@@ -191,7 +192,7 @@ MprSignal *mprAddSignalHandler(int signo, void *handler, void *data, MprDispatch
     MprSignalService    *ssp;
 
     ssp = MPR->signalService;
-    if (signo < 0 || signo >= MPR_MAX_SIGNALS) {
+    if (signo <= 0 || signo >= MPR_MAX_SIGNALS) {
         mprError("Bad signal: %d", signo);
         return 0;
     }
