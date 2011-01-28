@@ -96,9 +96,10 @@ int mprLoadNativeModule(MprModule *mp)
 }
 
 
-void mprUnloadNativeModule(MprModule *mp)
+int mprUnloadNativeModule(MprModule *mp)
 {
     unldByModuleId((MODULE_ID) mp->handle, 0);
+    return 0;
 }
 
 
