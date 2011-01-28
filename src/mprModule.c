@@ -10,6 +10,7 @@
 
 /********************************** Forwards **********************************/
 
+static void manageModule(MprModule *mp, int flags);
 static void manageModuleService(MprModuleService *ms, int flags);
 
 /************************************* Code ***********************************/
@@ -114,7 +115,7 @@ MprModule *mprCreateModule(cchar *name, void *data)
     ms = MPR->moduleService;
     mprAssert(ms);
 
-    if ((mp = mprAllocObj(MprModule, NULL)) == 0) {
+    if ((mp = mprAllocObj(MprModule, manageModule)) == 0) {
         return 0;
     }
     index = mprAddItem(ms->modules, mp);
@@ -130,6 +131,17 @@ MprModule *mprCreateModule(cchar *name, void *data)
         return 0;
     }
     return mp;
+}
+
+
+static void manageModule(MprModule *mp, int flags)
+{
+    if (flags & MPR_MANAGE_MARK) {
+        mprMark(mp->name);
+        mprMark(mp->path);
+
+    } else if (flags & MPR_MANAGE_FREE) {
+    }
 }
 
 
