@@ -259,6 +259,7 @@ int mprLoadModule(MprModule *mp)
     if (mprLoadNativeModule(mp) < 0) {
         return MPR_ERR_CANT_READ;
     }
+    mprStartModule(mp);
     return 0;
 #else
     mprError("Product built without the ability to load modules dynamically");
