@@ -112,11 +112,9 @@ MprModule *mprCreateModule(cchar *name, cchar *path, cchar *entry, void *data)
     ms = MPR->moduleService;
     mprAssert(ms);
 
-    if (path) {
-        if ((path = mprSearchForModule(path)) == 0) {
-            mprError("Can't find module \"%s\" in search path \"%s\"", path, mprGetModuleSearchPath());
-            return 0;
-        }
+    if (path && ((path = mprSearchForModule(path)) == 0)) {
+        mprError("Can't find module \"%s\" in search path \"%s\"", path, mprGetModuleSearchPath());
+        return 0;
     }
     if ((mp = mprAllocObj(MprModule, manageModule)) == 0) {
         return 0;
