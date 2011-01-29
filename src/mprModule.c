@@ -121,17 +121,12 @@ MprModule *mprCreateModule(cchar *name, cchar *path, cchar *entry, void *data)
     if ((mp = mprAllocObj(MprModule, manageModule)) == 0) {
         return 0;
     }
-    index = mprAddItem(ms->modules, mp);
     mp->name = sclone(name);
     mp->path = sclone(path);
     mp->entry = sclone(entry);
     mp->moduleData = data;
     mp->lastActivity = mprGetTime();
-    mp->handle = 0;
-    mp->start = 0;
-    mp->stop = 0;
-    mp->timeout = 0;
-
+    index = mprAddItem(ms->modules, mp);
     if (index < 0 || mp->name == 0) {
         return 0;
     }
@@ -209,6 +204,18 @@ void *mprLookupModuleData(cchar *name)
         return NULL;
     }
     return module->moduleData;
+}
+
+
+void mprSetModuleTimeout(MprModule *module, int timeout)
+{
+    module->timeout = timeout;
+}
+
+
+void mprSetModuleFinalizer(MprModule *module, MprModuleProc stop)
+{
+    module->stop = stop;
 }
 
 

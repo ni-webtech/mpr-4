@@ -78,9 +78,10 @@ int mprLoadNativeModule(MprModule *mp)
         mprError("Can't load module %s\nReason: \"%s\"", mp->path, dlerror());
         return MPR_ERR_CANT_OPEN;
     } 
+    mp->handle = handle;
+
     if (mp->entry) {
         if ((fn = (MprModuleEntry) dlsym(handle, mp->entry)) != 0) {
-            mp->handle = handle;
             if ((fn)(mp->moduleData, mp) < 0) {
                 mprError("Initialization for module %s failed", mp->name);
                 dlclose(handle);
