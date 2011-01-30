@@ -20,9 +20,9 @@ TARGETS			+= $(patsubst %,$(INC_DEST)/%, mpr.h mprSsl.h)
 TARGETS			+= $(patsubst %,$(DEST)/%, mprLib.c makerom.c mprSsl.c angel.c)
 
 #
-#	Order of headers matters
+#	Order of headers matters (linux and mac sort files differently wrt mpr.c)
 #
-MPR_SOURCES 	+= ../src/mprMem.c $(shell find ../src/*.c ../src/deps/*.c | egrep -v 'angel|mprMem')
+MPR_SOURCES 	+= ../src/mprMem.c ../src/mpr.c $(shell find ../src/*.c ../src/deps/*.c | egrep -v 'angel|mprMem|mpr.c')
 SSL_SOURCES 	+= ../src/include/mprSsl.h $(wildcard ../src/ssl/*.c) 
 
 dist packageExtra: clean prep $(TARGETS) $(REL_DIR)/$(DIST_VER_NAME) $(REL_DIR)/$(FLAT_VER_NAME) cleanup
