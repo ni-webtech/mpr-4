@@ -354,7 +354,8 @@ static int listenSocket(MprSocket *sp, cchar *ip, int port, int initialFlags)
 }
 
 
-MprWaitHandler *mprAddSocketHandler(MprSocket *sp, int mask, MprDispatcher *dispatcher, MprEventProc proc, void *data)
+MprWaitHandler *mprAddSocketHandler(MprSocket *sp, int mask, MprDispatcher *dispatcher, MprEventProc proc, void *data, 
+        int flags)
 {
     mprAssert(sp);
     mprAssert(sp->fd >= 0);
@@ -366,7 +367,7 @@ MprWaitHandler *mprAddSocketHandler(MprSocket *sp, int mask, MprDispatcher *disp
     if (sp->handler) {
         mprRemoveWaitHandler(sp->handler);
     }
-    sp->handler = mprCreateWaitHandler(sp->fd, mask, dispatcher, proc, data);
+    sp->handler = mprCreateWaitHandler(sp->fd, mask, dispatcher, proc, data, flags);
     return sp->handler;
 }
 

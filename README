@@ -9,21 +9,26 @@ The key directories and files are:
 
 File                 Purpose
 ----------------------------
-LICENSE.TXT      - Product license
-build            - Build tools and scripts
-configure        - Primary build configuration script
-doc              - Product documentation
-package          - Packaging scripts
-projects         - IDE project files to build the product
-releases         - Release packages created via make package
-samples          - Sample code
-src              - Product source code
+LICENSE.TXT       - Product license
+build             - Build tools and scripts
+configure         - Primary build configuration script
+doc               - Product documentation
+package           - Packaging scripts
+projects          - IDE project files to build the product
+releases          - Release packages created via make package
+samples           - Sample code
+src               - Product source code
 
-out/bin          - All created binaries. On windows, shared libs go here also.
-out/lib			 - Static and shared libraries
-out/modules      - Loadable modules and byte code modules
-out/obj          - Compiled source objects
-out/include      - Directory for generated include files
+out/buildConfig.h - Configure settings
+out/bin           - All created binaries. On windows, DLLs go here also.
+out/lib			  - Static and shared libraries
+out/modules       - Loadable modules and byte code modules
+out/obj           - Compiled source objects
+out/include       - Directory for generated include files
+
+
+See Also
+--------
 
 LICENSE.TXT -- License details.
 

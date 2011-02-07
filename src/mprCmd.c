@@ -465,7 +465,7 @@ int mprStartCmd(MprCmd *cmd, int argc, char **argv, char **envp, int flags)
 #endif
         if (stdoutFd >= 0) {
             cmd->handlers[MPR_CMD_STDOUT] = mprCreateWaitHandler(stdoutFd, MPR_READABLE, cmd->dispatcher,
-                (MprEventProc) stdoutCallback, cmd);
+                (MprEventProc) stdoutCallback, cmd, 0);
         }
         if (stderrFd >= 0) {
             /*
@@ -473,7 +473,7 @@ int mprStartCmd(MprCmd *cmd, int argc, char **argv, char **envp, int flags)
              */
             mask = (stdoutFd < 0) ? MPR_READABLE : 0;
             cmd->handlers[MPR_CMD_STDERR] = mprCreateWaitHandler(stderrFd, mask, cmd->dispatcher,
-                (MprEventProc) stderrCallback, cmd);
+                (MprEventProc) stderrCallback, cmd, 0);
         }
     }
 #endif

@@ -883,6 +883,7 @@ static void manageWorker(MprWorker *worker, int flags)
     if (flags & MPR_MANAGE_MARK) {
         mprMark(worker->thread);
         mprMark(worker->idleCond);
+        mprMark(worker->data);
     }
 }
 
@@ -912,6 +913,7 @@ static void workerMain(MprWorker *worker, MprThread *tp)
             (*worker->cleanup)(worker->data, worker);
             worker->cleanup = NULL;
         }
+        worker->data = 0;
         mprUnlock(ws->mutex);
 
         /*

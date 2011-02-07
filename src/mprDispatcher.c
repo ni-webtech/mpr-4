@@ -441,7 +441,7 @@ void mprScheduleDispatcher(MprDispatcher *dispatcher)
 
 
 /*
-    Dispatch events for a dispatcher. A dispatcher is ever only run on one thread, and so this code is single-threaded.
+    Dispatch events for a dispatcher
  */
 static int dispatchEvents(MprDispatcher *dispatcher)
 {
@@ -456,7 +456,6 @@ static int dispatchEvents(MprDispatcher *dispatcher)
 
 //  MOB -- locking because another thread may queue an event
     lock(es);
-    /* MOB - not true. No locking because this must run in a single owning thread */
     for (count = 0; (event = mprGetNextEvent(dispatcher)) != 0; count++) {
         mprAssert(event->magic == MPR_EVENT_MAGIC);
         dispatcher->current = event;

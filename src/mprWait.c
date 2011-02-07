@@ -69,7 +69,7 @@ static void manageWaitService(MprWaitService *ws, int flags)
 
 
 MprWaitHandler *mprInitWaitHandler(MprWaitHandler *wp, int fd, int mask, MprDispatcher *dispatcher, 
-        MprEventProc proc, void *data)
+        MprEventProc proc, void *data, int flags)
 {
     MprWaitService  *ws;
 
@@ -93,6 +93,7 @@ MprWaitHandler *mprInitWaitHandler(MprWaitHandler *wp, int fd, int mask, MprDisp
     wp->handlerData     = data;
     wp->service         = ws;
     wp->state           = MPR_HANDLER_DISABLED;
+    wp->flags           = flags;
 
     if (mask) {
         lock(ws);
@@ -109,7 +110,7 @@ MprWaitHandler *mprInitWaitHandler(MprWaitHandler *wp, int fd, int mask, MprDisp
 }
 
 
-MprWaitHandler *mprCreateWaitHandler(int fd, int mask, MprDispatcher *dispatcher, MprEventProc proc, void *data)
+MprWaitHandler *mprCreateWaitHandler(int fd, int mask, MprDispatcher *dispatcher, MprEventProc proc, void *data, int flags)
 {
     MprWaitHandler  *wp;
 
@@ -118,7 +119,7 @@ MprWaitHandler *mprCreateWaitHandler(int fd, int mask, MprDispatcher *dispatcher
     if ((wp = mprAllocObj(MprWaitHandler, manageWaitHandler)) == 0) {
         return 0;
     }
-    return mprInitWaitHandler(wp, fd, mask, dispatcher, proc, data);
+    return mprInitWaitHandler(wp, fd, mask, dispatcher, proc, data, flags);
 }
 
 
@@ -178,9 +179,12 @@ void mprQueueIOEvent(MprWaitHandler *wp)
     mprAssert(wp->state == MPR_HANDLER_ENABLED);
     mprAssert(wp->desiredMask == 0);
 
+    if (wp->flags & MPR_WAIT_NEW_DISPATCHER) {
+        dispatcher = mprCreateDispatcher("IO", 1);
+    } else {
+        dispatcher = (wp->dispatcher) ? wp->dispatcher: mprGetDispatcher();
+    }
     wp->state = MPR_HANDLER_QUEUED;
-
-    dispatcher = (wp->dispatcher) ? wp->dispatcher: mprGetDispatcher();
     event = &wp->event;
     mprInitEvent(dispatcher, event, "IOEvent", 0, ioEvent, (void*) wp->handlerData, MPR_EVENT_STATIC);
     event->fd = wp->fd;
@@ -204,7 +208,7 @@ static void ioEvent(void *data, MprEvent *event)
 
 void mprDisableWaitEvents(MprWaitHandler *wp)
 {
-    //  Check events already disabled - generally a programming error
+    //  MOB Check events already disabled - generally a programming error
     mprAssert(wp->desiredMask);
     mprAssert(wp->state == MPR_HANDLER_ENABLED);
 

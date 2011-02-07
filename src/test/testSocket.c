@@ -92,7 +92,7 @@ static MprSocket *openServer(MprTestGroup *gp, cchar *host)
     for (port = 9175; port < 9250; port++) {
         if (mprListenOnSocket(sp, host, port, MPR_SOCKET_NODELAY | MPR_SOCKET_THREAD) >= 0) {
             ts->port = port;
-            mprAddSocketHandler(sp, MPR_SOCKET_READABLE, NULL, (MprEventProc) acceptFn, gp);
+            mprAddSocketHandler(sp, MPR_SOCKET_READABLE, NULL, (MprEventProc) acceptFn, gp, 0);
             return sp;
         }
     }
@@ -136,7 +136,7 @@ static int acceptFn(MprTestGroup *gp, MprEvent *event)
     if (sp) {
         mprAssert(sp->fd >= 0);
         ts->accepted = sp;
-        mprAddSocketHandler(sp, MPR_READABLE, NULL, (MprEventProc) readEvent, (void*) gp);
+        mprAddSocketHandler(sp, MPR_READABLE, NULL, (MprEventProc) readEvent, (void*) gp, 0);
         mprSignalTestComplete(gp);
     }
     return 0;
