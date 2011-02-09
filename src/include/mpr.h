@@ -3422,7 +3422,7 @@ extern uint64 mprGetTicks();
             } else 
     #endif
 #else
-    #define MEASURE(tag1, tag2, op) op
+    #define MEASURE(level, tag1, tag2, op) op
 #endif
 
 
