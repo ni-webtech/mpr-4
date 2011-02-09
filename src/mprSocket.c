@@ -44,6 +44,7 @@ static ssize writeSocket(MprSocket *sp, void *buf, ssize bufsize);
 MprSocketService *mprCreateSocketService()
 {
     MprSocketService    *ss;
+    char                hostName[MPR_MAX_IP_NAME], serverName[MPR_MAX_IP_NAME], domainName[MPR_MAX_IP_NAME], *dp;
 
     ss = mprAllocObj(MprSocketService, manageSocketService);
     if (ss == 0) {
@@ -53,44 +54,17 @@ MprSocketService *mprCreateSocketService()
     ss->maxClients = MAXINT;
     ss->numClients = 0;
 
-    ss->standardProvider = createStandardProvider(ss);
-    if (ss->standardProvider == NULL) {
-        return NULL;
+    if ((ss->standardProvider = createStandardProvider(ss)) == 0) {
+        return 0;
     }
     ss->secureProvider = NULL;
-    ss->mutex = mprCreateLock();
-    if (ss->mutex == 0) {
-        return NULL;
+    if ((ss->mutex = mprCreateLock()) == 0) {
+        return 0;
     }
-    return ss;
-}
-
-
-static void manageSocketService(MprSocketService *ss, int flags)
-{
-    if (flags & MPR_MANAGE_MARK) {
-        mprMark(ss->mutex);
-        mprMark(ss->standardProvider);
-        mprMark(ss->secureProvider);
-    }
-}
-
-
-/*
-    Start the socket service
- */
-int mprStartSocketService()
-{
-    MprSocketService    *ss;
-    char                hostName[MPR_MAX_IP_NAME], serverName[MPR_MAX_IP_NAME], domainName[MPR_MAX_IP_NAME], *dp;
-
-    ss = MPR->socketService;
-    mprAssert(ss);
 
     serverName[0] = '\0';
     domainName[0] = '\0';
     hostName[0] = '\0';
-
     if (gethostname(serverName, sizeof(serverName)) < 0) {
         scopy(serverName, sizeof(serverName), "localhost");
         mprUserError("Can't get host name. Using \"localhost\".");
@@ -107,7 +81,17 @@ int mprStartSocketService()
     mprSetServerName(serverName);
     mprSetDomainName(domainName);
     mprSetHostName(hostName);
-    return 0;
+    return ss;
+}
+
+
+static void manageSocketService(MprSocketService *ss, int flags)
+{
+    if (flags & MPR_MANAGE_MARK) {
+        mprMark(ss->mutex);
+        mprMark(ss->standardProvider);
+        mprMark(ss->secureProvider);
+    }
 }
 
 

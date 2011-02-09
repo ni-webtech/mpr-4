@@ -103,7 +103,11 @@ int mprLoadNativeModule(MprModule *mp)
 int mprUnloadNativeModule(MprModule *mp)
 {
     mprAssert(mp->handle);
-    return FreeLibrary((HINSTANCE) mp->handle) != 0 ? 0 : MPR_ERR_ABORTED;
+
+    if (FreeLibrary((HINSTANCE) mp->handle) == 0) {
+        return MPR_ERR_ABORTED;
+    }
+    return 0;
 }
 
 

@@ -107,14 +107,18 @@ MprModule *mprCreateModule(cchar *name, cchar *path, cchar *entry, void *data)
 {
     MprModuleService    *ms;
     MprModule           *mp;
+    char                *at;
     int                 index;
 
     ms = MPR->moduleService;
     mprAssert(ms);
 
-    if (path && ((path = mprSearchForModule(path)) == 0)) {
-        mprError("Can't find module \"%s\" in search path \"%s\"", path, mprGetModuleSearchPath());
-        return 0;
+    if (path) {
+        if ((at = mprSearchForModule(path)) == 0) {
+            mprError("Can't find module \"%s\" in search path \"%s\"", path, mprGetModuleSearchPath());
+            return 0;
+        }
+        path = at;
     }
     if ((mp = mprAllocObj(MprModule, manageModule)) == 0) {
         return 0;
@@ -272,7 +276,10 @@ void mprUnloadModule(MprModule *mp)
 {
     mprStopModule(mp);
 #if BLD_CC_DYN_LOAD
-    mprUnloadNativeModule(mp);
+    if (mp->handle) {
+        mprUnloadNativeModule(mp);
+        mp->handle = 0;
+    }
 #endif
     mprRemoveItem(MPR->moduleService->modules, mp);
 }

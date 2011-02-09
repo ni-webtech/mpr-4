@@ -190,7 +190,6 @@ int mprStart()
     rc = mprStartOsService();
     rc += mprStartModuleService();
     rc += mprStartWorkerService();
-    rc += mprStartSocketService();
     if (rc != 0) {
         mprUserError("Can't start MPR services");
         return MPR_ERR_CANT_INITIALIZE;

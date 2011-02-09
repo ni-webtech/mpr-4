@@ -21,7 +21,6 @@ BLD_CHAR=char
 BLD_DEFAULTS=standard
 BLD_COMPONENTS= winsdk ar cc make nm strip ld mt rc doxygen pkg mpr matrixssl openssl ssl
 BLD_EMBEDTHIS=0
-BLD_STATIC=0
 
 #
 #   Other formats

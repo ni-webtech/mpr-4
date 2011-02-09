@@ -130,6 +130,7 @@ static void manageWaitHandler(MprWaitHandler *wp, int flags)
         mprMark(wp->callbackComplete);
         mprMark(wp->requiredWorker);
         mprMark(wp->handlerData);
+        mprMark(wp->dispatcher);
 
     } else if (flags & MPR_MANAGE_FREE) {
         mprRemoveWaitHandler(wp);

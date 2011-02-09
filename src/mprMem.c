@@ -1133,7 +1133,7 @@ static void mark()
     markRoots();
     MPR->marking = 0;
     if (!heap->hasSweeper) {
-        MEASURE("GC", "sweep", sweep());
+        MEASURE(7, "GC", "sweep", sweep());
     }
     synchronize();
 }
@@ -1370,7 +1370,7 @@ static void marker(void *unused, MprThread *tp)
         if (!heap->mustYield) {
             mprWaitForCond(heap->markerCond, -1);
         }
-        MEASURE("GC", "mark", mark());
+        MEASURE(7, "GC", "mark", mark());
     }
     heap->mustYield = 0;
     MPR->marker = 0;
@@ -1387,7 +1387,7 @@ static void sweeper(void *unused, MprThread *tp)
 
     MPR->sweeper = 1;
     while (!mprIsStoppingCore()) {
-        MEASURE("GC", "sweep", sweep());
+        MEASURE(7, "GC", "sweep", sweep());
         mprYield(MPR_YIELD_BLOCK);
     }
     MPR->sweeper = 0;
@@ -1529,7 +1529,7 @@ static int syncThreads()
 
     mprAssert(allYielded);
 #if BLD_DEBUG
-    LOG(5, "TIME: syncThreads elapsed %,d msec, %,d ticks", mprGetElapsedTime(mark), mprGetTicks() - ticks);
+    LOG(7, "TIME: syncThreads elapsed %,d msec, %,d ticks", mprGetElapsedTime(mark), mprGetTicks() - ticks);
 #endif
     return (allYielded) ? 1 : 0;
 }

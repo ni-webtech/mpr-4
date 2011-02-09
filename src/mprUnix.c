@@ -99,10 +99,7 @@ int mprLoadNativeModule(MprModule *mp)
 
 int mprUnloadNativeModule(MprModule *mp)
 {
-    if (mp->handle) {
-        return dlclose(mp->handle);
-    }
-    return 0;
+    return dlclose(mp->handle);
 }
 #endif
 
