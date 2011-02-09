@@ -86,6 +86,9 @@ int stopSeqno = -1;
 #define SCRIBBLE(mp)            if (heap->scribble && mp != GET_MEM(MPR)) { \
                                     memset((char*) mp + sizeof(MprFreeMem), 0xFE, GET_SIZE(mp) - sizeof(MprFreeMem)); \
                                 } else
+#define SCRIBBLE_RANGE(ptr, size) if (heap->scribble) { \
+                                    memset((char*) ptr, 0xFE, size); \
+                                } else
 #define SET_MAGIC(mp)           mp->magic = MPR_ALLOC_MAGIC
 #define SET_SEQ(mp)             mp->seqno = heap->nextSeqno++
 #define VALID_BLK(mp)           validBlk(mp)
@@ -96,6 +99,7 @@ int stopSeqno = -1;
 #define CHECK(mp)           
 #define CHECK_PTR(mp)           
 #define SCRIBBLE(mp)           
+#define SCRIBBLE_RANGE(ptr, size)
 #define CHECK_FREE_MEMORY(mp)           
 #define SET_NAME(mp, value)
 #define SET_MAGIC(mp)
@@ -294,6 +298,7 @@ Mpr *mprCreateMemService(MprManager manager, int flags)
     SET_FREE(spare, 1);
     heap->regions = region;
     initFree();
+    SCRIBBLE(spare);
     linkBlock(spare);
 #endif
 
@@ -660,17 +665,15 @@ static MprMem *freeToHeap(MprMem *mp)
 
     size = GET_SIZE(mp);
     prev = NULL;
+    lockHeap();
     
     /*
         Coalesce with next if it is free
      */
-    lockHeap();
-
     //  MOB - GET_NEXT should be safe lockfree in the sweeper.
     next = GET_NEXT(mp);
     if (next && IS_FREE(next)) {
         BREAKPOINT(next);
-//  MOB - lockfree race here as someone else may claim this block
         unlinkBlock((MprFreeMem*) next);
         if ((after = GET_NEXT(next)) != NULL) {
             mprAssert(GET_PRIOR(after) == next);
@@ -681,7 +684,9 @@ static MprMem *freeToHeap(MprMem *mp)
         size += GET_SIZE(next);
         SET_SIZE(mp, size);
         INC(joins);
+        SCRIBBLE_RANGE(next, sizeof(MprFreeMem));
     }
+
     /*
         Coalesce with previous if it is free
      */
@@ -698,7 +703,7 @@ static MprMem *freeToHeap(MprMem *mp)
         }
         size += GET_SIZE(prev);
         SET_SIZE(prev, size);
-        // printf("  JOIN PREV %x size %d\n", prev, size);
+        SCRIBBLE_RANGE(mp, sizeof(MprFreeMem));
         mp = prev;
         INC(joins);
         prev = GET_PRIOR(mp);
@@ -1567,9 +1572,11 @@ void mprVerifyMem()
     MprRegion   *region;
     MprMem      *mp;
     MprFreeMem  *freeq, *fp;
-    uchar       *ptr;
-    int         i, usize;
+    int         i;
     
+    if (!heap->verify) {
+        return;
+    }
     lockHeap();
     for (region = heap->regions; region; region = region->next) {
         for (mp = region->start; mp; mp = GET_NEXT(mp)) {
@@ -1582,7 +1589,10 @@ void mprVerifyMem()
             CHECK(mp);
             mprAssert(GET_GEN(mp) == heap->eternal);
             mprAssert(IS_FREE(mp));
-            if (heap->verify) {
+#if FUTURE
+            uchar *ptr;
+            int  usize;
+            if (heap->verifyFree) {
                 ptr = (uchar*) ((char*) mp + sizeof(MprFreeMem));
                 usize = GET_SIZE(mp) - sizeof(MprFreeMem);
                 if (HAS_MANAGER(mp)) {
@@ -1595,6 +1605,7 @@ void mprVerifyMem()
                     }
                 }
             }
+#endif
         }
     }
     unlockHeap();
@@ -1834,6 +1845,7 @@ void mprCheckBlock(MprMem *mp)
 
 static void checkFreeMem(MprMem *mp)
 {
+#if FUTURE
     uchar   *ptr;
     int     usize, i;
 
@@ -1851,6 +1863,7 @@ static void checkFreeMem(MprMem *mp)
             }
         }
     }
+#endif
 }
 
 

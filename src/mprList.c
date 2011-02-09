@@ -86,8 +86,7 @@ int mprSetListLimits(MprList *lp, int initialSize, int maxSize)
     size = initialSize * sizeof(void*);
 
     if (lp->items == 0) {
-        lp->items = mprAlloc(size);
-        if (lp->items == 0) {
+        if ((lp->items = mprAlloc(size)) == 0) {
             mprAssert(!MPR_ERR_MEMORY);
             return MPR_ERR_MEMORY;
         }
