@@ -5796,6 +5796,7 @@ typedef struct MprWaitHandler {
 extern MprWaitHandler *mprCreateWaitHandler(int fd, int mask, MprDispatcher *dispatcher, MprEventProc proc, 
     void *data, int flags);
 
+#if UNUSED
 /**
     Initialize a static wait handler
     @description Initialize a wait handler that will be invoked when I/O of interest occurs on the specified file handle
@@ -5811,6 +5812,7 @@ extern MprWaitHandler *mprCreateWaitHandler(int fd, int mask, MprDispatcher *dis
  */
 extern MprWaitHandler *mprInitWaitHandler(MprWaitHandler *wp, int fd, int mask, MprDispatcher *dispatcher, 
         MprEventProc proc, void *data, int flags);
+#endif
 
 /**
     Disconnect a wait handler from its underlying file descriptor. This is used to prevent further I/O wait events while
