@@ -733,7 +733,7 @@ int mprWaitForCmd(MprCmd *cmd, int timeout)
         if (cmd->flags & MPR_CMD_ASYNC) {
             /* Add root to allow callers to use mprRunCmd without first managing the cmd */
             mprAddRoot(cmd);
-            mprWaitForEvent(cmd->dispatcher, (int) delay);
+            mprWaitForEvent(cmd->dispatcher, delay);
             mprRemoveRoot(cmd);
         }
         remaining = (expires - mprGetTime());

@@ -188,7 +188,7 @@ void mprEnableDispatcher(MprDispatcher *dispatcher)
     @param timeout Time in milliseconds to wait. Set to zero for no wait. Set to -1 to wait forever.
     @returns Zero if not events occurred. Otherwise returns non-zero.
  */
-int mprServiceEvents(int timeout, int flags)
+int mprServiceEvents(MprTime timeout, int flags)
 {
     MprEventService     *es;
     MprDispatcher       *dp;
@@ -246,7 +246,7 @@ int mprServiceEvents(int timeout, int flags)
     Wait for an event to occur. Expect the event to signal the cond var.
     WARNING: this will enable GC while sleeping
  */
-int mprWaitForEvent(MprDispatcher *dispatcher, int timeout)
+int mprWaitForEvent(MprDispatcher *dispatcher, MprTime timeout)
 {
     MprEventService     *es;
     MprTime             start, expires, delay;
