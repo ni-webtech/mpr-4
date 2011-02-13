@@ -3,7 +3,7 @@
     ProjectType="Visual C++"
     Version="8.00"
     Name="libmpr"
-    ProjectGUID="ba44ee3e-b834-464c-ae60-e3170c6f3a09"
+    ProjectGUID="96ba08ce-eed8-4c72-bf5e-9774be13fe54"
     RootNamespace=""
     Keyword="Win32Proj"
     TargetFrameworkVersion="0"
@@ -162,7 +162,7 @@
         <Filter
             Name="Header Files"
             Filter="h;hpp;hxx;hm;inl;inc;xsd"
-            UniqueIdentifier="{8f441ea3-cb59-4eaf-b598-86cbb9953570}"
+            UniqueIdentifier="{f11147f0-ad3a-47c6-916e-2da2d5a75359}"
             >
             <File
                 RelativePath="..\..\..\out\include\buildConfig.h"
@@ -180,7 +180,7 @@
         <Filter
             Name="Source Files"
             Filter="cpp;c;cc;cxx;def;odl;idl;hpj;bat;asm;asmx"
-            UniqueIdentifier="{69648187-15e7-487e-8bd5-b4be9ed31d69}"
+            UniqueIdentifier="{db6d68ec-1208-4bac-8163-c377593c1c9f}"
             >
             <File
                 RelativePath="..\..\..\src\deps\dtoa.c"
