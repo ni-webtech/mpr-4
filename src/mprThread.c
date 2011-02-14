@@ -194,6 +194,7 @@ static void manageThread(MprThread *tp, int flags)
 
     } else if (flags & MPR_MANAGE_FREE) {
         if (ts->threads) {
+            ts->mutex = 0;
             mprRemoveItem(ts->threads, tp);
         }
 #if BLD_WIN_LIKE
