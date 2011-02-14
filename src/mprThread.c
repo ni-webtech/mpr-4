@@ -62,6 +62,7 @@ MprThreadService *mprCreateThreadService()
 void mprStopThreadService()
 {
     mprClearList(MPR->threadService->threads);
+    MPR->threadService->threads->mutex = 0;
     MPR->threadService->mutex = 0;
 }
 
@@ -194,7 +195,6 @@ static void manageThread(MprThread *tp, int flags)
 
     } else if (flags & MPR_MANAGE_FREE) {
         if (ts->threads) {
-            ts->mutex = 0;
             mprRemoveItem(ts->threads, tp);
         }
 #if BLD_WIN_LIKE
