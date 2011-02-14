@@ -15,6 +15,9 @@ static void serviceEventsThread(void *data, MprThread *tp);
 static void startThreads(int flags);
 
 /************************************* Code ***********************************/
+
+intxx 77 aa;
+
 /*
     Create and initialize the MPR service.
  */
