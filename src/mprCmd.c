@@ -106,7 +106,6 @@ MprCmd *mprCreateCmd(MprDispatcher *dispatcher)
 
 static void manageCmd(MprCmd *cmd, int flags)
 {
-    MprCmdService   *cs;
     int             i;
 
     if (flags & MPR_MANAGE_MARK) {
@@ -137,18 +136,23 @@ static void manageCmd(MprCmd *cmd, int flags)
         unlock(cmd);
 
     } else if (flags & MPR_MANAGE_FREE) {
+#if UNUSED
         cs = MPR->cmdService;
         if (cs->mutex) {
+            //  MOB - why lock the cmd service? 
             lock(cs);
         }
+#endif
         resetCmd(cmd);
 #if VXWORKS
         vxCmdManager(cmd);
 #endif
-        mprRemoveItem(cs->cmds, cmd);
+        mprRemoveItem(MPR->cmdService->cmds, cmd);
+#if UNUSED
         if (cs->mutex) {
             unlock(cs);
         }
+#endif
     }
 }
 
@@ -186,6 +190,7 @@ static void vxCmdManager(MprCmd *cmd)
 void mprDestroyCmd(MprCmd *cmd)
 {
     resetCmd(cmd);
+    mprRemoveItem(MPR->cmdService->cmds, cmd);
 }
 
 
