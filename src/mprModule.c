@@ -142,6 +142,7 @@ static void manageModule(MprModule *mp, int flags)
         mprMark(mp->name);
         mprMark(mp->path);
         mprMark(mp->entry);
+        mprMark(mp->moduleData);
 
     } else if (flags & MPR_MANAGE_FREE) {
         //  MOB - should this unload the module?

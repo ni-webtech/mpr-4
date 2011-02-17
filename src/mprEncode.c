@@ -30,58 +30,6 @@ static uchar charMatch[256] = {
     0x3c,0x3c,0x3c,0x3c,0x3c,0x3c,0x3c,0x3c,0x3c,0x3c,0x3c,0x3c,0x3c,0x3c,0x3c,0x3c 
 };
 
-/*  Basic mime type support
- */
-static char *mimeTypes[] = {
-    "ai", "application/postscript",
-    "asc", "text/plain",
-    "au", "audio/basic",
-    "avi", "video/x-msvideo",
-    "bin", "application/octet-stream",
-    "bmp", "image/bmp",
-    "class", "application/octet-stream",
-    "css", "text/css",
-    "dll", "application/octet-stream",
-    "doc", "application/msword",
-    "ejs", "text/html",
-    "eps", "application/postscript",
-    "es", "application/x-javascript",
-    "exe", "application/octet-stream",
-    "gif", "image/gif",
-    "gz", "application/x-gzip",
-    "htm", "text/html",
-    "html", "text/html",
-    "ico", "image/x-icon",
-    "jar", "application/octet-stream",
-    "jpeg", "image/jpeg",
-    "jpg", "image/jpeg",
-    "js", "application/javascript",
-    "json", "application/json",
-    "mp3", "audio/mpeg",
-    "pdf", "application/pdf",
-    "png", "image/png",
-    "ppt", "application/vnd.ms-powerpoint",
-    "ps", "application/postscript",
-    "ra", "audio/x-realaudio",
-    "ram", "audio/x-pn-realaudio",
-    "rmm", "audio/x-pn-realaudio",
-    "rtf", "text/rtf",
-    "rv", "video/vnd.rn-realvideo",
-    "so", "application/octet-stream",
-    "swf", "application/x-shockwave-flash",
-    "tar", "application/x-tar",
-    "tgz", "application/x-gzip",
-    "tiff", "image/tiff",
-    "txt", "text/plain",
-    "wav", "audio/x-wav",
-    "xls", "application/vnd.ms-excel",
-    "zip", "application/zip",
-    "php", "application/x-appweb-php",
-    "pl", "application/x-appweb-perl",
-    "py", "application/x-appweb-python",
-    NULL, NULL,
-};
-
 /*  
     Max size of the port specification in a URL
  */
@@ -278,31 +226,6 @@ char *mprEscapeHtml(cchar *html)
     mprAssert(op < &result[len]);
     *op = '\0';
     return result;
-}
-
-
-cchar *mprLookupMimeType(cchar *ext)
-{
-    char    **cp;
-    cchar   *ep, *mtype;
-
-    if (ext == 0 || *ext == '\0') {
-        return "";
-    }
-    if (MPR->mimeTable == 0) {
-        MPR->mimeTable = mprCreateHash(MIME_HASH_SIZE, MPR_HASH_STATIC_KEYS | MPR_HASH_STATIC_VALUES);
-        for (cp = mimeTypes; cp[0]; cp += 2) {
-            mprAddKey(MPR->mimeTable, cp[0], cp[1]);
-        }
-    }
-    if ((ep = strrchr(ext, '.')) != 0) {
-        ext = &ep[1];
-    }
-    mtype = (cchar*) mprLookupHash(MPR->mimeTable, ext);
-    if (mtype == 0) {
-        return "application/octet-stream";
-    }
-    return mtype;
 }
 
 

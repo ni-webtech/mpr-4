@@ -163,9 +163,7 @@ MprSpin *mprCreateSpinLock()
 
 static void manageSpinLock(MprSpin *lock, int flags)
 {
-    if (flags & MPR_MANAGE_MARK) {
-        ;
-    } else if (flags & MPR_MANAGE_FREE) {
+    if (flags & MPR_MANAGE_FREE) {
         mprAssert(lock);
 #if USE_MPR_LOCK || MACOSX
         ;

@@ -584,7 +584,6 @@ static void manageKeyValue(MprKeyValue *pair, int flags)
     if (flags & MPR_MANAGE_MARK) {
         mprMark(pair->key);
         mprMark(pair->value);
-    } else if (flags & MPR_MANAGE_FREE) {
     }
 }
 

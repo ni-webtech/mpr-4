@@ -109,15 +109,18 @@ static void manageCmd(MprCmd *cmd, int flags)
     int             i;
 
     if (flags & MPR_MANAGE_MARK) {
-        mprMark(cmd->dir);
-        mprMark(cmd->env);
-        mprMark(cmd->makeArgv);
         mprMark(cmd->program);
-        mprMark(cmd->stdoutBuf);
-        mprMark(cmd->stderrBuf);
+        mprMark(cmd->makeArgv);
+        mprMark(cmd->argv);
+        mprMark(cmd->env);
+        mprMark(cmd->dir);
         mprMark(cmd->mutex);
         mprMark(cmd->dispatcher);
         mprMark(cmd->callbackData);
+        mprMark(cmd->forkData);
+        mprMark(cmd->stdoutBuf);
+        mprMark(cmd->stderrBuf);
+        mprMark(cmd->userData);
 #if BLD_WIN_LIKE
         mprMark(cmd->command);
         mprMark(cmd->arg0);

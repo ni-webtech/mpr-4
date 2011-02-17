@@ -88,9 +88,9 @@ MprSocketService *mprCreateSocketService()
 static void manageSocketService(MprSocketService *ss, int flags)
 {
     if (flags & MPR_MANAGE_MARK) {
-        mprMark(ss->mutex);
         mprMark(ss->standardProvider);
         mprMark(ss->secureProvider);
+        mprMark(ss->mutex);
     }
 }
 
@@ -163,14 +163,16 @@ static MprSocket *createSocket(struct MprSsl *ssl)
 static void manageSocket(MprSocket *sp, int flags)
 {
     if (flags & MPR_MANAGE_MARK) {
+        mprMark(sp->service);
+        mprMark(sp->dispatcher);
+        mprMark(sp->handler);
         mprMark(sp->acceptIp);
         mprMark(sp->ip);
         mprMark(sp->provider);
-        mprMark(sp->mutex);
-        mprMark(sp->handler);
+        mprMark(sp->listenSock);
         mprMark(sp->sslSocket);
         mprMark(sp->ssl);
-        mprMark(sp->listenSock);
+        mprMark(sp->mutex);
 
     } else if (flags & MPR_MANAGE_FREE) {
         if (sp->fd >= 0) {
@@ -1452,12 +1454,12 @@ static int ipv6(cchar *ip)
     or
         [aaaa:bbbb:cccc:dddd:eeee:ffff:gggg:hhhh:iiii]:port
  */
-int mprParseIp(cchar *ipAddrPort, char **ipAddrRef, int *port, int defaultPort)
+int mprParseIp(cchar *ipAddrPort, char **pip, int *pport, int defaultPort)
 {
-    char    *ipAddr;
+    char    *ip;
     char    *cp;
 
-    ipAddr = NULL;
+    ip = NULL;
     if (defaultPort < 0) {
         defaultPort = 80;
     }
@@ -1471,60 +1473,60 @@ int mprParseIp(cchar *ipAddrPort, char **ipAddrRef, int *port, int defaultPort)
         if ((cp = strchr(ipAddrPort, ']')) != 0) {
             cp++;
             if ((*cp) && (*cp == ':')) {
-                *port = (*++cp == '*') ? -1 : atoi(cp);
+                *pport = (*++cp == '*') ? -1 : atoi(cp);
 
                 /* Set ipAddr to ipv6 address without brackets */
-                ipAddr = sclone(ipAddrPort+1);
-                cp = strchr(ipAddr, ']');
+                ip = sclone(ipAddrPort+1);
+                cp = strchr(ip, ']');
                 *cp = '\0';
 
             } else {
                 /* Handles [a:b:c:d:e:f:g:h:i] case (no port)- should not occur */
-                ipAddr = sclone(ipAddrPort+1);
-                cp = strchr(ipAddr, ']');
-                *cp = '\0';
-
+                ip = sclone(ipAddrPort + 1);
+                if ((cp = strchr(ip, ']')) != 0) {
+                    *cp = '\0';
+                }
                 /* No port present, use callers default */
-                *port = defaultPort;
+                *pport = defaultPort;
             }
         } else {
             /* Handles a:b:c:d:e:f:g:h:i case (no port) */
-            ipAddr = sclone(ipAddrPort);
+            ip = sclone(ipAddrPort);
 
             /* No port present, use callers default */
-            *port = defaultPort;
+            *pport = defaultPort;
         }
 
     } else {
         /*  
             ipv4 
          */
-        ipAddr = sclone(ipAddrPort);
+        ip = sclone(ipAddrPort);
 
-        if ((cp = strchr(ipAddr, ':')) != 0) {
+        if ((cp = strchr(ip, ':')) != 0) {
             *cp++ = '\0';
             if (*cp == '*') {
-                *port = -1;
+                *pport = -1;
             } else {
-                *port = atoi(cp);
+                *pport = atoi(cp);
             }
-            if (*ipAddr == '*') {
-                ipAddr = sclone("127.0.0.1");
+            if (*ip == '*') {
+                ip = sclone("127.0.0.1");
             }
 
         } else {
-            if (isdigit((int) *ipAddr)) {
-                *port = atoi(ipAddr);
-                ipAddr = sclone("127.0.0.1");
+            if (isdigit((int) *ip)) {
+                *pport = atoi(ip);
+                ip = sclone("127.0.0.1");
 
             } else {
                 /* No port present, use callers default */
-                *port = defaultPort;
+                *pport = defaultPort;
             }
         }
     }
-    if (ipAddrRef) {
-        *ipAddrRef = ipAddr;
+    if (pip) {
+        *pip = ip;
     }
     return 0;
 }

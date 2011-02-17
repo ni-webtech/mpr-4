@@ -417,6 +417,14 @@ MprList *mprGetPathFiles(cchar *dir, bool enumDirs)
 #endif /* WIN */
 
 
+static void manageDirEntry(MprDirEntry *dp, int flags)
+{
+    if (flags & MPR_MANAGE_MARK) {
+        mprMark(dp->name);
+    }
+}
+
+
 #if BLD_UNIX_LIKE || VXWORKS || CYGWIN
 MprList *mprGetPathFiles(cchar *path, bool enumDirs)
 {
@@ -441,8 +449,7 @@ MprList *mprGetPathFiles(cchar *path, bool enumDirs)
         fileName = mprJoinPath(path, dirent->d_name);
         rc = mprGetPathInfo(fileName, &fileInfo);
         if (enumDirs || (rc == 0 && !fileInfo.isDir)) { 
-            dp = mprAlloc(sizeof(MprDirEntry));
-            if (dp == 0) {
+            if ((dp = mprAllocObj(MprDirEntry, manageDirEntry)) == 0) {
                 return 0;
             }
             dp->name = sclone(dirent->d_name);

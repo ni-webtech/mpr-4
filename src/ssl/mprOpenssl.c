@@ -177,7 +177,7 @@ static MprSocketProvider *createOpenSslProvider()
     if ((provider = mprAllocObj(MprSocketProvider, manageOpenProvider)) == NULL) {
         return 0;
     }
-    provider->name = "OpenSsl";
+    provider->name = sclone("OpenSsl");
     provider->acceptSocket = acceptOss;
     provider->closeSocket = closeOss;
     provider->configureSsl = configureOss;
@@ -195,6 +195,7 @@ static MprSocketProvider *createOpenSslProvider()
 static void manageOpenProvider(MprSocketProvider *provider, int flags)
 {
     if (flags & MPR_MANAGE_MARK) {
+        mprMark(provider->name);
         mprMark(provider->defaultSsl);
         mprMark(provider->data);
     }

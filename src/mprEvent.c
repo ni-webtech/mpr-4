@@ -46,8 +46,15 @@ static void manageEvent(MprEvent *event, int flags)
             Events in dispatcher queues are marked by the dispatcher managers, not via event->next,prev
          */
         mprAssert(event->dispatcher == 0 || event->dispatcher->magic == MPR_DISPATCHER_MAGIC);
-        mprMark(event->dispatcher);
+        mprMark(event->name);
         mprMark(event->data);
+        mprMark(event->dispatcher);
+        if (event->next != &event->dispatcher->eventQ) {
+            mprMark(event->next);
+        }
+        if (event->prev != &event->dispatcher->eventQ) {
+            mprMark(event->prev);
+        }
         mprMark(event->handler);
 
     } else if (flags & MPR_MANAGE_FREE) {
@@ -76,7 +83,7 @@ void mprInitEvent(MprDispatcher *dispatcher, MprEvent *event, cchar *name, int p
     mprAssert(event->prev == 0);
 
     dispatcher->service->now = mprGetTime();
-    event->name = name;
+    event->name = sclone(name);
     event->timestamp = dispatcher->service->now;
     event->proc = proc;
     event->period = period;

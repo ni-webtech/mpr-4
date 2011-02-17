@@ -70,6 +70,7 @@
 		C90A1B020FD6E319006A9E86 /* testSprintf.c in Sources */ = {isa = PBXBuildFile; fileRef = C90A1AF10FD6E319006A9E86 /* testSprintf.c */; };
 		C90A1B030FD6E319006A9E86 /* testTime.c in Sources */ = {isa = PBXBuildFile; fileRef = C90A1AF20FD6E319006A9E86 /* testTime.c */; };
 		C90A1B040FD6E319006A9E86 /* testUnicode.c in Sources */ = {isa = PBXBuildFile; fileRef = C90A1AF30FD6E319006A9E86 /* testUnicode.c */; };
+		C92D5BBB130DE5C40097EBA8 /* mprMime.c in Sources */ = {isa = PBXBuildFile; fileRef = C92D5BBA130DE5C40097EBA8 /* mprMime.c */; };
 		C941899512ADC7FE00AD31B5 /* mprMem.c in Sources */ = {isa = PBXBuildFile; fileRef = C941899212ADC7FE00AD31B5 /* mprMem.c */; };
 		C941899612ADC7FE00AD31B5 /* mprMixed.c in Sources */ = {isa = PBXBuildFile; fileRef = C941899312ADC7FE00AD31B5 /* mprMixed.c */; };
 		C941899712ADC7FE00AD31B5 /* mprWide.c in Sources */ = {isa = PBXBuildFile; fileRef = C941899412ADC7FE00AD31B5 /* mprWide.c */; };
@@ -188,6 +189,7 @@
 		C90A1AF10FD6E319006A9E86 /* testSprintf.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; name = testSprintf.c; path = ../../../src/test/testSprintf.c; sourceTree = SOURCE_ROOT; };
 		C90A1AF20FD6E319006A9E86 /* testTime.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; name = testTime.c; path = ../../../src/test/testTime.c; sourceTree = SOURCE_ROOT; };
 		C90A1AF30FD6E319006A9E86 /* testUnicode.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; name = testUnicode.c; path = ../../../src/test/testUnicode.c; sourceTree = SOURCE_ROOT; };
+		C92D5BBA130DE5C40097EBA8 /* mprMime.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; name = mprMime.c; path = ../../../src/mprMime.c; sourceTree = SOURCE_ROOT; };
 		C941899212ADC7FE00AD31B5 /* mprMem.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; name = mprMem.c; path = ../../../src/mprMem.c; sourceTree = SOURCE_ROOT; };
 		C941899312ADC7FE00AD31B5 /* mprMixed.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; name = mprMixed.c; path = ../../../src/mprMixed.c; sourceTree = SOURCE_ROOT; };
 		C941899412ADC7FE00AD31B5 /* mprWide.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; name = mprWide.c; path = ../../../src/mprWide.c; sourceTree = SOURCE_ROOT; };
@@ -300,6 +302,7 @@
 				C90A1A280FD6DD4C006A9E86 /* mprLock.c */,
 				C90A1A290FD6DD4C006A9E86 /* mprLog.c */,
 				C941899212ADC7FE00AD31B5 /* mprMem.c */,
+				C92D5BBA130DE5C40097EBA8 /* mprMime.c */,
 				C941899312ADC7FE00AD31B5 /* mprMixed.c */,
 				C90A1A2A0FD6DD4C006A9E86 /* mprModule.c */,
 				C90A1A2B0FD6DD4C006A9E86 /* mprPath.c */,
@@ -567,6 +570,7 @@
 				C941899612ADC7FE00AD31B5 /* mprMixed.c in Sources */,
 				C941899712ADC7FE00AD31B5 /* mprWide.c in Sources */,
 				C988254812C820FA0029051B /* mprAtomic.c in Sources */,
+				C92D5BBB130DE5C40097EBA8 /* mprMime.c in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

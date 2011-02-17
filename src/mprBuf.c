@@ -40,6 +40,7 @@ static void manageBuf(MprBuf *bp, int flags)
 {
     if (flags & MPR_MANAGE_MARK) {
         mprMark(bp->data);
+        mprMark(bp->refillArg);
     } 
 }
 

@@ -54,10 +54,11 @@ static void manageTestService(MprTestService *ts, int flags)
 {
     if (flags & MPR_MANAGE_MARK) {
         mprMark(ts->commandLine);
-        mprMark(ts->mutex);
         mprMark(ts->groups);
-        mprMark(ts->testFilter);
         mprMark(ts->threadData);
+        mprMark(ts->name);
+        mprMark(ts->testFilter);
+        mprMark(ts->mutex);
     }
 }
 
@@ -73,7 +74,7 @@ int mprParseTestArgs(MprTestService *sp, int argc, char *argv[])
     outputVersion = 0;
 
     programName = mprGetPathBase(argv[0]);
-    sp->name = BLD_PRODUCT;
+    sp->name = sclone(BLD_PRODUCT);
 
     /*
         Save the command line
@@ -482,14 +483,18 @@ static void manageTestGroup(MprTestGroup *gp, int flags)
         mprMark(gp->name);
         mprMark(gp->fullName);
         mprMark(gp->failures);
+        mprMark(gp->service);
+        mprMark(gp->dispatcher);
+        mprMark(gp->parent);
+        mprMark(gp->root);
         mprMark(gp->groups);
         mprMark(gp->cases);
-        mprMark(gp->dispatcher);
+        mprMark(gp->def);
+        mprMark(gp->http);
         mprMark(gp->conn);
-        mprMark(gp->mutex);
+        mprMark(gp->content);
         mprMark(gp->data);
-
-    } else if (flags & MPR_MANAGE_FREE) {
+        mprMark(gp->mutex);
     }
 }
 
@@ -828,7 +833,6 @@ static void manageTestFailure(MprTestFailure *fp, int flags)
     if (flags & MPR_MANAGE_MARK) {
         mprMark(fp->loc);
         mprMark(fp->message);
-    } else if (flags & MPR_MANAGE_FREE) {
     }
 }
 

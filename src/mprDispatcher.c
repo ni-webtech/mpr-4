@@ -17,7 +17,7 @@ static int dispatchEvents(MprDispatcher *dispatcher);
 static MprTime getDispatcherIdleTime(MprDispatcher *dispatcher, MprTime timeout);
 static MprTime getIdleTime(MprEventService *es, MprTime timeout);
 static MprDispatcher *getNextReadyDispatcher(MprEventService *es);
-static void initDispatcherQ(MprEventService *es, MprDispatcher *q, cchar *name);
+static void initDispatcher(MprDispatcher *q);
 static int makeRunnable(MprDispatcher *dispatcher);
 static void manageDispatcher(MprDispatcher *dispatcher, int flags);
 static void manageEventService(MprEventService *es, int flags);
@@ -26,9 +26,9 @@ static void scheduleDispatcher(MprDispatcher *dispatcher);
 static void serviceDispatcherMain(MprDispatcher *dispatcher);
 static void serviceDispatcher(MprDispatcher *dp);
 
-#define isRunning(dispatcher) (dispatcher->parent == &dispatcher->service->runQ)
-#define isReady(dispatcher) (dispatcher->parent == &dispatcher->service->readyQ)
-#define isWaiting(dispatcher) (dispatcher->parent == &dispatcher->service->waitQ)
+#define isRunning(dispatcher) (dispatcher->parent == dispatcher->service->runQ)
+#define isReady(dispatcher) (dispatcher->parent == dispatcher->service->readyQ)
+#define isWaiting(dispatcher) (dispatcher->parent == dispatcher->service->waitQ)
 #define isEmpty(dispatcher) (dispatcher->eventQ.next == &dispatcher->eventQ)
 
 /************************************* Code ***********************************/
@@ -46,10 +46,10 @@ MprEventService *mprCreateEventService()
     es->now = mprGetTime();
     es->mutex = mprCreateLock();
     es->waitCond = mprCreateCond();
-    initDispatcherQ(es, &es->runQ, "running");
-    initDispatcherQ(es, &es->readyQ, "ready");
-    initDispatcherQ(es, &es->idleQ, "idle");
-    initDispatcherQ(es, &es->waitQ, "waiting");
+    es->runQ = mprCreateDispatcher("running", 0);
+    es->readyQ = mprCreateDispatcher("ready", 0);
+    es->idleQ = mprCreateDispatcher("idle", 0);
+    es->waitQ = mprCreateDispatcher("waiting", 0);
     return es;
 }
 
@@ -59,6 +59,10 @@ static void manageEventService(MprEventService *es, int flags)
     if (flags & MPR_MANAGE_MARK) {
         mprMark(es->waitCond);
         mprMark(es->mutex);
+        mprMark(es->runQ);
+        mprMark(es->readyQ);
+        mprMark(es->idleQ);
+        mprMark(es->waitQ);
 
     } else if (flags & MPR_MANAGE_FREE) {
         /* Needed for race with manageDispatcher */
@@ -91,7 +95,11 @@ MprDispatcher *mprCreateDispatcher(cchar *name, int enable)
     dispatcher->magic = MPR_DISPATCHER_MAGIC;
     es = dispatcher->service = MPR->eventService;
     mprInitEventQ(&dispatcher->eventQ);
-    queueDispatcher(&es->idleQ, dispatcher);
+    if (enable) {
+        queueDispatcher(es->idleQ, dispatcher);
+    } else {
+        initDispatcher(dispatcher);
+    }
     return dispatcher;
 }
 
@@ -131,6 +139,11 @@ static void manageDispatcher(MprDispatcher *dispatcher, int flags)
     if (flags & MPR_MANAGE_MARK) {
         mprMark(dispatcher->name);
         mprMark(dispatcher->cond);
+        mprMark(dispatcher->next);
+        mprMark(dispatcher->prev);
+        mprMark(dispatcher->parent);
+        mprMark(dispatcher->service);
+        mprMark(dispatcher->requiredWorker);
         lock(es);
         q = &dispatcher->eventQ;
         if (dispatcher->current && !(dispatcher->current->flags & MPR_EVENT_STATIC)) {
@@ -166,7 +179,7 @@ void mprEnableDispatcher(MprDispatcher *dispatcher)
         dispatcher->enabled = 1;
         LOG(7, "mprEnableDispatcher: %s", dispatcher->name);
         if (!isEmpty(dispatcher) && !isReady(dispatcher) && !isRunning(dispatcher)) {
-            queueDispatcher(&es->readyQ, dispatcher);
+            queueDispatcher(es->readyQ, dispatcher);
             if (es->waiting) {
                 mustWake = 1;
             }
@@ -331,7 +344,7 @@ void mprWakeDispatchers()
 
     es = MPR->eventService;
     lock(es);
-    runQ = &es->runQ;
+    runQ = es->runQ;
     for (dp = runQ->next; dp != runQ; dp = dp->next) {
         mprAssert(dp->magic == MPR_DISPATCHER_MAGIC);
         mprSignalCond(dp->cond);
@@ -347,7 +360,7 @@ int mprDispatchersAreIdle()
     int                 idle;
 
     es = MPR->eventService;
-    runQ = &es->runQ;
+    runQ = es->runQ;
     lock(es);
     dispatcher = runQ->next;
     if (dispatcher == runQ) {
@@ -411,7 +424,7 @@ void mprScheduleDispatcher(MprDispatcher *dispatcher)
 
     } else {
         if (isEmpty(dispatcher)) {
-            queueDispatcher(&es->idleQ, dispatcher);
+            queueDispatcher(es->idleQ, dispatcher);
             unlock(es);
             return;
         }
@@ -419,13 +432,13 @@ void mprScheduleDispatcher(MprDispatcher *dispatcher)
         mprAssert(event->magic == MPR_EVENT_MAGIC);
         mustWakeWaitService = mustWakeCond = 0;
         if (event->due > es->now) {
-            queueDispatcher(&es->waitQ, dispatcher);
+            queueDispatcher(es->waitQ, dispatcher);
             if (event->due < es->willAwake) {
                 mustWakeWaitService = 1;
                 mustWakeCond = dispatcher->waitingOnCond;
             }
         } else {
-            queueDispatcher(&es->readyQ, dispatcher);
+            queueDispatcher(es->readyQ, dispatcher);
             mustWakeWaitService = es->waiting;
             mustWakeCond = dispatcher->waitingOnCond;
         }
@@ -497,7 +510,7 @@ static void serviceDispatcher(MprDispatcher *dispatcher)
     } else {
         if (mprStartWorker((MprWorkerProc) serviceDispatcherMain, dispatcher) < 0) {
             /* Can't start a worker thread. Put back on the wait queue */
-            queueDispatcher(&dispatcher->service->waitQ, dispatcher);
+            queueDispatcher(dispatcher->service->waitQ, dispatcher);
         } 
     }
 }
@@ -526,8 +539,8 @@ static MprDispatcher *getNextReadyDispatcher(MprEventService *es)
     MprDispatcher   *dp, *next, *readyQ, *waitQ, *dispatcher;
     MprEvent        *event;
 
-    waitQ = &es->waitQ;
-    readyQ = &es->readyQ;
+    waitQ = es->waitQ;
+    readyQ = es->readyQ;
 
     lock(es);
     if (readyQ->next == readyQ) {
@@ -540,14 +553,14 @@ static MprDispatcher *getNextReadyDispatcher(MprEventService *es)
             event = dp->eventQ.next;
             mprAssert(event->magic == MPR_EVENT_MAGIC);
             if (event->due <= es->now) {
-                queueDispatcher(&es->readyQ, dp);
+                queueDispatcher(es->readyQ, dp);
                 break;
             }
         }
     }
     if (readyQ->next != readyQ) {
         dispatcher = readyQ->next;
-        queueDispatcher(&es->runQ, dispatcher);
+        queueDispatcher(es->runQ, dispatcher);
         mprAssert(dispatcher->enabled);
         dispatcher->owner = 0;
     } else {
@@ -569,8 +582,8 @@ static MprTime getIdleTime(MprEventService *es, MprTime timeout)
     MprEvent        *event;
     MprTime         delay;
 
-    waitQ = &es->waitQ;
-    readyQ = &es->readyQ;
+    waitQ = es->waitQ;
+    readyQ = es->readyQ;
 
     if (readyQ->next != readyQ) {
         delay = 0;
@@ -622,13 +635,11 @@ static MprTime getDispatcherIdleTime(MprDispatcher *dispatcher, MprTime timeout)
 }
 
 
-static void initDispatcherQ(MprEventService *es, MprDispatcher *q, cchar *name)
+static void initDispatcher(MprDispatcher *q)
 {
     q->next = q;
     q->prev = q;
     q->parent = q;
-    q->name = name;
-    q->service = es;
 }
 
 
@@ -691,7 +702,7 @@ static int makeRunnable(MprDispatcher *dispatcher)
     lock(es);
     wasRunning = isRunning(dispatcher);
     if (!isRunning(dispatcher)) {
-        queueDispatcher(&es->runQ, dispatcher);
+        queueDispatcher(es->runQ, dispatcher);
     }
     unlock(es);
     return wasRunning;

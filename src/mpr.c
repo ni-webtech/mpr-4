@@ -47,6 +47,7 @@ Mpr *mprCreate(int argc, char **argv, int flags)
     mpr->title = sclone(BLD_NAME);
     mpr->version = sclone(BLD_VERSION);
     mpr->idleCallback = mprServicesAreIdle;
+    mpr->mimeTypes = mprCreateMimeTypes(NULL);
 
     if (mpr->argv && mpr->argv[0] && *mpr->argv[0]) {
         name = mpr->argv[0];
@@ -91,36 +92,36 @@ Mpr *mprCreate(int argc, char **argv, int flags)
 static void manageMpr(Mpr *mpr, int flags)
 {
     if (flags & MPR_MANAGE_MARK) {
+        mprMark(mpr->logData);
         mprMark(mpr->altLogData);
+        mprMark(mpr->mimeTypes);
+        mprMark(mpr->timeTokens);
+        mprMark(mpr->name);
+        mprMark(mpr->title);
+        mprMark(mpr->version);
+        mprMark(mpr->domainName);
+        mprMark(mpr->hostName);
+        mprMark(mpr->ip);
+        mprMark(mpr->serverName);
         mprMark(mpr->appDir);
         mprMark(mpr->appPath);
         mprMark(mpr->cmdService);
-        mprMark(mpr->dispatcher);
-        mprMark(mpr->domainName);
-        mprMark(mpr->ejsService);
-        mprMark(mpr->testService);
-        mprMark(mpr->httpService);
-        mprMark(mpr->appwebService);
-        mprMark(mpr->eventService);
         mprMark(mpr->fileSystem);
-        mprMark(mpr->hostName);
-        mprMark(mpr->ip);
-        mprMark(mpr->logData);
+        mprMark(mpr->eventService);
         mprMark(mpr->moduleService);
-        mprMark(mpr->mutex);
-        mprMark(mpr->name);
-        mprMark(mpr->nonBlock);
         mprMark(mpr->osService);
-        mprMark(mpr->serverName);
-        mprMark(mpr->spin);
         mprMark(mpr->socketService);
         mprMark(mpr->threadService);
-        mprMark(mpr->mimeTable);
-        mprMark(mpr->timeTokens);
-        mprMark(mpr->title);
-        mprMark(mpr->version);
-        mprMark(mpr->waitService);
         mprMark(mpr->workerService);
+        mprMark(mpr->waitService);
+        mprMark(mpr->dispatcher);
+        mprMark(mpr->nonBlock);
+        mprMark(mpr->ejsService);
+        mprMark(mpr->httpService);
+        mprMark(mpr->appwebService);
+        mprMark(mpr->testService);
+        mprMark(mpr->mutex);
+        mprMark(mpr->spin);
         mprMark(mpr->emptyString);
         mprMark(mpr->heap.markerCond);
     }

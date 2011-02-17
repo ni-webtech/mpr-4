@@ -42,6 +42,8 @@ static void manageXml(MprXml *xml, int flags)
     if (flags & MPR_MANAGE_MARK) {
         mprMark(xml->inBuf);
         mprMark(xml->tokBuf);
+        mprMark(xml->parseArg);
+        mprMark(xml->inputArg);
         mprMark(xml->errMsg);
     }
 }

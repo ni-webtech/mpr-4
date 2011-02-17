@@ -97,6 +97,7 @@ MprOffset mprGetFileSize(MprFile *file)
 MprFile *mprGetStderr()
 {
     MprFileSystem   *fs;
+
     fs = mprLookupFileSystem(NULL);
     return fs->stdError;
 }
@@ -105,6 +106,7 @@ MprFile *mprGetStderr()
 MprFile *mprGetStdin()
 {
     MprFileSystem   *fs;
+
     fs = mprLookupFileSystem(NULL);
     return fs->stdInput;
 }
@@ -113,6 +115,7 @@ MprFile *mprGetStdin()
 MprFile *mprGetStdout()
 {
     MprFileSystem   *fs;
+
     fs = mprLookupFileSystem(NULL);
     return fs->stdOutput;
 }

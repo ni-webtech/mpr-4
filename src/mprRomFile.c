@@ -45,8 +45,10 @@ static MprFile *openFile(MprFileSystem *fileSystem, cchar *path, int flags, int 
 static void manageRomFile(MprFile *file, int flags)
 {
     if (flags & MPR_MANAGE_MARK) {
+        mprMark(file->fileSystem);
         mprMark(file->path);
         mprMark(file->buf);
+        mprMark(file->inode);
     }
 }
 
@@ -201,7 +203,7 @@ static MprRomInode *lookup(MprRomFileSystem *rfs, cchar *path)
 
 int mprSetRomFileSystem(MprRomInode *inodeList)
 {
-    MprRomFileSystem     rfs;
+    MprRomFileSystem    rfs;
     MprRomInode         *ri;
 
     rfs = (MprRomFileSystem*) MPR->fileSystem;
@@ -218,13 +220,36 @@ int mprSetRomFileSystem(MprRomInode *inodeList)
 }
 
 
+void manageRomFileSystem(MprRomFileSystem *rfs, int flags)
+{
+    if (flags & MPR_MANAGE_MARK) {
+{
+#if !WINCE
+    if (flags & MPR_MANAGE_MARK) {
+        mprMark(rfs->stdError);
+        mprMark(rfs->stdInput);
+        mprMark(rfs->stdOutput);
+        mprMark(rfs->separators);
+        mprMark(rfs->newline);
+        mprMark(rfs->root);
+#if BLD_WIN_LIKE
+        mprMark(rfs->cygdrive);
+#endif
+        mprMark(rfs->fileIndex);
+        mprMark(rfs->romInodes);
+    }
+#endif
+}
+    }
+}
+
+
 MprRomFileSystem *mprCreateRomFileSystem(cchar *path)
 {
     MprFileSystem      *fs;
     MprRomFileSystem   *rfs;
 
-    rfs = mprAlloc(sizeof(MprRomFileSystem));
-    if (rfs == 0) {
+    if ((rfs = mprAllocObj(sizeof(MprRomFileSystem, manageRomFileSystem))) == 0) {
         return rfs;
     }
     fs = &rfs->fileSystem;

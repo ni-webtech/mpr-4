@@ -71,8 +71,9 @@ static void manageThreadService(MprThreadService *ts, int flags)
 {
     if (flags & MPR_MANAGE_MARK) {
         mprMark(ts->threads);
-        mprMark(ts->cond);
+        mprMark(ts->mainThread);
         mprMark(ts->mutex);
+        mprMark(ts->cond);
 
     } else if (flags & MPR_MANAGE_FREE) {
         mprStopThreadService();
@@ -190,6 +191,7 @@ static void manageThread(MprThread *tp, int flags)
 
     if (flags & MPR_MANAGE_MARK) {
         mprMark(tp->name);
+        mprMark(tp->data);
         mprMark(tp->cond);
         mprMark(tp->mutex);
 
@@ -564,11 +566,10 @@ MprWorkerService *mprCreateWorkerService()
 static void manageWorkerService(MprWorkerService *ws, int flags)
 {
     if (flags & MPR_MANAGE_MARK) {
-        mprLock(ws->mutex);
         mprMark(ws->busyThreads);
         mprMark(ws->idleThreads);
         mprMark(ws->mutex);
-        mprUnlock(ws->mutex);
+        mprMark(ws->pruneTimer);
     }
 }
 
@@ -882,9 +883,10 @@ static MprWorker *createWorker(MprWorkerService *ws, int stackSize)
 static void manageWorker(MprWorker *worker, int flags)
 {
     if (flags & MPR_MANAGE_MARK) {
-        mprMark(worker->thread);
-        mprMark(worker->idleCond);
         mprMark(worker->data);
+        mprMark(worker->thread);
+        mprMark(worker->workerService);
+        mprMark(worker->idleCond);
     }
 }
 
