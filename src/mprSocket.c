@@ -1459,7 +1459,7 @@ int mprParseIp(cchar *ipAddrPort, char **pip, int *pport, int defaultPort)
     char    *ip;
     char    *cp;
 
-    ip = NULL;
+    ip = 0;
     if (defaultPort < 0) {
         defaultPort = 80;
     }
@@ -1486,6 +1486,9 @@ int mprParseIp(cchar *ipAddrPort, char **pip, int *pport, int defaultPort)
                 if ((cp = strchr(ip, ']')) != 0) {
                     *cp = '\0';
                 }
+                if (*ip == '\0') {
+                    ip = 0;
+                }
                 /* No port present, use callers default */
                 *pport = defaultPort;
             }
@@ -1511,13 +1514,16 @@ int mprParseIp(cchar *ipAddrPort, char **pip, int *pport, int defaultPort)
                 *pport = atoi(cp);
             }
             if (*ip == '*') {
+                //  MOB - should this not be null for wildcarding?
                 ip = sclone("127.0.0.1");
             }
 
         } else {
             if (isdigit((int) *ip)) {
                 *pport = atoi(ip);
+#if UNUSED
                 ip = sclone("127.0.0.1");
+#endif
 
             } else {
                 /* No port present, use callers default */
