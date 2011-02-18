@@ -121,6 +121,9 @@ static void manageCmd(MprCmd *cmd, int flags)
         mprMark(cmd->stdoutBuf);
         mprMark(cmd->stderrBuf);
         mprMark(cmd->userData);
+        for (i = 0; i < MPR_CMD_MAX_PIPE; i++) {
+            mprMark(cmd->files[i].name);
+        }
 #if BLD_WIN_LIKE
         mprMark(cmd->command);
         mprMark(cmd->arg0);
@@ -1608,7 +1611,6 @@ static int makeChannel(MprCmd *cmd, int index)
     static int      tempSeed = 0;
 
     file = &cmd->files[index];
-
     file->name = mprAsprintf("/pipe/%s_%d_%d", BLD_PRODUCT, taskIdSelf(), tempSeed++);
 
     if (pipeDevCreate(file->name, 5, MPR_BUFSIZE) < 0) {

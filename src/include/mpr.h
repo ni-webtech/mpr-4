@@ -6633,9 +6633,7 @@ typedef void (*MprCmdProc)(struct MprCmd *cmd, int channel, void *data);
 #define MPR_CMD_ASYNC           0x8000  /* Run in async mode */
 
 typedef struct MprCmdFile {
-#if UNUSED
     char            *name;
-#endif
     int             fd;
     int             clientFd;
 #if BLD_WIN_LIKE
