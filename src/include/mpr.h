@@ -6315,7 +6315,11 @@ extern void mprRemoveSocketHandler(MprSocket *sp);
 /*
     Default SSL configuration
  */
-#define MPR_DEFAULT_CIPHER_SUITE        "ALL:!ADH:!EXPORT56:RC4+RSA:+HIGH:+MEDIUM:+LOW:+SSLv2:+EXP:+eNULL"
+#if OLD
+#define MPR_DEFAULT_CIPHER_SUITE    "ALL:!ADH:!EXPORT56:RC4+RSA:+HIGH:+MEDIUM:+LOW:+SSLv2:+EXP:+eNULL"
+#endif
+
+#define MPR_DEFAULT_CIPHER_SUITE    "HIGH:MEDIUM"
 
 /**
     Load the SSL module.
