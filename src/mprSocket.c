@@ -1218,7 +1218,7 @@ int mprGetSocketInfo(cchar *ip, int port, int *family, int *protocol, struct soc
         Note that IPv6 does not support broadcast, there is no 255.255.255.255 equivalent.
         Multicast can be used over a specific link, but the user must provide that address plus %scope_id.
      */
-    if (ip == 0 || strcmp(ip, "") == 0) {
+    if (ip == 0 || ip[0] == '\0') {
         ip = 0;
         hints.ai_flags |= AI_PASSIVE;           /* Bind to 0.0.0.0 and :: */
     }
@@ -1514,8 +1514,12 @@ int mprParseIp(cchar *ipAddrPort, char **pip, int *pport, int defaultPort)
                 *pport = atoi(cp);
             }
             if (*ip == '*') {
+#if UNUSED
                 //  MOB - should this not be null for wildcarding?
                 ip = sclone("127.0.0.1");
+#else
+                ip = 0;
+#endif
             }
 
         } else {

@@ -135,8 +135,8 @@ char *snclone(cchar *str, ssize len)
 
 int scmp(cchar *s1, cchar *s2)
 {
-    if (s1 == 0 || s2 == 0) {
-        return -1;
+    if (s1 == s2) {
+        return 0;
     } else if (s1 == 0) {
         return -1;
     } else if (s2 == 0) {
