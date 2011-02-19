@@ -683,9 +683,9 @@ static void dequeueDispatcher(MprDispatcher *dispatcher)
     if (dispatcher->next) {
         dispatcher->next->prev = dispatcher->prev;
         dispatcher->prev->next = dispatcher->next;
-        dispatcher->next = 0;
-        dispatcher->prev = 0;
-        dispatcher->parent = 0;
+        dispatcher->next = dispatcher;
+        dispatcher->prev = dispatcher;
+        dispatcher->parent = dispatcher;
     }
     unlock(dispatcher->service);
 }
