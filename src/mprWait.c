@@ -136,6 +136,7 @@ static void manageWaitHandler(MprWaitHandler *wp, int flags)
         mprMark(wp->requiredWorker);
         mprMark(wp->thread);
         mprMark(wp->callbackComplete);
+        mprMark(wp->event);
 
     } else if (flags & MPR_MANAGE_FREE) {
         mprRemoveWaitHandler(wp);
@@ -162,8 +163,9 @@ void mprRemoveWaitHandler(MprWaitHandler *wp)
         }
         mprRemoveItem(ws->handlers, wp);
         wp->fd = -1;
-        if (wp->event.next) {
-            mprRemoveEvent(&wp->event);
+        if (wp->event) {
+            mprRemoveEvent(wp->event);
+            wp->event = 0;
         }
     }
     mprWakeWaitService();
@@ -191,8 +193,7 @@ void mprQueueIOEvent(MprWaitHandler *wp)
         dispatcher = (wp->dispatcher) ? wp->dispatcher: mprGetDispatcher();
     }
     wp->state = MPR_HANDLER_QUEUED;
-    event = &wp->event;
-    mprInitEvent(dispatcher, event, "IOEvent", 0, ioEvent, (void*) wp->handlerData, MPR_EVENT_STATIC);
+    event = wp->event = mprCreateEvent(dispatcher, "IOEvent", 0, ioEvent, wp->handlerData, MPR_EVENT_DONT_QUEUE);
     event->fd = wp->fd;
     event->mask = wp->presentMask;
     event->handler = wp;

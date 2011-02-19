@@ -103,7 +103,7 @@ int mprParseTestArgs(MprTestService *sp, int argc, char *argv[])
                 }
             }
 
-        } else if (strcmp(argp, "--debugger") == 0 || strcmp(argp, "-d") == 0) {
+        } else if (strcmp(argp, "--debugger") == 0 || strcmp(argp, "-D") == 0) {
             mprSetDebugMode(1);
             sp->debugOnFailures = 1;
 
@@ -137,7 +137,7 @@ int mprParseTestArgs(MprTestService *sp, int argc, char *argv[])
             if (nextArg >= argc) {
                 err++;
             } else {
-                sp->name = argv[++nextArg];
+                sp->name = sclone(argv[++nextArg]);
             }
 
         } else if (strcmp(argp, "--step") == 0 || strcmp(argp, "-s") == 0) {

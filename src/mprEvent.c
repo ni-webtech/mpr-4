@@ -13,10 +13,29 @@
 /***************************** Forward Declarations ***************************/
 
 static void dequeueEvent(MprEvent *event);
+static void initEvent(MprDispatcher *dispatcher, MprEvent *event, cchar *name, int period, MprEventProc proc, void *data, 
+    int flags);
+static void initEventQ(MprEvent *q);
 static void manageEvent(MprEvent *event, int flags);
 static void queueEvent(MprEvent *prior, MprEvent *event);
 
 /************************************* Code ***********************************/
+/*
+    Create and queue a new event for service. Period is used as the delay before running the event and as the period between 
+    events for continuous events.
+ */
+MprEvent *mprCreateEventQueue(cchar *name)
+{
+    MprEvent    *queue;
+
+    if ((queue = mprAllocObj(MprEvent, manageEvent)) == 0) {
+        return 0;
+    }
+    initEventQ(queue);
+    return queue;
+}
+
+
 /*
     Create and queue a new event for service. Period is used as the delay before running the event and as the period between 
     events for continuous events.
@@ -31,8 +50,10 @@ MprEvent *mprCreateEvent(MprDispatcher *dispatcher, cchar *name, int period, Mpr
     if (dispatcher == 0) {
         dispatcher = (flags & MPR_EVENT_QUICK) ? MPR->nonBlock : MPR->dispatcher;
     }
-    mprInitEvent(dispatcher, event, name, period, proc, data, flags);
-    mprQueueEvent(dispatcher, event);
+    initEvent(dispatcher, event, name, period, proc, data, flags);
+    if (!(flags & MPR_EVENT_DONT_QUEUE)) {
+        mprQueueEvent(dispatcher, event);
+    }
     return event;
 }
 
@@ -49,31 +70,21 @@ static void manageEvent(MprEvent *event, int flags)
         mprMark(event->name);
         mprMark(event->data);
         mprMark(event->dispatcher);
-        if (event->next != &event->dispatcher->eventQ) {
-            mprMark(event->next);
-        }
-        if (event->prev != &event->dispatcher->eventQ) {
-            mprMark(event->prev);
-        }
         mprMark(event->handler);
+        mprMark(event->next);
+        mprMark(event->prev);
 
     } else if (flags & MPR_MANAGE_FREE) {
-        //  MOB - are these locks needed?
-        lock(MPR->eventService);
         if (event->next) {
             mprAssert(event->dispatcher == 0 || event->dispatcher->magic == MPR_DISPATCHER_MAGIC);
             mprRemoveEvent(event);
+            event->magic = 1;
         }
-        unlock(MPR->eventService);
-        event->magic = 1;
     }
 }
 
 
-/*
-    Statically initialize an event
- */
-void mprInitEvent(MprDispatcher *dispatcher, MprEvent *event, cchar *name, int period, MprEventProc proc, void *data, 
+static void initEvent(MprDispatcher *dispatcher, MprEvent *event, cchar *name, int period, MprEventProc proc, void *data, 
     int flags)
 {
     mprAssert(dispatcher);
@@ -120,7 +131,7 @@ void mprQueueEvent(MprDispatcher *dispatcher, MprEvent *event)
     es = dispatcher->service;
 
     lock(es);
-    q = &dispatcher->eventQ;
+    q = dispatcher->eventQ;
     for (prior = q->prev; prior != q; prior = prior->prev) {
         if (event->due > prior->due) {
             break;
@@ -222,8 +233,8 @@ MprEvent *mprGetNextEvent(MprDispatcher *dispatcher)
     event = 0;
 
     lock(es);
-    next = dispatcher->eventQ.next;
-    if (next != &dispatcher->eventQ) {
+    next = dispatcher->eventQ->next;
+    if (next != dispatcher->eventQ) {
         if (next->due <= es->now) {
             event = next;
             dequeueEvent(event);
@@ -247,7 +258,7 @@ int mprGetEventCount(MprDispatcher *dispatcher)
 
     lock(es);
 	count = 0;
-    for (event = dispatcher->eventQ.next; event != &dispatcher->eventQ; event = event->next) {
+    for (event = dispatcher->eventQ->next; event != dispatcher->eventQ; event = event->next) {
         mprAssert(event->magic == MPR_EVENT_MAGIC);
         count++;
     }
@@ -256,12 +267,13 @@ int mprGetEventCount(MprDispatcher *dispatcher)
 }
 
 
-void mprInitEventQ(MprEvent *q)
+static void initEventQ(MprEvent *q)
 {
     mprAssert(q);
 
     q->next = q;
     q->prev = q;
+    q->magic = MPR_EVENT_MAGIC;
 }
 
 
