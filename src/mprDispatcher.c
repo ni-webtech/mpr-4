@@ -225,9 +225,7 @@ int mprServiceEvents(MprTime timeout, int flags)
         return 0;
     }
     MPR->eventing = 1;
-#if WIN
     mprInitWindow();
-#endif
     es = MPR->eventService;
     beginEventCount = eventCount = es->eventCount;
 

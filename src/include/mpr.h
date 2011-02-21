@@ -5724,8 +5724,8 @@ extern void mprManagePoll(MprWaitService *ws, int flags);
 extern void mprManageSelect(MprWaitService *ws, int flags);
 #endif
 
-#if BLD_WIN_LIKE
 extern int  mprInitWindow();
+#if BLD_WIN_LIKE
 extern void mprSetWinMsgCallback(MprWaitService *ws, MprMsgCallback callback);
 extern void mprServiceWinIO(MprWaitService *ws, int sockFd, int winMask);
 #endif
