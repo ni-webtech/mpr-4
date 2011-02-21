@@ -530,7 +530,7 @@ int mprStopCmd(MprCmd *cmd, int signal)
     }
     if (cmd->pid) {
 #if BLD_WIN_LIKE
-        return TerminateProcess(cmd->process, 2);
+        return TerminateProcess(cmd->process, 2) == 0;
 #elif VXWORKS
         return taskDelete(cmd->pid);
 #else
