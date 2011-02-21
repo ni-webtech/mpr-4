@@ -205,11 +205,15 @@ static void startThreads(int flags)
 {
     MprThread   *tp;
 
-    if (!(flags & MPR_USER_EVENTS_THREAD)) {
+    if (flags & MPR_USER_EVENTS_THREAD) {
+        mprInitWindow();
+    } else {
         if ((tp = mprCreateThread("events", serviceEventsThread, NULL, 0)) == 0) {
             MPR->hasError = 1;
         } else {
+            MPR->cond = mprCreateCond();
             mprStartThread(tp);
+            mprWaitForCond(MPR->cond, MPR_TIMEOUT_START_TASK);
         }
     }
     mprStartGCService();
@@ -219,6 +223,8 @@ static void startThreads(int flags)
 static void serviceEventsThread(void *data, MprThread *tp)
 {
     mprLog(MPR_CONFIG, "Service thread started");
+    mprInitWindow();
+    mprSignalCond(MPR->cond);
     mprServiceEvents(-1, 0);
 }
 

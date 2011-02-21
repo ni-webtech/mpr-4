@@ -39,8 +39,8 @@ int mprAddNotifier(MprWaitService *ws, MprWaitHandler *wp, int mask)
         if (mask & MPR_WRITABLE) {
             winMask |= FD_WRITE;
         }
-        WSAAsyncSelect(wp->fd, ws->hwnd, ws->socketMessage, winMask);
         wp->desiredMask = mask;
+        WSAAsyncSelect(wp->fd, ws->hwnd, ws->socketMessage, winMask);
     }
     unlock(ws);
     return 0;
@@ -55,8 +55,8 @@ void mprRemoveNotifier(MprWaitHandler *wp)
     mprAssert(ws->hwnd);
     lock(ws);
     mprAssert(wp->fd >= 0);
-    WSAAsyncSelect(wp->fd, ws->hwnd, ws->socketMessage, 0);
     wp->desiredMask = 0;
+    WSAAsyncSelect(wp->fd, ws->hwnd, ws->socketMessage, 0);
     unlock(ws);
 }
 

@@ -141,6 +141,12 @@ void mprWriteToOsLog(cchar *message, int flags, int level)
     syslog(sflag, "%s %s: %s\n", mprGetAppName(), msg, message);
 }
 
+
+int mprInitWindow()
+{
+    return 0;
+}
+
 #else
 void stubMprUnix() {}
 #endif /* BLD_UNIX_LIKE */

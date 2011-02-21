@@ -150,6 +150,11 @@ int usleep(uint msec)
 }
 
 
+int mprInitWindow()
+{
+    return 0;
+}
+
 #else
 void stubMprVxWorks() {}
 #endif /* VXWORKS */
