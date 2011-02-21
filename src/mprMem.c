@@ -1189,7 +1189,7 @@ static void sweep()
                 mprAssert(!IS_FREE(mp));
                 CHECK(mp);
                 BREAKPOINT(mp);
-                if (mgr) {
+                if (mgr && VALID_BLK(mp)) {
                     (mgr)(GET_PTR(mp), MPR_MANAGE_FREE);
                 }
             }
