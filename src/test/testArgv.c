@@ -41,6 +41,8 @@ static void testMakeArgv(MprTestGroup *gp)
     assert(strcmp(argv[0], "app") == 0);
     assert(strcmp(argv[1], "a b") == 0);
 
+#if !BLD_WIN_LIKE
+    //  Windows does not support back quoting
     //  Backquoting (need double to get past cc compiler)
     mprMakeArgv("\\\"a\\\"", &argc, &argv, 0);
     assert(argc == 1);
@@ -56,6 +58,7 @@ static void testMakeArgv(MprTestGroup *gp)
     mprMakeArgv("a\\", &argc, &argv, 0);
     assert(argc == 1);
     assert(strcmp(argv[0], "a\\") == 0);
+#endif
 }
 
 

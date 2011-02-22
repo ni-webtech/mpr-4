@@ -296,14 +296,19 @@ bool mprIsIdle()
 
 
 /*
-    parse the args and return the count of args. If argv is NULL, the args are parsed read-only. If argv is set,
+    Parse the args and return the count of args. If argv is NULL, the args are parsed read-only. If argv is set,
     then the args will be extracted, back-quotes removed and argv will be set to point to all the args.
  */
 static int parseArgs(char *args, char **argv)
 {
     char    *dest, *src, *start;
-    int     quote, argc;
+    int     bquote, quote, argc;
 
+#if BLD_WIN_LIKE
+    bquote = 0;
+#else
+    bquote = '\\';
+#endif
     for (argc = 0, src = args; src && *src != '\0'; argc++) {
         while (isspace((int) *src)) {
             src++;
@@ -319,14 +324,14 @@ static int parseArgs(char *args, char **argv)
             if (argv) {
                 argv[argc] = src;
             }
-            while (*src && (*src != quote || (src > start && src[-1] == '\\'))) {
+            while (*src && (*src != quote || (src > start && src[-1] == bquote))) {
                 if (argv) {
                     *dest++ = *src;
                 }
                 src++;
             }
         } else {
-            while (*src && src > start && *src == '\\') {
+            while (*src && src > start && *src == bquote) {
                 src++;
                 if (argv) {
                     *dest++ = *src;
@@ -338,7 +343,7 @@ static int parseArgs(char *args, char **argv)
             }
             //  Parse the arg, remove back-quotes and stop at the first non-back-quoted space
             while (*src) {
-                if (*src == '\\' && src[1]) {
+                if (*src == bquote && src[1]) {
                     src++;
                     if (argv) {
                         if (argv[argc] == &src[-1]) {
