@@ -78,6 +78,7 @@
 		C988254812C820FA0029051B /* mprAtomic.c in Sources */ = {isa = PBXBuildFile; fileRef = C988254712C820FA0029051B /* mprAtomic.c */; };
 		C98A28BE12DE45190077E34E /* libmatrixssl.dylib in Frameworks */ = {isa = PBXBuildFile; fileRef = C98A28BD12DE45190077E34E /* libmatrixssl.dylib */; };
 		C9B21F651011D0DD001053BB /* testThread.c in Sources */ = {isa = PBXBuildFile; fileRef = C9B21F641011D0DD001053BB /* testThread.c */; };
+		C9CD7935131441D5007794B0 /* testArgv.c in Sources */ = {isa = PBXBuildFile; fileRef = C9CD7934131441D5007794B0 /* testArgv.c */; };
 		C9E1001B10D833E40085D594 /* mprAsync.c in Sources */ = {isa = PBXBuildFile; fileRef = C9E1001610D833E30085D594 /* mprAsync.c */; };
 		C9E1001C10D833E40085D594 /* mprDispatcher.c in Sources */ = {isa = PBXBuildFile; fileRef = C9E1001710D833E40085D594 /* mprDispatcher.c */; };
 		C9E1001D10D833E40085D594 /* mprKqueue.c in Sources */ = {isa = PBXBuildFile; fileRef = C9E1001810D833E40085D594 /* mprKqueue.c */; };
@@ -196,6 +197,7 @@
 		C988254712C820FA0029051B /* mprAtomic.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; name = mprAtomic.c; path = ../../../src/mprAtomic.c; sourceTree = SOURCE_ROOT; };
 		C98A28BD12DE45190077E34E /* libmatrixssl.dylib */ = {isa = PBXFileReference; lastKnownFileType = "compiled.mach-o.dylib"; name = libmatrixssl.dylib; path = build/Debug/libmatrixssl.dylib; sourceTree = "<group>"; };
 		C9B21F641011D0DD001053BB /* testThread.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; name = testThread.c; path = ../../../src/test/testThread.c; sourceTree = SOURCE_ROOT; };
+		C9CD7934131441D5007794B0 /* testArgv.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; name = testArgv.c; path = ../../../src/test/testArgv.c; sourceTree = SOURCE_ROOT; };
 		C9E1001610D833E30085D594 /* mprAsync.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; name = mprAsync.c; path = ../../../src/mprAsync.c; sourceTree = SOURCE_ROOT; };
 		C9E1001710D833E40085D594 /* mprDispatcher.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; name = mprDispatcher.c; path = ../../../src/mprDispatcher.c; sourceTree = SOURCE_ROOT; };
 		C9E1001810D833E40085D594 /* mprKqueue.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; name = mprKqueue.c; path = ../../../src/mprKqueue.c; sourceTree = SOURCE_ROOT; };
@@ -354,6 +356,7 @@
 		C90A1A8C0FD6DF51006A9E86 /* test */ = {
 			isa = PBXGroup;
 			children = (
+				C9CD7934131441D5007794B0 /* testArgv.c */,
 				C9FA8F8A124906F000FEAFE2 /* benchMpr.c */,
 				C9F3AAFC1252464800183E33 /* runProgram.c */,
 				C9EC264812B18D220087E7D9 /* testMem.c */,
@@ -604,6 +607,7 @@
 				C90A1B040FD6E319006A9E86 /* testUnicode.c in Sources */,
 				C9B21F651011D0DD001053BB /* testThread.c in Sources */,
 				C9EC264A12B18D220087E7D9 /* testMem.c in Sources */,
+				C9CD7935131441D5007794B0 /* testArgv.c in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

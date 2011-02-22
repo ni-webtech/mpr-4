@@ -11,6 +11,7 @@
 /****************************** Test Definitions ******************************/
 
 extern MprTestDef testAlloc;
+extern MprTestDef testArgv;
 extern MprTestDef testBuf;
 extern MprTestDef testEvent;
 extern MprTestDef testCmd;
@@ -28,6 +29,7 @@ extern MprTestDef testWorker;
 static MprTestDef *testGroups[] = 
 {
     &testAlloc,
+    &testArgv,
     &testBuf,
     &testCond,
     &testCmd,
@@ -64,12 +66,6 @@ MAIN(testMain, int argc, char *argv[])
     mpr = mprCreate(argc, argv, MPR_USER_EVENTS_THREAD);
     setupSignals();
 
-#if VXWORKS || WINCE
-    /*
-        These platforms pass an arg string in via the argc value. Assumes 32-bit.
-     */
-    mprMakeArgv("testMpr", (char*) argc, &argc, &argv);
-#endif
     ts = mprCreateTestService(mpr);
     if (ts == 0) {
         mprError("Can't create test service");
