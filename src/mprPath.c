@@ -1254,6 +1254,12 @@ char *mprSearchPath(cchar *file, int flags, cchar *search, ...)
         if (mprPathExists(file, access)) {
             return sclone(file);
         }
+        if ((flags & MPR_SEARCH_EXE) && *BLD_EXE) {
+            path = mprJoinPathExt(file, BLD_EXE);
+            if (mprPathExists(path, access)) {
+                return sclone(path);
+            }
+        }
     } else {
         for (nextDir = (char*) search; nextDir; nextDir = va_arg(args, char*)) {
             tok = NULL;
