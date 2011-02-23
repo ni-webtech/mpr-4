@@ -6937,6 +6937,7 @@ extern void mprPollCmd(MprCmd *cmd, int timeout);
 extern int mprWriteCmd(MprCmd *cmd, int channel, char *buf, ssize bufsize);
 
 extern int mprIsCmdComplete(MprCmd *cmd);
+extern void mprAddCmdHandlers(MprCmd *cmd);
 
 /************************************** Mime ***************************************/
 /**
