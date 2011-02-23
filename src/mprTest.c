@@ -19,6 +19,7 @@ static MprTestGroup *createTestGroup(MprTestService *sp, MprTestDef *def, MprTes
 static bool     filterTestGroup(MprTestGroup *gp);
 static bool     filterTestCast(MprTestGroup *gp, MprTestCase *tc);
 static char     *getErrorMessage(MprTestGroup *gp);
+static int      loadModule(MprTestService *sp, cchar *fileName);
 static void     manageTestService(MprTestService *ts, int flags);
 static int      parseFilter(MprTestService *sp, cchar *str);
 static void     runInit(MprTestGroup *parent);
@@ -111,6 +112,7 @@ int mprParseTestArgs(MprTestService *sp, int argc, char *argv[])
             sp->echoCmdLine = 1;
 
         } else if (strcmp(argp, "--filter") == 0 || strcmp(argp, "-f") == 0) {
+            //  MOB DEPRECATE
             if (nextArg >= argc) {
                 err++;
             } else {
@@ -131,6 +133,13 @@ int mprParseTestArgs(MprTestService *sp, int argc, char *argv[])
                 err++;
             } else {
                 setLogging(argv[++nextArg]);
+            }
+
+        } else if (strcmp(argp, "--module") == 0) {
+            if (nextArg >= argc) {
+                err++;
+            } else if (loadModule(sp, argv[++nextArg]) < 0) {
+                return MPR_ERR_CANT_OPEN;
             }
 
         } else if (strcmp(argp, "--name") == 0) {
@@ -176,6 +185,9 @@ int mprParseTestArgs(MprTestService *sp, int argc, char *argv[])
         } else if (strcmp(argp, "-?") == 0 || (strcmp(argp, "--help") == 0 || strcmp(argp, "--?") == 0)) {
             err++;
 
+        } else if (*argp != '-') {
+            break;
+
         } else {
             /* Ignore unknown args */
         }
@@ -184,20 +196,17 @@ int mprParseTestArgs(MprTestService *sp, int argc, char *argv[])
     if (sp->workers == 0) {
         sp->workers = 2 + sp->numThreads * 2;
     }
-#if LOAD_TEST_PACKAGES
-    /* Must be at least one test module to load */
-    if (nextArg >= argc) {
-        err++;
+    if (nextArg < argc) {
+        if (parseFilter(sp, argv[nextArg++]) < 0) {
+            err++;
+        }
     }
-#endif
-
     if (err) {
-        mprPrintfError("usage: %s [options]\n"
+        mprPrintfError("usage: %s [options] [filter paths]\n"
         "    --continue            # Continue on errors\n"
         "    --depth number        # Zero == basic, 1 == throrough, 2 extensive\n"
         "    --debug               # Run in debug mode\n"
         "    --echo                # Echo the command line\n"
-        "    --filter pattern      # Filter tests by pattern x.y.z...\n"
         "    --iterations count    # Number of iterations to run the test\n"
         "    --log logFile:level   # Log to file file at verbosity level\n"
         "    --name testName       # Set test name\n"
@@ -209,7 +218,6 @@ int mprParseTestArgs(MprTestService *sp, int argc, char *argv[])
         programName);
         return MPR_ERR_BAD_ARGS;
     }
-
     if (outputVersion) {
         mprPrintfError("%s: Version: %s\n", BLD_NAME, BLD_VERSION);
         return MPR_ERR_BAD_ARGS;
@@ -218,13 +226,6 @@ int mprParseTestArgs(MprTestService *sp, int argc, char *argv[])
     sp->argv = argv;
     sp->firstArg = nextArg;
 
-#if LOAD_TEST_PACKAGES
-    for (i = nextArg; i < argc; i++) {
-        if (loadModule(sp, argv[i]) < 0) {
-            return MPR_ERR_CANT_OPEN;
-        }
-    }
-#endif
     mprSetMaxWorkers(sp->workers);
     return 0;
 }
@@ -253,35 +254,37 @@ static int parseFilter(MprTestService *sp, cchar *filter)
 }
 
 
-#if LOAD_TEST_PACKAGES
 static int loadModule(MprTestService *sp, cchar *fileName)
 {
-    char    *cp, *base, entry[MPR_MAX_FNAME], path[MPR_MAX_FNAME];
+    MprModule   *mp;
+    char        *cp, *base, entry[MPR_MAX_FNAME], path[MPR_MAX_FNAME];
 
     mprAssert(fileName && *fileName);
 
-    base = mprGetPathBase(sp, fileName);
+    base = mprGetPathBase(fileName);
     mprAssert(base);
     if ((cp = strrchr(base, '.')) != 0) {
         *cp = '\0';
     }
-    if (mprLookupModule(sp, base)) {
+    if (mprLookupModule(base)) {
         return 0;
     }
     mprSprintf(entry, sizeof(entry), "%sInit", base);
-
     if (fileName[0] == '/' || (*fileName && fileName[1] == ':')) {
-        mprSprintf(path, sizeof(path), "%s%s", fileName, BLD_BUILD_SHOBJ);
+        mprSprintf(path, sizeof(path), "%s%s", fileName, BLD_SHOBJ);
     } else {
-        mprSprintf(path, sizeof(path), "./%s%s", fileName, BLD_BUILD_SHOBJ);
+        mprSprintf(path, sizeof(path), "./%s%s", fileName, BLD_SHOBJ);
     }
-    if (mprLoadModule(sp, path, entry, (void*) sp) == 0) {
+    if ((mp = mprCreateModule(base, path, entry, sp)) == 0) {
+        mprError("Can't create module %s", path);
+        return -1;
+    }
+    if (mprLoadModule(mp) < 0) {
         mprError("Can't load module %s", path);
         return -1;
     }
     return 0;
 }
-#endif
 
 
 int mprRunTests(MprTestService *sp)
