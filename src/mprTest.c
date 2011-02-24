@@ -19,7 +19,7 @@ static MprTestGroup *createTestGroup(MprTestService *sp, MprTestDef *def, MprTes
 static bool     filterTestGroup(MprTestGroup *gp);
 static bool     filterTestCast(MprTestGroup *gp, MprTestCase *tc);
 static char     *getErrorMessage(MprTestGroup *gp);
-static int      loadModule(MprTestService *sp, cchar *fileName);
+static int      loadTestModule(MprTestService *sp, cchar *fileName);
 static void     manageTestService(MprTestService *ts, int flags);
 static int      parseFilter(MprTestService *sp, cchar *str);
 static void     runInit(MprTestGroup *parent);
@@ -138,7 +138,7 @@ int mprParseTestArgs(MprTestService *sp, int argc, char *argv[])
         } else if (strcmp(argp, "--module") == 0) {
             if (nextArg >= argc) {
                 err++;
-            } else if (loadModule(sp, argv[++nextArg]) < 0) {
+            } else if (loadTestModule(sp, argv[++nextArg]) < 0) {
                 return MPR_ERR_CANT_OPEN;
             }
 
@@ -254,7 +254,7 @@ static int parseFilter(MprTestService *sp, cchar *filter)
 }
 
 
-static int loadModule(MprTestService *sp, cchar *fileName)
+static int loadTestModule(MprTestService *sp, cchar *fileName)
 {
     MprModule   *mp;
     char        *cp, *base, entry[MPR_MAX_FNAME], path[MPR_MAX_FNAME];
