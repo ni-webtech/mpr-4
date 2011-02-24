@@ -64,3 +64,4 @@ _UpgradeReport_Files
 projects/WIN/mpr-dynamic/ipch
 .testFile.tmp*
 *.stackdump
+*.cltmp
