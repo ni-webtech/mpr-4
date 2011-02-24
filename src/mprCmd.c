@@ -10,6 +10,16 @@
 
 /******************************* Forward Declarations *************************/
 
+/*
+    Windows and VxWorks do not support async I/O
+    VxWorks can't signal EOF on non-blocking pipes and Windows can't select on named pipes. 
+ */
+#if BLD_WIN_LIKE || VXWORKS
+#define CMD_ASYNC 0
+#else
+#define CMD_ASYNC 1
+#endif
+
 static void closeFiles(MprCmd *cmd);
 static void cmdCallback(MprCmd *cmd, int channel, void *data);
 static int makeChannel(MprCmd *cmd, int index);
@@ -18,9 +28,12 @@ static void manageCmd(MprCmd *cmd, int flags);
 static void resetCmd(MprCmd *cmd);
 static int sanitizeArgs(MprCmd *cmd, int argc, char **argv, char **env);
 static int startProcess(MprCmd *cmd);
+
+#if CMD_ASYNC
 static void stdinCallback(MprCmd *cmd, MprEvent *event);
 static void stdoutCallback(MprCmd *cmd, MprEvent *event);
 static void stderrCallback(MprCmd *cmd, MprEvent *event);
+#endif
 
 #if BLD_UNIX_LIKE
 static char **fixenv(MprCmd *cmd);
@@ -40,16 +53,6 @@ static void vxCmdManager(MprCmd *cmd);
 #else
 #define glock(cmd) 
 #define gunlock(cmd) 
-#endif
-
-/*
-    Windows and VxWorks do not support async I/O
-    VxWorks can't signal EOF on non-blocking pipes and Windows can't select on named pipes. 
- */
-#if BLD_WIN_LIKE || VXWORKS
-#define CMD_ASYNC 0
-#else
-#define CMD_ASYNC 1
 #endif
 
 /************************************* Code ***********************************/
