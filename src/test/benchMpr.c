@@ -35,7 +35,7 @@ volatile int    testComplete;
 
 /*********************************** Code *************************************/
 
-int main(int argc, char *argv[])
+int MAIN("benchMpr", int argc, char *argv[])
 {
     MprThread       *thread;
     Mpr             *mpr;
@@ -51,13 +51,6 @@ int main(int argc, char *argv[])
     mprAddRoot(app);
     app->mutex = mprCreateLock(mpr);
     app->complete = mprCreateCond();
-
-#if VXWORKS || WINCE
-    /*
-        These platforms pass an arg string in via the argc value. Assumes 32-bit.
-     */
-    mprMakeArgv("http", (char*) argc, &argc, &argv);
-#endif
 
     app->iterations = 5;
     err = 0;
