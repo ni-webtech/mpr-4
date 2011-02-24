@@ -482,13 +482,12 @@ int mprStartCmd(MprCmd *cmd, int argc, char **argv, char **envp, int flags)
         mprAssert(!MPR_ERR_MEMORY);
         return MPR_ERR_MEMORY;
     }
-    if (access(program, X_OK) < 0) {
-        program = mprJoinPathExt(program, BLD_EXE);
-        if (access(program, X_OK) < 0) {
-            mprLog(1, "cmd: can't access %s, errno %d", program, mprGetOsError());
-            return MPR_ERR_CANT_ACCESS;
-        }
+    if ((program = mprSearchPath(program, MPR_SEARCH_EXE, MPR->searchPath, NULL)) == 0) {
+        mprLog(1, "cmd: can't access %s, errno %d", cmd->program, mprGetOsError());
+        return MPR_ERR_CANT_ACCESS;
     }
+    cmd->program = cmd->argv[0] = program;
+
     if (mprGetPathInfo(program, &info) == 0 && info.isDir) {
         mprLog(1, "cmd: program \"%s\", is a directory", program);
         return MPR_ERR_CANT_ACCESS;

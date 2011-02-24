@@ -1250,9 +1250,12 @@ char *mprSearchPath(cchar *file, int flags, cchar *search, ...)
     va_start(args, search);
     access = (flags & MPR_SEARCH_EXE) ? X_OK : R_OK;
 
-    for (nextDir = (char*) search; nextDir; nextDir = va_arg(args, char*)) {
-
-        if (strchr(nextDir, MPR_SEARCH_SEP_CHAR)) {
+    if (mprIsAbsPath(file)) {
+        if (mprPathExists(file, access)) {
+            return sclone(file);
+        }
+    } else {
+        for (nextDir = (char*) search; nextDir; nextDir = va_arg(args, char*)) {
             tok = NULL;
             nextDir = sclone(nextDir);
             dir = stok(nextDir, MPR_SEARCH_SEP, &tok);
@@ -1263,15 +1266,14 @@ char *mprSearchPath(cchar *file, int flags, cchar *search, ...)
                     mprLog(5, "mprSearchForFile: found %s", path);
                     return mprGetNormalizedPath(path);
                 }
+                if ((flags & MPR_SEARCH_EXE) && *BLD_EXE) {
+                    path = mprJoinPathExt(path, BLD_EXE);
+                    if (mprPathExists(path, access)) {
+                        mprLog(5, "mprSearchForFile: found %s", path);
+                        return mprGetNormalizedPath(path);
+                    }
+                }
                 dir = stok(0, MPR_SEARCH_SEP, &tok);
-            }
-
-        } else {
-            mprLog(5, "mprSearchForFile: %s in directory %s", file, nextDir);
-            path = mprJoinPath(nextDir, file);
-            if (mprPathExists(path, access)) {
-                mprLog(5, "mprSearchForFile: found %s", path);
-                return mprGetNormalizedPath(path);
             }
         }
     }
