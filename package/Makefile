@@ -5,7 +5,7 @@
 
 include			.makedep
 
-STAGE_DIR		:= $(BLD_OUT_DIR)/staging
+STAGE_DIR		:= $(BLD_OUT_DIR)/dist
 REL_DIR			:= $(BLD_OUT_DIR)/releases
 TDIR			:= $(STAGE_DIR)/mpr-$(BLD_VERSION)
 DIST_VER_NAME	:= mpr-$(BLD_VERSION)-dist.tgz
