@@ -164,7 +164,7 @@ void mprRemoveNotifier(MprWaitHandler *wp)
     Wait for I/O on a single file descriptor. Return a mask of events found. Mask is the events of interest.
     timeout is in milliseconds.
  */
-int mprWaitForSingleIO(int fd, int mask, int timeout)
+int mprWaitForSingleIO(int fd, int mask, MprTime timeout)
 {
     MprWaitService  *ws;
     struct timeval  tval;
@@ -205,7 +205,7 @@ int mprWaitForSingleIO(int fd, int mask, int timeout)
 /*
     Wait for I/O on all registered file descriptors. Timeout is in milliseconds. Return the number of events detected.
  */
-void mprWaitForIO(MprWaitService *ws, int timeout)
+void mprWaitForIO(MprWaitService *ws, MprTime timeout)
 {
     struct timeval  tval;
     int             rc, maxfd;

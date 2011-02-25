@@ -872,7 +872,7 @@ bool assertTrue(MprTestGroup *gp, cchar *loc, bool isTrue, cchar *msg)
 }
 
 
-bool mprWaitForTestToComplete(MprTestGroup *gp, int timeout)
+bool mprWaitForTestToComplete(MprTestGroup *gp, MprTime timeout)
 {
     MprTime     expires, remaining;
     int         rc;

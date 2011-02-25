@@ -336,6 +336,14 @@
 
 typedef off_t MprOffset;
 
+/**
+    Date and Time Service
+    @stability Evolving
+    @see MprTime, mprDecodeLocalTime, mprDecodeUniversalTime, mprFormatLocalTime, mprFormatTime, mprParseTime
+    @defgroup MprTime MprTime
+ */
+typedef int64 MprTime;
+
 #if __WORDSIZE == 64 || __amd64 || __x86_64 || __x86_64__ || _WIN64
     #define MPR_64_BIT 1
     #define MPR_BITS 64
@@ -1315,8 +1323,7 @@ extern void mprResetCond(MprCond *cond);
     @return Zero if the event was signalled. Returns < 0 for a timeout.
     @ingroup MprSynch
  */
-//  MOB - should be MprTime
-extern int mprWaitForCond(MprCond *cond, int timeout);
+extern int mprWaitForCond(MprCond *cond, MprTime timeout);
 
 /**
     Signal a condition lock variable.
@@ -1348,7 +1355,7 @@ extern void mprSignalMultiCond(MprCond *cp);
     @return Zero if the event was signalled. Returns < 0 for a timeout.
     @ingroup MprSynch
  */
-extern int mprWaitForMultiCond(MprCond *cp, int timeout);
+extern int mprWaitForMultiCond(MprCond *cp, MprTime timeout);
 
 /**
     Multithreaded Synchronization Services
@@ -2274,7 +2281,7 @@ extern int  mprCreateGCService();
 extern void mprWakeGCService();
 extern void mprMarkBlock(cvoid *ptr);
 extern void mprResumeThreads();
-extern int  mprSyncThreads(int timeout);
+extern int  mprSyncThreads(MprTime timeout);
 
 /******************************************************* Safe Strings ******************************************************/
 /**
@@ -3325,14 +3332,6 @@ extern int mprPutFmtToWideBuf(MprBuf *buf, cchar *fmt, ...);
 #define MPR_RFC_DATE        "%a, %d %b %Y %T %Z"
 #define MPR_DEFAULT_DATE    "%a %b %d %T %Y %Z"
 #define MPR_HTTP_DATE       "%a, %d %b %Y %T GMT"
-
-/**
-    Date and Time Service
-    @stability Evolving
-    @see MprTime, mprDecodeLocalTime, mprDecodeUniversalTime, mprFormatLocalTime, mprFormatTime, mprParseTime
-    @defgroup MprTime MprTime
- */
-typedef int64 MprTime;
 
 /**
     Mpr time structure.
@@ -4985,7 +4984,7 @@ typedef struct MprModule {
     void            *moduleData;        /**< Module specific data */
     void            *handle;            /**< O/S shared library load handle */
     MprTime         lastActivity;       /**< When the module was last used */
-    int             timeout;            /**< Inactivity unload timeout */
+    MprTime         timeout;            /**< Inactivity unload timeout */
     int             flags;              /**< Module control flags */
     MprModuleProc   start;              /**< Start the module */
     MprModuleProc   stop;               /**< Stop the module. Should be unloadable after stopping */
@@ -5042,7 +5041,7 @@ extern int mprLoadModule(MprModule *mp);
 extern int mprLoadNativeModule(MprModule *mp);
 extern int mprUnloadNativeModule(MprModule *mp);
 #endif
-extern void mprSetModuleTimeout(MprModule *module, int timeout);
+extern void mprSetModuleTimeout(MprModule *module, MprTime timeout);
 extern void mprSetModuleFinalizer(MprModule *module, MprModuleProc stop);
 
 /**
@@ -5748,14 +5747,14 @@ extern void mprServiceWinIO(MprWaitService *ws, int sockFd, int winMask);
     @param timeout Timeout in milliseconds to wait for an event.
     @returns A count of events received.
  */
-extern int mprWaitForSingleIO(int fd, int mask, int timeout);
+extern int mprWaitForSingleIO(int fd, int mask, MprTime timeout);
 
 /**
     Wait for I/O. This call waits for any I/O events on wait handlers until the given timeout expires.
     @param ws Wait service object
     @param timeout Timeout in milliseconds to wait for an event.
  */
-extern void mprWaitForIO(MprWaitService *ws, int timeout);
+extern void mprWaitForIO(MprWaitService *ws, MprTime timeout);
 
 /*
     Handler Flags
@@ -6677,7 +6676,7 @@ typedef struct MprCmd {
     int             eofCount;           /* Count of end-of-files */
     int             requiredEof;        /* Number of EOFs required for an exit */
     MprTime         timestamp;          /* Timeout timestamp for last I/O  */
-    int             timeoutPeriod;      /* Timeout value */
+    MprTime         timeoutPeriod;      /* Timeout value */
     int             timedout;           /* Request has timedout */
     MprCmdFile      files[MPR_CMD_MAX_PIPE]; /* Stdin, stdout for the command */
     MprWaitHandler  *handlers[MPR_CMD_MAX_PIPE];
@@ -6818,7 +6817,7 @@ extern ssize mprReadCmd(MprCmd *cmd, int channel, char *buf, ssize bufsize);
     @return Zero if successful. Otherwise a negative MPR error code.
     @ingroup MprCmd
  */
-extern int mprReapCmd(MprCmd *cmd, int timeout);
+extern int mprReapCmd(MprCmd *cmd, MprTime timeout);
 
 /**
     Run a command using a string command line. This starts the command via mprStartCmd() and waits for its completion.
@@ -6910,7 +6909,7 @@ extern int mprStopCmd(MprCmd *cmd, int signal);
     @return Zero if successful. Otherwise a negative MPR error code.
     @ingroup MprCmd
  */
-extern int mprWaitForCmd(MprCmd *cmd, int timeout);
+extern int mprWaitForCmd(MprCmd *cmd, MprTime timeout);
 
 /**
     Poll for I/O on the command pipes. This is only used on windows which can't adequately detect EOF on a named pipe.
@@ -6918,7 +6917,7 @@ extern int mprWaitForCmd(MprCmd *cmd, int timeout);
     @param timeout Time in milliseconds to wait for the command to complete and exit.
     @ingroup MprCmd
  */
-extern void mprPollCmd(MprCmd *cmd, int timeout);
+extern void mprPollCmd(MprCmd *cmd, MprTime timeout);
 
 /**
     Write data to an I/O channel
@@ -7487,8 +7486,8 @@ extern void         mprResetTestGroup(MprTestGroup *gp);
 extern bool         assertTrue(MprTestGroup *gp, cchar *loc, bool success, cchar *msg);
 extern void         mprSignalTestComplete(MprTestGroup *gp);
 extern void         mprSignalTest2Complete(MprTestGroup *gp);
-extern bool         mprWaitForTestToComplete(MprTestGroup *gp, int timeout);
-extern bool         mprWaitForTest2ToComplete(MprTestGroup *gp, int timeout);
+extern bool         mprWaitForTestToComplete(MprTestGroup *gp, MprTime timeout);
+extern bool         mprWaitForTest2ToComplete(MprTestGroup *gp, MprTime timeout);
 
 typedef struct MprTestFailure {
     char            *loc;

@@ -210,7 +210,7 @@ void *mprLookupModuleData(cchar *name)
 }
 
 
-void mprSetModuleTimeout(MprModule *module, int timeout)
+void mprSetModuleTimeout(MprModule *module, MprTime timeout)
 {
     module->timeout = timeout;
 }

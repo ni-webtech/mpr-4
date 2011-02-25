@@ -62,7 +62,7 @@ static void manageCond(MprCond *cp, int flags)
     triggered, then it will return immediately. Timeout of -1 means wait forever. Timeout of 0 means no wait.
     Returns 0 if the event was signalled. Returns < 0 for a timeout.
  */
-int mprWaitForCond(MprCond *cp, int timeout)
+int mprWaitForCond(MprCond *cp, MprTime timeout)
 {
     MprTime     now, expire;
     int         rc;
@@ -185,7 +185,7 @@ void mprResetCond(MprCond *cp)
     A timeout of -1 means wait forever. Timeout of 0 means no wait.  Returns 0 if the event was signalled. 
     Returns < 0 for a timeout.
  */
-int mprWaitForMultiCond(MprCond *cp, int timeout)
+int mprWaitForMultiCond(MprCond *cp, MprTime timeout)
 {
     int         rc;
 #if BLD_UNIX_LIKE

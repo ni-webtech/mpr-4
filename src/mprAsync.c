@@ -65,7 +65,7 @@ void mprRemoveNotifier(MprWaitHandler *wp)
     Wait for I/O on a single descriptor. Return the number of I/O events found. Mask is the events of interest.
     Timeout is in milliseconds.
  */
-int mprWaitForSingleIO(int fd, int desiredMask, int timeout)
+int mprWaitForSingleIO(int fd, int desiredMask, MprTime timeout)
 {
     HANDLE      h;
     int         winMask;
@@ -82,7 +82,7 @@ int mprWaitForSingleIO(int fd, int desiredMask, int timeout)
     }
     h = CreateEvent(NULL, FALSE, FALSE, "mprWaitForSingleIO");
     WSAEventSelect(fd, h, winMask);
-    if (WaitForSingleObject(h, timeout) == WAIT_OBJECT_0) {
+    if (WaitForSingleObject(h, (DWORD) timeout) == WAIT_OBJECT_0) {
         CloseHandle(h);
         return desiredMask;
     }
@@ -95,7 +95,7 @@ int mprWaitForSingleIO(int fd, int desiredMask, int timeout)
     Wait for I/O on all registered descriptors. Timeout is in milliseconds. Return the number of events serviced.
     Should only be called by the thread that calls mprServiceEvents
  */
-void mprWaitForIO(MprWaitService *ws, int timeout)
+void mprWaitForIO(MprWaitService *ws, MprTime timeout)
 {
     MSG     msg;
 
@@ -110,7 +110,7 @@ void mprWaitForIO(MprWaitService *ws, int timeout)
         mprDoWaitRecall(ws);
         return;
     }
-    SetTimer(ws->hwnd, 0, timeout, NULL);
+    SetTimer(ws->hwnd, 0, (UINT) timeout, NULL);
 
     mprYield(MPR_YIELD_STICKY);
     if (GetMessage(&msg, NULL, 0, 0) == 0) {

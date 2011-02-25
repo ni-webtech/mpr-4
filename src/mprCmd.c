@@ -601,7 +601,7 @@ void mprDisableCmdEvents(MprCmd *cmd, int channel)
     Service I/O and return a count of characters that can be read without blocking. If the proces has completed,
     then return 1 to indicate that EOF can be read.
  */
-static int serviceWinCmdEvents(MprCmd *cmd, int channel, int timeout)
+static int serviceWinCmdEvents(MprCmd *cmd, int channel, MprTime timeout)
 {
     int     rc, count, status;
 
@@ -621,7 +621,7 @@ static int serviceWinCmdEvents(MprCmd *cmd, int channel, int timeout)
     if (mprGetDebugMode()) {
         timeout = MAXINT;
     }
-    if ((status = WaitForSingleObject(cmd->process, timeout)) == WAIT_OBJECT_0) {
+    if ((status = WaitForSingleObject(cmd->process, (DWORD) timeout)) == WAIT_OBJECT_0) {
         if (cmd->requiredEof == 0) {
             mprReapCmd(cmd, MPR_TIMEOUT_STOP_TASK);
             return 0;
@@ -650,7 +650,7 @@ static void invokeCallback(MprCmd *cmd, int channel)
 /*
     Poll for I/O events on CGI pipes
  */
-void mprPollCmd(MprCmd *cmd, int timeout)
+void mprPollCmd(MprCmd *cmd, MprTime timeout)
 {
     int     channel;
 
@@ -693,7 +693,7 @@ void mprPollCmd(MprCmd *cmd, int timeout)
     Wait for a command to complete. Return 0 if the command completed, otherwise it will return MPR_ERR_TIMEOUT. 
     This will call mprReapCmd if required.
  */
-int mprWaitForCmd(MprCmd *cmd, int timeout)
+int mprWaitForCmd(MprCmd *cmd, MprTime timeout)
 {
     MprTime     expires, remaining;
 
@@ -744,7 +744,7 @@ int mprWaitForCmd(MprCmd *cmd, int timeout)
     we make this the case for all O/Ss. Return zero if the exit status is successfully reaped. Return -1 if an error 
     and return > 0 if process still running.
  */
-int mprReapCmd(MprCmd *cmd, int timeout)
+int mprReapCmd(MprCmd *cmd, MprTime timeout)
 {
     MprTime     mark;
     int         status;
@@ -962,7 +962,7 @@ bool mprIsCmdRunning(MprCmd *cmd)
 }
 
 
-void mprSetCmdTimeout(MprCmd *cmd, int timeout)
+void mprSetCmdTimeout(MprCmd *cmd, MprTime timeout)
 {
     cmd->timeoutPeriod = timeout;
 }
