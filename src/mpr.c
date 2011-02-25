@@ -187,6 +187,7 @@ static void getArgs(Mpr *mpr, int argc, char **argv)
     mprMakeArgv(command, &argc, &argv, MPR_ARGV_ARGS_ONLY);
     argv[0] = sclone(args->program);
 #elif VXWORKS
+    MprArgs *args = (MprArgs*) argv;
     mprMakeArgv("", &argc, &argv, MPR_ARGV_ARGS_ONLY);
     argv[0] = sclone(args->program);
 #endif
