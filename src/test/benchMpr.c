@@ -35,7 +35,7 @@ volatile int    testComplete;
 
 /*********************************** Code *************************************/
 
-int MAIN("benchMpr", int argc, char *argv[])
+MAIN(benchMpr, int argc, char **argv)
 {
     MprThread       *thread;
     Mpr             *mpr;
