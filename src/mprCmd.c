@@ -42,6 +42,16 @@ static void vxCmdManager(MprCmd *cmd);
 #define gunlock(cmd) 
 #endif
 
+/*
+    Windows and VxWorks do not support async I/O
+    VxWorks can't signal EOF on non-blocking pipes and Windows can't select on named pipes. 
+ */
+#if BLD_WIN_LIKE || VXWORKS
+#define CMD_ASYNC 0
+#else
+#define CMD_ASYNC 1
+#endif
+
 /************************************* Code ***********************************/
 
 MprCmdService *mprCreateCmdService(Mpr *mpr)
@@ -123,6 +133,7 @@ static void manageCmd(MprCmd *cmd, int flags)
         for (i = 0; i < MPR_CMD_MAX_PIPE; i++) {
             mprMark(cmd->files[i].name);
         }
+        //  MOB - refactor
         mprMark(cmd->env);
 #if BLD_WIN_LIKE
         mprMark(cmd->command);
@@ -379,31 +390,13 @@ int mprRunCmdV(MprCmd *cmd, int argc, char **argv, char **out, char **err, int f
 
 void mprAddCmdHandlers(MprCmd *cmd)
 {
-#if BLD_UNIX_LIKE || VXWORKS
+#if CMD_ASYNC
     int     stdinFd, stdoutFd, stderrFd, mask;
   
     stdinFd = cmd->files[MPR_CMD_STDIN].fd; 
     stdoutFd = cmd->files[MPR_CMD_STDOUT].fd; 
     stderrFd = cmd->files[MPR_CMD_STDERR].fd; 
 
-    /*
-        Put the stdout and stderr into non-blocking mode. Windows can't do this because both ends of the pipe
-        share the same blocking mode (Ugh!). So Windows must poll.
-     */
-#if VXWORKS
-    {
-        int nonBlock = 1;
-        if (stdinFd >= 0) {
-            ioctl(stdinFd, FIONBIO, (int) &nonBlock);
-        }
-        if (stdoutFd >= 0) {
-            ioctl(stdoutFd, FIONBIO, (int) &nonBlock);
-        }
-        if (stderrFd >= 0) {
-            ioctl(stderrFd, FIONBIO, (int) &nonBlock);
-        }
-    }
-#else
     if (stdinFd >= 0) {
         fcntl(stdinFd, F_SETFL, fcntl(stdinFd, F_GETFL) | O_NONBLOCK);
     }
@@ -413,7 +406,6 @@ void mprAddCmdHandlers(MprCmd *cmd)
     if (stderrFd >= 0) {
         fcntl(stderrFd, F_SETFL, fcntl(stderrFd, F_GETFL) | O_NONBLOCK);
     }
-#endif
     if (stdinFd >= 0) {
         cmd->handlers[MPR_CMD_STDIN] = mprCreateWaitHandler(stdinFd, MPR_WRITABLE, cmd->dispatcher,
             (MprEventProc) stdinCallback, cmd, 0);
@@ -430,8 +422,8 @@ void mprAddCmdHandlers(MprCmd *cmd)
         cmd->handlers[MPR_CMD_STDERR] = mprCreateWaitHandler(stderrFd, mask, cmd->dispatcher,
             (MprEventProc) stderrCallback, cmd, 0);
     }
-#endif
     cmd->flags |= MPR_CMD_ASYNC;
+#endif
 }
 
 
@@ -453,18 +445,6 @@ int mprStartCmd(MprCmd *cmd, int argc, char **argv, char **envp, int flags)
     if (argc <= 0 || argv == NULL || argv[0] == NULL) {
         return MPR_ERR_BAD_STATE;
     }
-    /*
-        Windows and VxWorks can't do async. There really isn't a good way to not block on windows. You can't use
-        PeekNamedPipe because it will hang if the gateway is blocked reading it. You can't use NtQueryInformationFile 
-        on Windows SDK 6.0+. You also can't put the socket into non-blocking mode because Windows pipes share the
-        blocking mode for both ends. VxWorks can't reliably detect EOF on pipes.
-     */
-#if VXWORKS || BLD_WIN_LIKE
-    if (flags & MPR_CMD_ASYNC) {
-        mprError("Async mode not supported for commands on this platform");
-        return MPR_ERR_BAD_STATE;
-    }
-#endif
     resetCmd(cmd);
     program = argv[0];
     cmd->program = sclone(program);
@@ -500,7 +480,7 @@ int mprStartCmd(MprCmd *cmd, int argc, char **argv, char **envp, int flags)
     if (cmd->flags & MPR_CMD_ERR) {
         cmd->requiredEof++;
     }
-    if (cmd->flags & MPR_CMD_ASYNC) {
+    if ((cmd->flags & MPR_CMD_ASYNC) && CMD_ASYNC) {
         mprAddCmdHandlers(cmd);
     }
     rc = startProcess(cmd);
@@ -529,7 +509,6 @@ int mprMakeCmdIO(MprCmd *cmd)
 
 /*
     Stop the command
-    MOB - should take signal arg
  */
 int mprStopCmd(MprCmd *cmd, int signal)
 {
@@ -551,50 +530,6 @@ int mprStopCmd(MprCmd *cmd, int signal)
 }
 
 
-static ssize asyncRead(MprCmd *cmd, int channel, char *buf, ssize bufsize)
-{
-#if BLD_WIN_LIKE && !WINCE
-    int     count, rc;
-
-    rc = PeekNamedPipe(cmd->files[channel].handle, NULL, 0, NULL, &count, NULL);
-    if (rc && count > 0) {
-        return read(cmd->files[channel].fd, buf, (uint) bufsize);
-    }
-    if (cmd->process == 0) {
-        return 0;
-    }
-    /*
-        No waiting. Use this just to check if the process has exited and thus EOF on the pipe.
-     */
-    if (WaitForSingleObject(cmd->process, 0) == WAIT_OBJECT_0) {
-        return 0;
-    }
-    errno = EAGAIN;
-    return -1;
-#elif VXWORKS
-    int     rc;
-    rc = read(cmd->files[channel].fd, buf, bufsize);
-
-    /*
-        VxWorks can't signal EOF on non-blocking pipes. Need a pattern indicator.
-        MOB - better to just make VxWorks a non-async platform
-     */
-    if (rc == MPR_CMD_VXWORKS_EOF_LEN && strncmp(buf, MPR_CMD_VXWORKS_EOF, MPR_CMD_VXWORKS_EOF_LEN) == 0) {
-        /* EOF */
-        return 0;
-
-    } else if (rc == 0) {
-        rc = -1;
-        errno = EAGAIN;
-    }
-    return rc;
-
-#else
-    return read(cmd->files[channel].fd, buf, bufsize);
-#endif
-}
-
-
 ssize mprReadCmd(MprCmd *cmd, int channel, char *buf, ssize bufsize)
 {
 #if BLD_WIN_LIKE
@@ -605,7 +540,7 @@ ssize mprReadCmd(MprCmd *cmd, int channel, char *buf, ssize bufsize)
      */
     rc = PeekNamedPipe(cmd->files[channel].handle, NULL, 0, NULL, &count, NULL);
     if (rc > 0 && count > 0) {
-        return read(cmd->files[channel].fd, buf, bufsize);
+        return read(cmd->files[channel].fd, buf, (uint) bufsize);
     } 
     if (cmd->process == 0 || WaitForSingleObject(cmd->process, 0) == WAIT_OBJECT_0) {
         /* Process has exited - EOF */
@@ -615,9 +550,6 @@ ssize mprReadCmd(MprCmd *cmd, int channel, char *buf, ssize bufsize)
     return -1;
 }
 #else
-    if (cmd->flags & MPR_CMD_ASYNC) {
-        return asyncRead(cmd, channel, buf, bufsize);
-    }
     return read(cmd->files[channel].fd, buf, bufsize);
 #endif
 }
@@ -633,16 +565,14 @@ int mprWriteCmd(MprCmd *cmd, int channel, char *buf, ssize bufsize)
         return -1;
     }
 #endif
-    return write(cmd->files[channel].fd, buf, bufsize);
+    return write(cmd->files[channel].fd, buf, (uint) bufsize);
 }
 
 
 void mprEnableCmdEvents(MprCmd *cmd, int channel)
 {
-    int     mask;
-
-    mask = (channel == MPR_CMD_STDIN) ? MPR_WRITABLE : MPR_READABLE;
-#if BLD_UNIX_LIKE || VXWORKS
+#if CMD_ASYNC
+    int mask = (channel == MPR_CMD_STDIN) ? MPR_WRITABLE : MPR_READABLE;
     lock(cmd);
     if (cmd->handlers[channel]) {
         mprAssert(cmd->flags & MPR_CMD_ASYNC);
@@ -655,7 +585,7 @@ void mprEnableCmdEvents(MprCmd *cmd, int channel)
 
 void mprDisableCmdEvents(MprCmd *cmd, int channel)
 {
-#if BLD_UNIX_LIKE || VXWORKS
+#if CMD_ASYNC
     lock(cmd);
     if (cmd->handlers[channel]) {
         mprAssert(cmd->flags & MPR_CMD_ASYNC);
@@ -788,15 +718,15 @@ int mprWaitForCmd(MprCmd *cmd, int timeout)
         }
         unlock(cmd);
         if (cmd->pid) {
-            if (cmd->flags & MPR_CMD_ASYNC && !BLD_WIN_LIKE) {
-                /* Add root to allow callers to use mprRunCmd without first managing the cmd */
-                mprAddRoot(cmd);
+            /* Add root to allow callers to use mprRunCmd without first managing the cmd */
+            mprAddRoot(cmd);
+            if ((cmd->flags & MPR_CMD_ASYNC) && CMD_ASYNC) {
                 mprWaitForEvent(cmd->dispatcher, remaining);
-                mprRemoveRoot(cmd);
             } else {
                 mprPollCmd(cmd, timeout);
                 mprWaitForEvent(cmd->dispatcher, 0);
             }
+            mprRemoveRoot(cmd);
         }
         remaining = (expires - mprGetTime());
     } while (cmd->pid && remaining >= 0);
