@@ -100,7 +100,7 @@ void mprAtomicAdd64(volatile int64 *ptr, int value)
 #if MACOSX
     OSAtomicAdd64(value, ptr);
 #elif BLD_WIN_LIKE && MPR_64_BIT
-    return InterlockedExchangeAdd64(ptr, value);
+    InterlockedExchangeAdd64(ptr, value);
 #elif BLD_UNIX_LIKE && 0
     MOB
     asm volatile ("lock; xaddl %0,%1"
