@@ -410,20 +410,17 @@ void mprAddCmdHandlers(MprCmd *cmd)
         fcntl(stderrFd, F_SETFL, fcntl(stderrFd, F_GETFL) | O_NONBLOCK);
     }
     if (stdinFd >= 0) {
-        cmd->handlers[MPR_CMD_STDIN] = mprCreateWaitHandler(stdinFd, MPR_WRITABLE, cmd->dispatcher,
-            (MprEventProc) stdinCallback, cmd, 0);
+        cmd->handlers[MPR_CMD_STDIN] = mprCreateWaitHandler(stdinFd, MPR_WRITABLE, cmd->dispatcher, stdinCallback, cmd, 0);
     }
     if (stdoutFd >= 0) {
-        cmd->handlers[MPR_CMD_STDOUT] = mprCreateWaitHandler(stdoutFd, MPR_READABLE, cmd->dispatcher,
-            (MprEventProc) stdoutCallback, cmd, 0);
+        cmd->handlers[MPR_CMD_STDOUT] = mprCreateWaitHandler(stdoutFd, MPR_READABLE, cmd->dispatcher, stdoutCallback, cmd,0);
     }
     if (stderrFd >= 0) {
         /*
             Delay enabling stderr events until stdout is complete. 
          */
         mask = (stdoutFd < 0) ? MPR_READABLE : 0;
-        cmd->handlers[MPR_CMD_STDERR] = mprCreateWaitHandler(stderrFd, mask, cmd->dispatcher,
-            (MprEventProc) stderrCallback, cmd, 0);
+        cmd->handlers[MPR_CMD_STDERR] = mprCreateWaitHandler(stderrFd, mask, cmd->dispatcher, stderrCallback, cmd, 0);
     }
     cmd->flags |= MPR_CMD_ASYNC;
 #endif

@@ -13,8 +13,7 @@
 /***************************** Forward Declarations ***************************/
 
 static void dequeueEvent(MprEvent *event);
-static void initEvent(MprDispatcher *dispatcher, MprEvent *event, cchar *name, int period, MprEventProc proc, void *data, 
-    int flags);
+static void initEvent(MprDispatcher *dispatcher, MprEvent *event, cchar *name, int period, void *proc, void *data, int flgs);
 static void initEventQ(MprEvent *q);
 static void manageEvent(MprEvent *event, int flags);
 static void queueEvent(MprEvent *prior, MprEvent *event);
@@ -40,7 +39,7 @@ MprEvent *mprCreateEventQueue(cchar *name)
     Create and queue a new event for service. Period is used as the delay before running the event and as the period between 
     events for continuous events.
  */
-MprEvent *mprCreateEvent(MprDispatcher *dispatcher, cchar *name, int period, MprEventProc proc, void *data, int flags)
+MprEvent *mprCreateEvent(MprDispatcher *dispatcher, cchar *name, int period, void *proc, void *data, int flags)
 {
     MprEvent    *event;
 
@@ -87,7 +86,7 @@ static void manageEvent(MprEvent *event, int flags)
 }
 
 
-static void initEvent(MprDispatcher *dispatcher, MprEvent *event, cchar *name, int period, MprEventProc proc, void *data, 
+static void initEvent(MprDispatcher *dispatcher, MprEvent *event, cchar *name, int period, void *proc, void *data, 
     int flags)
 {
     mprAssert(dispatcher);
@@ -114,7 +113,7 @@ static void initEvent(MprDispatcher *dispatcher, MprEvent *event, cchar *name, i
 /*
     Create an interval timer
  */
-MprEvent *mprCreateTimerEvent(MprDispatcher *dispatcher, cchar *name, int period, MprEventProc proc, void *data, int flags)
+MprEvent *mprCreateTimerEvent(MprDispatcher *dispatcher, cchar *name, int period, void *proc, void *data, int flags)
 {
     return mprCreateEvent(dispatcher, name, period, proc, data, MPR_EVENT_CONTINUOUS | flags);
 }

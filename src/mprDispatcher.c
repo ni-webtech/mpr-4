@@ -386,14 +386,8 @@ int mprDispatchersAreIdle()
 /*
     Relay an event to a new dispatcher. This invokes the callback proc as though it was invoked from the given dispatcher. 
  */
-void mprRelayEvent(MprDispatcher *dispatcher, MprEventProc proc, void *data, MprEvent *event)
+void mprRelayEvent(MprDispatcher *dispatcher, void *proc, void *data, MprEvent *event)
 {
-#if BLD_DEBUG
-    //  MOB TEMP -- just for debug
-    MprThread *tp = mprGetCurrentThread();
-    mprNop(tp);
-#endif
-
     mprAssert(!isRunning(dispatcher));
     mprAssert(dispatcher->owner == 0);
     mprAssert(dispatcher->magic == MPR_DISPATCHER_MAGIC);
@@ -404,7 +398,7 @@ void mprRelayEvent(MprDispatcher *dispatcher, MprEventProc proc, void *data, Mpr
     dispatcher->enabled = 1;
     dispatcher->owner = mprGetCurrentOsThread();
     makeRunnable(dispatcher);
-    (proc)(data, event);
+    ((MprEventProc) proc)(data, event);
     scheduleDispatcher(dispatcher);
     dispatcher->owner = 0;
 }

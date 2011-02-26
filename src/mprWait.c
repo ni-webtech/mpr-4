@@ -70,8 +70,8 @@ static void manageWaitService(MprWaitService *ws, int flags)
 
 //  MOB -- inline in createWaitHandler
 
-static MprWaitHandler *mprInitWaitHandler(MprWaitHandler *wp, int fd, int mask, MprDispatcher *dispatcher, 
-        MprEventProc proc, void *data, int flags)
+static MprWaitHandler *mprInitWaitHandler(MprWaitHandler *wp, int fd, int mask, MprDispatcher *dispatcher, void *proc, 
+    void *data, int flags)
 {
     MprWaitService  *ws;
 
@@ -112,7 +112,7 @@ static MprWaitHandler *mprInitWaitHandler(MprWaitHandler *wp, int fd, int mask, 
 }
 
 
-MprWaitHandler *mprCreateWaitHandler(int fd, int mask, MprDispatcher *dispatcher, MprEventProc proc, void *data, int flags)
+MprWaitHandler *mprCreateWaitHandler(int fd, int mask, MprDispatcher *dispatcher, void *proc, void *data, int flags)
 {
     MprWaitHandler  *wp;
 
