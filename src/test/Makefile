@@ -24,8 +24,6 @@ $(BLD_BIN_DIR)/benchMpr$(BLD_EXE): $(OBJECTS) $(BLD_LIB_DIR)/libmpr$(BLD_LIB) $(
 
 ifneq	($(BLD_CROSS),1)
 testExtra: 
-	echo HERE
-	sleep 1800
 	$(call log) "[Test]" "Basic unit tests" ; \
 	$(BLD_BIN_DIR)/testMpr -v -i 2 --depth $(BUILD_DEPTH)
 	if [ $(BUILD_DEPTH) -ge 3 ] ; then \

@@ -1090,15 +1090,6 @@ struct  MprXml;
     #define MPR_EVENT_POLL      1
 #endif
 
-#if UNUSED
-#undef MPR_EVENT_EPOLL
-#undef MPR_EVENT_POLL
-#undef MPR_EVENT_SELECT
-#undef MPR_EVENT_ASYNC
-#undef MPR_EVENT_KQUEUE
-#define MPR_EVENT_SELECT 1
-#endif
-
 /*
     Garbage collector tuning
  */
