@@ -1,5 +1,5 @@
 /**
-    mprAtomicic.c - Atomic operations
+    mprAtomic.c - Atomic operations
 
     Copyright (c) All Rights Reserved. See details at the end of the file.
  */

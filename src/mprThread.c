@@ -147,7 +147,7 @@ void mprSetCurrentThreadPriority(int pri)
 /*
     Create a main thread
  */
-MprThread *mprCreateThread(cchar *name, MprThreadProc entry, void *data, int stackSize)
+MprThread *mprCreateThread(cchar *name, void *entry, void *data, int stackSize)
 {
     MprThreadService    *ts;
     MprThread           *tp;

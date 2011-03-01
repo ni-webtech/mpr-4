@@ -278,6 +278,7 @@ static void serviceIO(MprWaitService *ws, struct pollfd *fds, int count)
 
 /*
     Wake the wait service. WARNING: This routine must not require locking. MprEvents in scheduleDispatcher depends on this.
+    Must be async-safe.
  */
 void mprWakeNotifier()
 {

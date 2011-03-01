@@ -104,17 +104,23 @@ int mprUnloadNativeModule(MprModule *mp)
 #endif
 
 
-void mprSleep(int milliseconds)
+void mprSleep(MprTime timeout)
 {
-    struct timespec timeout;
+    MprTime         remaining, mark;
+    struct timespec t;
     int             rc;
 
-    mprAssert(milliseconds >= 0);
-    timeout.tv_sec = milliseconds / 1000;
-    timeout.tv_nsec = (milliseconds % 1000) * 1000000;
+    mprAssert(timeout >= 0);
+    
+    mark = mprGetTime();
+    remaining = timeout;
     do {
-        rc = nanosleep(&timeout, &timeout);
-    } while (rc < 0 && errno == EINTR);
+        /* MAC OS X corrupts the timeout if using the 2nd paramater, so recalc each time */
+        t.tv_sec = remaining / 1000;
+        t.tv_nsec = (remaining % 1000) * 1000000;
+        nanosleep(&t, NULL);
+        remaining = mprGetRemainingTime(mark, timeout);
+    } while (rc < 0 && errno == EINTR && remaining > 0);
 }
 
 

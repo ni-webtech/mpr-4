@@ -71,7 +71,6 @@ static void manageEvent(MprEvent *event, int flags)
         mprMark(event->handler);
         mprMark(event->next);
         mprMark(event->prev);
-
         if (!(event->flags & MPR_EVENT_STATIC_DATA)) {
             mprMark(event->data);
         }

@@ -10,34 +10,23 @@
 
 /******************************* Forward Declarations *************************/
 
-/*
-    Windows and VxWorks do not support async I/O
-    VxWorks can't signal EOF on non-blocking pipes and Windows can't select on named pipes. 
- */
-#if BLD_WIN_LIKE || VXWORKS
-#define CMD_ASYNC 0
-#else
-#define CMD_ASYNC 1
-#endif
-
 static void closeFiles(MprCmd *cmd);
 static void cmdCallback(MprCmd *cmd, int channel, void *data);
 static int makeChannel(MprCmd *cmd, int index);
 static void manageCmdService(MprCmdService *cmd, int flags);
 static void manageCmd(MprCmd *cmd, int flags);
+static void reapCmd(MprCmd *cmd);
 static void resetCmd(MprCmd *cmd);
 static int sanitizeArgs(MprCmd *cmd, int argc, char **argv, char **env);
 static int startProcess(MprCmd *cmd);
-
-#if CMD_ASYNC
 static void stdinCallback(MprCmd *cmd, MprEvent *event);
 static void stdoutCallback(MprCmd *cmd, MprEvent *event);
 static void stderrCallback(MprCmd *cmd, MprEvent *event);
-#endif
 
 #if BLD_UNIX_LIKE
 static char **fixenv(MprCmd *cmd);
 #endif
+
 #if VXWORKS
 typedef int (*MprCmdTaskFn)(int argc, char **argv, char **envp);
 static void cmdTaskEntry(char *program, MprCmdTaskFn entry, int cmdArg);
@@ -102,6 +91,7 @@ MprCmd *mprCreateCmd(MprDispatcher *dispatcher)
     cmd->timestamp = mprGetTime();
     cmd->forkCallback = (MprForkCallback) closeFiles;
     cmd->dispatcher = dispatcher ? dispatcher : MPR->dispatcher;
+    cmd->status = -1;
 
 #if VXWORKS
     cmd->startCond = semCCreate(SEM_Q_PRIORITY, SEM_EMPTY);
@@ -112,6 +102,7 @@ MprCmd *mprCreateCmd(MprDispatcher *dispatcher)
         files[i].clientFd = -1;
         files[i].fd = -1;
     }
+    cmd->signal = mprAddSignalHandler(SIGCHLD, reapCmd, cmd, dispatcher, MPR_SIGNAL_BEFORE);
     cmd->mutex = mprCreateLock();
     mprAddItem(MPR->cmdService->cmds, cmd);
     return cmd;
@@ -136,7 +127,6 @@ static void manageCmd(MprCmd *cmd, int flags)
         for (i = 0; i < MPR_CMD_MAX_PIPE; i++) {
             mprMark(cmd->files[i].name);
         }
-        //  MOB - refactor
         mprMark(cmd->env);
 #if BLD_WIN_LIKE
         mprMark(cmd->command);
@@ -148,6 +138,7 @@ static void manageCmd(MprCmd *cmd, int flags)
             }
         }
 #endif
+        //  MOB - not required because not running in //
         lock(cmd);
         for (i = 0; i < MPR_CMD_MAX_PIPE; i++) {
             mprMark(cmd->handlers[i]);
@@ -160,6 +151,10 @@ static void manageCmd(MprCmd *cmd, int flags)
 #if VXWORKS
         vxCmdManager(cmd);
 #endif
+        if (cmd->signal) {
+            mprRemoveSignalHandler(cmd->signal);
+            cmd->signal = 0;
+        }
         mprRemoveItem(MPR->cmdService->cmds, cmd);
     }
 }
@@ -199,7 +194,10 @@ void mprDestroyCmd(MprCmd *cmd)
 {
     mprAssert(cmd);
     resetCmd(cmd);
-    mprRemoveItem(MPR->cmdService->cmds, cmd);
+    if (cmd->signal) {
+        mprRemoveSignalHandler(cmd->signal);
+        cmd->signal = 0;
+    }
 }
 
 
@@ -227,9 +225,11 @@ static void resetCmd(MprCmd *cmd)
     cmd->eofCount = 0;
     cmd->status = -1;
 
+    //  MOB - not right use of detach?
     if (cmd->pid && !(cmd->flags & MPR_CMD_DETACH)) {
         mprStopCmd(cmd, -1);
-        mprReapCmd(cmd, 0);
+        mprWaitForCmd(cmd, MPR_TIMEOUT_STOP_TASK);
+        reapCmd(cmd);
         cmd->pid = 0;
     }
 }
@@ -240,6 +240,8 @@ void mprDisconnectCmd(MprCmd *cmd)
     int     i;
 
     mprAssert(cmd);
+
+    //  MOB - is this called on different dispatcher?
     lock(cmd);
     for (i = 0; i < MPR_CMD_MAX_PIPE; i++) {
         if (cmd->handlers[i]) {
@@ -271,17 +273,17 @@ void mprCloseCmdFd(MprCmd *cmd, int channel)
         cmd->files[channel].handle = 0;
 #endif
         if (channel != MPR_CMD_STDIN) {
-            if (++cmd->eofCount >= cmd->requiredEof) {
-                mprReapCmd(cmd, MPR_TIMEOUT_STOP_TASK);
-            }
+            cmd->eofCount++;
         }
     }
+    mprLog(6, "Close channel %d eof %d/%d, pid %d", channel, cmd->eofCount, cmd->requiredEof, cmd->pid);
     unlock(cmd);
 }
 
 
 void mprFinalizeCmd(MprCmd *cmd)
 {
+    mprLog(6, "mprFinalizeCmd");
     mprAssert(cmd);
     mprCloseCmdFd(cmd, MPR_CMD_STDIN);
 }
@@ -349,7 +351,7 @@ int mprRunCmdV(MprCmd *cmd, int argc, char **argv, char **out, char **err, int f
         Close the pipe connected to the client's stdin
      */
     if (cmd->files[MPR_CMD_STDIN].fd >= 0) {
-        mprCloseCmdFd(cmd, MPR_CMD_STDIN);
+        mprFinalizeCmd(cmd);
     }
     if (rc < 0) {
         if (err) {
@@ -374,7 +376,7 @@ int mprRunCmdV(MprCmd *cmd, int argc, char **argv, char **out, char **err, int f
         return MPR_ERR_NOT_READY;
     }
     lock(cmd);
-    if (mprGetCmdExitStatus(cmd, &status) < 0) {
+    if ((status = mprGetCmdExitStatus(cmd)) < 0) {
         unlock(cmd);
         return MPR_ERR;
     }
@@ -393,37 +395,24 @@ int mprRunCmdV(MprCmd *cmd, int argc, char **argv, char **out, char **err, int f
 
 void mprAddCmdHandlers(MprCmd *cmd)
 {
-#if CMD_ASYNC
-    int     stdinFd, stdoutFd, stderrFd, mask;
+    int     stdinFd, stdoutFd, stderrFd;
   
     stdinFd = cmd->files[MPR_CMD_STDIN].fd; 
     stdoutFd = cmd->files[MPR_CMD_STDOUT].fd; 
     stderrFd = cmd->files[MPR_CMD_STDERR].fd; 
 
-    if (stdinFd >= 0) {
+    if (stdinFd >= 0 && cmd->handlers[MPR_CMD_STDIN] == 0) {
         fcntl(stdinFd, F_SETFL, fcntl(stdinFd, F_GETFL) | O_NONBLOCK);
-    }
-    if (stdoutFd >= 0) {
-        fcntl(stdoutFd, F_SETFL, fcntl(stdoutFd, F_GETFL) | O_NONBLOCK);
-    }
-    if (stderrFd >= 0) {
-        fcntl(stderrFd, F_SETFL, fcntl(stderrFd, F_GETFL) | O_NONBLOCK);
-    }
-    if (stdinFd >= 0) {
         cmd->handlers[MPR_CMD_STDIN] = mprCreateWaitHandler(stdinFd, MPR_WRITABLE, cmd->dispatcher, stdinCallback, cmd, 0);
     }
-    if (stdoutFd >= 0) {
+    if (stdoutFd >= 0 && cmd->handlers[MPR_CMD_STDOUT] == 0) {
+        fcntl(stdoutFd, F_SETFL, fcntl(stdoutFd, F_GETFL) | O_NONBLOCK);
         cmd->handlers[MPR_CMD_STDOUT] = mprCreateWaitHandler(stdoutFd, MPR_READABLE, cmd->dispatcher, stdoutCallback, cmd,0);
     }
-    if (stderrFd >= 0) {
-        /*
-            Delay enabling stderr events until stdout is complete. 
-         */
-        mask = (stdoutFd < 0) ? MPR_READABLE : 0;
-        cmd->handlers[MPR_CMD_STDERR] = mprCreateWaitHandler(stderrFd, mask, cmd->dispatcher, stderrCallback, cmd, 0);
+    if (stderrFd >= 0 && cmd->handlers[MPR_CMD_STDERR] == 0) {
+        fcntl(stderrFd, F_SETFL, fcntl(stderrFd, F_GETFL) | O_NONBLOCK);
+        cmd->handlers[MPR_CMD_STDERR] = mprCreateWaitHandler(stderrFd, MPR_READABLE, cmd->dispatcher, stderrCallback, cmd,0);
     }
-    cmd->flags |= MPR_CMD_ASYNC;
-#endif
 }
 
 
@@ -480,9 +469,8 @@ int mprStartCmd(MprCmd *cmd, int argc, char **argv, char **envp, int flags)
     if (cmd->flags & MPR_CMD_ERR) {
         cmd->requiredEof++;
     }
-    if ((cmd->flags & MPR_CMD_ASYNC) && CMD_ASYNC) {
-        mprAddCmdHandlers(cmd);
-    }
+    mprAddCmdHandlers(cmd);
+    mprLog(4, "mprStartCmd %s", cmd->program);
     rc = startProcess(cmd);
     gunlock(cmd);
     return rc;
@@ -571,28 +559,22 @@ int mprWriteCmd(MprCmd *cmd, int channel, char *buf, ssize bufsize)
 
 void mprEnableCmdEvents(MprCmd *cmd, int channel)
 {
-#if CMD_ASYNC
     int mask = (channel == MPR_CMD_STDIN) ? MPR_WRITABLE : MPR_READABLE;
     lock(cmd);
     if (cmd->handlers[channel]) {
-        mprAssert(cmd->flags & MPR_CMD_ASYNC);
         mprEnableWaitEvents(cmd->handlers[channel], mask);
     }
     unlock(cmd);
-#endif
 }
 
 
 void mprDisableCmdEvents(MprCmd *cmd, int channel)
 {
-#if CMD_ASYNC
     lock(cmd);
     if (cmd->handlers[channel]) {
-        mprAssert(cmd->flags & MPR_CMD_ASYNC);
         mprDisableWaitEvents(cmd->handlers[channel]);
     }
     unlock(cmd);
-#endif
 }
 
 
@@ -623,7 +605,7 @@ static int serviceWinCmdEvents(MprCmd *cmd, int channel, MprTime timeout)
     }
     if ((status = WaitForSingleObject(cmd->process, (DWORD) timeout)) == WAIT_OBJECT_0) {
         if (cmd->requiredEof == 0) {
-            mprReapCmd(cmd, MPR_TIMEOUT_STOP_TASK);
+            reapCmd(cmd);
             return 0;
         }
         return 1;
@@ -707,146 +689,140 @@ int mprWaitForCmd(MprCmd *cmd, MprTime timeout)
     }
     expires = mprGetTime() + timeout;
     remaining = timeout;
-    do {
+
+    while (remaining >= 0) {
         lock(cmd);
         if (cmd->eofCount >= cmd->requiredEof) {
-            /* WARNING: will block here if requiredEof is zero */
-            if (mprReapCmd(cmd, 0) == 0) {
+            if (cmd->pid == 0) {
                 unlock(cmd);
                 return 0;
             }
         }
         unlock(cmd);
-        if (cmd->pid) {
-            /* Add root to allow callers to use mprRunCmd without first managing the cmd */
-            mprAddRoot(cmd);
-            if ((cmd->flags & MPR_CMD_ASYNC) && CMD_ASYNC) {
-                mprWaitForEvent(cmd->dispatcher, remaining);
-            } else {
-                mprPollCmd(cmd, timeout);
-                mprWaitForEvent(cmd->dispatcher, 0);
-            }
-            mprRemoveRoot(cmd);
-        }
-        remaining = (expires - mprGetTime());
-    } while (cmd->pid && remaining >= 0);
 
+        /* Add root to allow callers to use mprRunCmd without first managing the cmd */
+        mprAddRoot(cmd);
+        mprWaitForEvent(cmd->dispatcher, remaining);
+        mprRemoveRoot(cmd);
+        remaining = (expires - mprGetTime());
+    }
     if (cmd->pid) {
         return MPR_ERR_TIMEOUT;
     }
-    mprLog(7, "cmd: waitForChild: status %d", cmd->status);
+    mprLog(6, "cmd: waitForChild: status %d", cmd->status);
     return 0;
 }
 
 
 /*
-    Collect the child's exit status. The initiating thread must do this on some operating systems. For consistency,
-    we make this the case for all O/Ss. Return zero if the exit status is successfully reaped. Return -1 if an error 
-    and return > 0 if process still running.
+    Gather the child's exit status. This routine is idempotent.
+    WARNING: this may be called with a false-positive, ie. SIGCHLD will get invoked for all process deaths and not just
+    when this cmd has completed.
  */
-int mprReapCmd(MprCmd *cmd, MprTime timeout)
+static void reapCmd(MprCmd *cmd)
 {
-    MprTime     mark;
-    int         status;
+    int     status;
 
+    mprLog(6, "reapCmd pid %d, eof %d, required %d\n", cmd->pid, cmd->eofCount, cmd->requiredEof);
+    
     status = 0;
-    lock(cmd);
-    if (timeout < 0) {
-        timeout = MAXINT;
+    if (cmd->pid == 0) {
+        return;
     }
-    mark = mprGetTime();
 
-    while (cmd->pid) {
+    //  MOB -- is this lock required? check all locks
+    lock(cmd);
 #if BLD_UNIX_LIKE
 {
-        int     flags, waitrc;
+    int     flags, waitrc;
 
-        /*
-            WARNING: this will block here if the process has not completed and requiredEof is zero. Only happens
-            if creating a command and not opening any stdout or stderr output which users SHOULD do.
-         */
-        flags = (cmd->requiredEof) ? WNOHANG | __WALL : 0;
-        if ((waitrc = waitpid(cmd->pid, &status, flags)) < 0) {
-            mprLog(0, "waitpid failed for pid %d, errno %d", cmd->pid, errno);
-            unlock(cmd);
-            return MPR_ERR_CANT_READ;
+#if UNUSED
+    /*
+        WARNING: this will block here if the process has not completed and requiredEof is zero. Only happens
+        if creating a command and not opening any stdout or stderr output which users SHOULD do.
+     */
+//  MOB - must not block
+//  MOB - check other O/S
+    flags = (cmd->requiredEof) ? WNOHANG | __WALL : 0;
+#endif
+    flags = WNOHANG | __WALL;
+    if ((waitrc = waitpid(cmd->pid, &status, flags)) < 0) {
+        mprLog(0, "waitpid failed for pid %d, errno %d", cmd->pid, errno);
+        unlock(cmd);
+        return;
 
-        } else if (waitrc == cmd->pid) {
-            mprLog(7, "waitpid pid %d, errno %d, thread %s", cmd->pid, errno, mprGetCurrentThreadName());
-            if (!WIFSTOPPED(status)) {
-                if (WIFEXITED(status)) {
-                    cmd->status = WEXITSTATUS(status);
-                } else if (WIFSIGNALED(status)) {
-                    cmd->status = WTERMSIG(status);
-                } else {
-                    mprLog(7, "waitpid FUNNY pid %d, errno %d", cmd->pid, errno);
-                }
-                cmd->pid = 0;
+    } else if (waitrc == cmd->pid) {
+        mprLog(7, "waitpid pid %d, errno %d, thread %s", cmd->pid, errno, mprGetCurrentThreadName());
+        if (!WIFSTOPPED(status)) {
+            if (WIFEXITED(status)) {
+                cmd->status = WEXITSTATUS(status);
+            } else if (WIFSIGNALED(status)) {
+                cmd->status = WTERMSIG(status);
             } else {
-                mprLog(7, "waitpid ELSE pid %d, errno %d", cmd->pid, errno);
+                mprLog(7, "waitpid FUNNY pid %d, errno %d", cmd->pid, errno);
             }
-            break;
-            
+            cmd->pid = 0;
         } else {
-            mprAssert(waitrc == 0);
+            mprLog(7, "waitpid ELSE pid %d, errno %d", cmd->pid, errno);
         }
+        
+    } else {
+        mprAssert(waitrc == 0);
+    }
 }
 #endif
 #if VXWORKS
-        /*
-            The command exit status (cmd->status) is set in cmdTaskEntry
-         */
-        if (semTake(cmd->exitCond, MPR_TIMEOUT_STOP_TASK) != OK) {
-            mprError("cmd: child %s did not exit, errno %d", cmd->program);
-            mprUnlock(cmd->mutex);
-            return MPR_ERR_CANT_CREATE;
-        }
-        semDelete(cmd->exitCond);
-        cmd->exitCond = 0;
-        cmd->pid = 0;
+    /*
+        The command exit status (cmd->status) is set in cmdTaskEntry
+     */
+    if (semTake(cmd->exitCond, MPR_TIMEOUT_STOP_TASK) != OK) {
+        mprError("cmd: child %s did not exit, errno %d", cmd->program);
+        mprUnlock(cmd->mutex);
+        return;
+    }
+    semDelete(cmd->exitCond);
+    cmd->exitCond = 0;
+    cmd->pid = 0;
 #endif
 #if BLD_WIN_LIKE
 {
-        int     rc;
+    int     rc;
 
-        if ((rc = WaitForSingleObject(cmd->process, 10)) != WAIT_OBJECT_0) {
-            if (rc == WAIT_TIMEOUT) {
-                mprUnlock(cmd->mutex);
-                return -MPR_ERR_TIMEOUT;
-            }
-            mprLog(6, "cmd: WaitForSingleObject no child to reap rc %d, %d", rc, GetLastError());
-            unlock(cmd);
-            return MPR_ERR_CANT_READ;
+    if ((rc = WaitForSingleObject(cmd->process, 10)) != WAIT_OBJECT_0) {
+        if (rc == WAIT_TIMEOUT) {
+            mprUnlock(cmd->mutex);
+            return;
         }
-        if (GetExitCodeProcess(cmd->process, (ulong*) &status) == 0) {
-            mprLog(7, "cmd: GetExitProcess error");
-            unlock(cmd);
-            return MPR_ERR_CANT_READ;
-        }
-        if (status != STILL_ACTIVE) {
-            cmd->status = status;
-            rc = CloseHandle(cmd->process);
-            mprAssert(rc != 0);
-            rc = CloseHandle(cmd->thread);
-            mprAssert(rc != 0);
-            cmd->process = 0;
-            cmd->thread = 0;
-            cmd->pid = 0;
-            break;
-        }
+        mprLog(6, "cmd: WaitForSingleObject no child to reap rc %d, %d", rc, GetLastError());
+        unlock(cmd);
+        return;
+    }
+    if (GetExitCodeProcess(cmd->process, (ulong*) &status) == 0) {
+        mprLog(3, "cmd: GetExitProcess error");
+        unlock(cmd);
+        return;
+    }
+    if (status != STILL_ACTIVE) {
+        cmd->status = status;
+        rc = CloseHandle(cmd->process);
+        mprAssert(rc != 0);
+        rc = CloseHandle(cmd->thread);
+        mprAssert(rc != 0);
+        cmd->process = 0;
+        cmd->thread = 0;
+        cmd->pid = 0;
+        break;
+    }
 }
 #endif
-        /* Prevent busy waiting */
-        mprSleep(10);
-        if (mprGetElapsedTime(mark) > timeout) {
-            break;
-        }
-    }
+#if UNUSED
+//  MOB -- should not be required if on same dispatcher
     if (cmd->pid == 0) {
         mprSignalDispatcher(cmd->dispatcher);
     }
+#endif
     unlock(cmd);
-    return (cmd->pid == 0) ? 0 : 1;
+    mprLog(6, "Cmd reaped: status %d, pid %d, eof %d / %d\n", cmd->status, cmd->pid, cmd->eofCount, cmd->requiredEof);
 }
 
 
@@ -865,8 +841,7 @@ static void cmdCallback(MprCmd *cmd, int channel, void *data)
     buf = 0;
     switch (channel) {
     case MPR_CMD_STDIN:
-        mprAssert(0);
-        // mprEnableCmdEvents(cmd, MPR_CMD_STDIN, MPR_WRITABLE);
+        // MOB mprEnableCmdEvents(cmd, MPR_CMD_STDIN, MPR_WRITABLE);
         return;
     case MPR_CMD_STDOUT:
         buf = cmd->stdoutBuf;
@@ -887,19 +862,11 @@ static void cmdCallback(MprCmd *cmd, int channel, void *data)
         space = mprGetBufSpace(buf);
     }
     len = mprReadCmd(cmd, channel, mprGetBufEnd(buf), space);
+    mprLog(6, "cmdCallback channel %d, read len %d, pid %d, eof %d/%d", channel, len, cmd->pid, 
+        cmd->eofCount, cmd->requiredEof);
     if (len <= 0) {
         if (len == 0 || (len < 0 && !(errno == EAGAIN || EWOULDBLOCK))) {
-            if (channel == MPR_CMD_STDOUT && cmd->flags & MPR_CMD_ERR) {
-                /*
-                    Now that stdout is complete, enable stderr to receive an EOF or any error output.
-                    This is serialized to eliminate both stdin and stdout events on different threads at the same time.
-                    Do before closing as the stderr event may come on another thread and we want to ensure avoid locking.
-                 */
-                mprCloseCmdFd(cmd, channel);
-                mprEnableCmdEvents(cmd, MPR_CMD_STDERR);
-            } else {
-                mprCloseCmdFd(cmd, channel);
-            }
+            mprCloseCmdFd(cmd, channel);
             return;
         }
     } else {
@@ -909,7 +876,6 @@ static void cmdCallback(MprCmd *cmd, int channel, void *data)
 }
 
 
-#if CMD_ASYNC
 static void stdinCallback(MprCmd *cmd, MprEvent *event)
 {
     if (cmd->callback) {
@@ -932,7 +898,6 @@ static void stderrCallback(MprCmd *cmd, MprEvent *event)
         (cmd->callback)(cmd, MPR_CMD_STDERR, cmd->callbackData);
     }
 }
-#endif
 
 
 void mprSetCmdCallback(MprCmd *cmd, MprCmdProc proc, void *data)
@@ -942,19 +907,14 @@ void mprSetCmdCallback(MprCmd *cmd, MprCmdProc proc, void *data)
 }
 
 
-//  MOB - need option to supply no timeout
-int mprGetCmdExitStatus(MprCmd *cmd, int *statusp)
+int mprGetCmdExitStatus(MprCmd *cmd)
 {
-    mprAssert(statusp);
+    mprAssert(cmd);
 
-    if (cmd->pid) {
-        mprReapCmd(cmd, MPR_TIMEOUT_STOP_TASK);
-        if (cmd->pid) {
-            return MPR_ERR_NOT_READY;
-        }
+    if (cmd->pid == 0) {
+        return cmd->status;
     }
-    *statusp = cmd->status;
-    return 0;
+    return MPR_ERR_NOT_READY;
 }
 
 

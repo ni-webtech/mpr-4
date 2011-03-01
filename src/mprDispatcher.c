@@ -238,6 +238,9 @@ int mprServiceEvents(MprTime timeout, int flags)
         if (mprIsStopping()) {
             break;
         }
+        if (MPR->signalService->hasSignals) {
+            mprServiceSignals();
+        }
         while ((dp = getNextReadyDispatcher(es)) != NULL) {
             mprAssert(dp->magic == MPR_DISPATCHER_MAGIC);
             serviceDispatcher(dp);
@@ -277,6 +280,10 @@ int mprWaitForEvent(MprDispatcher *dispatcher, MprTime timeout)
     int                 claimed, signalled, wasRunning, runEvents;
 
     mprAssert(dispatcher->magic == MPR_DISPATCHER_MAGIC);
+    //  MOB -- should (nearly) always call Relay before calling this. Otherwise ioEvent may claim the dispatcher.
+    //  MOB - if this is true, cleanup wasRunning below
+    mprAssert(isRunning(dispatcher));
+
     es = MPR->eventService;
     start = es->now = mprGetTime();
 
@@ -384,7 +391,7 @@ int mprDispatchersAreIdle()
 
 
 /*
-    Relay an event to a new dispatcher. This invokes the callback proc as though it was invoked from the given dispatcher. 
+    Relay an event to a dispatcher. This invokes the callback proc as though it was invoked from the given dispatcher. 
  */
 void mprRelayEvent(MprDispatcher *dispatcher, void *proc, void *data, MprEvent *event)
 {
@@ -485,7 +492,7 @@ static int dispatchEvents(MprDispatcher *dispatcher)
         mprAssert(event->proc);
         unlock(es);
         LOG(7, "Call event %s", event->name);
-        (*event->proc)(event->data, event);
+        (event->proc)(event->data, event);
         dispatcher->current = 0;
         lock(es);
     }

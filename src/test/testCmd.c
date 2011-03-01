@@ -47,6 +47,7 @@ static void testCreateCmd(MprTestGroup *gp)
     tc = gp->data;
     tc->cmd = mprCreateCmd(gp->dispatcher);
     assert(tc->cmd != 0);
+    mprDestroyCmd(tc->cmd);
     tc->cmd = 0;
     /* GC cleanup */
 }
@@ -56,7 +57,7 @@ static void testRunCmd(MprTestGroup *gp)
 {
     TestCmd     *tc;
     char        *result, command[MPR_MAX_PATH];
-    int         rc, status, exitStatus;
+    int         status, exitStatus;
 
     tc = gp->data;
     tc->cmd = mprCreateCmd(gp->dispatcher);
@@ -70,8 +71,7 @@ static void testRunCmd(MprTestGroup *gp)
     assert(result != NULL);
     assert(status == 0);
 
-    rc = mprGetCmdExitStatus(tc->cmd, &exitStatus);
-    assert(rc == 0);
+    exitStatus = mprGetCmdExitStatus(tc->cmd);
     assert(exitStatus == 0);
 
     mprDestroyCmd(tc->cmd);
@@ -233,8 +233,7 @@ static void testWithData(MprTestGroup *gp)
         s = stok(0, "\n\r", &tok);
         assert(match(s, "END") == 0);
     }
-    rc = mprGetCmdExitStatus(tc->cmd, &status);
-    assert(rc == 0);
+    status = mprGetCmdExitStatus(tc->cmd);
     assert(status == 0);
 
     mprDestroyCmd(tc->cmd);
@@ -273,7 +272,7 @@ static void testNoCapture(MprTestGroup *gp)
 {
     TestCmd     *tc;
     char        command[MPR_MAX_PATH];
-    int         rc, status;
+    int         status, rc;
 
     tc = gp->data;
     tc->cmd = mprCreateCmd(gp->dispatcher);
@@ -283,11 +282,40 @@ static void testNoCapture(MprTestGroup *gp)
     status = mprRunCmd(tc->cmd, command, NULL, NULL, MPR_CMD_IN);
     assert(status == 99);
 
-    rc = mprGetCmdExitStatus(tc->cmd, &status);
-    assert(rc == 0);
+    status = mprGetCmdExitStatus(tc->cmd);
     assert(status == 99);
     mprDestroyCmd(tc->cmd);
     tc->cmd = 0;
+}
+
+
+#define CMD_COUNT 8
+
+static void testMultiple(MprTestGroup *gp)
+{
+    TestCmd     *tc;
+    MprCmd      *cmds[CMD_COUNT];
+    char        command[MPR_MAX_PATH];
+    int         count, status, i;
+
+    tc = gp->data;
+    for (i = 0; i < CMD_COUNT; i++) {
+        cmds[i] = mprCreateCmd(gp->dispatcher);
+        assert(cmds[i] != 0);
+        mprAddRoot(cmds[i]);
+    }
+    for (i = 0; i < CMD_COUNT; i++) {
+        mprSprintf(command, sizeof(command), "%s 99", tc->program);
+        status = mprRunCmd(cmds[i], command, NULL, NULL, MPR_CMD_IN);
+        assert(status == 99);
+        status = mprGetCmdExitStatus(cmds[i]);
+        assert(status == 99);
+    }
+    for (i = 0; i < CMD_COUNT; i++) {
+        assert(cmds[i] != 0);
+        mprDestroyCmd(cmds[i]);
+        mprRemoveRoot(cmds[i]);
+    }
 }
 
 
@@ -300,6 +328,7 @@ MprTestDef testCmd = {
         MPR_TEST(0, testExitCode),
         MPR_TEST(0, testWithData),
         MPR_TEST(0, testNoCapture),
+        MPR_TEST(0, testMultiple),
         MPR_TEST(0, 0),
     },
 };

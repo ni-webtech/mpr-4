@@ -10,8 +10,8 @@
 
 /***************************** Forward Declarations ***************************/
 
-static void     adjustFailedCount(MprTestService *sp, int adj);
-static void     adjustThreadCount(MprTestService *sp, int adj);
+static void     adjustFailedCount(int adj);
+static void     adjustThreadCount(int adj);
 static void     buildFullNames(MprTestGroup *gp, cchar *runName);
 static MprList  *copyGroups(MprTestService *sp, MprList *groups);
 static MprTestFailure *createFailure(MprTestGroup *gp, cchar *loc, cchar *message);
@@ -22,6 +22,7 @@ static char     *getErrorMessage(MprTestGroup *gp);
 static int      loadTestModule(MprTestService *sp, cchar *fileName);
 static void     manageTestService(MprTestService *ts, int flags);
 static int      parseFilter(MprTestService *sp, cchar *str);
+static void     relayEvent(MprList *groups, MprThread *tp);
 static void     runInit(MprTestGroup *parent);
 static void     runTerm(MprTestGroup *parent);
 static void     runTestGroup(MprTestGroup *gp);
@@ -332,8 +333,7 @@ int mprRunTests(MprTestService *sp)
         while ((gp = mprGetNextItem(lp, &next)) != 0) {
             buildFullNames(gp, gp->name);
         }
-        tp = mprCreateThread(tName, (MprThreadProc) runTestThread, (void*) lp, 0);
-        if (tp == 0) {
+        if ((tp = mprCreateThread(tName, relayEvent, lp, 0)) == 0) {
             mprAssert(!MPR_ERR_MEMORY);
             return MPR_ERR_MEMORY;
         }
@@ -371,22 +371,32 @@ static MprList *copyGroups(MprTestService *sp, MprList *groups)
 
 
 /*
+    Relay the event to claim the dispatcher
+ */
+static void relayEvent(MprList *groups, MprThread *tp)
+{
+    MprTestGroup    *gp;
+
+    gp = mprGetFirstItem(groups);
+    mprAssert(gp);
+
+    mprRelayEvent(gp->dispatcher, runTestThread, groups, NULL);
+    if (tp) {
+        adjustThreadCount(-1);
+    }
+}
+
+
+/*
     Run the test groups. One invocation per thread. Used even if not multithreaded.
  */
-void runTestThread(MprList *groups, MprThread *tp)
+static void runTestThread(MprList *groups, MprThread *tp)
 {
     MprTestService  *sp;
     MprTestGroup    *gp;
     int             next, i, count;
 
-    /*
-        Get the service pointer
-     */
-    gp = mprGetFirstItem(groups);
-    if (gp == 0) {
-        return;
-    }
-    sp = gp->service;
+    sp = MPR->testService;
     mprAssert(sp);
 
     for (next = 0; (gp = mprGetNextItem(groups, &next)) != 0; ) {
@@ -401,13 +411,10 @@ void runTestThread(MprList *groups, MprThread *tp)
         while ((gp = mprGetNextItem(groups, &next)) != 0) {
             runTestGroup(gp);
         }
-        mprPrintf("%12s Iteration %d complete (%s)\n", "[Notice]", count++, tp->name);
+        mprPrintf("%12s Iteration %d complete (%s)\n", "[Notice]", count++, mprGetCurrentThreadName());
     }
     for (next = 0; (gp = mprGetNextItem(groups, &next)) != 0; ) {
         runTerm(gp);
-    }
-    if (tp) {
-        adjustThreadCount(sp, -1);
     }
 }
 
@@ -866,7 +873,7 @@ bool assertTrue(MprTestGroup *gp, cchar *loc, bool isTrue, cchar *msg)
         }
         addFailure(gp, loc, msg);
         gp->failedCount++;
-        adjustFailedCount(gp->service, 1);
+        adjustFailedCount(1);
     }
     return isTrue;
 }
@@ -902,8 +909,11 @@ void mprSignalTestComplete(MprTestGroup *gp)
 }
 
 
-static void adjustThreadCount(MprTestService *sp, int adj)
+static void adjustThreadCount(int adj)
 {
+    MprTestService  *sp;
+
+    sp = MPR->testService;
     mprLock(sp->mutex);
     sp->activeThreadCount += adj;
     if (sp->activeThreadCount <= 0) {
@@ -913,8 +923,11 @@ static void adjustThreadCount(MprTestService *sp, int adj)
 }
 
 
-static void adjustFailedCount(MprTestService *sp, int adj)
+static void adjustFailedCount(int adj)
 {
+    MprTestService  *sp;
+
+    sp = MPR->testService;
     mprLock(sp->mutex);
     sp->totalFailedCount += adj;
     mprUnlock(sp->mutex);

@@ -173,6 +173,7 @@ void mprRemoveWaitHandler(MprWaitHandler *wp)
 }
 
 
+//  MOB - remove
 void mprWakeWaitService()
 {
     mprWakeNotifier();

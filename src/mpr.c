@@ -59,6 +59,7 @@ Mpr *mprCreate(int argc, char **argv, int flags)
     fs = mprCreateFileSystem("/");
     mprAddFileSystem(fs);
 
+    mpr->signalService = mprCreateSignalService();
     mpr->threadService = mprCreateThreadService();
     mpr->moduleService = mprCreateModuleService();
     mpr->eventService = mprCreateEventService();
@@ -101,6 +102,7 @@ static void manageMpr(Mpr *mpr, int flags)
         mprMark(mpr->eventService);
         mprMark(mpr->moduleService);
         mprMark(mpr->osService);
+        mprMark(mpr->signalService);
         mprMark(mpr->socketService);
         mprMark(mpr->threadService);
         mprMark(mpr->workerService);
@@ -284,9 +286,9 @@ bool mprServicesAreIdle()
            mprGetListLength(MPR->cmdService->cmds) == 0 && 
            mprDispatchersAreIdle() && !MPR->eventing;
     if (!idle) {
-        mprLog(1, "Testing idle: cmds %d, threads %d, dispatchers %d, marker %d, sweeper %d",
-            mprGetListLength(MPR->workerService->busyThreads),
-           mprDispatchersAreIdle(), mprGetListLength(MPR->cmdService->cmds), MPR->marker, MPR->sweeper);
+        mprLog(1, "Not idle: cmds %d, busy threads %d, dispatchers %d, eventing %d",
+            mprGetListLength(MPR->cmdService->cmds), mprGetListLength(MPR->workerService->busyThreads),
+           !mprDispatchersAreIdle(), MPR->eventing);
     }
     return idle;
 }
