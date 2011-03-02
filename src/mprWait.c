@@ -186,8 +186,8 @@ void mprQueueIOEvent(MprWaitHandler *wp)
     MprEvent        *event;
 
     mprAssert(wp->state == MPR_HANDLER_ENABLED);
-    mprAssert(wp->desiredMask == 0);
 
+    wp->desiredMask = 0;
     if (wp->flags & MPR_WAIT_NEW_DISPATCHER) {
         dispatcher = mprCreateDispatcher("IO", 1);
     } else {

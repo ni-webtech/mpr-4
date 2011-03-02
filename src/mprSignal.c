@@ -262,6 +262,11 @@ void mprAddStandardSignals()
 #endif
 }
 
+#else
+
+MprSignalService *mprCreateSignalService() { return mprAlloc(0); }
+int mprRemoveSignalHandler(MprSignal *sp) { return 0; }
+void mprServiceSignals() {}
 #endif /* BLD_UNIX_LIKE */
 /*
     @copy   default

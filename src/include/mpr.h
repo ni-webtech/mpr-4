@@ -6701,6 +6701,7 @@ typedef struct MprCmd {
     int             flags;              /* Control flags (userFlags not here) */
     int             eofCount;           /* Count of end-of-files */
     int             requiredEof;        /* Number of EOFs required for an exit */
+    int             complete;           /* All channels EOF and status gathered */
 
     char            **makeArgv;         /* Allocated argv */ 
     char            **argv;             /* List of args. Null terminated */

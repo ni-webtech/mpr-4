@@ -109,12 +109,13 @@ static void withDataCallback(MprCmd *cmd, int channel, void *data)
             space = mprGetBufSpace(buf);
         }
         len = mprReadCmd(cmd, channel, mprGetBufEnd(buf), space);            
-        // mprLog(0, "Read %d (errno %d) from %s", len, errno, (channel == MPR_CMD_STDOUT) ? "stdout" : "stderr");
         if (len <= 0) {
-            int status = mprGetError();
+            int err = GetLastError();
+            int status = mprGetOsError();
             mprLog(5, "Read %d (errno %d) from %s", len, status, (channel == MPR_CMD_STDOUT) ? "stdout" : "stderr");
             if (len == 0 || (len < 0 && !(status == EAGAIN || status == EWOULDBLOCK))) {
                 mprCloseCmdFd(cmd, channel);
+#if UNUSED
                 if (channel == MPR_CMD_STDOUT && cmd->flags & MPR_CMD_ERR) {
                     /*
                         Now that stdout is complete, enable stderr to receive an EOF or any error output.
@@ -125,6 +126,7 @@ static void withDataCallback(MprCmd *cmd, int channel, void *data)
                         // mprLog(0, "Enable stderr");
                     }
                 }
+#endif
             } else {
                 mprEnableCmdEvents(cmd, channel);
             }
