@@ -272,7 +272,7 @@ static void testNoCapture(MprTestGroup *gp)
 {
     TestCmd     *tc;
     char        command[MPR_MAX_PATH];
-    int         status, rc;
+    int         status;
 
     tc = gp->data;
     tc->cmd = mprCreateCmd(gp->dispatcher);
@@ -296,7 +296,7 @@ static void testMultiple(MprTestGroup *gp)
     TestCmd     *tc;
     MprCmd      *cmds[CMD_COUNT];
     char        command[MPR_MAX_PATH];
-    int         count, status, i;
+    int         status, i;
 
     tc = gp->data;
     for (i = 0; i < CMD_COUNT; i++) {
