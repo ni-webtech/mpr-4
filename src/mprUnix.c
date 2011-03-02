@@ -118,7 +118,7 @@ void mprSleep(MprTime timeout)
         /* MAC OS X corrupts the timeout if using the 2nd paramater, so recalc each time */
         t.tv_sec = remaining / 1000;
         t.tv_nsec = (remaining % 1000) * 1000000;
-        nanosleep(&t, NULL);
+        rc = nanosleep(&t, NULL);
         remaining = mprGetRemainingTime(mark, timeout);
     } while (rc < 0 && errno == EINTR && remaining > 0);
 }
