@@ -617,6 +617,25 @@ void mprPollCmd(MprCmd *cmd, MprTime timeout)
 
     channel = -1;
 #if BLD_WIN_LIKE && !WINCE
+    do {
+        HANDLE  handles[MPR_CMD_MAX];
+
+        for (i = 0; i < MPR_CMD_MAX; i++) {
+            if (cmd->files[i].handle) {
+                handles[i] = cmd->files[i].handle;
+            }
+        }
+        rc = WaitForMultipleObject(MPR_CMD_MAX, handles, 0, (DWORD) timeout);
+        if (0 <= rc && rc < MPR_CMD_MAX) {
+            for (i = 0; i < MPR_CMD_MAX; i++) {
+                if (handles[rc] == cmd->files[i].handle) {
+                    invokeCallback(cmd, MPR_CMD_STDIN);
+                    break;
+                }
+            }
+        }
+    }
+#if UNUSED
     if (cmd->files[MPR_CMD_STDIN].handle) {
         if (serviceWinCmdEvents(cmd, MPR_CMD_STDIN, timeout) > 0 && (cmd->flags & MPR_CMD_IN)) {
             invokeCallback(cmd, MPR_CMD_STDIN);
@@ -631,6 +650,8 @@ void mprPollCmd(MprCmd *cmd, MprTime timeout)
             invokeCallback(cmd, MPR_CMD_STDERR);
         }
     }
+#endif
+
 #else
     if (cmd->files[MPR_CMD_STDOUT].fd >= 0) {
         if (mprWaitForSingleIO(cmd->files[MPR_CMD_STDOUT].fd, MPR_READABLE, timeout)) {
@@ -675,6 +696,10 @@ int mprWaitForCmd(MprCmd *cmd, MprTime timeout)
                 return 0;
             }
         }
+#if BLD_WIN_LIKE
+        /* Work-around until full async support */
+        mprPollCmd(cmd);
+#endif
         /* Add root to allow callers to use mprRunCmd without first managing the cmd */
         mprAddRoot(cmd);
         mprWaitForEvent(cmd->dispatcher, remaining);
