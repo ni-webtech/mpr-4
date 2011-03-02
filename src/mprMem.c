@@ -331,6 +331,7 @@ void mprDestroyMemService()
         }
     }
     heap = 0;
+    MPR = 0;
 }
 
 

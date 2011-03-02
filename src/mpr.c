@@ -162,7 +162,6 @@ void mprDestroy(int how)
     MPR->state = MPR_FINISHED;
     mprStopOsService();
     mprDestroyMemService();
-    MPR = 0;
 }
 
 
