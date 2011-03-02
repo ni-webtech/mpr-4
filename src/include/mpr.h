@@ -6588,7 +6588,7 @@ extern char *mprUriDecode(cchar *uri);
 
 /************************************* Signal **************************************/
 
-#define MPR_MAX_SIGNAL      (SIGUSR2 + 8)
+#define MPR_MAX_SIGNAL      (40)
 #define MPR_SIGNAL_BEFORE   0x1
 #define MPR_SIGNAL_AFTER    0x2
 #define MPR_SIGNAL_NATIVE   0x4
