@@ -110,7 +110,6 @@ static void withDataCallback(MprCmd *cmd, int channel, void *data)
         }
         len = mprReadCmd(cmd, channel, mprGetBufEnd(buf), space);            
         if (len <= 0) {
-            int err = GetLastError();
             int status = mprGetOsError();
             mprLog(5, "Read %d (errno %d) from %s", len, status, (channel == MPR_CMD_STDOUT) ? "stdout" : "stderr");
             if (len == 0 || (len < 0 && !(status == EAGAIN || status == EWOULDBLOCK))) {

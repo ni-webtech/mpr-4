@@ -6686,7 +6686,7 @@ typedef struct MprCmdFile {
     @description The MprCmd service enables execution of local commands. It uses three full-duplex pipes to communicate
         read, write and error data with the command. 
     @stability Evolving.
-    @see mprGetCmdBuf mprCreateCmd mprIsCmdRunning mprStartCmd mprGetCmdExitStatus mprGetCmdFd mprMakeCmdIO 
+    @see mprGetCmdBuf mprCreateCmd mprIsCmdRunning mprStartCmd mprGetCmdExitStatus mprGetCmdFd
         mprReadCmd mprReapCmd mprRunCmd mprRunCmdV mprWaitForCmd mprWriteCmd mprCloseCmdFd 
         mprDisableCmdEvents mprDisconnectCmd mprEnableCmdEvents mprPollCmd mprSetCmdCallback mprSetCmdDir 
         mprSetCmdEnv mprStopCmd
@@ -6824,6 +6824,7 @@ extern MprBuf *mprGetCmdBuf(MprCmd *cmd, int channel);
  */
 extern bool mprIsCmdRunning(MprCmd *cmd);
 
+#if UNUSED
 /**
     Make the I/O channels to send and receive data to and from the command.
     @param cmd MprCmd object created via mprCreateCmd
@@ -6831,6 +6832,7 @@ extern bool mprIsCmdRunning(MprCmd *cmd);
     @ingroup MprCmd
  */
 extern int mprMakeCmdIO(MprCmd *cmd);
+#endif
 
 /**
     Make the I/O channels to send and receive data to and from the command.
@@ -6963,7 +6965,6 @@ extern void mprPollCmd(MprCmd *cmd, MprTime timeout);
 extern int mprWriteCmd(MprCmd *cmd, int channel, char *buf, ssize bufsize);
 
 extern int mprIsCmdComplete(MprCmd *cmd);
-extern void mprAddCmdHandlers(MprCmd *cmd);
 
 /************************************** Mime ***************************************/
 /**

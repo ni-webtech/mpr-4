@@ -190,7 +190,8 @@ int mprParseTestArgs(MprTestService *sp, int argc, char *argv[])
             break;
 
         } else {
-            /* Ignore unknown args */
+            mprError("Unknown arg %s", argp);
+            err++;
         }
     }
 

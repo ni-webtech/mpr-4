@@ -85,8 +85,8 @@ MprSignal *mprAddSignalHandler(int signo, void *handler, void *data, MprDispatch
             sp->chain.sigaction = old.sa_sigaction;
             sp->flags |= MPR_SIGNAL_NATIVE;
         }
-        ssp->signals[signo] = sp;
     }
+    ssp->signals[signo] = sp;
     memset(&act, 0, sizeof(act));
     act.sa_sigaction = signalHandler;
     sigemptyset(&act.sa_mask);
@@ -135,6 +135,7 @@ int mprRemoveSignalHandler(MprSignal *sp)
             }
             return 0;
         }
+        prev = np;
         np = (np->flags & MPR_SIGNAL_NATIVE) ? 0 : np->chain.sp;
     }
     unlock(ssp);
@@ -145,14 +146,12 @@ int mprRemoveSignalHandler(MprSignal *sp)
 static void manageSignal(MprSignal *sp, int flags)
 {
     MprSignalService    *ssp;
-    MprSignal           *np;
     
     ssp = MPR->signalService;
     if (flags & MPR_MANAGE_MARK) {
         mprMark(sp->dispatcher);
         mprMark(sp->data);
-        np = (sp->flags & MPR_SIGNAL_NATIVE) ? 0 : sp->chain.sp;
-        mprMark(sp);
+        mprMark((sp->flags & MPR_SIGNAL_NATIVE) ? 0 : sp->chain.sp);
     }
 }
 
@@ -213,12 +212,8 @@ static void signalEvent(MprSignal *sp, MprEvent *event)
         if (sp->flags & MPR_SIGNAL_BEFORE) {
             (sp->handler)(sp->data, sp);
         } 
-        if (sp->chain.sp) {
-            if (sp->flags & MPR_SIGNAL_NATIVE) {
-                (sp->chain.sigaction)(sp->signo, &sp->info, sp->arg);
-            } else {
-                (sp->chain.sp->handler)(sp->chain.sp->data, sp->chain.sp);
-            }
+        if (sp->chain.sp && sp->flags & MPR_SIGNAL_NATIVE) {
+            (sp->chain.sigaction)(sp->signo, &sp->info, sp->arg);
         }
         if (sp->flags & MPR_SIGNAL_AFTER) {
             (sp->handler)(sp->data, sp);
@@ -262,12 +257,13 @@ void mprAddStandardSignals()
 #endif
 }
 
-#else
+#else /* BLD_UNIX_LIKE */
 
 MprSignalService *mprCreateSignalService() { return mprAlloc(0); }
 int mprRemoveSignalHandler(MprSignal *sp) { return 0; }
 void mprServiceSignals() {}
 #endif /* BLD_UNIX_LIKE */
+
 /*
     @copy   default
 

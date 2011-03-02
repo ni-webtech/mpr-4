@@ -62,6 +62,7 @@ int main(int argc, char* argv[])
         if (ep) {
             printf("CMD_ENV=%s\n", ep);
         } else {
+            //  MOB - should this be on stderr? and exit non-zero status?
             printf("Can't find CMD_ENV\n");
         }
         fflush(stdout);

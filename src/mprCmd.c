@@ -13,6 +13,7 @@
 static void closeFiles(MprCmd *cmd);
 static void cmdCallback(MprCmd *cmd, int channel, void *data);
 static int makeChannel(MprCmd *cmd, int index);
+static int makeCmdIO(MprCmd *cmd);
 static void manageCmdService(MprCmdService *cmd, int flags);
 static void manageCmd(MprCmd *cmd, int flags);
 static void reapCmd(MprCmd *cmd);
@@ -118,7 +119,10 @@ static void manageCmd(MprCmd *cmd, int flags)
     if (flags & MPR_MANAGE_MARK) {
         mprMark(cmd->program);
         mprMark(cmd->makeArgv);
+#if UNUSED
+        /* ARGV is passed in */
         mprMark(cmd->argv);
+#endif
         mprMark(cmd->dir);
         mprMark(cmd->dispatcher);
         mprMark(cmd->callbackData);
@@ -382,8 +386,7 @@ int mprRunCmdV(MprCmd *cmd, int argc, char **argv, char **out, char **err, int f
 }
 
 
-//  MOB - if always called from start, why be public?
-static void mprAddCmdHandlers(MprCmd *cmd)
+static void addCmdHandlers(MprCmd *cmd)
 {
     int     stdinFd, stdoutFd, stderrFd;
   
@@ -442,8 +445,7 @@ int mprStartCmd(MprCmd *cmd, int argc, char **argv, char **envp, int flags)
     }
 
     slock(cmd);
-    //  MOB - remove mpr prefix
-    if (mprMakeCmdIO(cmd) < 0) {
+    if (makeCmdIO(cmd) < 0) {
         sunlock(cmd);
         return MPR_ERR_CANT_OPEN;
     }
@@ -457,8 +459,7 @@ int mprStartCmd(MprCmd *cmd, int argc, char **argv, char **envp, int flags)
     if (cmd->flags & MPR_CMD_ERR) {
         cmd->requiredEof++;
     }
-    //  MOB - are handlers are always being creates? Remove mpr prefix
-    mprAddCmdHandlers(cmd);
+    addCmdHandlers(cmd);
     mprLog(4, "mprStartCmd %s", cmd->program);
     rc = startProcess(cmd);
     sunlock(cmd);
@@ -466,8 +467,7 @@ int mprStartCmd(MprCmd *cmd, int argc, char **argv, char **envp, int flags)
 }
 
 
-//  MOB - remove mpr prefix
-static int mprMakeCmdIO(MprCmd *cmd)
+static int makeCmdIO(MprCmd *cmd)
 {
     int     rc;
 
@@ -682,6 +682,9 @@ static void reapCmd(MprCmd *cmd)
                 mprLog(7, "waitpid FUNNY pid %d, errno %d", cmd->pid, errno);
             }
             cmd->pid = 0;
+            mprAssert(cmd->signal);
+            mprRemoveSignalHandler(cmd->signal);
+            cmd->signal = 0;
         } else {
             mprLog(7, "waitpid ELSE pid %d, errno %d", cmd->pid, errno);
         }
@@ -1029,12 +1032,6 @@ static int sanitizeArgs(MprCmd *cmd, int argc, char **argv, char **env)
         *destp++ = '\0';
         *destp++ = '\0';                        /* Windows requires two nulls */
         mprAssert(destp <= endp);
-#if TEST
-        for (cp = (char*) cmd->env; *cp; cp++) {
-            print("ENV %s\n", cp);
-            cp += strlen(cp);
-        }
-#endif
     }
 #endif /* BLD_WIN_LIKE */
     return 0;
@@ -1240,7 +1237,7 @@ static int makeChannel(MprCmd *cmd, int index)
         file->fd = fds[0];              /* read fd */
     }
     fcntl(file->fd, F_SETFL, fcntl(file->fd, F_GETFL) | O_NONBLOCK);
-    mprLog(7, "mprMakeCmdIO: pipe handles[%d] read %d, write %d", index, fds[0], fds[1]);
+    mprLog(7, "makeCmdIO: pipe handles[%d] read %d, write %d", index, fds[0], fds[1]);
     return 0;
 }
 
