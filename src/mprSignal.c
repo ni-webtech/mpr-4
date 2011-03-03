@@ -333,7 +333,8 @@ void mprAddStandardSignals()
 
 #else /* BLD_UNIX_LIKE */
     MprSignalService *mprCreateSignalService() { return mprAlloc(0); }
-    int mprRemoveSignalHandler(MprSignal *sp) { return 0; }
+    void mprStopSignalService() {};
+    void mprRemoveSignalHandler(MprSignal *sp) { }
     void mprServiceSignals() {}
 #endif /* BLD_UNIX_LIKE */
 

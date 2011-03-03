@@ -229,7 +229,7 @@ static LRESULT msgProc(HWND hwnd, uint msg, uint wp, long lp)
     ws = MPR->waitService;
 
     if (msg == WM_DESTROY || msg == WM_QUIT) {
-        mprTerminate(EXIT_DEFAULT);
+        mprTerminate(MPR_EXIT_DEFAULT);
 
     } else if (msg && msg == ws->socketMessage) {
         sock = wp;
