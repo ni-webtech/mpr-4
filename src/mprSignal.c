@@ -139,6 +139,7 @@ static void signalHandler(int signo, siginfo_t *info, void *arg)
     maskSignal(signo);
     ip = &ssp->info[signo];
     ip->siginfo = *info;
+    ip->siginfo.si_signo = signo;
     ip->arg = arg;
     ip->triggered = 1;
     ssp->hasSignals = 1;
@@ -302,7 +303,7 @@ static void standardSignalHandler(void *ignored, MprSignal *sp)
     if (sp->signo == SIGTERM) {
         mprTerminate(MPR_EXIT_GRACEFUL);
 
-    } else if (sp->signo == SIGABRT) {
+    } else if (sp->signo == SIGINT) {
         mprTerminate(MPR_EXIT_IMMEDIATE);
 
     } else if (sp->signo == SIGPIPE || sp->signo == SIGXFSZ) {

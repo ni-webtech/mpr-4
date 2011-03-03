@@ -71,7 +71,7 @@ MAIN(testMain, int argc, char *argv[])
         mprError("Can't create test service");
         exit(2);
     }
-    if (mprParseTestArgs(ts, argc, argv) < 0) {
+    if (mprParseTestArgs(ts, argc, argv, 0) < 0) {
         exit(3);
     }  
     if (mprAddTestGroup(ts, &master) == 0) {

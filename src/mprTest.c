@@ -65,11 +65,11 @@ static void manageTestService(MprTestService *ts, int flags)
 }
 
 
-int mprParseTestArgs(MprTestService *sp, int argc, char *argv[])
+int mprParseTestArgs(MprTestService *sp, int argc, char *argv[], MprTestParser extraParser)
 {
     cchar       *programName;
     char        *argp;
-    int         err, i, depth, nextArg, outputVersion;
+    int         rc, err, i, depth, nextArg, outputVersion;
 
     i = 0;
     err = 0;
@@ -189,6 +189,13 @@ int mprParseTestArgs(MprTestService *sp, int argc, char *argv[])
         } else if (*argp != '-') {
             break;
 
+        } else if (extraParser) {
+            rc = extraParser(argc - nextArg, &argv[nextArg]);
+            if (rc < 0) {
+                err++;
+            } else {
+                nextArg += rc;
+            }
         } else {
             mprError("Unknown arg %s", argp);
             err++;
