@@ -280,10 +280,6 @@ int mprWaitForEvent(MprDispatcher *dispatcher, MprTime timeout)
     int                 claimed, signalled, wasRunning, runEvents;
 
     mprAssert(dispatcher->magic == MPR_DISPATCHER_MAGIC);
-    //  MOB -- should (nearly) always call Relay before calling this. Otherwise ioEvent may claim the dispatcher.
-    //  MOB - if this is true, cleanup wasRunning below
-    mprAssert(isRunning(dispatcher));
-
     es = MPR->eventService;
     start = es->now = mprGetTime();
 
