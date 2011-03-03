@@ -330,6 +330,7 @@ void mprDestroyMemService()
             }
         }
     }
+    heap = 0;
 }
 
 
@@ -1475,9 +1476,10 @@ void mprResetYield()
 {
     MprThread   *tp;
 
-    tp = mprGetCurrentThread();
-    tp->stickyYield = 0;
-    tp->yielded = 0;
+    if ((tp = mprGetCurrentThread()) != 0) {
+        tp->stickyYield = 0;
+        tp->yielded = 0;
+    }
     /* Flush yielded */
     mprAtomicBarrier();
     if (MPR->marking) {
@@ -1808,7 +1810,7 @@ void mprPrintMem(cchar *msg, int detail)
     printf("  Memory redline      %14d MB (%d %%)\n",    (int) (ap->redLine / (1024 * 1024)),
        percent(ap->bytesAllocated / 1024, ap->redLine / 1024));
 
-    printf("  Memory requests     %14Ld\n",              ap->requests);
+    printf("  Memory requests     %14d\n",               (int) ap->requests);
     printf("  O/S allocations     %14d %%\n",            percent(ap->allocs, ap->requests));
     printf("  Block unpinns       %14d %%\n",            percent(ap->unpins, ap->requests));
     printf("  Block reuse         %14d %%\n",            percent(ap->reuse, ap->requests));

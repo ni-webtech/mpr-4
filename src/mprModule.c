@@ -84,9 +84,6 @@ int mprStartModuleService()
 }
 
 
-/*
-    Stop all modules
- */
 void mprStopModuleService()
 {
     MprModuleService    *ms;

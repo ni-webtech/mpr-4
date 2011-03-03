@@ -115,7 +115,7 @@ void mprWaitForIO(MprWaitService *ws, MprTime timeout)
     mprYield(MPR_YIELD_STICKY);
     if (GetMessage(&msg, NULL, 0, 0) == 0) {
         mprResetYield();
-        mprTerminate(MPR_GRACEFUL);
+        mprTerminate(MPR_EXIT_DEFAULT);
     } else {
         mprResetYield();
         TranslateMessage(&msg);
@@ -229,7 +229,7 @@ static LRESULT msgProc(HWND hwnd, uint msg, uint wp, long lp)
     ws = MPR->waitService;
 
     if (msg == WM_DESTROY || msg == WM_QUIT) {
-        mprTerminate(MPR_GRACEFUL);
+        mprTerminate(EXIT_DEFAULT);
 
     } else if (msg && msg == ws->socketMessage) {
         sock = wp;

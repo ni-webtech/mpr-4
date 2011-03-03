@@ -31,7 +31,7 @@ int mprStartOsService()
 #if SOLARIS
     openlog(mprGetAppName(), LOG_CONS, LOG_LOCAL0);
 #else
-    openlog(mprGetAppName(), LOG_CONS || LOG_PERROR, LOG_LOCAL0);
+    openlog(mprGetAppName(), LOG_CONS | LOG_PERROR, LOG_LOCAL0);
 #endif
     return 0;
 }

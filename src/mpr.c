@@ -32,6 +32,7 @@ Mpr *mprCreate(int argc, char **argv, int flags)
         return 0;
     }
     getArgs(mpr, argc, argv);
+    mpr->exitStrategy = MPR_EXIT_NORMAL;
     mpr->logFd = -1;
     mpr->emptyString = sclone("");
     mpr->title = sclone(BLD_NAME);
@@ -127,26 +128,32 @@ static void manageMpr(Mpr *mpr, int flags)
  */
 void mprDestroy(int flags)
 {
-    int     gcflags;
+    int     gmode;
 
     mprYield(MPR_YIELD_STICKY);
     mprTerminate(flags);
 
-    gcflags = MPR_FORCE_GC | MPR_COMPLETE_GC | ((flags & MPR_GRACEFUL) ? MPR_WAIT_GC : 0);
-    mprRequestGC(gcflags);
+    gmode = MPR_FORCE_GC | MPR_COMPLETE_GC | (flags & MPR_EXIT_IMMEDIATE) ? 0 : MPR_WAIT_GC;
+    mprRequestGC(gmode);
 
-    if (flags & MPR_GRACEFUL) {
-        mprWaitTillIdle();
+    if (flags & MPR_EXIT_GRACEFUL) {
+        mprWaitTillIdle(MPR_TIMEOUT_STOP);
     }
     MPR->state = MPR_STOPPING_CORE;
+
     mprStopCmdService();
     mprStopModuleService();
     mprStopEventService();
-    mprRequestGC(gcflags);
+    mprStopSignalService();
+
+    /* Final GC to run all finalizers */
+    mprRequestGC(gmode);
+
     mprStopThreadService();
     MPR->state = MPR_FINISHED;
     mprStopOsService();
     mprDestroyMemService();
+    MPR = 0;
 }
 
 
@@ -155,7 +162,7 @@ void mprDestroy(int flags)
  */
 void mprTerminate(int flags)
 {
-    if (! (flags & MPR_GRACEFUL)) {
+    if (flags & MPR_EXIT_IMMEDIATE) {
         exit(0);
     }
 
@@ -165,12 +172,11 @@ void mprTerminate(int flags)
     if (MPR->state >= MPR_STOPPING) {
         return;
     }
-    mprLog(MPR_CONFIG, "Exiting started");
-    
     /*
         Set stopping state and wake up everybody
      */
     MPR->state = MPR_STOPPING;
+    mprLog(MPR_CONFIG, "Exiting started");
     mprWakeDispatchers();
     mprWakeWorkers();
     mprWakeGCService();
@@ -264,13 +270,13 @@ bool mprIsFinished()
 }
 
 
-void mprWaitTillIdle()
+void mprWaitTillIdle(MprTime timeout)
 {
     MprTime     mark;
 
     mark = mprGetTime(); 
-    while (!mprIsIdle() && mprGetRemainingTime(mark, MPR_TIMEOUT_STOP) > 0) {
-        mprSleep(10);
+    while (!mprIsIdle() && mprGetRemainingTime(mark, timeout) > 0) {
+        mprSleep(1);
     }
 }
 
@@ -281,6 +287,8 @@ void mprWaitTillIdle()
 bool mprServicesAreIdle()
 {
     bool    idle;
+
+    //  MOB - should also measure open sockets?
 
     idle = mprGetListLength(MPR->workerService->busyThreads) == 0 && 
            mprGetListLength(MPR->cmdService->cmds) == 0 && 
@@ -593,6 +601,12 @@ int mprGetEndian()
 char *mprEmptyString()
 {
     return MPR->emptyString;
+}
+
+
+void mprSetExitStrategy(int strategy)
+{
+    MPR->exitStrategy = strategy;
 }
 
 

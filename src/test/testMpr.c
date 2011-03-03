@@ -86,14 +86,12 @@ MAIN(testMain, int argc, char *argv[])
         mprError("Can't start mpr services");
         exit(4);
     }
-
     /*
         Run the tests and return zero if 100% success
      */
     rc = mprRunTests(ts);
     mprReportTestResults(ts);
-    mprDestroy(MPR_GRACEFUL);
-
+    mprDestroy(MPR_EXIT_DEFAULT);
     return (rc == 0) ? 0 : 6;
 }
 

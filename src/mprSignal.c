@@ -9,12 +9,14 @@
 #include    "mpr.h"
 
 #if BLD_UNIX_LIKE
+
 /*********************************** Forwards *********************************/
 
 static void manageSignal(MprSignal *sp, int flags);
 static void manageSignalService(MprSignalService *ssp, int flags);
 static void signalEvent(MprSignal *sp, MprEvent *event);
 static void signalHandler(int signo, siginfo_t *info, void *arg);
+static void unhookSignal(int signo);
 
 /************************************ Code ************************************/
 
@@ -26,41 +28,169 @@ MprSignalService *mprCreateSignalService()
         return 0;
     }
     ssp->mutex = mprCreateLock();
-    ssp->signals = mprAllocZeroed(sizeof(MprSignal*) * MPR_MAX_SIGNAL);
+    ssp->signals = mprAllocZeroed(sizeof(MprSignal*) * MPR_MAX_SIGNALS);
     return ssp;
 }
 
 
 static void manageSignalService(MprSignalService *ssp, int flags)
 {
-    MprSignal   *sp;
-    int         i;
-
     if (flags & MPR_MANAGE_MARK) {
         mprMark(ssp->mutex);
         mprMark(ssp->signals);
-        for (i = 0; i < MPR_MAX_SIGNAL; i++) {
+#if UNUSED
+        for (i = 0; i < MPR_MAX_SIGNALS; i++) {
             if ((sp = ssp->signals[i]) != 0) {
                 mprMark(sp);
             }
         }
+#endif
+    }
+}
+
+
+void mprStopSignalService()
+{
+    int     i;
+
+    for (i = 0; i < MPR_MAX_SIGNALS; i++) {
+        unhookSignal(i);
     }
 }
 
 
 /*
+    Signals are hooked on demand and remain till the Mpr is destroyed
+ */
+static void hookSignal(int signo, MprSignal *sp)
+{
+    MprSignalService    *ssp;
+    struct sigaction    act, old;
+    int                 rc;
+
+    ssp = MPR->signalService;
+    lock(ssp);
+    rc = sigaction(signo, 0, &old);
+    if (rc == 0 && old.sa_sigaction != signalHandler) {
+        sp->sigaction = old.sa_sigaction;
+        memset(&act, 0, sizeof(act));
+        act.sa_sigaction = signalHandler;
+        sigfillset(&act.sa_mask);
+        if (sigaction(signo, &act, 0) != 0) {
+            mprError("Can't add signal %d, errno %d", mprGetOsError());
+        }
+    }
+    unlock(ssp);
+}
+
+
+static void unhookSignal(int signo)
+{
+    MprSignalService    *ssp;
+    struct sigaction    act;
+
+    ssp = MPR->signalService;
+    lock(ssp);
+    sigaction(signo, 0, &act);
+    if (act.sa_sigaction == signalHandler) {
+        act.sa_sigaction = ssp->prior[signo];
+        sigaction(signo, &act, 0);
+    }
+    unlock(ssp);
+}
+
+
+static void maskSignal(int signo)
+{
+    sigset_t    set;
+
+    sigprocmask(0, 0, &set);
+    sigaddset(&set, signo);
+    sigprocmask(SIG_BLOCK, &set, 0);
+}
+
+
+static void unmaskSignal(int signo)
+{
+    sigset_t    set;
+
+    sigprocmask(0, 0, &set);
+    sigaddset(&set, signo);
+    sigprocmask(SIG_UNBLOCK, &set, 0);
+}
+
+
+/*
+    Actual signal handler - must be async-safe. Do very, very little here. Just set a global flag and wakeup
+    the wait service (mprWakeWaitService is async safe).
+    WARNING: Don't put memory allocation or logging here.
+ */
+static void signalHandler(int signo, siginfo_t *info, void *arg)
+{
+    MprSignalService    *ssp;
+    MprSignalInfo       *ip;
+
+    if (signo < 0 || signo >= MPR_MAX_SIGNALS || MPR == 0) {
+        return;
+    }
+    ssp = MPR->signalService;
+    maskSignal(signo);
+    ip = &ssp->info[signo];
+    ip->siginfo = *info;
+    ip->arg = arg;
+    ip->triggered = 1;
+    ssp->hasSignals = 1;
+    mprWakeWaitService();
+}
+
+
+static void linkSignalHandler(MprSignal *sp)
+{
+    MprSignalService    *ssp;
+
+    ssp = MPR->signalService;
+    lock(ssp);
+    sp->next = ssp->signals[sp->signo];
+    ssp->signals[sp->signo] = sp;
+    unlock(ssp);
+}
+
+
+static void unlinkSignalHandler(MprSignal *sp)
+{
+    MprSignalService    *ssp;
+    MprSignal           *np, *prev;
+
+    ssp = MPR->signalService;
+    lock(ssp);
+    for (prev = 0, np = ssp->signals[sp->signo]; np; np = np->next) {
+        if (sp == np) {
+            if (prev) {
+                prev->next = sp->next;
+            } else {
+                ssp->signals[sp->signo] = 0;
+            }
+            break;
+        }
+        prev = np;
+    }
+    sp->next = 0;
+    unlock(ssp);
+}
+
+
+/*
     Add a safe-signal handler. This creates a signal handler that will run from a dispatcher without the
-    normal async-safe strictures of normal signal handlers. This manages a chain of signal handlers and ensures
+    normal async-safe strictures of normal signal handlers. This manages a next of signal handlers and ensures
     that prior handlers will be called appropriately.
  */
 MprSignal *mprAddSignalHandler(int signo, void *handler, void *data, MprDispatcher *dispatcher, int flags)
 {
     MprSignal           *sp;
     MprSignalService    *ssp;
-    struct sigaction    act, old;
-    int                 rc;
 
-    if (signo < 0 || signo >= MPR_MAX_SIGNAL) {
+    ssp = MPR->signalService;
+    if (signo < 0 || signo >= MPR_MAX_SIGNALS) {
         mprError("Bad signal: %d", signo);
         return 0;
     }
@@ -75,71 +205,9 @@ MprSignal *mprAddSignalHandler(int signo, void *handler, void *data, MprDispatch
     sp->handler = handler;
     sp->dispatcher = dispatcher;
     sp->data = data;
-    ssp = MPR->signalService;
-    lock(ssp);
-    if (ssp->signals[signo] != 0) {
-        sp->chain.sp = ssp->signals[signo];
-    } else {
-        rc = sigaction(signo, 0, &old);
-        if (old.sa_sigaction && old.sa_sigaction != signalHandler) {
-            sp->chain.sigaction = old.sa_sigaction;
-            sp->flags |= MPR_SIGNAL_NATIVE;
-        }
-    }
-    ssp->signals[signo] = sp;
-    memset(&act, 0, sizeof(act));
-    act.sa_sigaction = signalHandler;
-    sigemptyset(&act.sa_mask);
-
-    /* Mask these when processing signals */
-    sigaddset(&act.sa_mask, SIGALRM);
-    sigaddset(&act.sa_mask, SIGCHLD);
-    sigaddset(&act.sa_mask, SIGPIPE);
-    sigaddset(&act.sa_mask, SIGTERM);
-    sigaddset(&act.sa_mask, SIGUSR1);
-    sigaddset(&act.sa_mask, SIGUSR2);
-    if (!mprGetDebugMode(NULL)) {
-        sigaddset(&act.sa_mask, SIGINT);
-    }
-    if (sigaction(signo, &act, 0) != 0) {
-        mprError("Can't add signal %d, errno %d", mprGetOsError());
-        return 0;
-    }
-    unlock(ssp);
+    linkSignalHandler(sp);
+    hookSignal(signo, sp);
     return sp;
-}
-
-
-int mprRemoveSignalHandler(MprSignal *sp)
-{
-    MprSignalService    *ssp;
-    MprSignal           *np, *prev;
-    struct sigaction    old;
-    int                 rc;
-
-    ssp = MPR->signalService;
-    lock(ssp);
-    for (prev = 0, np = ssp->signals[sp->signo]; np; ) {
-        if (sp == np) {
-            if (prev) {
-                prev->chain.sp = sp;
-            } else {
-                ssp->signals[sp->signo] = 0;
-                if (np->flags & MPR_SIGNAL_NATIVE) {
-                    rc = sigaction(sp->signo, 0, &old);
-                    if (old.sa_sigaction == signalHandler) {
-                        old.sa_sigaction = sp->chain.sigaction;
-                        rc = sigaction(sp->signo, &old, 0);
-                    }
-                }
-            }
-            return 0;
-        }
-        prev = np;
-        np = (np->flags & MPR_SIGNAL_NATIVE) ? 0 : np->chain.sp;
-    }
-    unlock(ssp);
-    return MPR_ERR_CANT_FIND;
 }
 
 
@@ -151,56 +219,50 @@ static void manageSignal(MprSignal *sp, int flags)
     if (flags & MPR_MANAGE_MARK) {
         mprMark(sp->dispatcher);
         mprMark(sp->data);
-        mprMark((sp->flags & MPR_SIGNAL_NATIVE) ? 0 : sp->chain.sp);
+        /* Don't mark next as it will prevent other signal handlers being reclaimed */
+    }
+}
+
+
+void mprRemoveSignalHandler(MprSignal *sp)
+{
+    if (sp) {
+        unlinkSignalHandler(sp);
     }
 }
 
 
 /*
-    Actual signal handler - must be async-safe. Do very, very little here. Just set a global flag and wakeup
-    the wait service (mprWakeWaitService is async safe).
-    WARNING: Don't put memory allocation or logging here.
+    Called by mprServiceEvents after a signal has been received. Create an event and queue on the appropriate dispatcher
  */
-static void signalHandler(int signo, siginfo_t *info, void *arg)
-{
-    MprSignal           *sp;
-    MprSignalService    *ssp;
-
-    if (signo < 0 || signo >= MPR_MAX_SIGNAL) {
-        return;
-    }
-    ssp = MPR->signalService;
-    if ((sp = ssp->signals[signo]) != 0) {
-        mprAssert(sp);
-        mprAssert(sp->signo == signo);
-        sp->info = *info;
-        sp->arg = arg;
-        sp->triggered = 1;
-        ssp->hasSignals = 1;
-        mprWakeWaitService();
-    }
-}
-
-
 void mprServiceSignals()
 {
     MprSignalService    *ssp;
     MprSignal           *sp;
-    int                 i;
+    MprSignalInfo       *ip;
+    int                 signo;
 
     ssp = MPR->signalService;
-    //  MOB - OPT if these were linked or kept min/max limits
-    for (i = 0; i < MPR_MAX_SIGNAL; i++) {
-        if ((sp = ssp->signals[i]) != 0 && sp->triggered) {
-            sp->triggered = 0;
-            mprCreateEvent(sp->dispatcher, "signalEvent", 0, signalEvent, sp, 0);
+    ssp->hasSignals = 0;
+    for (ip = ssp->info; ip < &ssp->info[MPR_MAX_SIGNALS]; ip++) {
+        if (ip->triggered) {
+            ip->triggered = 0;
+            signo = ip->siginfo.si_signo;
+            mprAssert(0 <= signo && signo < MPR_MAX_SIGNALS);
+            mprLog(5, "Caught signal %d", signo);
+            sp = ssp->signals[signo];
+            if (sp) {
+                sp->info = *ip;
+                mprCreateEvent(sp->dispatcher, "signalEvent", 0, signalEvent, sp, 0);
+            }
+            unmaskSignal(signo);
         }
     }
 }
 
 
 /*
-    Invoke chain of signal handlers. Runs from the dispatcher so signal handlers don't have to be async-safe.
+    Invoke the next signal handler. Runs from the dispatcher so signal handlers don't have to be async-safe.
  */
 static void signalEvent(MprSignal *sp, MprEvent *event)
 {
@@ -208,23 +270,26 @@ static void signalEvent(MprSignal *sp, MprEvent *event)
     mprAssert(event);
 
     mprLog(7, "signalEvent signo %d, flags %x", sp->signo, sp->flags);
-    do {
-        if (sp->flags & MPR_SIGNAL_BEFORE) {
-            (sp->handler)(sp->data, sp);
-        } 
-        if (sp->chain.sp && sp->flags & MPR_SIGNAL_NATIVE) {
-            (sp->chain.sigaction)(sp->signo, &sp->info, sp->arg);
-        }
-        if (sp->flags & MPR_SIGNAL_AFTER) {
-            (sp->handler)(sp->data, sp);
-        }
-        sp = (sp->flags & MPR_SIGNAL_NATIVE) ? 0 : sp->chain.sp;
-    } while (sp);
+
+    if (sp->flags & MPR_SIGNAL_BEFORE) {
+        (sp->handler)(sp->data, sp);
+    } 
+    if (sp->sigaction) {
+        (sp->sigaction)(sp->signo, &sp->info.siginfo, sp->info.arg);
+    }
+    if (sp->flags & MPR_SIGNAL_AFTER) {
+        (sp->handler)(sp->data, sp);
+    }
+    if ((sp = sp->next) != 0) {
+        /* Create new event for each handler so we get the right dispatcher for each */
+        mprCreateEvent(sp->dispatcher, "signalEvent", 0, signalEvent, sp, 0);
+    }
 }
 
 
 /*
-    Standard signal handler. Do graceful shutdown for SIGTERM. Ignore SIGPIPE and SIGXFSZ. All others do immediate exit.
+    Standard signal handler.  Ignore signals SIGPIPE and SIGXFSZ. 
+    Do graceful shutdown for SIGTERM, immediate exit for SIGABRT.  All other signals do normal exit.
  */
 static void standardSignalHandler(void *ignored, MprSignal *sp)
 {
@@ -235,12 +300,17 @@ static void standardSignalHandler(void *ignored, MprSignal *sp)
     mprLog(2, "Received signal %d", sp->signo);
     if (sp->signo == SIGTERM) {
         mprLog(1, "Executing a graceful exit. Waiting for all requests to complete.");
-        mprTerminate(MPR_GRACEFUL);
+        mprTerminate(MPR_EXIT_GRACEFUL);
+
+    } else if (sp->signo == SIGABRT) {
+        mprTerminate(MPR_EXIT_IMMEDIATE);
+
     } else if (sp->signo == SIGPIPE || sp->signo == SIGXFSZ) {
         /* Ignore */
+
     } else {
-        mprLog(1, "Exiting immediately ...");
-        mprTerminate(0);
+        mprLog(1, "Exiting ...");
+        mprTerminate(MPR_EXIT_DEFAULT);
     }
 }
 
@@ -257,11 +327,11 @@ void mprAddStandardSignals()
 #endif
 }
 
-#else /* BLD_UNIX_LIKE */
 
-MprSignalService *mprCreateSignalService() { return mprAlloc(0); }
-int mprRemoveSignalHandler(MprSignal *sp) { return 0; }
-void mprServiceSignals() {}
+#else /* BLD_UNIX_LIKE */
+    MprSignalService *mprCreateSignalService() { return mprAlloc(0); }
+    int mprRemoveSignalHandler(MprSignal *sp) { return 0; }
+    void mprServiceSignals() {}
 #endif /* BLD_UNIX_LIKE */
 
 /*

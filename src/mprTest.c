@@ -918,7 +918,7 @@ static void adjustThreadCount(int adj)
     mprLock(sp->mutex);
     sp->activeThreadCount += adj;
     if (sp->activeThreadCount <= 0) {
-        mprTerminate(MPR_GRACEFUL);
+        mprTerminate(MPR_EXIT_DEFAULT);
     }
     mprUnlock(sp->mutex);
 }

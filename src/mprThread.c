@@ -61,7 +61,10 @@ MprThreadService *mprCreateThreadService()
 
 void mprStopThreadService()
 {
+#if UNUSED
+    //  MOB - this prevents GetCurrentThread from working
     mprClearList(MPR->threadService->threads);
+#endif
     MPR->threadService->threads->mutex = 0;
     MPR->threadService->mutex = 0;
 }
@@ -87,9 +90,6 @@ void mprSetThreadStackSize(int size)
 }
 
 
-/*
-    Return the current thread object
- */
 MprThread *mprGetCurrentThread()
 {
     MprThreadService    *ts;
@@ -116,9 +116,6 @@ MprThread *mprGetCurrentThread()
 }
 
 
-/*
-    Return the current thread object
- */
 cchar *mprGetCurrentThreadName()
 {
     MprThread       *tp;

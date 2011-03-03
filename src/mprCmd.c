@@ -23,6 +23,7 @@ static int startProcess(MprCmd *cmd);
 static void stdinCallback(MprCmd *cmd, MprEvent *event);
 static void stdoutCallback(MprCmd *cmd, MprEvent *event);
 static void stderrCallback(MprCmd *cmd, MprEvent *event);
+static void vxCmdManager(MprCmd *cmd);
 
 #if BLD_UNIX_LIKE
 static char **fixenv(MprCmd *cmd);
@@ -31,7 +32,6 @@ static char **fixenv(MprCmd *cmd);
 #if VXWORKS
 typedef int (*MprCmdTaskFn)(int argc, char **argv, char **envp);
 static void cmdTaskEntry(char *program, MprCmdTaskFn entry, int cmdArg);
-static void vxCmdManager(MprCmd *cmd);
 #endif
 
 /*
@@ -127,6 +127,7 @@ static void manageCmd(MprCmd *cmd, int flags)
         mprMark(cmd->dispatcher);
         mprMark(cmd->callbackData);
         mprMark(cmd->forkData);
+        mprMark(cmd->signal);
         mprMark(cmd->stdoutBuf);
         mprMark(cmd->stderrBuf);
         mprMark(cmd->userData);
@@ -151,9 +152,7 @@ static void manageCmd(MprCmd *cmd, int flags)
 
     } else if (flags & MPR_MANAGE_FREE) {
         resetCmd(cmd);
-#if VXWORKS
         vxCmdManager(cmd);
-#endif
         if (cmd->signal) {
             mprRemoveSignalHandler(cmd->signal);
             cmd->signal = 0;
@@ -163,9 +162,9 @@ static void manageCmd(MprCmd *cmd, int flags)
 }
 
 
-#if VXWORKS
 static void vxCmdManager(MprCmd *cmd)
 {
+#if VXWORKS
     MprCmdFile      *files;
     int             i;
 
@@ -189,8 +188,8 @@ static void vxCmdManager(MprCmd *cmd)
             }
         }
     }
-}
 #endif
+}
 
 
 void mprDestroyCmd(MprCmd *cmd)
@@ -231,7 +230,10 @@ static void resetCmd(MprCmd *cmd)
 
     if (cmd->pid && !(cmd->flags & MPR_CMD_DETACH)) {
         mprStopCmd(cmd, -1);
+#if UNUSED
+        //  MOB - can't wait from manage
         mprWaitForCmd(cmd, MPR_TIMEOUT_STOP_TASK);
+#endif
         reapCmd(cmd);
         cmd->pid = 0;
     }
@@ -776,7 +778,7 @@ static void cmdCallback(MprCmd *cmd, int channel, void *data)
     mprLog(6, "cmdCallback channel %d, read len %d, pid %d, eof %d/%d", channel, len, cmd->pid, cmd->eofCount, 
         cmd->requiredEof);
     if (len <= 0) {
-        if (len == 0 || (len < 0 && !(errno == EAGAIN || EWOULDBLOCK))) {
+        if (len == 0 || (len < 0 && !(errno == EAGAIN || errno == EWOULDBLOCK))) {
             mprCloseCmdFd(cmd, channel);
             return;
         }
