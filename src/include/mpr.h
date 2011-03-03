@@ -6623,6 +6623,7 @@ typedef struct MprSignal {
 
 typedef struct MprSignalService {
     MprSignal       **signals;              /**< Signal handlers */
+    MprList         *standard;              /**< Standard signal handlers */
     MprMutex        *mutex;                 /**< Multithread sync */
     MprSignalInfo   info[MPR_MAX_SIGNALS];  /**< Actual signal info and arg */
     void            *prior[MPR_MAX_SIGNALS];/**< Prior sigaction handler before hooking */
@@ -7167,6 +7168,8 @@ extern bool mprStop();
 //  MOB DOC
 extern bool mprIsStopping();
 extern bool mprIsStoppingCore();
+extern bool mprShouldDenyNewRequests();
+extern bool mprShouldAbortRequests();
 
 /**
     Determine if the MPR is exiting
@@ -7378,6 +7381,9 @@ extern int mprWriteRegistry(cchar *key, cchar *name, cchar *value);
  */
 extern int mprStartEventsThread();
 
+/*
+    Terminate and Destroy flags
+ */
 #define MPR_EXIT_DEFAULT    0           /* Exit as per MPR->defaultStrategy */
 #define MPR_EXIT_IMMEDIATE  1           /* Do an immediate exit - finalizers will not run */
 #define MPR_EXIT_NORMAL     2           /* Do a normal shutdown - run GC for all finalizers to run */

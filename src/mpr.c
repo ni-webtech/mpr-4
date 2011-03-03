@@ -126,20 +126,29 @@ static void manageMpr(Mpr *mpr, int flags)
 /*
     Destroy the Mpr and all services
  */
-void mprDestroy(int flags)
+void mprDestroy(int how)
 {
     int     gmode;
 
+    if (how != MPR_EXIT_DEFAULT) {
+        MPR->exitStrategy = how;
+    }
+    how = MPR->exitStrategy;
+    if (how == MPR_EXIT_IMMEDIATE) {
+        exit(0);
+    }
     mprYield(MPR_YIELD_STICKY);
-    mprTerminate(flags);
-
-    gmode = MPR_FORCE_GC | MPR_COMPLETE_GC | (flags & MPR_EXIT_IMMEDIATE) ? 0 : MPR_WAIT_GC;
+    if (MPR->state < MPR_STOPPING) {
+        mprTerminate(how);
+    }
+    gmode = MPR_FORCE_GC | MPR_COMPLETE_GC | (how & MPR_EXIT_IMMEDIATE) ? 0 : MPR_WAIT_GC;
     mprRequestGC(gmode);
 
-    if (flags & MPR_EXIT_GRACEFUL) {
+    if (how == MPR_EXIT_GRACEFUL) {
         mprWaitTillIdle(MPR_TIMEOUT_STOP);
     }
     MPR->state = MPR_STOPPING_CORE;
+    MPR->exitStrategy = MPR_EXIT_IMMEDIATE;
 
     mprStopCmdService();
     mprStopModuleService();
@@ -160,14 +169,24 @@ void mprDestroy(int flags)
 /*
     Start termination of the Mpr. May be called by mprDestroy or elsewhere.
  */
-void mprTerminate(int flags)
+void mprTerminate(int how)
 {
-    if (flags & MPR_EXIT_IMMEDIATE) {
+    if (how != MPR_EXIT_DEFAULT) {
+        MPR->exitStrategy = how;
+    }
+    how = MPR->exitStrategy;
+    if (how == MPR_EXIT_IMMEDIATE) {
+        mprLog(1, "Executing an immediate exit. Aborting all requests and services.");
         exit(0);
+    } else if (how == MPR_EXIT_NORMAL) {
+        mprLog(1, "Executing a normal exit. Flush buffers, close files and aborting existing requests.");
+    } else if (how == MPR_EXIT_GRACEFUL) {
+        mprLog(1, "Executing a graceful exit. Waiting for existing requests to complete.");
     }
 
     /*
-        Set the stopping flag. Services should stop accepting new requests.
+        Set the stopping flag. Services should stop accepting new requests. Current requests should be allowed to
+        complete if graceful exit strategy.
      */
     if (MPR->state >= MPR_STOPPING) {
         return;
@@ -252,6 +271,18 @@ static void serviceEventsThread(void *data, MprThread *tp)
 /*
     Services should call this to determine if they should accept new services
  */
+bool mprShouldAbortRequests()
+{
+    return (mprIsStopping() && MPR->exitStrategy != MPR_EXIT_GRACEFUL);
+}
+
+
+bool mprShouldDenyNewRequests()
+{
+    return mprIsStopping();
+}
+
+
 bool mprIsStopping()
 {
     return MPR->state >= MPR_STOPPING;

@@ -240,11 +240,8 @@ int mprServiceEvents(MprTime timeout, int flags)
     expires = timeout < 0 ? (es->now + MPR_MAX_TIMEOUT) : (es->now + timeout);
     justOne = (flags & MPR_SERVICE_ONE_THING) ? 1 : 0;
 
-    do {
+    while (es->now < expires && !mprIsStoppingCore()) {
         eventCount = es->eventCount;
-        if (mprIsStopping()) {
-            break;
-        }
         if (MPR->signalService->hasSignals) {
             mprServiceSignals();
         }
@@ -262,13 +259,19 @@ int mprServiceEvents(MprTime timeout, int flags)
                 es->waiting = 1;
                 es->willAwake = es->now + delay;
                 unlock(es);
+                if (mprIsStopping()) {
+                    break;
+                }
                 mprWaitForIO(MPR->waitService, (int) delay);
             } else {
                 unlock(es);
             }
         }
         es->now = mprGetTime();
-    } while (es->now < expires && !justOne);
+        if (justOne) {
+            break;
+        }
+    }
 
     MPR->eventing = 0;
     return abs(es->eventCount - beginEventCount);
@@ -316,14 +319,7 @@ int mprWaitForEvent(MprDispatcher *dispatcher, MprTime timeout)
     }
     unlock(es);
 
-    do {
-        /* 
-            If stopping, switch to a short timeout. Keep servicing events until finished to allow upper level services 
-            to complete current requests.
-         */
-        if (mprIsStopping()) {
-            break;
-        }
+    while (es->now < expires && !mprIsStoppingCore()) {
         if (runEvents) {
             makeRunnable(dispatcher);
             if (dispatchEvents(dispatcher)) {
@@ -345,7 +341,7 @@ int mprWaitForEvent(MprDispatcher *dispatcher, MprTime timeout)
         dispatcher->waitingOnCond = 0;
         mprResetYield();
         es->now = mprGetTime();
-    } while (es->now < expires && !mprIsFinished());
+    }
 
     if (!wasRunning) {
         scheduleDispatcher(dispatcher);

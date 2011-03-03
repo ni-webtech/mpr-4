@@ -638,6 +638,9 @@ int mprWaitForCmd(MprCmd *cmd, MprTime timeout)
     mprAddRoot(cmd);
 
     while (!cmd->complete && remaining > 0) {
+        if (mprShouldAbortRequests()) {
+            break;
+        }
 #if BLD_WIN_LIKE
         waitForWinEvent(cmd, remaining);
 #else

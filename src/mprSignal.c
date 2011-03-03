@@ -29,6 +29,7 @@ MprSignalService *mprCreateSignalService()
     }
     ssp->mutex = mprCreateLock();
     ssp->signals = mprAllocZeroed(sizeof(MprSignal*) * MPR_MAX_SIGNALS);
+    ssp->standard = mprCreateList(-1, 0);
     return ssp;
 }
 
@@ -38,6 +39,7 @@ static void manageSignalService(MprSignalService *ssp, int flags)
     if (flags & MPR_MANAGE_MARK) {
         mprMark(ssp->mutex);
         mprMark(ssp->signals);
+        mprMark(ssp->standard);
 #if UNUSED
         for (i = 0; i < MPR_MAX_SIGNALS; i++) {
             if ((sp = ssp->signals[i]) != 0) {
@@ -293,13 +295,11 @@ static void signalEvent(MprSignal *sp, MprEvent *event)
  */
 static void standardSignalHandler(void *ignored, MprSignal *sp)
 {
-    mprLog(7, "standardSignalHandler signo %d, flags %x", sp->signo, sp->flags);
+    mprLog(6, "standardSignalHandler signo %d, flags %x", sp->signo, sp->flags);
 #if DEBUG_IDE
     if (sp->signo == SIGINT) return;
 #endif
-    mprLog(2, "Received signal %d", sp->signo);
     if (sp->signo == SIGTERM) {
-        mprLog(1, "Executing a graceful exit. Waiting for all requests to complete.");
         mprTerminate(MPR_EXIT_GRACEFUL);
 
     } else if (sp->signo == SIGABRT) {
@@ -309,7 +309,6 @@ static void standardSignalHandler(void *ignored, MprSignal *sp)
         /* Ignore */
 
     } else {
-        mprLog(1, "Exiting ...");
         mprTerminate(MPR_EXIT_DEFAULT);
     }
 }
@@ -317,13 +316,16 @@ static void standardSignalHandler(void *ignored, MprSignal *sp)
 
 void mprAddStandardSignals()
 {
-    mprAddSignalHandler(SIGINT,  standardSignalHandler, 0, 0, MPR_SIGNAL_AFTER);
-    mprAddSignalHandler(SIGQUIT, standardSignalHandler, 0, 0, MPR_SIGNAL_AFTER);
-    mprAddSignalHandler(SIGTERM, standardSignalHandler, 0, 0, MPR_SIGNAL_AFTER);
-    mprAddSignalHandler(SIGUSR1, standardSignalHandler, 0, 0, MPR_SIGNAL_AFTER);
-    mprAddSignalHandler(SIGPIPE, standardSignalHandler, 0, 0, MPR_SIGNAL_AFTER);
+    MprSignalService    *ssp;
+
+    ssp = MPR->signalService;
+    mprAddItem(ssp->standard, mprAddSignalHandler(SIGINT,  standardSignalHandler, 0, 0, MPR_SIGNAL_AFTER));
+    mprAddItem(ssp->standard, mprAddSignalHandler(SIGQUIT, standardSignalHandler, 0, 0, MPR_SIGNAL_AFTER));
+    mprAddItem(ssp->standard, mprAddSignalHandler(SIGTERM, standardSignalHandler, 0, 0, MPR_SIGNAL_AFTER));
+    mprAddItem(ssp->standard, mprAddSignalHandler(SIGUSR1, standardSignalHandler, 0, 0, MPR_SIGNAL_AFTER));
+    mprAddItem(ssp->standard, mprAddSignalHandler(SIGPIPE, standardSignalHandler, 0, 0, MPR_SIGNAL_AFTER));
 #if SIGXFSZ
-    mprAddSignalHandler(SIGXFSZ, standardSignalHandler, 0, 0, MPR_SIGNAL_AFTER);
+    mprAddItem(ssp->standard, mprAddSignalHandler(SIGXFSZ, standardSignalHandler, 0, 0, MPR_SIGNAL_AFTER));
 #endif
 }
 
