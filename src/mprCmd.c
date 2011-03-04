@@ -928,6 +928,15 @@ static int sanitizeArgs(MprCmd *cmd, int argc, char **argv, char **env)
 #endif
 
 #if BLD_WIN_LIKE
+    /*
+        WARNING: If starting a program compiled with Cygwin, there is a bug in Cygwin's parsing of the command
+        string where embedded quotes are parsed incorrectly by the Cygwin CRT runtime. If an arg starts with a 
+        drive spec, embedded backquoted quotes will be stripped and the backquote will be passed in. Windows CRT 
+        handles this correctly.  For example:  
+            ./args "c:/path \"a b\"
+            Cygwin will parse as  argv[1] == c:/path \a \b
+            Windows will parse as argv[1] == c:/path "a b"
+     */
     char        *program, *SYSTEMROOT, **ep, **ap, *dp, *cp, *localArgv[2], *saveArg0, *PATH, *endp, *start;
     ssize       len;
     int         i, hasPath, hasSystemRoot, quote;
@@ -979,13 +988,6 @@ static int sanitizeArgs(MprCmd *cmd, int argc, char **argv, char **env)
     dp = cmd->command;
     for (ap = &argv[0]; *ap; ) {
         start = cp = *ap;
-#if UNUSED
-        if (*cp == '"' || *cp == '\"') {
-            quote = *cp++;
-        } else {
-            quote = '"';
-        }
-#endif
         quote = '"';
         for (*dp++ = quote; *cp; ) {
             if (*cp == quote && !(cp > start && cp[-1] == '\\')) {
@@ -994,11 +996,6 @@ static int sanitizeArgs(MprCmd *cmd, int argc, char **argv, char **env)
             *dp++ = *cp++;
         }
         *dp++ = quote;
-#if UNUSED
-        if (*start != quote) {
-            *dp++ = quote;
-        }
-#endif
         if (*++ap) {
             *dp++ = ' ';
         }
