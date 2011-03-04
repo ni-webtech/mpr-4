@@ -65,6 +65,28 @@ static void testMakeArgv(MprTestGroup *gp)
     mprMakeArgv("a\\", &argc, &argv, 0);
     assert(argc == 1);
     assert(strcmp(argv[0], "a\\") == 0);
+
+}
+
+
+static void testArgvRegressions(MprTestGroup *gp)
+{
+    int     argc;
+    char    **argv;
+
+    //  "\bin\sh" "-c" "c:/home/mob/ejs/out/bin/ejs.exe ./args \"a b\" c"
+    mprMakeArgv("\"\\bin\\sh\" \"-c\" \"c:/home/mob/ejs/out/bin/ejs.exe ./args \\\"a b\\\" c\"", &argc, &argv, 0);
+    assert(argc == 3);
+    assert(strcmp(argv[0], "\\bin\\sh") == 0);
+    assert(strcmp(argv[1], "-c") == 0);
+    assert(strcmp(argv[2], "c:/home/mob/ejs/out/bin/ejs.exe ./args \"a b\" c") == 0);
+
+    //  "\bin\sh" "-c" "/bin/ejs ./args \"a b\" c"
+    mprMakeArgv("\"\\bin\\sh\" \"-c\" \"/bin/ejs ./args \\\"a b\\\" c\"", &argc, &argv, 0);
+    assert(argc == 3);
+    assert(strcmp(argv[0], "\\bin\\sh") == 0);
+    assert(strcmp(argv[1], "-c") == 0);
+    assert(strcmp(argv[2], "/bin/ejs ./args \"a b\" c") == 0);
 }
 
 
@@ -72,6 +94,7 @@ MprTestDef testArgv = {
     "makeArgv", 0, 0, 0,
     {
         MPR_TEST(0, testMakeArgv),
+        MPR_TEST(0, testArgvRegressions),
         MPR_TEST(0, 0),
     },
 };

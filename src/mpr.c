@@ -346,13 +346,8 @@ bool mprIsIdle()
 static int parseArgs(char *args, char **argv)
 {
     char    *dest, *src, *start;
-    int     bquote, quote, argc;
+    int     quote, argc;
 
-#if BLD_WIN_LIKE
-    bquote = 0;
-#else
-    bquote = '\\';
-#endif
     /*
         Example     "showColors" red 'light blue' "yellow white" 'Can\'t \"render\"'
         Becomes:    ["showColors", "red", "light blue", "yellow white", "Can't \"render\""]
@@ -376,16 +371,16 @@ static int parseArgs(char *args, char **argv)
             argv[argc] = src;
         }
         while (*src) {
-            if (quote) {
-                if (*src == quote && !(src > start && src[-1] == bquote)) {
-                    break;
-                }
-            } else if (*src == ' ') {
-                break;
-            }
             if (*src == '\\' && src[1] && (src[1] == '\\' || src[1] == '"' || src[1] == '\'')) { 
                 src++;
-                continue;
+            } else {
+                if (quote) {
+                    if (*src == quote && !(src > start && src[-1] == '\\')) {
+                        break;
+                    }
+                } else if (*src == ' ') {
+                    break;
+                }
             }
             if (argv) {
                 *dest++ = *src;

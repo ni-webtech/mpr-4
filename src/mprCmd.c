@@ -975,27 +975,33 @@ static int sanitizeArgs(MprCmd *cmd, int argc, char **argv, char **env)
     cmd->command[len] = '\0';
     
     /*
-        Add quotes around all args that don't have them already and backquote [", ', \\]
+        Add quotes around all args and backquote [", ', \\]
         Example:    ["showColors", "red", "light blue", "Can't \"render\""]
         Becomes:    "showColors" "red" "light blue" "Can't \"render\""
      */
     dp = cmd->command;
     for (ap = &argv[0]; *ap; ) {
         start = cp = *ap;
+#if UNUSED
         if (*cp == '"' || *cp == '\"') {
             quote = *cp++;
         } else {
             quote = '"';
         }
+#endif
+        quote = '"';
         for (*dp++ = quote; *cp; ) {
-            if (*cp == quote && !(cp > start && cp[-1] != '\\')) {
+            if (*cp == quote && !(cp > start && cp[-1] == '\\')) {
                 *dp++ = '\\';
             }
             *dp++ = *cp++;
         }
+        *dp++ = quote;
+#if UNUSED
         if (*start != quote) {
             *dp++ = quote;
         }
+#endif
         if (*++ap) {
             *dp++ = ' ';
         }
