@@ -8,9 +8,8 @@
 
 #include    "mpr.h"
 
-#if BLD_UNIX_LIKE
-
 /*********************************** Forwards *********************************/
+#if BLD_UNIX_LIKE
 
 static void manageSignal(MprSignal *sp, int flags);
 static void manageSignalService(MprSignalService *ssp, int flags);
@@ -38,15 +37,9 @@ static void manageSignalService(MprSignalService *ssp, int flags)
 {
     if (flags & MPR_MANAGE_MARK) {
         mprMark(ssp->mutex);
-        mprMark(ssp->signals);
         mprMark(ssp->standard);
-#if UNUSED
-        for (i = 0; i < MPR_MAX_SIGNALS; i++) {
-            if ((sp = ssp->signals[i]) != 0) {
-                mprMark(sp);
-            }
-        }
-#endif
+        mprMark(ssp->signals);
+        /* Don't mark signals elements as it will prevent signal handlers being reclaimed */
     }
 }
 
