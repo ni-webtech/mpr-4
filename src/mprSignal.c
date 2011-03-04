@@ -63,16 +63,20 @@ static void hookSignal(int signo, MprSignal *sp)
     struct sigaction    act, old;
     int                 rc;
 
+    mprAssert(0 <= signo && signo < MPR_MAX_SIGNALS);
+
     ssp = MPR->signalService;
     lock(ssp);
     rc = sigaction(signo, 0, &old);
     if (rc == 0 && old.sa_sigaction != signalHandler) {
         sp->sigaction = old.sa_sigaction;
+        ssp->prior[signo] = old;
         memset(&act, 0, sizeof(act));
         act.sa_sigaction = signalHandler;
+        act.sa_flags |= SA_SIGINFO | SA_RESTART;
         sigfillset(&act.sa_mask);
         if (sigaction(signo, &act, 0) != 0) {
-            mprError("Can't add signal %d, errno %d", mprGetOsError());
+            mprError("Can't hook signal %d, errno %d", signo, mprGetOsError());
         }
     }
     unlock(ssp);
@@ -88,8 +92,9 @@ static void unhookSignal(int signo)
     lock(ssp);
     sigaction(signo, 0, &act);
     if (act.sa_sigaction == signalHandler) {
-        act.sa_sigaction = ssp->prior[signo];
-        sigaction(signo, &act, 0);
+        if (sigaction(signo, &ssp->prior[signo], 0) != 0) {
+            mprError("Can't unhook signal %d, errno %d", signo, mprGetOsError());
+        }
     }
     unlock(ssp);
 }
