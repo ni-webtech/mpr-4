@@ -207,7 +207,6 @@ static void testBufLoad(MprTestGroup *gp)
     int         i, j;
 
     tb = gp->data;
-    mprYield(MPR_YIELD_STICKY);
 
     /*
         Pick an odd size to guarantee put blocks are sometimes partial.
@@ -215,6 +214,7 @@ static void testBufLoad(MprTestGroup *gp)
     len = 981;
     tb->buf = bp = mprCreateBuf(len, 0);
     assert(bp != 0);
+    mprYield(MPR_YIELD_STICKY);
 
     for (i = 0; i < (int) sizeof(ibuf); i++) {
         ibuf[i] = 'A' + (i % 26);
