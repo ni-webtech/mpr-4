@@ -123,8 +123,11 @@ int mprWaitForCond(MprCond *cp, MprTime timeout)
             rc = pthread_cond_timedwait(&cp->cv, &cp->mutex->cs,  &waitTill);
             if (rc == ETIMEDOUT) {
                 rc = MPR_ERR_TIMEOUT;
+            } else if (rc == EAGAIN) {
+                rc = 0;
             } else if (rc != 0) {
                 mprAssert(rc == 0);
+                mprError("pthread_cond_timedwait error rc %d errno %d", rc, errno);
                 rc = MPR_ERR;
             }
 #endif

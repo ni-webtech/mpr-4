@@ -219,7 +219,6 @@ static void testBufLoad(MprTestGroup *gp)
     for (i = 0; i < (int) sizeof(ibuf); i++) {
         ibuf[i] = 'A' + (i % 26);
     }
-
     for (j = 0; j < 1000; j++) {
         rc = mprPutBlockToBuf(bp, (char*) ibuf, sizeof(ibuf));
         assert(rc == sizeof(ibuf));
