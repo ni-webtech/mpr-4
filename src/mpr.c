@@ -175,12 +175,14 @@ void mprTerminate(int how)
     }
     how = MPR->exitStrategy;
     if (how == MPR_EXIT_IMMEDIATE) {
-        mprLog(1, "Executing an immediate exit. Aborting all requests and services.");
+        mprLog(2, "Immediate exit. Aborting all requests and services.");
         exit(0);
     } else if (how == MPR_EXIT_NORMAL) {
-        mprLog(1, "Executing a normal exit. Flush buffers, close files and aborting existing requests.");
+        mprLog(2, "Normal exit. Flush buffers, close files and aborting existing requests.");
     } else if (how == MPR_EXIT_GRACEFUL) {
-        mprLog(1, "Executing a graceful exit. Waiting for existing requests to complete.");
+        mprLog(2, "Graceful exit. Waiting for existing requests to complete.");
+    } else {
+        mprLog(2, "HOW %d", how);
     }
 
     /*
@@ -194,7 +196,6 @@ void mprTerminate(int how)
         Set stopping state and wake up everybody
      */
     MPR->state = MPR_STOPPING;
-    mprLog(MPR_CONFIG, "Exiting started");
     mprWakeDispatchers();
     mprWakeWorkers();
     mprWakeGCService();
@@ -352,6 +353,10 @@ static int parseArgs(char *args, char **argv)
 #else
     bquote = '\\';
 #endif
+    /*
+        Example     "showColors" red 'light blue' "yellow white" 'Can\'t \"render\"'
+        Becomes:    ["showColors", "red", "light blue", "yellow white", "Can't \"render\""]
+     */
     for (argc = 0, src = args; src && *src != '\0'; argc++) {
         while (isspace((int) *src)) {
             src++;
@@ -364,46 +369,28 @@ static int parseArgs(char *args, char **argv)
             quote = *src;
             src++; 
             dest++;
-            if (argv) {
-                argv[argc] = src;
-            }
-            while (*src && (*src != quote || (src > start && src[-1] == bquote))) {
-                if (argv) {
-                    *dest++ = *src;
-                }
-                src++;
-            }
         } else {
-            while (*src && src > start && *src == bquote) {
-                src++;
-                if (argv) {
-                    *dest++ = *src;
+            quote = 0;
+        }
+        if (argv) {
+            argv[argc] = src;
+        }
+        while (*src) {
+            if (quote) {
+                if (*src == quote && !(src > start && src[-1] == bquote)) {
+                    break;
                 }
+            } else if (*src == ' ') {
+                break;
+            }
+            if (*src == '\\' && src[1] && (src[1] == '\\' || src[1] == '"' || src[1] == '\'')) { 
                 src++;
+                continue;
             }
             if (argv) {
-                argv[argc] = src;
+                *dest++ = *src;
             }
-            //  Parse the arg, remove back-quotes and stop at the first non-back-quoted space
-            while (*src) {
-                if (*src == bquote && src[1]) {
-                    src++;
-                    if (argv) {
-                        if (argv[argc] == &src[-1]) {
-                            argv[argc] = dest = src;
-                        }
-                        *dest++ = *src;
-                    }
-                } else {
-                    if (isspace((int) *src)) {
-                        break;
-                    }
-                    if (argv) {
-                        *dest++ = *src;
-                    }
-                }
-                src++;
-            }
+            src++;
         }
         if (*src != '\0') {
             src++;

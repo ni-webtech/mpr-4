@@ -411,7 +411,7 @@ static void runTestThread(MprList *groups, MprThread *tp)
         runInit(gp);
     }
     count = 0;
-    for (i = (sp->iterations + sp->numThreads - 1) / sp->numThreads; i >= 0; i--) {
+    for (i = (sp->iterations + sp->numThreads - 1) / sp->numThreads; i > 0; i--) {
         if (sp->totalFailedCount > 0 && !sp->continueOnFailures) {
             break;
         }
@@ -419,7 +419,7 @@ static void runTestThread(MprList *groups, MprThread *tp)
         while ((gp = mprGetNextItem(groups, &next)) != 0) {
             runTestGroup(gp);
         }
-        mprPrintf("%12s Iteration %d complete (%s)\n", "[Notice]", count++, mprGetCurrentThreadName());
+        mprPrintf("%12s Iteration %d complete (%s)\n", "[Notice]", ++count, mprGetCurrentThreadName());
     }
     for (next = 0; (gp = mprGetNextItem(groups, &next)) != 0; ) {
         runTerm(gp);

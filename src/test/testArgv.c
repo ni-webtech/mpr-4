@@ -41,24 +41,30 @@ static void testMakeArgv(MprTestGroup *gp)
     assert(strcmp(argv[0], "app") == 0);
     assert(strcmp(argv[1], "a b") == 0);
 
-#if !BLD_WIN_LIKE
-    //  Windows does not support back quoting
-    //  Backquoting (need double to get past cc compiler)
-    mprMakeArgv("\\\"a\\\"", &argc, &argv, 0);
+    //  Backquoting a double quote (need double to get past cc compiler): \"a
+    mprMakeArgv("\\\"a", &argc, &argv, 0);
     assert(argc == 1);
-    assert(strcmp(argv[0], "\"a\"") == 0);
+    assert(strcmp(argv[0], "\"a") == 0);
 
-    mprMakeArgv("app \\\"a b\\\"", &argc, &argv, 0);
-    assert(argc == 3);
-    assert(strcmp(argv[0], "app") == 0);
-    assert(strcmp(argv[1], "\"a") == 0);
-    assert(strcmp(argv[2], "b\"") == 0);
+    //  Backquoting a single quote (need double to get past cc compiler): \'a
+    mprMakeArgv("\\'a", &argc, &argv, 0);
+    assert(argc == 1);
+    assert(strcmp(argv[0], "'a") == 0);
+
+    //  Backquoting normal chars preserves the backquote \a
+    mprMakeArgv("\\a", &argc, &argv, 0);
+    assert(argc == 1);
+    assert(strcmp(argv[0], "\\a") == 0);
+
+    //  Backquoted path
+    mprMakeArgv("\\a\\b\\c", &argc, &argv, 0);
+    assert(argc == 1);
+    assert(strcmp(argv[0], "\\a\\b\\c") == 0);
 
     //  Backquote at the end (preserved)
     mprMakeArgv("a\\", &argc, &argv, 0);
     assert(argc == 1);
     assert(strcmp(argv[0], "a\\") == 0);
-#endif
 }
 
 

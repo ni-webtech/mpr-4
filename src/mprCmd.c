@@ -462,7 +462,6 @@ int mprStartCmd(MprCmd *cmd, int argc, char **argv, char **envp, int flags)
         cmd->requiredEof++;
     }
     addCmdHandlers(cmd);
-    mprLog(4, "mprStartCmd %s", cmd->program);
     rc = startProcess(cmd);
     sunlock(cmd);
     return rc;
@@ -579,11 +578,11 @@ void mprDisableCmdEvents(MprCmd *cmd, int channel)
  */
 static void waitForWinEvent(MprCmd *cmd, MprTime timeout)
 {
-    MprTime mark, remaining;
-    HANDLE  handles[MPR_CMD_MAX_PIPE];
-    int     i, rc, nbytes;
+    MprTime     mark, remaining, delay;
+    int         i, rc, nbytes;
 
     mark = mprGetTime();
+    remaining = timeout;
     for (i = MPR_CMD_STDOUT; i < MPR_CMD_MAX_PIPE; i++) {
         if (cmd->files[i].handle) {
             rc = PeekNamedPipe(cmd->files[i].handle, NULL, 0, NULL, &nbytes, NULL);
@@ -594,8 +593,15 @@ static void waitForWinEvent(MprCmd *cmd, MprTime timeout)
             }
         }
     }
+    if (cmd->files[MPR_CMD_STDIN].handle) {
+        /* Not finalized */
+        mprQueueIOEvent(cmd->handlers[MPR_CMD_STDIN]);
+        mprWaitForEvent(cmd->dispatcher, remaining);
+        return;
+    }
     if (cmd->process) {
-        if (WaitForSingleObject(cmd->process, (cmd->eofCount == cmd->requiredEof) ? remaining : 0) == WAIT_OBJECT_0) {
+        delay = (cmd->eofCount == cmd->requiredEof && cmd->files[MPR_CMD_STDIN].handle == 0) ? remaining : 0;
+        if (WaitForSingleObject(cmd->process, (DWORD) delay) == WAIT_OBJECT_0) {
             reapCmd(cmd);
             return;
         }
@@ -603,6 +609,7 @@ static void waitForWinEvent(MprCmd *cmd, MprTime timeout)
         mprSleep(10);
     }
     if (cmd->eofCount == cmd->requiredEof && cmd->process) {
+        remaining = mprGetRemainingTime(mark, timeout);
         rc = WaitForSingleObject(cmd->process, (DWORD) remaining);
         if (rc == WAIT_OBJECT_0) {
             reapCmd(cmd);
@@ -886,9 +893,6 @@ static int sanitizeArgs(MprCmd *cmd, int argc, char **argv, char **env)
     cmd->env = 0;
 
     if (env) {
-        for (i = 0; env && env[i]; i++) {
-            mprLog(6, "cmd: env[%d]: %s", i, env[i]);
-        }
         if ((envp = mprAlloc((i + 3) * sizeof(char*))) == NULL) {
             mprAssert(!MPR_ERR_MEMORY);
             return MPR_ERR_MEMORY;
@@ -916,19 +920,20 @@ static int sanitizeArgs(MprCmd *cmd, int argc, char **argv, char **env)
             envp[index++] = mprAsprintf("%s=%s", LD_LIBRARY_PATH, cp);
         }
         envp[index++] = '\0';
+        mprLog(4, "mprStartCmd %s", cmd->program);
         for (i = 0; i < argc; i++) {
-            mprLog(4, "cmd: arg[%d]: %s", i, argv[i]);
+            mprLog(4, "    arg[%d]: %s", i, argv[i]);
         }
         for (i = 0; envp[i]; i++) {
-            mprLog(4, "cmd: env[%d]: %s", i, envp[i]);
+            mprLog(4, "    env[%d]: %s", i, envp[i]);
         }
     }
 #endif
 
 #if BLD_WIN_LIKE
-    char        *program, *SYSTEMROOT, **ep, **ap, *destp, *cp, *localArgv[2], *saveArg0, *PATH, *endp;
+    char        *program, *SYSTEMROOT, **ep, **ap, *dp, *cp, *localArgv[2], *saveArg0, *PATH, *endp, *start;
     ssize       len;
-    int         i, hasPath, hasSystemRoot;
+    int         i, hasPath, hasSystemRoot, quote;
 
     mprAssert(argc > 0 && argv[0] != NULL);
 
@@ -963,36 +968,45 @@ static int sanitizeArgs(MprCmd *cmd, int argc, char **argv, char **env)
     argv[0] = program;
     argc = 0;
     for (len = 0, ap = argv; *ap; ap++) {
-        len += strlen(*ap) + 1 + 2;         /* Space and possible quotes */
+        len += (strlen(*ap) * 2) + 1 + 2;         /* Space and possible quotes and worst case backquoting */
         argc++;
     }
     cmd->command = mprAlloc(len + 1);
     cmd->command[len] = '\0';
     
     /*
-        Add quotes to all args that have spaces in them including "program"
+        Add quotes around all args that don't have them already and backquote [", ', \\]
+        Example:    ["showColors", "red", "light blue", "Can't \"render\""]
+        Becomes:    "showColors" "red" "light blue" "Can't \"render\""
      */
-    destp = cmd->command;
+    dp = cmd->command;
     for (ap = &argv[0]; *ap; ) {
-        cp = *ap;
-        if ((strchr(cp, ' ') != 0) && cp[0] != '\"') {
-            *destp++ = '\"';
-            strcpy(destp, cp);
-            destp += strlen(cp);
-            *destp++ = '\"';
+        start = cp = *ap;
+        if (*cp == '"' || *cp == '\"') {
+            quote = *cp++;
         } else {
-            strcpy(destp, cp);
-            destp += strlen(cp);
+            quote = '"';
+        }
+        for (*dp++ = quote; *cp; ) {
+            if (*cp == quote && !(cp > start && cp[-1] != '\\')) {
+                *dp++ = '\\';
+            }
+            *dp++ = *cp++;
+        }
+        if (*start != quote) {
+            *dp++ = quote;
         }
         if (*++ap) {
-            *destp++ = ' ';
+            *dp++ = ' ';
         }
     }
-    *destp = '\0';
+    *dp = '\0';
+
     argv[0] = saveArg0;
 
+    mprLog(4, "mprStartCmd %s", cmd->command);
     for (i = 0; i < argc; i++) {
-        mprLog(4, "cmd: arg[%d]: %s", i, argv[i]);
+        mprLog(5, "    arg[%d]: %s", i, argv[i]);
     }
 
     /*
@@ -1017,26 +1031,25 @@ static int sanitizeArgs(MprCmd *cmd, int argc, char **argv, char **env)
         }
         len += 2;       /* Windows requires 2 nulls for the block end */
 
-        destp = (char*) mprAlloc(len);
-        endp = &destp[len];
-        cmd->env = (char**) destp;
+        dp = (char*) mprAlloc(len);
+        endp = &dp[len];
+        cmd->env = (char**) dp;
         for (ep = env; ep && *ep; ep++) {
-            mprLog(4, "cmd: env[%d]: %s", i, *ep);
-            strcpy(destp, *ep);
-            mprLog(7, "cmd: Set env variable: %s", destp);
-            destp += strlen(*ep) + 1;
+            mprLog(4, "    env[%d]: %s", i, *ep);
+            strcpy(dp, *ep);
+            dp += strlen(*ep) + 1;
         }
         if (!hasSystemRoot) {
-            mprSprintf(destp, (endp - destp - 1), "SYSTEMROOT=%s", SYSTEMROOT);
-            destp += 12 + strlen(SYSTEMROOT);
+            mprSprintf(dp, (endp - dp - 1), "SYSTEMROOT=%s", SYSTEMROOT);
+            dp += 12 + strlen(SYSTEMROOT);
         }
         if (!hasPath) {
-            mprSprintf(destp, (endp - destp - 1), "PATH=%s", PATH);
-            destp += 6 + strlen(PATH);
+            mprSprintf(dp, (endp - dp - 1), "PATH=%s", PATH);
+            dp += 6 + strlen(PATH);
         }
-        *destp++ = '\0';
-        *destp++ = '\0';                        /* Windows requires two nulls */
-        mprAssert(destp <= endp);
+        *dp++ = '\0';
+        *dp++ = '\0';                        /* Windows requires two nulls */
+        mprAssert(dp <= endp);
     }
 #endif /* BLD_WIN_LIKE */
     return 0;
