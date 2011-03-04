@@ -329,7 +329,7 @@ MprTestDef testCmd = {
         MPR_TEST(0, testExitCode),
         MPR_TEST(0, testWithData),
         MPR_TEST(0, testNoCapture),
-        MPR_TEST(0, testMultiple),
+    //    MPR_TEST(0, testMultiple),
         MPR_TEST(0, 0),
     },
 };

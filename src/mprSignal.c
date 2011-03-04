@@ -164,7 +164,7 @@ static void unlinkSignalHandler(MprSignal *sp)
             if (prev) {
                 prev->next = sp->next;
             } else {
-                ssp->signals[sp->signo] = 0;
+                ssp->signals[sp->signo] = sp->next;
             }
             break;
         }
@@ -262,10 +262,14 @@ void mprServiceSignals()
  */
 static void signalEvent(MprSignal *sp, MprEvent *event)
 {
+    MprSignal   *np;
+    
     mprAssert(sp);
     mprAssert(event);
 
     mprLog(7, "signalEvent signo %d, flags %x", sp->signo, sp->flags);
+
+    np = sp->next;
 
     if (sp->flags & MPR_SIGNAL_BEFORE) {
         (sp->handler)(sp->data, sp);
@@ -276,9 +280,9 @@ static void signalEvent(MprSignal *sp, MprEvent *event)
     if (sp->flags & MPR_SIGNAL_AFTER) {
         (sp->handler)(sp->data, sp);
     }
-    if ((sp = sp->next) != 0) {
+    if (np) {
         /* Create new event for each handler so we get the right dispatcher for each */
-        mprCreateEvent(sp->dispatcher, "signalEvent", 0, signalEvent, sp, 0);
+        mprCreateEvent(np->dispatcher, "signalEvent", 0, signalEvent, np, 0);
     }
 }
 
