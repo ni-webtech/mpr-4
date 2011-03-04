@@ -127,7 +127,7 @@ int mprWaitForCond(MprCond *cp, MprTime timeout)
                 rc = 0;
             } else if (rc != 0) {
                 mprAssert(rc == 0);
-                mprError("pthread_cond_timedwait error rc %d errno %d", rc, errno);
+                mprError("pthread_cond_timedwait error rc %d", rc);
                 rc = MPR_ERR;
             }
 #endif
