@@ -128,7 +128,8 @@ static void manageMpr(Mpr *mpr, int flags)
  */
 void mprDestroy(int how)
 {
-    int     gmode;
+    MprTime     mark;
+    int         gmode;
 
     if (how != MPR_EXIT_DEFAULT) {
         MPR->exitStrategy = how;
@@ -141,7 +142,7 @@ void mprDestroy(int how)
     if (MPR->state < MPR_STOPPING) {
         mprTerminate(how);
     }
-    gmode = MPR_FORCE_GC | MPR_COMPLETE_GC | (how & MPR_EXIT_IMMEDIATE) ? 0 : MPR_WAIT_GC;
+    gmode = MPR_FORCE_GC | MPR_COMPLETE_GC | MPR_WAIT_GC;
     mprRequestGC(gmode);
 
     if (how == MPR_EXIT_GRACEFUL) {
@@ -156,13 +157,25 @@ void mprDestroy(int how)
     mprStopSignalService();
 
     /* Final GC to run all finalizers */
-    mprRequestGC(gmode);
-
-    mprStopThreadService();
     MPR->state = MPR_FINISHED;
+    mprRequestGC(gmode);
+    mprAssert(!MPR->marker);
+    mprStopThreadService();
+
+    /*
+        Must wait for the GC, ServiceEvents and worker threads to exit. Otherwise we have races when freeing memory.
+     */
+    mark = mprGetTime();
+    while (MPR->marker || MPR->eventing || mprGetListLength(MPR->workerService->busyThreads) > 0) {
+        if (mprGetRemainingTime(mark, MPR_TIMEOUT_STOP) <= 0) {
+            break;
+        }
+        mprSleep(10);
+    }
     mprStopOsService();
     mprDestroyMemService();
 }
+
 
 
 /*

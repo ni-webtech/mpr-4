@@ -1373,15 +1373,15 @@ static void marker(void *unused, MprThread *tp)
     tp->stickyYield = 1;
     tp->yielded = 1;
 
-    while (!mprIsStoppingCore()) {
+    while (!mprIsFinished()) {
         if (!heap->mustYield) {
             mprWaitForCond(heap->markerCond, -1);
         }
         MEASURE(7, "GC", "mark", mark());
     }
     heap->mustYield = 0;
-    mprResumeThreads();
     MPR->marker = 0;
+    mprResumeThreads();
 }
 
 
@@ -1456,7 +1456,7 @@ void mprYield(int flags)
     if (flags & MPR_YIELD_STICKY) {
         tp->stickyYield = 1;
     }
-    while (tp->yielded && MPR->marker && (heap->mustYield || (flags & MPR_YIELD_BLOCK))) {
+    while (tp->yielded && (heap->mustYield || (flags & MPR_YIELD_BLOCK)) && MPR->marker) {
         if (heap->flags & MPR_MARK_THREAD) {
             mprSignalCond(ts->cond);
         }
@@ -1482,9 +1482,9 @@ void mprResetYield()
     /* Flush yielded */
     mprAtomicBarrier();
     if (MPR->marking) {
+        //  MOB - why?
         mprYield(0);
     }
-    mprAssert(!MPR->marking);
 }
 
 

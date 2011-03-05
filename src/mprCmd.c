@@ -227,10 +227,6 @@ static void resetCmd(MprCmd *cmd)
 
     if (cmd->pid && !(cmd->flags & MPR_CMD_DETACH)) {
         mprStopCmd(cmd, -1);
-#if UNUSED
-        //  MOB - can't wait from manage
-        mprWaitForCmd(cmd, MPR_TIMEOUT_STOP_TASK);
-#endif
         reapCmd(cmd);
         cmd->pid = 0;
     }
@@ -713,16 +709,6 @@ static void reapCmd(MprCmd *cmd)
     rc = 0;
 #endif
 #if BLD_WIN_LIKE
-#if UNUSED
-    //  MOB - should not need to do this again
-    if ((rc = WaitForSingleObject(cmd->process, 10)) != WAIT_OBJECT_0) {
-        if (rc == WAIT_TIMEOUT) {
-            return;
-        }
-        mprLog(6, "cmd: WaitForSingleObject no child to reap rc %d, %d", rc, GetLastError());
-        return;
-    }
-#endif
     if (GetExitCodeProcess(cmd->process, (ulong*) &status) == 0) {
         mprLog(3, "cmd: GetExitProcess error");
         return;

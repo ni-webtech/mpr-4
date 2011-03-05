@@ -27,6 +27,16 @@ void mprBreakpoint()
         /*  __asm__ __volatile__ ("int $03"); */
     #endif
 #endif
+#if DEBUG_PAUSE
+    {
+        static int  paused = 1;
+        int         i;
+        printf("Paused to permit debugger to attach - will awake in 2 minutes\n");
+        for (i = 0; i < 120 && paused; i++) {
+            mprSleep(1000);
+        }
+    }
+#endif
 }
 
 

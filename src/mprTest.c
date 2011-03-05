@@ -507,9 +507,6 @@ static void manageTestGroup(MprTestGroup *gp, int flags)
         mprMark(gp->root);
         mprMark(gp->groups);
         mprMark(gp->cases);
-#if UNUSED
-        mprMark(gp->def);
-#endif
         mprMark(gp->http);
         mprMark(gp->conn);
         mprMark(gp->content);

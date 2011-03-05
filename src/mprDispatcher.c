@@ -129,9 +129,6 @@ void mprDestroyDispatcher(MprDispatcher *dispatcher)
                 mprRemoveEvent(event);
             }
         }
-#if UNUSED
-        dispatcher->service = 0;
-#endif
         unlock(es);
     }
 }
