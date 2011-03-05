@@ -88,16 +88,15 @@ static void testBasicIO(MprTestGroup *gp)
     rc = mprGetPathInfo(ts->name, &info);
     assert(rc == 0);
 
+#if BLD_WIN_LIKE
     /*
-        MOB TODO windows seems to delay setting this
+        On windows, the size reflects the size on disk and is not updated until actually save to disk.
      */
-    if (info.size != 6) {
-        mprSleep(2000);
-        rc = mprGetPathInfo(ts->name, &info);
-    }
+#else
     assert(info.size == 6);
     assert(!info.isDir);
     assert(info.isReg);
+#endif
     
     file = mprOpenFile(ts->name, O_RDWR, FILEMODE);
     assert(file != 0);
