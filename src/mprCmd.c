@@ -1273,7 +1273,6 @@ static int makeChannel(MprCmd *cmd, int index)
     }
     nonBlock = 1;
     ioctl(file->fd, FIONBIO, (int) &nonBlock);
-#else
     return 0;
 }
 #endif
