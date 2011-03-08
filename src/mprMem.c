@@ -160,6 +160,7 @@ static MprMem   headBlock, *head;
 /***************************** Forward Declarations ***************************/
 
 static void allocException(ssize size, bool granted);
+static void checkYielded();
 static void dummyManager(void *ptr, int flags);
 static void *getNextRoot();
 static void getSystemInfo();
@@ -346,6 +347,8 @@ void *mprAllocBlock(ssize usize, int flags)
     void        *ptr;
     ssize       size;
     int         padWords;
+
+    mprAssert(!MPR->marking);
 
     padWords = padding[flags & MPR_ALLOC_PAD_MASK];
     size = usize + sizeof(MprMem) + (padWords * sizeof(void*));
@@ -1130,11 +1133,12 @@ static void mark()
     }
     nextGen();
 #endif
+    MPR->marking = 1;
     heap->priorNewCount = heap->newCount;
     heap->priorFree = heap->stats.bytesFree;
     heap->newCount = 0;
     heap->gc = 0;
-    MPR->marking = 1;
+    checkYielded();
     markRoots();
     MPR->marking = 0;
     if (!heap->hasSweeper) {
@@ -1278,6 +1282,7 @@ static void markRoots()
 
     heap->rootIndex = 0;
     while ((root = getNextRoot()) != 0) {
+        checkYielded();
         mprMark(root);
     }
     heap->rootIndex = -1;
@@ -1369,6 +1374,7 @@ void mprRelease(void *ptr)
 static void marker(void *unused, MprThread *tp)
 {
     LOG(5, "DEBUG: marker thread started");
+    //  MOB -- rename from marker to marking?
     MPR->marker = 1;
     tp->stickyYield = 1;
     tp->yielded = 1;
@@ -1456,6 +1462,7 @@ void mprYield(int flags)
     if (flags & MPR_YIELD_STICKY) {
         tp->stickyYield = 1;
     }
+    mprAssert(tp->yielded);
     while (tp->yielded && (heap->mustYield || (flags & MPR_YIELD_BLOCK)) && MPR->marker) {
         if (heap->flags & MPR_MARK_THREAD) {
             mprSignalCond(ts->cond);
@@ -1477,14 +1484,9 @@ void mprResetYield()
 
     if ((tp = mprGetCurrentThread()) != 0) {
         tp->stickyYield = 0;
-        tp->yielded = 0;
     }
-    /* Flush yielded */
-    mprAtomicBarrier();
-    if (MPR->marking) {
-        //  MOB - why?
-        mprYield(0);
-    }
+    /* This ensures if marking, we will be not yielded on return */
+    mprYield(0);
 }
 
 
@@ -1538,6 +1540,9 @@ static int syncThreads()
 #if BLD_DEBUG
     LOG(7, "TIME: syncThreads elapsed %,d msec, %,d ticks", mprGetElapsedTime(mark), mprGetTicks() - ticks);
 #endif
+    if (allYielded) {
+        checkYielded();
+    }
     return (allYielded) ? 1 : 0;
 }
 
@@ -2322,6 +2327,22 @@ static void showMem(MprMem *mp)
 }
 #endif
 
+
+//  MOB - remove
+static void checkYielded()
+{
+    MprThreadService    *ts;
+    MprThread           *tp;
+    int                 i;
+
+    ts = MPR->threadService;
+    mprLock(ts->mutex);
+    for (i = 0; i < ts->threads->length; i++) {
+        tp = (MprThread*) mprGetItem(ts->threads, i);
+        mprAssert(tp->yielded);
+    }
+    mprUnlock(ts->mutex);
+}
 
 /*
     @copy   default

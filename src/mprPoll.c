@@ -221,8 +221,8 @@ void mprWaitForIO(MprWaitService *ws, MprTime timeout)
         return;
     }
     unlock(ws);
-    mprYield(MPR_YIELD_STICKY);
 
+    mprYield(MPR_YIELD_STICKY);
     rc = poll(ws->pollFds, count, timeout);
     mprResetYield();
 

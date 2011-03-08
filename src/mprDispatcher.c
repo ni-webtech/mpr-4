@@ -319,13 +319,13 @@ int mprWaitForEvent(MprDispatcher *dispatcher, MprTime timeout)
         
         mprYield(MPR_YIELD_STICKY);
         if (mprWaitForCond(dispatcher->cond, (int) delay) == 0) {
+            mprResetYield();
             signalled++;
             dispatcher->waitingOnCond = 0;
-            mprResetYield();
             break;
         }
-        dispatcher->waitingOnCond = 0;
         mprResetYield();
+        dispatcher->waitingOnCond = 0;
         es->now = mprGetTime();
     }
 
@@ -380,6 +380,10 @@ int mprDispatchersAreIdle()
  */
 void mprRelayEvent(MprDispatcher *dispatcher, void *proc, void *data, MprEvent *event)
 {
+#if BLD_DEBUG
+    MprThread   *tp = mprGetCurrentThread();
+    mprNop(tp);
+#endif
     mprAssert(!isRunning(dispatcher));
     mprAssert(dispatcher->owner == 0);
     mprAssert(dispatcher->magic == MPR_DISPATCHER_MAGIC);

@@ -231,10 +231,11 @@ void mprWaitForIO(MprWaitService *ws, MprTime timeout)
     ws->stableWriteMask = ws->writeMask;
     maxfd = ws->highestFd + 1;
     unlock(ws);
-    mprYield(MPR_YIELD_STICKY);
 
+    mprYield(MPR_YIELD_STICKY);
     rc = select(maxfd, &ws->stableReadMask, &ws->stableWriteMask, NULL, &tval);
     mprResetYield();
+
     if (rc > 0) {
         serviceIO(ws, maxfd);
     }
