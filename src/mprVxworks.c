@@ -103,7 +103,7 @@ int mprUnloadNativeModule(MprModule *mp)
 }
 
 
-void mprSleep(int milliseconds)
+void mprSleep(MprTime milliseconds)
 {
     struct timespec timeout;
     int             rc;
