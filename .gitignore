@@ -65,3 +65,4 @@ projects/WIN/mpr-dynamic/ipch
 .testFile.tmp*
 *.stackdump
 *.cltmp
+.embedthis
