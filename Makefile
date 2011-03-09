@@ -18,9 +18,6 @@ include		build/make/Makefile.mpr
 diff import sync:
 	$(BLD_TOOLS_DIR)/import.sh --$@ ../tools/out/releases/tools-dist.tgz
 
-compileFinal:
-	make dist
-
 #
 #   Local variables:
 #   tab-width: 4
