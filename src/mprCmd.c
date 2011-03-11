@@ -724,8 +724,13 @@ static void reapCmd(MprCmd *cmd)
         cmd->pid = 0;
     }
 #endif
-    if (cmd->pid == 0 && cmd->eofCount >= cmd->requiredEof) {
-        cmd->complete = 1;
+    if (cmd->pid == 0) {
+        if (cmd->eofCount >= cmd->requiredEof) {
+            cmd->complete = 1;
+        }
+        if (cmd->callback) {
+            (cmd->callback)(cmd, -1, cmd->callbackData);
+        }
     }
     mprLog(6, "Cmd reaped: status %d, pid %d, eof %d / %d\n", cmd->status, cmd->pid, cmd->eofCount, cmd->requiredEof);
 }
@@ -755,6 +760,9 @@ static void cmdCallback(MprCmd *cmd, int channel, void *data)
     case MPR_CMD_STDERR:
         buf = cmd->stderrBuf;
         break;
+    default:
+        /* Child death notification */
+        return;
     }
     /*
         Read and aggregate the result into a single string
