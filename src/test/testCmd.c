@@ -92,13 +92,15 @@ static void withDataCallback(MprCmd *cmd, int channel, void *data)
     buf = tc->buf;
     assert(buf != NULL);
     
-    if (channel == MPR_CMD_STDIN) {
-        ;
-    } else if (channel == MPR_CMD_STDERR) {
+    switch (channel) {
+    case MPR_CMD_STDIN:
+        break;
+
+    case MPR_CMD_STDERR:
         mprCloseCmdFd(cmd, channel);
-        return;
+        break;
     
-    } else {    
+    case MPR_CMD_STDOUT:
         space = mprGetBufSpace(buf);
         if (space < (MPR_BUFSIZE / 4)) {
             if (mprGrowBuf(buf, MPR_BUFSIZE) < 0) {
@@ -114,18 +116,6 @@ static void withDataCallback(MprCmd *cmd, int channel, void *data)
             mprLog(5, "Read %d (errno %d) from %s", len, status, (channel == MPR_CMD_STDOUT) ? "stdout" : "stderr");
             if (len == 0 || (len < 0 && !(status == EAGAIN || status == EWOULDBLOCK))) {
                 mprCloseCmdFd(cmd, channel);
-#if UNUSED
-                if (channel == MPR_CMD_STDOUT && cmd->flags & MPR_CMD_ERR) {
-                    /*
-                        Now that stdout is complete, enable stderr to receive an EOF or any error output.
-                        This is serialized to eliminate both stdin and stdout events on different threads at the same time.
-                     */
-                    if (cmd->handlers[MPR_CMD_STDERR]) {
-                        mprEnableCmdEvents(cmd, MPR_CMD_STDERR);
-                        // mprLog(0, "Enable stderr");
-                    }
-                }
-#endif
             } else {
                 mprEnableCmdEvents(cmd, channel);
             }
@@ -136,6 +126,11 @@ static void withDataCallback(MprCmd *cmd, int channel, void *data)
             mprAddNullToBuf(buf);
             mprEnableCmdEvents(cmd, channel);
         }
+        break;
+
+    default:
+        /* Child death notification */
+        break;
     }
 }
 
@@ -204,10 +199,9 @@ static void testWithData(MprTestGroup *gp)
             break;
         }
     }
-    mprCloseCmdFd(tc->cmd, MPR_CMD_STDIN);
+    mprFinalizeCmd(tc->cmd);
+
     assert(mprWaitForCmd(tc->cmd, MPR_TEST_SLEEP) == 0);
-    // mprLog(0, "Eof count %d, requiredEof %d, dispatcher len %d", tc->cmd->eofCount, tc->cmd->requiredEof,
-    //     mprGetEventCount(tc->cmd->dispatcher));
 
     /*
         Now analyse returned data
