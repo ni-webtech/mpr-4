@@ -38,8 +38,8 @@ static void cmdTaskEntry(char *program, MprCmdTaskFn entry, int cmdArg);
     Cygwin process creation is not thread-safe (1.7)
  */
 #if CYGWIN
-#define slock(cmd) mprLock(MPR->cmdService)
-#define sunlock(cmd) mprUnlock(MPR->cmdService)
+#define slock(cmd) mprLock(MPR->cmdService->mutex)
+#define sunlock(cmd) mprUnlock(MPR->cmdService->mutex)
 #else
 #define slock(cmd) 
 #define sunlock(cmd) 
