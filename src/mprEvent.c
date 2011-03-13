@@ -169,10 +169,10 @@ void mprRemoveEvent(MprEvent *event)
         if (event->next) {
             dequeueEvent(event);
         }
-        event->dispatcher = 0;
         if (dispatcher->enabled && event->due == es->willAwake && dispatcher->eventQ->next != dispatcher->eventQ) {
             mprScheduleDispatcher(dispatcher);
         }
+        event->dispatcher = 0;
         unlock(es);
     }
 }
