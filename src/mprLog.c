@@ -191,6 +191,19 @@ int mprGetLogLevel()
 }
 
 
+MprLogHandler mprGetLogHandler()
+{
+    return MPR->logHandler;
+}
+
+
+void mprSetLogHandler(MprLogHandler handler, void *handlerData)
+{
+    MPR->logHandler = handler;
+    MPR->logData = handlerData;
+}
+
+
 void mprSetLogLevel(int level)
 {
     MPR->logLevel = level;

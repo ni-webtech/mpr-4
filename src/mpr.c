@@ -580,19 +580,6 @@ void mprSetDebugMode(bool on)
 }
 
 
-void mprSetLogHandler(MprLogHandler handler, void *handlerData)
-{
-    MPR->logHandler = handler;
-    MPR->logData = handlerData;
-}
-
-
-MprLogHandler mprGetLogHandler()
-{
-    return MPR->logHandler;
-}
-
-
 MprDispatcher *mprGetDispatcher()
 {
     return MPR->dispatcher;

@@ -31,6 +31,9 @@ SSL_OBJECTS		+= $(patsubst %.c,$(BLD_OBJ_DIR)/%$(BLD_OBJ),$(notdir $(SSL_SOURCES
 DEP_OBJECTS		+= $(BLD_OBJ_DIR)/dtoa$(BLD_OBJ)
 SYSLIBS			+= shell32.lib
 
+compileFirst:
+	$(call log) [Notice] "Building For Target"
+
 #
 #	Build the targets in this directory first then the builtin packages (ssl and regexp)
 #
