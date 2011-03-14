@@ -1457,7 +1457,9 @@ void mprYield(int flags)
     ts = MPR->threadService;
     tp = mprGetCurrentThread();
 
-    LOG(7, "mprYield thread \"%s\" yielded was %d, block %d", tp->name, tp->yielded, flags & MPR_YIELD_BLOCK);
+    /*
+        Must not call mprLog or derviatives here as it will allocate memory and assert
+     */
     tp->yielded = 1;
     if (flags & MPR_YIELD_STICKY) {
         tp->stickyYield = 1;
@@ -1467,7 +1469,6 @@ void mprYield(int flags)
         if (heap->flags & MPR_MARK_THREAD) {
             mprSignalCond(ts->cond);
         }
-        LOG(7, "mprYieldThread thread \"%s\" must wait", tp->name);
         mprWaitForCond(tp->cond, -1);
         flags &= ~MPR_YIELD_BLOCK;
     }

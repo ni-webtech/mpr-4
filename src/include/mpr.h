@@ -7588,3 +7588,8 @@ typedef struct MprTestFailure {
 
     @end
  */
+
+#if MOB
+extern int closex(int fd);
+#define close(fd) closex(fd)
+#endif
