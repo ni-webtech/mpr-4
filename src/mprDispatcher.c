@@ -259,7 +259,6 @@ int mprServiceEvents(MprTime timeout, int flags)
             break;
         }
     }
-
     MPR->eventing = 0;
     return abs(es->eventCount - beginEventCount);
 }
@@ -517,9 +516,6 @@ static void serviceDispatcher(MprDispatcher *dispatcher)
 }
 
 
-/*
-    Service a single dispatcher
- */
 static void serviceDispatcherMain(MprDispatcher *dispatcher)
 {
     mprAssert(isRunning(dispatcher));
@@ -529,6 +525,13 @@ static void serviceDispatcherMain(MprDispatcher *dispatcher)
     dispatchEvents(dispatcher);
     dispatcher->owner = 0;
     scheduleDispatcher(dispatcher);
+}
+
+
+void mprClaimDispatcher(MprDispatcher *dispatcher)
+{
+    mprAssert(isRunning(dispatcher));
+    dispatcher->owner = mprGetCurrentOsThread();
 }
 
 

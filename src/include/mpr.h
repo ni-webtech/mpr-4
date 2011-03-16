@@ -5329,6 +5329,7 @@ extern MprEvent *mprCreateTimerEvent(MprDispatcher *dispatcher, cchar *name, int
 extern void mprRescheduleEvent(MprEvent *event, int period);
 
 /* Internal API */
+extern void mprClaimDispatcher(MprDispatcher *dispatcher);
 extern void mprRelayEvent(MprDispatcher *dispatcher, void *proc, void *data, MprEvent *event);
 extern MprEventService *mprCreateEventService();
 extern void mprStopEventService();
