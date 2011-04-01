@@ -31,13 +31,16 @@ MprChar *mcontains(MprChar *str, cchar *pattern, ssize limit)
 
     mprAssert(0 <= limit && limit < MAXSSIZE);
 
+    if (limit < 0) {
+        limit = MAXINT;
+    }
     if (str == 0) {
         return 0;
     }
     if (pattern == 0 || *pattern == '\0') {
         return (MprChar*) str;
     }
-    for (cp = str; *cp; cp++) {
+    for (cp = str; *cp && limit > 0; cp++, limit--) {
         s1 = cp;
         s2 = pattern;
         for (lim = limit; *s1 && *s2 && (*s1 == (uchar) *s2) && lim > 0; lim--) {

@@ -119,18 +119,16 @@ MprChar *wcontains(MprChar *str, MprChar *pattern, ssize limit)
 
     mprAssert(0 <= limit && limit < MAXINT);
 
-#if UNUSED
     if (limit < 0) {
         limit = MAXINT;
     }
-#endif
     if (str == 0) {
         return 0;
     }
     if (pattern == 0 || *pattern == '\0') {
         return str;
     }
-    for (cp = str; *cp; cp++) {
+    for (cp = str; *cp && limit > 0; cp++, limit--) {
         s1 = cp;
         s2 = pattern;
         for (lim = limit; *s1 && *s2 && (*s1 == *s2) && lim > 0; lim--) {
