@@ -1889,6 +1889,12 @@ void *mprSetName(void *ptr, cchar *name)
 }
 
 
+void *mprCopyName(void *dest, void *src) 
+{
+    return mprSetName(dest, mprGetName(src));
+}
+
+
 #else
 void mprCheckBlock(MprMem *mp) {}
 #undef mprSetName
