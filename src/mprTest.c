@@ -944,7 +944,7 @@ static void logHandler(int flags, int level, cchar *msg)
     MprFile     *file;
     char        *prefix;
 
-    file = (MprFile*) MPR->logData;
+    file = MPR->logFile;
     prefix = MPR->name;
 
     while (*msg == '\n') {
@@ -992,7 +992,8 @@ static int setLogging(char *logSpec)
         }
     }
     mprSetLogLevel(level);
-    mprSetLogHandler(logHandler, (void*) file);
+    mprSetLogHandler(logHandler);
+    mprSetLogFile(file);
     return 0;
 }
 

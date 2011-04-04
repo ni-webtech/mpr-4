@@ -33,7 +33,6 @@ Mpr *mprCreate(int argc, char **argv, int flags)
     }
     getArgs(mpr, argc, argv);
     mpr->exitStrategy = MPR_EXIT_NORMAL;
-    mpr->logFd = -1;
     mpr->emptyString = sclone("");
     mpr->title = sclone(BLD_NAME);
     mpr->version = sclone(BLD_VERSION);
@@ -85,8 +84,7 @@ Mpr *mprCreate(int argc, char **argv, int flags)
 static void manageMpr(Mpr *mpr, int flags)
 {
     if (flags & MPR_MANAGE_MARK) {
-        mprMark(mpr->logData);
-        mprMark(mpr->altLogData);
+        mprMark(mpr->logFile);
         mprMark(mpr->mimeTypes);
         mprMark(mpr->timeTokens);
         mprMark(mpr->name);

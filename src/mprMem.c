@@ -1331,7 +1331,10 @@ void mprMarkBlock(cvoid *ptr)
         SET_FIELD2(mp, GET_SIZE(mp), gen, heap->active, 0);
         if (HAS_MANAGER(mp)) {
 #if BLD_DEBUG
-            if (++depth > 200) mprBreakpoint();
+            if (++depth > 200) {
+                fprintf(stderr, "WARNING: marking depth exceeds 200\n");
+                mprBreakpoint();
+            }
 #endif
             (GET_MANAGER(mp))((void*) ptr, MPR_MANAGE_MARK);
 #if BLD_DEBUG

@@ -175,9 +175,7 @@ int mprGetLogLevel()
 {
     Mpr     *mpr;
 
-    /*
-        Leave the code like this so debuggers can patch logLevel before returning.
-     */
+    /* Leave the code like this so debuggers can patch logLevel before returning */
     mpr = MPR;
     return mpr->logLevel;
 }
@@ -189,22 +187,27 @@ MprLogHandler mprGetLogHandler()
 }
 
 
-void mprSetLogHandler(MprLogHandler handler, void *handlerData)
+MprFile *mprGetLogFile()
+{
+    return MPR->logFile;
+}
+
+
+void mprSetLogHandler(MprLogHandler handler)
 {
     MPR->logHandler = handler;
-    MPR->logData = handlerData;
+}
+
+
+void mprSetLogFile(MprFile *file)
+{
+    MPR->logFile = file;
 }
 
 
 void mprSetLogLevel(int level)
 {
     MPR->logLevel = level;
-}
-
-
-void mprSetAltLogData(void *data)
-{
-    MPR->altLogData = data;
 }
 
 
@@ -269,18 +272,6 @@ int mprGetOsError()
 #else
     return 0;
 #endif
-}
-
-
-int mprGetLogFd()
-{
-    return MPR->logFd;
-}
-
-
-void mprSetLogFd(int fd)
-{
-    MPR->logFd = fd;
 }
 
 

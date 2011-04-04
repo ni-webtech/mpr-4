@@ -147,9 +147,11 @@ static void manageDispatcher(MprDispatcher *dispatcher, int flags)
         mprMark(dispatcher->name);
         mprMark(dispatcher->eventQ);
         mprMark(dispatcher->cond);
+#if UNUSED
         mprMark(dispatcher->next);
         mprMark(dispatcher->prev);
         mprMark(dispatcher->parent);
+#endif
         mprMark(dispatcher->service);
         mprMark(dispatcher->requiredWorker);
 
