@@ -8,10 +8,11 @@ include		.makedep
 
 PRE_DIRS	+= api product
 
-doc: 
-	make -C api doc
+gen: 
+	touch api/Makefile 
+	make -C api gen
 
-patchFuture:
+patch:
 	@echo -e "\n  # Perform DSI patching\n"
 	cp dsi/banner.html /tmp/dsi$$.tmp 
 	sed -e "s^TITLE-->.*^TITLE-->$(BLD_NAME) Preview $(BLD_VERSION)^g;" < /tmp/dsi$$.tmp > dsi/banner.html

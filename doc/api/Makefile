@@ -6,13 +6,13 @@
 
 include		.makedep
 
-doc: prep mpr.html
+gen: prep mpr.html
 
 prep:
 	rm -f mpr.html
 
 mpr.html: Makefile
-	make -C mpr doc
+	make -C mpr gen
 
 tidy:
 	tidy -q -config tidy.conf mpr.html

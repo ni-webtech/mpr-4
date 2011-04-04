@@ -184,6 +184,7 @@ TAB_SIZE               = 4
 ALIASES                = "reminder=\xrefitem reminders \"Reminder\" \"Reminders\"" \
                          "overview=\par \b Overview:\n" \
                          "scope=\par \b Scope:\n" \
+                         "hide=@internal\n" \
                          "library=\par \b Library:\n" \
                          "options=\par \b Configure options:\n" \
                          "description=\par \b Description:\n" \
@@ -574,7 +575,7 @@ WARN_LOGFILE           =
 # directories like "/usr/src/myproject". Separate the files or directories 
 # with spaces.
 
-INPUT                  = ../../../out/staging/mpr.h
+INPUT                  = ./staging/src/deps/mpr/mpr.h
 
 # This tag can be used to specify the character encoding of the source files 
 # that doxygen parses. Internally doxygen uses the UTF-8 encoding, which is 
@@ -1258,24 +1259,16 @@ INCLUDE_FILE_PATTERNS  =
 
 PREDEFINED             = WIN=1 \
 						 LINUX=1 \
-						 BREW=1 \
                          BLD_UNIX_LIKE=1 \
                          BLD_WIN_LIKE=1 \
                          BLD_FEATURE_ASSERT=1 \
-                         BLD_FEATURE_ALLOC_STATS=1 \
                          BLD_FEATURE_FLOATING_POINT=1 \
                          BLD_FEATURE_INT64=1 \
                          BLD_FEATURE_LEGACY_API=1 \
-                         BLD_FEATURE_SAFE_STRINGS=1 \
                          BLD_FEATURE_TEST=1 \
                          BLD_FEATURE_ROMFS=1 \
                          BLD_FEATURE_CMD=1 \
-                         BLD_FEATURE_HTTP=1 \
-                         BLD_FEATURE_HTTP_CLIENT=1 \
-                         BLD_FEATURE_REGEXP=1 \
-                         BLD_FEATURE_POLL=1 \
                          BLD_FEATURE_SSL=1 \
-                         BLD_FEATURE_XML=1 \
                          BLD_FEATURE_OPENSSL=1 \
                          BLD_FEATURE_MATRIXSSL=1 \
                          DOXYGEN=1
