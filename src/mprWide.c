@@ -303,8 +303,6 @@ MprChar *wjoin(MprChar *str, ...)
     MprChar     *result;
     va_list     ap;
 
-    mprAssert(str);
-
     va_start(ap, str);
     result = wrejoinv(NULL, str, ap);
     va_end(ap);
@@ -317,8 +315,6 @@ MprChar *wjoinv(MprChar *buf, va_list args)
     va_list     ap;
     MprChar     *dest, *str, *dp, nullBuf[1];
     int         required, len, blen;
-
-    mprAssert(buf);
 
     va_copy(ap, args);
     required = 1;
