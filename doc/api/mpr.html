@@ -158,21 +158,6 @@
 <td class="apiType"><a href="#mpr_8h_1a7d08ccc1e981eb4d5a238641ac4ccfc1" class="ref">ssize</a></td><td><a href="#mpr_8h_1ae16e7d6d4e162a0a4bd120999994f908" class="nameRef">mprFprintf</a>(struct MprFile *file,  cchar *fmt, ...)</td></tr>
 <tr class="apiBrief"><td>&nbsp;</td><td>Print a formatted message to a file descriptor.</td></tr>
 <tr class="apiDef">
-<td class="apiType">char*</td><td><a href="#mpr_8h_1a3dfd4398a5607868c1110b47eebaea61" class="nameRef">mprGetAppDir</a>()</td></tr>
-<tr class="apiBrief"><td>&nbsp;</td><td>Get the application directory.</td></tr>
-<tr class="apiDef">
-<td class="apiType"><a href="#mpr_8h_1a0f128c3e0c83721af0220c00554e9c4e" class="ref">cchar*</a></td><td><a href="#mpr_8h_1a5a96ecb8e54ab11f8772110f257154c8" class="nameRef">mprGetAppName</a>()</td></tr>
-<tr class="apiBrief"><td>&nbsp;</td><td>Get the application name defined via mprSetAppName.</td></tr>
-<tr class="apiDef">
-<td class="apiType">char*</td><td><a href="#mpr_8h_1abfbea308cbe0f4db570bcc26e4f62815" class="nameRef">mprGetAppPath</a>()</td></tr>
-<tr class="apiBrief"><td>&nbsp;</td><td>Get the application executable path.</td></tr>
-<tr class="apiDef">
-<td class="apiType"><a href="#mpr_8h_1a0f128c3e0c83721af0220c00554e9c4e" class="ref">cchar*</a></td><td><a href="#mpr_8h_1a8560f36dc46bc8e8f63adb10ba38595a" class="nameRef">mprGetAppTitle</a>()</td></tr>
-<tr class="apiBrief"><td>&nbsp;</td><td>Get the application title string.</td></tr>
-<tr class="apiDef">
-<td class="apiType"><a href="#mpr_8h_1a0f128c3e0c83721af0220c00554e9c4e" class="ref">cchar*</a></td><td><a href="#mpr_8h_1a93175ba8542800e4ddfac2d1499b69f4" class="nameRef">mprGetAppVersion</a>()</td></tr>
-<tr class="apiBrief"><td>&nbsp;</td><td>Get the application version string.</td></tr>
-<tr class="apiDef">
 <td class="apiType">char*</td><td><a href="#mpr_8h_1a368d0fe452a2d7216b32dda604e05891" class="nameRef">mprGetCurrentPath</a>()</td></tr>
 <tr class="apiBrief"><td>&nbsp;</td><td>Return the current working directory.</td></tr>
 <tr class="apiDef">
@@ -182,32 +167,14 @@
 <td class="apiType"><a href="#struct_mpr_dispatcher" class="ref">MprDispatcher*</a></td><td><a href="#mpr_8h_1a2122781b6db047e3e00f4914f085a337" class="nameRef">mprGetDispatcher</a>()</td></tr>
 <tr class="apiBrief"><td>&nbsp;</td><td>Get the MPR primary dispatcher.</td></tr>
 <tr class="apiDef">
-<td class="apiType"><a href="#mpr_8h_1a0f128c3e0c83721af0220c00554e9c4e" class="ref">cchar*</a></td><td><a href="#mpr_8h_1a9d261e899187c6fd8245e7baae0c7b11" class="nameRef">mprGetDomainName</a>()</td></tr>
-<tr class="apiBrief"><td>&nbsp;</td><td>Get the application domain name string.</td></tr>
-<tr class="apiDef">
 <td class="apiType"><a href="#group___mpr_time" class="ref">MprTime</a></td><td><a href="#mpr_8h_1a56c79ce10b54876dc9488694039a3ea9" class="nameRef">mprGetElapsedTime</a>(<a href="#group___mpr_time" class="ref">MprTime</a> mark)</td></tr>
 <tr class="apiBrief"><td>&nbsp;</td><td>Get the elapsed time since a time mark.</td></tr>
-<tr class="apiDef">
-<td class="apiType">int</td><td><a href="#mpr_8h_1a9d297bffc1b4168def6ca8664a3c5021" class="nameRef">mprGetEndian</a>()</td></tr>
-<tr class="apiBrief"><td>&nbsp;</td><td>Return the endian byte ordering for the application.</td></tr>
 <tr class="apiDef">
 <td class="apiType"><a href="#mpr_8h_1a0f128c3e0c83721af0220c00554e9c4e" class="ref">cchar*</a></td><td><a href="#mpr_8h_1a147053f0fdde33d5995c0e7e6413c1bd" class="nameRef">mprGetFirstPathSeparator</a>(<a href="#mpr_8h_1a0f128c3e0c83721af0220c00554e9c4e" class="ref">cchar</a> *path)</td></tr>
 <tr class="apiBrief"><td>&nbsp;</td><td>Get the first path separator in a path.</td></tr>
 <tr class="apiDef">
-<td class="apiType"><a href="#mpr_8h_1a0f128c3e0c83721af0220c00554e9c4e" class="ref">cchar*</a></td><td><a href="#mpr_8h_1a3d02e4f6ba5b6db9581ced2d9998bfb7" class="nameRef">mprGetHostName</a>()</td></tr>
-<tr class="apiBrief"><td>&nbsp;</td><td>Get the application host name string.</td></tr>
-<tr class="apiDef">
-<td class="apiType"><a href="#mpr_8h_1a0f128c3e0c83721af0220c00554e9c4e" class="ref">cchar*</a></td><td><a href="#mpr_8h_1af619a8ca734f025bb96b25b4a46e4c6a" class="nameRef">mprGetIpAddr</a>()</td></tr>
-<tr class="apiBrief"><td>&nbsp;</td><td>Get the application IP address string.</td></tr>
-<tr class="apiDef">
-<td class="apiType">int</td><td><a href="#mpr_8h_1a00ebec5e256f0540f9806ba4bae45a55" class="nameRef">mprGetLogLevel</a>()</td></tr>
-<tr class="apiBrief"><td>&nbsp;</td><td>Get the current logging level.</td></tr>
-<tr class="apiDef">
 <td class="apiType">char*</td><td><a href="#mpr_8h_1a279db185f033f53e8b105d3096636eae" class="nameRef">mprGetMD5Hash</a>(<a href="#mpr_8h_1a0f128c3e0c83721af0220c00554e9c4e" class="ref">cchar</a> *buf,  ssize len,  cchar *prefix)</td></tr>
 <tr class="apiBrief"><td>&nbsp;</td><td>Get an MD5 checksum.</td></tr>
-<tr class="apiDef">
-<td class="apiType"><a href="#mpr_8h_1a0f128c3e0c83721af0220c00554e9c4e" class="ref">cchar*</a></td><td><a href="#mpr_8h_1ae159a5aef748a3f62cd1acd541cf3d31" class="nameRef">mprGetServerName</a>()</td></tr>
-<tr class="apiBrief"><td>&nbsp;</td><td>Get the application server name string.</td></tr>
 <tr class="apiDef">
 <td class="apiType"><a href="#group___mpr_file" class="ref">MprFile*</a></td><td><a href="#mpr_8h_1a0fabdee56522d116443f8c794550ee64" class="nameRef">mprGetStderr</a>()</td></tr>
 <tr class="apiBrief"><td>&nbsp;</td><td>Return a file object for the Stderr I/O channel.</td></tr>
@@ -227,20 +194,8 @@
 <td class="apiType">int</td><td><a href="#mpr_8h_1a0e3cba3831d0ed35961fbd7ebd97f446" class="nameRef">mprIsDead</a>(<a href="#mpr_8h_1a5272042f7e0f5c53e2fd4b49ff47d92d" class="ref">cvoid</a> *ptr)</td></tr>
 <tr class="apiBrief"><td>&nbsp;</td><td>Test if a memory block is unreferenced by the last garbage collection sweep.</td></tr>
 <tr class="apiDef">
-<td class="apiType"><a href="#mpr_8h_1a1062901a7428fdd9c7f180f5e01ea056" class="ref">bool</a></td><td><a href="#mpr_8h_1adb9752464abb66fba198cb816fafde88" class="nameRef">mprIsFinished</a>()</td></tr>
-<tr class="apiBrief"><td>&nbsp;</td><td>Determine if the MPR has finished.</td></tr>
-<tr class="apiDef">
-<td class="apiType"><a href="#mpr_8h_1a1062901a7428fdd9c7f180f5e01ea056" class="ref">bool</a></td><td><a href="#mpr_8h_1aead57cafdee5b1206e4a4f3b0468fb99" class="nameRef">mprIsIdle</a>()</td></tr>
-<tr class="apiBrief"><td>&nbsp;</td><td>Determine if the App is idle.</td></tr>
-<tr class="apiDef">
 <td class="apiType"><a href="#mpr_8h_1a1062901a7428fdd9c7f180f5e01ea056" class="ref">bool</a></td><td><a href="#mpr_8h_1a4328cbd16ad63b5ddcfa1db28192a53c" class="nameRef">mprIsPathSeparator</a>(<a href="#mpr_8h_1a0f128c3e0c83721af0220c00554e9c4e" class="ref">cchar</a> *path,  cchar c)</td></tr>
 <tr class="apiBrief"><td>&nbsp;</td><td>Test if a character is a path separarator.</td></tr>
-<tr class="apiDef">
-<td class="apiType"><a href="#mpr_8h_1a1062901a7428fdd9c7f180f5e01ea056" class="ref">bool</a></td><td><a href="#mpr_8h_1ae20024a4d8b56242e293b3e5d54d9972" class="nameRef">mprIsStopping</a>()</td></tr>
-<tr class="apiBrief"><td>&nbsp;</td><td>Test if the application is stopping.</td></tr>
-<tr class="apiDef">
-<td class="apiType"><a href="#mpr_8h_1a1062901a7428fdd9c7f180f5e01ea056" class="ref">bool</a></td><td><a href="#mpr_8h_1a0246cb5dcc7c53e415885e1d8ac55320" class="nameRef">mprIsStoppingCore</a>()</td></tr>
-<tr class="apiBrief"><td>&nbsp;</td><td>Test if the application is stopping and core services are being terminated.</td></tr>
 <tr class="apiDef">
 <td class="apiType">int</td><td><a href="#mpr_8h_1a585388ae65782b535dcea572e65ed94b" class="nameRef">mprLoadNativeModule</a>(<a href="#group___mpr_module" class="ref">MprModule</a> *mp)</td></tr>
 <tr class="apiBrief"><td>&nbsp;</td><td>Load a native module.</td></tr>
@@ -287,35 +242,17 @@
 <td class="apiType">void</td><td><a href="#mpr_8h_1a3db47bdecb58c2c52197d625377cf71b" class="nameRef">mprResetCond</a>(<a href="#struct_mpr_cond" class="ref">MprCond</a> *cond)</td></tr>
 <tr class="apiBrief"><td>&nbsp;</td><td>Reset a condition variable.</td></tr>
 <tr class="apiDef">
+<td class="apiType">void</td><td><a href="#mpr_8h_1a126f6aef245167a628a6c0717369b0f7" class="nameRef">mprResetYield</a>()</td></tr>
+<tr class="apiBrief"><td>&nbsp;</td><td>Reset a sticky yield.</td></tr>
+<tr class="apiDef">
 <td class="apiType">void</td><td><a href="#mpr_8h_1aeb29b47d588fe576e574e18c27530560" class="nameRef">mprRevive</a>(<a href="#mpr_8h_1a5272042f7e0f5c53e2fd4b49ff47d92d" class="ref">cvoid</a> *ptr)</td></tr>
 <tr class="apiBrief"><td>&nbsp;</td><td>Revive a memory block scheduled for collection.</td></tr>
 <tr class="apiDef">
 <td class="apiType">char*</td><td><a href="#mpr_8h_1acc7d6e2764bf098dfc6265ee6cab1fab" class="nameRef">mprSearchForModule</a>(<a href="#mpr_8h_1a0f128c3e0c83721af0220c00554e9c4e" class="ref">cchar</a> *module)</td></tr>
 <tr class="apiBrief"><td>&nbsp;</td><td>Search for a module on the current module path.</td></tr>
 <tr class="apiDef">
-<td class="apiType"><a href="#mpr_8h_1a1062901a7428fdd9c7f180f5e01ea056" class="ref">bool</a></td><td><a href="#mpr_8h_1a40a197cef78eae1edc83d359cedb71e6" class="nameRef">mprServicesAreIdle</a>()</td></tr>
-<tr class="apiBrief"><td>&nbsp;</td><td>Determine if the MPR services.</td></tr>
-<tr class="apiDef">
-<td class="apiType">int</td><td><a href="#mpr_8h_1ad48220b7862b645de3920d74aa9b011e" class="nameRef">mprSetAppName</a>(<a href="#mpr_8h_1a0f128c3e0c83721af0220c00554e9c4e" class="ref">cchar</a> *name,  cchar *title,  cchar *version)</td></tr>
-<tr class="apiBrief"><td>&nbsp;</td><td>Set the application name, title and version.</td></tr>
-<tr class="apiDef">
-<td class="apiType">void</td><td><a href="#mpr_8h_1acb25fd80b4d560d2c347ae8a692de0f1" class="nameRef">mprSetDebugMode</a>(<a href="#mpr_8h_1a1062901a7428fdd9c7f180f5e01ea056" class="ref">bool</a> on)</td></tr>
-<tr class="apiBrief"><td>&nbsp;</td><td>Turn on debug mode.</td></tr>
-<tr class="apiDef">
-<td class="apiType">void</td><td><a href="#mpr_8h_1a9dbc9553237fd2af50c9cf7e19f3045a" class="nameRef">mprSetDomainName</a>(<a href="#mpr_8h_1a0f128c3e0c83721af0220c00554e9c4e" class="ref">cchar</a> *s)</td></tr>
-<tr class="apiBrief"><td>&nbsp;</td><td>Set the application domain name string.</td></tr>
-<tr class="apiDef">
 <td class="apiType">void</td><td><a href="#mpr_8h_1af5f1b738bf18cceaa2d8eafe346db7f1" class="nameRef">mprSetHashCase</a>(<a href="#struct_mpr_hash_table" class="ref">MprHashTable</a> *table,  int caseMatters)</td></tr>
 <tr class="apiBrief"><td>&nbsp;</td><td>Set the case comparision mechanism for a hash table.</td></tr>
-<tr class="apiDef">
-<td class="apiType">void</td><td><a href="#mpr_8h_1af61307049c58bbb253244babc9d5a6b1" class="nameRef">mprSetHostName</a>(<a href="#mpr_8h_1a0f128c3e0c83721af0220c00554e9c4e" class="ref">cchar</a> *s)</td></tr>
-<tr class="apiBrief"><td>&nbsp;</td><td>Set the application host name string.</td></tr>
-<tr class="apiDef">
-<td class="apiType"><a href="#mpr_8h_1af4113f22c0d3fa830415b1c1c2877b7d" class="ref">MprIdleCallback</a></td><td><a href="#mpr_8h_1a829517ad9c44a5a377f3d70928c6d9c2" class="nameRef">mprSetIdleCallback</a>(<a href="#mpr_8h_1af4113f22c0d3fa830415b1c1c2877b7d" class="ref">MprIdleCallback</a> idleCallback)</td></tr>
-<tr class="apiBrief"><td>&nbsp;</td><td>Define a new idle callback to be invoked by <a class="ref" href="#mpr_8h_1aead57cafdee5b1206e4a4f3b0468fb99">mprIsIdle()</a>.</td></tr>
-<tr class="apiDef">
-<td class="apiType">void</td><td><a href="#mpr_8h_1a1fa92eb8cb9bf4f023f4f60f57001abc" class="nameRef">mprSetIpAddr</a>(<a href="#mpr_8h_1a0f128c3e0c83721af0220c00554e9c4e" class="ref">cchar</a> *ip)</td></tr>
-<tr class="apiBrief"><td>&nbsp;</td><td>Sete the application IP address string.</td></tr>
 <tr class="apiDef">
 <td class="apiType">void</td><td><a href="#mpr_8h_1adbb663d5ed88e1b5f47032a244953b9c" class="nameRef">mprSetLogHandler</a>(<a href="#group___mpr_log_1ga95e033ad5fa41baa87cb3fefdb782951" class="ref">MprLogHandler</a> handler)</td></tr>
 <tr class="apiBrief"><td>&nbsp;</td><td>Set an MPR debug log handler.</td></tr>
@@ -335,23 +272,11 @@
 <td class="apiType">int</td><td><a href="#mpr_8h_1a8ad660a935382da195d08a5d5d63067c" class="nameRef">mprSetRomFileSystem</a>(<a href="#struct_mpr_rom_inode" class="ref">MprRomInode</a> *inodeList)</td></tr>
 <tr class="apiBrief"><td>&nbsp;</td><td>Set the ROM file system data.</td></tr>
 <tr class="apiDef">
-<td class="apiType">void</td><td><a href="#mpr_8h_1a4def6498567ad43a6da505d43bb119fc" class="nameRef">mprSetServerName</a>(<a href="#mpr_8h_1a0f128c3e0c83721af0220c00554e9c4e" class="ref">cchar</a> *s)</td></tr>
-<tr class="apiBrief"><td>&nbsp;</td><td>Set the application server name string.</td></tr>
-<tr class="apiDef">
 <td class="apiType">void</td><td><a href="#mpr_8h_1a27866b4c10d6e45ffd96604b221cf314" class="nameRef">mprSetSocketEof</a>(<a href="#group___mpr_socket" class="ref">MprSocket</a> *sp,  bool eof)</td></tr>
 <tr class="apiBrief"><td>&nbsp;</td><td>Set an EOF condition on the socket.</td></tr>
 <tr class="apiDef">
 <td class="apiType">void</td><td><a href="#mpr_8h_1ad7721cca919f57f9b85434e6435ef092" class="nameRef">mprSetWorkerStackSize</a>(int size)</td></tr>
 <tr class="apiBrief"><td>&nbsp;</td><td>Set the default worker stack size.</td></tr>
-<tr class="apiDef">
-<td class="apiType"><a href="#mpr_8h_1a1062901a7428fdd9c7f180f5e01ea056" class="ref">bool</a></td><td><a href="#mpr_8h_1a0206927d986cd9ca7c42f8c530de6000" class="nameRef">mprShouldAbortRequests</a>()</td></tr>
-<tr class="apiBrief"><td>&nbsp;</td><td>Test if requests should be aborted.</td></tr>
-<tr class="apiDef">
-<td class="apiType"><a href="#mpr_8h_1a1062901a7428fdd9c7f180f5e01ea056" class="ref">bool</a></td><td><a href="#mpr_8h_1aa8bdc374a789eed08f5b15c17a86559f" class="nameRef">mprShouldDenyNewRequests</a>()</td></tr>
-<tr class="apiBrief"><td>&nbsp;</td><td>Test if new requests should be denied.</td></tr>
-<tr class="apiDef">
-<td class="apiType">void</td><td><a href="#mpr_8h_1af8bae04622ff05416af04d1b06e68e55" class="nameRef">mprSleep</a>(<a href="#group___mpr_time" class="ref">MprTime</a> msec)</td></tr>
-<tr class="apiBrief"><td>&nbsp;</td><td>Sleep for a while.</td></tr>
 <tr class="apiDef">
 <td class="apiType">char*</td><td><a href="#mpr_8h_1a7f7048281c8d8e28b4a18ef304b884cb" class="nameRef">mprSprintf</a>(char *buf,  ssize maxSize,  cchar *fmt, ...)</td></tr>
 <tr class="apiBrief"><td>&nbsp;</td><td>Format a string into a statically allocated buffer.</td></tr>
@@ -398,9 +323,6 @@
 <td class="apiType">int</td><td><a href="#mpr_8h_1a053742b713a2a6e9c15483553fc953a6" class="nameRef">mprWaitForSingleIO</a>(int fd,  int mask,  MprTime timeout)</td></tr>
 <tr class="apiBrief"><td>&nbsp;</td><td>Wait for I/O on a file descriptor.</td></tr>
 <tr class="apiDef">
-<td class="apiType">int</td><td><a href="#mpr_8h_1a7aab2a7f8f90ad0708a7f3a2f7d29695" class="nameRef">mprWaitTillIdle</a>(<a href="#group___mpr_time" class="ref">MprTime</a> timeout)</td></tr>
-<tr class="apiBrief"><td>&nbsp;</td><td>Wait until the application is idle.</td></tr>
-<tr class="apiDef">
 <td class="apiType"><a href="#mpr_8h_1a0f128c3e0c83721af0220c00554e9c4e" class="ref">cchar*</a></td><td><a href="#mpr_8h_1ac36c085a4baf423492a839f3f22ae567" class="nameRef">mprXmlGetErrorMsg</a>(<a href="#struct_mpr_xml" class="ref">MprXml</a> *xp)</td></tr>
 <tr class="apiBrief"><td>&nbsp;</td><td>Get the XML error message if mprXmlParse fails.</td></tr>
 <tr class="apiDef">
@@ -424,6 +346,9 @@
 <tr class="apiDef">
 <td class="apiType">void</td><td><a href="#mpr_8h_1a015f91fb1d39230057a368fb225f45b8" class="nameRef">mprXmlSetParserHandler</a>(<a href="#struct_mpr_xml" class="ref">MprXml</a> *xp,  MprXmlHandler h)</td></tr>
 <tr class="apiBrief"><td>&nbsp;</td><td>Set the XML parser data handle.</td></tr>
+<tr class="apiDef">
+<td class="apiType">void</td><td><a href="#mpr_8h_1af140a2fda18b2e8461236cc44c0a2cc4" class="nameRef">mprYield</a>(int flags)</td></tr>
+<tr class="apiBrief"><td>&nbsp;</td><td>Yield a thread to allow garbage collection.</td></tr>
 <tr class="apiDef">
 <td class="apiType">int</td><td><a href="#mpr_8h_1ac0a146492e745c3406087beb673a63a3" class="nameRef">scasecmp</a>(<a href="#mpr_8h_1a0f128c3e0c83721af0220c00554e9c4e" class="ref">cchar</a> *s1,  cchar *s2)</td></tr>
 <tr class="apiBrief"><td>&nbsp;</td><td>Compare strings ignoring case.</td></tr>
@@ -515,11 +440,41 @@
 <td class="apiType"><a href="#group___mpr" class="ref">Mpr*</a></td><td><a href="#group___mpr_1ga7efcdd2a5f01795791fbb21f4b073d37" class="nameRef">mprCreate</a>(int argc,  char **argv,  int flags)</td></tr>
 <tr class="apiBrief"><td>&nbsp;</td><td>Create an instance of the MPR.</td></tr>
 <tr class="apiDef">
+<td class="apiType">char*</td><td><a href="#group___mpr_1ga3dfd4398a5607868c1110b47eebaea61" class="nameRef">mprGetAppDir</a>()</td></tr>
+<tr class="apiBrief"><td>&nbsp;</td><td>Get the application directory.</td></tr>
+<tr class="apiDef">
+<td class="apiType"><a href="#mpr_8h_1a0f128c3e0c83721af0220c00554e9c4e" class="ref">cchar*</a></td><td><a href="#group___mpr_1ga5a96ecb8e54ab11f8772110f257154c8" class="nameRef">mprGetAppName</a>()</td></tr>
+<tr class="apiBrief"><td>&nbsp;</td><td>Get the application name defined via mprSetAppName.</td></tr>
+<tr class="apiDef">
+<td class="apiType">char*</td><td><a href="#group___mpr_1gabfbea308cbe0f4db570bcc26e4f62815" class="nameRef">mprGetAppPath</a>()</td></tr>
+<tr class="apiBrief"><td>&nbsp;</td><td>Get the application executable path.</td></tr>
+<tr class="apiDef">
+<td class="apiType"><a href="#mpr_8h_1a0f128c3e0c83721af0220c00554e9c4e" class="ref">cchar*</a></td><td><a href="#group___mpr_1ga8560f36dc46bc8e8f63adb10ba38595a" class="nameRef">mprGetAppTitle</a>()</td></tr>
+<tr class="apiBrief"><td>&nbsp;</td><td>Get the application title string.</td></tr>
+<tr class="apiDef">
+<td class="apiType"><a href="#mpr_8h_1a0f128c3e0c83721af0220c00554e9c4e" class="ref">cchar*</a></td><td><a href="#group___mpr_1ga93175ba8542800e4ddfac2d1499b69f4" class="nameRef">mprGetAppVersion</a>()</td></tr>
+<tr class="apiBrief"><td>&nbsp;</td><td>Get the application version string.</td></tr>
+<tr class="apiDef">
 <td class="apiType"><a href="#mpr_8h_1a1062901a7428fdd9c7f180f5e01ea056" class="ref">bool</a></td><td><a href="#group___mpr_1gaf8419ba9c08c3e06b228034de3146cf5" class="nameRef">mprGetDebugMode</a>()</td></tr>
 <tr class="apiBrief"><td>&nbsp;</td><td>Get the debug mode.</td></tr>
 <tr class="apiDef">
+<td class="apiType"><a href="#mpr_8h_1a0f128c3e0c83721af0220c00554e9c4e" class="ref">cchar*</a></td><td><a href="#group___mpr_1ga9d261e899187c6fd8245e7baae0c7b11" class="nameRef">mprGetDomainName</a>()</td></tr>
+<tr class="apiBrief"><td>&nbsp;</td><td>Get the application domain name string.</td></tr>
+<tr class="apiDef">
+<td class="apiType">int</td><td><a href="#group___mpr_1ga9d297bffc1b4168def6ca8664a3c5021" class="nameRef">mprGetEndian</a>()</td></tr>
+<tr class="apiBrief"><td>&nbsp;</td><td>Return the endian byte ordering for the application.</td></tr>
+<tr class="apiDef">
 <td class="apiType">int</td><td><a href="#group___mpr_1gaf184a06275222c97f80e0a8d807418ac" class="nameRef">mprGetError</a>()</td></tr>
 <tr class="apiBrief"><td>&nbsp;</td><td>Return the error code for the most recent system or library operation.</td></tr>
+<tr class="apiDef">
+<td class="apiType"><a href="#mpr_8h_1a0f128c3e0c83721af0220c00554e9c4e" class="ref">cchar*</a></td><td><a href="#group___mpr_1ga3d02e4f6ba5b6db9581ced2d9998bfb7" class="nameRef">mprGetHostName</a>()</td></tr>
+<tr class="apiBrief"><td>&nbsp;</td><td>Get the application host name string.</td></tr>
+<tr class="apiDef">
+<td class="apiType"><a href="#mpr_8h_1a0f128c3e0c83721af0220c00554e9c4e" class="ref">cchar*</a></td><td><a href="#group___mpr_1gaf619a8ca734f025bb96b25b4a46e4c6a" class="nameRef">mprGetIpAddr</a>()</td></tr>
+<tr class="apiBrief"><td>&nbsp;</td><td>Get the application IP address string.</td></tr>
+<tr class="apiDef">
+<td class="apiType">int</td><td><a href="#group___mpr_1ga00ebec5e256f0540f9806ba4bae45a55" class="nameRef">mprGetLogLevel</a>()</td></tr>
+<tr class="apiBrief"><td>&nbsp;</td><td>Get the current logging level.</td></tr>
 <tr class="apiDef">
 <td class="apiType"><a href="#group___mpr" class="ref">Mpr*</a></td><td><a href="#group___mpr_1gad3afdd3e6a541b8b55d7c7a72fcc734b" class="nameRef">mprGetMpr</a>()</td></tr>
 <tr class="apiBrief"><td>&nbsp;</td><td>Return the MPR control instance.</td></tr>
@@ -527,11 +482,62 @@
 <td class="apiType">int</td><td><a href="#group___mpr_1gad2fa15bdd6890ff1df432ae25f4c981c" class="nameRef">mprGetOsError</a>()</td></tr>
 <tr class="apiBrief"><td>&nbsp;</td><td>Return the O/S error code.</td></tr>
 <tr class="apiDef">
+<td class="apiType"><a href="#mpr_8h_1a0f128c3e0c83721af0220c00554e9c4e" class="ref">cchar*</a></td><td><a href="#group___mpr_1gae159a5aef748a3f62cd1acd541cf3d31" class="nameRef">mprGetServerName</a>()</td></tr>
+<tr class="apiBrief"><td>&nbsp;</td><td>Get the application server name string.</td></tr>
+<tr class="apiDef">
 <td class="apiType"><a href="#mpr_8h_1a1062901a7428fdd9c7f180f5e01ea056" class="ref">bool</a></td><td><a href="#group___mpr_1gab471b134b4eeb28e7fe1cf85fb723f5d" class="nameRef">mprIsExiting</a>()</td></tr>
 <tr class="apiBrief"><td>&nbsp;</td><td>Determine if the MPR is exiting.</td></tr>
 <tr class="apiDef">
+<td class="apiType"><a href="#mpr_8h_1a1062901a7428fdd9c7f180f5e01ea056" class="ref">bool</a></td><td><a href="#group___mpr_1gadb9752464abb66fba198cb816fafde88" class="nameRef">mprIsFinished</a>()</td></tr>
+<tr class="apiBrief"><td>&nbsp;</td><td>Determine if the MPR has finished.</td></tr>
+<tr class="apiDef">
+<td class="apiType"><a href="#mpr_8h_1a1062901a7428fdd9c7f180f5e01ea056" class="ref">bool</a></td><td><a href="#group___mpr_1gaead57cafdee5b1206e4a4f3b0468fb99" class="nameRef">mprIsIdle</a>()</td></tr>
+<tr class="apiBrief"><td>&nbsp;</td><td>Determine if the App is idle.</td></tr>
+<tr class="apiDef">
+<td class="apiType"><a href="#mpr_8h_1a1062901a7428fdd9c7f180f5e01ea056" class="ref">bool</a></td><td><a href="#group___mpr_1gae20024a4d8b56242e293b3e5d54d9972" class="nameRef">mprIsStopping</a>()</td></tr>
+<tr class="apiBrief"><td>&nbsp;</td><td>Test if the application is stopping.</td></tr>
+<tr class="apiDef">
+<td class="apiType"><a href="#mpr_8h_1a1062901a7428fdd9c7f180f5e01ea056" class="ref">bool</a></td><td><a href="#group___mpr_1ga0246cb5dcc7c53e415885e1d8ac55320" class="nameRef">mprIsStoppingCore</a>()</td></tr>
+<tr class="apiBrief"><td>&nbsp;</td><td>Test if the application is stopping and core services are being terminated.</td></tr>
+<tr class="apiDef">
+<td class="apiType"><a href="#mpr_8h_1a1062901a7428fdd9c7f180f5e01ea056" class="ref">bool</a></td><td><a href="#group___mpr_1ga40a197cef78eae1edc83d359cedb71e6" class="nameRef">mprServicesAreIdle</a>()</td></tr>
+<tr class="apiBrief"><td>&nbsp;</td><td>Determine if the MPR services.</td></tr>
+<tr class="apiDef">
+<td class="apiType">int</td><td><a href="#group___mpr_1gad48220b7862b645de3920d74aa9b011e" class="nameRef">mprSetAppName</a>(<a href="#mpr_8h_1a0f128c3e0c83721af0220c00554e9c4e" class="ref">cchar</a> *name,  cchar *title,  cchar *version)</td></tr>
+<tr class="apiBrief"><td>&nbsp;</td><td>Set the application name, title and version.</td></tr>
+<tr class="apiDef">
+<td class="apiType">void</td><td><a href="#group___mpr_1gacb25fd80b4d560d2c347ae8a692de0f1" class="nameRef">mprSetDebugMode</a>(<a href="#mpr_8h_1a1062901a7428fdd9c7f180f5e01ea056" class="ref">bool</a> on)</td></tr>
+<tr class="apiBrief"><td>&nbsp;</td><td>Turn on debug mode.</td></tr>
+<tr class="apiDef">
+<td class="apiType">void</td><td><a href="#group___mpr_1ga9dbc9553237fd2af50c9cf7e19f3045a" class="nameRef">mprSetDomainName</a>(<a href="#mpr_8h_1a0f128c3e0c83721af0220c00554e9c4e" class="ref">cchar</a> *s)</td></tr>
+<tr class="apiBrief"><td>&nbsp;</td><td>Set the application domain name string.</td></tr>
+<tr class="apiDef">
+<td class="apiType">void</td><td><a href="#group___mpr_1gaf61307049c58bbb253244babc9d5a6b1" class="nameRef">mprSetHostName</a>(<a href="#mpr_8h_1a0f128c3e0c83721af0220c00554e9c4e" class="ref">cchar</a> *s)</td></tr>
+<tr class="apiBrief"><td>&nbsp;</td><td>Set the application host name string.</td></tr>
+<tr class="apiDef">
+<td class="apiType"><a href="#mpr_8h_1af4113f22c0d3fa830415b1c1c2877b7d" class="ref">MprIdleCallback</a></td><td><a href="#group___mpr_1ga829517ad9c44a5a377f3d70928c6d9c2" class="nameRef">mprSetIdleCallback</a>(<a href="#mpr_8h_1af4113f22c0d3fa830415b1c1c2877b7d" class="ref">MprIdleCallback</a> idleCallback)</td></tr>
+<tr class="apiBrief"><td>&nbsp;</td><td>Define a new idle callback to be invoked by <a class="ref" href="#group___mpr_1gaead57cafdee5b1206e4a4f3b0468fb99">mprIsIdle()</a>.</td></tr>
+<tr class="apiDef">
+<td class="apiType">void</td><td><a href="#group___mpr_1ga1fa92eb8cb9bf4f023f4f60f57001abc" class="nameRef">mprSetIpAddr</a>(<a href="#mpr_8h_1a0f128c3e0c83721af0220c00554e9c4e" class="ref">cchar</a> *ip)</td></tr>
+<tr class="apiBrief"><td>&nbsp;</td><td>Sete the application IP address string.</td></tr>
+<tr class="apiDef">
+<td class="apiType">void</td><td><a href="#group___mpr_1ga4def6498567ad43a6da505d43bb119fc" class="nameRef">mprSetServerName</a>(<a href="#mpr_8h_1a0f128c3e0c83721af0220c00554e9c4e" class="ref">cchar</a> *s)</td></tr>
+<tr class="apiBrief"><td>&nbsp;</td><td>Set the application server name string.</td></tr>
+<tr class="apiDef">
+<td class="apiType"><a href="#mpr_8h_1a1062901a7428fdd9c7f180f5e01ea056" class="ref">bool</a></td><td><a href="#group___mpr_1ga0206927d986cd9ca7c42f8c530de6000" class="nameRef">mprShouldAbortRequests</a>()</td></tr>
+<tr class="apiBrief"><td>&nbsp;</td><td>Test if requests should be aborted.</td></tr>
+<tr class="apiDef">
+<td class="apiType"><a href="#mpr_8h_1a1062901a7428fdd9c7f180f5e01ea056" class="ref">bool</a></td><td><a href="#group___mpr_1gaa8bdc374a789eed08f5b15c17a86559f" class="nameRef">mprShouldDenyNewRequests</a>()</td></tr>
+<tr class="apiBrief"><td>&nbsp;</td><td>Test if new requests should be denied.</td></tr>
+<tr class="apiDef">
+<td class="apiType">void</td><td><a href="#group___mpr_1gaf8bae04622ff05416af04d1b06e68e55" class="nameRef">mprSleep</a>(<a href="#group___mpr_time" class="ref">MprTime</a> msec)</td></tr>
+<tr class="apiBrief"><td>&nbsp;</td><td>Sleep for a while.</td></tr>
+<tr class="apiDef">
 <td class="apiType">void</td><td><a href="#group___mpr_1gafb9d21dd2be700d09f34d403f10663f9" class="nameRef">mprTerminate</a>(int flags)</td></tr>
 <tr class="apiBrief"><td>&nbsp;</td><td>Terminate the MPR.</td></tr>
+<tr class="apiDef">
+<td class="apiType">int</td><td><a href="#group___mpr_1ga7aab2a7f8f90ad0708a7f3a2f7d29695" class="nameRef">mprWaitTillIdle</a>(<a href="#group___mpr_time" class="ref">MprTime</a> timeout)</td></tr>
+<tr class="apiBrief"><td>&nbsp;</td><td>Wait until the application is idle.</td></tr>
 <tr class="apiDef">
 <td class="apiType">void</td><td><a href="#group___mpr_buf_1ga159c096de4aec192e25b275f1f5e031d" class="nameRef">mprAddNullToBuf</a>(<a href="#group___mpr_buf" class="ref">MprBuf</a> *buf)</td></tr>
 <tr class="apiBrief"><td>&nbsp;</td><td>Add a null character to the buffer contents.</td></tr>
@@ -743,10 +749,10 @@
 <td class="apiType">int</td><td><a href="#group___mpr_file_1gaef84e97dcc3d31210a7a234a03ac3366" class="nameRef">mprGetFileChar</a>(<a href="#group___mpr_file" class="ref">MprFile</a> *file)</td></tr>
 <tr class="apiBrief"><td>&nbsp;</td><td>Read a character from the file.</td></tr>
 <tr class="apiDef">
-<td class="apiType"><a href="#mpr_8h_1adf47206cbe2d15ed83ac7c3a2b8a1c9d" class="ref">MprOffset</a></td><td><a href="#group___mpr_file_1ga96273fe03aa3e5e1de8820e8aaba7e5c" class="nameRef">mprGetFilePosition</a>(<a href="#group___mpr_file" class="ref">MprFile</a> *file)</td></tr>
+<td class="apiType"><a href="#mpr_8h_1a33d86dc5ed93d7e8c5db34e873f7483d" class="ref">MprOff</a></td><td><a href="#group___mpr_file_1ga437b7eb30b31d38fcedef0aa8617edcc" class="nameRef">mprGetFilePosition</a>(<a href="#group___mpr_file" class="ref">MprFile</a> *file)</td></tr>
 <tr class="apiBrief"><td>&nbsp;</td><td>Return the current file position.</td></tr>
 <tr class="apiDef">
-<td class="apiType"><a href="#mpr_8h_1adf47206cbe2d15ed83ac7c3a2b8a1c9d" class="ref">MprOffset</a></td><td><a href="#group___mpr_file_1gab1ae4e8c4128773497a609e444dbe8c7" class="nameRef">mprGetFileSize</a>(<a href="#group___mpr_file" class="ref">MprFile</a> *file)</td></tr>
+<td class="apiType"><a href="#mpr_8h_1a33d86dc5ed93d7e8c5db34e873f7483d" class="ref">MprOff</a></td><td><a href="#group___mpr_file_1ga29b58b84303a5345e9cc69bb320fc500" class="nameRef">mprGetFileSize</a>(<a href="#group___mpr_file" class="ref">MprFile</a> *file)</td></tr>
 <tr class="apiBrief"><td>&nbsp;</td><td>Get the size of the file.</td></tr>
 <tr class="apiDef">
 <td class="apiType">char*</td><td><a href="#group___mpr_file_1ga52a371e64afe673688c5b43626cd00ec" class="nameRef">mprGetFileString</a>(<a href="#group___mpr_file" class="ref">MprFile</a> *file,  ssize size,  ssize *len)</td></tr>
@@ -767,10 +773,10 @@
 <td class="apiType"><a href="#mpr_8h_1a7d08ccc1e981eb4d5a238641ac4ccfc1" class="ref">ssize</a></td><td><a href="#group___mpr_file_1ga5edc60c8f5b38c394accf29cd6785f96" class="nameRef">mprReadFile</a>(<a href="#group___mpr_file" class="ref">MprFile</a> *file,  void *buf,  ssize size)</td></tr>
 <tr class="apiBrief"><td>&nbsp;</td><td>Read data from a file.</td></tr>
 <tr class="apiDef">
-<td class="apiType"><a href="#mpr_8h_1adf47206cbe2d15ed83ac7c3a2b8a1c9d" class="ref">MprOffset</a></td><td><a href="#group___mpr_file_1gac1839aac4fc6488f85631a8ac9dc0b72" class="nameRef">mprSeekFile</a>(<a href="#group___mpr_file" class="ref">MprFile</a> *file,  int seekType,  MprOffset distance)</td></tr>
+<td class="apiType"><a href="#mpr_8h_1a33d86dc5ed93d7e8c5db34e873f7483d" class="ref">MprOff</a></td><td><a href="#group___mpr_file_1gaaddd841fab4eb81ea0cefed2c24b5d1c" class="nameRef">mprSeekFile</a>(<a href="#group___mpr_file" class="ref">MprFile</a> *file,  int seekType,  MprOff distance)</td></tr>
 <tr class="apiBrief"><td>&nbsp;</td><td>Seek the I/O pointer to a new location in the file.</td></tr>
 <tr class="apiDef">
-<td class="apiType">int</td><td><a href="#group___mpr_file_1ga629925d193b4551f938afb75a3691916" class="nameRef">mprTruncateFile</a>(<a href="#mpr_8h_1a0f128c3e0c83721af0220c00554e9c4e" class="ref">cchar</a> *path,  MprOffset size)</td></tr>
+<td class="apiType">int</td><td><a href="#group___mpr_file_1ga61cd5b0e215e4dafa26f90839cc9429e" class="nameRef">mprTruncateFile</a>(<a href="#mpr_8h_1a0f128c3e0c83721af0220c00554e9c4e" class="ref">cchar</a> *path,  MprOff size)</td></tr>
 <tr class="apiBrief"><td>&nbsp;</td><td>Truncate a file.</td></tr>
 <tr class="apiDef">
 <td class="apiType"><a href="#mpr_8h_1a7d08ccc1e981eb4d5a238641ac4ccfc1" class="ref">ssize</a></td><td><a href="#group___mpr_file_1ga48b31d54e03c997a5e6b43d070cfa4ac" class="nameRef">mprWriteFile</a>(<a href="#group___mpr_file" class="ref">MprFile</a> *file,  cvoid *buf,  ssize count)</td></tr>
@@ -1328,6 +1334,9 @@
 <a name="Typedefs"></a><h1>Typedefs</h1>
 <table class="apiIndex" summary="typedefs">
 <tr class="apiDef">
+<td class="apiName"><a href="#mpr_8h_1a1062901a7428fdd9c7f180f5e01ea056" class="nameRef">bool</a></td>
+<td class="apiBrief">Boolean data type.</td></tr>
+<tr class="apiDef">
 <td class="apiName"><a href="#group___mpr_buf_1gaa0f2f003728ef5bb244fdabe2edc56f7" class="nameRef">MprBufProc</a></td>
 <td class="apiBrief">Buffer refill callback function.</td></tr>
 <tr class="apiDef">
@@ -1357,6 +1366,9 @@
 <tr class="apiDef">
 <td class="apiName"><a href="#mpr_8h_1a1c2789aea11b60b13644c3b4e7c54f99" class="nameRef">MprWorkerProc</a></td>
 <td class="apiBrief">Worker thread callback signature.</td></tr>
+<tr class="apiDef">
+<td class="apiName"><a href="#mpr_8h_1a7d08ccc1e981eb4d5a238641ac4ccfc1" class="nameRef">ssize</a></td>
+<td class="apiBrief">Signed size field.</td></tr>
 <tr class="apiDef">
 <td class="apiName"><a href="#group___mpr_buf_1gaa0f2f003728ef5bb244fdabe2edc56f7" class="nameRef">MprBufProc</a></td>
 <td class="apiBrief">Buffer refill callback function.</td></tr>
@@ -1752,6 +1764,10 @@
 </tr>
 <tr class="apiBrief"><td>&nbsp;</td><td>Normal (default) priority.</td></tr>
 <tr class="apiDef">
+<td>#define</td><td><a href="#mpr_8h_1a92106b0b98bcd8a8d346b690564fb7d5" class="nameRef">MPR_READABLE</a>&nbsp;&nbsp;&nbsp;0x2</td>
+</tr>
+<tr class="apiBrief"><td>&nbsp;</td><td>Read event mask.</td></tr>
+<tr class="apiDef">
 <td>#define</td><td><a href="#mpr_8h_1a6072e168871ce4b65725049d214965a1" class="nameRef">MPR_REQUEST_PRIORITY</a>&nbsp;&nbsp;&nbsp;50</td>
 </tr>
 <tr class="apiBrief"><td>&nbsp;</td><td>Normal priority.</td></tr>
@@ -1900,9 +1916,25 @@
 </tr>
 <tr class="apiBrief"><td>&nbsp;</td><td>Use UTC timezone.</td></tr>
 <tr class="apiDef">
+<td>#define</td><td><a href="#mpr_8h_1aa0be60a1f7c911f36e5f6a96ad975c2d" class="nameRef">MPR_WAIT_ADDED</a>&nbsp;&nbsp;&nbsp;0x2</td>
+</tr>
+<tr class="apiBrief"><td>&nbsp;</td><td>Wait handler flag for when a handler is added to wait service.</td></tr>
+<tr class="apiDef">
+<td>#define</td><td><a href="#mpr_8h_1a1c2ea8da2920f4756babba1ae142a952" class="nameRef">MPR_WAIT_NEW_DISPATCHER</a>&nbsp;&nbsp;&nbsp;0x4</td>
+</tr>
+<tr class="apiBrief"><td>&nbsp;</td><td>Wait handler flag to create a new dispatcher for each I/O event.</td></tr>
+<tr class="apiDef">
+<td>#define</td><td><a href="#mpr_8h_1a6c34a6c6e526d8151c128cfc2e984df3" class="nameRef">MPR_WAIT_RECALL_HANDLER</a>&nbsp;&nbsp;&nbsp;0x1</td>
+</tr>
+<tr class="apiBrief"><td>&nbsp;</td><td>Wait handler flag to recall the handler asap.</td></tr>
+<tr class="apiDef">
 <td>#define</td><td><a href="#mpr_8h_1a1a46345d16dbc9d60b67e7418a2c2a09" class="nameRef">MPR_WORKER_PRIORITY</a>&nbsp;&nbsp;&nbsp;50</td>
 </tr>
 <tr class="apiBrief"><td>&nbsp;</td><td>Normal priority.</td></tr>
+<tr class="apiDef">
+<td>#define</td><td><a href="#mpr_8h_1a1ff4bb5b07e0f1efbd40346ac4773154" class="nameRef">MPR_WRITABLE</a>&nbsp;&nbsp;&nbsp;0x4</td>
+</tr>
+<tr class="apiBrief"><td>&nbsp;</td><td>Write event mask.</td></tr>
 <tr class="apiDef">
 <td>#define</td><td><a href="#mpr_8h_1a5ea34ea35e2d8b1a0be44e799fa4d2fb" class="nameRef">MPR_XML_BUFSIZE</a>&nbsp;&nbsp;&nbsp;4096</td>
 </tr>
@@ -1917,7 +1949,7 @@
     <dl><dt><b>Description</b>:</dt><dd>The Mpr structure stores critical application state information.</dd></dl>
     <dl><dt><b>API</b> Stability:</dt><dd>Evolving.</dd></dl>
     <dl><dt>See Also:</dt><dd>
-    <a href="#group___mpr_1gac5203b2138474e781207b39ac4726c1b" class="ref">mprBreakpoint</a>, <a href="#group___mpr_1ga7efcdd2a5f01795791fbb21f4b073d37" class="ref">mprCreate</a>, <a href="#group___mpr_1gaf184a06275222c97f80e0a8d807418ac" class="ref">mprGetError</a>, <a href="#group___mpr_1gad2fa15bdd6890ff1df432ae25f4c981c" class="ref">mprGetOsError</a>, <a href="#group___mpr_1gab471b134b4eeb28e7fe1cf85fb723f5d" class="ref">mprIsExiting</a>, <a href="#mpr_8h_1acb25fd80b4d560d2c347ae8a692de0f1" class="ref">mprSetDebugMode</a>, <a href="#group___mpr_1gafb9d21dd2be700d09f34d403f10663f9" class="ref">mprTerminate</a></dd></dl>
+    <a href="#group___mpr_1gac5203b2138474e781207b39ac4726c1b" class="ref">mprBreakpoint</a>, <a href="#group___mpr_1ga7efcdd2a5f01795791fbb21f4b073d37" class="ref">mprCreate</a>, <a href="#group___mpr_1gaf184a06275222c97f80e0a8d807418ac" class="ref">mprGetError</a>, <a href="#group___mpr_1gad2fa15bdd6890ff1df432ae25f4c981c" class="ref">mprGetOsError</a>, <a href="#group___mpr_1gab471b134b4eeb28e7fe1cf85fb723f5d" class="ref">mprIsExiting</a>, <a href="#group___mpr_1gacb25fd80b4d560d2c347ae8a692de0f1" class="ref">mprSetDebugMode</a>, <a href="#group___mpr_1gafb9d21dd2be700d09f34d403f10663f9" class="ref">mprTerminate</a></dd></dl>
     <dl><dt>Fields:</dt><dd>
     <table class="parameters" summary="Parameters">
     <tr><td class="param">char *</td><td><td>appDir</td><td>
@@ -1944,7 +1976,7 @@ Command service object.
     <tr><td class="param"><a class="ref" href="#struct_mpr_cond">MprCond</a> *</td><td><td>cond</td><td>
 Sync after starting events thread.
 </td>
-    <tr><td class="param">bool</td><td><td>debugMode</td><td>
+    <tr><td class="param"><a class="ref" href="#mpr_8h_1a1062901a7428fdd9c7f180f5e01ea056">bool</a></td><td><td>debugMode</td><td>
 Run in debug mode (no timers).
 </td>
     <tr><td class="param">struct MprDispatcher *</td><td><td>dispatcher</td><td>
@@ -2084,7 +2116,7 @@ Worker service object.
 <p>Trigger a breakpoint.</p>
     <dl><dt><b>Description</b>:</dt><dd>Triggers a breakpoint and traps to the debugger.</dd></dl>
     <dl><dt>See Also:</dt><dd>
-    <a href="#group___mpr_1ga7efcdd2a5f01795791fbb21f4b073d37" class="ref">mprCreate</a>, <a href="#group___mpr_1gaf184a06275222c97f80e0a8d807418ac" class="ref">mprGetError</a>, <a href="#group___mpr_1gad2fa15bdd6890ff1df432ae25f4c981c" class="ref">mprGetOsError</a>, <a href="#group___mpr_1gab471b134b4eeb28e7fe1cf85fb723f5d" class="ref">mprIsExiting</a>, <a href="#mpr_8h_1acb25fd80b4d560d2c347ae8a692de0f1" class="ref">mprSetDebugMode</a>, <a href="#group___mpr_1gafb9d21dd2be700d09f34d403f10663f9" class="ref">mprTerminate</a></dd></dl>
+    <a href="#group___mpr_1ga7efcdd2a5f01795791fbb21f4b073d37" class="ref">mprCreate</a>, <a href="#group___mpr_1gaf184a06275222c97f80e0a8d807418ac" class="ref">mprGetError</a>, <a href="#group___mpr_1gad2fa15bdd6890ff1df432ae25f4c981c" class="ref">mprGetOsError</a>, <a href="#group___mpr_1gab471b134b4eeb28e7fe1cf85fb723f5d" class="ref">mprIsExiting</a>, <a href="#group___mpr_1gacb25fd80b4d560d2c347ae8a692de0f1" class="ref">mprSetDebugMode</a>, <a href="#group___mpr_1gafb9d21dd2be700d09f34d403f10663f9" class="ref">mprTerminate</a></dd></dl>
   </div>
 </div>
 <a name="group___mpr_1ga7efcdd2a5f01795791fbb21f4b073d37"></a>
@@ -2106,7 +2138,78 @@ Worker service object.
     <dl><dt>Returns:</dt><dd>Returns a pointer to the Mpr object.</dd></dl>
     <dl><dt><b>API</b> Stability:</dt><dd>Evolving.</dd></dl>
     <dl><dt>See Also:</dt><dd>
-    <a href="#group___mpr_1gac5203b2138474e781207b39ac4726c1b" class="ref">mprBreakpoint</a>, <a href="#group___mpr_1gaf184a06275222c97f80e0a8d807418ac" class="ref">mprGetError</a>, <a href="#group___mpr_1gad2fa15bdd6890ff1df432ae25f4c981c" class="ref">mprGetOsError</a>, <a href="#group___mpr_1gab471b134b4eeb28e7fe1cf85fb723f5d" class="ref">mprIsExiting</a>, <a href="#mpr_8h_1acb25fd80b4d560d2c347ae8a692de0f1" class="ref">mprSetDebugMode</a>, <a href="#group___mpr_1gafb9d21dd2be700d09f34d403f10663f9" class="ref">mprTerminate</a></dd></dl>
+    <a href="#group___mpr_1gac5203b2138474e781207b39ac4726c1b" class="ref">mprBreakpoint</a>, <a href="#group___mpr_1gaf184a06275222c97f80e0a8d807418ac" class="ref">mprGetError</a>, <a href="#group___mpr_1gad2fa15bdd6890ff1df432ae25f4c981c" class="ref">mprGetOsError</a>, <a href="#group___mpr_1gab471b134b4eeb28e7fe1cf85fb723f5d" class="ref">mprIsExiting</a>, <a href="#group___mpr_1gacb25fd80b4d560d2c347ae8a692de0f1" class="ref">mprSetDebugMode</a>, <a href="#group___mpr_1gafb9d21dd2be700d09f34d403f10663f9" class="ref">mprTerminate</a></dd></dl>
+  </div>
+</div>
+<a name="group___mpr_1ga3dfd4398a5607868c1110b47eebaea61"></a>
+<div class="api">
+  <div class="prototype">
+    char *
+    mprGetAppDir
+()
+  </div>
+  <div class="apiDetail">
+<p>Get the application directory.</p>
+    <dl><dt><b>Description</b>:</dt><dd>Get the directory containing the application executable.</dd></dl>
+    <dl><dt>Returns:</dt><dd>A string containing the application directory.</dd></dl>
+    <dl><dt>See Also:</dt><dd>
+    <a href="#group___mpr_1gac5203b2138474e781207b39ac4726c1b" class="ref">mprBreakpoint</a>, <a href="#group___mpr_1ga7efcdd2a5f01795791fbb21f4b073d37" class="ref">mprCreate</a>, <a href="#group___mpr_1gaf184a06275222c97f80e0a8d807418ac" class="ref">mprGetError</a>, <a href="#group___mpr_1gad2fa15bdd6890ff1df432ae25f4c981c" class="ref">mprGetOsError</a>, <a href="#group___mpr_1gab471b134b4eeb28e7fe1cf85fb723f5d" class="ref">mprIsExiting</a>, <a href="#group___mpr_1gacb25fd80b4d560d2c347ae8a692de0f1" class="ref">mprSetDebugMode</a>, <a href="#group___mpr_1gafb9d21dd2be700d09f34d403f10663f9" class="ref">mprTerminate</a></dd></dl>
+  </div>
+</div>
+<a name="group___mpr_1ga5a96ecb8e54ab11f8772110f257154c8"></a>
+<div class="api">
+  <div class="prototype">
+    <a href="#mpr_8h_1a0f128c3e0c83721af0220c00554e9c4e" class="ref">cchar</a> *
+    mprGetAppName
+()
+  </div>
+  <div class="apiDetail">
+<p>Get the application name defined via mprSetAppName.</p>
+    <dl><dt>Returns:</dt><dd>The one-word lower case application name defined via mprSetAppName.</dd></dl>
+    <dl><dt>See Also:</dt><dd>
+    <a href="#group___mpr_1gac5203b2138474e781207b39ac4726c1b" class="ref">mprBreakpoint</a>, <a href="#group___mpr_1ga7efcdd2a5f01795791fbb21f4b073d37" class="ref">mprCreate</a>, <a href="#group___mpr_1gaf184a06275222c97f80e0a8d807418ac" class="ref">mprGetError</a>, <a href="#group___mpr_1gad2fa15bdd6890ff1df432ae25f4c981c" class="ref">mprGetOsError</a>, <a href="#group___mpr_1gab471b134b4eeb28e7fe1cf85fb723f5d" class="ref">mprIsExiting</a>, <a href="#group___mpr_1gacb25fd80b4d560d2c347ae8a692de0f1" class="ref">mprSetDebugMode</a>, <a href="#group___mpr_1gafb9d21dd2be700d09f34d403f10663f9" class="ref">mprTerminate</a></dd></dl>
+  </div>
+</div>
+<a name="group___mpr_1gabfbea308cbe0f4db570bcc26e4f62815"></a>
+<div class="api">
+  <div class="prototype">
+    char *
+    mprGetAppPath
+()
+  </div>
+  <div class="apiDetail">
+<p>Get the application executable path.</p>
+    <dl><dt>Returns:</dt><dd>A string containing the application executable path.</dd></dl>
+    <dl><dt>See Also:</dt><dd>
+    <a href="#group___mpr_1gac5203b2138474e781207b39ac4726c1b" class="ref">mprBreakpoint</a>, <a href="#group___mpr_1ga7efcdd2a5f01795791fbb21f4b073d37" class="ref">mprCreate</a>, <a href="#group___mpr_1gaf184a06275222c97f80e0a8d807418ac" class="ref">mprGetError</a>, <a href="#group___mpr_1gad2fa15bdd6890ff1df432ae25f4c981c" class="ref">mprGetOsError</a>, <a href="#group___mpr_1gab471b134b4eeb28e7fe1cf85fb723f5d" class="ref">mprIsExiting</a>, <a href="#group___mpr_1gacb25fd80b4d560d2c347ae8a692de0f1" class="ref">mprSetDebugMode</a>, <a href="#group___mpr_1gafb9d21dd2be700d09f34d403f10663f9" class="ref">mprTerminate</a></dd></dl>
+  </div>
+</div>
+<a name="group___mpr_1ga8560f36dc46bc8e8f63adb10ba38595a"></a>
+<div class="api">
+  <div class="prototype">
+    <a href="#mpr_8h_1a0f128c3e0c83721af0220c00554e9c4e" class="ref">cchar</a> *
+    mprGetAppTitle
+()
+  </div>
+  <div class="apiDetail">
+<p>Get the application title string.</p>
+    <dl><dt>Returns:</dt><dd>A string containing the application title string.</dd></dl>
+    <dl><dt>See Also:</dt><dd>
+    <a href="#group___mpr_1gac5203b2138474e781207b39ac4726c1b" class="ref">mprBreakpoint</a>, <a href="#group___mpr_1ga7efcdd2a5f01795791fbb21f4b073d37" class="ref">mprCreate</a>, <a href="#group___mpr_1gaf184a06275222c97f80e0a8d807418ac" class="ref">mprGetError</a>, <a href="#group___mpr_1gad2fa15bdd6890ff1df432ae25f4c981c" class="ref">mprGetOsError</a>, <a href="#group___mpr_1gab471b134b4eeb28e7fe1cf85fb723f5d" class="ref">mprIsExiting</a>, <a href="#group___mpr_1gacb25fd80b4d560d2c347ae8a692de0f1" class="ref">mprSetDebugMode</a>, <a href="#group___mpr_1gafb9d21dd2be700d09f34d403f10663f9" class="ref">mprTerminate</a></dd></dl>
+  </div>
+</div>
+<a name="group___mpr_1ga93175ba8542800e4ddfac2d1499b69f4"></a>
+<div class="api">
+  <div class="prototype">
+    <a href="#mpr_8h_1a0f128c3e0c83721af0220c00554e9c4e" class="ref">cchar</a> *
+    mprGetAppVersion
+()
+  </div>
+  <div class="apiDetail">
+<p>Get the application version string.</p>
+    <dl><dt>Returns:</dt><dd>A string containing the application version string.</dd></dl>
+    <dl><dt>See Also:</dt><dd>
+    <a href="#group___mpr_1gac5203b2138474e781207b39ac4726c1b" class="ref">mprBreakpoint</a>, <a href="#group___mpr_1ga7efcdd2a5f01795791fbb21f4b073d37" class="ref">mprCreate</a>, <a href="#group___mpr_1gaf184a06275222c97f80e0a8d807418ac" class="ref">mprGetError</a>, <a href="#group___mpr_1gad2fa15bdd6890ff1df432ae25f4c981c" class="ref">mprGetOsError</a>, <a href="#group___mpr_1gab471b134b4eeb28e7fe1cf85fb723f5d" class="ref">mprIsExiting</a>, <a href="#group___mpr_1gacb25fd80b4d560d2c347ae8a692de0f1" class="ref">mprSetDebugMode</a>, <a href="#group___mpr_1gafb9d21dd2be700d09f34d403f10663f9" class="ref">mprTerminate</a></dd></dl>
   </div>
 </div>
 <a name="group___mpr_1gaf8419ba9c08c3e06b228034de3146cf5"></a>
@@ -2122,7 +2225,35 @@ Worker service object.
     <dl><dt>Returns:</dt><dd>Returns true if debug mode is enabled, otherwise returns false.</dd></dl>
     <dl><dt><b>API</b> Stability:</dt><dd>Evolving.</dd></dl>
     <dl><dt>See Also:</dt><dd>
-    <a href="#group___mpr_1gac5203b2138474e781207b39ac4726c1b" class="ref">mprBreakpoint</a>, <a href="#group___mpr_1ga7efcdd2a5f01795791fbb21f4b073d37" class="ref">mprCreate</a>, <a href="#group___mpr_1gaf184a06275222c97f80e0a8d807418ac" class="ref">mprGetError</a>, <a href="#group___mpr_1gad2fa15bdd6890ff1df432ae25f4c981c" class="ref">mprGetOsError</a>, <a href="#group___mpr_1gab471b134b4eeb28e7fe1cf85fb723f5d" class="ref">mprIsExiting</a>, <a href="#mpr_8h_1acb25fd80b4d560d2c347ae8a692de0f1" class="ref">mprSetDebugMode</a>, <a href="#group___mpr_1gafb9d21dd2be700d09f34d403f10663f9" class="ref">mprTerminate</a></dd></dl>
+    <a href="#group___mpr_1gac5203b2138474e781207b39ac4726c1b" class="ref">mprBreakpoint</a>, <a href="#group___mpr_1ga7efcdd2a5f01795791fbb21f4b073d37" class="ref">mprCreate</a>, <a href="#group___mpr_1gaf184a06275222c97f80e0a8d807418ac" class="ref">mprGetError</a>, <a href="#group___mpr_1gad2fa15bdd6890ff1df432ae25f4c981c" class="ref">mprGetOsError</a>, <a href="#group___mpr_1gab471b134b4eeb28e7fe1cf85fb723f5d" class="ref">mprIsExiting</a>, <a href="#group___mpr_1gacb25fd80b4d560d2c347ae8a692de0f1" class="ref">mprSetDebugMode</a>, <a href="#group___mpr_1gafb9d21dd2be700d09f34d403f10663f9" class="ref">mprTerminate</a></dd></dl>
+  </div>
+</div>
+<a name="group___mpr_1ga9d261e899187c6fd8245e7baae0c7b11"></a>
+<div class="api">
+  <div class="prototype">
+    <a href="#mpr_8h_1a0f128c3e0c83721af0220c00554e9c4e" class="ref">cchar</a> *
+    mprGetDomainName
+()
+  </div>
+  <div class="apiDetail">
+<p>Get the application domain name string.</p>
+    <dl><dt>Returns:</dt><dd>A string containing the application domain name string.</dd></dl>
+    <dl><dt>See Also:</dt><dd>
+    <a href="#group___mpr_1gac5203b2138474e781207b39ac4726c1b" class="ref">mprBreakpoint</a>, <a href="#group___mpr_1ga7efcdd2a5f01795791fbb21f4b073d37" class="ref">mprCreate</a>, <a href="#group___mpr_1gaf184a06275222c97f80e0a8d807418ac" class="ref">mprGetError</a>, <a href="#group___mpr_1gad2fa15bdd6890ff1df432ae25f4c981c" class="ref">mprGetOsError</a>, <a href="#group___mpr_1gab471b134b4eeb28e7fe1cf85fb723f5d" class="ref">mprIsExiting</a>, <a href="#group___mpr_1gacb25fd80b4d560d2c347ae8a692de0f1" class="ref">mprSetDebugMode</a>, <a href="#group___mpr_1gafb9d21dd2be700d09f34d403f10663f9" class="ref">mprTerminate</a></dd></dl>
+  </div>
+</div>
+<a name="group___mpr_1ga9d297bffc1b4168def6ca8664a3c5021"></a>
+<div class="api">
+  <div class="prototype">
+    int
+    mprGetEndian
+()
+  </div>
+  <div class="apiDetail">
+<p>Return the endian byte ordering for the application.</p>
+    <dl><dt>Returns:</dt><dd>MPR_LITTLE_ENDIAN or MPR_BIG_ENDIAN.</dd></dl>
+    <dl><dt>See Also:</dt><dd>
+    <a href="#group___mpr_1gac5203b2138474e781207b39ac4726c1b" class="ref">mprBreakpoint</a>, <a href="#group___mpr_1ga7efcdd2a5f01795791fbb21f4b073d37" class="ref">mprCreate</a>, <a href="#group___mpr_1gaf184a06275222c97f80e0a8d807418ac" class="ref">mprGetError</a>, <a href="#group___mpr_1gad2fa15bdd6890ff1df432ae25f4c981c" class="ref">mprGetOsError</a>, <a href="#group___mpr_1gab471b134b4eeb28e7fe1cf85fb723f5d" class="ref">mprIsExiting</a>, <a href="#group___mpr_1gacb25fd80b4d560d2c347ae8a692de0f1" class="ref">mprSetDebugMode</a>, <a href="#group___mpr_1gafb9d21dd2be700d09f34d403f10663f9" class="ref">mprTerminate</a></dd></dl>
   </div>
 </div>
 <a name="group___mpr_1gaf184a06275222c97f80e0a8d807418ac"></a>
@@ -2138,7 +2269,49 @@ Worker service object.
     <dl><dt>Returns:</dt><dd>The mapped error code.</dd></dl>
     <dl><dt><b>API</b> Stability:</dt><dd>Evolving.</dd></dl>
     <dl><dt>See Also:</dt><dd>
-    <a href="#group___mpr_1gac5203b2138474e781207b39ac4726c1b" class="ref">mprBreakpoint</a>, <a href="#group___mpr_1ga7efcdd2a5f01795791fbb21f4b073d37" class="ref">mprCreate</a>, <a href="#group___mpr_1gad2fa15bdd6890ff1df432ae25f4c981c" class="ref">mprGetOsError</a>, <a href="#group___mpr_1gab471b134b4eeb28e7fe1cf85fb723f5d" class="ref">mprIsExiting</a>, <a href="#mpr_8h_1acb25fd80b4d560d2c347ae8a692de0f1" class="ref">mprSetDebugMode</a>, <a href="#group___mpr_1gafb9d21dd2be700d09f34d403f10663f9" class="ref">mprTerminate</a></dd></dl>
+    <a href="#group___mpr_1gac5203b2138474e781207b39ac4726c1b" class="ref">mprBreakpoint</a>, <a href="#group___mpr_1ga7efcdd2a5f01795791fbb21f4b073d37" class="ref">mprCreate</a>, <a href="#group___mpr_1gad2fa15bdd6890ff1df432ae25f4c981c" class="ref">mprGetOsError</a>, <a href="#group___mpr_1gab471b134b4eeb28e7fe1cf85fb723f5d" class="ref">mprIsExiting</a>, <a href="#group___mpr_1gacb25fd80b4d560d2c347ae8a692de0f1" class="ref">mprSetDebugMode</a>, <a href="#group___mpr_1gafb9d21dd2be700d09f34d403f10663f9" class="ref">mprTerminate</a></dd></dl>
+  </div>
+</div>
+<a name="group___mpr_1ga3d02e4f6ba5b6db9581ced2d9998bfb7"></a>
+<div class="api">
+  <div class="prototype">
+    <a href="#mpr_8h_1a0f128c3e0c83721af0220c00554e9c4e" class="ref">cchar</a> *
+    mprGetHostName
+()
+  </div>
+  <div class="apiDetail">
+<p>Get the application host name string.</p>
+    <dl><dt>Returns:</dt><dd>A string containing the application host name string.</dd></dl>
+    <dl><dt>See Also:</dt><dd>
+    <a href="#group___mpr_1gac5203b2138474e781207b39ac4726c1b" class="ref">mprBreakpoint</a>, <a href="#group___mpr_1ga7efcdd2a5f01795791fbb21f4b073d37" class="ref">mprCreate</a>, <a href="#group___mpr_1gaf184a06275222c97f80e0a8d807418ac" class="ref">mprGetError</a>, <a href="#group___mpr_1gad2fa15bdd6890ff1df432ae25f4c981c" class="ref">mprGetOsError</a>, <a href="#group___mpr_1gab471b134b4eeb28e7fe1cf85fb723f5d" class="ref">mprIsExiting</a>, <a href="#group___mpr_1gacb25fd80b4d560d2c347ae8a692de0f1" class="ref">mprSetDebugMode</a>, <a href="#group___mpr_1gafb9d21dd2be700d09f34d403f10663f9" class="ref">mprTerminate</a></dd></dl>
+  </div>
+</div>
+<a name="group___mpr_1gaf619a8ca734f025bb96b25b4a46e4c6a"></a>
+<div class="api">
+  <div class="prototype">
+    <a href="#mpr_8h_1a0f128c3e0c83721af0220c00554e9c4e" class="ref">cchar</a> *
+    mprGetIpAddr
+()
+  </div>
+  <div class="apiDetail">
+<p>Get the application IP address string.</p>
+    <dl><dt>Returns:</dt><dd>A string containing the application IP address string.</dd></dl>
+    <dl><dt>See Also:</dt><dd>
+    <a href="#group___mpr_1gac5203b2138474e781207b39ac4726c1b" class="ref">mprBreakpoint</a>, <a href="#group___mpr_1ga7efcdd2a5f01795791fbb21f4b073d37" class="ref">mprCreate</a>, <a href="#group___mpr_1gaf184a06275222c97f80e0a8d807418ac" class="ref">mprGetError</a>, <a href="#group___mpr_1gad2fa15bdd6890ff1df432ae25f4c981c" class="ref">mprGetOsError</a>, <a href="#group___mpr_1gab471b134b4eeb28e7fe1cf85fb723f5d" class="ref">mprIsExiting</a>, <a href="#group___mpr_1gacb25fd80b4d560d2c347ae8a692de0f1" class="ref">mprSetDebugMode</a>, <a href="#group___mpr_1gafb9d21dd2be700d09f34d403f10663f9" class="ref">mprTerminate</a></dd></dl>
+  </div>
+</div>
+<a name="group___mpr_1ga00ebec5e256f0540f9806ba4bae45a55"></a>
+<div class="api">
+  <div class="prototype">
+    int
+    mprGetLogLevel
+()
+  </div>
+  <div class="apiDetail">
+<p>Get the current logging level.</p>
+    <dl><dt>Returns:</dt><dd>The current log level.</dd></dl>
+    <dl><dt>See Also:</dt><dd>
+    <a href="#group___mpr_1gac5203b2138474e781207b39ac4726c1b" class="ref">mprBreakpoint</a>, <a href="#group___mpr_1ga7efcdd2a5f01795791fbb21f4b073d37" class="ref">mprCreate</a>, <a href="#group___mpr_1gaf184a06275222c97f80e0a8d807418ac" class="ref">mprGetError</a>, <a href="#group___mpr_1gad2fa15bdd6890ff1df432ae25f4c981c" class="ref">mprGetOsError</a>, <a href="#group___mpr_1gab471b134b4eeb28e7fe1cf85fb723f5d" class="ref">mprIsExiting</a>, <a href="#group___mpr_1gacb25fd80b4d560d2c347ae8a692de0f1" class="ref">mprSetDebugMode</a>, <a href="#group___mpr_1gafb9d21dd2be700d09f34d403f10663f9" class="ref">mprTerminate</a></dd></dl>
   </div>
 </div>
 <a name="group___mpr_1gad3afdd3e6a541b8b55d7c7a72fcc734b"></a>
@@ -2154,7 +2327,7 @@ Worker service object.
     <dl><dt>Returns:</dt><dd>The MPR control object.</dd></dl>
     <dl><dt><b>API</b> Stability:</dt><dd>Evolving.</dd></dl>
     <dl><dt>See Also:</dt><dd>
-    <a href="#group___mpr_1gac5203b2138474e781207b39ac4726c1b" class="ref">mprBreakpoint</a>, <a href="#group___mpr_1ga7efcdd2a5f01795791fbb21f4b073d37" class="ref">mprCreate</a>, <a href="#group___mpr_1gaf184a06275222c97f80e0a8d807418ac" class="ref">mprGetError</a>, <a href="#group___mpr_1gad2fa15bdd6890ff1df432ae25f4c981c" class="ref">mprGetOsError</a>, <a href="#group___mpr_1gab471b134b4eeb28e7fe1cf85fb723f5d" class="ref">mprIsExiting</a>, <a href="#mpr_8h_1acb25fd80b4d560d2c347ae8a692de0f1" class="ref">mprSetDebugMode</a>, <a href="#group___mpr_1gafb9d21dd2be700d09f34d403f10663f9" class="ref">mprTerminate</a></dd></dl>
+    <a href="#group___mpr_1gac5203b2138474e781207b39ac4726c1b" class="ref">mprBreakpoint</a>, <a href="#group___mpr_1ga7efcdd2a5f01795791fbb21f4b073d37" class="ref">mprCreate</a>, <a href="#group___mpr_1gaf184a06275222c97f80e0a8d807418ac" class="ref">mprGetError</a>, <a href="#group___mpr_1gad2fa15bdd6890ff1df432ae25f4c981c" class="ref">mprGetOsError</a>, <a href="#group___mpr_1gab471b134b4eeb28e7fe1cf85fb723f5d" class="ref">mprIsExiting</a>, <a href="#group___mpr_1gacb25fd80b4d560d2c347ae8a692de0f1" class="ref">mprSetDebugMode</a>, <a href="#group___mpr_1gafb9d21dd2be700d09f34d403f10663f9" class="ref">mprTerminate</a></dd></dl>
   </div>
 </div>
 <a name="group___mpr_1gad2fa15bdd6890ff1df432ae25f4c981c"></a>
@@ -2170,7 +2343,21 @@ Worker service object.
     <dl><dt>Returns:</dt><dd>The O/S error code.</dd></dl>
     <dl><dt><b>API</b> Stability:</dt><dd>Evolving.</dd></dl>
     <dl><dt>See Also:</dt><dd>
-    <a href="#group___mpr_1gac5203b2138474e781207b39ac4726c1b" class="ref">mprBreakpoint</a>, <a href="#group___mpr_1ga7efcdd2a5f01795791fbb21f4b073d37" class="ref">mprCreate</a>, <a href="#group___mpr_1gaf184a06275222c97f80e0a8d807418ac" class="ref">mprGetError</a>, <a href="#group___mpr_1gab471b134b4eeb28e7fe1cf85fb723f5d" class="ref">mprIsExiting</a>, <a href="#mpr_8h_1acb25fd80b4d560d2c347ae8a692de0f1" class="ref">mprSetDebugMode</a>, <a href="#group___mpr_1gafb9d21dd2be700d09f34d403f10663f9" class="ref">mprTerminate</a></dd></dl>
+    <a href="#group___mpr_1gac5203b2138474e781207b39ac4726c1b" class="ref">mprBreakpoint</a>, <a href="#group___mpr_1ga7efcdd2a5f01795791fbb21f4b073d37" class="ref">mprCreate</a>, <a href="#group___mpr_1gaf184a06275222c97f80e0a8d807418ac" class="ref">mprGetError</a>, <a href="#group___mpr_1gab471b134b4eeb28e7fe1cf85fb723f5d" class="ref">mprIsExiting</a>, <a href="#group___mpr_1gacb25fd80b4d560d2c347ae8a692de0f1" class="ref">mprSetDebugMode</a>, <a href="#group___mpr_1gafb9d21dd2be700d09f34d403f10663f9" class="ref">mprTerminate</a></dd></dl>
+  </div>
+</div>
+<a name="group___mpr_1gae159a5aef748a3f62cd1acd541cf3d31"></a>
+<div class="api">
+  <div class="prototype">
+    <a href="#mpr_8h_1a0f128c3e0c83721af0220c00554e9c4e" class="ref">cchar</a> *
+    mprGetServerName
+()
+  </div>
+  <div class="apiDetail">
+<p>Get the application server name string.</p>
+    <dl><dt>Returns:</dt><dd>A string containing the application server name string.</dd></dl>
+    <dl><dt>See Also:</dt><dd>
+    <a href="#group___mpr_1gac5203b2138474e781207b39ac4726c1b" class="ref">mprBreakpoint</a>, <a href="#group___mpr_1ga7efcdd2a5f01795791fbb21f4b073d37" class="ref">mprCreate</a>, <a href="#group___mpr_1gaf184a06275222c97f80e0a8d807418ac" class="ref">mprGetError</a>, <a href="#group___mpr_1gad2fa15bdd6890ff1df432ae25f4c981c" class="ref">mprGetOsError</a>, <a href="#group___mpr_1gab471b134b4eeb28e7fe1cf85fb723f5d" class="ref">mprIsExiting</a>, <a href="#group___mpr_1gacb25fd80b4d560d2c347ae8a692de0f1" class="ref">mprSetDebugMode</a>, <a href="#group___mpr_1gafb9d21dd2be700d09f34d403f10663f9" class="ref">mprTerminate</a></dd></dl>
   </div>
 </div>
 <a name="group___mpr_1gab471b134b4eeb28e7fe1cf85fb723f5d"></a>
@@ -2186,7 +2373,252 @@ Worker service object.
     <dl><dt>Returns:</dt><dd>True if the App has been instructed to exit.</dd></dl>
     <dl><dt><b>API</b> Stability:</dt><dd>Evolving.</dd></dl>
     <dl><dt>See Also:</dt><dd>
-    <a href="#group___mpr_1gac5203b2138474e781207b39ac4726c1b" class="ref">mprBreakpoint</a>, <a href="#group___mpr_1ga7efcdd2a5f01795791fbb21f4b073d37" class="ref">mprCreate</a>, <a href="#group___mpr_1gaf184a06275222c97f80e0a8d807418ac" class="ref">mprGetError</a>, <a href="#group___mpr_1gad2fa15bdd6890ff1df432ae25f4c981c" class="ref">mprGetOsError</a>, <a href="#mpr_8h_1acb25fd80b4d560d2c347ae8a692de0f1" class="ref">mprSetDebugMode</a>, <a href="#group___mpr_1gafb9d21dd2be700d09f34d403f10663f9" class="ref">mprTerminate</a></dd></dl>
+    <a href="#group___mpr_1gac5203b2138474e781207b39ac4726c1b" class="ref">mprBreakpoint</a>, <a href="#group___mpr_1ga7efcdd2a5f01795791fbb21f4b073d37" class="ref">mprCreate</a>, <a href="#group___mpr_1gaf184a06275222c97f80e0a8d807418ac" class="ref">mprGetError</a>, <a href="#group___mpr_1gad2fa15bdd6890ff1df432ae25f4c981c" class="ref">mprGetOsError</a>, <a href="#group___mpr_1gacb25fd80b4d560d2c347ae8a692de0f1" class="ref">mprSetDebugMode</a>, <a href="#group___mpr_1gafb9d21dd2be700d09f34d403f10663f9" class="ref">mprTerminate</a></dd></dl>
+  </div>
+</div>
+<a name="group___mpr_1gadb9752464abb66fba198cb816fafde88"></a>
+<div class="api">
+  <div class="prototype">
+    <a href="#mpr_8h_1a1062901a7428fdd9c7f180f5e01ea056" class="ref">bool</a>
+    mprIsFinished
+()
+  </div>
+  <div class="apiDetail">
+<p>Determine if the MPR has finished.</p>
+    <dl><dt><b>Description</b>:</dt><dd>This is true if the MPR services have been shutdown completely. This is typically used to determine if the App has been gracefully shutdown.</dd></dl>
+    <dl><dt>Returns:</dt><dd>True if the App has been instructed to exit and all the MPR services have completed.</dd></dl>
+    <dl><dt>See Also:</dt><dd>
+    <a href="#group___mpr_1gac5203b2138474e781207b39ac4726c1b" class="ref">mprBreakpoint</a>, <a href="#group___mpr_1ga7efcdd2a5f01795791fbb21f4b073d37" class="ref">mprCreate</a>, <a href="#group___mpr_1gaf184a06275222c97f80e0a8d807418ac" class="ref">mprGetError</a>, <a href="#group___mpr_1gad2fa15bdd6890ff1df432ae25f4c981c" class="ref">mprGetOsError</a>, <a href="#group___mpr_1gab471b134b4eeb28e7fe1cf85fb723f5d" class="ref">mprIsExiting</a>, <a href="#group___mpr_1gacb25fd80b4d560d2c347ae8a692de0f1" class="ref">mprSetDebugMode</a>, <a href="#group___mpr_1gafb9d21dd2be700d09f34d403f10663f9" class="ref">mprTerminate</a></dd></dl>
+  </div>
+</div>
+<a name="group___mpr_1gaead57cafdee5b1206e4a4f3b0468fb99"></a>
+<div class="api">
+  <div class="prototype">
+    <a href="#mpr_8h_1a1062901a7428fdd9c7f180f5e01ea056" class="ref">bool</a>
+    mprIsIdle
+()
+  </div>
+  <div class="apiDetail">
+<p>Determine if the App is idle.</p>
+    <dl><dt><b>Description</b>:</dt><dd>This call returns true if the App is not currently servicing any requests. By default this returns true if the MPR dispatcher, thread, worker and command subsytems are idle. Callers can replace or augment the standard idle testing by definining a new idle callback via mprSetIdleCallback.</dd></dl>
+    <dl><dt>Returns:</dt><dd>True if the App are idle.</dd></dl>
+    <dl><dt>See Also:</dt><dd>
+    <a href="#group___mpr_1gac5203b2138474e781207b39ac4726c1b" class="ref">mprBreakpoint</a>, <a href="#group___mpr_1ga7efcdd2a5f01795791fbb21f4b073d37" class="ref">mprCreate</a>, <a href="#group___mpr_1gaf184a06275222c97f80e0a8d807418ac" class="ref">mprGetError</a>, <a href="#group___mpr_1gad2fa15bdd6890ff1df432ae25f4c981c" class="ref">mprGetOsError</a>, <a href="#group___mpr_1gab471b134b4eeb28e7fe1cf85fb723f5d" class="ref">mprIsExiting</a>, <a href="#group___mpr_1gacb25fd80b4d560d2c347ae8a692de0f1" class="ref">mprSetDebugMode</a>, <a href="#group___mpr_1gafb9d21dd2be700d09f34d403f10663f9" class="ref">mprTerminate</a></dd></dl>
+  </div>
+</div>
+<a name="group___mpr_1gae20024a4d8b56242e293b3e5d54d9972"></a>
+<div class="api">
+  <div class="prototype">
+    <a href="#mpr_8h_1a1062901a7428fdd9c7f180f5e01ea056" class="ref">bool</a>
+    mprIsStopping
+()
+  </div>
+  <div class="apiDetail">
+<p>Test if the application is stopping.</p>
+    <dl><dt>Returns:</dt><dd>True if the application is in the process of exiting.</dd></dl>
+    <dl><dt>See Also:</dt><dd>
+    <a href="#group___mpr_1gac5203b2138474e781207b39ac4726c1b" class="ref">mprBreakpoint</a>, <a href="#group___mpr_1ga7efcdd2a5f01795791fbb21f4b073d37" class="ref">mprCreate</a>, <a href="#group___mpr_1gaf184a06275222c97f80e0a8d807418ac" class="ref">mprGetError</a>, <a href="#group___mpr_1gad2fa15bdd6890ff1df432ae25f4c981c" class="ref">mprGetOsError</a>, <a href="#group___mpr_1gab471b134b4eeb28e7fe1cf85fb723f5d" class="ref">mprIsExiting</a>, <a href="#group___mpr_1gacb25fd80b4d560d2c347ae8a692de0f1" class="ref">mprSetDebugMode</a>, <a href="#group___mpr_1gafb9d21dd2be700d09f34d403f10663f9" class="ref">mprTerminate</a></dd></dl>
+  </div>
+</div>
+<a name="group___mpr_1ga0246cb5dcc7c53e415885e1d8ac55320"></a>
+<div class="api">
+  <div class="prototype">
+    <a href="#mpr_8h_1a1062901a7428fdd9c7f180f5e01ea056" class="ref">bool</a>
+    mprIsStoppingCore
+()
+  </div>
+  <div class="apiDetail">
+<p>Test if the application is stopping and core services are being terminated.</p>
+    <dl><dt>Returns:</dt><dd>True if the application is in the process of exiting and core services should also exit.</dd></dl>
+    <dl><dt>See Also:</dt><dd>
+    <a href="#group___mpr_1gac5203b2138474e781207b39ac4726c1b" class="ref">mprBreakpoint</a>, <a href="#group___mpr_1ga7efcdd2a5f01795791fbb21f4b073d37" class="ref">mprCreate</a>, <a href="#group___mpr_1gaf184a06275222c97f80e0a8d807418ac" class="ref">mprGetError</a>, <a href="#group___mpr_1gad2fa15bdd6890ff1df432ae25f4c981c" class="ref">mprGetOsError</a>, <a href="#group___mpr_1gab471b134b4eeb28e7fe1cf85fb723f5d" class="ref">mprIsExiting</a>, <a href="#group___mpr_1gacb25fd80b4d560d2c347ae8a692de0f1" class="ref">mprSetDebugMode</a>, <a href="#group___mpr_1gafb9d21dd2be700d09f34d403f10663f9" class="ref">mprTerminate</a></dd></dl>
+  </div>
+</div>
+<a name="group___mpr_1ga40a197cef78eae1edc83d359cedb71e6"></a>
+<div class="api">
+  <div class="prototype">
+    <a href="#mpr_8h_1a1062901a7428fdd9c7f180f5e01ea056" class="ref">bool</a>
+    mprServicesAreIdle
+()
+  </div>
+  <div class="apiDetail">
+<p>Determine if the MPR services.</p>
+    <dl><dt><b>Description</b>:</dt><dd>This is the default routine invoked by <a class="ref" href="#group___mpr_1gaead57cafdee5b1206e4a4f3b0468fb99">mprIsIdle()</a>.</dd></dl>
+    <dl><dt>Returns:</dt><dd>True if the MPR services are idle.</dd></dl>
+    <dl><dt>See Also:</dt><dd>
+    <a href="#group___mpr_1gac5203b2138474e781207b39ac4726c1b" class="ref">mprBreakpoint</a>, <a href="#group___mpr_1ga7efcdd2a5f01795791fbb21f4b073d37" class="ref">mprCreate</a>, <a href="#group___mpr_1gaf184a06275222c97f80e0a8d807418ac" class="ref">mprGetError</a>, <a href="#group___mpr_1gad2fa15bdd6890ff1df432ae25f4c981c" class="ref">mprGetOsError</a>, <a href="#group___mpr_1gab471b134b4eeb28e7fe1cf85fb723f5d" class="ref">mprIsExiting</a>, <a href="#group___mpr_1gacb25fd80b4d560d2c347ae8a692de0f1" class="ref">mprSetDebugMode</a>, <a href="#group___mpr_1gafb9d21dd2be700d09f34d403f10663f9" class="ref">mprTerminate</a></dd></dl>
+  </div>
+</div>
+<a name="group___mpr_1gad48220b7862b645de3920d74aa9b011e"></a>
+<div class="api">
+  <div class="prototype">
+    int
+    mprSetAppName
+(cchar *name, cchar *title, cchar *version)
+  </div>
+  <div class="apiDetail">
+<p>Set the application name, title and version.</p>
+    <dl><dt>Parameters:</dt><dd>
+    <table class="parameters" summary="Parameters">
+    <tr><td class="param">name</td><td>One word, lower case name for the app.</td>
+    <tr><td class="param">title</td><td>Pascal case multi-word descriptive name.</td>
+    <tr><td class="param">version</td><td>Version of the app. Major-Minor-Patch. E.g. 1.2.3.</td>
+    </table></dd></dl>
+    <dl><dt>Returns:</dt><dd>Zero if successful. Otherwise a negative MPR error code.</dd></dl>
+    <dl><dt>See Also:</dt><dd>
+    <a href="#group___mpr_1gac5203b2138474e781207b39ac4726c1b" class="ref">mprBreakpoint</a>, <a href="#group___mpr_1ga7efcdd2a5f01795791fbb21f4b073d37" class="ref">mprCreate</a>, <a href="#group___mpr_1gaf184a06275222c97f80e0a8d807418ac" class="ref">mprGetError</a>, <a href="#group___mpr_1gad2fa15bdd6890ff1df432ae25f4c981c" class="ref">mprGetOsError</a>, <a href="#group___mpr_1gab471b134b4eeb28e7fe1cf85fb723f5d" class="ref">mprIsExiting</a>, <a href="#group___mpr_1gacb25fd80b4d560d2c347ae8a692de0f1" class="ref">mprSetDebugMode</a>, <a href="#group___mpr_1gafb9d21dd2be700d09f34d403f10663f9" class="ref">mprTerminate</a></dd></dl>
+  </div>
+</div>
+<a name="group___mpr_1gacb25fd80b4d560d2c347ae8a692de0f1"></a>
+<div class="api">
+  <div class="prototype">
+    void
+    mprSetDebugMode
+(<a class="ref" href="#mpr_8h_1a1062901a7428fdd9c7f180f5e01ea056">bool</a> on)
+  </div>
+  <div class="apiDetail">
+<p>Turn on debug mode.</p>
+    <dl><dt><b>Description</b>:</dt><dd>Debug mode disables timeouts and timers. This makes debugging much easier.</dd></dl>
+    <dl><dt>Parameters:</dt><dd>
+    <table class="parameters" summary="Parameters">
+    <tr><td class="param">on</td><td>Set to true to enable debugging mode.</td>
+    </table></dd></dl>
+    <dl><dt><b>API</b> Stability:</dt><dd>Evolving.</dd></dl>
+    <dl><dt>See Also:</dt><dd>
+    <a href="#group___mpr_1gac5203b2138474e781207b39ac4726c1b" class="ref">mprBreakpoint</a>, <a href="#group___mpr_1ga7efcdd2a5f01795791fbb21f4b073d37" class="ref">mprCreate</a>, <a href="#group___mpr_1gaf184a06275222c97f80e0a8d807418ac" class="ref">mprGetError</a>, <a href="#group___mpr_1gad2fa15bdd6890ff1df432ae25f4c981c" class="ref">mprGetOsError</a>, <a href="#group___mpr_1gab471b134b4eeb28e7fe1cf85fb723f5d" class="ref">mprIsExiting</a>, <a href="#group___mpr_1gafb9d21dd2be700d09f34d403f10663f9" class="ref">mprTerminate</a></dd></dl>
+  </div>
+</div>
+<a name="group___mpr_1ga9dbc9553237fd2af50c9cf7e19f3045a"></a>
+<div class="api">
+  <div class="prototype">
+    void
+    mprSetDomainName
+(cchar *s)
+  </div>
+  <div class="apiDetail">
+<p>Set the application domain name string.</p>
+    <dl><dt>Parameters:</dt><dd>
+    <table class="parameters" summary="Parameters">
+    <tr><td class="param">s</td><td>New value to use for the application domain name.</td>
+    </table></dd></dl>
+    <dl><dt>See Also:</dt><dd>
+    <a href="#group___mpr_1gac5203b2138474e781207b39ac4726c1b" class="ref">mprBreakpoint</a>, <a href="#group___mpr_1ga7efcdd2a5f01795791fbb21f4b073d37" class="ref">mprCreate</a>, <a href="#group___mpr_1gaf184a06275222c97f80e0a8d807418ac" class="ref">mprGetError</a>, <a href="#group___mpr_1gad2fa15bdd6890ff1df432ae25f4c981c" class="ref">mprGetOsError</a>, <a href="#group___mpr_1gab471b134b4eeb28e7fe1cf85fb723f5d" class="ref">mprIsExiting</a>, <a href="#group___mpr_1gacb25fd80b4d560d2c347ae8a692de0f1" class="ref">mprSetDebugMode</a>, <a href="#group___mpr_1gafb9d21dd2be700d09f34d403f10663f9" class="ref">mprTerminate</a></dd></dl>
+  </div>
+</div>
+<a name="group___mpr_1gaf61307049c58bbb253244babc9d5a6b1"></a>
+<div class="api">
+  <div class="prototype">
+    void
+    mprSetHostName
+(cchar *s)
+  </div>
+  <div class="apiDetail">
+<p>Set the application host name string.</p>
+This is internal to the application and does not affect the O/S host name
+    <dl><dt>Parameters:</dt><dd>
+    <table class="parameters" summary="Parameters">
+    <tr><td class="param">s</td><td>New host name to use within the application.</td>
+    </table></dd></dl>
+    <dl><dt>See Also:</dt><dd>
+    <a href="#group___mpr_1gac5203b2138474e781207b39ac4726c1b" class="ref">mprBreakpoint</a>, <a href="#group___mpr_1ga7efcdd2a5f01795791fbb21f4b073d37" class="ref">mprCreate</a>, <a href="#group___mpr_1gaf184a06275222c97f80e0a8d807418ac" class="ref">mprGetError</a>, <a href="#group___mpr_1gad2fa15bdd6890ff1df432ae25f4c981c" class="ref">mprGetOsError</a>, <a href="#group___mpr_1gab471b134b4eeb28e7fe1cf85fb723f5d" class="ref">mprIsExiting</a>, <a href="#group___mpr_1gacb25fd80b4d560d2c347ae8a692de0f1" class="ref">mprSetDebugMode</a>, <a href="#group___mpr_1gafb9d21dd2be700d09f34d403f10663f9" class="ref">mprTerminate</a></dd></dl>
+  </div>
+</div>
+<a name="group___mpr_1ga829517ad9c44a5a377f3d70928c6d9c2"></a>
+<div class="api">
+  <div class="prototype">
+    <a href="#mpr_8h_1af4113f22c0d3fa830415b1c1c2877b7d" class="ref">MprIdleCallback</a>
+    mprSetIdleCallback
+(MprIdleCallback idleCallback)
+  </div>
+  <div class="apiDetail">
+<p>Define a new idle callback to be invoked by <a class="ref" href="#group___mpr_1gaead57cafdee5b1206e4a4f3b0468fb99">mprIsIdle()</a>.</p>
+    <dl><dt>Parameters:</dt><dd>
+    <table class="parameters" summary="Parameters">
+    <tr><td class="param">idleCallback</td><td>Callback function to invoke to test if the application is idle.</td>
+    </table></dd></dl>
+    <dl><dt>See Also:</dt><dd>
+    <a href="#group___mpr_1gac5203b2138474e781207b39ac4726c1b" class="ref">mprBreakpoint</a>, <a href="#group___mpr_1ga7efcdd2a5f01795791fbb21f4b073d37" class="ref">mprCreate</a>, <a href="#group___mpr_1gaf184a06275222c97f80e0a8d807418ac" class="ref">mprGetError</a>, <a href="#group___mpr_1gad2fa15bdd6890ff1df432ae25f4c981c" class="ref">mprGetOsError</a>, <a href="#group___mpr_1gab471b134b4eeb28e7fe1cf85fb723f5d" class="ref">mprIsExiting</a>, <a href="#group___mpr_1gacb25fd80b4d560d2c347ae8a692de0f1" class="ref">mprSetDebugMode</a>, <a href="#group___mpr_1gafb9d21dd2be700d09f34d403f10663f9" class="ref">mprTerminate</a></dd></dl>
+  </div>
+</div>
+<a name="group___mpr_1ga1fa92eb8cb9bf4f023f4f60f57001abc"></a>
+<div class="api">
+  <div class="prototype">
+    void
+    mprSetIpAddr
+(cchar *ip)
+  </div>
+  <div class="apiDetail">
+<p>Sete the application IP address string.</p>
+    <dl><dt>Parameters:</dt><dd>
+    <table class="parameters" summary="Parameters">
+    <tr><td class="param">ip</td><td>IP address string to store for the application.</td>
+    </table></dd></dl>
+    <dl><dt>See Also:</dt><dd>
+    <a href="#group___mpr_1gac5203b2138474e781207b39ac4726c1b" class="ref">mprBreakpoint</a>, <a href="#group___mpr_1ga7efcdd2a5f01795791fbb21f4b073d37" class="ref">mprCreate</a>, <a href="#group___mpr_1gaf184a06275222c97f80e0a8d807418ac" class="ref">mprGetError</a>, <a href="#group___mpr_1gad2fa15bdd6890ff1df432ae25f4c981c" class="ref">mprGetOsError</a>, <a href="#group___mpr_1gab471b134b4eeb28e7fe1cf85fb723f5d" class="ref">mprIsExiting</a>, <a href="#group___mpr_1gacb25fd80b4d560d2c347ae8a692de0f1" class="ref">mprSetDebugMode</a>, <a href="#group___mpr_1gafb9d21dd2be700d09f34d403f10663f9" class="ref">mprTerminate</a></dd></dl>
+  </div>
+</div>
+<a name="group___mpr_1ga4def6498567ad43a6da505d43bb119fc"></a>
+<div class="api">
+  <div class="prototype">
+    void
+    mprSetServerName
+(cchar *s)
+  </div>
+  <div class="apiDetail">
+<p>Set the application server name string.</p>
+    <dl><dt>Parameters:</dt><dd>
+    <table class="parameters" summary="Parameters">
+    <tr><td class="param">s</td><td>New application server name to use within the application.</td>
+    </table></dd></dl>
+    <dl><dt>See Also:</dt><dd>
+    <a href="#group___mpr_1gac5203b2138474e781207b39ac4726c1b" class="ref">mprBreakpoint</a>, <a href="#group___mpr_1ga7efcdd2a5f01795791fbb21f4b073d37" class="ref">mprCreate</a>, <a href="#group___mpr_1gaf184a06275222c97f80e0a8d807418ac" class="ref">mprGetError</a>, <a href="#group___mpr_1gad2fa15bdd6890ff1df432ae25f4c981c" class="ref">mprGetOsError</a>, <a href="#group___mpr_1gab471b134b4eeb28e7fe1cf85fb723f5d" class="ref">mprIsExiting</a>, <a href="#group___mpr_1gacb25fd80b4d560d2c347ae8a692de0f1" class="ref">mprSetDebugMode</a>, <a href="#group___mpr_1gafb9d21dd2be700d09f34d403f10663f9" class="ref">mprTerminate</a></dd></dl>
+  </div>
+</div>
+<a name="group___mpr_1ga0206927d986cd9ca7c42f8c530de6000"></a>
+<div class="api">
+  <div class="prototype">
+    <a href="#mpr_8h_1a1062901a7428fdd9c7f180f5e01ea056" class="ref">bool</a>
+    mprShouldAbortRequests
+()
+  </div>
+  <div class="apiDetail">
+<p>Test if requests should be aborted.</p>
+    <dl><dt><b>Description</b>:</dt><dd>This is useful to determine if current requests should be terminated due to the application exiting.</dd></dl>
+    <dl><dt>Returns:</dt><dd>True if new requests should be denied.</dd></dl>
+    <dl><dt>See Also:</dt><dd>
+    <a href="#group___mpr_1gac5203b2138474e781207b39ac4726c1b" class="ref">mprBreakpoint</a>, <a href="#group___mpr_1ga7efcdd2a5f01795791fbb21f4b073d37" class="ref">mprCreate</a>, <a href="#group___mpr_1gaf184a06275222c97f80e0a8d807418ac" class="ref">mprGetError</a>, <a href="#group___mpr_1gad2fa15bdd6890ff1df432ae25f4c981c" class="ref">mprGetOsError</a>, <a href="#group___mpr_1gab471b134b4eeb28e7fe1cf85fb723f5d" class="ref">mprIsExiting</a>, <a href="#group___mpr_1gacb25fd80b4d560d2c347ae8a692de0f1" class="ref">mprSetDebugMode</a>, <a href="#group___mpr_1gafb9d21dd2be700d09f34d403f10663f9" class="ref">mprTerminate</a></dd></dl>
+  </div>
+</div>
+<a name="group___mpr_1gaa8bdc374a789eed08f5b15c17a86559f"></a>
+<div class="api">
+  <div class="prototype">
+    <a href="#mpr_8h_1a1062901a7428fdd9c7f180f5e01ea056" class="ref">bool</a>
+    mprShouldDenyNewRequests
+()
+  </div>
+  <div class="apiDetail">
+<p>Test if new requests should be denied.</p>
+This is useful in denying new requests when doing a graceful shutdown while continuing to service existing requests
+    <dl><dt>Returns:</dt><dd>True if new requests should be denied.</dd></dl>
+    <dl><dt>See Also:</dt><dd>
+    <a href="#group___mpr_1gac5203b2138474e781207b39ac4726c1b" class="ref">mprBreakpoint</a>, <a href="#group___mpr_1ga7efcdd2a5f01795791fbb21f4b073d37" class="ref">mprCreate</a>, <a href="#group___mpr_1gaf184a06275222c97f80e0a8d807418ac" class="ref">mprGetError</a>, <a href="#group___mpr_1gad2fa15bdd6890ff1df432ae25f4c981c" class="ref">mprGetOsError</a>, <a href="#group___mpr_1gab471b134b4eeb28e7fe1cf85fb723f5d" class="ref">mprIsExiting</a>, <a href="#group___mpr_1gacb25fd80b4d560d2c347ae8a692de0f1" class="ref">mprSetDebugMode</a>, <a href="#group___mpr_1gafb9d21dd2be700d09f34d403f10663f9" class="ref">mprTerminate</a></dd></dl>
+  </div>
+</div>
+<a name="group___mpr_1gaf8bae04622ff05416af04d1b06e68e55"></a>
+<div class="api">
+  <div class="prototype">
+    void
+    mprSleep
+(MprTime msec)
+  </div>
+  <div class="apiDetail">
+<p>Sleep for a while.</p>
+    <dl><dt>Parameters:</dt><dd>
+    <table class="parameters" summary="Parameters">
+    <tr><td class="param">msec</td><td>Number of milliseconds to sleep.</td>
+    </table></dd></dl>
+    <dl><dt>See Also:</dt><dd>
+    <a href="#group___mpr_1gac5203b2138474e781207b39ac4726c1b" class="ref">mprBreakpoint</a>, <a href="#group___mpr_1ga7efcdd2a5f01795791fbb21f4b073d37" class="ref">mprCreate</a>, <a href="#group___mpr_1gaf184a06275222c97f80e0a8d807418ac" class="ref">mprGetError</a>, <a href="#group___mpr_1gad2fa15bdd6890ff1df432ae25f4c981c" class="ref">mprGetOsError</a>, <a href="#group___mpr_1gab471b134b4eeb28e7fe1cf85fb723f5d" class="ref">mprIsExiting</a>, <a href="#group___mpr_1gacb25fd80b4d560d2c347ae8a692de0f1" class="ref">mprSetDebugMode</a>, <a href="#group___mpr_1gafb9d21dd2be700d09f34d403f10663f9" class="ref">mprTerminate</a></dd></dl>
   </div>
 </div>
 <a name="group___mpr_1gafb9d21dd2be700d09f34d403f10663f9"></a>
@@ -2205,7 +2637,26 @@ Worker service object.
     </table></dd></dl>
     <dl><dt><b>API</b> Stability:</dt><dd>Evolving.</dd></dl>
     <dl><dt>See Also:</dt><dd>
-    <a href="#group___mpr_1gac5203b2138474e781207b39ac4726c1b" class="ref">mprBreakpoint</a>, <a href="#group___mpr_1ga7efcdd2a5f01795791fbb21f4b073d37" class="ref">mprCreate</a>, <a href="#group___mpr_1gaf184a06275222c97f80e0a8d807418ac" class="ref">mprGetError</a>, <a href="#group___mpr_1gad2fa15bdd6890ff1df432ae25f4c981c" class="ref">mprGetOsError</a>, <a href="#group___mpr_1gab471b134b4eeb28e7fe1cf85fb723f5d" class="ref">mprIsExiting</a>, <a href="#mpr_8h_1acb25fd80b4d560d2c347ae8a692de0f1" class="ref">mprSetDebugMode</a></dd></dl>
+    <a href="#group___mpr_1gac5203b2138474e781207b39ac4726c1b" class="ref">mprBreakpoint</a>, <a href="#group___mpr_1ga7efcdd2a5f01795791fbb21f4b073d37" class="ref">mprCreate</a>, <a href="#group___mpr_1gaf184a06275222c97f80e0a8d807418ac" class="ref">mprGetError</a>, <a href="#group___mpr_1gad2fa15bdd6890ff1df432ae25f4c981c" class="ref">mprGetOsError</a>, <a href="#group___mpr_1gab471b134b4eeb28e7fe1cf85fb723f5d" class="ref">mprIsExiting</a>, <a href="#group___mpr_1gacb25fd80b4d560d2c347ae8a692de0f1" class="ref">mprSetDebugMode</a></dd></dl>
+  </div>
+</div>
+<a name="group___mpr_1ga7aab2a7f8f90ad0708a7f3a2f7d29695"></a>
+<div class="api">
+  <div class="prototype">
+    int
+    mprWaitTillIdle
+(MprTime timeout)
+  </div>
+  <div class="apiDetail">
+<p>Wait until the application is idle.</p>
+    <dl><dt><b>Description</b>:</dt><dd>This call blocks until application services are idle.</dd></dl>
+    <dl><dt>Parameters:</dt><dd>
+    <table class="parameters" summary="Parameters">
+    <tr><td class="param">timeout</td><td>Time in milliseconds to wait for the application to be idle.</td>
+    </table></dd></dl>
+    <dl><dt>Returns:</dt><dd>True if the application is idle.</dd></dl>
+    <dl><dt>See Also:</dt><dd>
+    <a href="#group___mpr_1gac5203b2138474e781207b39ac4726c1b" class="ref">mprBreakpoint</a>, <a href="#group___mpr_1ga7efcdd2a5f01795791fbb21f4b073d37" class="ref">mprCreate</a>, <a href="#group___mpr_1gaf184a06275222c97f80e0a8d807418ac" class="ref">mprGetError</a>, <a href="#group___mpr_1gad2fa15bdd6890ff1df432ae25f4c981c" class="ref">mprGetOsError</a>, <a href="#group___mpr_1gab471b134b4eeb28e7fe1cf85fb723f5d" class="ref">mprIsExiting</a>, <a href="#group___mpr_1gacb25fd80b4d560d2c347ae8a692de0f1" class="ref">mprSetDebugMode</a>, <a href="#group___mpr_1gafb9d21dd2be700d09f34d403f10663f9" class="ref">mprTerminate</a></dd></dl>
   </div>
 </div>
 <h1>MprBuf</h1>
@@ -2221,7 +2672,7 @@ Worker service object.
     <a href="#group___mpr_buf_1gaa0f2f003728ef5bb244fdabe2edc56f7" class="ref">MprBufProc</a>, <a href="#group___mpr_buf_1ga95de494427536885cd80187593d45d91" class="ref">mprAdjustBufEnd</a>, <a href="#group___mpr_buf_1ga52128fe8a192cd1cf4541cccf6ce3625" class="ref">mprAdjustBufStart</a>, <a href="#group___mpr_buf_1ga74c3067411dfb45ad0bbd94787320238" class="ref">mprCreateBuf</a>, <a href="#group___mpr_buf_1ga453b62a6659fc9fa4d041165dad7461e" class="ref">mprFlushBuf</a>, <a href="#group___mpr_buf_1ga142b9eecd08dac10c50cd705045ddb80" class="ref">mprGetBlockFromBuf</a>, <a href="#group___mpr_buf_1gabd1fae7a41a8c38220de4f06e6d0e053" class="ref">mprGetBufEnd</a>, <a href="#group___mpr_buf_1gaa543b610b67691faf917b4b79229fc34" class="ref">mprGetBufLength</a>, <a href="#group___mpr_buf_1ga962aeff07a87ab52da3bcd1973fe801b" class="ref">mprGetBufOrigin</a>, <a href="#group___mpr_buf_1ga2791daeb72ae2e3f455250dfba72aa67" class="ref">mprGetBufRefillProc</a>, <a href="#group___mpr_buf_1ga0cbdbaf59392b9f7a77997c450117c87" class="ref">mprGetBufSize</a>, <a href="#group___mpr_buf_1ga31a2c76bb862de4e47ffb2231b106c98" class="ref">mprGetBufSpace</a>, <a href="#group___mpr_buf_1gaf128b71005bdd12507110e1f21b483d4" class="ref">mprGetCharFromBuf</a>, <a href="#group___mpr_buf_1ga00b4c52b236de298af2ac5047bab6e57" class="ref">mprGrowBuf</a>, <a href="#group___mpr_buf_1ga6f91b177cd36508c9d470636b04fa7b5" class="ref">mprInsertCharToBuf</a>, <a href="#group___mpr_buf_1ga9ae5abc2e8c8b3359ca450e505564359" class="ref">mprLookAtLastCharInBuf</a>, <a href="#group___mpr_buf_1gabe01ab970d735db5a92cea5f9456de5e" class="ref">mprLookAtNextCharInBuf</a>, <a href="#group___mpr_buf_1gaa88196b86b9c9544f97e5910b015380d" class="ref">mprPutBlockToBuf</a>, <a href="#group___mpr_buf_1ga5ab66b5d96db8b33e3bb0c3bbb9c90e2" class="ref">mprPutCharToBuf</a>, <a href="#group___mpr_buf_1ga4c417a42d062a51105fa3e76b0c9cfc8" class="ref">mprPutFmtToBuf</a>, <a href="#group___mpr_buf_1ga78cd3d5e97c841aa406e7029e278515a" class="ref">mprPutIntToBuf</a>, <a href="#group___mpr_buf_1ga50d08cdfc9c21e71af90586104a5839e" class="ref">mprPutStringToBuf</a>, <a href="#group___mpr_buf_1ga9e7451ec61507706a06c6c8149bebc52" class="ref">mprRefillBuf</a>, <a href="#group___mpr_buf_1gae6f9d70c3aab3eb2d9235a1c2a8f63a8" class="ref">mprResetBufIfEmpty</a>, <a href="#group___mpr_buf_1gaffa4e80d4cc95a6816bfe84767d11e2f" class="ref">mprSetBufMax</a>, <a href="#group___mpr_buf_1ga7f74f8c3d5af9db8c064b365f39cae2c" class="ref">mprSetBufRefillProc</a>, <a href="#group___mpr_buf_1gab72f5c9cc154767c1b299f665237d6a6" class="ref">mprSetBufSize</a></dd></dl>
     <dl><dt>Fields:</dt><dd>
     <table class="parameters" summary="Parameters">
-    <tr><td class="param">ssize</td><td><td>buflen</td><td>
+    <tr><td class="param"><a class="ref" href="#mpr_8h_1a7d08ccc1e981eb4d5a238641ac4ccfc1">ssize</a></td><td><td>buflen</td><td>
 Current size of buffer.
 </td>
     <tr><td class="param">char *</td><td><td>data</td><td>
@@ -2233,10 +2684,10 @@ Pointer one past the last data chr.
     <tr><td class="param">char *</td><td><td>endbuf</td><td>
 Pointer one past the end of buffer.
 </td>
-    <tr><td class="param">ssize</td><td><td>growBy</td><td>
+    <tr><td class="param"><a class="ref" href="#mpr_8h_1a7d08ccc1e981eb4d5a238641ac4ccfc1">ssize</a></td><td><td>growBy</td><td>
 Next growth increment to use.
 </td>
-    <tr><td class="param">ssize</td><td><td>maxsize</td><td>
+    <tr><td class="param"><a class="ref" href="#mpr_8h_1a7d08ccc1e981eb4d5a238641ac4ccfc1">ssize</a></td><td><td>maxsize</td><td>
 Max size the buffer can ever grow.
 </td>
     <tr><td class="param">void *</td><td><td>refillArg</td><td>
@@ -2292,7 +2743,7 @@ Pointer to next data char.
   <div class="prototype">
     void
     mprAdjustBufEnd
-(MprBuf *buf, ssize count)
+(MprBuf *buf, <a class="ref" href="#mpr_8h_1a7d08ccc1e981eb4d5a238641ac4ccfc1">ssize</a> count)
   </div>
   <div class="apiDetail">
 <p>Adjust the buffer end position.</p>
@@ -2311,7 +2762,7 @@ Pointer to next data char.
   <div class="prototype">
     void
     mprAdjustBufStart
-(MprBuf *buf, ssize count)
+(MprBuf *buf, <a class="ref" href="#mpr_8h_1a7d08ccc1e981eb4d5a238641ac4ccfc1">ssize</a> count)
   </div>
   <div class="apiDetail">
 <p>Adjust the buffer start position.</p>
@@ -2348,7 +2799,7 @@ Pointer to next data char.
   <div class="prototype">
     <a href="#group___mpr_buf" class="ref">MprBuf</a> *
     mprCreateBuf
-(ssize initialSize, ssize maxSize)
+(<a class="ref" href="#mpr_8h_1a7d08ccc1e981eb4d5a238641ac4ccfc1">ssize</a> initialSize, <a class="ref" href="#mpr_8h_1a7d08ccc1e981eb4d5a238641ac4ccfc1">ssize</a> maxSize)
   </div>
   <div class="apiDetail">
 <p>Create a new buffer.</p>
@@ -2386,7 +2837,7 @@ Pointer to next data char.
   <div class="prototype">
     <a href="#mpr_8h_1a7d08ccc1e981eb4d5a238641ac4ccfc1" class="ref">ssize</a>
     mprGetBlockFromBuf
-(MprBuf *buf, char *blk, ssize count)
+(MprBuf *buf, char *blk, <a class="ref" href="#mpr_8h_1a7d08ccc1e981eb4d5a238641ac4ccfc1">ssize</a> count)
   </div>
   <div class="apiDetail">
 <p>Get a block of data from the buffer.</p>
@@ -2577,7 +3028,7 @@ Pointer to next data char.
   <div class="prototype">
     int
     mprGrowBuf
-(MprBuf *buf, ssize count)
+(MprBuf *buf, <a class="ref" href="#mpr_8h_1a7d08ccc1e981eb4d5a238641ac4ccfc1">ssize</a> count)
   </div>
   <div class="apiDetail">
 <p>Grow the buffer.</p>
@@ -2655,7 +3106,7 @@ Pointer to next data char.
   <div class="prototype">
     <a href="#mpr_8h_1a7d08ccc1e981eb4d5a238641ac4ccfc1" class="ref">ssize</a>
     mprPutBlockToBuf
-(MprBuf *buf, cchar *ptr, ssize size)
+(MprBuf *buf, cchar *ptr, <a class="ref" href="#mpr_8h_1a7d08ccc1e981eb4d5a238641ac4ccfc1">ssize</a> size)
   </div>
   <div class="apiDetail">
 <p>Put a block to the buffer.</p>
@@ -2757,7 +3208,7 @@ Pointer to next data char.
   <div class="prototype">
     <a href="#mpr_8h_1a7d08ccc1e981eb4d5a238641ac4ccfc1" class="ref">ssize</a>
     mprPutPadToBuf
-(MprBuf *buf, int c, ssize count)
+(MprBuf *buf, int c, <a class="ref" href="#mpr_8h_1a7d08ccc1e981eb4d5a238641ac4ccfc1">ssize</a> count)
   </div>
   <div class="apiDetail">
 <p>Put padding characters to the buffer.</p>
@@ -2818,7 +3269,7 @@ Pointer to next data char.
   <div class="prototype">
     <a href="#mpr_8h_1a7d08ccc1e981eb4d5a238641ac4ccfc1" class="ref">ssize</a>
     mprPutSubStringToBuf
-(MprBuf *buf, cchar *str, ssize count)
+(MprBuf *buf, cchar *str, <a class="ref" href="#mpr_8h_1a7d08ccc1e981eb4d5a238641ac4ccfc1">ssize</a> count)
   </div>
   <div class="apiDetail">
 <p>Put a substring to the buffer.</p>
@@ -2876,7 +3327,7 @@ Pointer to next data char.
   <div class="prototype">
     void
     mprSetBufMax
-(MprBuf *buf, ssize maxSize)
+(MprBuf *buf, <a class="ref" href="#mpr_8h_1a7d08ccc1e981eb4d5a238641ac4ccfc1">ssize</a> maxSize)
   </div>
   <div class="apiDetail">
 <p>Set the maximum buffer size.</p>
@@ -2915,7 +3366,7 @@ Pointer to next data char.
   <div class="prototype">
     int
     mprSetBufSize
-(MprBuf *buf, ssize size, ssize maxSize)
+(MprBuf *buf, <a class="ref" href="#mpr_8h_1a7d08ccc1e981eb4d5a238641ac4ccfc1">ssize</a> size, <a class="ref" href="#mpr_8h_1a7d08ccc1e981eb4d5a238641ac4ccfc1">ssize</a> maxSize)
   </div>
   <div class="apiDetail">
 <p>Set the buffer size.</p>
@@ -3149,7 +3600,7 @@ This is only used on windows which can&apos;t adequately detect EOF on a named p
   <div class="prototype">
     <a href="#mpr_8h_1a7d08ccc1e981eb4d5a238641ac4ccfc1" class="ref">ssize</a>
     mprReadCmd
-(MprCmd *cmd, int channel, char *buf, ssize bufsize)
+(MprCmd *cmd, int channel, char *buf, <a class="ref" href="#mpr_8h_1a7d08ccc1e981eb4d5a238641ac4ccfc1">ssize</a> bufsize)
   </div>
   <div class="apiDetail">
 <p>Make the I/O channels to send and receive data to and from the command.</p>
@@ -3357,7 +3808,7 @@ The command is immediately killed
   <div class="prototype">
     int
     mprWriteCmd
-(MprCmd *cmd, int channel, char *buf, ssize bufsize)
+(MprCmd *cmd, int channel, char *buf, <a class="ref" href="#mpr_8h_1a7d08ccc1e981eb4d5a238641ac4ccfc1">ssize</a> bufsize)
   </div>
   <div class="apiDetail">
 <p>Write data to an I/O channel.</p>
@@ -3595,7 +4046,7 @@ When was the event created.
     <dl><dt><b>Description</b>:</dt><dd>MprFile is the cross platform File I/O abstraction control structure. An instance will be created when a file is created or opened via <a class="ref" href="#group___mpr_file_1ga0cfed380f506b05b2eea9ec7e671a7f9">mprOpenFile</a>.</dd></dl>
     <dl><dt><b>API</b> Stability:</dt><dd>Evolving.</dd></dl>
     <dl><dt>See Also:</dt><dd>
-    <a href="#group___mpr_file_1ga457be50126337e42f1df6c30af9db510" class="ref">mprDisableFileBuffering</a>, <a href="#group___mpr_file_1ga04cace2622f3cfe7e8e9ee32bffb12da" class="ref">mprEnableFileBuffering</a>, <a href="#group___mpr_file_1ga96273fe03aa3e5e1de8820e8aaba7e5c" class="ref">mprGetFilePosition</a>, <a href="#group___mpr_file_1gab1ae4e8c4128773497a609e444dbe8c7" class="ref">mprGetFileSize</a>, <a href="#group___mpr_file_1ga0cfed380f506b05b2eea9ec7e671a7f9" class="ref">mprOpenFile</a></dd></dl>
+    <a href="#group___mpr_file_1ga457be50126337e42f1df6c30af9db510" class="ref">mprDisableFileBuffering</a>, <a href="#group___mpr_file_1ga04cace2622f3cfe7e8e9ee32bffb12da" class="ref">mprEnableFileBuffering</a>, <a href="#group___mpr_file_1ga437b7eb30b31d38fcedef0aa8617edcc" class="ref">mprGetFilePosition</a>, <a href="#group___mpr_file_1ga29b58b84303a5345e9cc69bb320fc500" class="ref">mprGetFileSize</a>, <a href="#group___mpr_file_1ga0cfed380f506b05b2eea9ec7e671a7f9" class="ref">mprOpenFile</a></dd></dl>
     <dl><dt>Fields:</dt><dd>
     <table class="parameters" summary="Parameters">
     <tr><td class="param">int</td><td><td>attached</td><td>
@@ -3613,7 +4064,7 @@ File system owning this file.
     <tr><td class="param">MprRomInode *</td><td><td>inode</td><td>
 Reference to ROM file.
 </td>
-    <tr><td class="param">MprOffset</td><td><td>iopos</td><td>
+    <tr><td class="param">MprOff</td><td><td>iopos</td><td>
 Raw I/O position.
 </td>
     <tr><td class="param">int</td><td><td>mode</td><td>
@@ -3625,10 +4076,10 @@ Filename.
     <tr><td class="param">int</td><td><td>perms</td><td>
 File permissions.
 </td>
-    <tr><td class="param">MprOffset</td><td><td>pos</td><td>
+    <tr><td class="param">MprOff</td><td><td>pos</td><td>
 Current read position.
 </td>
-    <tr><td class="param">MprOffset</td><td><td>size</td><td>
+    <tr><td class="param">MprOff</td><td><td>size</td><td>
 Current file size.
 </td>
     </table></dd></dl>
@@ -3652,7 +4103,7 @@ Current file size.
     </table></dd></dl>
     <dl><dt>Returns:</dt><dd>Returns an MprFile object to use in other file operations.</dd></dl>
     <dl><dt>See Also:</dt><dd>
-    <a href="#group___mpr_file" class="ref">MprFile</a>, <a href="#group___mpr_file" class="ref">MprFile</a>, <a href="#group___mpr_file_1ga457be50126337e42f1df6c30af9db510" class="ref">mprDisableFileBuffering</a>, <a href="#group___mpr_file_1ga04cace2622f3cfe7e8e9ee32bffb12da" class="ref">mprEnableFileBuffering</a>, <a href="#group___mpr_file_1ga96273fe03aa3e5e1de8820e8aaba7e5c" class="ref">mprGetFilePosition</a>, <a href="#group___mpr_file_1gab1ae4e8c4128773497a609e444dbe8c7" class="ref">mprGetFileSize</a>, <a href="#group___mpr_file_1ga0cfed380f506b05b2eea9ec7e671a7f9" class="ref">mprOpenFile</a></dd></dl>
+    <a href="#group___mpr_file" class="ref">MprFile</a>, <a href="#group___mpr_file" class="ref">MprFile</a>, <a href="#group___mpr_file_1ga457be50126337e42f1df6c30af9db510" class="ref">mprDisableFileBuffering</a>, <a href="#group___mpr_file_1ga04cace2622f3cfe7e8e9ee32bffb12da" class="ref">mprEnableFileBuffering</a>, <a href="#group___mpr_file_1ga437b7eb30b31d38fcedef0aa8617edcc" class="ref">mprGetFilePosition</a>, <a href="#group___mpr_file_1ga29b58b84303a5345e9cc69bb320fc500" class="ref">mprGetFileSize</a>, <a href="#group___mpr_file_1ga0cfed380f506b05b2eea9ec7e671a7f9" class="ref">mprOpenFile</a></dd></dl>
   </div>
 </div>
 <a name="group___mpr_file_1ga457be50126337e42f1df6c30af9db510"></a>
@@ -3670,7 +4121,7 @@ Current file size.
     <tr><td class="param">file</td><td>File instance returned from <a class="ref" href="#group___mpr_file_1ga0cfed380f506b05b2eea9ec7e671a7f9">mprOpenFile</a>.</td>
     </table></dd></dl>
     <dl><dt>See Also:</dt><dd>
-    <a href="#group___mpr_file" class="ref">MprFile</a>, <a href="#group___mpr_file" class="ref">MprFile</a>, <a href="#group___mpr_file_1ga04cace2622f3cfe7e8e9ee32bffb12da" class="ref">mprEnableFileBuffering</a>, <a href="#group___mpr_file_1ga96273fe03aa3e5e1de8820e8aaba7e5c" class="ref">mprGetFilePosition</a>, <a href="#group___mpr_file_1gab1ae4e8c4128773497a609e444dbe8c7" class="ref">mprGetFileSize</a>, <a href="#group___mpr_file_1ga0cfed380f506b05b2eea9ec7e671a7f9" class="ref">mprOpenFile</a></dd></dl>
+    <a href="#group___mpr_file" class="ref">MprFile</a>, <a href="#group___mpr_file" class="ref">MprFile</a>, <a href="#group___mpr_file_1ga04cace2622f3cfe7e8e9ee32bffb12da" class="ref">mprEnableFileBuffering</a>, <a href="#group___mpr_file_1ga437b7eb30b31d38fcedef0aa8617edcc" class="ref">mprGetFilePosition</a>, <a href="#group___mpr_file_1ga29b58b84303a5345e9cc69bb320fc500" class="ref">mprGetFileSize</a>, <a href="#group___mpr_file_1ga0cfed380f506b05b2eea9ec7e671a7f9" class="ref">mprOpenFile</a></dd></dl>
   </div>
 </div>
 <a name="group___mpr_file_1ga04cace2622f3cfe7e8e9ee32bffb12da"></a>
@@ -3678,7 +4129,7 @@ Current file size.
   <div class="prototype">
     int
     mprEnableFileBuffering
-(MprFile *file, ssize size, ssize maxSize)
+(MprFile *file, <a class="ref" href="#mpr_8h_1a7d08ccc1e981eb4d5a238641ac4ccfc1">ssize</a> size, <a class="ref" href="#mpr_8h_1a7d08ccc1e981eb4d5a238641ac4ccfc1">ssize</a> maxSize)
   </div>
   <div class="apiDetail">
 <p>Enable file buffering.</p>
@@ -3690,7 +4141,7 @@ Current file size.
     <tr><td class="param">maxSize</td><td>Maximum size the data buffer can grow to.</td>
     </table></dd></dl>
     <dl><dt>See Also:</dt><dd>
-    <a href="#group___mpr_file" class="ref">MprFile</a>, <a href="#group___mpr_file" class="ref">MprFile</a>, <a href="#group___mpr_file_1ga457be50126337e42f1df6c30af9db510" class="ref">mprDisableFileBuffering</a>, <a href="#group___mpr_file_1ga96273fe03aa3e5e1de8820e8aaba7e5c" class="ref">mprGetFilePosition</a>, <a href="#group___mpr_file_1gab1ae4e8c4128773497a609e444dbe8c7" class="ref">mprGetFileSize</a>, <a href="#group___mpr_file_1ga0cfed380f506b05b2eea9ec7e671a7f9" class="ref">mprOpenFile</a></dd></dl>
+    <a href="#group___mpr_file" class="ref">MprFile</a>, <a href="#group___mpr_file" class="ref">MprFile</a>, <a href="#group___mpr_file_1ga457be50126337e42f1df6c30af9db510" class="ref">mprDisableFileBuffering</a>, <a href="#group___mpr_file_1ga437b7eb30b31d38fcedef0aa8617edcc" class="ref">mprGetFilePosition</a>, <a href="#group___mpr_file_1ga29b58b84303a5345e9cc69bb320fc500" class="ref">mprGetFileSize</a>, <a href="#group___mpr_file_1ga0cfed380f506b05b2eea9ec7e671a7f9" class="ref">mprOpenFile</a></dd></dl>
   </div>
 </div>
 <a name="group___mpr_file_1ga957f3c3051214ee8f105047fee84bc11"></a>
@@ -3709,7 +4160,7 @@ Current file size.
     </table></dd></dl>
     <dl><dt>Returns:</dt><dd>Zero if successful, otherwise a negative MPR error code.</dd></dl>
     <dl><dt>See Also:</dt><dd>
-    <a href="#group___mpr_file" class="ref">MprFile</a>, <a href="#group___mpr_file" class="ref">MprFile</a>, <a href="#group___mpr_file_1ga457be50126337e42f1df6c30af9db510" class="ref">mprDisableFileBuffering</a>, <a href="#group___mpr_file_1ga04cace2622f3cfe7e8e9ee32bffb12da" class="ref">mprEnableFileBuffering</a>, <a href="#group___mpr_file_1ga96273fe03aa3e5e1de8820e8aaba7e5c" class="ref">mprGetFilePosition</a>, <a href="#group___mpr_file_1gab1ae4e8c4128773497a609e444dbe8c7" class="ref">mprGetFileSize</a>, <a href="#group___mpr_file_1ga0cfed380f506b05b2eea9ec7e671a7f9" class="ref">mprOpenFile</a></dd></dl>
+    <a href="#group___mpr_file" class="ref">MprFile</a>, <a href="#group___mpr_file" class="ref">MprFile</a>, <a href="#group___mpr_file_1ga457be50126337e42f1df6c30af9db510" class="ref">mprDisableFileBuffering</a>, <a href="#group___mpr_file_1ga04cace2622f3cfe7e8e9ee32bffb12da" class="ref">mprEnableFileBuffering</a>, <a href="#group___mpr_file_1ga437b7eb30b31d38fcedef0aa8617edcc" class="ref">mprGetFilePosition</a>, <a href="#group___mpr_file_1ga29b58b84303a5345e9cc69bb320fc500" class="ref">mprGetFileSize</a>, <a href="#group___mpr_file_1ga0cfed380f506b05b2eea9ec7e671a7f9" class="ref">mprOpenFile</a></dd></dl>
   </div>
 </div>
 <a name="group___mpr_file_1gaef84e97dcc3d31210a7a234a03ac3366"></a>
@@ -3728,13 +4179,13 @@ Current file size.
     </table></dd></dl>
     <dl><dt>Returns:</dt><dd>If successful, return the character just read. Otherwise return a negative MPR error code. End of file is signified by reading 0.</dd></dl>
     <dl><dt>See Also:</dt><dd>
-    <a href="#group___mpr_file" class="ref">MprFile</a>, <a href="#group___mpr_file" class="ref">MprFile</a>, <a href="#group___mpr_file_1ga457be50126337e42f1df6c30af9db510" class="ref">mprDisableFileBuffering</a>, <a href="#group___mpr_file_1ga04cace2622f3cfe7e8e9ee32bffb12da" class="ref">mprEnableFileBuffering</a>, <a href="#group___mpr_file_1ga96273fe03aa3e5e1de8820e8aaba7e5c" class="ref">mprGetFilePosition</a>, <a href="#group___mpr_file_1gab1ae4e8c4128773497a609e444dbe8c7" class="ref">mprGetFileSize</a>, <a href="#group___mpr_file_1ga0cfed380f506b05b2eea9ec7e671a7f9" class="ref">mprOpenFile</a></dd></dl>
+    <a href="#group___mpr_file" class="ref">MprFile</a>, <a href="#group___mpr_file" class="ref">MprFile</a>, <a href="#group___mpr_file_1ga457be50126337e42f1df6c30af9db510" class="ref">mprDisableFileBuffering</a>, <a href="#group___mpr_file_1ga04cace2622f3cfe7e8e9ee32bffb12da" class="ref">mprEnableFileBuffering</a>, <a href="#group___mpr_file_1ga437b7eb30b31d38fcedef0aa8617edcc" class="ref">mprGetFilePosition</a>, <a href="#group___mpr_file_1ga29b58b84303a5345e9cc69bb320fc500" class="ref">mprGetFileSize</a>, <a href="#group___mpr_file_1ga0cfed380f506b05b2eea9ec7e671a7f9" class="ref">mprOpenFile</a></dd></dl>
   </div>
 </div>
-<a name="group___mpr_file_1ga96273fe03aa3e5e1de8820e8aaba7e5c"></a>
+<a name="group___mpr_file_1ga437b7eb30b31d38fcedef0aa8617edcc"></a>
 <div class="api">
   <div class="prototype">
-    <a href="#mpr_8h_1adf47206cbe2d15ed83ac7c3a2b8a1c9d" class="ref">MprOffset</a>
+    <a href="#mpr_8h_1a33d86dc5ed93d7e8c5db34e873f7483d" class="ref">MprOff</a>
     mprGetFilePosition
 (MprFile *file)
   </div>
@@ -3747,13 +4198,13 @@ Current file size.
     </table></dd></dl>
     <dl><dt>Returns:</dt><dd>The current file offset position if successful. Returns a negative MPR error code on errors.</dd></dl>
     <dl><dt>See Also:</dt><dd>
-    <a href="#group___mpr_file" class="ref">MprFile</a>, <a href="#group___mpr_file" class="ref">MprFile</a>, <a href="#group___mpr_file_1ga457be50126337e42f1df6c30af9db510" class="ref">mprDisableFileBuffering</a>, <a href="#group___mpr_file_1ga04cace2622f3cfe7e8e9ee32bffb12da" class="ref">mprEnableFileBuffering</a>, <a href="#group___mpr_file_1gab1ae4e8c4128773497a609e444dbe8c7" class="ref">mprGetFileSize</a>, <a href="#group___mpr_file_1ga0cfed380f506b05b2eea9ec7e671a7f9" class="ref">mprOpenFile</a></dd></dl>
+    <a href="#group___mpr_file" class="ref">MprFile</a>, <a href="#group___mpr_file" class="ref">MprFile</a>, <a href="#group___mpr_file_1ga457be50126337e42f1df6c30af9db510" class="ref">mprDisableFileBuffering</a>, <a href="#group___mpr_file_1ga04cace2622f3cfe7e8e9ee32bffb12da" class="ref">mprEnableFileBuffering</a>, <a href="#group___mpr_file_1ga29b58b84303a5345e9cc69bb320fc500" class="ref">mprGetFileSize</a>, <a href="#group___mpr_file_1ga0cfed380f506b05b2eea9ec7e671a7f9" class="ref">mprOpenFile</a></dd></dl>
   </div>
 </div>
-<a name="group___mpr_file_1gab1ae4e8c4128773497a609e444dbe8c7"></a>
+<a name="group___mpr_file_1ga29b58b84303a5345e9cc69bb320fc500"></a>
 <div class="api">
   <div class="prototype">
-    <a href="#mpr_8h_1adf47206cbe2d15ed83ac7c3a2b8a1c9d" class="ref">MprOffset</a>
+    <a href="#mpr_8h_1a33d86dc5ed93d7e8c5db34e873f7483d" class="ref">MprOff</a>
     mprGetFileSize
 (MprFile *file)
   </div>
@@ -3766,7 +4217,7 @@ Current file size.
     </table></dd></dl>
     <dl><dt>Returns:</dt><dd>The current file size if successful. Returns a negative MPR error code on errors.</dd></dl>
     <dl><dt>See Also:</dt><dd>
-    <a href="#group___mpr_file" class="ref">MprFile</a>, <a href="#group___mpr_file" class="ref">MprFile</a>, <a href="#group___mpr_file_1ga457be50126337e42f1df6c30af9db510" class="ref">mprDisableFileBuffering</a>, <a href="#group___mpr_file_1ga04cace2622f3cfe7e8e9ee32bffb12da" class="ref">mprEnableFileBuffering</a>, <a href="#group___mpr_file_1ga96273fe03aa3e5e1de8820e8aaba7e5c" class="ref">mprGetFilePosition</a>, <a href="#group___mpr_file_1ga0cfed380f506b05b2eea9ec7e671a7f9" class="ref">mprOpenFile</a></dd></dl>
+    <a href="#group___mpr_file" class="ref">MprFile</a>, <a href="#group___mpr_file" class="ref">MprFile</a>, <a href="#group___mpr_file_1ga457be50126337e42f1df6c30af9db510" class="ref">mprDisableFileBuffering</a>, <a href="#group___mpr_file_1ga04cace2622f3cfe7e8e9ee32bffb12da" class="ref">mprEnableFileBuffering</a>, <a href="#group___mpr_file_1ga437b7eb30b31d38fcedef0aa8617edcc" class="ref">mprGetFilePosition</a>, <a href="#group___mpr_file_1ga0cfed380f506b05b2eea9ec7e671a7f9" class="ref">mprOpenFile</a></dd></dl>
   </div>
 </div>
 <a name="group___mpr_file_1ga52a371e64afe673688c5b43626cd00ec"></a>
@@ -3774,7 +4225,7 @@ Current file size.
   <div class="prototype">
     char *
     mprGetFileString
-(MprFile *file, ssize size, ssize *len)
+(MprFile *file, <a class="ref" href="#mpr_8h_1a7d08ccc1e981eb4d5a238641ac4ccfc1">ssize</a> size, <a class="ref" href="#mpr_8h_1a7d08ccc1e981eb4d5a238641ac4ccfc1">ssize</a> *len)
   </div>
   <div class="apiDetail">
 <p>Read a line from the file.</p>
@@ -3787,7 +4238,7 @@ Current file size.
     </table></dd></dl>
     <dl><dt>Returns:</dt><dd>An allocated string and sets *len to the number of bytes read.</dd></dl>
     <dl><dt>See Also:</dt><dd>
-    <a href="#group___mpr_file" class="ref">MprFile</a>, <a href="#group___mpr_file" class="ref">MprFile</a>, <a href="#group___mpr_file_1ga457be50126337e42f1df6c30af9db510" class="ref">mprDisableFileBuffering</a>, <a href="#group___mpr_file_1ga04cace2622f3cfe7e8e9ee32bffb12da" class="ref">mprEnableFileBuffering</a>, <a href="#group___mpr_file_1ga96273fe03aa3e5e1de8820e8aaba7e5c" class="ref">mprGetFilePosition</a>, <a href="#group___mpr_file_1gab1ae4e8c4128773497a609e444dbe8c7" class="ref">mprGetFileSize</a>, <a href="#group___mpr_file_1ga0cfed380f506b05b2eea9ec7e671a7f9" class="ref">mprOpenFile</a></dd></dl>
+    <a href="#group___mpr_file" class="ref">MprFile</a>, <a href="#group___mpr_file" class="ref">MprFile</a>, <a href="#group___mpr_file_1ga457be50126337e42f1df6c30af9db510" class="ref">mprDisableFileBuffering</a>, <a href="#group___mpr_file_1ga04cace2622f3cfe7e8e9ee32bffb12da" class="ref">mprEnableFileBuffering</a>, <a href="#group___mpr_file_1ga437b7eb30b31d38fcedef0aa8617edcc" class="ref">mprGetFilePosition</a>, <a href="#group___mpr_file_1ga29b58b84303a5345e9cc69bb320fc500" class="ref">mprGetFileSize</a>, <a href="#group___mpr_file_1ga0cfed380f506b05b2eea9ec7e671a7f9" class="ref">mprOpenFile</a></dd></dl>
   </div>
 </div>
 <a name="group___mpr_file_1ga0cfed380f506b05b2eea9ec7e671a7f9"></a>
@@ -3808,7 +4259,7 @@ Current file size.
     </table></dd></dl>
     <dl><dt>Returns:</dt><dd>Returns an MprFile object to use in other file operations.</dd></dl>
     <dl><dt>See Also:</dt><dd>
-    <a href="#group___mpr_file" class="ref">MprFile</a>, <a href="#group___mpr_file" class="ref">MprFile</a>, <a href="#group___mpr_file_1ga457be50126337e42f1df6c30af9db510" class="ref">mprDisableFileBuffering</a>, <a href="#group___mpr_file_1ga04cace2622f3cfe7e8e9ee32bffb12da" class="ref">mprEnableFileBuffering</a>, <a href="#group___mpr_file_1ga96273fe03aa3e5e1de8820e8aaba7e5c" class="ref">mprGetFilePosition</a>, <a href="#group___mpr_file_1gab1ae4e8c4128773497a609e444dbe8c7" class="ref">mprGetFileSize</a></dd></dl>
+    <a href="#group___mpr_file" class="ref">MprFile</a>, <a href="#group___mpr_file" class="ref">MprFile</a>, <a href="#group___mpr_file_1ga457be50126337e42f1df6c30af9db510" class="ref">mprDisableFileBuffering</a>, <a href="#group___mpr_file_1ga04cace2622f3cfe7e8e9ee32bffb12da" class="ref">mprEnableFileBuffering</a>, <a href="#group___mpr_file_1ga437b7eb30b31d38fcedef0aa8617edcc" class="ref">mprGetFilePosition</a>, <a href="#group___mpr_file_1ga29b58b84303a5345e9cc69bb320fc500" class="ref">mprGetFileSize</a></dd></dl>
   </div>
 </div>
 <a name="group___mpr_file_1gabba294cacccaced9435b1151e2db9c95"></a>
@@ -3827,7 +4278,7 @@ Current file size.
     </table></dd></dl>
     <dl><dt>Returns:</dt><dd>If successful, return the character just read. Otherwise return a negative MPR error code. End of file is signified by reading 0.</dd></dl>
     <dl><dt>See Also:</dt><dd>
-    <a href="#group___mpr_file" class="ref">MprFile</a>, <a href="#group___mpr_file" class="ref">MprFile</a>, <a href="#group___mpr_file_1ga457be50126337e42f1df6c30af9db510" class="ref">mprDisableFileBuffering</a>, <a href="#group___mpr_file_1ga04cace2622f3cfe7e8e9ee32bffb12da" class="ref">mprEnableFileBuffering</a>, <a href="#group___mpr_file_1ga96273fe03aa3e5e1de8820e8aaba7e5c" class="ref">mprGetFilePosition</a>, <a href="#group___mpr_file_1gab1ae4e8c4128773497a609e444dbe8c7" class="ref">mprGetFileSize</a>, <a href="#group___mpr_file_1ga0cfed380f506b05b2eea9ec7e671a7f9" class="ref">mprOpenFile</a></dd></dl>
+    <a href="#group___mpr_file" class="ref">MprFile</a>, <a href="#group___mpr_file" class="ref">MprFile</a>, <a href="#group___mpr_file_1ga457be50126337e42f1df6c30af9db510" class="ref">mprDisableFileBuffering</a>, <a href="#group___mpr_file_1ga04cace2622f3cfe7e8e9ee32bffb12da" class="ref">mprEnableFileBuffering</a>, <a href="#group___mpr_file_1ga437b7eb30b31d38fcedef0aa8617edcc" class="ref">mprGetFilePosition</a>, <a href="#group___mpr_file_1ga29b58b84303a5345e9cc69bb320fc500" class="ref">mprGetFileSize</a>, <a href="#group___mpr_file_1ga0cfed380f506b05b2eea9ec7e671a7f9" class="ref">mprOpenFile</a></dd></dl>
   </div>
 </div>
 <a name="group___mpr_file_1ga461e26b7175b96b6953e02e16219b426"></a>
@@ -3847,7 +4298,7 @@ Current file size.
     </table></dd></dl>
     <dl><dt>Returns:</dt><dd>One if successful, otherwise returns a negative MPR error code on errors.</dd></dl>
     <dl><dt>See Also:</dt><dd>
-    <a href="#group___mpr_file" class="ref">MprFile</a>, <a href="#group___mpr_file" class="ref">MprFile</a>, <a href="#group___mpr_file_1ga457be50126337e42f1df6c30af9db510" class="ref">mprDisableFileBuffering</a>, <a href="#group___mpr_file_1ga04cace2622f3cfe7e8e9ee32bffb12da" class="ref">mprEnableFileBuffering</a>, <a href="#group___mpr_file_1ga96273fe03aa3e5e1de8820e8aaba7e5c" class="ref">mprGetFilePosition</a>, <a href="#group___mpr_file_1gab1ae4e8c4128773497a609e444dbe8c7" class="ref">mprGetFileSize</a>, <a href="#group___mpr_file_1ga0cfed380f506b05b2eea9ec7e671a7f9" class="ref">mprOpenFile</a></dd></dl>
+    <a href="#group___mpr_file" class="ref">MprFile</a>, <a href="#group___mpr_file" class="ref">MprFile</a>, <a href="#group___mpr_file_1ga457be50126337e42f1df6c30af9db510" class="ref">mprDisableFileBuffering</a>, <a href="#group___mpr_file_1ga04cace2622f3cfe7e8e9ee32bffb12da" class="ref">mprEnableFileBuffering</a>, <a href="#group___mpr_file_1ga437b7eb30b31d38fcedef0aa8617edcc" class="ref">mprGetFilePosition</a>, <a href="#group___mpr_file_1ga29b58b84303a5345e9cc69bb320fc500" class="ref">mprGetFileSize</a>, <a href="#group___mpr_file_1ga0cfed380f506b05b2eea9ec7e671a7f9" class="ref">mprOpenFile</a></dd></dl>
   </div>
 </div>
 <a name="group___mpr_file_1ga139515262948d6bd2f03d802d8fff34e"></a>
@@ -3867,7 +4318,7 @@ Current file size.
     </table></dd></dl>
     <dl><dt>Returns:</dt><dd>The number of characters written to the file. Returns a negative MPR error code on errors.</dd></dl>
     <dl><dt>See Also:</dt><dd>
-    <a href="#group___mpr_file" class="ref">MprFile</a>, <a href="#group___mpr_file" class="ref">MprFile</a>, <a href="#group___mpr_file_1ga457be50126337e42f1df6c30af9db510" class="ref">mprDisableFileBuffering</a>, <a href="#group___mpr_file_1ga04cace2622f3cfe7e8e9ee32bffb12da" class="ref">mprEnableFileBuffering</a>, <a href="#group___mpr_file_1ga96273fe03aa3e5e1de8820e8aaba7e5c" class="ref">mprGetFilePosition</a>, <a href="#group___mpr_file_1gab1ae4e8c4128773497a609e444dbe8c7" class="ref">mprGetFileSize</a>, <a href="#group___mpr_file_1ga0cfed380f506b05b2eea9ec7e671a7f9" class="ref">mprOpenFile</a></dd></dl>
+    <a href="#group___mpr_file" class="ref">MprFile</a>, <a href="#group___mpr_file" class="ref">MprFile</a>, <a href="#group___mpr_file_1ga457be50126337e42f1df6c30af9db510" class="ref">mprDisableFileBuffering</a>, <a href="#group___mpr_file_1ga04cace2622f3cfe7e8e9ee32bffb12da" class="ref">mprEnableFileBuffering</a>, <a href="#group___mpr_file_1ga437b7eb30b31d38fcedef0aa8617edcc" class="ref">mprGetFilePosition</a>, <a href="#group___mpr_file_1ga29b58b84303a5345e9cc69bb320fc500" class="ref">mprGetFileSize</a>, <a href="#group___mpr_file_1ga0cfed380f506b05b2eea9ec7e671a7f9" class="ref">mprOpenFile</a></dd></dl>
   </div>
 </div>
 <a name="group___mpr_file_1ga5edc60c8f5b38c394accf29cd6785f96"></a>
@@ -3875,7 +4326,7 @@ Current file size.
   <div class="prototype">
     <a href="#mpr_8h_1a7d08ccc1e981eb4d5a238641ac4ccfc1" class="ref">ssize</a>
     mprReadFile
-(MprFile *file, void *buf, ssize size)
+(MprFile *file, void *buf, <a class="ref" href="#mpr_8h_1a7d08ccc1e981eb4d5a238641ac4ccfc1">ssize</a> size)
   </div>
   <div class="apiDetail">
 <p>Read data from a file.</p>
@@ -3888,15 +4339,15 @@ Current file size.
     </table></dd></dl>
     <dl><dt>Returns:</dt><dd>The number of characters read from the file. Returns a negative MPR error code on errors.</dd></dl>
     <dl><dt>See Also:</dt><dd>
-    <a href="#group___mpr_file" class="ref">MprFile</a>, <a href="#group___mpr_file" class="ref">MprFile</a>, <a href="#group___mpr_file_1ga457be50126337e42f1df6c30af9db510" class="ref">mprDisableFileBuffering</a>, <a href="#group___mpr_file_1ga04cace2622f3cfe7e8e9ee32bffb12da" class="ref">mprEnableFileBuffering</a>, <a href="#group___mpr_file_1ga96273fe03aa3e5e1de8820e8aaba7e5c" class="ref">mprGetFilePosition</a>, <a href="#group___mpr_file_1gab1ae4e8c4128773497a609e444dbe8c7" class="ref">mprGetFileSize</a>, <a href="#group___mpr_file_1ga0cfed380f506b05b2eea9ec7e671a7f9" class="ref">mprOpenFile</a></dd></dl>
+    <a href="#group___mpr_file" class="ref">MprFile</a>, <a href="#group___mpr_file" class="ref">MprFile</a>, <a href="#group___mpr_file_1ga457be50126337e42f1df6c30af9db510" class="ref">mprDisableFileBuffering</a>, <a href="#group___mpr_file_1ga04cace2622f3cfe7e8e9ee32bffb12da" class="ref">mprEnableFileBuffering</a>, <a href="#group___mpr_file_1ga437b7eb30b31d38fcedef0aa8617edcc" class="ref">mprGetFilePosition</a>, <a href="#group___mpr_file_1ga29b58b84303a5345e9cc69bb320fc500" class="ref">mprGetFileSize</a>, <a href="#group___mpr_file_1ga0cfed380f506b05b2eea9ec7e671a7f9" class="ref">mprOpenFile</a></dd></dl>
   </div>
 </div>
-<a name="group___mpr_file_1gac1839aac4fc6488f85631a8ac9dc0b72"></a>
+<a name="group___mpr_file_1gaaddd841fab4eb81ea0cefed2c24b5d1c"></a>
 <div class="api">
   <div class="prototype">
-    <a href="#mpr_8h_1adf47206cbe2d15ed83ac7c3a2b8a1c9d" class="ref">MprOffset</a>
+    <a href="#mpr_8h_1a33d86dc5ed93d7e8c5db34e873f7483d" class="ref">MprOff</a>
     mprSeekFile
-(MprFile *file, int seekType, MprOffset distance)
+(MprFile *file, int seekType, MprOff distance)
   </div>
   <div class="apiDetail">
 <p>Seek the I/O pointer to a new location in the file.</p>
@@ -3909,15 +4360,15 @@ Current file size.
     </table></dd></dl>
     <dl><dt>Returns:</dt><dd>The new file position if successful otherwise a negative MPR error code is returned.</dd></dl>
     <dl><dt>See Also:</dt><dd>
-    <a href="#group___mpr_file" class="ref">MprFile</a>, <a href="#group___mpr_file" class="ref">MprFile</a>, <a href="#group___mpr_file_1ga457be50126337e42f1df6c30af9db510" class="ref">mprDisableFileBuffering</a>, <a href="#group___mpr_file_1ga04cace2622f3cfe7e8e9ee32bffb12da" class="ref">mprEnableFileBuffering</a>, <a href="#group___mpr_file_1ga96273fe03aa3e5e1de8820e8aaba7e5c" class="ref">mprGetFilePosition</a>, <a href="#group___mpr_file_1gab1ae4e8c4128773497a609e444dbe8c7" class="ref">mprGetFileSize</a>, <a href="#group___mpr_file_1ga0cfed380f506b05b2eea9ec7e671a7f9" class="ref">mprOpenFile</a></dd></dl>
+    <a href="#group___mpr_file" class="ref">MprFile</a>, <a href="#group___mpr_file" class="ref">MprFile</a>, <a href="#group___mpr_file_1ga457be50126337e42f1df6c30af9db510" class="ref">mprDisableFileBuffering</a>, <a href="#group___mpr_file_1ga04cace2622f3cfe7e8e9ee32bffb12da" class="ref">mprEnableFileBuffering</a>, <a href="#group___mpr_file_1ga437b7eb30b31d38fcedef0aa8617edcc" class="ref">mprGetFilePosition</a>, <a href="#group___mpr_file_1ga29b58b84303a5345e9cc69bb320fc500" class="ref">mprGetFileSize</a>, <a href="#group___mpr_file_1ga0cfed380f506b05b2eea9ec7e671a7f9" class="ref">mprOpenFile</a></dd></dl>
   </div>
 </div>
-<a name="group___mpr_file_1ga629925d193b4551f938afb75a3691916"></a>
+<a name="group___mpr_file_1ga61cd5b0e215e4dafa26f90839cc9429e"></a>
 <div class="api">
   <div class="prototype">
     int
     mprTruncateFile
-(cchar *path, MprOffset size)
+(cchar *path, MprOff size)
   </div>
   <div class="apiDetail">
 <p>Truncate a file.</p>
@@ -3929,7 +4380,7 @@ Current file size.
     </table></dd></dl>
     <dl><dt>Returns:</dt><dd>Zero if successful.</dd></dl>
     <dl><dt>See Also:</dt><dd>
-    <a href="#group___mpr_file" class="ref">MprFile</a>, <a href="#group___mpr_file" class="ref">MprFile</a>, <a href="#group___mpr_file_1ga457be50126337e42f1df6c30af9db510" class="ref">mprDisableFileBuffering</a>, <a href="#group___mpr_file_1ga04cace2622f3cfe7e8e9ee32bffb12da" class="ref">mprEnableFileBuffering</a>, <a href="#group___mpr_file_1ga96273fe03aa3e5e1de8820e8aaba7e5c" class="ref">mprGetFilePosition</a>, <a href="#group___mpr_file_1gab1ae4e8c4128773497a609e444dbe8c7" class="ref">mprGetFileSize</a>, <a href="#group___mpr_file_1ga0cfed380f506b05b2eea9ec7e671a7f9" class="ref">mprOpenFile</a></dd></dl>
+    <a href="#group___mpr_file" class="ref">MprFile</a>, <a href="#group___mpr_file" class="ref">MprFile</a>, <a href="#group___mpr_file_1ga457be50126337e42f1df6c30af9db510" class="ref">mprDisableFileBuffering</a>, <a href="#group___mpr_file_1ga04cace2622f3cfe7e8e9ee32bffb12da" class="ref">mprEnableFileBuffering</a>, <a href="#group___mpr_file_1ga437b7eb30b31d38fcedef0aa8617edcc" class="ref">mprGetFilePosition</a>, <a href="#group___mpr_file_1ga29b58b84303a5345e9cc69bb320fc500" class="ref">mprGetFileSize</a>, <a href="#group___mpr_file_1ga0cfed380f506b05b2eea9ec7e671a7f9" class="ref">mprOpenFile</a></dd></dl>
   </div>
 </div>
 <a name="group___mpr_file_1ga48b31d54e03c997a5e6b43d070cfa4ac"></a>
@@ -3937,7 +4388,7 @@ Current file size.
   <div class="prototype">
     <a href="#mpr_8h_1a7d08ccc1e981eb4d5a238641ac4ccfc1" class="ref">ssize</a>
     mprWriteFile
-(MprFile *file, cvoid *buf, ssize count)
+(MprFile *file, cvoid *buf, <a class="ref" href="#mpr_8h_1a7d08ccc1e981eb4d5a238641ac4ccfc1">ssize</a> count)
   </div>
   <div class="apiDetail">
 <p>Write data to a file.</p>
@@ -3950,7 +4401,7 @@ Current file size.
     </table></dd></dl>
     <dl><dt>Returns:</dt><dd>The number of characters actually written to the file. Returns a negative MPR error code on errors.</dd></dl>
     <dl><dt>See Also:</dt><dd>
-    <a href="#group___mpr_file" class="ref">MprFile</a>, <a href="#group___mpr_file" class="ref">MprFile</a>, <a href="#group___mpr_file_1ga457be50126337e42f1df6c30af9db510" class="ref">mprDisableFileBuffering</a>, <a href="#group___mpr_file_1ga04cace2622f3cfe7e8e9ee32bffb12da" class="ref">mprEnableFileBuffering</a>, <a href="#group___mpr_file_1ga96273fe03aa3e5e1de8820e8aaba7e5c" class="ref">mprGetFilePosition</a>, <a href="#group___mpr_file_1gab1ae4e8c4128773497a609e444dbe8c7" class="ref">mprGetFileSize</a>, <a href="#group___mpr_file_1ga0cfed380f506b05b2eea9ec7e671a7f9" class="ref">mprOpenFile</a></dd></dl>
+    <a href="#group___mpr_file" class="ref">MprFile</a>, <a href="#group___mpr_file" class="ref">MprFile</a>, <a href="#group___mpr_file_1ga457be50126337e42f1df6c30af9db510" class="ref">mprDisableFileBuffering</a>, <a href="#group___mpr_file_1ga04cace2622f3cfe7e8e9ee32bffb12da" class="ref">mprEnableFileBuffering</a>, <a href="#group___mpr_file_1ga437b7eb30b31d38fcedef0aa8617edcc" class="ref">mprGetFilePosition</a>, <a href="#group___mpr_file_1ga29b58b84303a5345e9cc69bb320fc500" class="ref">mprGetFileSize</a>, <a href="#group___mpr_file_1ga0cfed380f506b05b2eea9ec7e671a7f9" class="ref">mprOpenFile</a></dd></dl>
   </div>
 </div>
 <a name="group___mpr_file_1gabe01f52b5764ca632c461864dc85a50b"></a>
@@ -3970,7 +4421,7 @@ Current file size.
     </table></dd></dl>
     <dl><dt>Returns:</dt><dd>The number of characters actually written to the file. Returns a negative MPR error code on errors.</dd></dl>
     <dl><dt>See Also:</dt><dd>
-    <a href="#group___mpr_file" class="ref">MprFile</a>, <a href="#group___mpr_file" class="ref">MprFile</a>, <a href="#group___mpr_file_1ga457be50126337e42f1df6c30af9db510" class="ref">mprDisableFileBuffering</a>, <a href="#group___mpr_file_1ga04cace2622f3cfe7e8e9ee32bffb12da" class="ref">mprEnableFileBuffering</a>, <a href="#group___mpr_file_1ga96273fe03aa3e5e1de8820e8aaba7e5c" class="ref">mprGetFilePosition</a>, <a href="#group___mpr_file_1gab1ae4e8c4128773497a609e444dbe8c7" class="ref">mprGetFileSize</a>, <a href="#group___mpr_file_1ga0cfed380f506b05b2eea9ec7e671a7f9" class="ref">mprOpenFile</a></dd></dl>
+    <a href="#group___mpr_file" class="ref">MprFile</a>, <a href="#group___mpr_file" class="ref">MprFile</a>, <a href="#group___mpr_file_1ga457be50126337e42f1df6c30af9db510" class="ref">mprDisableFileBuffering</a>, <a href="#group___mpr_file_1ga04cace2622f3cfe7e8e9ee32bffb12da" class="ref">mprEnableFileBuffering</a>, <a href="#group___mpr_file_1ga437b7eb30b31d38fcedef0aa8617edcc" class="ref">mprGetFilePosition</a>, <a href="#group___mpr_file_1ga29b58b84303a5345e9cc69bb320fc500" class="ref">mprGetFileSize</a>, <a href="#group___mpr_file_1ga0cfed380f506b05b2eea9ec7e671a7f9" class="ref">mprOpenFile</a></dd></dl>
   </div>
 </div>
 <a name="group___mpr_file_1gae093f94fb3ced3c2d292f370ed33b0a6"></a>
@@ -3990,7 +4441,7 @@ Current file size.
     </table></dd></dl>
     <dl><dt>Returns:</dt><dd>The number of characters actually written to the file. Returns a negative MPR error code on errors.</dd></dl>
     <dl><dt>See Also:</dt><dd>
-    <a href="#group___mpr_file" class="ref">MprFile</a>, <a href="#group___mpr_file" class="ref">MprFile</a>, <a href="#group___mpr_file_1ga457be50126337e42f1df6c30af9db510" class="ref">mprDisableFileBuffering</a>, <a href="#group___mpr_file_1ga04cace2622f3cfe7e8e9ee32bffb12da" class="ref">mprEnableFileBuffering</a>, <a href="#group___mpr_file_1ga96273fe03aa3e5e1de8820e8aaba7e5c" class="ref">mprGetFilePosition</a>, <a href="#group___mpr_file_1gab1ae4e8c4128773497a609e444dbe8c7" class="ref">mprGetFileSize</a>, <a href="#group___mpr_file_1ga0cfed380f506b05b2eea9ec7e671a7f9" class="ref">mprOpenFile</a></dd></dl>
+    <a href="#group___mpr_file" class="ref">MprFile</a>, <a href="#group___mpr_file" class="ref">MprFile</a>, <a href="#group___mpr_file_1ga457be50126337e42f1df6c30af9db510" class="ref">mprDisableFileBuffering</a>, <a href="#group___mpr_file_1ga04cace2622f3cfe7e8e9ee32bffb12da" class="ref">mprEnableFileBuffering</a>, <a href="#group___mpr_file_1ga437b7eb30b31d38fcedef0aa8617edcc" class="ref">mprGetFilePosition</a>, <a href="#group___mpr_file_1ga29b58b84303a5345e9cc69bb320fc500" class="ref">mprGetFileSize</a>, <a href="#group___mpr_file_1ga0cfed380f506b05b2eea9ec7e671a7f9" class="ref">mprOpenFile</a></dd></dl>
   </div>
 </div>
 <h1>MprHash</h1>
@@ -4983,7 +5434,7 @@ Internal block length including header with gen and mark fields.
   <div class="prototype">
     void *
     mprAlloc
-(ssize size)
+(<a class="ref" href="#mpr_8h_1a7d08ccc1e981eb4d5a238641ac4ccfc1">ssize</a> size)
   </div>
   <div class="apiDetail">
 <p>Allocate a block of memory.</p>
@@ -5003,7 +5454,7 @@ Internal block length including header with gen and mark fields.
   <div class="prototype">
     void *
     mprAllocBlock
-(ssize size, int flags)
+(<a class="ref" href="#mpr_8h_1a7d08ccc1e981eb4d5a238641ac4ccfc1">ssize</a> size, int flags)
   </div>
   <div class="apiDetail">
 <p>Allocate a block of memory.</p>
@@ -5046,7 +5497,7 @@ Internal block length including header with gen and mark fields.
   <div class="prototype">
     void *
     mprAllocZeroed
-(ssize size)
+(<a class="ref" href="#mpr_8h_1a7d08ccc1e981eb4d5a238641ac4ccfc1">ssize</a> size)
   </div>
   <div class="apiDetail">
 <p>Allocate a zeroed block of memory.</p>
@@ -5099,7 +5550,7 @@ Called as the last thing before exiting
   <div class="prototype">
     <a href="#mpr_8h_1a1062901a7428fdd9c7f180f5e01ea056" class="ref">bool</a>
     mprEnableGC
-(bool on)
+(<a class="ref" href="#mpr_8h_1a1062901a7428fdd9c7f180f5e01ea056">bool</a> on)
   </div>
   <div class="apiDetail">
 <p>Enable or disable the garbage collector.</p>
@@ -5229,7 +5680,7 @@ This is used to test if a block has been dynamically allocated
   <div class="prototype">
     int
     mprMemcmp
-(cvoid *b1, ssize b1Len, cvoid *b2, ssize b2Len)
+(cvoid *b1, <a class="ref" href="#mpr_8h_1a7d08ccc1e981eb4d5a238641ac4ccfc1">ssize</a> b1Len, cvoid *b2, <a class="ref" href="#mpr_8h_1a7d08ccc1e981eb4d5a238641ac4ccfc1">ssize</a> b2Len)
   </div>
   <div class="apiDetail">
 <p>Compare two byte strings.</p>
@@ -5251,7 +5702,7 @@ This is used to test if a block has been dynamically allocated
   <div class="prototype">
     <a href="#mpr_8h_1a7d08ccc1e981eb4d5a238641ac4ccfc1" class="ref">ssize</a>
     mprMemcpy
-(void *dest, ssize destMax, cvoid *src, ssize nbytes)
+(void *dest, <a class="ref" href="#mpr_8h_1a7d08ccc1e981eb4d5a238641ac4ccfc1">ssize</a> destMax, cvoid *src, <a class="ref" href="#mpr_8h_1a7d08ccc1e981eb4d5a238641ac4ccfc1">ssize</a> nbytes)
   </div>
   <div class="apiDetail">
 <p>Safe copy for a block of data.</p>
@@ -5273,7 +5724,7 @@ This is used to test if a block has been dynamically allocated
   <div class="prototype">
     void *
     mprMemdup
-(cvoid *ptr, ssize size)
+(cvoid *ptr, <a class="ref" href="#mpr_8h_1a7d08ccc1e981eb4d5a238641ac4ccfc1">ssize</a> size)
   </div>
   <div class="apiDetail">
 <p>Duplicate a block of memory.</p>
@@ -5311,7 +5762,7 @@ This is used to test if a block has been dynamically allocated
   <div class="prototype">
     void *
     mprRealloc
-(void *ptr, ssize size)
+(void *ptr, <a class="ref" href="#mpr_8h_1a7d08ccc1e981eb4d5a238641ac4ccfc1">ssize</a> size)
   </div>
   <div class="apiDetail">
 <p>Reallocate a block.</p>
@@ -5433,7 +5884,7 @@ This will set an allocation error condition on the given context and all its par
   <div class="prototype">
     void
     mprSetMemLimits
-(ssize redline, ssize maxMemory)
+(<a class="ref" href="#mpr_8h_1a7d08ccc1e981eb4d5a238641ac4ccfc1">ssize</a> redline, <a class="ref" href="#mpr_8h_1a7d08ccc1e981eb4d5a238641ac4ccfc1">ssize</a> maxMemory)
   </div>
   <div class="apiDetail">
 <p>Configure the application memory limits.</p>
@@ -5501,7 +5952,7 @@ This checks the integrity of all memory blocks by verifying the block headers an
   <div class="prototype">
     void *
     mprVirtAlloc
-(ssize size, int mode)
+(<a class="ref" href="#mpr_8h_1a7d08ccc1e981eb4d5a238641ac4ccfc1">ssize</a> size, int mode)
   </div>
   <div class="apiDetail">
 <p>Memory virtual memory into the applications address space.</p>
@@ -5519,7 +5970,7 @@ This checks the integrity of all memory blocks by verifying the block headers an
   <div class="prototype">
     void
     mprVirtFree
-(void *ptr, ssize size)
+(void *ptr, <a class="ref" href="#mpr_8h_1a7d08ccc1e981eb4d5a238641ac4ccfc1">ssize</a> size)
   </div>
   <div class="apiDetail">
 <p>Free (unpin) a mapped section of virtual memory.</p>
@@ -5556,7 +6007,7 @@ This checks the integrity of all memory blocks by verifying the block headers an
   <div class="prototype">
     char *
     snclone
-(cchar *str, ssize len)
+(cchar *str, <a class="ref" href="#mpr_8h_1a7d08ccc1e981eb4d5a238641ac4ccfc1">ssize</a> len)
   </div>
   <div class="apiDetail">
 <p>Clone a substring.</p>
@@ -5813,7 +6264,7 @@ Inactivity unload timeout.
     <tr><td class="param">MprTime</td><td><td>atime</td><td>
 Access time.
 </td>
-    <tr><td class="param">bool</td><td><td>caseMatters</td><td>
+    <tr><td class="param"><a class="ref" href="#mpr_8h_1a1062901a7428fdd9c7f180f5e01ea056">bool</a></td><td><td>caseMatters</td><td>
 Case comparisons matter.
 </td>
     <tr><td class="param">int</td><td><td>checked</td><td>
@@ -5825,13 +6276,13 @@ Create time.
     <tr><td class="param">uint</td><td><td>inode</td><td>
 Inode number.
 </td>
-    <tr><td class="param">bool</td><td><td>isDir</td><td>
+    <tr><td class="param"><a class="ref" href="#mpr_8h_1a1062901a7428fdd9c7f180f5e01ea056">bool</a></td><td><td>isDir</td><td>
 Set if directory.
 </td>
-    <tr><td class="param">bool</td><td><td>isLink</td><td>
+    <tr><td class="param"><a class="ref" href="#mpr_8h_1a1062901a7428fdd9c7f180f5e01ea056">bool</a></td><td><td>isLink</td><td>
 Set if a symbolic link.
 </td>
-    <tr><td class="param">bool</td><td><td>isReg</td><td>
+    <tr><td class="param"><a class="ref" href="#mpr_8h_1a1062901a7428fdd9c7f180f5e01ea056">bool</a></td><td><td>isReg</td><td>
 Set if a regular file.
 </td>
     <tr><td class="param">MprTime</td><td><td>mtime</td><td>
@@ -6008,7 +6459,7 @@ Valid data bit.
   <div class="prototype">
     <a href="#group___mpr_list" class="ref">MprList</a> *
     mprGetPathFiles
-(cchar *dir, bool enumDirs)
+(cchar *dir, <a class="ref" href="#mpr_8h_1a1062901a7428fdd9c7f180f5e01ea056">bool</a> enumDirs)
   </div>
   <div class="apiDetail">
 <p>Create a directory list of files.</p>
@@ -6276,7 +6727,7 @@ Return the directory separator characters used to separate directories on a give
   <div class="prototype">
     int
     mprMakeDir
-(cchar *path, int perms, bool makeMissing)
+(cchar *path, int perms, <a class="ref" href="#mpr_8h_1a1062901a7428fdd9c7f180f5e01ea056">bool</a> makeMissing)
   </div>
   <div class="apiDetail">
 <p>Make a directory.</p>
@@ -6297,7 +6748,7 @@ Return the directory separator characters used to separate directories on a give
   <div class="prototype">
     int
     mprMakeLink
-(cchar *path, cchar *target, bool hard)
+(cchar *path, cchar *target, <a class="ref" href="#mpr_8h_1a1062901a7428fdd9c7f180f5e01ea056">bool</a> hard)
   </div>
   <div class="apiDetail">
 <p>Make a link.</p>
@@ -6398,7 +6849,7 @@ Return the directory separator characters used to separate directories on a give
   <div class="prototype">
     int
     mprSamePathCount
-(cchar *path1, cchar *path2, ssize len)
+(cchar *path1, cchar *path2, <a class="ref" href="#mpr_8h_1a7d08ccc1e981eb4d5a238641ac4ccfc1">ssize</a> len)
   </div>
   <div class="apiDetail">
 <p>Compare two paths if they are the same for a given length.</p>
@@ -6545,7 +6996,7 @@ If set, then using ssl.
   <div class="prototype">
     void
     mprCloseSocket
-(MprSocket *sp, bool graceful)
+(MprSocket *sp, <a class="ref" href="#mpr_8h_1a1062901a7428fdd9c7f180f5e01ea056">bool</a> graceful)
   </div>
   <div class="apiDetail">
 <p>Close a socket.</p>
@@ -6781,7 +7232,7 @@ This parses a string containing an IP:PORT specification and returns the IP addr
   <div class="prototype">
     <a href="#mpr_8h_1a7d08ccc1e981eb4d5a238641ac4ccfc1" class="ref">ssize</a>
     mprReadSocket
-(MprSocket *sp, void *buf, ssize size)
+(MprSocket *sp, void *buf, <a class="ref" href="#mpr_8h_1a7d08ccc1e981eb4d5a238641ac4ccfc1">ssize</a> size)
   </div>
   <div class="apiDetail">
 <p>Read from a socket.</p>
@@ -6820,7 +7271,7 @@ This parses a string containing an IP:PORT specification and returns the IP addr
   <div class="prototype">
     int
     mprSetSocketBlockingMode
-(MprSocket *sp, bool on)
+(MprSocket *sp, <a class="ref" href="#mpr_8h_1a1062901a7428fdd9c7f180f5e01ea056">bool</a> on)
   </div>
   <div class="apiDetail">
 <p>Set the socket blocking mode.</p>
@@ -6840,7 +7291,7 @@ This parses a string containing an IP:PORT specification and returns the IP addr
   <div class="prototype">
     int
     mprSetSocketNoDelay
-(MprSocket *sp, bool on)
+(MprSocket *sp, <a class="ref" href="#mpr_8h_1a1062901a7428fdd9c7f180f5e01ea056">bool</a> on)
   </div>
   <div class="apiDetail">
 <p>Set the socket delay mode.</p>
@@ -6879,7 +7330,7 @@ This parses a string containing an IP:PORT specification and returns the IP addr
   <div class="prototype">
     <a href="#mpr_8h_1a7d08ccc1e981eb4d5a238641ac4ccfc1" class="ref">ssize</a>
     mprWriteSocket
-(MprSocket *sp, void *buf, ssize len)
+(MprSocket *sp, void *buf, <a class="ref" href="#mpr_8h_1a7d08ccc1e981eb4d5a238641ac4ccfc1">ssize</a> len)
   </div>
   <div class="apiDetail">
 <p>Write to a socket.</p>
@@ -8213,67 +8664,6 @@ The mprCreateDispatcher routiner creates dispatchers in the disabled state. Use 
     <dl><dt>Returns:</dt><dd>The number of bytes written.</dd></dl>
   </div>
 </div>
-<a name="mpr_8h_1a3dfd4398a5607868c1110b47eebaea61"></a>
-<div class="api">
-  <div class="prototype">
-    char *
-    mprGetAppDir
-()
-  </div>
-  <div class="apiDetail">
-<p>Get the application directory.</p>
-    <dl><dt><b>Description</b>:</dt><dd>Get the directory containing the application executable.</dd></dl>
-    <dl><dt>Returns:</dt><dd>A string containing the application directory.</dd></dl>
-  </div>
-</div>
-<a name="mpr_8h_1a5a96ecb8e54ab11f8772110f257154c8"></a>
-<div class="api">
-  <div class="prototype">
-    <a href="#mpr_8h_1a0f128c3e0c83721af0220c00554e9c4e" class="ref">cchar</a> *
-    mprGetAppName
-()
-  </div>
-  <div class="apiDetail">
-<p>Get the application name defined via mprSetAppName.</p>
-    <dl><dt>Returns:</dt><dd>The one-word lower case application name defined via mprSetAppName.</dd></dl>
-  </div>
-</div>
-<a name="mpr_8h_1abfbea308cbe0f4db570bcc26e4f62815"></a>
-<div class="api">
-  <div class="prototype">
-    char *
-    mprGetAppPath
-()
-  </div>
-  <div class="apiDetail">
-<p>Get the application executable path.</p>
-    <dl><dt>Returns:</dt><dd>A string containing the application executable path.</dd></dl>
-  </div>
-</div>
-<a name="mpr_8h_1a8560f36dc46bc8e8f63adb10ba38595a"></a>
-<div class="api">
-  <div class="prototype">
-    <a href="#mpr_8h_1a0f128c3e0c83721af0220c00554e9c4e" class="ref">cchar</a> *
-    mprGetAppTitle
-()
-  </div>
-  <div class="apiDetail">
-<p>Get the application title string.</p>
-    <dl><dt>Returns:</dt><dd>A string containing the application title string.</dd></dl>
-  </div>
-</div>
-<a name="mpr_8h_1a93175ba8542800e4ddfac2d1499b69f4"></a>
-<div class="api">
-  <div class="prototype">
-    <a href="#mpr_8h_1a0f128c3e0c83721af0220c00554e9c4e" class="ref">cchar</a> *
-    mprGetAppVersion
-()
-  </div>
-  <div class="apiDetail">
-<p>Get the application version string.</p>
-    <dl><dt>Returns:</dt><dd>A string containing the application version string.</dd></dl>
-  </div>
-</div>
 <a name="mpr_8h_1a368d0fe452a2d7216b32dda604e05891"></a>
 <div class="api">
   <div class="prototype">
@@ -8310,18 +8700,6 @@ The mprCreateDispatcher routiner creates dispatchers in the disabled state. Use 
     <dl><dt>Returns:</dt><dd>The MPR dispatcher object.</dd></dl>
   </div>
 </div>
-<a name="mpr_8h_1a9d261e899187c6fd8245e7baae0c7b11"></a>
-<div class="api">
-  <div class="prototype">
-    <a href="#mpr_8h_1a0f128c3e0c83721af0220c00554e9c4e" class="ref">cchar</a> *
-    mprGetDomainName
-()
-  </div>
-  <div class="apiDetail">
-<p>Get the application domain name string.</p>
-    <dl><dt>Returns:</dt><dd>A string containing the application domain name string.</dd></dl>
-  </div>
-</div>
 <a name="mpr_8h_1a56c79ce10b54876dc9488694039a3ea9"></a>
 <div class="api">
   <div class="prototype">
@@ -8340,18 +8718,6 @@ mprGetTime()
     <dl><dt>Returns:</dt><dd>The time elapsed since the mark was taken.</dd></dl>
   </div>
 </div>
-<a name="mpr_8h_1a9d297bffc1b4168def6ca8664a3c5021"></a>
-<div class="api">
-  <div class="prototype">
-    int
-    mprGetEndian
-()
-  </div>
-  <div class="apiDetail">
-<p>Return the endian byte ordering for the application.</p>
-    <dl><dt>Returns:</dt><dd>MPR_LITTLE_ENDIAN or MPR_BIG_ENDIAN.</dd></dl>
-  </div>
-</div>
 <a name="mpr_8h_1a147053f0fdde33d5995c0e7e6413c1bd"></a>
 <div class="api">
   <div class="prototype">
@@ -8368,48 +8734,12 @@ mprGetTime()
     <dl><dt>Returns:</dt><dd>Returns a reference to the first path separator in the given path.</dd></dl>
   </div>
 </div>
-<a name="mpr_8h_1a3d02e4f6ba5b6db9581ced2d9998bfb7"></a>
-<div class="api">
-  <div class="prototype">
-    <a href="#mpr_8h_1a0f128c3e0c83721af0220c00554e9c4e" class="ref">cchar</a> *
-    mprGetHostName
-()
-  </div>
-  <div class="apiDetail">
-<p>Get the application host name string.</p>
-    <dl><dt>Returns:</dt><dd>A string containing the application host name string.</dd></dl>
-  </div>
-</div>
-<a name="mpr_8h_1af619a8ca734f025bb96b25b4a46e4c6a"></a>
-<div class="api">
-  <div class="prototype">
-    <a href="#mpr_8h_1a0f128c3e0c83721af0220c00554e9c4e" class="ref">cchar</a> *
-    mprGetIpAddr
-()
-  </div>
-  <div class="apiDetail">
-<p>Get the application IP address string.</p>
-    <dl><dt>Returns:</dt><dd>A string containing the application IP address string.</dd></dl>
-  </div>
-</div>
-<a name="mpr_8h_1a00ebec5e256f0540f9806ba4bae45a55"></a>
-<div class="api">
-  <div class="prototype">
-    int
-    mprGetLogLevel
-()
-  </div>
-  <div class="apiDetail">
-<p>Get the current logging level.</p>
-    <dl><dt>Returns:</dt><dd>The current log level.</dd></dl>
-  </div>
-</div>
 <a name="mpr_8h_1a279db185f033f53e8b105d3096636eae"></a>
 <div class="api">
   <div class="prototype">
     char *
     mprGetMD5Hash
-(cchar *buf, ssize len, cchar *prefix)
+(cchar *buf, <a class="ref" href="#mpr_8h_1a7d08ccc1e981eb4d5a238641ac4ccfc1">ssize</a> len, cchar *prefix)
   </div>
   <div class="apiDetail">
 <p>Get an MD5 checksum.</p>
@@ -8420,18 +8750,6 @@ mprGetTime()
     <tr><td class="param">prefix</td><td>String prefix to insert at the start of the result.</td>
     </table></dd></dl>
     <dl><dt>Returns:</dt><dd>An MD5 checksum string.</dd></dl>
-  </div>
-</div>
-<a name="mpr_8h_1ae159a5aef748a3f62cd1acd541cf3d31"></a>
-<div class="api">
-  <div class="prototype">
-    <a href="#mpr_8h_1a0f128c3e0c83721af0220c00554e9c4e" class="ref">cchar</a> *
-    mprGetServerName
-()
-  </div>
-  <div class="apiDetail">
-<p>Get the application server name string.</p>
-    <dl><dt>Returns:</dt><dd>A string containing the application server name string.</dd></dl>
   </div>
 </div>
 <a name="mpr_8h_1a0fabdee56522d116443f8c794550ee64"></a>
@@ -8515,32 +8833,6 @@ mprGetTime()
     <dl><dt>Returns:</dt><dd>TRUE if the given memory block is unreferenced and ready for collection.</dd></dl>
   </div>
 </div>
-<a name="mpr_8h_1adb9752464abb66fba198cb816fafde88"></a>
-<div class="api">
-  <div class="prototype">
-    <a href="#mpr_8h_1a1062901a7428fdd9c7f180f5e01ea056" class="ref">bool</a>
-    mprIsFinished
-()
-  </div>
-  <div class="apiDetail">
-<p>Determine if the MPR has finished.</p>
-    <dl><dt><b>Description</b>:</dt><dd>This is true if the MPR services have been shutdown completely. This is typically used to determine if the App has been gracefully shutdown.</dd></dl>
-    <dl><dt>Returns:</dt><dd>True if the App has been instructed to exit and all the MPR services have completed.</dd></dl>
-  </div>
-</div>
-<a name="mpr_8h_1aead57cafdee5b1206e4a4f3b0468fb99"></a>
-<div class="api">
-  <div class="prototype">
-    <a href="#mpr_8h_1a1062901a7428fdd9c7f180f5e01ea056" class="ref">bool</a>
-    mprIsIdle
-()
-  </div>
-  <div class="apiDetail">
-<p>Determine if the App is idle.</p>
-    <dl><dt><b>Description</b>:</dt><dd>This call returns true if the App is not currently servicing any requests. By default this returns true if the MPR dispatcher, thread, worker and command subsytems are idle. Callers can replace or augment the standard idle testing by definining a new idle callback via mprSetIdleCallback.</dd></dl>
-    <dl><dt>Returns:</dt><dd>True if the App are idle.</dd></dl>
-  </div>
-</div>
 <a name="mpr_8h_1a4328cbd16ad63b5ddcfa1db28192a53c"></a>
 <div class="api">
   <div class="prototype">
@@ -8556,30 +8848,6 @@ mprGetTime()
     <tr><td class="param">c</td><td>Character to test.</td>
     </table></dd></dl>
     <dl><dt>Returns:</dt><dd>Returns true if the character is a path separator on the file system containing the given path.</dd></dl>
-  </div>
-</div>
-<a name="mpr_8h_1ae20024a4d8b56242e293b3e5d54d9972"></a>
-<div class="api">
-  <div class="prototype">
-    <a href="#mpr_8h_1a1062901a7428fdd9c7f180f5e01ea056" class="ref">bool</a>
-    mprIsStopping
-()
-  </div>
-  <div class="apiDetail">
-<p>Test if the application is stopping.</p>
-    <dl><dt>Returns:</dt><dd>True if the application is in the process of exiting.</dd></dl>
-  </div>
-</div>
-<a name="mpr_8h_1a0246cb5dcc7c53e415885e1d8ac55320"></a>
-<div class="api">
-  <div class="prototype">
-    <a href="#mpr_8h_1a1062901a7428fdd9c7f180f5e01ea056" class="ref">bool</a>
-    mprIsStoppingCore
-()
-  </div>
-  <div class="apiDetail">
-<p>Test if the application is stopping and core services are being terminated.</p>
-    <dl><dt>Returns:</dt><dd>True if the application is in the process of exiting and core services should also exit.</dd></dl>
   </div>
 </div>
 <a name="mpr_8h_1a585388ae65782b535dcea572e65ed94b"></a>
@@ -8603,7 +8871,7 @@ mprGetTime()
   <div class="prototype">
     <a href="#group___mpr_module" class="ref">MprModule</a> *
     mprLoadSsl
-(bool lazy)
+(<a class="ref" href="#mpr_8h_1a1062901a7428fdd9c7f180f5e01ea056">bool</a> lazy)
   </div>
   <div class="apiDetail">
 <p>Load the SSL module.</p>
@@ -8826,6 +9094,17 @@ This sets the condition variable to the unsignalled condition
     </table></dd></dl>
   </div>
 </div>
+<a name="mpr_8h_1a126f6aef245167a628a6c0717369b0f7"></a>
+<div class="api">
+  <div class="prototype">
+    void
+    mprResetYield
+()
+  </div>
+  <div class="apiDetail">
+<p>Reset a sticky yield.</p>
+  </div>
+</div>
 <a name="mpr_8h_1aeb29b47d588fe576e574e18c27530560"></a>
 <div class="api">
   <div class="prototype">
@@ -8858,69 +9137,6 @@ This should only ever be called in the manager routine for a block when the mana
     <dl><dt>Returns:</dt><dd>A string containing the full path to the module. Returns NULL if the module filename cannot be found.</dd></dl>
   </div>
 </div>
-<a name="mpr_8h_1a40a197cef78eae1edc83d359cedb71e6"></a>
-<div class="api">
-  <div class="prototype">
-    <a href="#mpr_8h_1a1062901a7428fdd9c7f180f5e01ea056" class="ref">bool</a>
-    mprServicesAreIdle
-()
-  </div>
-  <div class="apiDetail">
-<p>Determine if the MPR services.</p>
-    <dl><dt><b>Description</b>:</dt><dd>This is the default routine invoked by <a class="ref" href="#mpr_8h_1aead57cafdee5b1206e4a4f3b0468fb99">mprIsIdle()</a>.</dd></dl>
-    <dl><dt>Returns:</dt><dd>True if the MPR services are idle.</dd></dl>
-  </div>
-</div>
-<a name="mpr_8h_1ad48220b7862b645de3920d74aa9b011e"></a>
-<div class="api">
-  <div class="prototype">
-    int
-    mprSetAppName
-(cchar *name, cchar *title, cchar *version)
-  </div>
-  <div class="apiDetail">
-<p>Set the application name, title and version.</p>
-    <dl><dt>Parameters:</dt><dd>
-    <table class="parameters" summary="Parameters">
-    <tr><td class="param">name</td><td>One word, lower case name for the app.</td>
-    <tr><td class="param">title</td><td>Pascal case multi-word descriptive name.</td>
-    <tr><td class="param">version</td><td>Version of the app. Major-Minor-Patch. E.g. 1.2.3.</td>
-    </table></dd></dl>
-    <dl><dt>Returns:</dt><dd>Zero if successful. Otherwise a negative MPR error code.</dd></dl>
-  </div>
-</div>
-<a name="mpr_8h_1acb25fd80b4d560d2c347ae8a692de0f1"></a>
-<div class="api">
-  <div class="prototype">
-    void
-    mprSetDebugMode
-(bool on)
-  </div>
-  <div class="apiDetail">
-<p>Turn on debug mode.</p>
-    <dl><dt><b>Description</b>:</dt><dd>Debug mode disables timeouts and timers. This makes debugging much easier.</dd></dl>
-    <dl><dt>Parameters:</dt><dd>
-    <table class="parameters" summary="Parameters">
-    <tr><td class="param">on</td><td>Set to true to enable debugging mode.</td>
-    </table></dd></dl>
-    <dl><dt><b>API</b> Stability:</dt><dd>Evolving.</dd></dl>
-  </div>
-</div>
-<a name="mpr_8h_1a9dbc9553237fd2af50c9cf7e19f3045a"></a>
-<div class="api">
-  <div class="prototype">
-    void
-    mprSetDomainName
-(cchar *s)
-  </div>
-  <div class="apiDetail">
-<p>Set the application domain name string.</p>
-    <dl><dt>Parameters:</dt><dd>
-    <table class="parameters" summary="Parameters">
-    <tr><td class="param">s</td><td>New value to use for the application domain name.</td>
-    </table></dd></dl>
-  </div>
-</div>
 <a name="mpr_8h_1af5f1b738bf18cceaa2d8eafe346db7f1"></a>
 <div class="api">
   <div class="prototype">
@@ -8935,52 +9151,6 @@ The case of keys and values are always preserved, this call only affects lookup
     <table class="parameters" summary="Parameters">
     <tr><td class="param">table</td><td>Hash table created via $mprCreateHash.</td>
     <tr><td class="param">caseMatters</td><td>Set to true if case matters in comparisions. Set to zero for case insensitive comparisions.</td>
-    </table></dd></dl>
-  </div>
-</div>
-<a name="mpr_8h_1af61307049c58bbb253244babc9d5a6b1"></a>
-<div class="api">
-  <div class="prototype">
-    void
-    mprSetHostName
-(cchar *s)
-  </div>
-  <div class="apiDetail">
-<p>Set the application host name string.</p>
-This is internal to the application and does not affect the O/S host name
-    <dl><dt>Parameters:</dt><dd>
-    <table class="parameters" summary="Parameters">
-    <tr><td class="param">s</td><td>New host name to use within the application.</td>
-    </table></dd></dl>
-  </div>
-</div>
-<a name="mpr_8h_1a829517ad9c44a5a377f3d70928c6d9c2"></a>
-<div class="api">
-  <div class="prototype">
-    <a href="#mpr_8h_1af4113f22c0d3fa830415b1c1c2877b7d" class="ref">MprIdleCallback</a>
-    mprSetIdleCallback
-(MprIdleCallback idleCallback)
-  </div>
-  <div class="apiDetail">
-<p>Define a new idle callback to be invoked by <a class="ref" href="#mpr_8h_1aead57cafdee5b1206e4a4f3b0468fb99">mprIsIdle()</a>.</p>
-    <dl><dt>Parameters:</dt><dd>
-    <table class="parameters" summary="Parameters">
-    <tr><td class="param">idleCallback</td><td>Callback function to invoke to test if the application is idle.</td>
-    </table></dd></dl>
-  </div>
-</div>
-<a name="mpr_8h_1a1fa92eb8cb9bf4f023f4f60f57001abc"></a>
-<div class="api">
-  <div class="prototype">
-    void
-    mprSetIpAddr
-(cchar *ip)
-  </div>
-  <div class="apiDetail">
-<p>Sete the application IP address string.</p>
-    <dl><dt>Parameters:</dt><dd>
-    <table class="parameters" summary="Parameters">
-    <tr><td class="param">ip</td><td>IP address string to store for the application.</td>
     </table></dd></dl>
   </div>
 </div>
@@ -9079,27 +9249,12 @@ This is internal to the application and does not affect the O/S host name
     <dl><dt>Returns:</dt><dd>Returns zero if successful.</dd></dl>
   </div>
 </div>
-<a name="mpr_8h_1a4def6498567ad43a6da505d43bb119fc"></a>
-<div class="api">
-  <div class="prototype">
-    void
-    mprSetServerName
-(cchar *s)
-  </div>
-  <div class="apiDetail">
-<p>Set the application server name string.</p>
-    <dl><dt>Parameters:</dt><dd>
-    <table class="parameters" summary="Parameters">
-    <tr><td class="param">s</td><td>New application server name to use within the application.</td>
-    </table></dd></dl>
-  </div>
-</div>
 <a name="mpr_8h_1a27866b4c10d6e45ffd96604b221cf314"></a>
 <div class="api">
   <div class="prototype">
     void
     mprSetSocketEof
-(MprSocket *sp, bool eof)
+(MprSocket *sp, <a class="ref" href="#mpr_8h_1a1062901a7428fdd9c7f180f5e01ea056">bool</a> eof)
   </div>
   <div class="apiDetail">
 <p>Set an EOF condition on the socket.</p>
@@ -9125,53 +9280,12 @@ This is internal to the application and does not affect the O/S host name
     </table></dd></dl>
   </div>
 </div>
-<a name="mpr_8h_1a0206927d986cd9ca7c42f8c530de6000"></a>
-<div class="api">
-  <div class="prototype">
-    <a href="#mpr_8h_1a1062901a7428fdd9c7f180f5e01ea056" class="ref">bool</a>
-    mprShouldAbortRequests
-()
-  </div>
-  <div class="apiDetail">
-<p>Test if requests should be aborted.</p>
-    <dl><dt><b>Description</b>:</dt><dd>This is useful to determine if current requests should be terminated due to the application exiting.</dd></dl>
-    <dl><dt>Returns:</dt><dd>True if new requests should be denied.</dd></dl>
-  </div>
-</div>
-<a name="mpr_8h_1aa8bdc374a789eed08f5b15c17a86559f"></a>
-<div class="api">
-  <div class="prototype">
-    <a href="#mpr_8h_1a1062901a7428fdd9c7f180f5e01ea056" class="ref">bool</a>
-    mprShouldDenyNewRequests
-()
-  </div>
-  <div class="apiDetail">
-<p>Test if new requests should be denied.</p>
-This is useful in denying new requests when doing a graceful shutdown while continuing to service existing requests
-    <dl><dt>Returns:</dt><dd>True if new requests should be denied.</dd></dl>
-  </div>
-</div>
-<a name="mpr_8h_1af8bae04622ff05416af04d1b06e68e55"></a>
-<div class="api">
-  <div class="prototype">
-    void
-    mprSleep
-(MprTime msec)
-  </div>
-  <div class="apiDetail">
-<p>Sleep for a while.</p>
-    <dl><dt>Parameters:</dt><dd>
-    <table class="parameters" summary="Parameters">
-    <tr><td class="param">msec</td><td>Number of milliseconds to sleep.</td>
-    </table></dd></dl>
-  </div>
-</div>
 <a name="mpr_8h_1a7f7048281c8d8e28b4a18ef304b884cb"></a>
 <div class="api">
   <div class="prototype">
     char *
     mprSprintf
-(char *buf, ssize maxSize, cchar *fmt, ...)
+(char *buf, <a class="ref" href="#mpr_8h_1a7d08ccc1e981eb4d5a238641ac4ccfc1">ssize</a> maxSize, cchar *fmt, ...)
   </div>
   <div class="apiDetail">
 <p>Format a string into a statically allocated buffer.</p>
@@ -9191,7 +9305,7 @@ This is useful in denying new requests when doing a graceful shutdown while cont
   <div class="prototype">
     char *
     mprSprintfv
-(char *buf, ssize maxSize, cchar *fmt, va_list args)
+(char *buf, <a class="ref" href="#mpr_8h_1a7d08ccc1e981eb4d5a238641ac4ccfc1">ssize</a> maxSize, cchar *fmt, va_list args)
   </div>
   <div class="apiDetail">
 <p>Format a string into a statically allocated buffer.</p>
@@ -9315,7 +9429,7 @@ This will create a new thread and invoke mprServiceEvents
   <div class="prototype">
     void
     mprUpdateWaitHandler
-(MprWaitHandler *wp, bool wakeup)
+(MprWaitHandler *wp, <a class="ref" href="#mpr_8h_1a1062901a7428fdd9c7f180f5e01ea056">bool</a> wakeup)
   </div>
   <div class="apiDetail">
 <p>Apply wait handler updates.</p>
@@ -9398,23 +9512,6 @@ No processing of the I/O event is done
     <dl><dt>Returns:</dt><dd>A count of events received.</dd></dl>
   </div>
 </div>
-<a name="mpr_8h_1a7aab2a7f8f90ad0708a7f3a2f7d29695"></a>
-<div class="api">
-  <div class="prototype">
-    int
-    mprWaitTillIdle
-(MprTime timeout)
-  </div>
-  <div class="apiDetail">
-<p>Wait until the application is idle.</p>
-    <dl><dt><b>Description</b>:</dt><dd>This call blocks until application services are idle.</dd></dl>
-    <dl><dt>Parameters:</dt><dd>
-    <table class="parameters" summary="Parameters">
-    <tr><td class="param">timeout</td><td>Time in milliseconds to wait for the application to be idle.</td>
-    </table></dd></dl>
-    <dl><dt>Returns:</dt><dd>True if the application is idle.</dd></dl>
-  </div>
-</div>
 <a name="mpr_8h_1ac36c085a4baf423492a839f3f22ae567"></a>
 <div class="api">
   <div class="prototype">
@@ -9469,7 +9566,7 @@ No processing of the I/O event is done
   <div class="prototype">
     <a href="#struct_mpr_xml" class="ref">MprXml</a> *
     mprXmlOpen
-(ssize initialSize, ssize maxSize)
+(<a class="ref" href="#mpr_8h_1a7d08ccc1e981eb4d5a238641ac4ccfc1">ssize</a> initialSize, <a class="ref" href="#mpr_8h_1a7d08ccc1e981eb4d5a238641ac4ccfc1">ssize</a> maxSize)
   </div>
   <div class="apiDetail">
 <p>Open an XML parser instance.</p>
@@ -9547,6 +9644,22 @@ This
     </table></dd></dl>
   </div>
 </div>
+<a name="mpr_8h_1af140a2fda18b2e8461236cc44c0a2cc4"></a>
+<div class="api">
+  <div class="prototype">
+    void
+    mprYield
+(int flags)
+  </div>
+  <div class="apiDetail">
+<p>Yield a thread to allow garbage collection.</p>
+    <dl><dt><b>Description</b>:</dt><dd>Long running threads should regularly call mprYield to allow the garbage collector to run. All transient memory must have references from &quot;managed&quot; objects (see mprAlloc) to ensure required memory is retained.</dd></dl>
+    <dl><dt>Parameters:</dt><dd>
+    <table class="parameters" summary="Parameters">
+    <tr><td class="param">flags</td><td>Set to MPR_YIELD_BLOCK to wait until the garbage collection is complete. This is not normally required. Set to MPR_YIELD_STICKY to remain in the yielded state. This is useful when sleeping or blocking waiting for I/O. <a class="ref" href="#mpr_8h_1a126f6aef245167a628a6c0717369b0f7">mprResetYield</a> must be called after setting a sticky yield.</td>
+    </table></dd></dl>
+  </div>
+</div>
 <a name="mpr_8h_1ac0a146492e745c3406087beb673a63a3"></a>
 <div class="api">
   <div class="prototype">
@@ -9607,7 +9720,7 @@ This is a safe replacement for strcasecmp. It can handle NULL args
   <div class="prototype">
     char *
     scontains
-(cchar *str, cchar *pattern, ssize limit)
+(cchar *str, cchar *pattern, <a class="ref" href="#mpr_8h_1a7d08ccc1e981eb4d5a238641ac4ccfc1">ssize</a> limit)
   </div>
   <div class="apiDetail">
 <p>Find a pattern in a string.</p>
@@ -9626,7 +9739,7 @@ This is a safe replacement for strcasecmp. It can handle NULL args
   <div class="prototype">
     <a href="#mpr_8h_1a7d08ccc1e981eb4d5a238641ac4ccfc1" class="ref">ssize</a>
     scopy
-(char *dest, ssize destMax, cchar *src)
+(char *dest, <a class="ref" href="#mpr_8h_1a7d08ccc1e981eb4d5a238641ac4ccfc1">ssize</a> destMax, cchar *src)
   </div>
   <div class="apiDetail">
 <p>Copy a string.</p>
@@ -9700,7 +9813,7 @@ This is a secure verion of printf that can handle null args
   <div class="prototype">
     <a href="#mpr_8h_1a91ad9478d81a7aaf2593e8d9c3d06a14" class="ref">uint</a>
     shash
-(cchar *str, ssize len)
+(cchar *str, <a class="ref" href="#mpr_8h_1a7d08ccc1e981eb4d5a238641ac4ccfc1">ssize</a> len)
   </div>
   <div class="apiDetail">
 <p>Compute a hash code for a string.</p>
@@ -9717,7 +9830,7 @@ This is a secure verion of printf that can handle null args
   <div class="prototype">
     <a href="#mpr_8h_1a91ad9478d81a7aaf2593e8d9c3d06a14" class="ref">uint</a>
     shashlower
-(cchar *str, ssize len)
+(cchar *str, <a class="ref" href="#mpr_8h_1a7d08ccc1e981eb4d5a238641ac4ccfc1">ssize</a> len)
   </div>
   <div class="apiDetail">
 <p>Compute a caseless hash code for a string.</p>
@@ -9804,7 +9917,7 @@ This is a secure verion of printf that can handle null args
   <div class="prototype">
     int
     sncasecmp
-(cchar *s1, cchar *s2, ssize len)
+(cchar *s1, cchar *s2, <a class="ref" href="#mpr_8h_1a7d08ccc1e981eb4d5a238641ac4ccfc1">ssize</a> len)
   </div>
   <div class="apiDetail">
 <p>Compare strings ignoring case.</p>
@@ -9823,7 +9936,7 @@ This is a secure verion of printf that can handle null args
   <div class="prototype">
     int
     sncmp
-(cchar *s1, cchar *s2, ssize len)
+(cchar *s1, cchar *s2, <a class="ref" href="#mpr_8h_1a7d08ccc1e981eb4d5a238641ac4ccfc1">ssize</a> len)
   </div>
   <div class="apiDetail">
 <p>Compare strings.</p>
@@ -9842,7 +9955,7 @@ This is a secure verion of printf that can handle null args
   <div class="prototype">
     <a href="#mpr_8h_1a7d08ccc1e981eb4d5a238641ac4ccfc1" class="ref">ssize</a>
     sncopy
-(char *dest, ssize destMax, cchar *src, ssize len)
+(char *dest, <a class="ref" href="#mpr_8h_1a7d08ccc1e981eb4d5a238641ac4ccfc1">ssize</a> destMax, cchar *src, <a class="ref" href="#mpr_8h_1a7d08ccc1e981eb4d5a238641ac4ccfc1">ssize</a> len)
   </div>
   <div class="apiDetail">
 <p>Copy characters from a string.</p>
@@ -9969,7 +10082,7 @@ This is a secure verion of printf that can handle null args
   <div class="prototype">
     char *
     ssub
-(char *str, ssize offset, ssize length)
+(char *str, <a class="ref" href="#mpr_8h_1a7d08ccc1e981eb4d5a238641ac4ccfc1">ssize</a> offset, <a class="ref" href="#mpr_8h_1a7d08ccc1e981eb4d5a238641ac4ccfc1">ssize</a> length)
   </div>
   <div class="apiDetail">
 <p>Create a substring.</p>
@@ -10057,6 +10170,15 @@ This is a secure verion of printf that can handle null args
   </div>
 </div>
 <h2>Typedefs</h2>
+<a name="mpr_8h_1a1062901a7428fdd9c7f180f5e01ea056"></a>
+<div class="api">
+  <div class="prototype">
+    typedef int bool.
+  </div>
+  <div class="apiDetail">
+<p>Boolean data type.</p>
+  </div>
+</div>
 <a name="mpr_8h_1a1d9d70fd98eb69a8c870f2202bee22eb"></a>
 <div class="api">
   <div class="prototype">
@@ -10093,6 +10215,16 @@ Proc returns non-zero if the socket has been deleted
     <tr><td class="param">data</td><td>worker callback data. Set via mprStartWorker or mprActivateWorker.</td>
     <tr><td class="param">worker</td><td>Reference to the worker thread object.</td>
     </table></dd></dl>
+  </div>
+</div>
+<a name="mpr_8h_1a7d08ccc1e981eb4d5a238641ac4ccfc1"></a>
+<div class="api">
+  <div class="prototype">
+    typedef ssize_t ssize.
+  </div>
+  <div class="apiDetail">
+<p>Signed size field.</p>
+This type can hold a pointer offset
   </div>
 </div>
 <a name="group___mpr_buf_1gaa0f2f003728ef5bb244fdabe2edc56f7"></a>
@@ -10242,10 +10374,10 @@ Value of the condition.
     <dl><dt><b>Description</b>:</dt><dd>The MprGetDirList will create a list of directory entries.</dd></dl>
     <dl><dt>Fields:</dt><dd>
     <table class="parameters" summary="Parameters">
-    <tr><td class="param">bool</td><td><td>isDir</td><td>
+    <tr><td class="param"><a class="ref" href="#mpr_8h_1a1062901a7428fdd9c7f180f5e01ea056">bool</a></td><td><td>isDir</td><td>
 True if the file is a directory.
 </td>
-    <tr><td class="param">bool</td><td><td>isLink</td><td>
+    <tr><td class="param"><a class="ref" href="#mpr_8h_1a1062901a7428fdd9c7f180f5e01ea056">bool</a></td><td><td>isLink</td><td>
 True if the file is a symbolic link.
 </td>
     <tr><td class="param">MprTime</td><td><td>lastModified</td><td>
@@ -10254,7 +10386,7 @@ Time the file was last modified.
     <tr><td class="param">char *</td><td><td>name</td><td>
 Name of the file.
 </td>
-    <tr><td class="param">MprOffset</td><td><td>size</td><td>
+    <tr><td class="param">MprOff</td><td><td>size</td><td>
 Size of the file.
 </td>
     </table></dd></dl>
@@ -10271,7 +10403,7 @@ Size of the file.
     <tr><td class="param">MprAccessFileProc</td><td><td>accessPath</td><td>
 Virtual access file routine.
 </td>
-    <tr><td class="param">bool</td><td><td>caseSensitive</td><td>
+    <tr><td class="param"><a class="ref" href="#mpr_8h_1a1062901a7428fdd9c7f180f5e01ea056">bool</a></td><td><td>caseSensitive</td><td>
 Path comparisons are case sensitive.
 </td>
     <tr><td class="param">MprCloseFileProc</td><td><td>closeFile</td><td>
@@ -10289,7 +10421,7 @@ Virtual get file information routine.
     <tr><td class="param">MprGetPathLinkProc</td><td><td>getPathLink</td><td>
 Virtual get the symbolic link target.
 </td>
-    <tr><td class="param">bool</td><td><td>hasDriveSpecs</td><td>
+    <tr><td class="param"><a class="ref" href="#mpr_8h_1a1062901a7428fdd9c7f180f5e01ea056">bool</a></td><td><td>hasDriveSpecs</td><td>
 Paths can have drive specifications.
 </td>
     <tr><td class="param">MprMakeDirProc</td><td><td>makeDir</td><td>
@@ -10458,7 +10590,7 @@ Memory allocation failure callback.
     <tr><td class="param">int</td><td><td>pageSize</td><td>
 System page size.
 </td>
-    <tr><td class="param">ssize</td><td><td>priorFree</td><td>
+    <tr><td class="param"><a class="ref" href="#mpr_8h_1a7d08ccc1e981eb4d5a238641ac4ccfc1">ssize</a></td><td><td>priorFree</td><td>
 Last sweep free memory.
 </td>
     <tr><td class="param">int</td><td><td>priorNewCount</td><td>
@@ -10557,7 +10689,7 @@ Region multithread lock.
     <tr><td class="param">struct <a class="ref" href="#struct_mpr_region">MprRegion</a> *</td><td><td>next</td><td>
 Next region.
 </td>
-    <tr><td class="param">ssize</td><td><td>size</td><td>
+    <tr><td class="param"><a class="ref" href="#mpr_8h_1a7d08ccc1e981eb4d5a238641ac4ccfc1">ssize</a></td><td><td>size</td><td>
 Size of region including region header.
 </td>
     <tr><td class="param">MprMem *</td><td><td>start</td><td>
@@ -10606,6 +10738,6 @@ Data key.
     </table></dd></dl>
   </div>
 </div>
-<div class="footnote">Generated on Mon Apr 04 2011 14:41:14 GMT-0700 (PDT)<br/>
+<div class="footnote">Generated on Wed Apr 06 2011 09:28:04 GMT-0700 (PDT)<br/>
   Copyright &copy; <a href="http://www.embedthis.com">Embedthis Software</a> 2011.
 </div></div></body></html>
