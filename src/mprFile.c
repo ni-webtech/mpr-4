@@ -82,13 +82,13 @@ int mprFlushFile(MprFile *file)
 }
 
 
-MprOffset mprGetFilePosition(MprFile *file)
+MprOff mprGetFilePosition(MprFile *file)
 {
     return file->pos;
 }
 
 
-MprOffset mprGetFileSize(MprFile *file)
+MprOff mprGetFileSize(MprFile *file)
 {
     return file->size;
 }
@@ -233,7 +233,7 @@ char *mprGetFileString(MprFile *file, ssize maxline, ssize *lenp)
         } else {
             consumed = len;
         }
-        file->pos += (MprOffset) consumed;
+        file->pos += (MprOff) consumed;
         if (lenp) {
             *lenp += len;
         }
@@ -267,7 +267,7 @@ MprFile *mprOpenFile(cchar *path, int omode, int perms)
                 OPT. Should compute this lazily.
              */
             fs->getPathInfo(fs, path, &info);
-            file->size = (MprOffset) info.size;
+            file->size = (MprOff) info.size;
         }
         file->mode = omode;
         file->perms = perms;
@@ -331,7 +331,7 @@ ssize mprPutFileString(MprFile *file, cchar *str)
         count -= bytes;
         buf += bytes;
         total += bytes;
-        file->pos += (MprOffset) bytes;
+        file->pos += (MprOff) bytes;
     }
     return total;
 }
@@ -423,12 +423,12 @@ ssize mprReadFile(MprFile *file, void *buf, ssize size)
         }
         totalRead = ((char*) buf - (char*) bufStart);
     }
-    file->pos += (MprOffset) totalRead;
+    file->pos += (MprOff) totalRead;
     return totalRead;
 }
 
 
-MprOffset mprSeekFile(MprFile *file, int seekType, MprOffset pos)
+MprOff mprSeekFile(MprFile *file, int seekType, MprOff pos)
 {
     MprFileSystem   *fs;
 
@@ -470,7 +470,7 @@ MprOffset mprSeekFile(MprFile *file, int seekType, MprOffset pos)
 }
 
 
-int mprTruncateFile(cchar *path, MprOffset size)
+int mprTruncateFile(cchar *path, MprOff size)
 {
     MprFileSystem   *fs;
 
@@ -515,7 +515,7 @@ ssize mprWriteFile(MprFile *file, cvoid *buf, ssize count)
             buf = (char*) buf + bytes;
         }
     }
-    file->pos += (MprOffset) written;
+    file->pos += (MprOff) written;
     if (file->pos > file->size) {
         file->size = file->pos;
     }

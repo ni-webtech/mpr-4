@@ -899,7 +899,7 @@ ssize mprWriteSocketVector(MprSocket *sp, MprIOVec *iovec, int count)
 
 #if !BLD_FEATURE_ROMFS
 #if !LINUX || __UCLIBC__
-static ssize localSendfile(MprSocket *sp, MprFile *file, MprOffset offset, ssize len)
+static ssize localSendfile(MprSocket *sp, MprFile *file, MprOff offset, ssize len)
 {
     char    buf[MPR_BUFSIZE];
 
@@ -917,15 +917,15 @@ static ssize localSendfile(MprSocket *sp, MprFile *file, MprOffset offset, ssize
 /*  Write data from a file to a socket. Includes the ability to write header before and after the file data.
     Works even with a null "file" to just output the headers.
  */
-ssize mprSendFileToSocket(MprSocket *sock, MprFile *file, MprOffset offset, ssize bytes, MprIOVec *beforeVec, 
-    int beforeCount, MprIOVec *afterVec, int afterCount)
+ssize mprSendFileToSocket(MprSocket *sock, MprFile *file, MprOff offset, ssize bytes, MprIOVec *beforeVec, 
+    ssize beforeCount, MprIOVec *afterVec, ssize afterCount)
 {
 #if MACOSX && __MAC_OS_X_VERSION_MIN_REQUIRED >= 1050
     struct sf_hdtr  def;
 #endif
-    ssize           rc, written;
+    ssize           rc, written, toWriteBefore, toWriteAfter, toWriteFile;
     off_t           off;
-    int             i, done, toWriteBefore, toWriteAfter, toWriteFile;
+    int             i, done;
 
     rc = 0;
 
@@ -951,12 +951,12 @@ ssize mprSendFileToSocket(MprSocket *sock, MprFile *file, MprOffset offset, ssiz
         done = 0;
         written = 0;
         for (i = toWriteBefore = 0; i < beforeCount; i++) {
-            toWriteBefore += (int) beforeVec[i].len;
+            toWriteBefore += beforeVec[i].len;
         }
         for (i = toWriteAfter = 0; i < afterCount; i++) {
-            toWriteAfter += (int) afterVec[i].len;
+            toWriteAfter += afterVec[i].len;
         }
-        toWriteFile = (int) bytes - toWriteBefore - toWriteAfter;
+        toWriteFile = bytes - toWriteBefore - toWriteAfter;
         mprAssert(toWriteFile >= 0);
 
         /*

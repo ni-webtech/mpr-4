@@ -66,7 +66,7 @@ static void testBasicIO(MprTestGroup *gp)
 {
     MprFile         *file;
     MprPath         info;
-    MprOffset       pos;
+    MprOff          pos;
     ssize           len, rc;
     char            buf[512];
     TestFile        *ts;

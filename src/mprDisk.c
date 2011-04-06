@@ -123,14 +123,14 @@ static ssize writeFile(MprFile *file, cvoid *buf, ssize count)
 }
 
 
-static MprOffset seekFile(MprFile *file, int seekType, MprOffset distance)
+static MprOff seekFile(MprFile *file, int seekType, MprOff distance)
 {
     mprAssert(file);
 
     if (file == 0) {
         return MPR_ERR_BAD_HANDLE;
     }
-    return (MprOffset) lseek(file->fd, distance, seekType);
+    return (MprOff) lseek(file->fd, distance, seekType);
 }
 
 
@@ -326,7 +326,7 @@ static char *getPathLink(MprDiskFileSystem *fileSystem, cchar *path)
 }
 
 
-static int truncateFile(MprDiskFileSystem *fileSystem, cchar *path, MprOffset size)
+static int truncateFile(MprDiskFileSystem *fileSystem, cchar *path, MprOff size)
 {
     if (!mprPathExists(path, F_OK)) {
         return MPR_ERR_CANT_ACCESS;
