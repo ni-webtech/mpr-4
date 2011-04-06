@@ -625,7 +625,10 @@ static MprMem *growHeap(ssize required, int flags)
     rsize = MPR_ALLOC_ALIGN(sizeof(MprRegion));
     size = max(required + rsize, (ssize) heap->chunkSize);
     size = MPR_PAGE_ALIGN(size, heap->pageSize);
-
+    if (size < 0 || size >= ((ssize) 1 << MPR_SIZE_BITS)) {
+        allocException(size, 0);
+        return 0;
+    }
     if ((region = valloc(size, MPR_MAP_READ | MPR_MAP_WRITE)) == NULL) {
         return 0;
     }
@@ -2164,13 +2167,13 @@ static MPR_INLINE int flsl(ulong word)
 static int memoryNotifier(int flags, ssize size)
 {
     if (flags & MPR_MEM_DEPLETED) {
-        mprPrintfError("Can't allocate memory block of size %d\n", size);
-        mprPrintfError("Total memory used %d\n", mprGetMem());
+        mprPrintfError("Can't allocate memory block of size %,d bytes\n", size);
+        mprPrintfError("Total memory used %,d bytes\n", mprGetMem());
         exit(255);
 
     } else if (flags & MPR_MEM_LOW) {
-        mprPrintfError("Memory request for %d bytes exceeds memory red-line\n", size);
-        mprPrintfError("Total memory used %d\n", mprGetMem());
+        mprPrintfError("Memory request for %,d bytes exceeds memory red-line\n", size);
+        mprPrintfError("Total memory used %,d bytes\n", mprGetMem());
     }
     return 0;
 }
