@@ -159,8 +159,6 @@ void mprRemoveEvent(MprEvent *event)
     MprEventService     *es;
     MprDispatcher       *dispatcher;
 
-    mprAssert(event->dispatcher == 0 || event->dispatcher->magic == MPR_DISPATCHER_MAGIC);
-
     dispatcher = event->dispatcher;
     if (dispatcher) {
         es = dispatcher->service;
