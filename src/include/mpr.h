@@ -3812,7 +3812,7 @@ extern int mprSetListLimits(MprList *list, int initialSize, int maxSize);
     @param compare Comparison function. If null, then a default string comparison is used.
     @ingroup MprList
  */
-extern void mprSortList(MprList *list, MprListCompareProc compare);
+extern void mprSortList(MprList *list, void *compare);
 
 /**
     Key value pairs for use with MprList or MprHash

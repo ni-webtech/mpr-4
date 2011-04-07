@@ -573,7 +573,7 @@ static int growList(MprList *lp, int incr)
 }
 
 
-void mprSortList(MprList *lp, MprListCompareProc compare)
+void mprSortList(MprList *lp, void *compare)
 {
     qsort(lp->items, lp->length, sizeof(void*), compare);
 }
