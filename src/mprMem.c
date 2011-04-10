@@ -617,7 +617,7 @@ static MprMem *growHeap(ssize required, int flags)
 {
     MprRegion           *region;
     MprMem              *mp, *spare;
-    ssize               size, rsize;
+    ssize               size, rsize, spareLen;
     int                 hasManager;
 
     mprAssert(required > 0);
@@ -637,26 +637,27 @@ static MprMem *growHeap(ssize required, int flags)
     region->start = (MprMem*) (((char*) region) + rsize);
     mp = (MprMem*) region->start;
     hasManager = (flags & MPR_ALLOC_MANAGER) ? 1 : 0;
-    INIT_BLK(mp, required, hasManager, 0, NULL);
+    spareLen = size - required - rsize;
+    INIT_BLK(mp, required, hasManager, (spareLen > 0) ? 0 : 1, NULL);
     if (hasManager) {
         SET_MANAGER(mp, dummyManager);
     }
     CHECK(mp);
 
-    spare = (MprMem*) ((char*) mp + required);
-    INIT_BLK(spare, size - required - rsize, 0, 1, mp);
-    CHECK(spare);
-
-#if MOB
-    mprAtomicListInsert(&heap->regions, &region->next, region);
-#endif
     do {
         region->next = heap->regions;
     } while (!mprAtomicCas((void* volatile*) &heap->regions, region->next, region));
 
+    if (spareLen > 0) {
+        spare = (MprMem*) ((char*) mp + required);
+        INIT_BLK(spare, spareLen, 0, 1, mp);
+        CHECK(spare);
+    }
     lockHeap();
     INC(allocs);
-    linkBlock(spare);
+    if (spareLen > 0) {
+        linkBlock(spare);
+    }
     unlockHeap();
     return mp;
 }
@@ -1985,6 +1986,7 @@ static void getSystemInfo()
         cmd[0] = CTL_HW;
         cmd[1] = HW_NCPU;
         len = sizeof(ap->numCpu);
+        ap->numCpu = 0;
         if (sysctl(cmd, 2, &ap->numCpu, &len, 0, 0) < 0) {
             ap->numCpu = 1;
         }
@@ -2076,12 +2078,14 @@ MprMemStats *mprGetMemStats()
 #endif
     mib[0] = CTL_HW;
     len = sizeof(ram);
+    ram = 0;
     sysctl(mib, 2, &ram, &len, NULL, 0);
     heap->stats.ram = ram;
 
     mib[0] = CTL_HW;
     mib[1] = HW_USERMEM;
     len = sizeof(usermem);
+    usermem = 0;
     sysctl(mib, 2, &usermem, &len, NULL, 0);
     heap->stats.user = usermem;
 #endif

@@ -80,6 +80,20 @@ void mprError(cchar *fmt, ...)
 }
 
 
+void mprWarn(cchar *fmt, ...)
+{
+    va_list     args;
+    char        buf[MPR_MAX_LOG];
+
+    va_start(args, fmt);
+    mprSprintfv(buf, sizeof(buf), fmt, args);
+    va_end(args);
+    
+    logOutput(MPR_ERROR_MSG | MPR_WARN_SRC, 0, buf);
+    mprBreakpoint();
+}
+
+
 void mprMemoryError(cchar *fmt, ...)
 {
     va_list     args;
@@ -249,6 +263,8 @@ static void defaultLogHandler(int flags, int level, cchar *msg)
         mprPrintfError("%s: %d: %s\n", prefix, level, msg);
     } else if (flags & MPR_ERROR_SRC) {
         mprPrintfError("%s: Error: %s\n", prefix, msg);
+    } else if (flags & MPR_WARN_SRC) {
+        mprPrintfError("%s: Warning: %s\n", prefix, msg);
     } else if (flags & MPR_FATAL_SRC) {
         mprPrintfError("%s: Fatal: %s\n", prefix, msg);
     } else if (flags & MPR_RAW) {

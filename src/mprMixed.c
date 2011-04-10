@@ -383,25 +383,27 @@ MprChar *mtok(MprChar *str, cchar *delim, MprChar **last)
 
 MprChar *mtrim(MprChar *str, cchar *set, int where)
 {
-    ssize   len, i;
+    MprChar     s;
+    ssize       len, i;
 
     if (str == NULL || set == NULL) {
         return str;
     }
+    s = wclone(str);
     if (where & MPR_TRIM_START) {
-        i = mspn(str, set);
+        i = mspn(s, set);
     } else {
         i = 0;
     }
-    str += i;
+    s += i;
     if (where & MPR_TRIM_END) {
-        len = wlen(str);
-        while (len > 0 && mspn(&str[len - 1], set) > 0) {
-            str[len - 1] = '\0';
+        len = wlen(s);
+        while (len > 0 && mspn(&s[len - 1], set) > 0) {
+            s[len - 1] = '\0';
             len--;
         }
     }
-    return str;
+    return s;
 }
 
 #else
