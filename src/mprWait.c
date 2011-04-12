@@ -245,7 +245,7 @@ void mprEnableWaitEvents(MprWaitHandler *wp, int mask)
 /*
     Set a handler to be recalled without further I/O
  */
-void mprRecallWaitHandler(int fd)
+void mprRecallWaitHandlerByFd(int fd)
 {
     MprWaitService  *ws;
     MprWaitHandler  *wp;
@@ -261,6 +261,19 @@ void mprRecallWaitHandler(int fd)
             break;
         }
     }
+    unlock(ws);
+}
+
+
+void mprRecallWaitHandler(MprWaitHandler *wp)
+{
+    MprWaitService  *ws;
+
+    ws = MPR->waitService;
+    lock(ws);
+    wp->flags |= MPR_WAIT_RECALL_HANDLER;
+    ws->needRecall = 1;
+    mprWakeWaitService();
     unlock(ws);
 }
 

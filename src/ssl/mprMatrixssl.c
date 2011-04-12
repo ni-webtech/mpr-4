@@ -727,7 +727,7 @@ static ssize readMss(MprSocket *sp, void *buf, ssize len)
      */
     if (isBufferedData(msp)) {
         sp->flags |= MPR_SOCKET_PENDING;
-        mprRecallWaitHandler(sp->fd);
+        mprRecallWaitHandlerByFd(sp->fd);
     }
     unlock(sp);
     return bytes;

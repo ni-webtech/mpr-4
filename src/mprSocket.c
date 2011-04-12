@@ -518,7 +518,7 @@ static void disconnectSocket(MprSocket *sp)
         shutdown(sp->fd, SHUT_RDWR);
         fd = sp->fd;
         sp->flags |= MPR_SOCKET_EOF;
-        mprRecallWaitHandler(fd);
+        mprRecallWaitHandlerByFd(fd);
     }
     unlock(sp);
 }
