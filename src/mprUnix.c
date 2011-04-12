@@ -144,7 +144,7 @@ void mprWriteToOsLog(cchar *message, int flags, int level)
         msg = "error: ";
         sflag = LOG_WARNING;
     }
-    syslog(sflag, "%s %s: %s\n", mprGetAppName(), msg, message);
+    syslog(sflag, "%s", message);
 }
 
 
