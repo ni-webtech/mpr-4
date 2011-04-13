@@ -33,14 +33,15 @@ manageFeatures()
 createFeatureConfig()
 {
     :
-##	    NAME=$1
-##	
-##	    cat >>$NAME <<!EOF_FEATURE_CONFIG2
-##	#
-##	#   Extended Feature Selection
-##	#
-##	BLD_FEATURE_XML=$BLD_FEATURE_XML
-##	!EOF_FEATURE_CONFIG2
+    NAME=$1
+
+    cat >>$NAME <<!EOF_FEATURE_CONFIG2
+#
+#   Mpr Feature Selection
+#
+BLD_MPR_PRODUCT=1
+
+!EOF_FEATURE_CONFIG2
 }
 
 
