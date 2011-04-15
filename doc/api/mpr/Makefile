@@ -17,6 +17,8 @@ gen:
 	rmdir $(STAGING)/mpr-$(BLD_VERSION)
 	$(call log) "[Generate]" "doxygen mpr.spec"
 	doxygen mpr.spec
+
+x:
 	$(call log) "[Transform]" "gendoc"
 	ejs $(BLD_TOOLS_DIR)/gendoc.es --bare --title "MPR - Multithreaded Portable Runtime Native API" --tags ../mpr.tags \
 		xml/mpr_8h.xml xml/group* xml/struct_*.xml >../mprBare.html

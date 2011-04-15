@@ -219,9 +219,9 @@ void mprSetSocketMessage(int socketMessage)
 #endif /* WINCE */
 
 
-void mprSleep(int milliseconds)
+void mprSleep(MprTime milliseconds)
 {
-    Sleep(milliseconds);
+    Sleep((int) milliseconds);
 }
 
 

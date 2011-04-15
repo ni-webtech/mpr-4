@@ -130,7 +130,7 @@ static MprOff seekFile(MprFile *file, int seekType, MprOff distance)
     if (file == 0) {
         return MPR_ERR_BAD_HANDLE;
     }
-    return (MprOff) lseek(file->fd, distance, seekType);
+    return (MprOff) lseek(file->fd, (long) distance, seekType);
 }
 
 
@@ -336,7 +336,7 @@ static int truncateFile(MprDiskFileSystem *fileSystem, cchar *path, MprOff size)
     HANDLE  h;
 
     h = CreateFile(path, GENERIC_WRITE, 0, NULL, OPEN_EXISTING, 0, NULL);
-    SetFilePointer(h, size, 0, FILE_BEGIN);
+    SetFilePointer(h, (LONG) size, 0, FILE_BEGIN);
     if (h == INVALID_HANDLE_VALUE || SetEndOfFile(h) == 0) {
         CloseHandle(h);
         return MPR_ERR_CANT_WRITE;

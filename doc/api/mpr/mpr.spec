@@ -184,7 +184,6 @@ TAB_SIZE               = 4
 ALIASES                = "reminder=\xrefitem reminders \"Reminder\" \"Reminders\"" \
                          "overview=\par \b Overview:\n" \
                          "scope=\par \b Scope:\n" \
-                         "hide=@internal\n" \
                          "library=\par \b Library:\n" \
                          "options=\par \b Configure options:\n" \
                          "description=\par \b Description:\n" \

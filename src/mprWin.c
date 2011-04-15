@@ -177,9 +177,9 @@ void mprSetSocketMessage(int socketMessage)
 }
 
 
-void mprSleep(int milliseconds)
+void mprSleep(MprTime milliseconds)
 {
-    Sleep(milliseconds);
+    Sleep((int) milliseconds);
 }
 
 
