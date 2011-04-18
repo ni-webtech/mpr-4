@@ -130,7 +130,11 @@ static MprOff seekFile(MprFile *file, int seekType, MprOff distance)
     if (file == 0) {
         return MPR_ERR_BAD_HANDLE;
     }
-    return (MprOff) lseek(file->fd, (long) distance, seekType);
+#if BLD_WIN_LIKE
+    return (MprOff) lseeki64(file->fd, (int64) distance, seekType);
+#else
+    return (MprOff) lseek(file->fd, (off_t) distance, seekType);
+#endif
 }
 
 
@@ -313,7 +317,7 @@ static char *getPathLink(MprDiskFileSystem *fileSystem, cchar *path)
 {
 #if BLD_UNIX_LIKE
     char    pbuf[MPR_MAX_PATH];
-    int     len;
+    ssize   len;
 
     if ((len = readlink(path, pbuf, sizeof(pbuf) - 1)) < 0) {
         return NULL;

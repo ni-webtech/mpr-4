@@ -302,7 +302,7 @@ int mprRunTests(MprTestService *sp)
     MprThread       *tp;
     MprList         *lp;
     char            tName[64];
-    int             next, i;
+    int             i, next;
 
     /*
         Build the full names for all groups
@@ -447,7 +447,7 @@ static void buildFullNames(MprTestGroup *gp, cchar *name)
     MprTestGroup    *np;
     char            *nameBuf;
     cchar           *nameStack[MPR_TEST_MAX_STACK];
-    int             tos, nextItem;
+    int             next, tos;
 
     tos = 0;
 
@@ -468,11 +468,11 @@ static void buildFullNames(MprTestGroup *gp, cchar *name)
     /*
         Recurse for all test case groups
      */
-    nextItem = 0;
-    np = mprGetNextItem(gp->groups, &nextItem);
+    next = 0;
+    np = mprGetNextItem(gp->groups, &next);
     while (np) {
         buildFullNames(np, np->name);
-        np = mprGetNextItem(gp->groups, &nextItem);
+        np = mprGetNextItem(gp->groups, &next);
     }
 }
 
@@ -631,7 +631,7 @@ static void runTestGroup(MprTestGroup *parent)
     MprTestService  *sp;
     MprTestGroup    *gp, *nextGroup;
     MprTestCase     *tc;
-    int             count, nextItem;
+    int             nextItem, count;
 
     sp = parent->service;
 
@@ -714,7 +714,7 @@ static bool filterTestGroup(MprTestGroup *gp)
         next = 0;
         pattern = mprGetNextItem(testFilter, &next);
         while (pattern) {
-            len = min(strlen(pattern), strlen(gp->fullName));
+            len = min(slen(pattern), slen(gp->fullName));
             if (sncasecmp(gp->fullName, pattern, len) == 0) {
                 break;
             }
@@ -754,7 +754,7 @@ static bool filterTestCast(MprTestGroup *gp, MprTestCase *tc)
         next = 0;
         pattern = mprGetNextItem(testFilter, &next);
         while (pattern) {
-            len = min(strlen(pattern), strlen(fullName));
+            len = min(slen(pattern), slen(fullName));
             if (sncasecmp(fullName, pattern, len) == 0) {
                 break;
             }
@@ -814,17 +814,17 @@ static char *getErrorMessage(MprTestGroup *gp)
 {
     MprTestFailure  *fp;
     char            msg[MPR_MAX_STRING], *errorMsg;
-    int             nextItem;
+    int             next;
 
-    nextItem = 0;
+    next = 0;
     errorMsg = sclone("");
-    fp = mprGetNextItem(gp->failures, &nextItem);
+    fp = mprGetNextItem(gp->failures, &next);
     while (fp) {
         mprSprintf(msg, sizeof(msg), "Failure in %s\nAssertion: \"%s\"\n", fp->loc, fp->message);
         if ((errorMsg = sjoin(errorMsg, msg, NULL)) == NULL) {
             break;
         }
-        fp = mprGetNextItem(gp->failures, &nextItem);
+        fp = mprGetNextItem(gp->failures, &next);
     }
     return errorMsg;
 }

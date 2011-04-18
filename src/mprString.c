@@ -15,7 +15,7 @@
 /*
     Format a number as a string. Support radix 10 and 16.
  */
-char *itos(char *buf, int count, int64 value, int radix)
+char *itos(char *buf, ssize count, int64 value, int radix)
 {
     char    numBuf[32];
     char    *cp, *dp, *endp;
@@ -75,7 +75,7 @@ int scasecmp(cchar *s1, cchar *s2)
     } else if (s2 == 0) {
         return 1;
     }
-    return sncasecmp(s1, s2, max(strlen(s1), strlen(s2)));
+    return sncasecmp(s1, s2, max(slen(s1), slen(s2)));
 }
 
 
@@ -87,7 +87,7 @@ ssize scopy(char *dest, ssize destMax, cchar *src)
     mprAssert(dest);
     mprAssert(0 < dest && destMax < MAXINT);
 
-    len = strlen(src);
+    len = slen(src);
     if (destMax <= len) {
         mprAssert(!MPR_ERR_WONT_FIT);
         return MPR_ERR_WONT_FIT;
@@ -105,7 +105,7 @@ char *sclone(cchar *str)
     if (str == 0) {
         str = "";
     }
-    len = strlen(str);
+    len = slen(str);
     size = len + 1;
     if ((ptr = mprAlloc(size)) != 0) {
         memcpy(ptr, str, len);
@@ -143,7 +143,7 @@ int scmp(cchar *s1, cchar *s2)
     } else if (s2 == 0) {
         return 1;
     }
-    return sncmp(s1, s2, max(strlen(s1), strlen(s2)));
+    return sncmp(s1, s2, max(slen(s1), slen(s2)));
 }
 
 
@@ -152,7 +152,7 @@ int sends(cchar *str, cchar *suffix)
     if (str == 0 || suffix == 0) {
         return 0;
     }
-    if (strcmp(&str[strlen(str) - strlen(suffix) - 1], suffix) == 0) {
+    if (strcmp(&str[slen(str) - slen(suffix) - 1], suffix) == 0) {
         return 1;
     }
     return 0;
@@ -196,7 +196,7 @@ uint shash(cchar *cname, ssize len)
         return 0;
     }
     hash = (uint) len;
-    rem = len & 3;
+    rem = (int) (len & 3);
     name = (uchar*) cname;
     for (len >>= 2; len > 0; len--, name += 4) {
         hash  += name[0] | (name[1] << 8);
@@ -246,7 +246,7 @@ uint shashlower(cchar *cname, ssize len)
         return 0;
     }
     hash = (uint) len;
-    rem = len & 3;
+    rem = (int) (len & 3);
     name = (uchar*) cname;
 
     for (len >>= 2; len > 0; len--, name += 4) {
@@ -303,11 +303,11 @@ char *sjoinv(cchar *buf, va_list args)
     va_copy(ap, args);
     required = 1;
     if (buf) {
-        required += strlen(buf);
+        required += slen(buf);
     }
     str = va_arg(ap, char*);
     while (str) {
-        required += strlen(str);
+        required += slen(str);
         str = va_arg(ap, char*);
     }
     if ((dest = mprAlloc(required)) == 0) {
@@ -316,13 +316,13 @@ char *sjoinv(cchar *buf, va_list args)
     dp = dest;
     if (buf) {
         strcpy(dp, buf);
-        dp += strlen(buf);
+        dp += slen(buf);
     }
     va_copy(ap, args);
     str = va_arg(ap, char*);
     while (str) {
         strcpy(dp, str);
-        dp += strlen(str);
+        dp += slen(str);
         str = va_arg(ap, char*);
     }
     *dp = '\0';
@@ -437,7 +437,7 @@ ssize sncopy(char *dest, ssize destMax, cchar *src, ssize count)
     mprAssert(0 <= count && count < MAXINT);
     mprAssert(0 < destMax && destMax < MAXINT);
 
-    len = strlen(src);
+    len = slen(src);
     len = min(len, count);
     if (destMax <= len) {
         mprAssert(!MPR_ERR_WONT_FIT);
@@ -505,7 +505,7 @@ char *srejoinv(char *buf, va_list args)
     required = len + 1;
     str = va_arg(ap, char*);
     while (str) {
-        required += strlen(str);
+        required += slen(str);
         str = va_arg(ap, char*);
     }
     if ((dest = mprRealloc(buf, required)) == 0) {
@@ -516,7 +516,7 @@ char *srejoinv(char *buf, va_list args)
     str = va_arg(ap, char*);
     while (str) {
         strcpy(dp, str);
-        dp += strlen(str);
+        dp += slen(str);
         str = va_arg(ap, char*);
     }
     *dp = '\0';
@@ -558,7 +558,7 @@ int sstarts(cchar *str, cchar *prefix)
     if (str == 0 || prefix == 0) {
         return 0;
     }
-    if (strncmp(str, prefix, strlen(prefix)) == 0) {
+    if (strncmp(str, prefix, slen(prefix)) == 0) {
         return 1;
     }
     return 0;
@@ -751,7 +751,7 @@ char *strim(cchar *str, cchar *set, int where)
     }
     s += i;
     if (where & MPR_TRIM_END) {
-        len = strlen(s);
+        len = slen(s);
         while (len > 0 && strspn(&s[len - 1], set) > 0) {
             s[len - 1] = '\0';
             len--;

@@ -66,7 +66,7 @@ ssize mcopy(MprChar *dest, cchar *src)
     mprAssert(dest);
     mprAssert(0 < destMax && destMax < MAXINT);
 
-    len = strlen(src);
+    len = slen(src);
     if (destMax <= len) {
         mprAssert(!MPR_ERR_WONT_FIT);
         return MPR_ERR_WONT_FIT;
@@ -84,7 +84,7 @@ int mends(MprChar *str, cchar *suffix)
         return 0;
     }
     cp = &str[wlen(str) - 1];
-    sp = &suffix[strlen(suffix) - 1];
+    sp = &suffix[slen(suffix) - 1];
     for (; cp > str && sp > suffix; ) {
         if (*cp-- != *sp--) {
             return 0;
@@ -346,7 +346,7 @@ int mstarts(MprChar *str, cchar *prefix)
     if (str == NULL || prefix == NULL) {
         return 0;
     }
-    if (mncmp(str, prefix, strlen(prefix)) == 0) {
+    if (mncmp(str, prefix, slen(prefix)) == 0) {
         return 1;
     }
     return 0;

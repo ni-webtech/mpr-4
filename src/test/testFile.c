@@ -133,9 +133,10 @@ static void testBufferedIO(MprTestGroup *gp)
     MprFile         *file;
     MprPath         info;
     TestFile        *ts;
+    MprOff          pos;
+    ssize           len;
     char            *str;
-    ssize          len;
-    int             pos, rc, c;
+    int             rc, c;
 
     ts = (TestFile*) gp->data;
     

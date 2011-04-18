@@ -329,7 +329,7 @@ void mprSetThreadPriority(MprThread *tp, int newPriority)
 #elif VXWORKS
     taskPrioritySet(tp->osThread, osPri);
 #else
-    setpriority(PRIO_PROCESS, tp->pid, osPri);
+    setpriority(PRIO_PROCESS, (int) tp->pid, osPri);
 #endif
     tp->priority = newPriority;
     unlock(tp);
@@ -839,8 +839,8 @@ void mprGetWorkerServiceStats(MprWorkerService *ws, MprWorkerStats *stats)
     stats->numThreads = ws->numThreads;
     stats->maxUse = ws->maxUseThreads;
     stats->pruneHighWater = ws->pruneHighWater;
-    stats->idleThreads = ws->idleThreads->length;
-    stats->busyThreads = ws->busyThreads->length;
+    stats->idleThreads = (int) ws->idleThreads->length;
+    stats->busyThreads = (int) ws->busyThreads->length;
 }
 
 

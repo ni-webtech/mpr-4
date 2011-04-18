@@ -121,7 +121,7 @@ int mprAddNotifier(MprWaitService *ws, MprWaitHandler *wp, int mask)
             // mprLog(0, "ADD WRITE %d", fd);
             kp++;
         }
-        ws->interestCount += kp - start;
+        ws->interestCount += (int) (kp - start);
 
         if (fd >= ws->handlerMax) {
             ws->handlerMax = fd + 32;
@@ -199,8 +199,8 @@ int mprWaitForSingleIO(int fd, int mask, MprTime timeout)
         EV_SET(&interest[interestCount++], fd, EVFILT_WRITE, EV_ADD, 0, 0, 0);
     }
     kq = kqueue();
-    ts.tv_sec = timeout / 1000;
-    ts.tv_nsec = (timeout % 1000) * 1000 * 1000;
+    ts.tv_sec = ((int) (timeout / 1000));
+    ts.tv_nsec = ((int) (timeout % 1000)) * 1000 * 1000;
 
     mask = 0;
     rc = kevent(kq, interest, interestCount, events, 1, &ts);
@@ -236,8 +236,8 @@ void mprWaitForIO(MprWaitService *ws, MprTime timeout)
         timeout = 30000;
     }
 #endif
-    ts.tv_sec = timeout / 1000;
-    ts.tv_nsec = (timeout % 1000) * 1000 * 1000;
+    ts.tv_sec = ((int) (timeout / 1000));
+    ts.tv_nsec = ((int) ((timeout % 1000) * 1000 * 1000));
 
     if (ws->needRecall) {
         mprDoWaitRecall(ws);
@@ -275,7 +275,7 @@ static void serviceIO(MprWaitService *ws, int count)
     lock(ws);
     for (i = 0; i < count; i++) {
         kev = &ws->events[i];
-        fd = kev->ident;
+        fd = (int) kev->ident;
         mprAssert(fd < ws->handlerMax);
         if ((wp = ws->handlerMap[fd]) == 0) {
             if (kev->filter == EVFILT_READ && fd == ws->breakPipe[MPR_READ_PIPE]) {
@@ -284,7 +284,7 @@ static void serviceIO(MprWaitService *ws, int count)
             continue;
         }
         if (kev->flags & EV_ERROR) {
-            err = kev->data;
+            err = (int) kev->data;
             if (err == ENOENT) {
                 /* File descriptor was closed and re-opened */
                 mask = wp->desiredMask;

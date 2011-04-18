@@ -76,7 +76,7 @@ int wcasecmp(MprChar *s1, MprChar *s2)
     } else if (s2 == 0) {
         return 1;
     }
-    return wncasecmp(s1, s2, max(strlen(s1), strlen(s2)));
+    return wncasecmp(s1, s2, max(slen(s1), slen(s2)));
 }
 
 
@@ -108,7 +108,7 @@ int wcmp(MprChar *s1, MprChar *s2)
     } else if (s2 == 0) {
         return 1;
     }
-    return wncmp(s1, s2, max(strlen(s1), strlen(s2)));
+    return wncmp(s1, s2, max(slen(s1), slen(s2)));
 }
 
 
@@ -733,7 +733,7 @@ ssize wtom(char *dest, ssize destCount, MprChar *src, ssize len)
         if (dest) {
             scopy(dest, size, src);
         } else {
-            len = min(strlen(src), size - 1);
+            len = min(slen(src), size - 1);
         }
 #elif BLD_WIN_LIKE
         //  MOB -- use destCount
@@ -774,7 +774,7 @@ ssize mtow(MprChar *dest, ssize destCount, cchar *src, ssize len)
         if (dest) {
             scopy(dest, size, src);
         } else {
-            len = min(strlen(src), size - 1);
+            len = min(slen(src), size - 1);
         }
 #elif BLD_WIN_LIKE
         len = MultiByteToWideChar(CP_ACP, 0, src, -1, dest, size);
@@ -918,7 +918,7 @@ ssize xmtow(MprChar *dest, ssize destMax, cchar *src, ssize len)
 
 #if UNUSED
     if (len < 0) {
-        len = strlen(src);
+        len = slen(src);
     }
 #endif
     if (dest) {
@@ -1062,7 +1062,7 @@ ssize xwtom(char *dest, ssize destMax, MprChar *src, ssize len)
 MprChar *amtow(cchar *src, ssize *len)
 {
     if (len) {
-        *len = strlen(src);
+        *len = slen(src);
     }
     return sclone(src);
 }
@@ -1071,7 +1071,7 @@ MprChar *amtow(cchar *src, ssize *len)
 char *awtom(MprChar *src, ssize *len)
 {
     if (len) {
-        *len = strlen(src);
+        *len = slen(src);
     }
     return sclone(src);
 }

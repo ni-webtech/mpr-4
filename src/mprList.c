@@ -75,7 +75,7 @@ void mprInitList(MprList *lp)
  */
 int mprSetListLimits(MprList *lp, int initialSize, int maxSize)
 {
-    int       size;
+    ssize   size;
 
     if (initialSize <= 0) {
         initialSize = MPR_LIST_INCR;
@@ -189,7 +189,7 @@ void *mprSetItem(MprList *lp, int index, cvoid *item)
  */
 int mprAddItem(MprList *lp, cvoid *item)
 {
-    int   index;
+    int     index;
 
     mprAssert(lp);
     mprAssert(lp->capacity >= 0);
@@ -202,7 +202,7 @@ int mprAddItem(MprList *lp, cvoid *item)
             return MPR_ERR_TOO_MANY;
         }
     }
-    index = (int) lp->length++;
+    index = lp->length++;
     lp->items[index] = (void*) item;
     unlock(lp);
     return index;
@@ -536,12 +536,12 @@ int mprLookupItem(MprList *lp, cvoid *item)
  */
 static int growList(MprList *lp, int incr)
 {
-    int     len, memsize;
+    ssize       memsize;
+    int         len;
 
     if (lp->maxSize <= 0) {
         lp->maxSize = MAXINT;
     }
-
     /*
         Need to grow the list
      */
@@ -549,7 +549,6 @@ static int growList(MprList *lp, int incr)
         mprAssert(lp->capacity < lp->maxSize);
         return MPR_ERR_TOO_MANY;
     }
-
     /*
         If growing by 1, then use the default increment which exponentially grows. Otherwise, assume the caller knows exactly
         how much the list needs to grow.

@@ -63,8 +63,8 @@ static void manageCond(MprCond *cp, int flags)
  */
 int mprWaitForCond(MprCond *cp, MprTime timeout)
 {
-    MprTime     now, expire;
-    int         rc;
+    MprTime             now, expire;
+    int                 rc;
 #if BLD_UNIX_LIKE
     struct timespec     waitTill;
     struct timeval      current;
@@ -80,8 +80,8 @@ int mprWaitForCond(MprCond *cp, MprTime timeout)
 
 #if BLD_UNIX_LIKE
     gettimeofday(&current, NULL);
-    usec = current.tv_usec + (timeout % 1000) * 1000;
-    waitTill.tv_sec = current.tv_sec + (timeout / 1000) + (usec / 1000000);
+    usec = current.tv_usec + ((int) (timeout % 1000)) * 1000;
+    waitTill.tv_sec = current.tv_sec + ((int) (timeout / 1000)) + (usec / 1000000);
     waitTill.tv_nsec = (usec % 1000000) * 1000;
 #endif
     mprLock(cp->mutex);
@@ -204,8 +204,8 @@ int mprWaitForMultiCond(MprCond *cp, MprTime timeout)
 
 #if BLD_UNIX_LIKE
     gettimeofday(&current, NULL);
-    usec = current.tv_usec + (timeout % 1000) * 1000;
-    waitTill.tv_sec = current.tv_sec + (timeout / 1000) + (usec / 1000000);
+    usec = current.tv_usec + ((int) (timeout % 1000)) * 1000;
+    waitTill.tv_sec = current.tv_sec + ((int) (timeout / 1000)) + (usec / 1000000);
     waitTill.tv_nsec = (usec % 1000000) * 1000;
 #else
     now = mprGetTime();

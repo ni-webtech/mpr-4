@@ -27,14 +27,14 @@ static int connectSocket(MprSocket *sp, cchar *ipAddr, int port, int initialFlag
 static MprSocket *createSocket(struct MprSsl *ssl);
 static MprSocketProvider *createStandardProvider(MprSocketService *ss);
 static void disconnectSocket(MprSocket *sp);
-static int flushSocket(MprSocket *sp);
+static ssize flushSocket(MprSocket *sp);
 static int getSocketIpAddr(struct sockaddr *addr, int addrlen, char *ip, int size, int *port);
 static int ipv6(cchar *ip);
 static int listenSocket(MprSocket *sp, cchar *ip, int port, int initialFlags);
 static void manageSocket(MprSocket *sp, int flags);
 static void manageSocketService(MprSocketService *ss, int flags);
 static ssize readSocket(MprSocket *sp, void *buf, ssize bufsize);
-static ssize writeSocket(MprSocket *sp, void *buf, ssize bufsize);
+static ssize writeSocket(MprSocket *sp, cvoid *buf, ssize bufsize);
 
 /************************************ Code ************************************/
 /*
@@ -495,8 +495,8 @@ void mprDisconnectSocket(MprSocket *sp)
 
 static void disconnectSocket(MprSocket *sp)
 {
-    char    buf[16];
-    int     fd;
+    char    buf[MPR_BUFSIZE];
+    int     i, fd;
 
     /*  
         Defensive lock buster. Use try lock incase an operation is blocked somewhere with a lock asserted. 
@@ -507,13 +507,15 @@ static void disconnectSocket(MprSocket *sp)
     }
     if (sp->fd >= 0 || !(sp->flags & MPR_SOCKET_EOF)) {
         /*
-            Read any outstanding read data to minimize resets. Then do a shutdown to send a FIN and read 
+            Read a reasonable amount of outstanding data to minimize resets. Then do a shutdown to send a FIN and read 
             outstanding data.  All non-blocking.
          */
         mprLog(6, "Disconnect socket %d", sp->fd);
         mprSetSocketBlockingMode(sp, 0);
-        while (recv(sp->fd, buf, sizeof(buf), 0) > 0) {
-            ;
+        for (i = 0; i < 8; i++) {
+            if (recv(sp->fd, buf, sizeof(buf), 0) <= 0) {
+                break;
+            }
         }
         shutdown(sp->fd, SHUT_RDWR);
         fd = sp->fd;
@@ -767,7 +769,7 @@ again:
     Write data. Return the number of bytes written or -1 on errors. NOTE: this routine will return with a
     short write if the underlying socket can't accept any more data.
  */
-ssize mprWriteSocket(MprSocket *sp, void *buf, ssize bufsize)
+ssize mprWriteSocket(MprSocket *sp, cvoid *buf, ssize bufsize)
 {
     mprAssert(sp);
     mprAssert(buf);
@@ -784,7 +786,7 @@ ssize mprWriteSocket(MprSocket *sp, void *buf, ssize bufsize)
 /*  
     Standard write to a socket (Non SSL)
  */
-static ssize writeSocket(MprSocket *sp, void *buf, ssize bufsize)
+static ssize writeSocket(MprSocket *sp, cvoid *buf, ssize bufsize)
 {
     struct sockaddr     *addr;
     socklen_t           addrlen;
@@ -850,25 +852,25 @@ static ssize writeSocket(MprSocket *sp, void *buf, ssize bufsize)
  */
 ssize mprWriteSocketString(MprSocket *sp, cchar *str)
 {
-    return mprWriteSocket(sp, (void*) str, strlen(str));
+    return mprWriteSocket(sp, str, slen(str));
 }
 
 
 ssize mprWriteSocketVector(MprSocket *sp, MprIOVec *iovec, int count)
 {
-    ssize       total, len, i, written;
     char        *start;
+    ssize       total, len, written;
+    int         i;
 
 #if BLD_UNIX_LIKE
     if (sp->sslSocket == 0) {
-        return writev(sp->fd, (const struct iovec*) iovec, count);
+        return writev(sp->fd, (const struct iovec*) iovec, (int) count);
     } else
 #endif
     {
         if (count <= 0) {
             return 0;
         }
-
         start = iovec[0].start;
         len = (int) iovec[0].len;
         mprAssert(len > 0);
@@ -877,10 +879,8 @@ ssize mprWriteSocketVector(MprSocket *sp, MprIOVec *iovec, int count)
             written = mprWriteSocket(sp, start, len);
             if (written < 0) {
                 return written;
-
             } else if (written == 0) {
                 break;
-
             } else {
                 len -= written;
                 start += written;
@@ -914,40 +914,38 @@ static ssize localSendfile(MprSocket *sp, MprFile *file, MprOff offset, ssize le
 #endif
 
 
-/*  Write data from a file to a socket. Includes the ability to write header before and after the file data.
+/*  
+    Write data from a file to a socket. Includes the ability to write header before and after the file data.
     Works even with a null "file" to just output the headers.
  */
-ssize mprSendFileToSocket(MprSocket *sock, MprFile *file, MprOff offset, ssize bytes, MprIOVec *beforeVec, 
-    ssize beforeCount, MprIOVec *afterVec, ssize afterCount)
+MprOff mprSendFileToSocket(MprSocket *sock, MprFile *file, MprOff offset, MprOff bytes, MprIOVec *beforeVec, 
+    int beforeCount, MprIOVec *afterVec, int afterCount)
 {
 #if MACOSX && __MAC_OS_X_VERSION_MIN_REQUIRED >= 1050
     struct sf_hdtr  def;
 #endif
-    ssize           rc, written, toWriteBefore, toWriteAfter, toWriteFile;
+    MprOff          written, toWriteFile;
+    ssize           i, rc, toWriteBefore, toWriteAfter, nbytes;
     off_t           off;
-    int             i, done;
+    int             done;
 
     rc = 0;
 
 #if MACOSX && __MAC_OS_X_VERSION_MIN_REQUIRED >= 1050
-    written = bytes;
-    def.hdr_cnt = beforeCount;
+    def.hdr_cnt = (int) beforeCount;
     def.headers = (beforeCount > 0) ? (struct iovec*) beforeVec: 0;
-    def.trl_cnt = afterCount;
+    def.trl_cnt = (int) afterCount;
     def.trailers = (afterCount > 0) ? (struct iovec*) afterVec: 0;
 
     if (file && file->fd >= 0) {
-        off_t       sent;
-        rc = sendfile(file->fd, sock->fd, offset, &sent, &def, 0);
-        written = (ssize) sent;
+        written = bytes;
+        rc = sendfile(file->fd, sock->fd, offset, &written, &def, 0);
     } else
 #else
     if (1) 
 #endif
     {
-        /*
-            Either !MACOSX or no file is opened
-         */
+        /* Either !MACOSX or no file */
         done = 0;
         written = 0;
         for (i = toWriteBefore = 0; i < beforeCount; i++) {
@@ -956,7 +954,7 @@ ssize mprSendFileToSocket(MprSocket *sock, MprFile *file, MprOff offset, ssize b
         for (i = toWriteAfter = 0; i < afterCount; i++) {
             toWriteAfter += afterVec[i].len;
         }
-        toWriteFile = bytes - toWriteBefore - toWriteAfter;
+        toWriteFile = (bytes - toWriteBefore - toWriteAfter);
         mprAssert(toWriteFile >= 0);
 
         /*
@@ -973,17 +971,21 @@ ssize mprSendFileToSocket(MprSocket *sock, MprFile *file, MprOff offset, ssize b
             }
         }
 
-        if (!done && toWriteFile > 0) {
+        if (!done && toWriteFile > 0 && file->fd >= 0) {
             off = (off_t) offset;
+            while (toWriteFile > 0) {
+                nbytes = (ssize) min(MAXSSIZE, toWriteFile);
 #if LINUX && !__UCLIBC__
-            rc = sendfile(sock->fd, file->fd, &off, toWriteFile);
+                rc = sendfile(sock->fd, file->fd, &off, nbytes);
 #else
-            rc = localSendfile(sock, file, offset, toWriteFile);
+                rc = localSendfile(sock, file, offset, nbytes);
 #endif
-            if (rc > 0) {
-                written += rc;
-                if (rc != toWriteFile) {
-                    done++;
+                if (rc > 0) {
+                    written += rc;
+                    if (rc != nbytes) {
+                        done++;
+                        break;
+                    }
                 }
             }
         }
@@ -994,7 +996,6 @@ ssize mprSendFileToSocket(MprSocket *sock, MprFile *file, MprOff offset, ssize b
             }
         }
     }
-
     if (rc < 0) {
         if (errno == EAGAIN || errno == EWOULDBLOCK) {
             return written;
@@ -1006,13 +1007,13 @@ ssize mprSendFileToSocket(MprSocket *sock, MprFile *file, MprOff offset, ssize b
 #endif /* !BLD_FEATURE_ROMFS */
 
 
-static int flushSocket(MprSocket *sp)
+static ssize flushSocket(MprSocket *sp)
 {
     return 0;
 }
 
 
-int mprFlushSocket(MprSocket *sp)
+ssize mprFlushSocket(MprSocket *sp)
 {
     if (sp->provider == 0) {
         return MPR_ERR_NOT_INITIALIZED;

@@ -45,7 +45,7 @@ int stopSeqno = -1;
                                     mp->field1 = ((hasManager) << MPR_SHIFT_HAS_MANAGER)
 #endif
 
-#define HAS_MANAGER(mp)             ((mp->field1 & MPR_MASK_HAS_MANAGER) >> MPR_SHIFT_HAS_MANAGER)
+#define HAS_MANAGER(mp)             ((int) ((mp->field1 & MPR_MASK_HAS_MANAGER) >> MPR_SHIFT_HAS_MANAGER))
 #define SET_HAS_MANAGER(mp, value)  mp->field1 = ((mp->field1 & ~MPR_MASK_HAS_MANAGER) | (value << MPR_SHIFT_HAS_MANAGER))
 
 /*
@@ -56,7 +56,7 @@ int stopSeqno = -1;
 #define SET_SIZE(mp, value)         mp->field2 = ((value) << MPR_SHIFT_SIZE) | (mp->field2 & ~MPR_MASK_SIZE)
 #define IS_FREE(mp)                 ((mp->field2 & MPR_MASK_FREE) >> MPR_SHIFT_FREE)
 #define SET_FREE(mp, value)         mp->field2 = (((size_t) (value)) << MPR_SHIFT_FREE) | (mp->field2 & ~MPR_MASK_FREE)
-#define GET_GEN(mp)                 ((mp->field2 & MPR_MASK_GEN) >> MPR_SHIFT_GEN)
+#define GET_GEN(mp)                 ((int) ((mp->field2 & MPR_MASK_GEN) >> MPR_SHIFT_GEN))
 #define SET_GEN(mp, value)          mp->field2 = (((size_t) value) << MPR_SHIFT_GEN) | (mp->field2 & ~MPR_MASK_GEN)
 #define GET_MARK(mp)                (mp->field2 & MPR_MASK_MARK)
 #define SET_MARK(mp, value)         mp->field2 = (value) | (mp->field2 & ~MPR_MASK_MARK)
@@ -752,8 +752,8 @@ static MprMem *freeToHeap(MprMem *mp)
 
 static int getQueueIndex(ssize size, int roundup)
 {   
-    ssize       usize, asize;
-    int         aligned, bucket, group, index, msb;
+    ssize       usize;
+    int         asize, aligned, bucket, group, index, msb;
     
     mprAssert(MPR_ALLOC_ALIGN(size) == size);
 
@@ -762,7 +762,7 @@ static int getQueueIndex(ssize size, int roundup)
         highest queue for common block sizes: eg. 1K.
      */
     usize = (size - sizeof(MprMem));
-    asize = usize >> MPR_ALIGN_SHIFT;
+    asize = (int) (usize >> MPR_ALIGN_SHIFT);
 
     /* Zero based most significant bit */
     msb = (flsl((int) asize) - 1);
@@ -1714,7 +1714,7 @@ void mprAddRoot(void *root)
 
 void mprRemoveRoot(void *root)
 {
-    int     index;
+    ssize   index;
 
     mprSpinLock(&heap->rootLock);
     index = mprRemoveItem(heap->roots, root);
@@ -1955,11 +1955,11 @@ static void getSystemInfo()
 
 #if MACOSX
     #ifdef _SC_NPROCESSORS_ONLN
-        ap->numCpu = sysconf(_SC_NPROCESSORS_ONLN);
+        ap->numCpu = (uint) sysconf(_SC_NPROCESSORS_ONLN);
     #else
         ap->numCpu = 1;
     #endif
-    ap->pageSize = sysconf(_SC_PAGESIZE);
+    ap->pageSize = (uint) sysconf(_SC_PAGESIZE);
 #elif SOLARIS
 {
     FILE *ptr;

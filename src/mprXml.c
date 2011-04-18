@@ -557,7 +557,7 @@ static int scanFor(MprXml *xp, char *pattern)
             /*
                 Remove the pattern from the tokBuf
              */
-            mprAdjustBufEnd(tokBuf, - (int) strlen(pattern));
+            mprAdjustBufEnd(tokBuf, - (int) slen(pattern));
             trimToken(xp);
             return 1;
         }

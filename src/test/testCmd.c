@@ -155,7 +155,8 @@ static void testWithData(MprTestGroup *gp)
     MprBuf      *buf;
     TestCmd     *tc;
     char        *data, *env[16], *argv[16], line[80], *s, *tok;
-    int         argc, i, status, rc, fd, len;
+    ssize       len, rc;
+    int         argc, i, status, fd;
 
     assert(gp != 0);
     tc = gp->data;

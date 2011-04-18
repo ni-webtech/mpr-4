@@ -167,7 +167,7 @@ static char *findNewline(cchar *str, cchar *newline, ssize len, ssize *nlen)
     if (str == NULL || newline == NULL) {
         return NULL;
     }
-    newlines = strlen(newline);
+    newlines = slen(newline);
     mprAssert(newlines == 1 || newlines == 2);
 
     start = best = NULL;
@@ -298,7 +298,7 @@ ssize mprPutFileString(MprFile *file, cchar *str)
     char    *buf;
 
     mprAssert(file);
-    count = strlen(str);
+    count = slen(str);
 
     /*
         Buffer output and flush when full.
@@ -525,7 +525,7 @@ ssize mprWriteFile(MprFile *file, cvoid *buf, ssize count)
 
 ssize mprWriteFileString(MprFile *file, cchar *str)
 {
-    return mprWriteFile(file, str, strlen(str));
+    return mprWriteFile(file, str, slen(str));
 }
 
 

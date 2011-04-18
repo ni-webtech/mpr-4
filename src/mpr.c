@@ -424,7 +424,7 @@ int mprMakeArgv(cchar *command, int *argcp, char ***argvp, int flags)
     /*
         Allocate one vector for argv and the actual args themselves
      */
-    len = strlen(command) + 1;
+    len = slen(command) + 1;
     argc = parseArgs((char*) command, NULL);
     if (flags & MPR_ARGV_ARGS_ONLY) {
         argc++;

@@ -72,8 +72,8 @@ int main(int argc, char* argv[])
         Read the input
      */
     sofar = 0;
-    while ((len = read(0, buf, sizeof(buf))) > 0) {
-        sofar += write(1, buf, len);
+    while ((len = (int) read(0, buf, sizeof(buf))) > 0) {
+        sofar += (int) write(1, buf, len);
         buf[len] = '\0';
     }
     if (exitCode != 99) {

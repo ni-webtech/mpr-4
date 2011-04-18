@@ -429,7 +429,7 @@ static int getTimeZoneOffsetFromTm(struct tm *tp)
     }
     return offset;
 #elif BLD_UNIX_LIKE && !CYGWIN
-    return tp->tm_gmtoff * MS_PER_SEC;
+    return (int) tp->tm_gmtoff * MS_PER_SEC;
 #else
     struct timezone     tz;
     struct timeval      tv;
@@ -467,7 +467,7 @@ static MprTime makeTime(struct tm *tp)
 
 static MprTime daysSinceEpoch(int year)
 {
-    int     days;
+    MprTime     days;
 
     days = ((MprTime) 365) * (year - 1970);
     days += ((year-1) / 4) - (1970 / 4);
@@ -687,7 +687,8 @@ char *mprFormatTime(cchar *fmt, struct tm *tp)
     cchar           *cp;
     char            *dp, *endp, *sign;
     char            buf[MPR_MAX_STRING];
-    int             value, size;
+    ssize           size;
+    int             value;
 
     dp = localFmt;
     if (fmt == 0) {
@@ -698,7 +699,7 @@ char *mprFormatTime(cchar *fmt, struct tm *tp)
         tp = &tm;
     }
     endp = &localFmt[sizeof(localFmt) - 1];
-    size = (int) sizeof(localFmt) - 1;
+    size = sizeof(localFmt) - 1;
     for (cp = fmt; *cp && dp < &localFmt[sizeof(localFmt) - 32]; size = (int) (endp - dp - 1)) {
         if (*cp == '%') {
             *dp++ = *cp++;
@@ -711,14 +712,14 @@ char *mprFormatTime(cchar *fmt, struct tm *tp)
                 } else {
                     strcpy(dp, "a %b %d %H:%M:%S %Z %Y");
                 }
-                dp += strlen(dp);
+                dp += slen(dp);
                 cp++;
                 break;
 
             case 'C':
                 dp--;
-                itos(dp, size, (int64) (1900 + tp->tm_year) / 100, 10);
-                dp += strlen(dp);
+                itos(dp, size, (1900 + tp->tm_year) / 100, 10);
+                dp += slen(dp);
                 cp++;
                 break;
 
@@ -734,7 +735,7 @@ char *mprFormatTime(cchar *fmt, struct tm *tp)
                     *dp++ = ' ';
                 }
                 itos(dp, size - 1, (int64) tp->tm_mday, 10);
-                dp += strlen(dp);
+                dp += slen(dp);
                 cp++;
                 break;
 
@@ -760,7 +761,7 @@ char *mprFormatTime(cchar *fmt, struct tm *tp)
                     *dp++ = ' ';
                 }
                 itos(dp, size - 1, (int64) tp->tm_hour, 10);
-                dp += strlen(dp);
+                dp += slen(dp);
                 cp++;
                 break;
 
@@ -774,7 +775,7 @@ char *mprFormatTime(cchar *fmt, struct tm *tp)
                     value -= 12;
                 }
                 itos(dp, size - 1, (int64) value, 10);
-                dp += strlen(dp);
+                dp += slen(dp);
                 cp++;
                 break;
 
@@ -810,7 +811,7 @@ char *mprFormatTime(cchar *fmt, struct tm *tp)
             case 's':
                 dp--;
                 itos(dp, size, (int64) mprMakeTime(tp) / MS_PER_SEC, 10);
-                dp += strlen(dp);
+                dp += slen(dp);
                 cp++;
                 break;
 
@@ -832,7 +833,7 @@ char *mprFormatTime(cchar *fmt, struct tm *tp)
                     value = 7;
                 }
                 itos(dp, size, (int64) value, 10);
-                dp += strlen(dp);
+                dp += slen(dp);
                 cp++;
                 break;
 
@@ -843,7 +844,7 @@ char *mprFormatTime(cchar *fmt, struct tm *tp)
                     *dp++ = ' ';
                 }
                 itos(dp, size - 1, (int64) tp->tm_mday, 10);
-                dp += strlen(dp);
+                dp += slen(dp);
                 cp++;
                 strcpy(dp, "-%b-%Y");
                 dp += 6;
@@ -857,7 +858,7 @@ char *mprFormatTime(cchar *fmt, struct tm *tp)
                     value = -value;
                 }
                 mprSprintf(dp, size, "%s%02d%02d", sign, value / 60, value % 60);
-                dp += strlen(dp);
+                dp += slen(dp);
                 cp++;
                 break;
 
@@ -1342,7 +1343,7 @@ int mprParseTime(MprTime *time, cchar *dateString, int zoneFlags, struct tm *def
     /*
         Handle ISO dates: "2009-05-21t16:06:05.000z
      */
-    if (strchr(str, ' ') == 0 && strchr(str, '-') && str[strlen(str) - 1] == 'z') {
+    if (strchr(str, ' ') == 0 && strchr(str, '-') && str[slen(str) - 1] == 'z') {
         for (cp = str; *cp; cp++) {
             if (*cp == '-') {
                 *cp = '/';

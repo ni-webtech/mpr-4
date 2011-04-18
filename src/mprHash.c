@@ -18,7 +18,7 @@
 /**************************** Forward Declarations ****************************/
 
 static void *dupKey(MprHashTable *table, MprHash *sp, cvoid *key);
-static MprHash  *lookupHash(int *bucketIndex, MprHash **prevSp, MprHashTable *table, cvoid *key);
+static MprHash  *lookupHash(int *index, MprHash **prevSp, MprHashTable *table, cvoid *key);
 static void manageHashTable(MprHashTable *table, int flags);
 
 /*********************************** Code *************************************/
@@ -258,7 +258,7 @@ static MprHash *lookupHash(int *bucketIndex, MprHash **prevSp, MprHashTable *tab
     if (key == 0 || table == 0) {
         return 0;
     }
-    index = table->hash(key, strlen(key)) % table->hashSize;
+    index = table->hash(key, slen(key)) % table->hashSize;
     if (bucketIndex) {
         *bucketIndex = index;
     }

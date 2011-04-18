@@ -533,7 +533,7 @@ ssize mprReadCmd(MprCmd *cmd, int channel, char *buf, ssize bufsize)
 /*
     Do non-blocking I/O - except on windows - will block
  */
-int mprWriteCmd(MprCmd *cmd, int channel, char *buf, ssize bufsize)
+ssize mprWriteCmd(MprCmd *cmd, int channel, char *buf, ssize bufsize)
 {
 #if BLD_WIN_LIKE
     /*
@@ -543,7 +543,7 @@ int mprWriteCmd(MprCmd *cmd, int channel, char *buf, ssize bufsize)
         return -1;
     }
 #endif
-    return write(cmd->files[channel].fd, buf, (uint) bufsize);
+    return write(cmd->files[channel].fd, buf, bufsize);
 }
 
 
@@ -942,7 +942,7 @@ static int sanitizeArgs(MprCmd *cmd, int argc, char **argv, char **env)
     cmd->argv = argv;
     cmd->argc = argc;
 
-    program = cmd->arg0 = mprAlloc(strlen(argv[0]) * 2 + 1);
+    program = cmd->arg0 = mprAlloc(slen(argv[0]) * 2 + 1);
     strcpy(program, argv[0]);
 
     for (cp = program; *cp; cp++) {
@@ -970,7 +970,7 @@ static int sanitizeArgs(MprCmd *cmd, int argc, char **argv, char **env)
     argv[0] = program;
     argc = 0;
     for (len = 0, ap = argv; *ap; ap++) {
-        len += (strlen(*ap) * 2) + 1 + 2;         /* Space and possible quotes and worst case backquoting */
+        len += (slen(*ap) * 2) + 1 + 2;         /* Space and possible quotes and worst case backquoting */
         argc++;
     }
     cmd->command = mprAlloc(len + 1);
@@ -1012,7 +1012,7 @@ static int sanitizeArgs(MprCmd *cmd, int argc, char **argv, char **env)
     if (env) {
         len = 0;
         for (hasSystemRoot = hasPath = 0, ep = env; ep && *ep; ep++) {
-            len += strlen(*ep) + 1;
+            len += slen(*ep) + 1;
             if (strncmp(*ep, "PATH=", 5) == 0) {
                 hasPath++;
             } else if (strncmp(*ep, "SYSTEMROOT=", 11) == 0) {
@@ -1020,10 +1020,10 @@ static int sanitizeArgs(MprCmd *cmd, int argc, char **argv, char **env)
             }
         }
         if (!hasSystemRoot && (SYSTEMROOT = getenv("SYSTEMROOT")) != 0) {
-            len += 11 + strlen(SYSTEMROOT) + 1;
+            len += 11 + slen(SYSTEMROOT) + 1;
         }
         if (!hasPath && (PATH = getenv("PATH")) != 0) {
-            len += 5 + strlen(PATH) + 1;
+            len += 5 + slen(PATH) + 1;
         }
         len += 2;       /* Windows requires 2 nulls for the block end */
 
@@ -1033,15 +1033,15 @@ static int sanitizeArgs(MprCmd *cmd, int argc, char **argv, char **env)
         for (ep = env; ep && *ep; ep++) {
             mprLog(4, "    env[%d]: %s", i, *ep);
             strcpy(dp, *ep);
-            dp += strlen(*ep) + 1;
+            dp += slen(*ep) + 1;
         }
         if (!hasSystemRoot) {
             mprSprintf(dp, (endp - dp - 1), "SYSTEMROOT=%s", SYSTEMROOT);
-            dp += 12 + strlen(SYSTEMROOT);
+            dp += 12 + slen(SYSTEMROOT);
         }
         if (!hasPath) {
             mprSprintf(dp, (endp - dp - 1), "PATH=%s", PATH);
-            dp += 6 + strlen(PATH);
+            dp += 6 + slen(PATH);
         }
         *dp++ = '\0';
         *dp++ = '\0';                        /* Windows requires two nulls */

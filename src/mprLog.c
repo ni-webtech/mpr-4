@@ -149,7 +149,7 @@ void mprStaticError(cchar *fmt, ...)
     mprSprintfv(buf, sizeof(buf), fmt, args);
     va_end(args);
 #if BLD_UNIX_LIKE || VXWORKS
-    (void) write(2, (char*) buf, strlen(buf));
+    (void) write(2, (char*) buf, slen(buf));
     (void) write(2, (char*) "\n", 1);
 #elif BLD_WIN_LIKE
     fprintf(stderr, "%s\n", buf);
@@ -176,7 +176,7 @@ void mprAssertError(cchar *loc, cchar *msg)
     }
     
 #if BLD_UNIX_LIKE || VXWORKS
-    (void) write(2, (char*) msg, strlen(msg));
+    (void) write(2, (char*) msg, slen(msg));
 #elif BLD_WIN_LIKE
     fprintf(stderr, "%s\n", msg);
 #endif

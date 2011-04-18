@@ -42,9 +42,10 @@ void mprStopOsService()
 }
 
 
-int mprGetRandomBytes(char *buf, int length, int block)
+int mprGetRandomBytes(char *buf, ssize length, int block)
 {
-    int     fd, sofar, rc;
+    ssize   sofar, rc;
+    int     fd;
 
     fd = open((block) ? "/dev/random" : "/dev/urandom", O_RDONLY, 0666);
     if (fd < 0) {
@@ -116,8 +117,8 @@ void mprSleep(MprTime timeout)
     remaining = timeout;
     do {
         /* MAC OS X corrupts the timeout if using the 2nd paramater, so recalc each time */
-        t.tv_sec = remaining / 1000;
-        t.tv_nsec = (remaining % 1000) * 1000000;
+        t.tv_sec = ((int) (remaining / 1000));
+        t.tv_nsec = ((int) ((remaining % 1000) * 1000000));
         rc = nanosleep(&t, NULL);
         remaining = mprGetRemainingTime(mark, timeout);
     } while (rc < 0 && errno == EINTR && remaining > 0);
