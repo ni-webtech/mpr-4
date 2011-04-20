@@ -1146,7 +1146,7 @@ static void mark()
     markRoots();
     MPR->marking = 0;
     if (!heap->hasSweeper) {
-        MEASURE(7, "GC", "sweep", sweep());
+        MPR_MEASURE(7, "GC", "sweep", sweep());
     }
     synchronize();
 }
@@ -1390,7 +1390,7 @@ static void marker(void *unused, MprThread *tp)
         if (!heap->mustYield) {
             mprWaitForCond(heap->markerCond, -1);
         }
-        MEASURE(7, "GC", "mark", mark());
+        MPR_MEASURE(7, "GC", "mark", mark());
     }
     heap->mustYield = 0;
     MPR->marker = 0;
@@ -1407,7 +1407,7 @@ static void sweeper(void *unused, MprThread *tp)
 
     MPR->sweeper = 1;
     while (!mprIsStoppingCore()) {
-        MEASURE(7, "GC", "sweep", sweep());
+        MPR_MEASURE(7, "GC", "sweep", sweep());
         mprYield(MPR_YIELD_BLOCK);
     }
     MPR->sweeper = 0;

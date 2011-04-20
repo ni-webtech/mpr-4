@@ -3254,7 +3254,7 @@ extern ssize mprPutBlockToBuf(MprBuf *buf, cchar *ptr, ssize size);
     @returns Number of characters added to the buffer, otherwise a negative error code 
     @ingroup MprBuf
  */
-extern ssize mprPutIntToBuf(MprBuf *buf, int i);
+extern ssize mprPutIntToBuf(MprBuf *buf, int64 i);
 
 /**
     Put a string to the buffer.
@@ -3478,7 +3478,7 @@ extern uint64 mprGetTicks();
 
 #if BLD_DEBUG
     #if MPR_HIGH_RES_TIMER
-        #define MEASURE(level, tag1, tag2, op) \
+        #define MPR_MEASURE(level, tag1, tag2, op) \
             if (1) { \
                 MprTime elapsed, start = mprGetTime(); \
                 uint64  ticks = mprGetTicks(); \
@@ -3491,7 +3491,7 @@ extern uint64 mprGetTicks();
                 } \
             } else 
     #else
-        #define MEASURE(level, tag1, tag2, op) \
+        #define MPR_MEASURE(level, tag1, tag2, op) \
             if (1) { \
                 MprTime start = mprGetTime(); \
                 op; \
@@ -3499,7 +3499,7 @@ extern uint64 mprGetTicks();
             } else 
     #endif
 #else
-    #define MEASURE(level, tag1, tag2, op) op
+    #define MPR_MEASURE(level, tag1, tag2, op) op
 #endif
 
 
