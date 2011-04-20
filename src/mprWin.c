@@ -53,7 +53,7 @@ HWND mprGetHwnd()
 }
 
 
-int mprGetRandomBytes(char *buf, int length, int block)
+int mprGetRandomBytes(char *buf, ssize length, int block)
 {
     HCRYPTPROV      prov;
     int             rc;
