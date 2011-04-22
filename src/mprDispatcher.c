@@ -74,7 +74,7 @@ static void manageEventService(MprEventService *es, int flags)
 void mprStopEventService()
 {
     mprWakeDispatchers();
-    mprWakeWaitService();
+    mprWakeNotifier();
 #if FUTURE
     MprTime     mark;
     mark = mprGetTime();
@@ -195,7 +195,7 @@ void mprEnableDispatcher(MprDispatcher *dispatcher)
     }
     unlock(es);
     if (mustWake) {
-        mprWakeWaitService();
+        mprWakeNotifier();
     }
 }
 
@@ -454,7 +454,7 @@ void mprScheduleDispatcher(MprDispatcher *dispatcher)
         mprSignalDispatcher(dispatcher);
     }
     if (mustWakeWaitService) {
-        mprWakeWaitService();
+        mprWakeNotifier();
     }
 }
 
@@ -494,7 +494,7 @@ static int dispatchEvents(MprDispatcher *dispatcher)
     unlock(es);
     if (count && es->waiting) {
         es->eventCount += count;
-        mprWakeWaitService();
+        mprWakeNotifier();
     }
     return count;
 }

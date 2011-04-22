@@ -152,7 +152,7 @@ int sends(cchar *str, cchar *suffix)
     if (str == 0 || suffix == 0) {
         return 0;
     }
-    if (strcmp(&str[slen(str) - slen(suffix) - 1], suffix) == 0) {
+    if (strcmp(&str[slen(str) - slen(suffix)], suffix) == 0) {
         return 1;
     }
     return 0;

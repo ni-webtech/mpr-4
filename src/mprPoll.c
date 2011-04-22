@@ -90,10 +90,10 @@ static int growHandlers(MprWaitService *ws, int fd)
 }
 
 
-int mprAddNotifier(MprWaitService *ws, MprWaitHandler *wp, int mask)
+int mprNotifyOn(MprWaitService *ws, MprWaitHandler *wp, int mask)
 {
     struct pollfd   *pollfd;
-    int             fd;
+    int             fd, index;
 
     lock(ws);
     if (wp->desiredMask != mask) {
@@ -109,7 +109,8 @@ int mprAddNotifier(MprWaitService *ws, MprWaitHandler *wp, int mask)
                 return MPR_ERR_MEMORY;
             }
             mprAssert(fd < ws->handlerMax);
-            mprAssert(ws->handlerMap[fd] == 0);
+            mprAssert(ws->handlerMap[fd] == 0 || ws->handlerMap[fd] == wp);
+            ws->handlerMap[fd] = (mask) ? wp : 0;
             ws->handlerMap[fd] = wp;
             wp->notifierIndex = ws->fdsCount++;
             pollfd = &ws->fds[wp->notifierIndex];
@@ -125,37 +126,21 @@ int mprAddNotifier(MprWaitService *ws, MprWaitHandler *wp, int mask)
             pollfd->events |= POLLOUT;
         }
         wp->desiredMask = mask;
+        index = wp->notifierIndex;
+
+        /*
+            Compact on removal. If not the last entry, copy last poll entry to replace the deleted fd.
+         */
+        if (mask == 0 && index >= 0 && --ws->fdsCount > index) {
+            ws->fds[index] = ws->fds[ws->fdsCount];
+            ws->handlerMap[ws->fds[index].fd]->notifierIndex = index;
+            ws->fds[ws->fdsCount].fd = -1;
+            ws->handlerMap[wp->fd] = 0;
+            wp->notifierIndex = -1;
+        }
     }
     unlock(ws);
     return 0;
-}
-
-
-void mprRemoveNotifier(MprWaitHandler *wp)
-{
-    MprWaitService  *ws;
-    int             fd, index;
-
-    ws = wp->service;
-    fd = wp->fd;
-    mprAssert(fd >= 0);
-
-    lock(ws);
-    index = wp->notifierIndex;
-    if (index >= 0 && --ws->fdsCount > index) {
-        /*
-            If not the last entry, copy last poll entry to replace the deleted fd.
-         */
-        ws->fds[index] = ws->fds[ws->fdsCount];
-        ws->handlerMap[ws->fds[index].fd]->notifierIndex = index;
-        fd = ws->fds[index].fd;
-        ws->fds[ws->fdsCount].fd = -1;
-    }
-    mprAssert(ws->handlerMap[wp->fd] == 0 || ws->handlerMap[wp->fd] == wp);
-    ws->handlerMap[wp->fd] = 0;
-    wp->notifierIndex = -1;
-    wp->desiredMask = 0;
-    unlock(ws);
 }
 
 
@@ -267,8 +252,8 @@ static void serviceIO(MprWaitService *ws, struct pollfd *fds, int count)
         }
         wp->presentMask = mask & wp->desiredMask;
         fp->revents = 0;
-        mprRemoveNotifier(wp);
         if (wp->presentMask) {
+            mprNotifyOn(ws, wp, 0);
             mprQueueIOEvent(wp);
         }
     }

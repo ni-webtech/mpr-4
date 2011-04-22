@@ -68,9 +68,7 @@ static void manageWaitService(MprWaitService *ws, int flags)
 }
 
 
-//  MOB -- inline in createWaitHandler
-
-static MprWaitHandler *mprInitWaitHandler(MprWaitHandler *wp, int fd, int mask, MprDispatcher *dispatcher, void *proc, 
+static MprWaitHandler *initWaitHandler(MprWaitHandler *wp, int fd, int mask, MprDispatcher *dispatcher, void *proc, 
     void *data, int flags)
 {
     MprWaitService  *ws;
@@ -94,19 +92,17 @@ static MprWaitHandler *mprInitWaitHandler(MprWaitHandler *wp, int fd, int mask, 
     wp->flags           = 0;
     wp->handlerData     = data;
     wp->service         = ws;
-    wp->state           = MPR_HANDLER_DISABLED;
     wp->flags           = flags;
 
     if (mask) {
         lock(ws);
-        wp->state = MPR_HANDLER_ENABLED;
         if (mprAddItem(ws->handlers, wp) < 0) {
             unlock(ws);
             return 0;
         }
-        mprAddNotifier(ws, wp, mask);
+        mprNotifyOn(ws, wp, mask);
         unlock(ws);
-        mprWakeWaitService();
+        mprWakeNotifier();
     }
     return wp;
 }
@@ -121,7 +117,7 @@ MprWaitHandler *mprCreateWaitHandler(int fd, int mask, MprDispatcher *dispatcher
     if ((wp = mprAllocObj(MprWaitHandler, manageWaitHandler)) == 0) {
         return 0;
     }
-    return mprInitWaitHandler(wp, fd, mask, dispatcher, proc, data, flags);
+    return initWaitHandler(wp, fd, mask, dispatcher, proc, data, flags);
 }
 
 
@@ -152,14 +148,10 @@ void mprRemoveWaitHandler(MprWaitHandler *wp)
         return;
     }
     ws = wp->service;
-
-    /*
-        Lock the service to stabilize the list, then lock the handler to prevent callbacks. 
-     */
     lock(ws);
     if (wp->fd >= 0) {
         if (wp->desiredMask) {
-            mprRemoveNotifier(wp);
+            mprNotifyOn(ws, wp, 0);
         }
         mprRemoveItem(ws->handlers, wp);
         wp->fd = -1;
@@ -168,15 +160,8 @@ void mprRemoveWaitHandler(MprWaitHandler *wp)
             wp->event = 0;
         }
     }
-    mprWakeWaitService();
-    unlock(ws);
-}
-
-
-//  MOB - remove
-void mprWakeWaitService()
-{
     mprWakeNotifier();
+    unlock(ws);
 }
 
 
@@ -185,60 +170,36 @@ void mprQueueIOEvent(MprWaitHandler *wp)
     MprDispatcher   *dispatcher;
     MprEvent        *event;
 
-    mprAssert(wp->state == MPR_HANDLER_ENABLED);
-
+    lock(wp->service);
     wp->desiredMask = 0;
     if (wp->flags & MPR_WAIT_NEW_DISPATCHER) {
         dispatcher = mprCreateDispatcher("IO", 1);
     } else {
         dispatcher = (wp->dispatcher) ? wp->dispatcher: mprGetDispatcher();
     }
-    wp->state = MPR_HANDLER_QUEUED;
     event = wp->event = mprCreateEvent(dispatcher, "IOEvent", 0, ioEvent, wp->handlerData, MPR_EVENT_DONT_QUEUE);
     event->fd = wp->fd;
     event->mask = wp->presentMask;
     event->handler = wp;
     mprQueueEvent(dispatcher, event);
+    unlock(wp->service);
 }
 
 
 static void ioEvent(void *data, MprEvent *event)
 {
-    MprWaitHandler  *wp;
-
-    wp = event->handler;
-    mprAssert(wp->state == MPR_HANDLER_QUEUED);
-    mprAssert(wp->desiredMask == 0);
-    wp->state = MPR_HANDLER_ACTIVE;
-    wp->proc(data, event);
+    event->handler->proc(data, event);
 }
 
 
-void mprDisableWaitEvents(MprWaitHandler *wp)
+void mprWaitOn(MprWaitHandler *wp, int mask)
 {
-    //  MOB Check events already disabled - generally a programming error
-    mprAssert(wp->desiredMask);
-    mprAssert(wp->state == MPR_HANDLER_ENABLED);
-
-    wp->state = MPR_HANDLER_DISABLED;
-    if (wp->desiredMask) {
-        mprRemoveNotifier(wp);
-        mprWakeWaitService();
-    }
-}
-
-
-void mprEnableWaitEvents(MprWaitHandler *wp, int mask)
-{
-    //  Check events already enabled - generally a programming error
-    mprAssert(!(mask & wp->desiredMask));
-    mprAssert(wp->state == MPR_HANDLER_DISABLED || wp->state == MPR_HANDLER_ACTIVE);
-
-    wp->state = MPR_HANDLER_ENABLED;
+    lock(wp->service);
     if (mask != wp->desiredMask) {
-        mprAddNotifier(wp->service, wp, mask);
-        mprWakeWaitService();
+        mprNotifyOn(wp->service, wp, mask);
+        mprWakeNotifier();
     }
+    unlock(wp->service);
 }
 
 
@@ -257,7 +218,7 @@ void mprRecallWaitHandlerByFd(int fd)
         if (wp->fd == fd) {
             wp->flags |= MPR_WAIT_RECALL_HANDLER;
             ws->needRecall = 1;
-            mprWakeWaitService();
+            mprWakeNotifier();
             break;
         }
     }
@@ -273,13 +234,13 @@ void mprRecallWaitHandler(MprWaitHandler *wp)
     lock(ws);
     wp->flags |= MPR_WAIT_RECALL_HANDLER;
     ws->needRecall = 1;
-    mprWakeWaitService();
+    mprWakeNotifier();
     unlock(ws);
 }
 
 
 /*
-    Recall a handler which may have buffered data
+    Recall a handler which may have buffered data. Only called by notifiers.
  */
 void mprDoWaitRecall(MprWaitService *ws)
 {
@@ -292,7 +253,7 @@ void mprDoWaitRecall(MprWaitService *ws)
         if ((wp->flags & MPR_WAIT_RECALL_HANDLER) && (wp->desiredMask & MPR_READABLE)) {
             wp->presentMask |= MPR_READABLE;
             wp->flags &= ~MPR_WAIT_RECALL_HANDLER;
-            mprRemoveNotifier(wp);
+            mprNotifyOn(ws, wp, 0);
             mprQueueIOEvent(wp);
         }
     }

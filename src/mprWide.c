@@ -169,7 +169,7 @@ int wends(MprChar *str, MprChar *suffix)
     if (str == NULL || suffix == NULL) {
         return 0;
     }
-    if (wncmp(&str[wlen(str) - wlen(suffix) - 1], suffix, -1) == 0) {
+    if (wncmp(&str[wlen(str) - wlen(suffix)], suffix, -1) == 0) {
         return 1;
     }
     return 0;

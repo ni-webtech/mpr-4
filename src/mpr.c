@@ -210,7 +210,7 @@ void mprTerminate(int how)
     mprWakeDispatchers();
     mprWakeWorkers();
     mprWakeGCService();
-    mprWakeWaitService();
+    mprWakeNotifier();
 }
 
 

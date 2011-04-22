@@ -84,7 +84,7 @@ int mends(MprChar *str, cchar *suffix)
         return 0;
     }
     cp = &str[wlen(str) - 1];
-    sp = &suffix[slen(suffix) - 1];
+    sp = &suffix[slen(suffix)];
     for (; cp > str && sp > suffix; ) {
         if (*cp-- != *sp--) {
             return 0;

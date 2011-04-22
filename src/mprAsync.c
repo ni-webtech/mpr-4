@@ -24,7 +24,7 @@ int mprCreateNotifierService(MprWaitService *ws)
 }
 
 
-int mprAddNotifier(MprWaitService *ws, MprWaitHandler *wp, int mask)
+int mprNotifyOn(MprWaitService *ws, MprWaitHandler *wp, int mask)
 {
     int     winMask;
 
@@ -44,20 +44,6 @@ int mprAddNotifier(MprWaitService *ws, MprWaitHandler *wp, int mask)
     }
     unlock(ws);
     return 0;
-}
-
-
-void mprRemoveNotifier(MprWaitHandler *wp)
-{
-    MprWaitService      *ws;
-
-    ws = wp->service;
-    mprAssert(ws->hwnd);
-    lock(ws);
-    mprAssert(wp->fd >= 0);
-    wp->desiredMask = 0;
-    WSAAsyncSelect(wp->fd, ws->hwnd, ws->socketMessage, 0);
-    unlock(ws);
 }
 
 
@@ -154,7 +140,7 @@ void mprServiceWinIO(MprWaitService *ws, int sockFd, int winMask)
     }
     wp->presentMask &= wp->desiredMask;
     if (wp->presentMask & wp->desiredMask) {
-        mprRemoveNotifier(wp);
+        mprNotifyOn(ws, wp, 0);
         if (wp->presentMask) {
             mprQueueIOEvent(wp);
         }

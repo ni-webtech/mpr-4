@@ -142,7 +142,7 @@ static void signalHandler(int signo, siginfo_t *info, void *arg)
     ip->arg = arg;
     ip->triggered = 1;
     ssp->hasSignals = 1;
-    mprWakeWaitService();
+    mprWakeNotifier();
 }
 
 

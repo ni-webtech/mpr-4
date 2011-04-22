@@ -551,7 +551,7 @@ void mprEnableCmdEvents(MprCmd *cmd, int channel)
 {
     int mask = (channel == MPR_CMD_STDIN) ? MPR_WRITABLE : MPR_READABLE;
     if (cmd->handlers[channel]) {
-        mprEnableWaitEvents(cmd->handlers[channel], mask);
+        mprWaitOn(cmd->handlers[channel], mask);
     }
 }
 
@@ -559,7 +559,7 @@ void mprEnableCmdEvents(MprCmd *cmd, int channel)
 void mprDisableCmdEvents(MprCmd *cmd, int channel)
 {
     if (cmd->handlers[channel]) {
-        mprDisableWaitEvents(cmd->handlers[channel]);
+        mprWaitOn(cmd->handlers[channel], 0);
     }
 }
 
@@ -752,8 +752,6 @@ static void cmdCallback(MprCmd *cmd, int channel, void *data)
     buf = 0;
     switch (channel) {
     case MPR_CMD_STDIN:
-        //  MOB - what should be done here
-        // MOB mprEnableCmdEvents(cmd, MPR_CMD_STDIN, MPR_WRITABLE);
         return;
     case MPR_CMD_STDOUT:
         buf = cmd->stdoutBuf;

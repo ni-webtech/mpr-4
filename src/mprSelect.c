@@ -24,8 +24,7 @@ int mprCreateNotifierService(MprWaitService *ws)
 
     ws->highestFd = 0;
     ws->handlerMax = MPR_FD_MIN;
-    ws->handlerMap = mprAllocZeroed(sizeof(MprWaitHandler*) * ws->handlerMax);
-    if (ws->handlerMap == 0) {
+    if ((ws->handlerMap = mprAllocZeroed(sizeof(MprWaitHandler*) * ws->handlerMax)) == 0) {
         return MPR_ERR_CANT_INITIALIZE;
     }
     FD_ZERO(&ws->readMask);
@@ -101,7 +100,7 @@ static int growFds(MprWaitService *ws)
 }
 
 
-int mprAddNotifier(MprWaitService *ws, MprWaitHandler *wp, int mask)
+int mprNotifyOn(MprWaitService *ws, MprWaitHandler *wp, int mask)
 {
     int     fd;
 
@@ -117,6 +116,12 @@ int mprAddNotifier(MprWaitService *ws, MprWaitHandler *wp, int mask)
             mprAssert(!MPR_ERR_MEMORY);
             return MPR_ERR_MEMORY;
         }
+        if (wp->desiredMask & MPR_READABLE && !(mask & MPR_READABLE)) {
+            FD_CLR(fd, &ws->readMask);
+        }
+        if (wp->desiredMask & MPR_WRITABLE && !(mask & MPR_WRITABLE)) {
+            FD_CLR(fd, &ws->writeMask);
+        }
         if (mask & MPR_READABLE) {
             FD_SET(fd, &ws->readMask);
         }
@@ -124,39 +129,20 @@ int mprAddNotifier(MprWaitService *ws, MprWaitHandler *wp, int mask)
             FD_SET(fd, &ws->writeMask);
         }
         mprAssert(ws->handlerMap[fd] == 0 || ws->handlerMap[fd] == wp);
-        ws->handlerMap[fd] = wp;
+        ws->handlerMap[fd] = (mask) ? wp : 0;
+
         wp->desiredMask = mask;
         ws->highestFd = max(fd, ws->highestFd);
+        if (mask == 0 && fd == ws->highestFd) {
+            while (--fd > 0) {
+                if (FD_ISSET(fd, &ws->readMask) || FD_ISSET(fd, &ws->writeMask)) {
+                    break;
+                }
+            }
+        }
     }
     unlock(ws);
     return 0;
-}
-
-
-void mprRemoveNotifier(MprWaitHandler *wp)
-{
-    MprWaitService  *ws;
-    int             fd;
-
-    ws = wp->service;
-    fd = wp->fd;
-    mprAssert(fd >= 0);
-
-    lock(ws);
-    FD_CLR(fd, &ws->readMask);
-    FD_CLR(fd, &ws->writeMask);
-    mprAssert(ws->handlerMap[fd] == 0 || ws->handlerMap[fd] == wp);
-    ws->handlerMap[fd] = 0;
-    wp->desiredMask = 0;
-    if (fd == ws->highestFd) {
-        while (--fd > 0) {
-            if (FD_ISSET(fd, &ws->readMask) || FD_ISSET(fd, &ws->writeMask)) {
-                break;
-            }
-        }
-        ws->highestFd = fd;
-    }
-    unlock(ws);
 }
 
 
@@ -267,8 +253,8 @@ static void serviceIO(MprWaitService *ws, int maxfd)
             continue;
         }
         wp->presentMask = mask & wp->desiredMask;
-        mprRemoveNotifier(wp);
         if (wp->presentMask) {
+            mprNotifyOn(ws, wp, 0);
             mprQueueIOEvent(wp);
         }
     }

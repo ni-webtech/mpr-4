@@ -368,7 +368,7 @@ void mprRemoveSocketHandler(MprSocket *sp)
 
 void mprEnableSocketEvents(MprSocket *sp, int mask)
 {
-    mprEnableWaitEvents(sp->handler, mask);
+    mprWaitOn(sp->handler, mask);
 }
 
 
