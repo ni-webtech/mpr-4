@@ -106,8 +106,9 @@ int mprNotifyOn(MprWaitService *ws, MprWaitHandler *wp, int mask)
         if (mask & MPR_WRITABLE) {
             ev.events |= EPOLLOUT;
         }
-        epoll_ctl(ws->epoll, EPOLL_CTL_ADD, fd, &ev);
-
+        if (ev.events) {
+            epoll_ctl(ws->epoll, EPOLL_CTL_ADD, fd, &ev);
+        }
         if (mask && fd >= ws->handlerMax) {
             oldlen = ws->handlerMax;
             ws->handlerMax = fd + 32;
@@ -117,9 +118,9 @@ int mprNotifyOn(MprWaitService *ws, MprWaitHandler *wp, int mask)
             }
         }
         mprAssert(ws->handlerMap[fd] == 0 || ws->handlerMap[fd] == wp);
-        ws->handlerMap[fd] = (mask) ? wp : 0;
         wp->desiredMask = mask;
     }
+    ws->handlerMap[fd] = (mask) ? wp : 0;
     unlock(ws);
     return 0;
 }
@@ -242,7 +243,12 @@ static void serviceIO(MprWaitService *ws, int count)
         }
         wp->presentMask = mask & wp->desiredMask;
         if (wp->presentMask) {
-            mprNotifyOn(ws, wp, 0);
+            struct epoll_event  ev;
+            memset(&ev, 0, sizeof(ev));
+            ev.data.fd = fd;
+            wp->desiredMask = 0;
+            ws->handlerMap[wp->fd] = 0;
+            epoll_ctl(ws->epoll, EPOLL_CTL_DEL, wp->fd, &ev);
             mprQueueIOEvent(wp);
         }
     }
