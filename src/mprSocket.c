@@ -982,6 +982,7 @@ MprOff mprSendFileToSocket(MprSocket *sock, MprFile *file, MprOff offset, MprOff
 #endif
                 if (rc > 0) {
                     written += rc;
+                    toWriteFile -= rc;
                     if (rc != nbytes) {
                         done++;
                         break;
