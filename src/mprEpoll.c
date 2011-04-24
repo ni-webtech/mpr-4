@@ -108,7 +108,7 @@ int mprNotifyOn(MprWaitService *ws, MprWaitHandler *wp, int mask)
         }
         epoll_ctl(ws->epoll, EPOLL_CTL_ADD, fd, &ev);
 
-        if (fd >= ws->handlerMax) {
+        if (mask && fd >= ws->handlerMax) {
             oldlen = ws->handlerMax;
             ws->handlerMax = fd + 32;
             if ((ws->handlerMap = mprRealloc(ws->handlerMap, sizeof(MprWaitHandler*) * ws->handlerMax)) == 0) {
@@ -136,7 +136,7 @@ int mprWaitForSingleIO(int fd, int mask, MprTime timeout)
     int                 epfd, rc, err;
 
     ws = MPR->waitService;
-    if (timeout < 0) {
+    if (timeout < 0 || timeout > MAXINT) {
         timeout = MAXINT;
     }
     memset(&ev, 0, sizeof(ev));
@@ -181,6 +181,9 @@ void mprWaitForIO(MprWaitService *ws, MprTime timeout)
 {
     int     rc;
 
+    if (timeout < 0 || timeout > MAXINT) {
+        timeout = MAXINT;
+    }
 #if BLD_DEBUG
     if (mprGetDebugMode() && timeout > 30000) {
         timeout = 30000;

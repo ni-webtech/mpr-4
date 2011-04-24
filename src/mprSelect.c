@@ -111,11 +111,6 @@ int mprNotifyOn(MprWaitService *ws, MprWaitHandler *wp, int mask)
     }
     lock(ws);
     if (wp->desiredMask != mask) {
-        if (fd >= ws->handlerMax && growFds(ws) < 0) {
-            unlock(ws);
-            mprAssert(!MPR_ERR_MEMORY);
-            return MPR_ERR_MEMORY;
-        }
         if (wp->desiredMask & MPR_READABLE && !(mask & MPR_READABLE)) {
             FD_CLR(fd, &ws->readMask);
         }
@@ -128,9 +123,15 @@ int mprNotifyOn(MprWaitService *ws, MprWaitHandler *wp, int mask)
         if (mask & MPR_WRITABLE) {
             FD_SET(fd, &ws->writeMask);
         }
+        if (mask) {
+            if (fd >= ws->handlerMax && growFds(ws) < 0) {
+                unlock(ws);
+                mprAssert(!MPR_ERR_MEMORY);
+                return MPR_ERR_MEMORY;
+            }
+        }
         mprAssert(ws->handlerMap[fd] == 0 || ws->handlerMap[fd] == wp);
         ws->handlerMap[fd] = (mask) ? wp : 0;
-
         wp->desiredMask = mask;
         ws->highestFd = max(fd, ws->highestFd);
         if (mask == 0 && fd == ws->highestFd) {
@@ -139,6 +140,7 @@ int mprNotifyOn(MprWaitService *ws, MprWaitHandler *wp, int mask)
                     break;
                 }
             }
+            ws->highestFd = fd;
         }
     }
     unlock(ws);
@@ -157,12 +159,12 @@ int mprWaitForSingleIO(int fd, int mask, MprTime timeout)
     fd_set          readMask, writeMask;
     int             rc;
 
-    if (timeout < 0) {
+    if (timeout < 0 || timeout > MAXINT) {
         timeout = MAXINT;
     }
     ws = MPR->waitService;
-    tval.tv_sec = timeout / 1000;
-    tval.tv_usec = (timeout % 1000) * 1000;
+    tval.tv_sec = (int) (timeout / 1000);
+    tval.tv_usec = (int) ((timeout % 1000) * 1000);
 
     FD_ZERO(&readMask);
     if (mask & MPR_READABLE) {
@@ -196,6 +198,9 @@ void mprWaitForIO(MprWaitService *ws, MprTime timeout)
     struct timeval  tval;
     int             rc, maxfd;
 
+    if (timeout < 0 || timeout > MAXINT) {
+        timeout = MAXINT;
+    }
 #if BLD_DEBUG
     if (mprGetDebugMode() && timeout > 30000) {
         timeout = 30000;
@@ -205,8 +210,8 @@ void mprWaitForIO(MprWaitService *ws, MprTime timeout)
     /* Minimize VxWorks task starvation */
     timeout = max(timeout, 50);
 #endif
-    tval.tv_sec = timeout / 1000;
-    tval.tv_usec = (timeout % 1000) * 1000;
+    tval.tv_sec = (int) (timeout / 1000);
+    tval.tv_usec = (int) ((timeout % 1000) * 1000);
 
     if (ws->needRecall) {
         mprDoWaitRecall(ws);
@@ -269,13 +274,14 @@ static void serviceIO(MprWaitService *ws, int maxfd)
 void mprWakeNotifier()
 {
     MprWaitService  *ws;
-    int             c, rc;
+    ssize           rc;
+    int             c;
 
     ws = MPR->waitService;
     if (!ws->wakeRequested) {
         ws->wakeRequested = 1;
         c = 0;
-        rc = sendto(ws->breakSock, (char*) &c, 1, 0, (struct sockaddr*) &ws->breakAddress, sizeof(ws->breakAddress));
+        rc = sendto(ws->breakSock, (char*) &c, 1, 0, (struct sockaddr*) &ws->breakAddress, (int) sizeof(ws->breakAddress));
         if (rc < 0) {
             static int warnOnce = 0;
             if (warnOnce++ == 0) {
@@ -289,14 +295,13 @@ void mprWakeNotifier()
 static void readPipe(MprWaitService *ws)
 {
     char        buf[128];
-    int         rc;
 
 #if VXWORKS
     int len = sizeof(ws->breakAddress);
-    rc = recvfrom(ws->breakSock, buf, sizeof(buf), 0, (struct sockaddr*) &ws->breakAddress, (int*) &len);
+    (void) recvfrom(ws->breakSock, buf, (int) sizeof(buf), 0, (struct sockaddr*) &ws->breakAddress, (int*) &len);
 #else
     socklen_t   len = sizeof(ws->breakAddress);
-    rc = recvfrom(ws->breakSock, buf, sizeof(buf), 0, (struct sockaddr*) &ws->breakAddress, (socklen_t*) &len);
+    (void) recvfrom(ws->breakSock, buf, (int) sizeof(buf), 0, (struct sockaddr*) &ws->breakAddress, (socklen_t*) &len);
 #endif
 }
 

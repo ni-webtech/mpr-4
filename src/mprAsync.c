@@ -56,7 +56,7 @@ int mprWaitForSingleIO(int fd, int desiredMask, MprTime timeout)
     HANDLE      h;
     int         winMask;
 
-    if (timeout < 0) {
+    if (timeout < 0 || timeout > MAXINT) {
         timeout = MAXINT;
     }
     winMask = 0;
@@ -87,6 +87,9 @@ void mprWaitForIO(MprWaitService *ws, MprTime timeout)
 
     mprAssert(ws->hwnd);
 
+    if (timeout < 0 || timeout > MAXINT) {
+        timeout = MAXINT;
+    }
 #if BLD_DEBUG
     if (mprGetDebugMode() && timeout > 30000) {
         timeout = 30000;

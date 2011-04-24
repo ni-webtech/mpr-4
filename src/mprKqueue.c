@@ -186,6 +186,9 @@ void mprWaitForIO(MprWaitService *ws, MprTime timeout)
 
     mprAssert(timeout > 0);
 
+    if (timeout < 0) {
+        timeout = MAXINT;
+    }
 #if BLD_DEBUG
     if (mprGetDebugMode() && timeout > 30000) {
         timeout = 30000;
