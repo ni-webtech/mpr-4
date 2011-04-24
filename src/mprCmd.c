@@ -370,11 +370,9 @@ int mprRunCmdV(MprCmd *cmd, int argc, char **argv, char **out, char **err, int f
         return MPR_ERR;
     }
     if (err && flags & MPR_CMD_ERR) {
-        mprAddNullToBuf(cmd->stderrBuf);
         *err = mprGetBufStart(cmd->stderrBuf);
     }
     if (out && flags & MPR_CMD_OUT) {
-        mprAddNullToBuf(cmd->stdoutBuf);
         *out = mprGetBufStart(cmd->stdoutBuf);
     }
     return status;
@@ -784,6 +782,7 @@ static void cmdCallback(MprCmd *cmd, int channel, void *data)
     } else {
         mprAdjustBufEnd(buf, len);
     }
+    mprAddNullToBuf(buf);
     mprEnableCmdEvents(cmd, channel);
 }
 
