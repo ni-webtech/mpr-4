@@ -143,9 +143,9 @@ void mprServiceWinIO(MprWaitService *ws, int sockFd, int winMask)
     }
     wp->presentMask &= wp->desiredMask;
     if (wp->presentMask & wp->desiredMask) {
-        mprNotifyOn(ws, wp, 0);
         if (wp->presentMask) {
             mprQueueIOEvent(wp);
+            mprNotifyOn(ws, wp, 0);
         }
     }
     unlock(ws);
