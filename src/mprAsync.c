@@ -142,10 +142,10 @@ void mprServiceWinIO(MprWaitService *ws, int sockFd, int winMask)
         wp->presentMask |= MPR_WRITABLE;
     }
     wp->presentMask &= wp->desiredMask;
-    if (wp->presentMask & wp->desiredMask) {
+    if (wp->presentMask) {
         if (wp->presentMask) {
-            mprQueueIOEvent(wp);
             mprNotifyOn(ws, wp, 0);
+            mprQueueIOEvent(wp);
         }
     }
     unlock(ws);
