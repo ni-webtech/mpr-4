@@ -144,7 +144,6 @@ MprSpin *mprCreateSpinLock()
 #elif WINCE
     InitializeCriticalSection(&lock->cs);
 #elif BLD_WIN_LIKE
-    //  MOB -- should use inline asm
     InitializeCriticalSectionAndSpinCount(&lock->cs, 5000);
 #elif VXWORKS
     /* Removed SEM_INVERSION_SAFE */

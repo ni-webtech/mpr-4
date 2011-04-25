@@ -1349,7 +1349,7 @@ void mprMarkBlock(cvoid *ptr)
 }
 
 
-//  MOB - these are dangerous as they don't hold component allocations
+//  WARNING: these do not mark component members
 void mprHold(void *ptr)
 {
     MprMem  *mp;
@@ -1414,44 +1414,6 @@ static void sweeper(void *unused, MprThread *tp)
 }
 
 
-#if UNUSED
-/*
-    Called by user code to signify the thread is ready for GC and all object references are saved. 
-    If the GC marker is synchronizing, this call will block at the GC sync point (should be brief).
- */
-//  MOB - do we need this?
-static void ownGC(int flags)
-{
-    MprThread   *tp;
-    int         i;
-
-    if (!heap->enabled || (!heap->gc && !(flags & MPR_FORCE_GC))) {
-        return;
-    }
-    if (heap->flags & (MPR_MARK_THREAD | MPR_SWEEP_THREAD)) {
-        mprYield(0);
-        return;
-    }
-    tp = mprGetCurrentThread();
-    lockHeap();
-    if (heap->collecting) {
-        unlockHeap();
-        while (tp->yielded && heap->mustYield) {
-            LOG(7, "mprYieldThread %s must wait", tp->name);
-            mprWaitForCond(tp->cond, -1);
-        }
-    } else {
-        heap->collecting = 1;
-        unlockHeap();
-        tp->yielded = 1;
-        mark();
-        tp->yielded = 0;
-        heap->collecting = 0;
-    }
-}
-#endif
-
-
 /*
     Called by user code to signify the thread is ready for GC and all object references are saved. 
     If the GC marker is synchronizing, this call will block at the GC sync point (should be brief).
@@ -1500,7 +1462,7 @@ void mprResetYield()
 
 /*
     Pause until all threads have yielded. Called by the GC marker only.
-    MOB - this functions differently if parallel. If so, then it will abort waiting. If !parallel, it waits for all
+    NOTE: this functions differently if parallel. If so, then it will abort waiting. If !parallel, it waits for all
     threads to yield.
  */
 static int syncThreads()
@@ -1540,7 +1502,6 @@ static int syncThreads()
             break;
         }
         LOG(7, "syncThreads: waiting for threads to yield");
-        //  MOB -- should have a longer nap here. Should not matter if this is big
         mprWaitForCond(ts->cond, 20);
 
     } while (!allYielded && mprGetElapsedTime(mark) < timeout);
@@ -2345,9 +2306,9 @@ static void showMem(MprMem *mp)
 #endif
 
 
-//  MOB - remove
 static void checkYielded()
 {
+#if BLD_DEBUG
     MprThreadService    *ts;
     MprThread           *tp;
     int                 i;
@@ -2359,6 +2320,7 @@ static void checkYielded()
         mprAssert(tp->yielded);
     }
     mprUnlock(ts->mutex);
+#endif
 }
 
 /*

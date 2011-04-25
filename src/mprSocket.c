@@ -1234,16 +1234,6 @@ int mprGetSocketInfo(cchar *ip, int port, int *family, int *protocol, struct soc
     /*  
         Try to sleuth the address to avoid duplicate address lookups. Then try IPv4 first then IPv6.
      */
-#if UNUSED
-    if (ip == NULL || strchr(ip, ':') == 0) {
-        /* 
-            Looks like IPv4. Map localhost to 127.0.0.1 to avoid crash bug in MAC OS X.
-         */
-        if (ip && strcmp(ip, "localhost") == 0) {
-            ip = "127.0.0.1";
-        }
-    }
-#endif
     res = 0;
     if (getaddrinfo(ip, portBuf, &hints, &res) != 0) {
         mprUnlock(ss->mutex);
@@ -1277,65 +1267,6 @@ int mprGetSocketInfo(cchar *ip, int port, int *family, int *protocol, struct soc
     mprUnlock(ss->mutex);
     return 0;
 }
-
-
-#elif MACOSX
-/*
-    UNUSED OLD MAC code. Mac now uses getaddrinfo above
- */
-int mprGetSocketInfo(cchar *ip, int port, int *family, int *protocol, struct sockaddr **addr, socklen_t *addrlen)
-{
-    MprSocketService    *ss;
-    struct hostent      *hostent;
-    struct sockaddr_in  *sa;
-    struct sockaddr_in6 *sa6;
-    int                 len, err;
-
-    mprAssert(addr);
-    ss = MPR->socketService;
-
-    mprLock(ss->mutex);
-    len = sizeof(struct sockaddr_in);
-    if ((hostent = getipnodebyname(ip, AF_INET, 0, &err)) == NULL) {
-        len = sizeof(struct sockaddr_in6);
-        if ((hostent = getipnodebyname(ip, AF_INET6, 0, &err)) == NULL) {
-            mprUnlock(ss->mutex);
-            return MPR_ERR_CANT_OPEN;
-        }
-        sa6 = mprAllocZeroed(len);
-        if (sa6 == 0) {
-            mprUnlock(ss->mutex);
-            mprAssert(!MPR_ERR_MEMORY);
-            return MPR_ERR_MEMORY;
-        }
-        memcpy((char*) &sa6->sin6_addr, (char*) hostent->h_addr_list[0], (ssize) hostent->h_length);
-        sa6->sin6_family = hostent->h_addrtype;
-        sa6->sin6_port = htons((short) (port & 0xFFFF));
-        *addr = (struct sockaddr*) sa6;
-
-    } else {
-        sa = mprAllocZeroed(len);
-        if (sa == 0) {
-            mprUnlock(ss->mutex);
-            mprAssert(!MPR_ERR_MEMORY);
-            return MPR_ERR_MEMORY;
-        }
-        memcpy((char*) &sa->sin_addr, (char*) hostent->h_addr_list[0], (ssize) hostent->h_length);
-        sa->sin_family = hostent->h_addrtype;
-        sa->sin_port = htons((short) (port & 0xFFFF));
-        *addr = (struct sockaddr*) sa;
-    }
-
-    mprAssert(hostent);
-    *addrlen = len;
-    *family = hostent->h_addrtype;
-    *protocol = 0;
-    freehostent(hostent);
-    mprUnlock(ss->mutex);
-    return 0;
-}
-
-
 #else
 
 int mprGetSocketInfo(cchar *ip, int port, int *family, int *protocol, struct sockaddr **addr, socklen_t *addrlen)

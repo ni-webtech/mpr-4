@@ -642,14 +642,9 @@ MprChar *wsub(MprChar *str, ssize offset, ssize len)
     mprAssert(offset >= 0);
     mprAssert(0 <= len && len < MAXINT);
 
-    if (str == NULL) {
-        return NULL;
+    if (str == 0) {
+        return 0;
     }
-#if UNUSED
-    if (len < 0) {
-        len = wlen(&str[offset]);
-    }
-#endif
     size = (len + 1) * sizeof(MprChar);
     if ((result = mprAlloc(size)) == NULL) {
         return NULL;

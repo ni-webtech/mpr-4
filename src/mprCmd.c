@@ -1105,7 +1105,7 @@ static int startProcess(MprCmd *cmd)
 
 
 #if WINCE
-//  MOB - merge this with WIN
+//  FUTURE - merge this with WIN
 static int makeChannel(MprCmd *cmd, int index)
 {
     SECURITY_ATTRIBUTES clientAtt, serverAtt, *att;
@@ -1196,7 +1196,6 @@ static int makeChannel(MprCmd *cmd, int index)
     pipeMode = 0;
 
     att = (index == MPR_CMD_STDIN) ? &clientAtt : &serverAtt;
-    //  MOB - buffer size should not be hard coded
     readHandle = CreateNamedPipe(pipeName, openMode, pipeMode, 1, 0, 256 * 1024, 1, att);
     if (readHandle == INVALID_HANDLE_VALUE) {
         mprError("Can't create stdio pipes %s. Err %d\n", pipeName, mprGetOsError());

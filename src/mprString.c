@@ -689,7 +689,7 @@ int64 stoi(cchar *str, int radix, int *err)
 char *stok(char *str, cchar *delim, char **last)
 {
     char    *start, *end;
-    int     i;
+    ssize   i;
 
     start = str ? str : *last;
 
@@ -697,7 +697,7 @@ char *stok(char *str, cchar *delim, char **last)
         *last = 0;
         return 0;
     }
-    i = (int) strspn(start, delim);
+    i = strspn(start, delim);
     start += i;
     if (*start == '\0') {
         *last = 0;
@@ -706,7 +706,7 @@ char *stok(char *str, cchar *delim, char **last)
     end = strpbrk(start, delim);
     if (end) {
         *end++ = '\0';
-        i = (int) strspn(end, delim);
+        i = strspn(end, delim);
         end += i;
     }
     *last = end;

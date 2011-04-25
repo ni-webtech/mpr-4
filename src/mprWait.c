@@ -171,9 +171,6 @@ void mprQueueIOEvent(MprWaitHandler *wp)
     MprEvent        *event;
 
     lock(wp->service);
-#if UNUSED
-    wp->desiredMask = 0;
-#endif
     if (wp->flags & MPR_WAIT_NEW_DISPATCHER) {
         dispatcher = mprCreateDispatcher("IO", 1);
     } else {

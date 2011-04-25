@@ -331,7 +331,7 @@ bool mprServicesAreIdle()
 {
     bool    idle;
 
-    //  MOB - should also measure open sockets?
+    //  FUTURE - should also measure open sockets?
 
     idle = mprGetListLength(MPR->workerService->busyThreads) == 0 && 
            mprGetListLength(MPR->cmdService->cmds) == 0 && 

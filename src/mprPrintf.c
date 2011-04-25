@@ -508,8 +508,10 @@ static char *sprintfCore(char *buf, ssize maxsize, cchar *spec, va_list arg)
                 }
                 break;
 
+            case 'S':       /* MOB - remove this alias */
+                mprAssert(c != 'S');
+
             case '@':
-            case 'S':
                 /* MprEjsString */
                 es = va_arg(arg, MprEjsString*);
                 if (es) {

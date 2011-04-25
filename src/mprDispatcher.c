@@ -147,11 +147,6 @@ static void manageDispatcher(MprDispatcher *dispatcher, int flags)
         mprMark(dispatcher->name);
         mprMark(dispatcher->eventQ);
         mprMark(dispatcher->cond);
-#if UNUSED
-        mprMark(dispatcher->next);
-        mprMark(dispatcher->prev);
-        mprMark(dispatcher->parent);
-#endif
         mprMark(dispatcher->service);
         mprMark(dispatcher->requiredWorker);
 
@@ -473,7 +468,6 @@ static int dispatchEvents(MprDispatcher *dispatcher)
     es = dispatcher->service;
     LOG(7, "dispatchEvents for %s", dispatcher->name);
 
-//  MOB -- locking because another thread may queue an event
     lock(es);
     for (count = 0; (event = mprGetNextEvent(dispatcher)) != 0; count++) {
         mprAssert(event->magic == MPR_EVENT_MAGIC);

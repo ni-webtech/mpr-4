@@ -165,12 +165,6 @@ static int deletePath(MprDiskFileSystem *fileSystem, cchar *path)
         if (err != ERROR_SHARING_VIOLATION) {
             break;
         }
-#if UNUSED
-        if (err == ERROR_FILE_NOT_FOUND) {
-            break;
-        }
-#endif
-        //  MOB - must be a better way
         mprSleep(10);
     }
     return MPR_ERR_CANT_DELETE;
