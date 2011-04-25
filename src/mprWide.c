@@ -717,11 +717,9 @@ ssize wtom(char *dest, ssize destCount, MprChar *src, ssize len)
     if (destCount < 0) {
         destCount = MAXSSIZE;
     }
-#if UNUSED
     if (len < 0) {
         len = MAXSSIZE;
     }
-#endif
     size = min(destCount, len + 1);
     if (size > 0) {
 #if BLD_CHAR_LEN == 1
@@ -731,7 +729,7 @@ ssize wtom(char *dest, ssize destCount, MprChar *src, ssize len)
             len = min(slen(src), size - 1);
         }
 #elif BLD_WIN_LIKE
-        //  MOB -- use destCount
+        //  TODO -- use destCount
         len = WideCharToMultiByte(CP_ACP, 0, src, -1, dest, (DWORD) size, NULL, NULL);
 #else
         len = wcstombs(dest, src, size);
@@ -900,7 +898,7 @@ static int isValidUtf8(cuchar *src, int len)
 }
 
 
-//  MOB - CLEAN
+//  TODO - CLEAN
 static int offsets[6] = { 0x00000000UL, 0x00003080UL, 0x000E2080UL, 0x03C82080UL, 0xFA082080UL, 0x82082080UL };
 
 ssize xmtow(MprChar *dest, ssize destMax, cchar *src, ssize len) 
@@ -911,11 +909,9 @@ ssize xmtow(MprChar *dest, ssize destMax, cchar *src, ssize len)
 
     mprAssert(0 <= len && len < MAXINT);
 
-#if UNUSED
     if (len < 0) {
         len = slen(src);
     }
-#endif
     if (dest) {
         dend = &dest[destMax];
     }
@@ -962,7 +958,7 @@ ssize xmtow(MprChar *dest, ssize destMax, cchar *src, ssize len)
     return count;
 }
 
-//  MOB - CLEAN
+//  TODO - CLEAN
 static cuchar marks[7] = { 0x00, 0x00, 0xC0, 0xE0, 0xF0, 0xF8, 0xFC };
 
 /*
@@ -997,11 +993,9 @@ ssize xwtom(char *dest, ssize destMax, MprChar *src, ssize len)
 
     mprAssert(0 <= len && len < MAXINT);
 
-#if UNUSED
     if (len < 0) {
         len = wlen(src);
     }
-#endif
     if (dest) {
         dend = &dest[destMax];
     }
@@ -1071,20 +1065,6 @@ char *awtom(MprChar *src, ssize *len)
     return sclone(src);
 }
 
-#if UNUSED
-MprChar *wfmt(MprChar *fmt, ...)
-{
-    MprChar     *result;
-    va_list     ap;
-
-    mprAssert(fmt);
-
-    va_start(ap, fmt);
-    result = mprAsprintfv(fmt, ap);
-    va_end(ap);
-    return result;
-}
-#endif
 
 #endif /* BLD_CHAR_LEN > 1 */
 

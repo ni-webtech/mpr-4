@@ -213,7 +213,7 @@ static void testMalloc()
     char        *ptr;
     int         count, i;
 
-#if UNUSED && KEEP
+#if MANUAL
     /*
         Demonstrate validation checking if end of block is overwritten. 
         Must build with debug on and MPR_ALLOC_VERIFY enabled in mpr.h
@@ -344,7 +344,7 @@ static void testMalloc()
  */
 static void eventCallback(void *data, MprEvent *event)
 {
-    //  MOB - should have atomic Inc
+    //  TODO - should have atomic Inc
     mprLock(app->mutex);
     if (--app->markCount == 0) {
         mprSignalCond(app->complete);

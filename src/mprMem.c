@@ -530,7 +530,7 @@ static MprMem *allocFromHeap(ssize required, int flags)
     INC(requests);
 
     /*
-        MOB OPT - could break this locked section up.
+        TODO OPT - could break this locked section up.
         - Can update bit maps conservatively and lockfree
         - Put locks around freeq unqueue
         - use unlinkBlock or linkBlock only. Do locks internally in these routines
@@ -563,7 +563,7 @@ static MprMem *allocFromHeap(ssize required, int flags)
                     mprAssert(GET_GEN(mp) == heap->eternal);
                     SET_GEN(mp, heap->active);
 
-                    //  MOB -- cleanup
+                    //  OPT
                     mprAtomicBarrier();
                     if (flags & MPR_ALLOC_MANAGER) {
                         SET_MANAGER(mp, dummyManager);
@@ -573,7 +573,6 @@ static MprMem *allocFromHeap(ssize required, int flags)
                     CHECK(mp);
                     CHECK_FREE_MEMORY(mp);
                     if (GET_SIZE(mp) >= (ssize) (required + MPR_ALLOC_MIN_SPLIT)) {
-                        //  MOB -- what is this trying to do?
                         maxBlock = (((ssize) 1 ) << group | (((ssize) bucket) << (max(0, group - 1)))) << MPR_ALIGN_SHIFT;
                         maxBlock += sizeof(MprMem);
 
@@ -585,7 +584,6 @@ static MprMem *allocFromHeap(ssize required, int flags)
                                 SET_PRIOR(after, spare);
                             }
                             SET_SIZE(mp, required);
-                            //  MOB -- cleanup
                             mprAtomicBarrier();
                             SET_LAST(mp, 0);
                             mprAtomicBarrier();
@@ -684,7 +682,6 @@ static MprMem *freeToHeap(MprMem *mp)
     /*
         Coalesce with next if it is free
      */
-    //  MOB - GET_NEXT should be safe lockfree in the sweeper.
     next = GET_NEXT(mp);
     if (next && IS_FREE(next)) {
         BREAKPOINT(next);
@@ -707,7 +704,6 @@ static MprMem *freeToHeap(MprMem *mp)
     prev = GET_PRIOR(mp);
     if (prev && IS_FREE(prev)) {
         BREAKPOINT(prev);
-        //  MOB - lockfree race here as someone else may claim this block
         unlinkBlock((MprFreeMem*) prev);
         if ((after = GET_NEXT(mp)) != NULL) {
             mprAssert(GET_PRIOR(after) == mp);
@@ -904,7 +900,7 @@ static MprMem *allocFromMalloc(ssize required, int flags)
         unlockHeap();
         return NULL;
     }
-    //  MOB - should not do this - alloc block will zero if requried
+    //  OPT - should not do this - alloc block will zero if requried
     memset(mp, 0, required);
     hasManager = (flags & MPR_ALLOC_MANAGER) ? 1 : 0;
     INIT_BLK(mp, required, hasManager, 0, NULL);
@@ -988,7 +984,7 @@ void *mprVirtAlloc(ssize size, int mode)
         allocException(size, 0);
         return 0;
     }
-    //  MOB locking
+    //  TODO locking
     heap->stats.bytesAllocated += size;
     return ptr;
 }
@@ -1009,7 +1005,7 @@ void mprVirtFree(void *ptr, ssize size)
 #else
     free(ptr);
 #endif
-    //  MOB locking
+    //  TODO locking
     heap->stats.bytesAllocated -= size;
     mprAssert(heap->stats.bytesAllocated >= 0);
 }
@@ -1117,7 +1113,7 @@ static void mark()
     LOG(7, "GC: mark started");
 
     /*
-        MOB DOC here on how marking strategy works
+        TODO here on how marking strategy works
         When parallel, we mark blocks using the current heap->active mark. After marking, synchronization will rotate
         the active/stale/dead markers. After this, existing alive blocks may be marked stale. No blocks will be marked
         active.
@@ -1381,7 +1377,7 @@ void mprRelease(void *ptr)
 static void marker(void *unused, MprThread *tp)
 {
     LOG(5, "DEBUG: marker thread started");
-    //  MOB -- rename from marker to marking?
+    //  TODO -- rename from marker to marking?
     MPR->marker = 1;
     tp->stickyYield = 1;
     tp->yielded = 1;

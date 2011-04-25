@@ -183,35 +183,6 @@ void mprSleep(MprTime milliseconds)
 }
 
 
-#if UNUSED
-uni *mprToUni(cchar* a, int *len)
-{
-    uni     *wstr;
-    int     *len;
-
-    *len = MultiByteToWideChar(CP_ACP, 0, a, -1, NULL, 0);
-    wstr = mprAlloc((*len + 1) * sizeof(uni));
-    if (wstr) {
-        MultiByteToWideChar(CP_ACP, 0, a, -1, wstr, *len);
-    }
-    return wstr;
-}
-
-
-char *mprToMulti(cuni *w)
-{
-    char    *str;
-    int     len;
-
-    len = WideCharToMultiByte(CP_ACP, 0, w, -1, NULL, 0, NULL, NULL);
-    if ((str = mprAlloc(len + 1)) != 0) {
-        WideCharToMultiByte(CP_ACP, 0, w, -1, str, (DWORD) len, NULL, NULL);
-    }
-    return str;
-}
-#endif
-
-
 void mprWriteToOsLog(cchar *message, int flags, int level)
 {
     HKEY        hkey;

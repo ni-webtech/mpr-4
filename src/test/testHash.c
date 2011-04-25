@@ -169,7 +169,8 @@ static void testIterateHash(MprTestGroup *gp)
     assert(count == HASH_COUNT);
 }
 
-//  MOB -- test caseless and unicode
+
+//  TODO -- test caseless and unicode
 
 MprTestDef testHash = {
     "hash", 0, 0, 0,

@@ -142,7 +142,7 @@ static void manageModule(MprModule *mp, int flags)
         mprMark(mp->moduleData);
 
     } else if (flags & MPR_MANAGE_FREE) {
-        //  MOB - should this unload the module?
+        //  TODO - should this unload the module?
     }
 }
 

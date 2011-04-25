@@ -198,7 +198,7 @@ ssize mprFprintf(MprFile *file, cchar *fmt, ...)
 }
 
 
-#if UNUSED && KEEP
+#if FUTURE
 /*
     Printf with a static buffer. Used internally only. WILL NOT MALLOC.
  */
@@ -508,7 +508,7 @@ static char *sprintfCore(char *buf, ssize maxsize, cchar *spec, va_list arg)
                 }
                 break;
 
-            case 'S':       /* MOB - remove this alias */
+            case 'S':       /* TODO - remove this alias */
                 mprAssert(c != 'S');
 
             case '@':

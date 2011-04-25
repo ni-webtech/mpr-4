@@ -33,7 +33,7 @@ MprThreadService *mprCreateThreadService()
     if (ts == 0) {
         return 0;
     }
-    //  MOB - not used
+    //  TODO - not used
     if ((ts->mutex = mprCreateLock()) == 0) {
         return 0;
     }
@@ -252,7 +252,7 @@ static void threadProc(MprThread *tp)
  */
 int mprStartThread(MprThread *tp)
 {
-    //  MOB - is this needed
+    //  TODO - lock not needed
     lock(tp);
 
 #if BLD_WIN_LIKE
@@ -901,7 +901,7 @@ static void workerMain(MprWorker *worker, MprThread *tp)
         }
         changeState(worker, MPR_WORKER_SLEEPING);
 
-        //  MOB -- is this used?
+        //  TODO -- is this used?
         mprAssert(worker->cleanup == 0);
         if (worker->cleanup) {
             (*worker->cleanup)(worker->data, worker);
@@ -984,7 +984,6 @@ static int changeState(MprWorker *worker, int state)
     worker->state = state;
 
     if (lp) {
-        //  MOB -- should be able to remove lock
         if (mprAddItem(lp, worker) < 0) {
             mprUnlock(ws->mutex);
             mprAssert(!MPR_ERR_MEMORY);

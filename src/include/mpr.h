@@ -2702,7 +2702,7 @@ extern char *strim(cchar *str, cchar *set, int where);
     Low-level unicode wide string support. Unicode characters are build-time configurable to be 1, 2 or 4 bytes
  */
 
-//  FUTURE MOB TODO DOC
+//  FUTURE TODO DOC
 extern MprChar *amtow(cchar *src, ssize *len);
 extern char    *awtom(MprChar *src, ssize *len);
 extern MprChar *wfmt(MprChar *fmt, ...);
@@ -2782,7 +2782,7 @@ extern MprChar *wupper(MprChar *s);
 /*
     These routines operate on wide strings mixed with a multibyte/ascii operand
  */
-//  FUTURE MOB TODO DOC
+//  FUTURE TODO DOC
 #if BLD_CHAR_LEN > 1
 extern int      mcasecmp(MprChar *s1, cchar *s2);
 extern int      mcmp(MprChar *s1, cchar *s2);

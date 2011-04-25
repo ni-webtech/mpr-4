@@ -64,7 +64,7 @@ char *schr(cchar *s, int c)
 
 /*
     Case insensitive string comparison. Limited by length
-    MOB - name is not great. scaselesscmp, sncaselesscmp
+    TODO - name is not great. scaselesscmp, sncaselesscmp
  */
 int scasecmp(cchar *s1, cchar *s2)
 {
@@ -684,7 +684,6 @@ int64 stoi(cchar *str, int radix, int *err)
 
 /*
     Note "str" is modifed as per strtok()
-    MOB - should this allocate the result
  */
 char *stok(char *str, cchar *delim, char **last)
 {

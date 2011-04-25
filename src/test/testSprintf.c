@@ -105,11 +105,6 @@ static void testTypeOptions(MprTestGroup *gp)
     mprSprintf(buf, sizeof(buf), "%s", "Hello World");
     assert(strcmp(buf, "Hello World") == 0);
 
-#if UNUSED
-    mprSprintf(buf, sizeof(buf), "%S", "Hello World");
-    assert(strcmp(buf, "Hello World") == 0);
-#endif
-
     mprSprintf(buf, sizeof(buf), "%u", 0xffffffff);
     assert(strcmp(buf, "4294967295") == 0);
 

@@ -113,7 +113,7 @@ int mprParseTestArgs(MprTestService *sp, int argc, char *argv[], MprTestParser e
             sp->echoCmdLine = 1;
 
         } else if (strcmp(argp, "--filter") == 0 || strcmp(argp, "-f") == 0) {
-            //  MOB DEPRECATE
+            //  TODO DEPRECATE
             if (nextArg >= argc) {
                 err++;
             } else {

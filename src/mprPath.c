@@ -905,7 +905,7 @@ static char *fromCygPath(cchar *path)
 #endif
 
 
-//  MOB -- should this be mprNormalizePath?  apply to all APIs
+//  TODO -- should this be mprNormalizePath?  apply to all APIs
 /*
     Normalize a path to remove redundant "./" and cleanup "../" and make separator uniform. Does not make an abs path.
     It does not map separators nor change case. 

@@ -49,8 +49,6 @@ if (when) {
     mprPrintMem("Before big alloc", 1);
 }
     len = 8 * 1024 * 1024;
-//MOB
-len = 1024;
     mp = mprAlloc(len);
     assert(mp != 0);
     memset(mp, 0, len);    
