@@ -90,11 +90,11 @@ int mprNotifyOn(MprWaitService *ws, MprWaitHandler *wp, int mask)
     int             fd;
 
     mprAssert(wp);
+    fd = wp->fd;
 
     lock(ws);
     mprLog(7, "mprNotifyOn: fd %d, mask %x, old mask %x", wp->fd, mask, wp->desiredMask);
     if (wp->desiredMask != mask) {
-        fd = wp->fd;
         mprAssert(fd >= 0);
         while ((ws->interestCount + 4) >= ws->interestMax) {
             growEvents(ws);
@@ -125,9 +125,9 @@ int mprNotifyOn(MprWaitService *ws, MprWaitHandler *wp, int mask)
             }
         }
         mprAssert(ws->handlerMap[fd] == 0 || ws->handlerMap[fd] == wp);
-        ws->handlerMap[fd] = (mask) ? wp : 0;
         wp->desiredMask = mask;
     }
+    ws->handlerMap[fd] = (mask) ? wp : 0;
     unlock(ws);
     return 0;
 }

@@ -95,10 +95,11 @@ int mprNotifyOn(MprWaitService *ws, MprWaitHandler *wp, int mask)
     struct pollfd   *pollfd;
     int             fd, index;
 
+    fd = wp->fd;
+
     lock(ws);
     if (wp->desiredMask != mask) {
         index = wp->notifierIndex;
-        fd = wp->fd;
         pollfd = 0;
         if (mask) {
             if (index < 0) {

@@ -84,10 +84,10 @@ int mprNotifyOn(MprWaitService *ws, MprWaitHandler *wp, int mask)
     int                 fd, oldlen;
 
     mprAssert(wp);
+    fd = wp->fd;
 
     lock(ws);
     if (wp->desiredMask != mask) {
-        fd = wp->fd;
         memset(&ev, 0, sizeof(ev));
         ev.data.fd = fd;
         if (wp->desiredMask & MPR_READABLE && !(mask & MPR_READABLE)) {
