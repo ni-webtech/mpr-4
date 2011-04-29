@@ -308,6 +308,7 @@ static char *probe(cchar *filename)
     }
     return 0;
 }
+#endif
 
 
 /*
@@ -315,6 +316,7 @@ static char *probe(cchar *filename)
  */
 char *mprSearchForModule(cchar *filename)
 {
+#if BLD_CC_DYN_LOAD
     char    *path, *f, *searchPath, *dir, *tok;
 
     filename = mprGetNormalizedPath(filename);
@@ -341,9 +343,9 @@ char *mprSearchForModule(cchar *filename)
         }
         dir = stok(0, MPR_SEARCH_SEP, &tok);
     }
+#endif /* BLD_CC_DYN_LOAD */
     return 0;
 }
-#endif
 
 
 /*
