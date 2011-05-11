@@ -155,6 +155,20 @@ int mprInitWindow()
     return 0;
 }
 
+
+//  TODO - is this still needed?
+/*
+    Create a routine to pull in the GCC support routines for double and int64 manipulations for some platforms. Do this
+    incase modules reference these routines. Without this, the modules have to reference them. Which leads to multiple 
+    defines if two modules include them. (Code to pull in moddi3, udivdi3, umoddi3)
+ */
+double  __mpr_floating_point_resolution(double a, double b, int64 c, int64 d, uint64 e, uint64 f) {
+    a = a / b; a = a * b; c = c / d; c = c % d; e = e / f; e = e % f;
+    c = (int64) a; d = (uint64) a; a = (double) c; a = (double) e;
+    return (a == b) ? a : b;
+}
+
+
 #else
 void stubMprVxWorks() {}
 #endif /* VXWORKS */

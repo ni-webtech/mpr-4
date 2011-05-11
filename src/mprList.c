@@ -468,9 +468,9 @@ int mprPushItem(MprList *lp, cvoid *item)
 }
 
 
-cvoid *mprPopItem(MprList *lp)
+void *mprPopItem(MprList *lp)
 {
-    cvoid   *item;
+    void    *item;
     int     index;
 
     item = NULL;
@@ -509,10 +509,12 @@ void mprClearList(MprList *lp)
 
     mprAssert(lp);
 
+    lock(lp);
     for (i = 0; i < lp->length; i++) {
         lp->items[i] = 0;
     }
     lp->length = 0;
+    unlock(lp);
 }
 
 
@@ -522,11 +524,14 @@ int mprLookupItem(MprList *lp, cvoid *item)
 
     mprAssert(lp);
     
+    lock(lp);
     for (i = 0; i < lp->length; i++) {
         if (lp->items[i] == item) {
+            unlock(lp);
             return i;
         }
     }
+    unlock(lp);
     return MPR_ERR_CANT_FIND;
 }
 
