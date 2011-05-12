@@ -116,7 +116,7 @@ void mprDestroyDispatcher(MprDispatcher *dispatcher)
     MprEventService     *es;
     MprEvent            *q, *event, *next;
 
-    if (dispatcher && dispatcher->name) {
+    if (dispatcher && dispatcher->cond) {
         mprAssert(dispatcher->magic == MPR_DISPATCHER_MAGIC);
         es = dispatcher->service;
         lock(es);
@@ -129,7 +129,7 @@ void mprDestroyDispatcher(MprDispatcher *dispatcher)
                 mprRemoveEvent(event);
             }
         }
-        dispatcher->name = 0;
+        dispatcher->cond = 0;
         unlock(es);
     }
 }
@@ -415,6 +415,8 @@ void mprScheduleDispatcher(MprDispatcher *dispatcher)
     mprAssert(dispatcher);
     mprAssert(dispatcher->magic == MPR_DISPATCHER_MAGIC);
     mprAssert(dispatcher->enabled);
+    mprAssert(dispatcher->name);
+    mprAssert(dispatcher->cond);
     es = dispatcher->service;
 
     lock(es);
@@ -464,6 +466,7 @@ static int dispatchEvents(MprDispatcher *dispatcher)
     int                 count;
 
     mprAssert(dispatcher->enabled);
+    mprAssert(dispatcher->cond);
 
     es = dispatcher->service;
     LOG(7, "dispatchEvents for %s", dispatcher->name);
@@ -498,6 +501,7 @@ static void serviceDispatcher(MprDispatcher *dispatcher)
 {
     mprAssert(isRunning(dispatcher));
     mprAssert(dispatcher->owner == 0);
+    mprAssert(dispatcher->cond);
     
     dispatcher->owner = mprGetCurrentOsThread();
 
@@ -518,8 +522,14 @@ static void serviceDispatcher(MprDispatcher *dispatcher)
 
 static void serviceDispatcherMain(MprDispatcher *dispatcher)
 {
+    if (!isRunning(dispatcher)) {
+        /* Dispatcher may have been destroyed after starting the worker */
+        return;
+    }
     mprAssert(isRunning(dispatcher));
     mprAssert(dispatcher->magic == MPR_DISPATCHER_MAGIC);
+    mprAssert(dispatcher->cond);
+    mprAssert(dispatcher->name);
 
     dispatcher->owner = mprGetCurrentOsThread();
     dispatchEvents(dispatcher);
@@ -573,6 +583,7 @@ static MprDispatcher *getNextReadyDispatcher(MprEventService *es)
     unlock(es);
     mprAssert(dispatcher == NULL || isRunning(dispatcher));
     mprAssert(dispatcher == NULL || dispatcher->magic == MPR_DISPATCHER_MAGIC);
+    mprAssert(dispatcher == NULL || dispatcher->cond);
     return dispatcher;
 }
 
@@ -660,6 +671,7 @@ static void queueDispatcher(MprDispatcher *prior, MprDispatcher *dispatcher)
     dispatcher->next = prior->next;
     prior->next->prev = dispatcher;
     prior->next = dispatcher;
+    mprAssert(dispatcher->cond);
     unlock(dispatcher->service);
 }
 
@@ -679,6 +691,7 @@ static void dequeueDispatcher(MprDispatcher *dispatcher)
         dispatcher->prev = dispatcher;
         dispatcher->parent = dispatcher;
     }
+    mprAssert(dispatcher->cond);
     unlock(dispatcher->service);
 }
 
@@ -690,6 +703,7 @@ static void scheduleDispatcher(MprDispatcher *dispatcher)
     es = dispatcher->service;
 
     lock(es);
+    mprAssert(dispatcher->cond);
     dequeueDispatcher(dispatcher);
     mprScheduleDispatcher(dispatcher);
     unlock(es);
