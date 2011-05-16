@@ -25,7 +25,6 @@ static void manageHashTable(MprHashTable *table, int flags);
 /*
     Create a new hash table of a given size. Caller should provide a size that is a prime number for the greatest efficiency.
  */
-
 MprHashTable *mprCreateHash(int hashSize, int flags)
 {
     MprHashTable    *table;

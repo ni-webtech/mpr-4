@@ -88,8 +88,8 @@ static void testHashScale(MprTestGroup *gp)
 {
     MprHashTable    *table;
     MprHash         *sp;
-    cchar           *str, *address;
-    char            name[80];
+    char            *str;
+    char            name[80], *address;
     int             i;
 
     table = mprCreateHash(0, 0);
