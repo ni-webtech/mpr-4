@@ -149,7 +149,7 @@ MprHashTable *mprCreateMimeTypes(cchar *path)
         mprCloseFile(file);
 
     } else {
-        if ((table = mprCreateHash(MPR_DEFAULT_HASH_SIZE, 0)) == 0) {
+        if ((table = mprCreateHash(59, 0)) == 0) {
             return 0;
         }
         addStandardMimeTypes(table);

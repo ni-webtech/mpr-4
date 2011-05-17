@@ -92,7 +92,7 @@ static void testHashScale(MprTestGroup *gp)
     char            name[80], *address;
     int             i;
 
-    table = mprCreateHash(0, 0);
+    table = mprCreateHash(HASH_COUNT, 0);
     assert(mprGetHashLength(table) == 0);
 
     /*
@@ -128,7 +128,7 @@ static void testIterateHash(MprTestGroup *gp)
     const char      *who, *where;
     int             count, i, check[HASH_COUNT];
 
-    table = mprCreateHash(0, 0);
+    table = mprCreateHash(HASH_COUNT, 0);
 
     memset(check, 0, sizeof(check));
 
