@@ -99,10 +99,10 @@ MprHashTable *mprCloneHash(MprHashTable *master)
     if (table == 0) {
         return 0;
     }
-    hp = mprGetFirstHash(master);
+    hp = mprGetFirstKey(master);
     while (hp) {
         mprAddKey(table, hp->key, hp->data);
-        hp = mprGetNextHash(master, hp);
+        hp = mprGetNextKey(master, hp);
     }
     return table;
 }
@@ -191,10 +191,7 @@ MprHash *mprAddDuplicateKey(MprHashTable *table, cvoid *key, cvoid *ptr)
 }
 
 
-/*
-    Remove an entry from the table
- */
-int mprRemoveHash(MprHashTable *table, cvoid *key)
+int mprRemoveKey(MprHashTable *table, cvoid *key)
 {
     MprHash     *sp, *prevSp;
     int         index;
@@ -218,7 +215,7 @@ int mprRemoveHash(MprHashTable *table, cvoid *key)
 /*
     Lookup a key and return the hash entry
  */
-MprHash *mprLookupHashEntry(MprHashTable *table, cvoid *key)
+MprHash *mprLookupKeyEntry(MprHashTable *table, cvoid *key)
 {
     mprAssert(key);
 
@@ -229,7 +226,7 @@ MprHash *mprLookupHashEntry(MprHashTable *table, cvoid *key)
 /*
     Lookup a key and return the hash entry data
  */
-void *mprLookupHash(MprHashTable *table, cvoid *key)
+void *mprLookupKey(MprHashTable *table, cvoid *key)
 {
     MprHash     *sp;
 
@@ -352,7 +349,7 @@ int mprGetHashLength(MprHashTable *table)
 /*
     Return the first entry in the table.
  */
-MprHash *mprGetFirstHash(MprHashTable *table)
+MprHash *mprGetFirstKey(MprHashTable *table)
 {
     MprHash     *sp;
     int         i;
@@ -371,7 +368,7 @@ MprHash *mprGetFirstHash(MprHashTable *table)
 /*
     Return the next entry in the table
  */
-MprHash *mprGetNextHash(MprHashTable *table, MprHash *last)
+MprHash *mprGetNextKey(MprHashTable *table, MprHash *last)
 {
     MprHash     *sp;
     int         i;
@@ -379,7 +376,7 @@ MprHash *mprGetNextHash(MprHashTable *table, MprHash *last)
     mprAssert(table);
 
     if (last == 0) {
-        return mprGetFirstHash(table);
+        return mprGetFirstKey(table);
     }
     if (last->next) {
         return last->next;

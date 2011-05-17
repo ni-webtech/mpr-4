@@ -1221,7 +1221,7 @@ static int lookupSym(cchar *token, int kind)
 {
     TimeToken   *tt;
 
-    if ((tt = (TimeToken*) mprLookupHash(MPR->timeTokens, token)) == 0) {
+    if ((tt = (TimeToken*) mprLookupKey(MPR->timeTokens, token)) == 0) {
         return -1;
     }
     if (kind != (tt->value & TOKEN_MASK)) {
@@ -1392,7 +1392,7 @@ int mprParseTime(MprTime *time, cchar *dateString, int zoneFlags, struct tm *def
             explicitZone = 1;
 
         } else if (isalpha((int) *token)) {
-            if ((tt = (TimeToken*) mprLookupHash(MPR->timeTokens, token)) != 0) {
+            if ((tt = (TimeToken*) mprLookupKey(MPR->timeTokens, token)) != 0) {
                 kind = tt->value & TOKEN_MASK;
                 value = tt->value & ~TOKEN_MASK; 
                 switch (kind) {

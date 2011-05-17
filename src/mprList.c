@@ -85,15 +85,18 @@ int mprSetListLimits(MprList *lp, int initialSize, int maxSize)
     }
     size = initialSize * sizeof(void*);
 
+    lock(lp);
     if (lp->items == 0) {
         if ((lp->items = mprAlloc(size)) == 0) {
             mprAssert(!MPR_ERR_MEMORY);
+            unlock(lp);
             return MPR_ERR_MEMORY;
         }
         memset(lp->items, 0, size);
         lp->capacity = initialSize;
     }
     lp->maxSize = maxSize;
+    unlock(lp);
     return 0;
 }
 
@@ -105,16 +108,20 @@ int mprCopyList(MprList *dest, MprList *src)
 
     mprClearList(dest);
 
+    lock(src);
     if (mprSetListLimits(dest, src->capacity, src->maxSize) < 0) {
         mprAssert(!MPR_ERR_MEMORY);
+        unlock(src);
         return MPR_ERR_MEMORY;
     }
     for (next = 0; (item = mprGetNextItem(src, &next)) != 0; ) {
         if (mprAddItem(dest, item) < 0) {
             mprAssert(!MPR_ERR_MEMORY);
+            unlock(src);
             return MPR_ERR_MEMORY;
         }
     }
+    unlock(src);
     return 0;
 }
 
@@ -123,8 +130,7 @@ MprList *mprCloneList(MprList *src)
 {
     MprList     *lp;
 
-    lp = mprCreateList(src->capacity, src->flags);
-    if (lp == 0) {
+    if ((lp = mprCreateList(src->capacity, src->flags)) == 0) {
         return 0;
     }
     if (mprCopyList(lp, src) < 0) {
@@ -429,19 +435,22 @@ void *mprGetNextItem(MprList *lp, int *next)
     if (lp == 0) {
         return 0;
     }
+    lock(lp);
     index = *next;
-
     if (index < lp->length) {
         item = lp->items[index];
         *next = ++index;
+        unlock(lp);
         return item;
     }
+    unlock(lp);
     return 0;
 }
 
 
 void *mprGetPrevItem(MprList *lp, int *next)
 {
+    void    *item;
     int     index;
 
     mprAssert(next);
@@ -449,15 +458,18 @@ void *mprGetPrevItem(MprList *lp, int *next)
     if (lp == 0) {
         return 0;
     }
+    lock(lp);
     if (*next < 0) {
         *next = lp->length;
     }
     index = *next;
-
     if (--index < lp->length && index >= 0) {
         *next = index;
-        return lp->items[index];
+        item = lp->items[index];
+        unlock(lp);
+        return item;
     }
+    unlock(lp);
     return 0;
 }
 
@@ -475,9 +487,11 @@ void *mprPopItem(MprList *lp)
 
     item = NULL;
     if (lp->length > 0) {
+        lock(lp);
         index = lp->length - 1;
         item = mprGetItem(lp, index);
         mprRemoveItemAtPos(lp, index);
+        unlock(lp);
     }
     return item;
 }
@@ -579,7 +593,9 @@ static int growList(MprList *lp, int incr)
 
 void mprSortList(MprList *lp, void *compare)
 {
+    lock(lp);
     qsort(lp->items, lp->length, sizeof(void*), compare);
+    unlock(lp);
 }
 
 

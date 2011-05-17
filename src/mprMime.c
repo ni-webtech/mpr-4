@@ -200,7 +200,7 @@ int mprSetMimeProgram(MprHashTable *table, cchar *mimeType, cchar *program)
     
     hp = 0;
     mt = 0;
-    while ((hp = mprGetNextHash(table, hp)) != 0) {
+    while ((hp = mprGetNextKey(table, hp)) != 0) {
         mt = (MprMime*) hp->data;
         if (mt->type[0] == mimeType[0] && strcmp(mt->type, mimeType) == 0) {
             break;
@@ -222,7 +222,7 @@ cchar *mprGetMimeProgram(MprHashTable *table, cchar *mimeType)
     if (mimeType == 0 || *mimeType == '\0') {
         return 0;
     }
-    if ((mt = mprLookupHash(table, mimeType)) == 0) {
+    if ((mt = mprLookupKey(table, mimeType)) == 0) {
         return 0;
     }
     return mt->program;
@@ -243,7 +243,7 @@ cchar *mprLookupMime(MprHashTable *table, cchar *ext)
     if (table == 0) {
         table = MPR->mimeTypes;
     }
-    if ((mt = mprLookupHash(table, ext)) == 0) {;
+    if ((mt = mprLookupKey(table, ext)) == 0) {;
         return "application/octet-stream";
     }
     return mt->type;
