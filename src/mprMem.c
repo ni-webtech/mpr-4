@@ -349,6 +349,7 @@ void *mprAllocBlock(ssize usize, int flags)
     int         padWords;
 
     mprAssert(!MPR->marking);
+    mprAssert(usize >= 0);
 
     padWords = padding[flags & MPR_ALLOC_PAD_MASK];
     size = usize + sizeof(MprMem) + (padWords * sizeof(void*));
