@@ -456,9 +456,9 @@ typedef int64 MprTime;
 #endif
 
 #if OFF_T_MAX
-    #define MAXOFF          OFF_T_MAX
+    #define MAXOFF       OFF_T_MAX
 #else
-    #define MAXOFF          INT64(0x7fffffffffffffff)
+    #define MAXOFF       INT64(0x7fffffffffffffff)
 #endif
 
 /*
@@ -3562,6 +3562,7 @@ extern int mprGetTimeZoneOffset(MprTime when);
 
 /********************************************************* Lists ***********************************************************/
 
+//  MOB -- rename to PERM_VALUES
 #define MPR_LIST_STATIC_VALUES  0x1     /**< List values are permanent and should not be marked by GC */
 
 /**
@@ -3855,7 +3856,7 @@ extern MprKeyValue *mprCreateKeyPair(cchar *key, cchar *value);
     @param list List pointer returned from mprCreateList.
     @return Returns the last pushed item. If the list is empty, returns NULL.
   */
-extern cvoid *mprPopItem(MprList *list);
+extern void *mprPopItem(MprList *list);
 
 /** 
     Push an item onto the list
@@ -4053,7 +4054,7 @@ extern int print(cchar *fmt, ...);
     Hash table entry structure.
     @description Each hash entry has a descriptor entry. This is used to manage the hash table link chains.
     @see MprHash, mprAddKey, mprAddDuplicateHash, mprCloneHash, mprCreateHash, mprGetFirstHash, mprGetNextHash,
-        mprGethashCount, mprLookupHash, mprLookupHashEntry, mprRemoveHash, mprCreateKeyPair
+        mprGethashCount, mprLookupKey, mprLookupKeyEntry, mprRemoveKey, mprCreateKeyPair
     @stability Evolving.
     @defgroup MprHash MprHash
  */
@@ -4104,7 +4105,7 @@ extern MprHash *mprAddKeyFmt(MprHashTable *table, cvoid *key, cchar *fmt, ...);
 /**
     Add a duplicate symbol value into the hash table
     @description Add a symbol to the hash which may clash with an existing entry. Duplicate symbols can be added to
-        the hash, but only one may be retrieved via #mprLookupHash. To recover duplicate entries walk the hash using
+        the hash, but only one may be retrieved via #mprLookupKey. To recover duplicate entries walk the hash using
         #mprGetNextHash.
     @param table Symbol table returned via mprCreateSymbolTable.
     @param key String key of the symbole entry to delete.
@@ -4112,7 +4113,7 @@ extern MprHash *mprAddKeyFmt(MprHashTable *table, cvoid *key, cchar *fmt, ...);
     @return Integer count of the number of entries.
     @ingroup MprHash
  */
-extern MprHash *mprAddDuplicateHash(MprHashTable *table, cvoid *key, cvoid *ptr);
+extern MprHash *mprAddDuplicateKey(MprHashTable *table, cvoid *key, cvoid *ptr);
 
 /**
     Copy a hash table
@@ -4135,13 +4136,15 @@ extern MprHashTable *mprCloneHash(MprHashTable *table);
  */
 extern MprHashTable *mprCreateHash(int hashSize, int flags);
 
+#if UNUSED
 /**
     Set the case comparision mechanism for a hash table. The case of keys and values are always preserved, this call
         only affects lookup.
     @param table Hash table created via $mprCreateHash
     @param caseMatters Set to true if case matters in comparisions. Set to zero for case insensitive comparisions
  */
-void mprSetHashCase(MprHashTable *table, int caseMatters);
+void mprSetKeyCase(MprHashTable *table, int caseMatters);
+#endif
 
 /**
     Return the first symbol in a symbol entry
@@ -4150,7 +4153,7 @@ void mprSetHashCase(MprHashTable *table, int caseMatters);
     @return Pointer to the first entry in the symbol table.
     @ingroup MprHash
  */
-extern MprHash *mprGetFirstHash(MprHashTable *table);
+extern MprHash *mprGetFirstKey(MprHashTable *table);
 
 /**
     Return the next symbol in a symbol entry
@@ -4163,7 +4166,7 @@ extern MprHash *mprGetFirstHash(MprHashTable *table);
     @return Pointer to the first entry in the symbol table.
     @ingroup MprHash
  */
-extern MprHash *mprGetNextHash(MprHashTable *table, MprHash *last);
+extern MprHash *mprGetNextKey(MprHashTable *table, MprHash *last);
 
 /**
     Return the count of symbols in a symbol entry
@@ -4182,7 +4185,7 @@ extern int mprGetHashLength(MprHashTable *table);
     @return Value associated with the key when the entry was inserted via mprInsertSymbol.
     @ingroup MprHash
  */
-extern void *mprLookupHash(MprHashTable *table, cvoid *key);
+extern void *mprLookupKey(MprHashTable *table, cvoid *key);
 
 /**
     Lookup a symbol in the hash table and return the hash entry
@@ -4192,7 +4195,7 @@ extern void *mprLookupHash(MprHashTable *table, cvoid *key);
     @return MprHash table structure for the entry
     @ingroup MprHash
  */
-extern MprHash *mprLookupHashEntry(MprHashTable *table, cvoid *key);
+extern MprHash *mprLookupKeyEntry(MprHashTable *table, cvoid *key);
 
 /**
     Remove a symbol entry from the hash table.
@@ -4202,7 +4205,7 @@ extern MprHash *mprLookupHashEntry(MprHashTable *table, cvoid *key);
     @return Returns zero if successful, otherwise a negative MPR error code is returned.
     @ingroup MprHash
  */
-extern int mprRemoveHash(MprHashTable *table, cvoid *key);
+extern int mprRemoveKey(MprHashTable *table, cvoid *key);
 
 /********************************************************* Files ***********************************************************/
 /*
@@ -5281,6 +5284,7 @@ typedef struct MprDispatcher {
     MprCond         *cond;              /**< Multi-thread sync */
     int             enabled;            /**< Dispatcher enabled to run events */
     int             waitingOnCond;      /**< Waiting on the cond */
+    int             destroyed;          /**< Dispatcher has been destroyed */
     struct MprDispatcher *next;         /**< Next dispatcher linkage */
     struct MprDispatcher *prev;         /**< Previous dispatcher linkage */
     struct MprDispatcher *parent;       /**< Queue pointer */
@@ -7129,7 +7133,7 @@ typedef struct Mpr {
     MprFile         *logFile;               /**< Log file */
     MprHashTable    *mimeTypes;             /**< Table of mime types */
     MprHashTable    *timeTokens;            /**< Date/Time parsing tokens */
-    char            *searchPath;            /**< Cached PATH for program execution */
+    char            *pathEnv;               /**< Cached PATH env var. Used by MprCmd */
     char            *name;                  /**< Product name */
     char            *title;                 /**< Product title */
     char            *version;               /**< Product version */

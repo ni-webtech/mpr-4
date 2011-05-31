@@ -349,6 +349,7 @@ void *mprAllocBlock(ssize usize, int flags)
     int         padWords;
 
     mprAssert(!MPR->marking);
+    mprAssert(usize >= 0);
 
     padWords = padding[flags & MPR_ALLOC_PAD_MASK];
     size = usize + sizeof(MprMem) + (padWords * sizeof(void*));
@@ -1413,6 +1414,7 @@ static void sweeper(void *unused, MprThread *tp)
 /*
     Called by user code to signify the thread is ready for GC and all object references are saved. 
     If the GC marker is synchronizing, this call will block at the GC sync point (should be brief).
+    NOTE: if called by ResetYield, we may be already marking.
  */
 void mprYield(int flags)
 {

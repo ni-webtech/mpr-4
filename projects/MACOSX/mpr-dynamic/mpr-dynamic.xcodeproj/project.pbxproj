@@ -3,7 +3,7 @@
 	archiveVersion = 1;
 	classes = {
 	};
-	objectVersion = 42;
+	objectVersion = 44;
 	objects = {
 
 /* Begin PBXAggregateTarget section */
@@ -13,6 +13,7 @@
 			buildPhases = (
 			);
 			dependencies = (
+				C9B23297136A196B00014E75 /* PBXTargetDependency */,
 				C90A1A050FD6DCF6006A9E86 /* PBXTargetDependency */,
 				C90A1A090FD6DCF6006A9E86 /* PBXTargetDependency */,
 				C90A1ADB0FD6E2B3006A9E86 /* PBXTargetDependency */,
@@ -77,6 +78,8 @@
 		C9418A1C12ADCD8100AD31B5 /* libmpr.dylib in Frameworks */ = {isa = PBXBuildFile; fileRef = C90A19EE0FD6DCAD006A9E86 /* libmpr.dylib */; };
 		C988254812C820FA0029051B /* mprAtomic.c in Sources */ = {isa = PBXBuildFile; fileRef = C988254712C820FA0029051B /* mprAtomic.c */; };
 		C9B21F651011D0DD001053BB /* testThread.c in Sources */ = {isa = PBXBuildFile; fileRef = C9B21F641011D0DD001053BB /* testThread.c */; };
+		C9B23295136A193100014E75 /* angel.c in Sources */ = {isa = PBXBuildFile; fileRef = C9B23294136A193100014E75 /* angel.c */; };
+		C9B23298136A198700014E75 /* libmpr.dylib in Frameworks */ = {isa = PBXBuildFile; fileRef = C90A19EE0FD6DCAD006A9E86 /* libmpr.dylib */; };
 		C9CD7935131441D5007794B0 /* testArgv.c in Sources */ = {isa = PBXBuildFile; fileRef = C9CD7934131441D5007794B0 /* testArgv.c */; };
 		C9DA27F1131F5FA100EB538B /* libmatrixsslstatic.a in Frameworks */ = {isa = PBXBuildFile; fileRef = C9DA27F0131F5FA100EB538B /* libmatrixsslstatic.a */; };
 		C9DC693B131C2DEB00E18F46 /* mprSignal.c in Sources */ = {isa = PBXBuildFile; fileRef = C9DC693A131C2DEB00E18F46 /* mprSignal.c */; };
@@ -119,6 +122,20 @@
 			remoteGlobalIDString = C90A1ACD0FD6E2A4006A9E86;
 			remoteInfo = testMpr;
 		};
+		C9B23292136A190400014E75 /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = C90A19DC0FD6DC5E006A9E86 /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = C90A19ED0FD6DCAD006A9E86;
+			remoteInfo = libmpr;
+		};
+		C9B23296136A196B00014E75 /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = C90A19DC0FD6DC5E006A9E86 /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = C9B23287136A18F800014E75;
+			remoteInfo = angel;
+		};
 		C9F3AB011252465600183E33 /* PBXContainerItemProxy */ = {
 			isa = PBXContainerItemProxy;
 			containerPortal = C90A19DC0FD6DC5E006A9E86 /* Project object */;
@@ -134,6 +151,18 @@
 			remoteInfo = benchMpr;
 		};
 /* End PBXContainerItemProxy section */
+
+/* Begin PBXCopyFilesBuildPhase section */
+		C9B23286136A18F800014E75 /* CopyFiles */ = {
+			isa = PBXCopyFilesBuildPhase;
+			buildActionMask = 2147483647;
+			dstPath = /usr/share/man/man1/;
+			dstSubfolderSpec = 0;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 1;
+		};
+/* End PBXCopyFilesBuildPhase section */
 
 /* Begin PBXFileReference section */
 		C90A19EE0FD6DCAD006A9E86 /* libmpr.dylib */ = {isa = PBXFileReference; explicitFileType = "compiled.mach-o.dylib"; includeInIndex = 0; path = libmpr.dylib; sourceTree = BUILT_PRODUCTS_DIR; };
@@ -197,6 +226,10 @@
 		C941899412ADC7FE00AD31B5 /* mprWide.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; name = mprWide.c; path = ../../../src/mprWide.c; sourceTree = SOURCE_ROOT; };
 		C988254712C820FA0029051B /* mprAtomic.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; name = mprAtomic.c; path = ../../../src/mprAtomic.c; sourceTree = SOURCE_ROOT; };
 		C9B21F641011D0DD001053BB /* testThread.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; name = testThread.c; path = ../../../src/test/testThread.c; sourceTree = SOURCE_ROOT; };
+		C9B23288136A18F800014E75 /* angel */ = {isa = PBXFileReference; explicitFileType = "compiled.mach-o.executable"; includeInIndex = 0; path = angel; sourceTree = BUILT_PRODUCTS_DIR; };
+		C9B2328B136A18F800014E75 /* main.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = main.c; sourceTree = "<group>"; };
+		C9B2328D136A18F800014E75 /* angel.1 */ = {isa = PBXFileReference; lastKnownFileType = text.man; path = angel.1; sourceTree = "<group>"; };
+		C9B23294136A193100014E75 /* angel.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; name = angel.c; path = ../../../src/angel.c; sourceTree = "<group>"; };
 		C9CD7934131441D5007794B0 /* testArgv.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; name = testArgv.c; path = ../../../src/test/testArgv.c; sourceTree = SOURCE_ROOT; };
 		C9DA27F0131F5FA100EB538B /* libmatrixsslstatic.a */ = {isa = PBXFileReference; lastKnownFileType = archive.ar; name = libmatrixsslstatic.a; path = ../../../out/lib/libmatrixsslstatic.a; sourceTree = "<group>"; };
 		C9DC693A131C2DEB00E18F46 /* mprSignal.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; name = mprSignal.c; path = ../../../src/mprSignal.c; sourceTree = SOURCE_ROOT; };
@@ -241,6 +274,14 @@
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
+		C9B23285136A18F800014E75 /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				C9B23298136A198700014E75 /* libmpr.dylib in Frameworks */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
 		C9F3AAF41252462100183E33 /* Frameworks */ = {
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
@@ -263,9 +304,11 @@
 		C90A19DA0FD6DC5E006A9E86 = {
 			isa = PBXGroup;
 			children = (
+				C90A19EE0FD6DCAD006A9E86 /* libmpr.dylib */,
 				C9F8E4B1102B647A00492AB2 /* Libraries */,
 				C90A19E50FD6DC67006A9E86 /* Headers */,
 				C90A19E60FD6DC6C006A9E86 /* Source */,
+				C9B2328A136A18F800014E75 /* angel */,
 				C90A19EF0FD6DCAD006A9E86 /* Products */,
 			);
 			sourceTree = "<group>";
@@ -285,6 +328,7 @@
 		C90A19E60FD6DC6C006A9E86 /* Source */ = {
 			isa = PBXGroup;
 			children = (
+				C9B23294136A193100014E75 /* angel.c */,
 				C9EAE709110A61D00062863F /* dtoa.c */,
 				C90A1A190FD6DD4C006A9E86 /* mpr.c */,
 				C988254712C820FA0029051B /* mprAtomic.c */,
@@ -337,11 +381,11 @@
 		C90A19EF0FD6DCAD006A9E86 /* Products */ = {
 			isa = PBXGroup;
 			children = (
-				C90A19EE0FD6DCAD006A9E86 /* libmpr.dylib */,
 				C90A19FE0FD6DCD8006A9E86 /* libmprssl.dylib */,
 				C90A1ACE0FD6E2A4006A9E86 /* testMpr */,
 				C9FA8F831249069800FEAFE2 /* benchMpr */,
 				C9F3AAF61252462100183E33 /* runProgram */,
+				C9B23288136A18F800014E75 /* angel */,
 			);
 			name = Products;
 			sourceTree = "<group>";
@@ -389,6 +433,15 @@
 				C90A1AE10FD6E2EF006A9E86 /* makerom.c */,
 			);
 			name = utils;
+			sourceTree = "<group>";
+		};
+		C9B2328A136A18F800014E75 /* angel */ = {
+			isa = PBXGroup;
+			children = (
+				C9B2328B136A18F800014E75 /* main.c */,
+				C9B2328D136A18F800014E75 /* angel.1 */,
+			);
+			path = angel;
 			sourceTree = "<group>";
 		};
 		C9F8E4B1102B647A00492AB2 /* Libraries */ = {
@@ -469,6 +522,24 @@
 			productReference = C90A1ACE0FD6E2A4006A9E86 /* testMpr */;
 			productType = "com.apple.product-type.tool";
 		};
+		C9B23287136A18F800014E75 /* angel */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = C9B23290136A18F800014E75 /* Build configuration list for PBXNativeTarget "angel" */;
+			buildPhases = (
+				C9B23284136A18F800014E75 /* Sources */,
+				C9B23285136A18F800014E75 /* Frameworks */,
+				C9B23286136A18F800014E75 /* CopyFiles */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+				C9B23293136A190400014E75 /* PBXTargetDependency */,
+			);
+			name = angel;
+			productName = angel;
+			productReference = C9B23288136A18F800014E75 /* angel */;
+			productType = "com.apple.product-type.tool";
+		};
 		C9F3AAF51252462100183E33 /* runProgram */ = {
 			isa = PBXNativeTarget;
 			buildConfigurationList = C9F3AAFE1252464800183E33 /* Build configuration list for PBXNativeTarget "runProgram" */;
@@ -527,6 +598,7 @@
 				C90A1ACD0FD6E2A4006A9E86 /* testMpr */,
 				C9FA8F821249069800FEAFE2 /* benchMpr */,
 				C9F3AAF51252462100183E33 /* runProgram */,
+				C9B23287136A18F800014E75 /* angel */,
 			);
 		};
 /* End PBXProject section */
@@ -615,6 +687,14 @@
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
+		C9B23284136A18F800014E75 /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				C9B23295136A193100014E75 /* angel.c in Sources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
 		C9F3AAF31252462100183E33 /* Sources */ = {
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
@@ -648,6 +728,16 @@
 			isa = PBXTargetDependency;
 			target = C90A1ACD0FD6E2A4006A9E86 /* testMpr */;
 			targetProxy = C90A1ADA0FD6E2B3006A9E86 /* PBXContainerItemProxy */;
+		};
+		C9B23293136A190400014E75 /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			target = C90A19ED0FD6DCAD006A9E86 /* libmpr */;
+			targetProxy = C9B23292136A190400014E75 /* PBXContainerItemProxy */;
+		};
+		C9B23297136A196B00014E75 /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			target = C9B23287136A18F800014E75 /* angel */;
+			targetProxy = C9B23296136A196B00014E75 /* PBXContainerItemProxy */;
 		};
 		C9F3AB021252465600183E33 /* PBXTargetDependency */ = {
 			isa = PBXTargetDependency;
@@ -779,6 +869,11 @@
 					"$(LIBRARY_SEARCH_PATHS_QUOTED_FOR_TARGET_1)",
 					"$(LIBRARY_SEARCH_PATHS_QUOTED_FOR_TARGET_2)",
 				);
+				"LIBRARY_SEARCH_PATHS[arch=*]" = (
+					"$(inherited)",
+					"$(LIBRARY_SEARCH_PATHS_QUOTED_FOR_TARGET_1)",
+					"$(LIBRARY_SEARCH_PATHS_QUOTED_FOR_TARGET_2)",
+				);
 				LIBRARY_SEARCH_PATHS_QUOTED_FOR_TARGET_1 = "\"$(SRCROOT)/build/Debug\"";
 				LIBRARY_SEARCH_PATHS_QUOTED_FOR_TARGET_2 = "\"$(SRCROOT)/../../../out/lib\"";
 				PREBINDING = NO;
@@ -798,6 +893,7 @@
 				GCC_ENABLE_FIX_AND_CONTINUE = NO;
 				GCC_MODEL_TUNING = G5;
 				INSTALL_PATH = /usr/local/lib;
+				LD_DYLIB_INSTALL_NAME = libmprssl.dylib;
 				LIBRARY_SEARCH_PATHS = (
 					"$(inherited)",
 					"$(LIBRARY_SEARCH_PATHS_QUOTED_FOR_TARGET_1)",
@@ -869,6 +965,47 @@
 				PREBINDING = NO;
 				PRODUCT_NAME = testMpr;
 				ZERO_LINK = NO;
+			};
+			name = Release;
+		};
+		C9B2328E136A18F800014E75 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ALWAYS_SEARCH_USER_PATHS = NO;
+				ARCHS = "$(ARCHS_STANDARD_32_64_BIT_PRE_XCODE_3_1)";
+				ARCHS_STANDARD_32_64_BIT_PRE_XCODE_3_1 = "x86_64 i386 ppc";
+				COPY_PHASE_STRIP = NO;
+				GCC_DYNAMIC_NO_PIC = NO;
+				GCC_ENABLE_OBJC_EXCEPTIONS = YES;
+				GCC_OPTIMIZATION_LEVEL = 0;
+				GCC_PREPROCESSOR_DEFINITIONS = DEBUG;
+				GCC_SYMBOLS_PRIVATE_EXTERN = NO;
+				GCC_VERSION = com.apple.compilers.llvm.clang.1_0;
+				GCC_WARN_64_TO_32_BIT_CONVERSION = YES;
+				GCC_WARN_ABOUT_RETURN_TYPE = YES;
+				GCC_WARN_UNUSED_VARIABLE = YES;
+				MACOSX_DEPLOYMENT_TARGET = 10.6;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SDKROOT = macosx;
+			};
+			name = Debug;
+		};
+		C9B2328F136A18F800014E75 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ALWAYS_SEARCH_USER_PATHS = NO;
+				ARCHS = "$(ARCHS_STANDARD_32_64_BIT_PRE_XCODE_3_1)";
+				ARCHS_STANDARD_32_64_BIT_PRE_XCODE_3_1 = "x86_64 i386 ppc";
+				COPY_PHASE_STRIP = YES;
+				DEBUG_INFORMATION_FORMAT = "dwarf-with-dsym";
+				GCC_ENABLE_OBJC_EXCEPTIONS = YES;
+				GCC_VERSION = com.apple.compilers.llvm.clang.1_0;
+				GCC_WARN_64_TO_32_BIT_CONVERSION = YES;
+				GCC_WARN_ABOUT_RETURN_TYPE = YES;
+				GCC_WARN_UNUSED_VARIABLE = YES;
+				MACOSX_DEPLOYMENT_TARGET = 10.6;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SDKROOT = macosx;
 			};
 			name = Release;
 		};
@@ -993,6 +1130,14 @@
 			);
 			defaultConfigurationIsVisible = 0;
 			defaultConfigurationName = Release;
+		};
+		C9B23290136A18F800014E75 /* Build configuration list for PBXNativeTarget "angel" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				C9B2328E136A18F800014E75 /* Debug */,
+				C9B2328F136A18F800014E75 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
 		};
 		C9F3AAFE1252464800183E33 /* Build configuration list for PBXNativeTarget "runProgram" */ = {
 			isa = XCConfigurationList;

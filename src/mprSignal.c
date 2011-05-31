@@ -287,7 +287,7 @@ static void signalEvent(MprSignal *sp, MprEvent *event)
         (sp->handler)(sp->data, sp);
     }
     if (np) {
-        /* Create new event for each handler so we get the right dispatcher for each */
+        /* Create new event for each handler so we get the right dispatcher */
         mprCreateEvent(np->dispatcher, "signalEvent", 0, signalEvent, np, 0);
     }
 }

@@ -229,8 +229,8 @@ static int getPathInfo(MprDiskFileSystem *fileSystem, cchar *path, MprPath *info
     }
 
 #elif BLD_WIN_LIKE
-    struct __stat64 s;
-    cchar       *ext;
+    struct __stat64     s;
+    cchar               *ext;
 
     mprAssert(path);
     mprAssert(info);

@@ -61,8 +61,6 @@ int main(int argc, char* argv[])
         ep = getenv("CMD_ENV");
         if (ep) {
             printf("CMD_ENV=%s\n", ep);
-        } else {
-            fprintf(stderr, "Can't find CMD_ENV\n");
         }
         fflush(stderr);
         fflush(stdout);

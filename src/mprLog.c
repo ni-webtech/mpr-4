@@ -144,15 +144,16 @@ void mprStaticError(cchar *fmt, ...)
 {
     va_list     args;
     char        buf[MPR_MAX_LOG];
+    ssize       rc;
 
     va_start(args, fmt);
     mprSprintfv(buf, sizeof(buf), fmt, args);
     va_end(args);
 #if BLD_UNIX_LIKE || VXWORKS
-    (void) write(2, (char*) buf, slen(buf));
-    (void) write(2, (char*) "\n", 1);
+    rc = write(2, (char*) buf, slen(buf));
+    rc = write(2, (char*) "\n", 1);
 #elif BLD_WIN_LIKE
-    fprintf(stderr, "%s\n", buf);
+    rc = fprintf(stderr, "%s\n", buf);
 #endif
     mprBreakpoint();
 }
@@ -165,6 +166,7 @@ void mprAssertError(cchar *loc, cchar *msg)
 {
 #if BLD_FEATURE_ASSERT
     char    buf[MPR_MAX_LOG];
+    ssize   rc;
 
     if (loc) {
 #if BLD_UNIX_LIKE
@@ -176,9 +178,9 @@ void mprAssertError(cchar *loc, cchar *msg)
     }
     
 #if BLD_UNIX_LIKE || VXWORKS
-    (void) write(2, (char*) msg, slen(msg));
+    rc = write(2, (char*) msg, slen(msg));
 #elif BLD_WIN_LIKE
-    fprintf(stderr, "%s\n", msg);
+    rc = fprintf(stderr, "%s\n", msg);
 #endif
     mprBreakpoint();
 #endif
