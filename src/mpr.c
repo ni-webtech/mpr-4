@@ -70,7 +70,7 @@ Mpr *mprCreate(int argc, char **argv, int flags)
 
     mpr->dispatcher = mprCreateDispatcher("main", 1);
     mpr->nonBlock = mprCreateDispatcher("nonblock", 1);
-    mpr->searchPath = sclone(getenv("PATH"));
+    mpr->pathEnv = sclone(getenv("PATH"));
 
     startThreads(flags);
 
@@ -115,7 +115,7 @@ static void manageMpr(Mpr *mpr, int flags)
         mprMark(mpr->mutex);
         mprMark(mpr->spin);
         mprMark(mpr->emptyString);
-        mprMark(mpr->searchPath);
+        mprMark(mpr->pathEnv);
         mprMark(mpr->heap.markerCond);
     }
 }

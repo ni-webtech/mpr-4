@@ -20,31 +20,12 @@ static void manageModuleService(MprModuleService *ms, int flags);
 MprModuleService *mprCreateModuleService()
 {
     MprModuleService    *ms;
-    cchar               *searchPath;
 
-    ms = mprAllocObj(MprModuleService, manageModuleService);
-    if (ms == 0) {
+    if ((ms = mprAllocObj(MprModuleService, manageModuleService)) == 0) {
         return 0;
     }
     ms->modules = mprCreateList(-1, 0);
-
-    /*
-        Define the default module search path
-     */
-    if (ms->searchPath == 0) {
-#if BLD_DEBUG
-        /*
-            Put the mod prefix here incase running an installed debug build
-         */
-        searchPath = ".:" BLD_MOD_NAME ":../" BLD_MOD_NAME ":../../" BLD_MOD_NAME ":../../../" BLD_MOD_NAME ":" \
-            BLD_MOD_PREFIX;
-#else
-        searchPath = BLD_MOD_PREFIX ":.";
-#endif
-    } else {
-        searchPath = ms->searchPath;
-    }
-    ms->searchPath = sclone((searchPath) ? searchPath : (cchar*) ".");
+    ms->searchPath = sfmt(".:%s:%s/../%s:%s", mprGetAppDir(), mprGetAppDir(), BLD_MOD_NAME, BLD_MOD_PREFIX);
     ms->mutex = mprCreateLock();
     return ms;
 }
@@ -232,12 +213,10 @@ void mprSetModuleSearchPath(char *searchPath)
 
 #if BLD_WIN_LIKE && !WINCE
     {
-        char    *path;
-
         /*
-            So dependent DLLs can be loaded by LoadLibrary
+            Set PATH so dependent DLLs can be loaded by LoadLibrary
          */
-        path = sjoin("PATH=", searchPath, ";", getenv("PATH"), NULL);
+        char *path = sjoin("PATH=", searchPath, ";", getenv("PATH"), NULL);
         mprMapSeparators(path, '\\');
         putenv(path);
     }
