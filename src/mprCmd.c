@@ -1043,6 +1043,7 @@ static int sanitizeArgs(MprCmd *cmd, int argc, char **argv, char **env)
         *dp++ = '\0';                        /* Windows requires two nulls */
         mprAssert(dp <= endp);
     }
+    mprLog(5, "Windows command line: %s", cmd->command);
 #endif /* BLD_WIN_LIKE */
     return 0;
 }
