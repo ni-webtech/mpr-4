@@ -92,7 +92,7 @@ int mprParseTestArgs(MprTestService *sp, int argc, char *argv[], MprTestParser e
         if (strcmp(argp, "--continue") == 0) {
             sp->continueOnFailures = 1; 
 
-        } else if (strcmp(argp, "--depth") == 0) {
+        } else if (strcmp(argp, "--depth") == 0 || strcmp(argp, "-d") == 0) {
             if (nextArg >= argc) {
                 err++;
             } else {
