@@ -985,8 +985,9 @@ void *mprVirtAlloc(ssize size, int mode)
         allocException(size, 0);
         return 0;
     }
-    //  TODO locking
+    lockHeap();
     heap->stats.bytesAllocated += size;
+    unlockHeap();
     return ptr;
 }
 
@@ -1006,9 +1007,10 @@ void mprVirtFree(void *ptr, ssize size)
 #else
     free(ptr);
 #endif
-    //  TODO locking
+    lockHeap();
     heap->stats.bytesAllocated -= size;
     mprAssert(heap->stats.bytesAllocated >= 0);
+    unlockHeap();
 }
 
 /***************************************************** Garbage Colllector *************************************************/
