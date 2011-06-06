@@ -25,8 +25,7 @@ MprFile *mprAttachFileFd(int fd, cchar *name, int omode)
 
     fs = mprLookupFileSystem("/");
 
-    file = mprAllocObj(MprFile, manageFile);
-    if (file) {
+    if ((file = mprAllocObj(MprFile, manageFile)) != 0) {
         file->fd = fd;
         file->fileSystem = fs;
         file->path = sclone(name);

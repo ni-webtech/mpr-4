@@ -233,6 +233,22 @@ void mprSetLogLevel(int level)
 }
 
 
+int mprSetCmdlineLogging(int on)
+{
+    int     wasLogging;
+
+    wasLogging = MPR->cmdlineLogging;
+    MPR->cmdlineLogging = on;
+    return wasLogging;
+}
+
+
+int mprGetCmdlineLogging()
+{
+    return MPR->cmdlineLogging;
+}
+
+
 /*
     Output a log message to the log handler
  */

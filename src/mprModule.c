@@ -275,14 +275,14 @@ static char *probe(cchar *filename)
 
     mprAssert(filename && *filename);
 
-    mprLog(6, "Probe for native module %s", filename);
+    mprLog(7, "Probe for native module %s", filename);
     if (mprPathExists(filename, R_OK)) {
         return sclone(filename);
     }
 
     if (strstr(filename, BLD_SHOBJ) == 0) {
         path = sjoin(filename, BLD_SHOBJ, NULL);
-        mprLog(6, "Probe for native module %s", path);
+        mprLog(7, "Probe for native module %s", path);
         if (mprPathExists(path, R_OK)) {
             return path;
         }
