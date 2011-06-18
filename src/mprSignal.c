@@ -307,6 +307,12 @@ static void standardSignalHandler(void *ignored, MprSignal *sp)
         mprTerminate(MPR_EXIT_GRACEFUL);
 
     } else if (sp->signo == SIGINT) {
+#if BLD_UNIX_LIKE
+        /*  Ensure shells are on a new line */
+        if (isatty(1)) {
+            write(1, "\n", 1);
+        }
+#endif
         mprTerminate(MPR_EXIT_IMMEDIATE);
 
     } else if (sp->signo == SIGPIPE || sp->signo == SIGXFSZ) {

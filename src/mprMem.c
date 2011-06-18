@@ -188,12 +188,13 @@ static void triggerGC(int flags);
 #if FUTURE
     static void showMem(MprMem *mp);
 #endif
+    static void freeLocation(cchar *name, ssize size);
     static void printQueueStats();
     static void printGCStats();
 #endif
 
 #if BLD_FEATURE_VALLOC
-    #define allocBlock(required, flags) allocFromHeap(required, flags)
+    #define allocMem(required, flags) allocFromHeap(required, flags)
     #define freeBlock(mp) freeToHeap(mp)
     static int initFree();
     static MprMem *allocFromHeap(ssize size, int flags);
@@ -208,7 +209,7 @@ static void triggerGC(int flags);
         static MprFreeMem *getQueue(ssize size);
     #endif
 #else
-    #define allocBlock(required, flags) allocFromMalloc(required, flags)
+    #define allocMem(required, flags) allocFromMalloc(required, flags)
     #define freeBlock(mp) freeToMalloc(mp)
     static MprMem *allocFromMalloc(ssize required, int flags);
     static MprMem *freeToMalloc(MprMem *mp);
@@ -224,7 +225,7 @@ Mpr *mprCreateMemService(MprManager manager, int flags)
 {
     MprHeap     initHeap;
     MprMem      *mp;
-    ssize       size, mprSize;
+    ssize       size, mprSize, spareSize;
 #if BLD_FEATURE_VALLOC
     MprMem      *spare;
     MprRegion   *region;
@@ -283,6 +284,9 @@ Mpr *mprCreateMemService(MprManager manager, int flags)
     if (scmp(getenv("MPR_SCRIBBLE_MEM"), "1") == 0) {
         heap->scribble = 1;
     }
+    if (scmp(getenv("MPR_TRACK_MEM"), "1") == 0) {
+        heap->track = 1;
+    }
     heap->stats.bytesAllocated += size;
     INC(allocs);
 
@@ -291,18 +295,20 @@ Mpr *mprCreateMemService(MprManager manager, int flags)
     mprInitSpinLock(&heap->rootLock);
     getSystemInfo();
     initGen();
+    initFree();
 
 #if BLD_FEATURE_VALLOC
-    spare = (MprMem*) (((char*) mp) + mprSize);
-    INIT_BLK(spare, size - regionSize - mprSize, 0, 1, mp);
-    SET_GEN(spare, heap->eternal);
-    SET_FREE(spare, 1);
-    heap->regions = region;
-    initFree();
-    SCRIBBLE(spare);
-    linkBlock(spare);
+    spareSize = size - regionSize - mprSize;
+    if (spareSize > 0) {
+        spare = (MprMem*) (((char*) mp) + mprSize);
+        INIT_BLK(spare, size - regionSize - mprSize, 0, 1, mp);
+        SET_GEN(spare, heap->eternal);
+        SET_FREE(spare, 1);
+        heap->regions = region;
+        SCRIBBLE(spare);
+        linkBlock(spare);
+    }
 #endif
-
     heap->markerCond = mprCreateCond();
     heap->roots = mprCreateList(-1, MPR_LIST_STATIC_VALUES);
     mprAddRoot(MPR);
@@ -341,7 +347,7 @@ void mprDestroyMemService()
 }
 
 
-void *mprAllocBlock(ssize usize, int flags)
+void *mprAllocMem(ssize usize, int flags)
 {
     MprMem      *mp;
     void        *ptr;
@@ -356,7 +362,7 @@ void *mprAllocBlock(ssize usize, int flags)
     size = max(size, usize + (ssize) sizeof(MprFreeMem));
     size = MPR_ALLOC_ALIGN(size);
     
-    if ((mp = allocBlock(size, flags)) == NULL) {
+    if ((mp = allocMem(size, flags)) == NULL) {
         return NULL;
     }
     ptr = GET_PTR(mp);
@@ -374,7 +380,7 @@ void *mprAllocBlock(ssize usize, int flags)
 /*
     Realloc will always zero new memory
  */
-void *mprRealloc(void *ptr, ssize usize)
+void *mprReallocMem(void *ptr, ssize usize)
 {
     MprMem      *mp, *newb;
     void        *newptr;
@@ -384,7 +390,7 @@ void *mprRealloc(void *ptr, ssize usize)
     mprAssert(usize > 0);
 
     if (ptr == 0) {
-        return mprAllocBlock(usize, 0);
+        return mprAllocMem(usize, 0);
     }
     mp = GET_MEM(ptr);
     CHECK(mp);
@@ -397,7 +403,7 @@ void *mprRealloc(void *ptr, ssize usize)
     }
     hasManager = HAS_MANAGER(mp);
     flags = hasManager ? MPR_ALLOC_MANAGER : 0;
-    if ((newptr = mprAllocBlock(usize, flags)) == NULL) {
+    if ((newptr = mprAllocMem(usize, flags)) == NULL) {
         return 0;
     }
     newb = GET_MEM(newptr);
@@ -416,11 +422,11 @@ void *mprRealloc(void *ptr, ssize usize)
 }
 
 
-void *mprMemdup(cvoid *ptr, ssize usize)
+void *mprMemdupMem(cvoid *ptr, ssize usize)
 {
     char    *newp;
 
-    if ((newp = mprAllocBlock(usize, 0)) != 0) {
+    if ((newp = mprAllocMem(usize, 0)) != 0) {
         memcpy(newp, ptr, usize);
     }
     return newp;
@@ -436,8 +442,7 @@ int mprMemcmp(cvoid *s1, ssize s1Len, cvoid *s2, ssize s2Len)
     mprAssert(s1Len >= 0);
     mprAssert(s2Len >= 0);
 
-    rc = memcmp(s1, s2, min(s1Len, s2Len));
-    if (rc == 0) {
+    if ((rc = memcmp(s1, s2, min(s1Len, s2Len))) == 0) {
         if (s1Len < s2Len) {
             return -1;
         } else if (s1Len > s2Len) {
@@ -628,6 +633,16 @@ static MprMem *growHeap(ssize required, int flags)
         allocException(size, 0);
         return 0;
     }
+#if KEEP
+{
+    static ssize hiwat = 0;
+    ssize used = mprGetMem();
+    if (used > hiwat) {
+        // printf("Grow %ld K, new total %ld K\n", size / 1024, (used + size) / 1024);
+        hiwat = used;
+    }
+}
+#endif
     if ((region = valloc(size, MPR_MAP_READ | MPR_MAP_WRITE)) == NULL) {
         return 0;
     }
@@ -718,7 +733,9 @@ static MprMem *freeToHeap(MprMem *mp)
         mp = prev;
         INC(joins);
         prev = GET_PRIOR(mp);
-        if (prev) CHECK(prev);
+        if (prev) {
+            CHECK(prev);
+        }
         mprAssert(prev == 0 || !IS_FREE(prev));
     }
     next = GET_NEXT(mp);
@@ -1230,6 +1247,11 @@ static void sweep()
                 CHECK(mp);
                 BREAKPOINT(mp);
                 INC(swept);
+#if BLD_DEBUG && BLD_MEMORY_STATS
+                if (heap->track) {
+                    freeLocation(mp->name, GET_SIZE(mp));
+                }
+#endif
                 heap->stats.freed += GET_SIZE(mp);
                 next = freeBlock(mp);
             } else {
@@ -1718,6 +1740,48 @@ static void printQueueStats()
 }
 
 
+static MprLocationStats sortLocations[MPR_TRACK_HASH];
+
+static int sortLocation(cvoid *l1, cvoid *l2)
+{
+    MprLocationStats    *lp1, *lp2;
+
+    lp1 = (MprLocationStats*) l1;
+    lp2 = (MprLocationStats*) l2;
+    if (lp1->count < lp2->count) {
+        return -1;
+    } else if (lp1->count == lp2->count) {
+        return 0;
+    }
+    return 1;
+}
+
+
+static void printTracking() 
+{
+    MprLocationStats     *lp;
+    cchar                **np;
+
+    printf("\nManager Allocation Stats\n Size                       Location\n");
+    memcpy(sortLocations, heap->stats.locations, sizeof(sortLocations));
+    qsort(sortLocations, MPR_TRACK_HASH, sizeof(MprLocationStats), sortLocation);
+
+    for (lp = sortLocations; lp < &sortLocations[MPR_TRACK_HASH]; lp++) {
+        if (lp->count) {
+            for (np = &lp->names[0]; *np && np < &lp->names[MPR_TRACK_NAMES]; np++) {
+                if (*np) {
+                    if (np == lp->names) {
+                        printf("%10ld %-24s\n", lp->count, *np);
+                    } else {
+                        printf("           %-24s\n", *np);
+                    }
+                }
+            }
+        }
+    }
+}
+
+
 static void printGCStats()
 {
     MprRegion   *region;
@@ -1774,7 +1838,7 @@ void mprPrintMem(cchar *msg, int detail)
 
     printf("\n\nMPR Memory Report %s\n", msg);
     printf("------------------------------------------------------------------------------------------\n");
-    printf("  Total memory        %14d K\n",             (int) mprGetMem());
+    printf("  Total memory        %14d K\n",             (int) mprGetMem() / 1024);
     printf("  Current heap memory %14d K\n",             (int) (ap->bytesAllocated / 1024));
     printf("  Free heap memory    %14d K\n",             (int) (ap->bytesFree / 1024));
     printf("  Allocation errors   %14d\n",               ap->errors);
@@ -1793,6 +1857,9 @@ void mprPrintMem(cchar *msg, int detail)
     printGCStats();
     if (detail) {
         printQueueStats();
+        if (heap->track) {
+            printTracking();
+        }
     }
 #endif /* BLD_MEMORY_STATS */
 }
@@ -1812,7 +1879,10 @@ static int validBlk(MprMem *mp)
 
 void mprCheckBlock(MprMem *mp)
 {
-    if (mp->magic != MPR_ALLOC_MAGIC || GET_SIZE(mp) <= 0) {
+    ssize   size;
+
+    size = GET_SIZE(mp);
+    if (mp->magic != MPR_ALLOC_MAGIC || size <= 0) {
         mprStaticError("Memory corruption in memory block %x (MprBlk %x, seqno %d)\n"
             "This most likely happend earlier in the program execution", GET_PTR(mp), mp, mp->seqno);
     }
@@ -1850,9 +1920,72 @@ static void breakpoint(MprMem *mp)
     }
 }
 
-void *mprSetName(void *ptr, cchar *name) 
+
+/*
+    Called to set the memory block name when doing an allocation
+ */
+void *mprSetAllocName(void *ptr, cchar *name)
 {
     MPR_GET_MEM(ptr)->name = name;
+
+#if BLD_MEMORY_STATS
+    if (heap->track) {
+        MprLocationStats    *lp;
+        cchar               **np;
+        int                 index;
+        if (name == 0) {
+            name = "";
+        }
+        index = shash(name, strlen(name)) % MPR_TRACK_HASH;
+        lp = &heap->stats.locations[index];
+        for (np = lp->names; np <= &lp->names[MPR_TRACK_NAMES]; np++) {
+            if (*np == 0 || *np == name || strcmp(*np, name) == 0) {
+                break;
+            }
+        }
+        //  mprAssert(np < &lp->names[MPR_TRACK_NAMES]);
+        if (np < &lp->names[MPR_TRACK_NAMES]) {
+            *np = (char*) name;
+        }
+        lp->count += GET_SIZE(GET_MEM(ptr));
+    }
+#endif
+    return ptr;
+}
+
+
+static void freeLocation(cchar *name, ssize size)
+{
+#if BLD_MEMORY_STATS
+    MprLocationStats    *lp;
+    int                 index, i;
+
+    if (name == 0) {
+        name = "";
+    }
+    index = shash(name, strlen(name)) % MPR_TRACK_HASH;
+    lp = &heap->stats.locations[index];
+    lp->count -= size;
+    if (lp->count <= 0) {
+        for (i = 0; i < MPR_TRACK_NAMES; i++) {
+            lp->names[i] = 0;
+        }
+    }
+#endif
+}
+
+
+void *mprSetName(void *ptr, cchar *name) 
+{
+#if BLD_MEMORY_STATS
+    MprMem  *mp = GET_MEM(ptr);
+    if (mp->name) {
+        freeLocation(mp->name, GET_SIZE(mp));
+        mprSetAllocName(ptr, name);
+    }
+#else
+    MPR_GET_MEM(ptr)->name = name;
+#endif
     return ptr;
 }
 
