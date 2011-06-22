@@ -1771,7 +1771,7 @@ static void printTracking()
             for (np = &lp->names[0]; *np && np < &lp->names[MPR_TRACK_NAMES]; np++) {
                 if (*np) {
                     if (np == lp->names) {
-                        printf("%10ld %-24s\n", lp->count, *np);
+                        printf("%10d %-24s\n", (int) lp->count, *np);
                     } else {
                         printf("           %-24s\n", *np);
                     }
@@ -2190,7 +2190,11 @@ MprMemStats *mprGetMemStats()
 
 ssize mprGetMem()
 {
-#if LINUX || MACOSX || FREEBSD
+#if LINUX
+    struct rusage   rusage;
+    getrusage(RUSAGE_SELF, &rusage);
+    return rusage.ru_maxrss * 1024;
+#elif MACOSX || FREEBSD
     struct rusage   rusage;
     getrusage(RUSAGE_SELF, &rusage);
     return rusage.ru_maxrss;
