@@ -658,5 +658,3 @@ void mprNop(void *ptr) {}
 
     @end
  */
-
-void void crash() {}
