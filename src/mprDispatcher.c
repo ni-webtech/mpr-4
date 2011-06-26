@@ -75,13 +75,6 @@ void mprStopEventService()
 {
     mprWakeDispatchers();
     mprWakeNotifier();
-#if FUTURE
-    MprTime     mark;
-    mark = mprGetTime();
-    while (MPR->eventing && mprGetRemainingTime(mark, 25) > 0) {
-        mprSleep(1);
-    }
-#endif
 }
 
 

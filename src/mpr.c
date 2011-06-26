@@ -155,20 +155,28 @@ void mprDestroy(int how)
     mprStopSignalService();
 
     /* Final GC to run all finalizers */
-    MPR->state = MPR_FINISHED;
     mprRequestGC(gmode);
-    mprAssert(!MPR->marker);
+
+    MPR->state = MPR_FINISHED;
+    mprStopGCService();
     mprStopThreadService();
 
     /*
-        Must wait for the GC, ServiceEvents and worker threads to exit. Otherwise we have races when freeing memory.
+        Must wait for the GC, ServiceEvents, threads and worker threads to exit. Otherwise we have races when freeing memory.
      */
     mark = mprGetTime();
-    while (MPR->marker || MPR->eventing || mprGetListLength(MPR->workerService->busyThreads) > 0) {
+    while (MPR->marker || MPR->eventing || mprGetListLength(MPR->workerService->busyThreads) > 0 ||
+            mprGetListLength(MPR->threadService->threads) > 0) {
         if (mprGetRemainingTime(mark, MPR_TIMEOUT_STOP) <= 0) {
             break;
         }
-        mprSleep(10);
+#if UNUSED && KEEP
+        //  MOB - cleanup
+        printf("marker %d, eventing %d, busyThreads %d, threads %d\n", MPR->marker, MPR->eventing, 
+                MPR->workerService->busyThreads->length,
+                MPR->threadService->threads->length);
+#endif
+        mprSleep(1);
     }
     mprStopOsService();
     mprDestroyMemService();
