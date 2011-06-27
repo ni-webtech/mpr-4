@@ -144,16 +144,15 @@ void mprStaticError(cchar *fmt, ...)
 {
     va_list     args;
     char        buf[MPR_MAX_LOG];
-    ssize       rc;
 
     va_start(args, fmt);
     mprSprintfv(buf, sizeof(buf), fmt, args);
     va_end(args);
 #if BLD_UNIX_LIKE || VXWORKS
-    rc = write(2, (char*) buf, slen(buf));
-    rc = write(2, (char*) "\n", 1);
+    (void) write(2, (char*) buf, slen(buf));
+    (void) write(2, (char*) "\n", 1);
 #elif BLD_WIN_LIKE
-    rc = fprintf(stderr, "%s\n", buf);
+    (void) fprintf(stderr, "%s\n", buf);
 #endif
     mprBreakpoint();
 }

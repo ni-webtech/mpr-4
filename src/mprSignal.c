@@ -189,9 +189,7 @@ static void unlinkSignalHandler(MprSignal *sp)
 MprSignal *mprAddSignalHandler(int signo, void *handler, void *data, MprDispatcher *dispatcher, int flags)
 {
     MprSignal           *sp;
-    MprSignalService    *ssp;
 
-    ssp = MPR->signalService;
     if (signo <= 0 || signo >= MPR_MAX_SIGNALS) {
         mprError("Bad signal: %d", signo);
         return 0;
