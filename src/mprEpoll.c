@@ -222,7 +222,7 @@ static void serviceIO(MprWaitService *ws, int count)
         if ((wp = ws->handlerMap[fd]) == 0) {
             char    buf[128];
             if ((ev->events & (EPOLLIN | EPOLLERR | EPOLLHUP)) && (fd == ws->breakPipe[MPR_READ_PIPE])) {
-                (void) read(fd, buf, sizeof(buf));
+                if (read(fd, buf, sizeof(buf)) < 0) {}
             }
             continue;
         }
@@ -265,7 +265,7 @@ void mprWakeNotifier()
     if (!ws->wakeRequested) {
         ws->wakeRequested = 1;
         c = 0;
-        (void) write(ws->breakPipe[MPR_WRITE_PIPE], (char*) &c, 1);
+        if (write(ws->breakPipe[MPR_WRITE_PIPE], (char*) &c, 1) < 0) {};
     }
 }
 

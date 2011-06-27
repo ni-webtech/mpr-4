@@ -149,10 +149,10 @@ void mprStaticError(cchar *fmt, ...)
     mprSprintfv(buf, sizeof(buf), fmt, args);
     va_end(args);
 #if BLD_UNIX_LIKE || VXWORKS
-    (void) write(2, (char*) buf, slen(buf));
-    (void) write(2, (char*) "\n", 1);
+    if (write(2, (char*) buf, slen(buf)) < 0) {}
+    if (write(2, (char*) "\n", 1) < 0) {}
 #elif BLD_WIN_LIKE
-    (void) fprintf(stderr, "%s\n", buf);
+    if (fprintf(stderr, "%s\n", buf) < 0) {}
 #endif
     mprBreakpoint();
 }
@@ -175,9 +175,9 @@ void mprAssertError(cchar *loc, cchar *msg)
         msg = buf;
     }
 #if BLD_UNIX_LIKE || VXWORKS
-    (void) write(2, (char*) msg, slen(msg));
+    if (write(2, (char*) msg, slen(msg)) < 0) {}
 #elif BLD_WIN_LIKE
-    (void) fprintf(stderr, "%s\n", msg);
+    if (fprintf(stderr, "%s\n", msg) < 0) {}
 #endif
     mprBreakpoint();
 #endif
