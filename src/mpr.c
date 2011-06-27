@@ -138,7 +138,7 @@ void mprDestroy(int how)
     }
     mprYield(MPR_YIELD_STICKY);
     if (MPR->state < MPR_STOPPING) {
-        mprTerminate(how);
+        mprTerminate(how, -1);
     }
     gmode = MPR_FORCE_GC | MPR_COMPLETE_GC | MPR_WAIT_GC;
     mprRequestGC(gmode);
@@ -187,15 +187,16 @@ void mprDestroy(int how)
 /*
     Start termination of the Mpr. May be called by mprDestroy or elsewhere.
  */
-void mprTerminate(int how)
+void mprTerminate(int how, int status)
 {
+    MPR->exitStatus = status;
     if (how != MPR_EXIT_DEFAULT) {
         MPR->exitStrategy = how;
     }
     how = MPR->exitStrategy;
     if (how == MPR_EXIT_IMMEDIATE) {
         mprLog(5, "Immediate exit. Aborting all requests and services.");
-        exit(0);
+        exit(status);
     } else if (how == MPR_EXIT_NORMAL) {
         mprLog(5, "Normal exit. Flush buffers, close files and aborting existing requests.");
     } else if (how == MPR_EXIT_GRACEFUL) {

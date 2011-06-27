@@ -299,7 +299,7 @@ static void standardSignalHandler(void *ignored, MprSignal *sp)
     if (sp->signo == SIGINT) return;
 #endif
     if (sp->signo == SIGTERM) {
-        mprTerminate(MPR_EXIT_GRACEFUL);
+        mprTerminate(MPR_EXIT_GRACEFUL, -1);
 
     } else if (sp->signo == SIGINT) {
 #if BLD_UNIX_LIKE
@@ -308,13 +308,13 @@ static void standardSignalHandler(void *ignored, MprSignal *sp)
             if (write(1, "\n", 1) < 0) {}
         }
 #endif
-        mprTerminate(MPR_EXIT_IMMEDIATE);
+        mprTerminate(MPR_EXIT_IMMEDIATE, -1);
 
     } else if (sp->signo == SIGPIPE || sp->signo == SIGXFSZ) {
         /* Ignore */
 
     } else {
-        mprTerminate(MPR_EXIT_DEFAULT);
+        mprTerminate(MPR_EXIT_DEFAULT, -1);
     }
 }
 

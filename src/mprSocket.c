@@ -1278,7 +1278,7 @@ int mprGetSocketInfo(cchar *ip, int port, int *family, int *protocol, struct soc
 
     ss = MPR->socketService;
 
-    if ((sa = mprAllocObj(struct sockaddr_in, 0)) == 0) {
+    if ((sa = mprAllocStruct(struct sockaddr_in)) == 0) {
         mprAssert(!MPR_ERR_MEMORY);
         return MPR_ERR_MEMORY;
     }

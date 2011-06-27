@@ -2036,7 +2036,7 @@ static void allocException(ssize size, bool granted)
         switch (heap->allocPolicy) {
         case MPR_ALLOC_POLICY_EXIT:
             mprError("Application exiting due to memory allocation failure.");
-            mprTerminate(0);
+            mprTerminate(0, 2);
             break;
         case MPR_ALLOC_POLICY_RESTART:
             mprError("Application restarting due to memory allocation failure.");

@@ -436,7 +436,7 @@ MprDiskFileSystem *mprCreateDiskFileSystem(cchar *path)
     dfs->writeFile = writeFile;
 
 #if !WINCE
-    if ((dfs->stdError = mprAllocObj(MprFile, NULL)) == 0) {
+    if ((dfs->stdError = mprAllocStruct(MprFile)) == 0) {
         return NULL;
     }
     mprSetName(dfs->stdError, "stderr");
@@ -444,7 +444,7 @@ MprDiskFileSystem *mprCreateDiskFileSystem(cchar *path)
     dfs->stdError->fileSystem = fs;
     dfs->stdError->mode = O_WRONLY;
 
-    if ((dfs->stdInput = mprAllocObj(MprFile, NULL)) == 0) {
+    if ((dfs->stdInput = mprAllocStruct(MprFile)) == 0) {
         return NULL;
     }
     mprSetName(dfs->stdInput, "stdin");
@@ -452,7 +452,7 @@ MprDiskFileSystem *mprCreateDiskFileSystem(cchar *path)
     dfs->stdInput->fileSystem = fs;
     dfs->stdInput->mode = O_RDONLY;
 
-    if ((dfs->stdOutput = mprAllocObj(MprFile, NULL)) == 0) {
+    if ((dfs->stdOutput = mprAllocStruct(MprFile)) == 0) {
         return NULL;
     }
     mprSetName(dfs->stdOutput, "stdout");

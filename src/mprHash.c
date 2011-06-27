@@ -130,7 +130,7 @@ MprHash *mprAddKey(MprHashTable *table, cvoid *key, cvoid *ptr)
     /*
         Hash entries are managed by manageHashTable
      */
-    if ((sp = mprAllocObj(MprHash, 0)) == 0) {
+    if ((sp = mprAllocStruct(MprHash)) == 0) {
         unlock(table);
         return 0;
     }
@@ -171,7 +171,7 @@ MprHash *mprAddDuplicateKey(MprHashTable *table, cvoid *key, cvoid *ptr)
     MprHash     *sp;
     int         index;
 
-    if ((sp = mprAllocObj(MprHash, 0)) == 0) {
+    if ((sp = mprAllocStruct(MprHash)) == 0) {
         return 0;
     }
     sp->data = ptr;
