@@ -2218,8 +2218,7 @@ extern void mprVirtFree(void *ptr, ssize size);
 #define mprAllocObj(type, manage) \
     ((manage != NULL) ? \
         ((type*) mprSetManager( \
-            mprSetAllocName(mprAllocMem(sizeof(type), MPR_ALLOC_MANAGER | MPR_ALLOC_ZERO), \
-                #type "@" MPR_LOC), \
+            mprSetAllocName(mprAllocMem(sizeof(type), MPR_ALLOC_MANAGER | MPR_ALLOC_ZERO), #type "@" MPR_LOC), \
             (MprManager) manage)) : \
         (type*) mprSetAllocName(mprAllocMem(sizeof(type), MPR_ALLOC_ZERO), #type "@" MPR_LOC))
 

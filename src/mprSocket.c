@@ -388,7 +388,7 @@ static int connectSocket(MprSocket *sp, cchar *ip, int port, int initialFlags)
 {
     struct sockaddr     *addr;
     socklen_t           addrlen;
-    int                 broadcast, datagram, family, protocol, rc, err;
+    int                 broadcast, datagram, family, protocol, rc;
 
     lock(sp);
 
@@ -444,7 +444,6 @@ static int connectSocket(MprSocket *sp, cchar *ip, int port, int initialFlags)
         do {
             rc = connect(sp->fd, addr, addrlen);
         } while (rc == -1 && errno == EINTR);
-        err = errno;
         if (rc < 0) {
             /* MAC/BSD returns EADDRINUSE */
             if (errno == EINPROGRESS || errno == EALREADY || errno == EADDRINUSE) {
@@ -1276,7 +1275,7 @@ int mprGetSocketInfo(cchar *ip, int port, int *family, int *protocol, struct soc
 
     ss = MPR->socketService;
 
-    if ((sa = mprAllocObj(struct sockaddr_in, NULL)) == NULL) {
+    if ((sa = mprAllocObj(struct sockaddr_in, 0)) == 0) {
         mprAssert(!MPR_ERR_MEMORY);
         return MPR_ERR_MEMORY;
     }

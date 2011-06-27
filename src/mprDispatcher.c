@@ -210,7 +210,7 @@ int mprServiceEvents(MprTime timeout, int flags)
 {
     MprEventService     *es;
     MprDispatcher       *dp;
-    MprTime             start, expires, delay;
+    MprTime             expires, delay;
     int                 beginEventCount, eventCount, justOne;
 
     if (MPR->eventing) {
@@ -222,7 +222,7 @@ int mprServiceEvents(MprTime timeout, int flags)
     es = MPR->eventService;
     beginEventCount = eventCount = es->eventCount;
 
-    start = es->now = mprGetTime();
+    es->now = mprGetTime();
     expires = timeout < 0 ? (es->now + MPR_MAX_TIMEOUT) : (es->now + timeout);
     justOne = (flags & MPR_SERVICE_ONE_THING) ? 1 : 0;
 
@@ -271,7 +271,7 @@ int mprServiceEvents(MprTime timeout, int flags)
 int mprWaitForEvent(MprDispatcher *dispatcher, MprTime timeout)
 {
     MprEventService     *es;
-    MprTime             start, expires, delay;
+    MprTime             expires, delay;
     MprOsThread         thread;
     int                 claimed, signalled, wasRunning, runEvents;
 
@@ -279,7 +279,7 @@ int mprWaitForEvent(MprDispatcher *dispatcher, MprTime timeout)
     mprAssert(!dispatcher->destroyed);
 
     es = MPR->eventService;
-    start = es->now = mprGetTime();
+    es->now = mprGetTime();
 
     if (dispatcher == NULL) {
         dispatcher = MPR->dispatcher;
