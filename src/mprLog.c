@@ -165,7 +165,6 @@ void mprAssertError(cchar *loc, cchar *msg)
 {
 #if BLD_FEATURE_ASSERT
     char    buf[MPR_MAX_LOG];
-    ssize   rc;
 
     if (loc) {
 #if BLD_UNIX_LIKE
@@ -175,11 +174,10 @@ void mprAssertError(cchar *loc, cchar *msg)
 #endif
         msg = buf;
     }
-    
 #if BLD_UNIX_LIKE || VXWORKS
-    rc = write(2, (char*) msg, slen(msg));
+    (void) write(2, (char*) msg, slen(msg));
 #elif BLD_WIN_LIKE
-    rc = fprintf(stderr, "%s\n", msg);
+    (void) fprintf(stderr, "%s\n", msg);
 #endif
     mprBreakpoint();
 #endif

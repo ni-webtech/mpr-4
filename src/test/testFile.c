@@ -133,7 +133,6 @@ static void testBufferedIO(MprTestGroup *gp)
     MprFile         *file;
     MprPath         info;
     TestFile        *ts;
-    MprOff          pos;
     ssize           len;
     char            *str;
     int             rc, c;
@@ -192,7 +191,7 @@ static void testBufferedIO(MprTestGroup *gp)
     file = mprOpenFile(ts->name, O_RDONLY | O_BINARY, FILEMODE);
     assert(file != 0);
     
-    pos = mprSeekFile(file, SEEK_SET, 0);
+    mprSeekFile(file, SEEK_SET, 0);
     assert(mprPeekFileChar(file) == 'a');
     c = mprGetFileChar(file);
     assert(c == 'a');

@@ -125,7 +125,7 @@ static void testIterateHash(MprTestGroup *gp)
     MprHashTable    *table;
     MprHash         *sp;
     char            name[80], address[80];
-    const char      *who, *where;
+    cchar           *where;
     int             count, i, check[HASH_COUNT];
 
     table = mprCreateHash(HASH_COUNT, 0);
@@ -150,7 +150,6 @@ static void testIterateHash(MprTestGroup *gp)
     count = 0;
     while (sp) {
         assert(sp != 0);
-        who = sp->key;
         where = sp->data;
         assert(isdigit((int) where[0]) != 0);
         i = atoi(where);

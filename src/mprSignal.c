@@ -213,9 +213,6 @@ MprSignal *mprAddSignalHandler(int signo, void *handler, void *data, MprDispatch
 
 static void manageSignal(MprSignal *sp, int flags)
 {
-    MprSignalService    *ssp;
-    
-    ssp = MPR->signalService;
     if (flags & MPR_MANAGE_MARK) {
         mprMark(sp->dispatcher);
         mprMark(sp->data);

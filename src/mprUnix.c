@@ -130,22 +130,22 @@ void mprSleep(MprTime timeout)
  */
 void mprWriteToOsLog(cchar *message, int flags, int level)
 {
-    char    *msg;
+    char    *tag;
     int     sflag;
 
     if (flags & MPR_FATAL_SRC) {
-        msg = "fatal error: ";
+        tag = "fatal error: ";
         sflag = LOG_ERR;
 
     } else if (flags & MPR_ASSERT_SRC) {
-        msg = "program assertion error: ";
+        tag = "program assertion error: ";
         sflag = LOG_WARNING;
 
     } else {
-        msg = "error: ";
+        tag = "error: ";
         sflag = LOG_WARNING;
     }
-    syslog(sflag, "%s", message);
+    syslog(sflag, "%s %s", tag, message);
 }
 
 

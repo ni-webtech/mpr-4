@@ -1083,7 +1083,7 @@ int mprGetSocketFlags(MprSocket *sp)
  */
 int mprSetSocketBlockingMode(MprSocket *sp, bool on)
 {
-    int     flag, oldMode;
+    int     oldMode;
 
     mprAssert(sp);
 
@@ -1094,14 +1094,17 @@ int mprSetSocketBlockingMode(MprSocket *sp, bool on)
     if (on) {
         sp->flags |= MPR_SOCKET_BLOCK;
     }
-    flag = (sp->flags & MPR_SOCKET_BLOCK) ? 0 : 1;
-
 #if BLD_WIN_LIKE
+{
+    int flag = (sp->flags & MPR_SOCKET_BLOCK) ? 0 : 1;
     ioctlsocket(sp->fd, FIONBIO, (ulong*) &flag);
+}
 #elif VXWORKS
+{
+    int flag = (sp->flags & MPR_SOCKET_BLOCK) ? 0 : 1;
     ioctl(sp->fd, FIONBIO, (int) &flag);
+}
 #else
-    flag = 0;
     //  TODO - check RC
     if (on) {
         fcntl(sp->fd, F_SETFL, fcntl(sp->fd, F_GETFL) & ~O_NONBLOCK);
