@@ -1368,7 +1368,7 @@ void mprMarkBlock(cvoid *ptr)
         if (HAS_MANAGER(mp)) {
 #if BLD_DEBUG
             if (++depth > 400) {
-                fprintf(stderr, "WARNING: marking depth exceeds 200\n");
+                fprintf(stderr, "WARNING: marking depth exceeds 400\n");
                 mprBreakpoint();
             }
 #endif
