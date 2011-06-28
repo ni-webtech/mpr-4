@@ -990,7 +990,7 @@ static int sanitizeArgs(MprCmd *cmd, int argc, char **argv, char **env)
             }
             *dp++ = quote;
         } else {
-            strcpy(dp, qp);
+            strcpy(dp, cp);
             dp += strlen(cp);
         }
         if (*++ap) {
