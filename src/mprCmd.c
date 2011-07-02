@@ -141,11 +141,11 @@ static void manageCmd(MprCmd *cmd, int flags)
         mprMark(cmd->stdoutBuf);
         mprMark(cmd->stderrBuf);
         mprMark(cmd->userData);
+        mprMark(cmd->mutex);
 #if BLD_WIN_LIKE
         mprMark(cmd->command);
         mprMark(cmd->arg0);
 #endif
-        mprMark(cmd->mutex);
 
     } else if (flags & MPR_MANAGE_FREE) {
         resetCmd(cmd);
@@ -566,6 +566,8 @@ void mprDisableCmdEvents(MprCmd *cmd, int channel)
 /*
     Windows only routine to wait for I/O on the channels to the gateway and the child process.
     NamedPipes can't use WaitForMultipleEvents (can use overlapped I/O)
+    WARNING: this should not be called from a dispatcher other than cmd->dispatcher. If so, then the calls to
+    mprWaitForEvent may occur after the event has been processed.
  */
 static void waitForWinEvent(MprCmd *cmd, MprTime timeout)
 {
@@ -573,13 +575,12 @@ static void waitForWinEvent(MprCmd *cmd, MprTime timeout)
     int         i, rc, nbytes;
 
     mark = mprGetTime();
-    remaining = timeout;
     for (i = MPR_CMD_STDOUT; i < MPR_CMD_MAX_PIPE; i++) {
         if (cmd->files[i].handle) {
             rc = PeekNamedPipe(cmd->files[i].handle, NULL, 0, NULL, &nbytes, NULL);
             if (rc && nbytes > 0 || cmd->process == 0) {
                 mprQueueIOEvent(cmd->handlers[i]);
-                mprWaitForEvent(cmd->dispatcher, remaining);
+                mprWaitForEvent(cmd->dispatcher, timeout);
                 return;
             }
         }
@@ -587,36 +588,54 @@ static void waitForWinEvent(MprCmd *cmd, MprTime timeout)
     if (cmd->files[MPR_CMD_STDIN].handle) {
         /* Not finalized */
         mprQueueIOEvent(cmd->handlers[MPR_CMD_STDIN]);
-        mprWaitForEvent(cmd->dispatcher, remaining);
+        mprWaitForEvent(cmd->dispatcher, timeout);
         return;
     }
     if (cmd->process) {
-        delay = (cmd->eofCount == cmd->requiredEof && cmd->files[MPR_CMD_STDIN].handle == 0) ? remaining : 0;
+        delay = (cmd->eofCount == cmd->requiredEof && cmd->files[MPR_CMD_STDIN].handle == 0) ? timeout : 0;
         if (WaitForSingleObject(cmd->process, (DWORD) delay) == WAIT_OBJECT_0) {
             reapCmd(cmd);
             return;
         }
-        /* Stop busy waiting */
-        mprSleep(10);
-    }
-    if (cmd->eofCount == cmd->requiredEof && cmd->process) {
-        remaining = mprGetRemainingTime(mark, timeout);
-        rc = WaitForSingleObject(cmd->process, (DWORD) remaining);
-        if (rc == WAIT_OBJECT_0) {
-            reapCmd(cmd);
-        } else {
+        if (cmd->eofCount == cmd->requiredEof) {
+            remaining = mprGetRemainingTime(mark, timeout);
+            rc = WaitForSingleObject(cmd->process, (DWORD) remaining);
+            if (rc == WAIT_OBJECT_0) {
+                reapCmd(cmd);
+                return;
+            }
             mprError("Error waiting CGI I/O, error %d", mprGetOsError());
         }
     }
+    /* Stop busy waiting */
+    mprSleep(10);
 }
 
 
+#if UNUSED
 static void cmdIOThread(MprCmd *cmd, MprThread *thread)
 {
-    while (cmd->process || cmd->eofCount < cmd->requiredEof) {
-        waitForWinEvent(cmd, cmd->timeoutPeriod);
+    MprTime     mark, remaining, delay;
+    int         i, rc, nbytes;
+
+    while (!cmd->complete) {
+        if (mprShouldAbortRequests()) {
+            break;
+        }
+        if (cmd->files[MPR_CMD_STDIN].handle) {
+            mprQueueIOEvent(cmd->handlers[MPR_CMD_STDIN]);
+        }
+        for (i = MPR_CMD_STDOUT; i < MPR_CMD_MAX_PIPE; i++) {
+            if (cmd->files[i].handle) {
+                rc = PeekNamedPipe(cmd->files[i].handle, NULL, 0, NULL, &nbytes, NULL);
+                if (rc && nbytes > 0 || cmd->process == 0) {
+                    mprQueueIOEvent(cmd->handlers[i]);
+                }
+            }
+        }
     }
 }
+#endif
 #endif
 
 
@@ -1113,10 +1132,6 @@ static int startProcess(MprCmd *cmd)
     cmd->thread = procInfo.hThread;
     cmd->process = procInfo.hProcess;
     cmd->pid = procInfo.dwProcessId;
-    if ((cmd->ioThread = mprCreateThread("cmdThread", cmdIOThread, NULL, 0)) == 0) {
-        mprError("Can't create wait thread for cmd: %s, %d", cmd->program, mprGetOsError());
-        return MPR_ERR_CANT_CREATE;
-    }
     return 0;
 }
 
