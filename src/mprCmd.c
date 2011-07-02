@@ -1113,10 +1113,12 @@ static int startProcess(MprCmd *cmd)
     cmd->thread = procInfo.hThread;
     cmd->process = procInfo.hProcess;
     cmd->pid = procInfo.dwProcessId;
-    if ((cmd->ioThread = mprCreateThread("cmdThread", cmdIOThread, NULL, 0)) == 0) {
+
+    if ((cmd->ioThread = mprCreateThread("cmdThread", cmdIOThread, cmd, 0)) == 0) {
         mprError("Can't create wait thread for cmd: %s, %d", cmd->program, mprGetOsError());
         return MPR_ERR_CANT_CREATE;
     }
+    mprStartThread(cmd->ioThread);
     return 0;
 }
 
