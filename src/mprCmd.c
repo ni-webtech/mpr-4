@@ -519,7 +519,8 @@ ssize mprReadCmd(MprCmd *cmd, int channel, char *buf, ssize bufsize)
         /* Process has exited - EOF */
         return 0;
     }
-    errno = EAGAIN;
+    /* This maps to EAGAIN */
+    SetLastError(WSAEWOULDBLOCK);
     return -1;
 }
 #else
