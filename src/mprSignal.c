@@ -142,7 +142,7 @@ static void signalHandler(int signo, siginfo_t *info, void *arg)
     ip->arg = arg;
     ip->triggered = 1;
     ssp->hasSignals = 1;
-    mprWakeWaitService();
+    mprWakeNotifier();
 }
 
 
@@ -189,9 +189,7 @@ static void unlinkSignalHandler(MprSignal *sp)
 MprSignal *mprAddSignalHandler(int signo, void *handler, void *data, MprDispatcher *dispatcher, int flags)
 {
     MprSignal           *sp;
-    MprSignalService    *ssp;
 
-    ssp = MPR->signalService;
     if (signo <= 0 || signo >= MPR_MAX_SIGNALS) {
         mprError("Bad signal: %d", signo);
         return 0;
@@ -215,9 +213,6 @@ MprSignal *mprAddSignalHandler(int signo, void *handler, void *data, MprDispatch
 
 static void manageSignal(MprSignal *sp, int flags)
 {
-    MprSignalService    *ssp;
-    
-    ssp = MPR->signalService;
     if (flags & MPR_MANAGE_MARK) {
         mprMark(sp->dispatcher);
         mprMark(sp->data);
@@ -287,7 +282,7 @@ static void signalEvent(MprSignal *sp, MprEvent *event)
         (sp->handler)(sp->data, sp);
     }
     if (np) {
-        /* Create new event for each handler so we get the right dispatcher for each */
+        /* Create new event for each handler so we get the right dispatcher */
         mprCreateEvent(np->dispatcher, "signalEvent", 0, signalEvent, np, 0);
     }
 }
@@ -304,16 +299,22 @@ static void standardSignalHandler(void *ignored, MprSignal *sp)
     if (sp->signo == SIGINT) return;
 #endif
     if (sp->signo == SIGTERM) {
-        mprTerminate(MPR_EXIT_GRACEFUL);
+        mprTerminate(MPR_EXIT_GRACEFUL, -1);
 
     } else if (sp->signo == SIGINT) {
-        mprTerminate(MPR_EXIT_IMMEDIATE);
+#if BLD_UNIX_LIKE
+        /*  Ensure shells are on a new line */
+        if (isatty(1)) {
+            if (write(1, "\n", 1) < 0) {}
+        }
+#endif
+        mprTerminate(MPR_EXIT_IMMEDIATE, -1);
 
     } else if (sp->signo == SIGPIPE || sp->signo == SIGXFSZ) {
         /* Ignore */
 
     } else {
-        mprTerminate(MPR_EXIT_DEFAULT);
+        mprTerminate(MPR_EXIT_DEFAULT, -1);
     }
 }
 

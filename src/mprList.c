@@ -75,7 +75,7 @@ void mprInitList(MprList *lp)
  */
 int mprSetListLimits(MprList *lp, int initialSize, int maxSize)
 {
-    int       size;
+    ssize   size;
 
     if (initialSize <= 0) {
         initialSize = MPR_LIST_INCR;
@@ -85,15 +85,18 @@ int mprSetListLimits(MprList *lp, int initialSize, int maxSize)
     }
     size = initialSize * sizeof(void*);
 
+    lock(lp);
     if (lp->items == 0) {
         if ((lp->items = mprAlloc(size)) == 0) {
             mprAssert(!MPR_ERR_MEMORY);
+            unlock(lp);
             return MPR_ERR_MEMORY;
         }
         memset(lp->items, 0, size);
         lp->capacity = initialSize;
     }
     lp->maxSize = maxSize;
+    unlock(lp);
     return 0;
 }
 
@@ -105,16 +108,20 @@ int mprCopyList(MprList *dest, MprList *src)
 
     mprClearList(dest);
 
+    lock(src);
     if (mprSetListLimits(dest, src->capacity, src->maxSize) < 0) {
         mprAssert(!MPR_ERR_MEMORY);
+        unlock(src);
         return MPR_ERR_MEMORY;
     }
     for (next = 0; (item = mprGetNextItem(src, &next)) != 0; ) {
         if (mprAddItem(dest, item) < 0) {
             mprAssert(!MPR_ERR_MEMORY);
+            unlock(src);
             return MPR_ERR_MEMORY;
         }
     }
+    unlock(src);
     return 0;
 }
 
@@ -123,8 +130,7 @@ MprList *mprCloneList(MprList *src)
 {
     MprList     *lp;
 
-    lp = mprCreateList(src->capacity, src->flags);
-    if (lp == 0) {
+    if ((lp = mprCreateList(src->capacity, src->flags)) == 0) {
         return 0;
     }
     if (mprCopyList(lp, src) < 0) {
@@ -189,7 +195,7 @@ void *mprSetItem(MprList *lp, int index, cvoid *item)
  */
 int mprAddItem(MprList *lp, cvoid *item)
 {
-    int   index;
+    int     index;
 
     mprAssert(lp);
     mprAssert(lp->capacity >= 0);
@@ -202,7 +208,7 @@ int mprAddItem(MprList *lp, cvoid *item)
             return MPR_ERR_TOO_MANY;
         }
     }
-    index = (int) lp->length++;
+    index = lp->length++;
     lp->items[index] = (void*) item;
     unlock(lp);
     return index;
@@ -429,19 +435,22 @@ void *mprGetNextItem(MprList *lp, int *next)
     if (lp == 0) {
         return 0;
     }
+    lock(lp);
     index = *next;
-
     if (index < lp->length) {
         item = lp->items[index];
         *next = ++index;
+        unlock(lp);
         return item;
     }
+    unlock(lp);
     return 0;
 }
 
 
 void *mprGetPrevItem(MprList *lp, int *next)
 {
+    void    *item;
     int     index;
 
     mprAssert(next);
@@ -449,15 +458,18 @@ void *mprGetPrevItem(MprList *lp, int *next)
     if (lp == 0) {
         return 0;
     }
+    lock(lp);
     if (*next < 0) {
         *next = lp->length;
     }
     index = *next;
-
     if (--index < lp->length && index >= 0) {
         *next = index;
-        return lp->items[index];
+        item = lp->items[index];
+        unlock(lp);
+        return item;
     }
+    unlock(lp);
     return 0;
 }
 
@@ -468,16 +480,18 @@ int mprPushItem(MprList *lp, cvoid *item)
 }
 
 
-cvoid *mprPopItem(MprList *lp)
+void *mprPopItem(MprList *lp)
 {
-    cvoid   *item;
+    void    *item;
     int     index;
 
     item = NULL;
     if (lp->length > 0) {
+        lock(lp);
         index = lp->length - 1;
         item = mprGetItem(lp, index);
         mprRemoveItemAtPos(lp, index);
+        unlock(lp);
     }
     return item;
 }
@@ -509,10 +523,12 @@ void mprClearList(MprList *lp)
 
     mprAssert(lp);
 
+    lock(lp);
     for (i = 0; i < lp->length; i++) {
         lp->items[i] = 0;
     }
     lp->length = 0;
+    unlock(lp);
 }
 
 
@@ -522,11 +538,14 @@ int mprLookupItem(MprList *lp, cvoid *item)
 
     mprAssert(lp);
     
+    lock(lp);
     for (i = 0; i < lp->length; i++) {
         if (lp->items[i] == item) {
+            unlock(lp);
             return i;
         }
     }
+    unlock(lp);
     return MPR_ERR_CANT_FIND;
 }
 
@@ -536,12 +555,12 @@ int mprLookupItem(MprList *lp, cvoid *item)
  */
 static int growList(MprList *lp, int incr)
 {
-    int     len, memsize;
+    ssize       memsize;
+    int         len;
 
     if (lp->maxSize <= 0) {
         lp->maxSize = MAXINT;
     }
-
     /*
         Need to grow the list
      */
@@ -549,7 +568,6 @@ static int growList(MprList *lp, int incr)
         mprAssert(lp->capacity < lp->maxSize);
         return MPR_ERR_TOO_MANY;
     }
-
     /*
         If growing by 1, then use the default increment which exponentially grows. Otherwise, assume the caller knows exactly
         how much the list needs to grow.
@@ -573,9 +591,11 @@ static int growList(MprList *lp, int incr)
 }
 
 
-void mprSortList(MprList *lp, MprListCompareProc compare)
+void mprSortList(MprList *lp, void *compare)
 {
+    lock(lp);
     qsort(lp->items, lp->length, sizeof(void*), compare);
+    unlock(lp);
 }
 
 

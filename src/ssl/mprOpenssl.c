@@ -45,7 +45,7 @@ static MprSocketProvider *createOpenSslProvider();
 static MprSocket *createOss(MprSsl *ssl);
 static DH       *dhCallback(SSL *ssl, int isExport, int keyLength);
 static void     disconnectOss(MprSocket *sp);
-static int      flushOss(MprSocket *sp);
+static ssize    flushOss(MprSocket *sp);
 static int      listenOss(MprSocket *sp, cchar *host, int port, int flags);
 static void     manageOpenssl(MprOpenssl *osl, int flags);
 static void     manageOpenProvider(MprSocketProvider *provider, int flags);
@@ -54,7 +54,7 @@ static void     manageSslStruct(MprSsl *ssl, int flags);
 static ssize    readOss(MprSocket *sp, void *buf, ssize len);
 static RSA      *rsaCallback(SSL *ssl, int isExport, int keyLength);
 static int      verifyX509Certificate(int ok, X509_STORE_CTX *ctx);
-static ssize    writeOss(MprSocket *sp, void *buf, ssize len);
+static ssize    writeOss(MprSocket *sp, cvoid *buf, ssize len);
 
 static DynLock  *sslCreateDynLock(const char *file, int line);
 static void     sslDynLock(int mode, DynLock *dl, const char *file, int line);
@@ -310,18 +310,9 @@ static int configureOss(MprSsl *ssl)
 
     /*
         Select the required protocols
-     */
-#if UNUSED && KEEP
-    if (!(ssl->protocols & MPR_PROTO_SSLV2)) {
-        SSL_CTX_set_options(context, SSL_OP_NO_SSLv2);
-        mprLog(4, "OpenSSL: Disabling SSLv2");
-    }
-#else
-    /*
         Disable SSLv2 by default -- it is insecure.
      */
     SSL_CTX_set_options(context, SSL_OP_NO_SSLv2);
-#endif
     if (!(ssl->protocols & MPR_PROTO_SSLV3)) {
         SSL_CTX_set_options(context, SSL_OP_NO_SSLv3);
         mprLog(4, "OpenSSL: Disabling SSLv3");
@@ -438,7 +429,6 @@ static MprSocket *createOss(MprSsl *ssl)
     if (ssl == MPR_SECURE_CLIENT) {
         ssl = 0;
     }
-
     /*
         First get a standard socket
      */
@@ -522,7 +512,6 @@ static MprSocket *acceptOss(MprSocket *listen)
     if (sp == 0) {
         return 0;
     }
-
     lock(sp);
     osp = sp->sslSocket;
     mprAssert(osp);
@@ -570,7 +559,6 @@ static int connectOss(MprSocket *sp, cchar *host, int port, int flags)
         unlock(sp);
         return MPR_ERR_CANT_CONNECT;
     }
-    
     osp = sp->sslSocket;
     mprAssert(osp);
 
@@ -662,7 +650,7 @@ static ssize readOss(MprSocket *sp, void *buf, ssize len)
      */
     retries = 5;
     for (i = 0; i < retries; i++) {
-        rc = SSL_read(osp->osslStruct, buf, len);
+        rc = SSL_read(osp->osslStruct, buf, (int) len);
         if (rc < 0) {
             error = SSL_get_error(osp->osslStruct, rc);
             if (error == SSL_ERROR_WANT_READ || error == SSL_ERROR_WANT_CONNECT || error == SSL_ERROR_WANT_ACCEPT) {
@@ -717,7 +705,7 @@ static ssize readOss(MprSocket *sp, void *buf, ssize len)
         }
     } else if (SSL_pending(osp->osslStruct) > 0) {
         sp->flags |= MPR_SOCKET_PENDING;
-        mprRecallWaitHandler(sp->fd);
+        mprRecallWaitHandlerByFd(sp->fd);
     }
     unlock(sp);
     return rc;
@@ -727,10 +715,10 @@ static ssize readOss(MprSocket *sp, void *buf, ssize len)
 /*
     Write data. Return the number of bytes written or -1 on errors.
  */
-static ssize writeOss(MprSocket *sp, void *buf, ssize len)
+static ssize writeOss(MprSocket *sp, cvoid *buf, ssize len)
 {
     MprSslSocket    *osp;
-    ssize          totalWritten;
+    ssize           totalWritten;
     int             rc;
 
     lock(sp);
@@ -745,10 +733,8 @@ static ssize writeOss(MprSocket *sp, void *buf, ssize len)
     ERR_clear_error();
 
     do {
-        rc = SSL_write(osp->osslStruct, buf, len);
-        
+        rc = SSL_write(osp->osslStruct, buf, (int) len);
         mprLog(7, "OpenSSL: written %d, requested len %d", rc, len);
-
         if (rc <= 0) {
             rc = SSL_get_error(osp->osslStruct, rc);
             if (rc == SSL_ERROR_WANT_WRITE) {
@@ -862,7 +848,7 @@ static int verifyX509Certificate(int ok, X509_STORE_CTX *xContext)
 }
 
 
-static int flushOss(MprSocket *sp)
+static ssize flushOss(MprSocket *sp)
 {
 #if KEEP
     MprSslSocket    *osp;

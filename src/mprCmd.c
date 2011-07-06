@@ -141,11 +141,11 @@ static void manageCmd(MprCmd *cmd, int flags)
         mprMark(cmd->stdoutBuf);
         mprMark(cmd->stderrBuf);
         mprMark(cmd->userData);
+        mprMark(cmd->mutex);
 #if BLD_WIN_LIKE
         mprMark(cmd->command);
         mprMark(cmd->arg0);
 #endif
-        mprMark(cmd->mutex);
 
     } else if (flags & MPR_MANAGE_FREE) {
         resetCmd(cmd);
@@ -370,11 +370,9 @@ int mprRunCmdV(MprCmd *cmd, int argc, char **argv, char **out, char **err, int f
         return MPR_ERR;
     }
     if (err && flags & MPR_CMD_ERR) {
-        mprAddNullToBuf(cmd->stderrBuf);
         *err = mprGetBufStart(cmd->stderrBuf);
     }
     if (out && flags & MPR_CMD_OUT) {
-        mprAddNullToBuf(cmd->stdoutBuf);
         *out = mprGetBufStart(cmd->stdoutBuf);
     }
     return status;
@@ -428,7 +426,7 @@ int mprStartCmd(MprCmd *cmd, int argc, char **argv, char **envp, int flags)
         mprAssert(!MPR_ERR_MEMORY);
         return MPR_ERR_MEMORY;
     }
-    if ((program = mprSearchPath(program, MPR_SEARCH_EXE, MPR->searchPath, NULL)) == 0) {
+    if ((program = mprSearchPath(program, MPR_SEARCH_EXE, MPR->pathEnv, NULL)) == 0) {
         mprLog(1, "cmd: can't access %s, errno %d", cmd->program, mprGetOsError());
         return MPR_ERR_CANT_ACCESS;
     }
@@ -521,7 +519,8 @@ ssize mprReadCmd(MprCmd *cmd, int channel, char *buf, ssize bufsize)
         /* Process has exited - EOF */
         return 0;
     }
-    errno = EAGAIN;
+    /* This maps to EAGAIN */
+    SetLastError(WSAEWOULDBLOCK);
     return -1;
 }
 #else
@@ -533,7 +532,7 @@ ssize mprReadCmd(MprCmd *cmd, int channel, char *buf, ssize bufsize)
 /*
     Do non-blocking I/O - except on windows - will block
  */
-int mprWriteCmd(MprCmd *cmd, int channel, char *buf, ssize bufsize)
+ssize mprWriteCmd(MprCmd *cmd, int channel, char *buf, ssize bufsize)
 {
 #if BLD_WIN_LIKE
     /*
@@ -543,7 +542,7 @@ int mprWriteCmd(MprCmd *cmd, int channel, char *buf, ssize bufsize)
         return -1;
     }
 #endif
-    return write(cmd->files[channel].fd, buf, (uint) bufsize);
+    return write(cmd->files[channel].fd, buf, bufsize);
 }
 
 
@@ -551,7 +550,7 @@ void mprEnableCmdEvents(MprCmd *cmd, int channel)
 {
     int mask = (channel == MPR_CMD_STDIN) ? MPR_WRITABLE : MPR_READABLE;
     if (cmd->handlers[channel]) {
-        mprEnableWaitEvents(cmd->handlers[channel], mask);
+        mprWaitOn(cmd->handlers[channel], mask);
     }
 }
 
@@ -559,7 +558,7 @@ void mprEnableCmdEvents(MprCmd *cmd, int channel)
 void mprDisableCmdEvents(MprCmd *cmd, int channel)
 {
     if (cmd->handlers[channel]) {
-        mprDisableWaitEvents(cmd->handlers[channel]);
+        mprWaitOn(cmd->handlers[channel], 0);
     }
 }
 
@@ -568,6 +567,8 @@ void mprDisableCmdEvents(MprCmd *cmd, int channel)
 /*
     Windows only routine to wait for I/O on the channels to the gateway and the child process.
     NamedPipes can't use WaitForMultipleEvents (can use overlapped I/O)
+    WARNING: this should not be called from a dispatcher other than cmd->dispatcher. If so, then the calls to
+    mprWaitForEvent may occur after the event has been processed.
  */
 static void waitForWinEvent(MprCmd *cmd, MprTime timeout)
 {
@@ -575,13 +576,12 @@ static void waitForWinEvent(MprCmd *cmd, MprTime timeout)
     int         i, rc, nbytes;
 
     mark = mprGetTime();
-    remaining = timeout;
     for (i = MPR_CMD_STDOUT; i < MPR_CMD_MAX_PIPE; i++) {
         if (cmd->files[i].handle) {
             rc = PeekNamedPipe(cmd->files[i].handle, NULL, 0, NULL, &nbytes, NULL);
             if (rc && nbytes > 0 || cmd->process == 0) {
                 mprQueueIOEvent(cmd->handlers[i]);
-                mprWaitForEvent(cmd->dispatcher, remaining);
+                mprWaitForEvent(cmd->dispatcher, timeout);
                 return;
             }
         }
@@ -589,35 +589,33 @@ static void waitForWinEvent(MprCmd *cmd, MprTime timeout)
     if (cmd->files[MPR_CMD_STDIN].handle) {
         /* Not finalized */
         mprQueueIOEvent(cmd->handlers[MPR_CMD_STDIN]);
-        mprWaitForEvent(cmd->dispatcher, remaining);
+        mprWaitForEvent(cmd->dispatcher, timeout);
         return;
     }
     if (cmd->process) {
-        delay = (cmd->eofCount == cmd->requiredEof && cmd->files[MPR_CMD_STDIN].handle == 0) ? remaining : 0;
+        delay = (cmd->eofCount == cmd->requiredEof && cmd->files[MPR_CMD_STDIN].handle == 0) ? timeout : 0;
         if (WaitForSingleObject(cmd->process, (DWORD) delay) == WAIT_OBJECT_0) {
             reapCmd(cmd);
             return;
         }
-        /* Stop busy waiting */
-        mprSleep(10);
-    }
-    if (cmd->eofCount == cmd->requiredEof && cmd->process) {
-        remaining = mprGetRemainingTime(mark, timeout);
-        rc = WaitForSingleObject(cmd->process, (DWORD) remaining);
-        if (rc == WAIT_OBJECT_0) {
-            reapCmd(cmd);
-        } else {
+        if (cmd->eofCount == cmd->requiredEof) {
+            remaining = mprGetRemainingTime(mark, timeout);
+            rc = WaitForSingleObject(cmd->process, (DWORD) remaining);
+            if (rc == WAIT_OBJECT_0) {
+                reapCmd(cmd);
+                return;
+            }
             mprError("Error waiting CGI I/O, error %d", mprGetOsError());
         }
     }
-    return;
+    /* Stop busy waiting */
+    mprSleep(10);
 }
 #endif
 
 
 /*
     Wait for a command to complete. Return 0 if the command completed, otherwise it will return MPR_ERR_TIMEOUT. 
-    This will call mprReapCmd if required.
  */
 int mprWaitForCmd(MprCmd *cmd, MprTime timeout)
 {
@@ -752,8 +750,6 @@ static void cmdCallback(MprCmd *cmd, int channel, void *data)
     buf = 0;
     switch (channel) {
     case MPR_CMD_STDIN:
-        //  MOB - what should be done here
-        // MOB mprEnableCmdEvents(cmd, MPR_CMD_STDIN, MPR_WRITABLE);
         return;
     case MPR_CMD_STDOUT:
         buf = cmd->stdoutBuf;
@@ -787,6 +783,7 @@ static void cmdCallback(MprCmd *cmd, int channel, void *data)
     } else {
         mprAdjustBufEnd(buf, len);
     }
+    mprAddNullToBuf(buf);
     mprEnableCmdEvents(cmd, channel);
 }
 
@@ -942,7 +939,7 @@ static int sanitizeArgs(MprCmd *cmd, int argc, char **argv, char **env)
     cmd->argv = argv;
     cmd->argc = argc;
 
-    program = cmd->arg0 = mprAlloc(strlen(argv[0]) * 2 + 1);
+    program = cmd->arg0 = mprAlloc(slen(argv[0]) * 2 + 1);
     strcpy(program, argv[0]);
 
     for (cp = program; *cp; cp++) {
@@ -970,14 +967,14 @@ static int sanitizeArgs(MprCmd *cmd, int argc, char **argv, char **env)
     argv[0] = program;
     argc = 0;
     for (len = 0, ap = argv; *ap; ap++) {
-        len += (strlen(*ap) * 2) + 1 + 2;         /* Space and possible quotes and worst case backquoting */
+        len += (slen(*ap) * 2) + 1 + 2;         /* Space and possible quotes and worst case backquoting */
         argc++;
     }
     cmd->command = mprAlloc(len + 1);
     cmd->command[len] = '\0';
     
     /*
-        Add quotes around all args and backquote [", ', \\]
+        Add quotes around all args that have spaces and backquote [", ', \\]
         Example:    ["showColors", "red", "light blue", "Can't \"render\""]
         Becomes:    "showColors" "red" "light blue" "Can't \"render\""
      */
@@ -985,13 +982,18 @@ static int sanitizeArgs(MprCmd *cmd, int argc, char **argv, char **env)
     for (ap = &argv[0]; *ap; ) {
         start = cp = *ap;
         quote = '"';
-        for (*dp++ = quote; *cp; ) {
-            if (*cp == quote && !(cp > start && cp[-1] == '\\')) {
-                *dp++ = '\\';
+        if (strchr(cp, ' ') != 0 && cp[0] != quote) {
+            for (*dp++ = quote; *cp; ) {
+                if (*cp == quote && !(cp > start && cp[-1] == '\\')) {
+                    *dp++ = '\\';
+                }
+                *dp++ = *cp++;
             }
-            *dp++ = *cp++;
+            *dp++ = quote;
+        } else {
+            strcpy(dp, cp);
+            dp += strlen(cp);
         }
-        *dp++ = quote;
         if (*++ap) {
             *dp++ = ' ';
         }
@@ -1012,7 +1014,7 @@ static int sanitizeArgs(MprCmd *cmd, int argc, char **argv, char **env)
     if (env) {
         len = 0;
         for (hasSystemRoot = hasPath = 0, ep = env; ep && *ep; ep++) {
-            len += strlen(*ep) + 1;
+            len += slen(*ep) + 1;
             if (strncmp(*ep, "PATH=", 5) == 0) {
                 hasPath++;
             } else if (strncmp(*ep, "SYSTEMROOT=", 11) == 0) {
@@ -1020,10 +1022,10 @@ static int sanitizeArgs(MprCmd *cmd, int argc, char **argv, char **env)
             }
         }
         if (!hasSystemRoot && (SYSTEMROOT = getenv("SYSTEMROOT")) != 0) {
-            len += 11 + strlen(SYSTEMROOT) + 1;
+            len += 11 + slen(SYSTEMROOT) + 1;
         }
         if (!hasPath && (PATH = getenv("PATH")) != 0) {
-            len += 5 + strlen(PATH) + 1;
+            len += 5 + slen(PATH) + 1;
         }
         len += 2;       /* Windows requires 2 nulls for the block end */
 
@@ -1033,20 +1035,21 @@ static int sanitizeArgs(MprCmd *cmd, int argc, char **argv, char **env)
         for (ep = env; ep && *ep; ep++) {
             mprLog(4, "    env[%d]: %s", i, *ep);
             strcpy(dp, *ep);
-            dp += strlen(*ep) + 1;
+            dp += slen(*ep) + 1;
         }
         if (!hasSystemRoot) {
             mprSprintf(dp, (endp - dp - 1), "SYSTEMROOT=%s", SYSTEMROOT);
-            dp += 12 + strlen(SYSTEMROOT);
+            dp += 12 + slen(SYSTEMROOT);
         }
         if (!hasPath) {
             mprSprintf(dp, (endp - dp - 1), "PATH=%s", PATH);
-            dp += 6 + strlen(PATH);
+            dp += 6 + slen(PATH);
         }
         *dp++ = '\0';
         *dp++ = '\0';                        /* Windows requires two nulls */
         mprAssert(dp <= endp);
     }
+    mprLog(5, "Windows command line: %s", cmd->command);
 #endif /* BLD_WIN_LIKE */
     return 0;
 }
@@ -1109,7 +1112,7 @@ static int startProcess(MprCmd *cmd)
 
 
 #if WINCE
-//  MOB - merge this with WIN
+//  FUTURE - merge this with WIN
 static int makeChannel(MprCmd *cmd, int index)
 {
     SECURITY_ATTRIBUTES clientAtt, serverAtt, *att;
@@ -1200,7 +1203,6 @@ static int makeChannel(MprCmd *cmd, int index)
     pipeMode = 0;
 
     att = (index == MPR_CMD_STDIN) ? &clientAtt : &serverAtt;
-    //  MOB - buffer size should not be hard coded
     readHandle = CreateNamedPipe(pipeName, openMode, pipeMode, 1, 0, 256 * 1024, 1, att);
     if (readHandle == INVALID_HANDLE_VALUE) {
         mprError("Can't create stdio pipes %s. Err %d\n", pipeName, mprGetOsError());

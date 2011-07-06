@@ -76,7 +76,7 @@ int wcasecmp(MprChar *s1, MprChar *s2)
     } else if (s2 == 0) {
         return 1;
     }
-    return wncasecmp(s1, s2, max(strlen(s1), strlen(s2)));
+    return wncasecmp(s1, s2, max(slen(s1), slen(s2)));
 }
 
 
@@ -108,7 +108,7 @@ int wcmp(MprChar *s1, MprChar *s2)
     } else if (s2 == 0) {
         return 1;
     }
-    return wncmp(s1, s2, max(strlen(s1), strlen(s2)));
+    return wncmp(s1, s2, max(slen(s1), slen(s2)));
 }
 
 
@@ -169,7 +169,7 @@ int wends(MprChar *str, MprChar *suffix)
     if (str == NULL || suffix == NULL) {
         return 0;
     }
-    if (wncmp(&str[wlen(str) - wlen(suffix) - 1], suffix, -1) == 0) {
+    if (wncmp(&str[wlen(str) - wlen(suffix)], suffix, -1) == 0) {
         return 1;
     }
     return 0;
@@ -642,14 +642,9 @@ MprChar *wsub(MprChar *str, ssize offset, ssize len)
     mprAssert(offset >= 0);
     mprAssert(0 <= len && len < MAXINT);
 
-    if (str == NULL) {
-        return NULL;
+    if (str == 0) {
+        return 0;
     }
-#if UNUSED
-    if (len < 0) {
-        len = wlen(&str[offset]);
-    }
-#endif
     size = (len + 1) * sizeof(MprChar);
     if ((result = mprAlloc(size)) == NULL) {
         return NULL;
@@ -661,25 +656,27 @@ MprChar *wsub(MprChar *str, ssize offset, ssize len)
 
 MprChar *wtrim(MprChar *str, MprChar *set, int where)
 {
-    ssize  len, i;
+    MprChar     s;
+    ssize       len, i;
 
     if (str == NULL || set == NULL) {
         return str;
     }
+    s = wclone(str);
     if (where & MPR_TRIM_START) {
-        i = wspn(str, set);
+        i = wspn(s, set);
     } else {
         i = 0;
     }
-    str += i;
+    s += i;
     if (where & MPR_TRIM_END) {
-        len = wlen(str);
-        while (len > 0 && wspn(&str[len - 1], set) > 0) {
-            str[len - 1] = '\0';
+        len = wlen(s);
+        while (len > 0 && wspn(&s[len - 1], set) > 0) {
+            s[len - 1] = '\0';
             len--;
         }
     }
-    return str;
+    return s;
 }
 
 
@@ -720,21 +717,19 @@ ssize wtom(char *dest, ssize destCount, MprChar *src, ssize len)
     if (destCount < 0) {
         destCount = MAXSSIZE;
     }
-#if UNUSED
     if (len < 0) {
         len = MAXSSIZE;
     }
-#endif
     size = min(destCount, len + 1);
     if (size > 0) {
 #if BLD_CHAR_LEN == 1
         if (dest) {
             scopy(dest, size, src);
         } else {
-            len = min(strlen(src), size - 1);
+            len = min(slen(src), size - 1);
         }
 #elif BLD_WIN_LIKE
-        //  MOB -- use destCount
+        //  TODO -- use destCount
         len = WideCharToMultiByte(CP_ACP, 0, src, -1, dest, (DWORD) size, NULL, NULL);
 #else
         len = wcstombs(dest, src, size);
@@ -772,7 +767,7 @@ ssize mtow(MprChar *dest, ssize destCount, cchar *src, ssize len)
         if (dest) {
             scopy(dest, size, src);
         } else {
-            len = min(strlen(src), size - 1);
+            len = min(slen(src), size - 1);
         }
 #elif BLD_WIN_LIKE
         len = MultiByteToWideChar(CP_ACP, 0, src, -1, dest, size);
@@ -903,7 +898,7 @@ static int isValidUtf8(cuchar *src, int len)
 }
 
 
-//  MOB - CLEAN
+//  TODO - CLEAN
 static int offsets[6] = { 0x00000000UL, 0x00003080UL, 0x000E2080UL, 0x03C82080UL, 0xFA082080UL, 0x82082080UL };
 
 ssize xmtow(MprChar *dest, ssize destMax, cchar *src, ssize len) 
@@ -914,11 +909,9 @@ ssize xmtow(MprChar *dest, ssize destMax, cchar *src, ssize len)
 
     mprAssert(0 <= len && len < MAXINT);
 
-#if UNUSED
     if (len < 0) {
-        len = strlen(src);
+        len = slen(src);
     }
-#endif
     if (dest) {
         dend = &dest[destMax];
     }
@@ -965,7 +958,7 @@ ssize xmtow(MprChar *dest, ssize destMax, cchar *src, ssize len)
     return count;
 }
 
-//  MOB - CLEAN
+//  TODO - CLEAN
 static cuchar marks[7] = { 0x00, 0x00, 0xC0, 0xE0, 0xF0, 0xF8, 0xFC };
 
 /*
@@ -1000,11 +993,9 @@ ssize xwtom(char *dest, ssize destMax, MprChar *src, ssize len)
 
     mprAssert(0 <= len && len < MAXINT);
 
-#if UNUSED
     if (len < 0) {
         len = wlen(src);
     }
-#endif
     if (dest) {
         dend = &dest[destMax];
     }
@@ -1060,7 +1051,7 @@ ssize xwtom(char *dest, ssize destMax, MprChar *src, ssize len)
 MprChar *amtow(cchar *src, ssize *len)
 {
     if (len) {
-        *len = strlen(src);
+        *len = slen(src);
     }
     return sclone(src);
 }
@@ -1069,25 +1060,11 @@ MprChar *amtow(cchar *src, ssize *len)
 char *awtom(MprChar *src, ssize *len)
 {
     if (len) {
-        *len = strlen(src);
+        *len = slen(src);
     }
     return sclone(src);
 }
 
-#if UNUSED
-MprChar *wfmt(MprChar *fmt, ...)
-{
-    MprChar     *result;
-    va_list     ap;
-
-    mprAssert(fmt);
-
-    va_start(ap, fmt);
-    result = mprAsprintfv(fmt, ap);
-    va_end(ap);
-    return result;
-}
-#endif
 
 #endif /* BLD_CHAR_LEN > 1 */
 

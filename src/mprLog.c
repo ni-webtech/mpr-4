@@ -80,6 +80,20 @@ void mprError(cchar *fmt, ...)
 }
 
 
+void mprWarn(cchar *fmt, ...)
+{
+    va_list     args;
+    char        buf[MPR_MAX_LOG];
+
+    va_start(args, fmt);
+    mprSprintfv(buf, sizeof(buf), fmt, args);
+    va_end(args);
+    
+    logOutput(MPR_ERROR_MSG | MPR_WARN_SRC, 0, buf);
+    mprBreakpoint();
+}
+
+
 void mprMemoryError(cchar *fmt, ...)
 {
     va_list     args;
@@ -135,10 +149,10 @@ void mprStaticError(cchar *fmt, ...)
     mprSprintfv(buf, sizeof(buf), fmt, args);
     va_end(args);
 #if BLD_UNIX_LIKE || VXWORKS
-    (void) write(2, (char*) buf, strlen(buf));
-    (void) write(2, (char*) "\n", 1);
+    if (write(2, (char*) buf, slen(buf)) < 0) {}
+    if (write(2, (char*) "\n", 1) < 0) {}
 #elif BLD_WIN_LIKE
-    fprintf(stderr, "%s\n", buf);
+    if (fprintf(stderr, "%s\n", buf) < 0) {}
 #endif
     mprBreakpoint();
 }
@@ -160,11 +174,10 @@ void mprAssertError(cchar *loc, cchar *msg)
 #endif
         msg = buf;
     }
-    
 #if BLD_UNIX_LIKE || VXWORKS
-    (void) write(2, (char*) msg, strlen(msg));
+    if (write(2, (char*) msg, slen(msg)) < 0) {}
 #elif BLD_WIN_LIKE
-    fprintf(stderr, "%s\n", msg);
+    if (fprintf(stderr, "%s\n", msg) < 0) {}
 #endif
     mprBreakpoint();
 #endif
@@ -184,6 +197,12 @@ int mprGetLogLevel()
 MprLogHandler mprGetLogHandler()
 {
     return MPR->logHandler;
+}
+
+
+int mprUsingDefaultLogHandler()
+{
+    return MPR->logHandler == defaultLogHandler;
 }
 
 
@@ -208,6 +227,22 @@ void mprSetLogFile(MprFile *file)
 void mprSetLogLevel(int level)
 {
     MPR->logLevel = level;
+}
+
+
+int mprSetCmdlineLogging(int on)
+{
+    int     wasLogging;
+
+    wasLogging = MPR->cmdlineLogging;
+    MPR->cmdlineLogging = on;
+    return wasLogging;
+}
+
+
+int mprGetCmdlineLogging()
+{
+    return MPR->cmdlineLogging;
 }
 
 
@@ -243,6 +278,8 @@ static void defaultLogHandler(int flags, int level, cchar *msg)
         mprPrintfError("%s: %d: %s\n", prefix, level, msg);
     } else if (flags & MPR_ERROR_SRC) {
         mprPrintfError("%s: Error: %s\n", prefix, msg);
+    } else if (flags & MPR_WARN_SRC) {
+        mprPrintfError("%s: Warning: %s\n", prefix, msg);
     } else if (flags & MPR_FATAL_SRC) {
         mprPrintfError("%s: Fatal: %s\n", prefix, msg);
     } else if (flags & MPR_RAW) {

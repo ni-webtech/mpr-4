@@ -105,9 +105,7 @@ static void testListIterate(MprTestGroup *gp)
     for (i = 0; i < max; i++) {
         mprAddItem(lp, (void*) (long) (i + 1));
     }
-
-    i = 0;
-    next = 0;
+    i = next = 0;
     item = (int) (long) mprGetNextItem(lp, &next);
     while (item > 0) {
         i++;

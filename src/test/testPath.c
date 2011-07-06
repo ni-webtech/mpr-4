@@ -70,11 +70,8 @@ static int termPath(MprTestGroup *gp)
 
 static void testCopyPath(MprTestGroup *gp)
 {
-    TestPath    *ts;
     MprFile     *file;
     char        *from, *to;
-
-    ts = (TestPath*) gp->data;
 
     from = mprAsprintf("copyTest-%s.tmp", mprGetCurrentThreadName(gp));
     assert(from != 0);

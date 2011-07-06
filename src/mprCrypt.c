@@ -144,7 +144,7 @@ int mprRandom()
 #if WIN || VXWORKS
     return rand();
 #else
-    return random();
+    return (int) random();
 #endif
 }
 
@@ -156,7 +156,7 @@ char *mprDecode64(cchar *s)
     ssize   len;
     int     c, i, j, shift;
 
-    len = strlen(s);
+    len = slen(s);
     if ((buffer = mprAlloc(len + 1)) == 0) {
         return NULL;
     }
@@ -191,7 +191,7 @@ char *mprEncode64(cchar *s)
     ssize   len;
     int     i, j, shift;
 
-    len = strlen(s) * 2;
+    len = slen(s) * 2;
     if ((buffer = mprAlloc(len + 1)) == 0) {
         return NULL;
     }
@@ -242,7 +242,7 @@ char *mprGetMD5Hash(cchar *buf, ssize length, cchar *prefix)
     }
     *r = '\0';
 
-    len = (prefix) ? strlen(prefix) : 0;
+    len = (prefix) ? slen(prefix) : 0;
     str = mprAlloc(sizeof(result) + len);
     if (str) {
         if (prefix) {

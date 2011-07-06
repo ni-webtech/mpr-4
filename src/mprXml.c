@@ -465,7 +465,7 @@ static MprXmlToken getToken(MprXml *xp, int state)
                 }
                 putLastChar(xp, c);
             }
-            if (mprGetBufLength(tokBuf) <= 0) {
+            if (mprGetBufLength(tokBuf) < 0) {
                 return MPR_XMLTOK_ERR;
             }
             mprAddNullToBuf(tokBuf);
@@ -557,7 +557,7 @@ static int scanFor(MprXml *xp, char *pattern)
             /*
                 Remove the pattern from the tokBuf
              */
-            mprAdjustBufEnd(tokBuf, - (int) strlen(pattern));
+            mprAdjustBufEnd(tokBuf, - (int) slen(pattern));
             trimToken(xp);
             return 1;
         }

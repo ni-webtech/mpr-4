@@ -33,7 +33,7 @@ MprThreadService *mprCreateThreadService()
     if (ts == 0) {
         return 0;
     }
-    //  MOB - not used
+    //  TODO - not used
     if ((ts->mutex = mprCreateLock()) == 0) {
         return 0;
     }
@@ -61,8 +61,17 @@ MprThreadService *mprCreateThreadService()
 
 void mprStopThreadService()
 {
-    MPR->threadService->threads->mutex = 0;
-    MPR->threadService->mutex = 0;
+    MprThreadService    *ts;
+
+    mprAssert(MPR);
+    ts = MPR->threadService;
+    mprAssert(ts);
+    mprAssert(ts->mainThread);
+
+    //  MOB - why
+    ts->threads->mutex = 0;
+    ts->mutex = 0;
+    mprRemoveItem(ts->threads, ts->mainThread);
 }
 
 
@@ -99,7 +108,7 @@ MprThread *mprGetCurrentThread()
         lock(ts->threads);
     }
     for (i = 0; i < ts->threads->length; i++) {
-        tp = (MprThread*) mprGetItem(ts->threads, i);
+        tp = mprGetItem(ts->threads, i);
         if (tp->osThread == id) {
             unlock(ts->threads);
             return tp;
@@ -166,11 +175,10 @@ MprThread *mprCreateThread(cchar *name, void *entry, void *data, int stackSize)
 #if BLD_WIN_LIKE
     tp->threadHandle = 0;
 #endif
-
-    if (ts && ts->threads) {
-        if (mprAddItem(ts->threads, tp) < 0) {
-            return 0;
-        }
+    mprAssert(ts);
+    mprAssert(ts->threads);
+    if (mprAddItem(ts->threads, tp) < 0) {
+        return 0;
     }
     return tp;
 }
@@ -252,7 +260,7 @@ static void threadProc(MprThread *tp)
  */
 int mprStartThread(MprThread *tp)
 {
-    //  MOB - is this needed
+    //  TODO - lock not needed
     lock(tp);
 
 #if BLD_WIN_LIKE
@@ -278,7 +286,6 @@ int mprStartThread(MprThread *tp)
     taskPriorityGet(taskIdSelf(), &pri);
     taskHandle = taskSpawn(tp->name, pri, 0, tp->stackSize, (FUNCPTR) threadProcWrapper, (int) tp, 
         0, 0, 0, 0, 0, 0, 0, 0, 0);
-
     if (taskHandle < 0) {
         mprError("Can't create thread %s\n", tp->name);
         return MPR_ERR_CANT_INITIALIZE;
@@ -330,7 +337,7 @@ void mprSetThreadPriority(MprThread *tp, int newPriority)
 #elif VXWORKS
     taskPrioritySet(tp->osThread, osPri);
 #else
-    setpriority(PRIO_PROCESS, tp->pid, osPri);
+    setpriority(PRIO_PROCESS, (int) tp->pid, osPri);
 #endif
     tp->priority = newPriority;
     unlock(tp);
@@ -621,7 +628,6 @@ void mprSetMinWorkers(int n)
         worker = createWorker(ws, ws->stackSize);
         ws->numThreads++;
         ws->maxUseThreads = max(ws->numThreads, ws->maxUseThreads);
-        ws->pruneHighWater = max(ws->numThreads, ws->pruneHighWater);
         changeState(worker, MPR_WORKER_BUSY);
         mprStartThread(worker->thread);
     }
@@ -749,8 +755,6 @@ int mprStartWorker(MprWorkerProc proc, void *data)
 
         ws->numThreads++;
         ws->maxUseThreads = max(ws->numThreads, ws->maxUseThreads);
-        ws->pruneHighWater = max(ws->numThreads, ws->pruneHighWater);
-
         worker->proc = proc;
         worker->data = data;
 
@@ -779,25 +783,18 @@ int mprStartWorker(MprWorkerProc proc, void *data)
 static void pruneWorkers(MprWorkerService *ws, MprEvent *timer)
 {
     MprWorker     *worker;
-    int           index, toTrim;
+    int           index;
 
     if (mprGetDebugMode()) {
         return;
     }
-    /*
-        Prune half the idle threads for exponentional decay. Use the high water mark seen in the last period.
-     */
     mprLock(ws->mutex);
-    toTrim = (ws->pruneHighWater - ws->minThreads) / 2;
-
-    for (index = 0; toTrim-- > 0 && index < ws->idleThreads->length; index++) {
-        worker = (MprWorker*) mprGetItem(ws->idleThreads, index);
-        /*
-            Leave floating -- in no queue. The thread will kill itself.
-         */
-        changeState(worker, MPR_WORKER_PRUNED);
+    for (index = 0; index < ws->idleThreads->length; index++) {
+        worker = mprGetItem(ws->idleThreads, index);
+        if ((worker->lastActivity + MPR_TIMEOUT_WORKER) < MPR->eventService->now) {
+            changeState(worker, MPR_WORKER_PRUNED);
+        }
     }
-    ws->pruneHighWater = ws->minThreads;
     mprUnlock(ws->mutex);
 }
 
@@ -839,9 +836,8 @@ void mprGetWorkerServiceStats(MprWorkerService *ws, MprWorkerStats *stats)
     stats->minThreads = ws->minThreads;
     stats->numThreads = ws->numThreads;
     stats->maxUse = ws->maxUseThreads;
-    stats->pruneHighWater = ws->pruneHighWater;
-    stats->idleThreads = ws->idleThreads->length;
-    stats->busyThreads = ws->busyThreads->length;
+    stats->idleThreads = (int) ws->idleThreads->length;
+    stats->busyThreads = (int) ws->busyThreads->length;
 }
 
 
@@ -867,7 +863,7 @@ static MprWorker *createWorker(MprWorkerService *ws, int stackSize)
     worker->idleCond = mprCreateCond();
 
     mprSprintf(name, sizeof(name), "worker.%u", getNextThreadNum(ws));
-    worker->thread = mprCreateThread(name, (MprThreadProc) workerMain, (void*) worker, 0);
+    worker->thread = mprCreateThread(name, (MprThreadProc) workerMain, worker, 0);
     return worker;
 }
 
@@ -900,9 +896,10 @@ static void workerMain(MprWorker *worker, MprThread *tp)
             mprLock(ws->mutex);
             worker->proc = 0;
         }
+        worker->lastActivity = MPR->eventService->now;
         changeState(worker, MPR_WORKER_SLEEPING);
 
-        //  MOB -- is this used?
+        //  TODO -- is this used?
         mprAssert(worker->cleanup == 0);
         if (worker->cleanup) {
             (*worker->cleanup)(worker->data, worker);
@@ -985,7 +982,6 @@ static int changeState(MprWorker *worker, int state)
     worker->state = state;
 
     if (lp) {
-        //  MOB -- should be able to remove lock
         if (mprAddItem(lp, worker) < 0) {
             mprUnlock(ws->mutex);
             mprAssert(!MPR_ERR_MEMORY);

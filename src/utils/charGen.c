@@ -12,11 +12,10 @@
 
 int main(int argc, char *argv[])
 {
-    Mpr     *mpr;
     uchar    flags;
     uint     c;
 
-    mpr = mprCreate(argc, argv, 0);
+    mprCreate(argc, argv, 0);
 
     mprPrintf("static uchar charMatch[256] = {\n\t0x00,");
 

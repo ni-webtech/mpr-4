@@ -1,6 +1,6 @@
 ###############################################################################
 #
-#   configure.mpr -- Build configuration script for Michael's Portable Runtime
+#   configure.mpr -- Build configuration script for the Multithreaded Portable Runtime
 #
 #   Copyright (c) Michael O'Brien, 1994-2011. All Rights Reserved.
 #   Copyright (c) Embedthis Software LLC, 2003-2011. All Rights Reserved.
@@ -33,14 +33,15 @@ manageFeatures()
 createFeatureConfig()
 {
     :
-##	    NAME=$1
-##	
-##	    cat >>$NAME <<!EOF_FEATURE_CONFIG2
-##	#
-##	#   Extended Feature Selection
-##	#
-##	BLD_FEATURE_XML=$BLD_FEATURE_XML
-##	!EOF_FEATURE_CONFIG2
+    NAME=$1
+
+    cat >>$NAME <<!EOF_FEATURE_CONFIG2
+#
+#   Mpr Feature Selection
+#
+BLD_MPR_PRODUCT=1
+
+!EOF_FEATURE_CONFIG2
 }
 
 

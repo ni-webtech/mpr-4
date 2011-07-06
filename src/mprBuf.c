@@ -351,7 +351,7 @@ ssize mprPutBlockToBuf(MprBuf *bp, cchar *str, ssize size)
 ssize mprPutStringToBuf(MprBuf *bp, cchar *str)
 {
     if (str) {
-        return mprPutBlockToBuf(bp, str, strlen(str));
+        return mprPutBlockToBuf(bp, str, slen(str));
     }
     return 0;
 }
@@ -362,7 +362,7 @@ ssize mprPutSubStringToBuf(MprBuf *bp, cchar *str, ssize count)
     ssize     len;
 
     if (str) {
-        len = strlen(str);
+        len = slen(str);
         len = min(len, count);
         if (len > 0) {
             return mprPutBlockToBuf(bp, str, len);
@@ -451,7 +451,7 @@ int mprGrowBuf(MprBuf *bp, ssize need)
 /*
     Add a number to the buffer (always null terminated).
  */
-ssize mprPutIntToBuf(MprBuf *bp, int i)
+ssize mprPutIntToBuf(MprBuf *bp, int64 i)
 {
     char        numBuf[16];
     ssize       rc;

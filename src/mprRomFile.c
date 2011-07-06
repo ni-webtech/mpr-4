@@ -202,7 +202,7 @@ static MprRomInode *lookup(MprRomFileSystem *rfs, cchar *path)
     if (*path == '/') {
         path++;
     }
-    return (MprRomInode*) mprLookupHash(rfs->fileIndex, path);
+    return (MprRomInode*) mprLookupKey(rfs->fileIndex, path);
 }
 
 

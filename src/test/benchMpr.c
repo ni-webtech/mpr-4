@@ -27,7 +27,6 @@ static void     doBenchmark(void *thread);
 static void     endMark(MprTime start, int count, char *msg);
 static void     eventCallback(void *data, MprEvent *ep);
 static void     manageApp(App *app, int flags);
-static ssize    memsize();
 static MprTime  startMark();
 static void     testMalloc();
 static void     timerCallback(void *data, MprEvent *ep);
@@ -209,11 +208,11 @@ static void doBenchmark(void *thread)
 static void testMalloc()
 {
     MprTime     start;
-    ssize       base;
+    // ssize    base;
     char        *ptr;
     int         count, i;
 
-#if UNUSED && KEEP
+#if MANUAL
     /*
         Demonstrate validation checking if end of block is overwritten. 
         Must build with debug on and MPR_ALLOC_VERIFY enabled in mpr.h
@@ -229,50 +228,51 @@ static void testMalloc()
     /*
         malloc(1)
      */
-    base = memsize();
+
+    base = mprGetMem();
     start = startMark();
     for (i = 0; i < count; i++) {
         ptr = malloc(1);
         memset(ptr, 0, 1);
     }
     endMark(start, count, "Alloc malloc(1)");
-    mprPrintf("\tMalloc overhead per block %d\n\n", ((memsize() - base) / count) - 1);
+    mprPrintf("\tMalloc overhead per block %d\n\n", ((mprGetMem() - base) / count) - 1);
 
     /*
         malloc(8)
      */
-    base = memsize();
+    base = mprGetMem();
     start = startMark();
     for (i = 0; i < count; i++) {
         ptr = malloc(8);
         memset(ptr, 0, 8);
     }
     endMark(start, count, "Alloc malloc(8)");
-    mprPrintf("\tMalloc overhead per block %d (approx)\n\n", ((memsize() - base) / count) - 8);
+    mprPrintf("\tMalloc overhead per block %d (approx)\n\n", ((mprGetMem() - base) / count) - 8);
 
     /*
         malloc(16)
      */
-    base = memsize();
+    base = mprGetMem();
     start = startMark();
     for (i = 0; i < count; i++) {
         ptr = malloc(16);
         memset(ptr, 0, 16);
     }
     endMark(start, count, "Alloc malloc(16)");
-    mprPrintf("\tMalloc overhead per block %d (approx)\n\n", ((memsize() - base) / count) - 16);
+    mprPrintf("\tMalloc overhead per block %d (approx)\n\n", ((mprGetMem() - base) / count) - 16);
 
     /*
         malloc(32)
      */
-    base = memsize();
+    base = mprGetMem();
     start = startMark();
     for (i = 0; i < count; i++) {
         ptr = malloc(32);
         memset(ptr, 0, 32);
     }
     endMark(start, count, "Alloc malloc(32)");
-    mprPrintf("\tMalloc overhead per block %d (approx)\n\n", ((memsize() - base) / count) - 32);
+    mprPrintf("\tMalloc overhead per block %d (approx)\n\n", ((mprGetMem() - base) / count) - 32);
 
     /*
         malloc+free(8)
@@ -291,50 +291,50 @@ static void testMalloc()
     /*
         mprAlloc(1)
      */
-    base = memsize();
+    // base = mprGetMem();
     start = startMark();
     for (i = 0; i < count; i++) {
         ptr = mprAlloc(1);
         memset(ptr, 0, 1);
     }
     endMark(start, count, "Alloc mprAlloc(1)");
-    // mprPrintf("\tMpr overhead per block %d (approx)\n\n", ((memsize() - base) / count) - 1);
+    // mprPrintf("\tMpr overhead per block %d (approx)\n\n", ((mprGetMem() - base) / count) - 1);
 
     /*
         mprAlloc(8)
      */
-    base = memsize();
+    // base = mprGetMem();
     start = startMark();
     for (i = 0; i < count; i++) {
         ptr = mprAlloc(8);
         memset(ptr, 0, 8);
     }
     endMark(start, count, "Alloc mprAlloc(8)");
-    // mprPrintf("\tMpr overhead per block %d (approx)\n\n", ((memsize() - base) / count) - 8);
+    // mprPrintf("\tMpr overhead per block %d (approx)\n\n", ((mprGetMem() - base) / count) - 8);
 
     /*
         mprAlloc(16)
      */
-    base = memsize();
+    // base = mprGetMem();
     start = startMark();
     for (i = 0; i < count; i++) {
         ptr = mprAlloc(16);
         memset(ptr, 0, 16);
     }
     endMark(start, count, "Alloc mprAlloc(16)");
-    // mprPrintf("\tMpr overhead per block %d (approx)\n\n", ((memsize() - base) / count) - 16);
+    // mprPrintf("\tMpr overhead per block %d (approx)\n\n", ((mprGetMem() - base) / count) - 16);
 
     /*
         mprAlloc(32)
      */
-    base = memsize();
+    // base = mprGetMem();
     start = startMark();
     for (i = 0; i < count; i++) {
         ptr = mprAlloc(32);
         memset(ptr, 0, 32);
     }
     endMark(start, count, "Alloc mprAlloc(32)");
-    // mprPrintf("\tMpr overhead per block %d (approx)\n\n", ((memsize() - base) / count) - 32);
+    // mprPrintf("\tMpr overhead per block %d (approx)\n\n", ((mprGetMem() - base) / count) - 32);
     mprPrintf("\n");
 }
 
@@ -344,7 +344,7 @@ static void testMalloc()
  */
 static void eventCallback(void *data, MprEvent *event)
 {
-    //  MOB - should have atomic Inc
+    //  TODO - should have atomic Inc
     mprLock(app->mutex);
     if (--app->markCount == 0) {
         mprSignalCond(app->complete);
@@ -381,19 +381,6 @@ static void endMark(MprTime start, int count, char *msg)
     elapsed = mprGetElapsedTime(start);
     mprPrintf("\t%-30s\t%13.2f\t%12.2f\n", msg, elapsed * 1000.0 / count, elapsed / 1000.0);
     mprRequestGC(MPR_FORCE_GC | MPR_COMPLETE_GC | MPR_WAIT_GC);
-}
-
-
-static ssize memsize() 
-{
-#if MACOSX || FREEBSD
-    struct rusage   rusage;
-
-    getrusage(RUSAGE_SELF, &rusage);
-    return rusage.ru_maxrss;
-#else
-    return 1;
-#endif
 }
 
 

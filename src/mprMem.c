@@ -45,7 +45,7 @@ int stopSeqno = -1;
                                     mp->field1 = ((hasManager) << MPR_SHIFT_HAS_MANAGER)
 #endif
 
-#define HAS_MANAGER(mp)             ((mp->field1 & MPR_MASK_HAS_MANAGER) >> MPR_SHIFT_HAS_MANAGER)
+#define HAS_MANAGER(mp)             ((int) ((mp->field1 & MPR_MASK_HAS_MANAGER) >> MPR_SHIFT_HAS_MANAGER))
 #define SET_HAS_MANAGER(mp, value)  mp->field1 = ((mp->field1 & ~MPR_MASK_HAS_MANAGER) | (value << MPR_SHIFT_HAS_MANAGER))
 
 /*
@@ -56,7 +56,7 @@ int stopSeqno = -1;
 #define SET_SIZE(mp, value)         mp->field2 = ((value) << MPR_SHIFT_SIZE) | (mp->field2 & ~MPR_MASK_SIZE)
 #define IS_FREE(mp)                 ((mp->field2 & MPR_MASK_FREE) >> MPR_SHIFT_FREE)
 #define SET_FREE(mp, value)         mp->field2 = (((size_t) (value)) << MPR_SHIFT_FREE) | (mp->field2 & ~MPR_MASK_FREE)
-#define GET_GEN(mp)                 ((mp->field2 & MPR_MASK_GEN) >> MPR_SHIFT_GEN)
+#define GET_GEN(mp)                 ((int) ((mp->field2 & MPR_MASK_GEN) >> MPR_SHIFT_GEN))
 #define SET_GEN(mp, value)          mp->field2 = (((size_t) value) << MPR_SHIFT_GEN) | (mp->field2 & ~MPR_MASK_GEN)
 #define GET_MARK(mp)                (mp->field2 & MPR_MASK_MARK)
 #define SET_MARK(mp, value)         mp->field2 = (value) | (mp->field2 & ~MPR_MASK_MARK)
@@ -162,6 +162,7 @@ static MprMem   headBlock, *head;
 static void allocException(ssize size, bool granted);
 static void checkYielded();
 static void dummyManager(void *ptr, int flags);
+static ssize getMemSize();
 static void *getNextRoot();
 static void getSystemInfo();
 static void initGen();
@@ -188,12 +189,13 @@ static void triggerGC(int flags);
 #if FUTURE
     static void showMem(MprMem *mp);
 #endif
+    static void freeLocation(cchar *name, ssize size);
     static void printQueueStats();
     static void printGCStats();
 #endif
 
 #if BLD_FEATURE_VALLOC
-    #define allocBlock(required, flags) allocFromHeap(required, flags)
+    #define allocMem(required, flags) allocFromHeap(required, flags)
     #define freeBlock(mp) freeToHeap(mp)
     static int initFree();
     static MprMem *allocFromHeap(ssize size, int flags);
@@ -208,7 +210,7 @@ static void triggerGC(int flags);
         static MprFreeMem *getQueue(ssize size);
     #endif
 #else
-    #define allocBlock(required, flags) allocFromMalloc(required, flags)
+    #define allocMem(required, flags) allocFromMalloc(required, flags)
     #define freeBlock(mp) freeToMalloc(mp)
     static MprMem *allocFromMalloc(ssize required, int flags);
     static MprMem *freeToMalloc(MprMem *mp);
@@ -224,7 +226,7 @@ Mpr *mprCreateMemService(MprManager manager, int flags)
 {
     MprHeap     initHeap;
     MprMem      *mp;
-    ssize       size, mprSize;
+    ssize       size, mprSize, spareSize;
 #if BLD_FEATURE_VALLOC
     MprMem      *spare;
     MprRegion   *region;
@@ -283,6 +285,9 @@ Mpr *mprCreateMemService(MprManager manager, int flags)
     if (scmp(getenv("MPR_SCRIBBLE_MEM"), "1") == 0) {
         heap->scribble = 1;
     }
+    if (scmp(getenv("MPR_TRACK_MEM"), "1") == 0) {
+        heap->track = 1;
+    }
     heap->stats.bytesAllocated += size;
     INC(allocs);
 
@@ -291,18 +296,20 @@ Mpr *mprCreateMemService(MprManager manager, int flags)
     mprInitSpinLock(&heap->rootLock);
     getSystemInfo();
     initGen();
+    initFree();
 
 #if BLD_FEATURE_VALLOC
-    spare = (MprMem*) (((char*) mp) + mprSize);
-    INIT_BLK(spare, size - regionSize - mprSize, 0, 1, mp);
-    SET_GEN(spare, heap->eternal);
-    SET_FREE(spare, 1);
-    heap->regions = region;
-    initFree();
-    SCRIBBLE(spare);
-    linkBlock(spare);
+    spareSize = size - regionSize - mprSize;
+    if (spareSize > 0) {
+        spare = (MprMem*) (((char*) mp) + mprSize);
+        INIT_BLK(spare, size - regionSize - mprSize, 0, 1, mp);
+        SET_GEN(spare, heap->eternal);
+        SET_FREE(spare, 1);
+        heap->regions = region;
+        SCRIBBLE(spare);
+        linkBlock(spare);
+    }
 #endif
-
     heap->markerCond = mprCreateCond();
     heap->roots = mprCreateList(-1, MPR_LIST_STATIC_VALUES);
     mprAddRoot(MPR);
@@ -341,7 +348,7 @@ void mprDestroyMemService()
 }
 
 
-void *mprAllocBlock(ssize usize, int flags)
+void *mprAllocMem(ssize usize, int flags)
 {
     MprMem      *mp;
     void        *ptr;
@@ -349,13 +356,14 @@ void *mprAllocBlock(ssize usize, int flags)
     int         padWords;
 
     mprAssert(!MPR->marking);
+    mprAssert(usize >= 0);
 
     padWords = padding[flags & MPR_ALLOC_PAD_MASK];
     size = usize + sizeof(MprMem) + (padWords * sizeof(void*));
     size = max(size, usize + (ssize) sizeof(MprFreeMem));
     size = MPR_ALLOC_ALIGN(size);
     
-    if ((mp = allocBlock(size, flags)) == NULL) {
+    if ((mp = allocMem(size, flags)) == NULL) {
         return NULL;
     }
     ptr = GET_PTR(mp);
@@ -373,7 +381,7 @@ void *mprAllocBlock(ssize usize, int flags)
 /*
     Realloc will always zero new memory
  */
-void *mprRealloc(void *ptr, ssize usize)
+void *mprReallocMem(void *ptr, ssize usize)
 {
     MprMem      *mp, *newb;
     void        *newptr;
@@ -383,7 +391,7 @@ void *mprRealloc(void *ptr, ssize usize)
     mprAssert(usize > 0);
 
     if (ptr == 0) {
-        return mprAllocBlock(usize, 0);
+        return mprAllocMem(usize, 0);
     }
     mp = GET_MEM(ptr);
     CHECK(mp);
@@ -396,7 +404,7 @@ void *mprRealloc(void *ptr, ssize usize)
     }
     hasManager = HAS_MANAGER(mp);
     flags = hasManager ? MPR_ALLOC_MANAGER : 0;
-    if ((newptr = mprAllocBlock(usize, flags)) == NULL) {
+    if ((newptr = mprAllocMem(usize, flags)) == NULL) {
         return 0;
     }
     newb = GET_MEM(newptr);
@@ -415,11 +423,11 @@ void *mprRealloc(void *ptr, ssize usize)
 }
 
 
-void *mprMemdup(cvoid *ptr, ssize usize)
+void *mprMemdupMem(cvoid *ptr, ssize usize)
 {
     char    *newp;
 
-    if ((newp = mprAllocBlock(usize, 0)) != 0) {
+    if ((newp = mprAllocMem(usize, 0)) != 0) {
         memcpy(newp, ptr, usize);
     }
     return newp;
@@ -435,8 +443,7 @@ int mprMemcmp(cvoid *s1, ssize s1Len, cvoid *s2, ssize s2Len)
     mprAssert(s1Len >= 0);
     mprAssert(s2Len >= 0);
 
-    rc = memcmp(s1, s2, min(s1Len, s2Len));
-    if (rc == 0) {
+    if ((rc = memcmp(s1, s2, min(s1Len, s2Len))) == 0) {
         if (s1Len < s2Len) {
             return -1;
         } else if (s1Len > s2Len) {
@@ -530,7 +537,7 @@ static MprMem *allocFromHeap(ssize required, int flags)
     INC(requests);
 
     /*
-        MOB OPT - could break this locked section up.
+        TODO OPT - could break this locked section up.
         - Can update bit maps conservatively and lockfree
         - Put locks around freeq unqueue
         - use unlinkBlock or linkBlock only. Do locks internally in these routines
@@ -563,7 +570,7 @@ static MprMem *allocFromHeap(ssize required, int flags)
                     mprAssert(GET_GEN(mp) == heap->eternal);
                     SET_GEN(mp, heap->active);
 
-                    //  MOB -- cleanup
+                    //  OPT
                     mprAtomicBarrier();
                     if (flags & MPR_ALLOC_MANAGER) {
                         SET_MANAGER(mp, dummyManager);
@@ -573,7 +580,6 @@ static MprMem *allocFromHeap(ssize required, int flags)
                     CHECK(mp);
                     CHECK_FREE_MEMORY(mp);
                     if (GET_SIZE(mp) >= (ssize) (required + MPR_ALLOC_MIN_SPLIT)) {
-                        //  MOB -- what is this trying to do?
                         maxBlock = (((ssize) 1 ) << group | (((ssize) bucket) << (max(0, group - 1)))) << MPR_ALIGN_SHIFT;
                         maxBlock += sizeof(MprMem);
 
@@ -585,7 +591,6 @@ static MprMem *allocFromHeap(ssize required, int flags)
                                 SET_PRIOR(after, spare);
                             }
                             SET_SIZE(mp, required);
-                            //  MOB -- cleanup
                             mprAtomicBarrier();
                             SET_LAST(mp, 0);
                             mprAtomicBarrier();
@@ -617,7 +622,7 @@ static MprMem *growHeap(ssize required, int flags)
 {
     MprRegion           *region;
     MprMem              *mp, *spare;
-    ssize               size, rsize;
+    ssize               size, rsize, spareLen;
     int                 hasManager;
 
     mprAssert(required > 0);
@@ -625,7 +630,20 @@ static MprMem *growHeap(ssize required, int flags)
     rsize = MPR_ALLOC_ALIGN(sizeof(MprRegion));
     size = max(required + rsize, (ssize) heap->chunkSize);
     size = MPR_PAGE_ALIGN(size, heap->pageSize);
-
+    if (size < 0 || size >= ((ssize) 1 << MPR_SIZE_BITS)) {
+        allocException(size, 0);
+        return 0;
+    }
+#if KEEP
+{
+    static ssize hiwat = 0;
+    ssize used = mprGetMem();
+    if (used > hiwat) {
+        // printf("Grow %ld K, new total %ld K\n", size / 1024, (used + size) / 1024);
+        hiwat = used;
+    }
+}
+#endif
     if ((region = valloc(size, MPR_MAP_READ | MPR_MAP_WRITE)) == NULL) {
         return 0;
     }
@@ -634,27 +652,31 @@ static MprMem *growHeap(ssize required, int flags)
     region->start = (MprMem*) (((char*) region) + rsize);
     mp = (MprMem*) region->start;
     hasManager = (flags & MPR_ALLOC_MANAGER) ? 1 : 0;
-    INIT_BLK(mp, required, hasManager, 0, NULL);
+    spareLen = size - required - rsize;
+    INIT_BLK(mp, required, hasManager, (spareLen > 0) ? 0 : 1, NULL);
     if (hasManager) {
         SET_MANAGER(mp, dummyManager);
     }
     CHECK(mp);
 
-    spare = (MprMem*) ((char*) mp + required);
-    INIT_BLK(spare, size - required - rsize, 0, 1, mp);
-    CHECK(spare);
-
-#if MOB
-    mprAtomicListInsert(&heap->regions, &region->next, region);
-#endif
     do {
         region->next = heap->regions;
     } while (!mprAtomicCas((void* volatile*) &heap->regions, region->next, region));
 
-    lockHeap();
-    INC(allocs);
-    linkBlock(spare);
-    unlockHeap();
+    if (spareLen > 0) {
+        spare = (MprMem*) ((char*) mp + required);
+        INIT_BLK(spare, spareLen, 0, 1, mp);
+        CHECK(spare);
+        lockHeap();
+        INC(allocs);
+        linkBlock(spare);
+        unlockHeap();
+    } else {
+        //  OPT
+        lockHeap();
+        INC(allocs);
+        unlockHeap();
+    }
     return mp;
 }
 
@@ -680,7 +702,6 @@ static MprMem *freeToHeap(MprMem *mp)
     /*
         Coalesce with next if it is free
      */
-    //  MOB - GET_NEXT should be safe lockfree in the sweeper.
     next = GET_NEXT(mp);
     if (next && IS_FREE(next)) {
         BREAKPOINT(next);
@@ -703,7 +724,6 @@ static MprMem *freeToHeap(MprMem *mp)
     prev = GET_PRIOR(mp);
     if (prev && IS_FREE(prev)) {
         BREAKPOINT(prev);
-        //  MOB - lockfree race here as someone else may claim this block
         unlinkBlock((MprFreeMem*) prev);
         if ((after = GET_NEXT(mp)) != NULL) {
             mprAssert(GET_PRIOR(after) == mp);
@@ -717,7 +737,9 @@ static MprMem *freeToHeap(MprMem *mp)
         mp = prev;
         INC(joins);
         prev = GET_PRIOR(mp);
-        if (prev) CHECK(prev);
+        if (prev) {
+            CHECK(prev);
+        }
         mprAssert(prev == 0 || !IS_FREE(prev));
     }
     next = GET_NEXT(mp);
@@ -748,8 +770,8 @@ static MprMem *freeToHeap(MprMem *mp)
 
 static int getQueueIndex(ssize size, int roundup)
 {   
-    ssize       usize, asize;
-    int         aligned, bucket, group, index, msb;
+    ssize       usize;
+    int         asize, aligned, bucket, group, index, msb;
     
     mprAssert(MPR_ALLOC_ALIGN(size) == size);
 
@@ -758,7 +780,7 @@ static int getQueueIndex(ssize size, int roundup)
         highest queue for common block sizes: eg. 1K.
      */
     usize = (size - sizeof(MprMem));
-    asize = usize >> MPR_ALIGN_SHIFT;
+    asize = (int) (usize >> MPR_ALIGN_SHIFT);
 
     /* Zero based most significant bit */
     msb = (flsl((int) asize) - 1);
@@ -900,7 +922,7 @@ static MprMem *allocFromMalloc(ssize required, int flags)
         unlockHeap();
         return NULL;
     }
-    //  MOB - should not do this - alloc block will zero if requried
+    //  OPT - should not do this - alloc block will zero if requried
     memset(mp, 0, required);
     hasManager = (flags & MPR_ALLOC_MANAGER) ? 1 : 0;
     INIT_BLK(mp, required, hasManager, 0, NULL);
@@ -944,8 +966,7 @@ static MprMem *freeToMalloc(MprMem *mp)
 
 /*
     Allocate virtual memory and check a memory allocation request against configured maximums and redlines. 
-    Do this so that the application does not need to check the result of every little memory allocation. Rather, 
-    an application-wide memory allocation failure can be invoked proactively when a memory redline is exceeded. 
+    An application-wide memory allocation failure routine can be invoked from here when a memory redline is exceeded. 
     It is the application's responsibility to set the red-line value suitable for the system.
  */
 void *mprVirtAlloc(ssize size, int mode)
@@ -953,7 +974,7 @@ void *mprVirtAlloc(ssize size, int mode)
     ssize       used;
     void        *ptr;
 
-    used = mprGetMem();
+    used = getMemSize();
     if (heap->pageSize) {
         size = MPR_PAGE_ALIGN(size, heap->pageSize);
     }
@@ -984,8 +1005,9 @@ void *mprVirtAlloc(ssize size, int mode)
         allocException(size, 0);
         return 0;
     }
-    //  MOB locking
+    lockHeap();
     heap->stats.bytesAllocated += size;
+    unlockHeap();
     return ptr;
 }
 
@@ -1005,9 +1027,10 @@ void mprVirtFree(void *ptr, ssize size)
 #else
     free(ptr);
 #endif
-    //  MOB locking
+    lockHeap();
     heap->stats.bytesAllocated -= size;
     mprAssert(heap->stats.bytesAllocated >= 0);
+    unlockHeap();
 }
 
 /***************************************************** Garbage Colllector *************************************************/
@@ -1035,6 +1058,14 @@ void mprStartGCService()
             }
         }
     }
+}
+
+
+void mprStopGCService()
+{
+    mprWakeGCService();
+    /* Give a yield on some systems */
+    mprSleep(1);
 }
 
 
@@ -1113,7 +1144,7 @@ static void mark()
     LOG(7, "GC: mark started");
 
     /*
-        MOB DOC here on how marking strategy works
+        TODO here on how marking strategy works
         When parallel, we mark blocks using the current heap->active mark. After marking, synchronization will rotate
         the active/stale/dead markers. After this, existing alive blocks may be marked stale. No blocks will be marked
         active.
@@ -1142,7 +1173,7 @@ static void mark()
     markRoots();
     MPR->marking = 0;
     if (!heap->hasSweeper) {
-        MEASURE(7, "GC", "sweep", sweep());
+        MPR_MEASURE(7, "GC", "sweep", sweep());
     }
     synchronize();
 }
@@ -1227,6 +1258,11 @@ static void sweep()
                 CHECK(mp);
                 BREAKPOINT(mp);
                 INC(swept);
+#if BLD_DEBUG && BLD_MEMORY_STATS
+                if (heap->track) {
+                    freeLocation(mp->name, GET_SIZE(mp));
+                }
+#endif
                 heap->stats.freed += GET_SIZE(mp);
                 next = freeBlock(mp);
             } else {
@@ -1331,8 +1367,8 @@ void mprMarkBlock(cvoid *ptr)
         SET_FIELD2(mp, GET_SIZE(mp), gen, heap->active, 0);
         if (HAS_MANAGER(mp)) {
 #if BLD_DEBUG
-            if (++depth > 200) {
-                fprintf(stderr, "WARNING: marking depth exceeds 200\n");
+            if (++depth > 400) {
+                fprintf(stderr, "WARNING: marking depth exceeds 400\n");
                 mprBreakpoint();
             }
 #endif
@@ -1345,7 +1381,7 @@ void mprMarkBlock(cvoid *ptr)
 }
 
 
-//  MOB - these are dangerous as they don't hold component allocations
+//  WARNING: these do not mark component members
 void mprHold(void *ptr)
 {
     MprMem  *mp;
@@ -1377,7 +1413,7 @@ void mprRelease(void *ptr)
 static void marker(void *unused, MprThread *tp)
 {
     LOG(5, "DEBUG: marker thread started");
-    //  MOB -- rename from marker to marking?
+    //  TODO -- rename from marker to marking?
     MPR->marker = 1;
     tp->stickyYield = 1;
     tp->yielded = 1;
@@ -1386,11 +1422,13 @@ static void marker(void *unused, MprThread *tp)
         if (!heap->mustYield) {
             mprWaitForCond(heap->markerCond, -1);
         }
-        MEASURE(7, "GC", "mark", mark());
+        MPR_MEASURE(7, "GC", "mark", mark());
     }
     heap->mustYield = 0;
-    MPR->marker = 0;
+#if UNUSED
     mprResumeThreads();
+#endif
+    MPR->marker = 0;
 }
 
 
@@ -1403,54 +1441,17 @@ static void sweeper(void *unused, MprThread *tp)
 
     MPR->sweeper = 1;
     while (!mprIsStoppingCore()) {
-        MEASURE(7, "GC", "sweep", sweep());
+        MPR_MEASURE(7, "GC", "sweep", sweep());
         mprYield(MPR_YIELD_BLOCK);
     }
     MPR->sweeper = 0;
 }
 
 
-#if UNUSED
 /*
     Called by user code to signify the thread is ready for GC and all object references are saved. 
     If the GC marker is synchronizing, this call will block at the GC sync point (should be brief).
- */
-//  MOB - do we need this?
-static void ownGC(int flags)
-{
-    MprThread   *tp;
-    int         i;
-
-    if (!heap->enabled || (!heap->gc && !(flags & MPR_FORCE_GC))) {
-        return;
-    }
-    if (heap->flags & (MPR_MARK_THREAD | MPR_SWEEP_THREAD)) {
-        mprYield(0);
-        return;
-    }
-    tp = mprGetCurrentThread();
-    lockHeap();
-    if (heap->collecting) {
-        unlockHeap();
-        while (tp->yielded && heap->mustYield) {
-            LOG(7, "mprYieldThread %s must wait", tp->name);
-            mprWaitForCond(tp->cond, -1);
-        }
-    } else {
-        heap->collecting = 1;
-        unlockHeap();
-        tp->yielded = 1;
-        mark();
-        tp->yielded = 0;
-        heap->collecting = 0;
-    }
-}
-#endif
-
-
-/*
-    Called by user code to signify the thread is ready for GC and all object references are saved. 
-    If the GC marker is synchronizing, this call will block at the GC sync point (should be brief).
+    NOTE: if called by ResetYield, we may be already marking.
  */
 void mprYield(int flags)
 {
@@ -1496,7 +1497,7 @@ void mprResetYield()
 
 /*
     Pause until all threads have yielded. Called by the GC marker only.
-    MOB - this functions differently if parallel. If so, then it will abort waiting. If !parallel, it waits for all
+    NOTE: this functions differently if parallel. If so, then it will abort waiting. If !parallel, it waits for all
     threads to yield.
  */
 static int syncThreads()
@@ -1536,7 +1537,6 @@ static int syncThreads()
             break;
         }
         LOG(7, "syncThreads: waiting for threads to yield");
-        //  MOB -- should have a longer nap here. Should not matter if this is big
         mprWaitForCond(ts->cond, 20);
 
     } while (!allYielded && mprGetElapsedTime(mark) < timeout);
@@ -1710,7 +1710,7 @@ void mprAddRoot(void *root)
 
 void mprRemoveRoot(void *root)
 {
-    int     index;
+    ssize   index;
 
     mprSpinLock(&heap->rootLock);
     index = mprRemoveItem(heap->roots, root);
@@ -1748,6 +1748,48 @@ static void printQueueStats()
     for (i = 0, freeq = heap->freeq; freeq != heap->freeEnd; freeq++, i++) {
         if (freeq->info.stats.count) {
             printf("%7d %24d %7d\n", i, freeq->info.stats.minSize, freeq->info.stats.count);
+        }
+    }
+}
+
+
+static MprLocationStats sortLocations[MPR_TRACK_HASH];
+
+static int sortLocation(cvoid *l1, cvoid *l2)
+{
+    MprLocationStats    *lp1, *lp2;
+
+    lp1 = (MprLocationStats*) l1;
+    lp2 = (MprLocationStats*) l2;
+    if (lp1->count < lp2->count) {
+        return -1;
+    } else if (lp1->count == lp2->count) {
+        return 0;
+    }
+    return 1;
+}
+
+
+static void printTracking() 
+{
+    MprLocationStats     *lp;
+    cchar                **np;
+
+    printf("\nManager Allocation Stats\n Size                       Location\n");
+    memcpy(sortLocations, heap->stats.locations, sizeof(sortLocations));
+    qsort(sortLocations, MPR_TRACK_HASH, sizeof(MprLocationStats), sortLocation);
+
+    for (lp = sortLocations; lp < &sortLocations[MPR_TRACK_HASH]; lp++) {
+        if (lp->count) {
+            for (np = &lp->names[0]; *np && np < &lp->names[MPR_TRACK_NAMES]; np++) {
+                if (*np) {
+                    if (np == lp->names) {
+                        printf("%10d %-24s\n", (int) lp->count, *np);
+                    } else {
+                        printf("           %-24s\n", *np);
+                    }
+                }
+            }
         }
     }
 }
@@ -1809,7 +1851,7 @@ void mprPrintMem(cchar *msg, int detail)
 
     printf("\n\nMPR Memory Report %s\n", msg);
     printf("------------------------------------------------------------------------------------------\n");
-    printf("  Total memory        %14d K\n",             (int) mprGetMem());
+    printf("  Total memory        %14d K\n",             (int) (mprGetMem() / 1024));
     printf("  Current heap memory %14d K\n",             (int) (ap->bytesAllocated / 1024));
     printf("  Free heap memory    %14d K\n",             (int) (ap->bytesFree / 1024));
     printf("  Allocation errors   %14d\n",               ap->errors);
@@ -1828,6 +1870,9 @@ void mprPrintMem(cchar *msg, int detail)
     printGCStats();
     if (detail) {
         printQueueStats();
+        if (heap->track) {
+            printTracking();
+        }
     }
 #endif /* BLD_MEMORY_STATS */
 }
@@ -1847,7 +1892,10 @@ static int validBlk(MprMem *mp)
 
 void mprCheckBlock(MprMem *mp)
 {
-    if (mp->magic != MPR_ALLOC_MAGIC || GET_SIZE(mp) <= 0) {
+    ssize   size;
+
+    size = GET_SIZE(mp);
+    if (mp->magic != MPR_ALLOC_MAGIC || size <= 0) {
         mprStaticError("Memory corruption in memory block %x (MprBlk %x, seqno %d)\n"
             "This most likely happend earlier in the program execution", GET_PTR(mp), mp, mp->seqno);
     }
@@ -1885,9 +1933,72 @@ static void breakpoint(MprMem *mp)
     }
 }
 
-void *mprSetName(void *ptr, cchar *name) 
+
+/*
+    Called to set the memory block name when doing an allocation
+ */
+void *mprSetAllocName(void *ptr, cchar *name)
 {
     MPR_GET_MEM(ptr)->name = name;
+
+#if BLD_MEMORY_STATS
+    if (heap->track) {
+        MprLocationStats    *lp;
+        cchar               **np;
+        int                 index;
+        if (name == 0) {
+            name = "";
+        }
+        index = shash(name, strlen(name)) % MPR_TRACK_HASH;
+        lp = &heap->stats.locations[index];
+        for (np = lp->names; np <= &lp->names[MPR_TRACK_NAMES]; np++) {
+            if (*np == 0 || *np == name || strcmp(*np, name) == 0) {
+                break;
+            }
+        }
+        //  mprAssert(np < &lp->names[MPR_TRACK_NAMES]);
+        if (np < &lp->names[MPR_TRACK_NAMES]) {
+            *np = (char*) name;
+        }
+        lp->count += GET_SIZE(GET_MEM(ptr));
+    }
+#endif
+    return ptr;
+}
+
+
+static void freeLocation(cchar *name, ssize size)
+{
+#if BLD_MEMORY_STATS
+    MprLocationStats    *lp;
+    int                 index, i;
+
+    if (name == 0) {
+        name = "";
+    }
+    index = shash(name, strlen(name)) % MPR_TRACK_HASH;
+    lp = &heap->stats.locations[index];
+    lp->count -= size;
+    if (lp->count <= 0) {
+        for (i = 0; i < MPR_TRACK_NAMES; i++) {
+            lp->names[i] = 0;
+        }
+    }
+#endif
+}
+
+
+void *mprSetName(void *ptr, cchar *name) 
+{
+#if BLD_MEMORY_STATS
+    MprMem  *mp = GET_MEM(ptr);
+    if (mp->name) {
+        freeLocation(mp->name, GET_SIZE(mp));
+        mprSetAllocName(ptr, name);
+    }
+#else
+    MPR_GET_MEM(ptr)->name = name;
+#endif
     return ptr;
 }
 
@@ -1928,7 +2039,7 @@ static void allocException(ssize size, bool granted)
         switch (heap->allocPolicy) {
         case MPR_ALLOC_POLICY_EXIT:
             mprError("Application exiting due to memory allocation failure.");
-            mprTerminate(0);
+            mprTerminate(0, 2);
             break;
         case MPR_ALLOC_POLICY_RESTART:
             mprError("Application restarting due to memory allocation failure.");
@@ -1951,11 +2062,11 @@ static void getSystemInfo()
 
 #if MACOSX
     #ifdef _SC_NPROCESSORS_ONLN
-        ap->numCpu = sysconf(_SC_NPROCESSORS_ONLN);
+        ap->numCpu = (uint) sysconf(_SC_NPROCESSORS_ONLN);
     #else
         ap->numCpu = 1;
     #endif
-    ap->pageSize = sysconf(_SC_PAGESIZE);
+    ap->pageSize = (uint) sysconf(_SC_PAGESIZE);
 #elif SOLARIS
 {
     FILE *ptr;
@@ -1982,6 +2093,7 @@ static void getSystemInfo()
         cmd[0] = CTL_HW;
         cmd[1] = HW_NCPU;
         len = sizeof(ap->numCpu);
+        ap->numCpu = 0;
         if (sysctl(cmd, 2, &ap->numCpu, &len, 0, 0) < 0) {
             ap->numCpu = 1;
         }
@@ -2062,23 +2174,25 @@ MprMemStats *mprGetMemStats()
     }
 #endif
 #if MACOSX || FREEBSD
-    size_t      len;
+    size_t len;
     int         mib[2];
 #if FREEBSD
-    ssize       ram, usermem;
+    ssize ram, usermem;
     mib[1] = HW_MEMSIZE;
 #else
-    int64       ram, usermem;
+    int64 ram, usermem;
     mib[1] = HW_PHYSMEM;
 #endif
     mib[0] = CTL_HW;
     len = sizeof(ram);
+    ram = 0;
     sysctl(mib, 2, &ram, &len, NULL, 0);
     heap->stats.ram = ram;
 
     mib[0] = CTL_HW;
     mib[1] = HW_USERMEM;
     len = sizeof(usermem);
+    usermem = 0;
     sysctl(mib, 2, &usermem, &len, NULL, 0);
     heap->stats.user = usermem;
 #endif
@@ -2087,21 +2201,83 @@ MprMemStats *mprGetMemStats()
 }
 
 
+/*
+    Return the amount of memory currently in use. This routine may open files and thus is not very quick on some 
+    platforms. On FREEBDS it returns the peak resident set size using getrusage. If a suitable O/S API is not available,
+    the amount of heap memory allocated by the MPR is returned.
+ */
 ssize mprGetMem()
 {
-#if LINUX || MACOSX || FREEBSD
+    ssize size = 0;
+
+#if LINUX
+    int fd;
+    char path[MPR_MAX_PATH];
+    sprintf(path, "/proc/%d/status", getpid());
+    if ((fd = open(path, O_RDONLY)) >= 0) {
+        char buf[MPR_BUFSIZE], *tok;
+        int nbytes = read(fd, buf, sizeof(buf) - 1);
+        close(fd);
+        if (nbytes > 0) {
+            buf[nbytes] = '\0';
+            if ((tok = strstr(buf, "VmRSS:")) != 0) {
+                for (tok += 6; tok && isspace((int) *tok); tok++) {}
+                size = stoi(tok, 10, 0) * 1024;
+            }
+        }
+    }
+    if (size == 0) {
+        struct rusage rusage;
+        getrusage(RUSAGE_SELF, &rusage);
+        size = rusage.ru_maxrss * 1024;
+    }
+#elif MACOSX
+    struct task_basic_info info;
+    mach_msg_type_number_t count = TASK_BASIC_INFO_COUNT;
+    if (task_info(mach_task_self(), TASK_BASIC_INFO, (task_info_t) &info, &count) == KERN_SUCCESS) {
+        size = info.resident_size;
+    }
+#elif FREEBSD
     struct rusage   rusage;
     getrusage(RUSAGE_SELF, &rusage);
-    return rusage.ru_maxrss;
-#else
-    return heap->stats.bytesAllocated;
+    size = rusage.ru_maxrss;
 #endif
+    if (size == 0) {
+        size = heap->stats.bytesAllocated;
+    }
+    return size;
+}
+
+
+/*
+    Return the amount of memory currently in use. Use an appropriate (fast) O/S routine. If one is not available,
+    use the amount of heap memory allocated by the MPR.
+    WARNING: this routine must be FAST as it is used by the MPR memory allocation mechanism.
+ */
+static ssize getMemSize()
+{
+    ssize   size = 0;
+
+#if LINUX
+    struct rusage rusage;
+    getrusage(RUSAGE_SELF, &rusage);
+    size = rusage.ru_maxrss * 1024;
+#elif MACOSX
+    struct task_basic_info info;
+    mach_msg_type_number_t count = TASK_BASIC_INFO_COUNT;
+    if (task_info(mach_task_self(), TASK_BASIC_INFO, (task_info_t) &info, &count) == KERN_SUCCESS) {
+        size = info.resident_size;
+    }
+#endif
+    if (size == 0) {
+        size = heap->stats.bytesAllocated;
+    }
+    return size;
 }
 
 
 #if NEED_FFSL
 #if USE_FFSL_ASM_X86
-
 static MPR_INLINE int ffsl(ulong x)
 {
     long    r;
@@ -2164,13 +2340,13 @@ static MPR_INLINE int flsl(ulong word)
 static int memoryNotifier(int flags, ssize size)
 {
     if (flags & MPR_MEM_DEPLETED) {
-        mprPrintfError("Can't allocate memory block of size %d\n", size);
-        mprPrintfError("Total memory used %d\n", mprGetMem());
+        mprPrintfError("Can't allocate memory block of size %,d bytes\n", size);
+        mprPrintfError("Total memory used %,d bytes\n", mprGetMem());
         exit(255);
 
     } else if (flags & MPR_MEM_LOW) {
-        mprPrintfError("Memory request for %d bytes exceeds memory red-line\n", size);
-        mprPrintfError("Total memory used %d\n", mprGetMem());
+        mprPrintfError("Memory request for %,d bytes exceeds memory red-line\n", size);
+        mprPrintfError("Total memory used %,d bytes\n", mprGetMem());
     }
     return 0;
 }
@@ -2338,9 +2514,9 @@ static void showMem(MprMem *mp)
 #endif
 
 
-//  MOB - remove
 static void checkYielded()
 {
+#if BLD_DEBUG
     MprThreadService    *ts;
     MprThread           *tp;
     int                 i;
@@ -2352,6 +2528,7 @@ static void checkYielded()
         mprAssert(tp->yielded);
     }
     mprUnlock(ts->mutex);
+#endif
 }
 
 /*

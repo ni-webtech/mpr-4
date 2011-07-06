@@ -198,7 +198,7 @@ ssize mprFprintf(MprFile *file, cchar *fmt, ...)
 }
 
 
-#if UNUSED && KEEP
+#if FUTURE
 /*
     Printf with a static buffer. Used internally only. WILL NOT MALLOC.
  */
@@ -213,7 +213,7 @@ int mprStaticPrintf(cchar *fmt, ...)
     va_start(ap, fmt);
     sprintfCore(buf, MPR_MAX_STRING, fmt, ap);
     va_end(ap);
-    return mprWriteFile(fs->stdOutput, buf, strlen(buf));
+    return mprWriteFile(fs->stdOutput, buf, slen(buf));
 }
 
 
@@ -231,7 +231,7 @@ int mprStaticPrintfError(cchar *fmt, ...)
     va_start(ap, fmt);
     sprintfCore(buf, MPR_MAX_STRING, fmt, ap);
     va_end(ap);
-    return mprWriteFile(fs->stdError, buf, strlen(buf));
+    return mprWriteFile(fs->stdError, buf, slen(buf));
 }
 #endif
 
@@ -508,8 +508,10 @@ static char *sprintfCore(char *buf, ssize maxsize, cchar *spec, va_list arg)
                 }
                 break;
 
+            case 'S':       /* TODO - remove this alias */
+                mprAssert(c != 'S');
+
             case '@':
-            case 'S':
                 /* MprEjsString */
                 es = va_arg(arg, MprEjsString*);
                 if (es) {
@@ -665,7 +667,7 @@ static void outString(Format *fmt, cchar *str, ssize len)
             }
         }
     } else if (len < 0) {
-        len = strlen(str);
+        len = slen(str);
     }
     if (!(fmt->flags & SPRINTF_LEFT)) {
         for (i = len; i < fmt->width; i++) {
@@ -775,7 +777,7 @@ static void outNum(Format *fmt, cchar *prefix, uint64 value)
     fill = fmt->width - len;
 
     if (prefix != 0) {
-        fill -= (int) strlen(prefix);
+        fill -= (int) slen(prefix);
     }
     leadingZeros = (fmt->precision > len) ? fmt->precision - len : 0;
     fill -= leadingZeros;
@@ -828,8 +830,7 @@ static void outFloat(Format *fmt, char specChar, double value)
         // result = mprDtoa(value, fmt->precision, MPR_DTOA_N_DIGITS, MPR_DTOA_EXPONENT_FORM);
         // sprintf(result, "%*.*e", fmt->width, fmt->precision, value);
     }
-
-    len = (int) strlen(result);
+    len = (int) slen(result);
     fill = fmt->width - len;
     if (fmt->flags & SPRINTF_COMMA) {
         if (((len - 1) / 3) > 0) {
@@ -951,7 +952,7 @@ char *mprDtoa(double value, int ndigits, int mode, int flags)
             Note: ndigits < 0 seems to trim N digits from the end with rounding.
          */
         ip = intermediate = dtoa(value, mode, ndigits, &period, &sign, NULL);
-        len = (int) strlen(intermediate);
+        len = (int) slen(intermediate);
         exponent = period - 1;
 
         if (mode == MPR_DTOA_ALL_DIGITS && ndigits == 0) {
@@ -1001,7 +1002,7 @@ char *mprDtoa(double value, int ndigits, int mode, int flags)
                         count = totalDigits + sign - (int) mprGetBufLength(buf);
                         mprPutCharToBuf(buf, '.');
                         mprPutSubStringToBuf(buf, &ip[period], count);
-                        mprPutPadToBuf(buf, '0', count - strlen(&ip[period]));
+                        mprPutPadToBuf(buf, '0', count - slen(&ip[period]));
                     }
                 }
 

@@ -24,7 +24,7 @@ int mprCreateNotifierService(MprWaitService *ws)
 }
 
 
-int mprAddNotifier(MprWaitService *ws, MprWaitHandler *wp, int mask)
+int mprNotifyOn(MprWaitService *ws, MprWaitHandler *wp, int mask)
 {
     int     winMask;
 
@@ -47,20 +47,6 @@ int mprAddNotifier(MprWaitService *ws, MprWaitHandler *wp, int mask)
 }
 
 
-void mprRemoveNotifier(MprWaitHandler *wp)
-{
-    MprWaitService      *ws;
-
-    ws = wp->service;
-    mprAssert(ws->hwnd);
-    lock(ws);
-    mprAssert(wp->fd >= 0);
-    wp->desiredMask = 0;
-    WSAAsyncSelect(wp->fd, ws->hwnd, ws->socketMessage, 0);
-    unlock(ws);
-}
-
-
 /*
     Wait for I/O on a single descriptor. Return the number of I/O events found. Mask is the events of interest.
     Timeout is in milliseconds.
@@ -70,7 +56,7 @@ int mprWaitForSingleIO(int fd, int desiredMask, MprTime timeout)
     HANDLE      h;
     int         winMask;
 
-    if (timeout < 0) {
+    if (timeout < 0 || timeout > MAXINT) {
         timeout = MAXINT;
     }
     winMask = 0;
@@ -101,6 +87,9 @@ void mprWaitForIO(MprWaitService *ws, MprTime timeout)
 
     mprAssert(ws->hwnd);
 
+    if (timeout < 0 || timeout > MAXINT) {
+        timeout = MAXINT;
+    }
 #if BLD_DEBUG
     if (mprGetDebugMode() && timeout > 30000) {
         timeout = 30000;
@@ -115,7 +104,7 @@ void mprWaitForIO(MprWaitService *ws, MprTime timeout)
     mprYield(MPR_YIELD_STICKY);
     if (GetMessage(&msg, NULL, 0, 0) == 0) {
         mprResetYield();
-        mprTerminate(MPR_EXIT_DEFAULT);
+        mprTerminate(MPR_EXIT_DEFAULT, -1);
     } else {
         mprResetYield();
         TranslateMessage(&msg);
@@ -153,9 +142,9 @@ void mprServiceWinIO(MprWaitService *ws, int sockFd, int winMask)
         wp->presentMask |= MPR_WRITABLE;
     }
     wp->presentMask &= wp->desiredMask;
-    if (wp->presentMask & wp->desiredMask) {
-        mprRemoveNotifier(wp);
+    if (wp->presentMask) {
         if (wp->presentMask) {
+            mprNotifyOn(ws, wp, 0);
             mprQueueIOEvent(wp);
         }
     }
@@ -229,7 +218,7 @@ static LRESULT msgProc(HWND hwnd, uint msg, uint wp, long lp)
     ws = MPR->waitService;
 
     if (msg == WM_DESTROY || msg == WM_QUIT) {
-        mprTerminate(MPR_EXIT_DEFAULT);
+        mprTerminate(MPR_EXIT_DEFAULT, -1);
 
     } else if (msg && msg == ws->socketMessage) {
         sock = wp;

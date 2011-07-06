@@ -15,15 +15,16 @@ static void manageSpinLock(MprSpin *lock, int flags);
 
 /************************************ Code ************************************/
 
+static int mcount = 0;
+
 MprMutex *mprCreateLock()
 {
     MprMutex    *lock;
 #if BLD_UNIX_LIKE
     pthread_mutexattr_t attr;
 #endif
-
-    lock = mprAllocObj(MprMutex, manageLock);
-    if (lock == 0) {
+    mcount++;
+    if ((lock = mprAllocObj(MprMutex, manageLock)) == 0) {
         return 0;
     }
 #if BLD_UNIX_LIKE
@@ -50,6 +51,7 @@ MprMutex *mprCreateLock()
 static void manageLock(MprMutex *lock, int flags)
 {
     if (flags & MPR_MANAGE_FREE) {
+        mcount--;
         mprAssert(lock);
 #if BLD_UNIX_LIKE
         pthread_mutex_destroy(&lock->cs);
@@ -144,7 +146,6 @@ MprSpin *mprCreateSpinLock()
 #elif WINCE
     InitializeCriticalSection(&lock->cs);
 #elif BLD_WIN_LIKE
-    //  MOB -- should use inline asm
     InitializeCriticalSectionAndSpinCount(&lock->cs, 5000);
 #elif VXWORKS
     /* Removed SEM_INVERSION_SAFE */

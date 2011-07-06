@@ -20,15 +20,15 @@ static MprSocketProvider *createMatrixSslProvider();
 static MprSocket *createMss(MprSsl *ssl);
 static void     disconnectMss(MprSocket *sp);
 static int      doHandshake(MprSocket *sp, short cipherSuite);
-static int      flushMss(MprSocket *sp);
+static ssize    flushMss(MprSocket *sp);
 static MprSsl   *getDefaultMatrixSsl();
-static int      innerRead(MprSocket *sp, char *userBuf, int len);
+static ssize    innerRead(MprSocket *sp, char *userBuf, ssize len);
 static int      listenMss(MprSocket *sp, cchar *host, int port, int flags);
 static void     manageMatrixSocket(MprSslSocket *msp, int flags);
 static void     manageMatrixSsl(MprSsl *ssl, int flags);
 static void     manageMatrixProvider(MprSocketProvider *provider, int flags);
 static ssize    readMss(MprSocket *sp, void *buf, ssize len);
-static ssize    writeMss(MprSocket *sp, void *buf, ssize len);
+static ssize    writeMss(MprSocket *sp, cvoid *buf, ssize len);
 
 /************************************ Code ************************************/
 
@@ -392,7 +392,7 @@ static int blockingWrite(MprSocket *sp, sslBuf_t *out)
 {
     MprSocketProvider   *standard;
     uchar               *s;
-    int                 bytes;
+    ssize               bytes;
 
     standard = sp->service->standardProvider;
     
@@ -419,7 +419,7 @@ static int doHandshake(MprSocket *sp, short cipherSuite)
 {
     MprSslSocket    *msp;
     char            buf[MPR_SSL_BUFSIZE];
-    int             bytes, rc;
+    ssize           bytes, rc;
 
     msp = sp->sslSocket;
 
@@ -509,14 +509,15 @@ static bool isBufferedData(MprSslSocket *msp)
 /*
     Return number of bytes read. Return -1 on errors and EOF
  */
-static int innerRead(MprSocket *sp, char *userBuf, int len)
+static ssize innerRead(MprSocket *sp, char *userBuf, ssize len)
 {
-    MprSslSocket  *msp;
+    MprSslSocket        *msp;
     MprSocketProvider   *standard;
     sslBuf_t            *inbuf;     /* Cached decoded plain text */
     sslBuf_t            *insock;    /* Cached ciphertext to socket */
     uchar               *buf, error, alertLevel, alertDescription;
-    int                 bytes, rc, space, performRead, remaining;
+    ssize               bytes, space, remaining;
+    int                 rc, performRead;
 
     msp = (MprSslSocket*) sp->sslSocket;
     buf = (uchar*) userBuf;
@@ -577,7 +578,7 @@ readMore:
         Define a temporary sslBuf
      */
     inbuf->start = inbuf->end = inbuf->buf = mprAlloc(len);
-    inbuf->size = len;
+    inbuf->size = (int) len;
 decodeMore:
     /*
         Decode the data we just read from the socket
@@ -727,7 +728,7 @@ static ssize readMss(MprSocket *sp, void *buf, ssize len)
      */
     if (isBufferedData(msp)) {
         sp->flags |= MPR_SOCKET_PENDING;
-        mprRecallWaitHandler(sp->fd);
+        mprRecallWaitHandlerByFd(sp->fd);
     }
     unlock(sp);
     return bytes;
@@ -753,11 +754,11 @@ static ssize readMss(MprSocket *sp, void *buf, ssize len)
     been encoded.  When it is completely flushed, we return the originally requested length, and resume normal 
     processing.
  */
-static ssize writeMss(MprSocket *sp, void *buf, ssize len)
+static ssize writeMss(MprSocket *sp, cvoid *buf, ssize len)
 {
     MprSslSocket    *msp;
     sslBuf_t        *outsock;
-    int             rc;
+    ssize           rc;
 
     lock(sp);
 
@@ -796,7 +797,7 @@ static ssize writeMss(MprSocket *sp, void *buf, ssize len)
      */
     if (msp->outBufferCount == 0) {
 retryEncode:
-        rc = matrixSslEncode(msp->mssl, (uchar*) buf, len, outsock);
+        rc = matrixSslEncode(msp->mssl, (uchar*) buf, (int) len, outsock);
         switch (rc) {
         case SSL_ERROR:
             unlock(sp);
@@ -834,13 +835,13 @@ retryEncode:
         unlock(sp);
         return len;
     }
-    msp->outBufferCount = len;
+    msp->outBufferCount = (int) len;
     unlock(sp);
     return 0;
 }
 
 
-static int flushMss(MprSocket *sp)
+static ssize flushMss(MprSocket *sp)
 {
     MprSslSocket  *msp;
 

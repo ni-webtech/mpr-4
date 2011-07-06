@@ -70,7 +70,7 @@ Mpr *mprCreate(int argc, char **argv, int flags)
 
     mpr->dispatcher = mprCreateDispatcher("main", 1);
     mpr->nonBlock = mprCreateDispatcher("nonblock", 1);
-    mpr->searchPath = sclone(getenv("PATH"));
+    mpr->pathEnv = sclone(getenv("PATH"));
 
     startThreads(flags);
 
@@ -115,7 +115,7 @@ static void manageMpr(Mpr *mpr, int flags)
         mprMark(mpr->mutex);
         mprMark(mpr->spin);
         mprMark(mpr->emptyString);
-        mprMark(mpr->searchPath);
+        mprMark(mpr->pathEnv);
         mprMark(mpr->heap.markerCond);
     }
 }
@@ -138,7 +138,7 @@ void mprDestroy(int how)
     }
     mprYield(MPR_YIELD_STICKY);
     if (MPR->state < MPR_STOPPING) {
-        mprTerminate(how);
+        mprTerminate(how, -1);
     }
     gmode = MPR_FORCE_GC | MPR_COMPLETE_GC | MPR_WAIT_GC;
     mprRequestGC(gmode);
@@ -155,20 +155,28 @@ void mprDestroy(int how)
     mprStopSignalService();
 
     /* Final GC to run all finalizers */
-    MPR->state = MPR_FINISHED;
     mprRequestGC(gmode);
-    mprAssert(!MPR->marker);
+
+    MPR->state = MPR_FINISHED;
+    mprStopGCService();
     mprStopThreadService();
 
     /*
-        Must wait for the GC, ServiceEvents and worker threads to exit. Otherwise we have races when freeing memory.
+        Must wait for the GC, ServiceEvents, threads and worker threads to exit. Otherwise we have races when freeing memory.
      */
     mark = mprGetTime();
-    while (MPR->marker || MPR->eventing || mprGetListLength(MPR->workerService->busyThreads) > 0) {
+    while (MPR->marker || MPR->eventing || mprGetListLength(MPR->workerService->busyThreads) > 0 ||
+            mprGetListLength(MPR->threadService->threads) > 0) {
         if (mprGetRemainingTime(mark, MPR_TIMEOUT_STOP) <= 0) {
             break;
         }
-        mprSleep(10);
+#if UNUSED && KEEP
+        //  MOB - cleanup
+        printf("marker %d, eventing %d, busyThreads %d, threads %d\n", MPR->marker, MPR->eventing, 
+                MPR->workerService->busyThreads->length,
+                MPR->threadService->threads->length);
+#endif
+        mprSleep(1);
     }
     mprStopOsService();
     mprDestroyMemService();
@@ -179,15 +187,16 @@ void mprDestroy(int how)
 /*
     Start termination of the Mpr. May be called by mprDestroy or elsewhere.
  */
-void mprTerminate(int how)
+void mprTerminate(int how, int status)
 {
+    MPR->exitStatus = status;
     if (how != MPR_EXIT_DEFAULT) {
         MPR->exitStrategy = how;
     }
     how = MPR->exitStrategy;
     if (how == MPR_EXIT_IMMEDIATE) {
         mprLog(5, "Immediate exit. Aborting all requests and services.");
-        exit(0);
+        exit(status);
     } else if (how == MPR_EXIT_NORMAL) {
         mprLog(5, "Normal exit. Flush buffers, close files and aborting existing requests.");
     } else if (how == MPR_EXIT_GRACEFUL) {
@@ -210,7 +219,7 @@ void mprTerminate(int how)
     mprWakeDispatchers();
     mprWakeWorkers();
     mprWakeGCService();
-    mprWakeWaitService();
+    mprWakeNotifier();
 }
 
 
@@ -331,7 +340,7 @@ bool mprServicesAreIdle()
 {
     bool    idle;
 
-    //  MOB - should also measure open sockets?
+    //  FUTURE - should also measure open sockets?
 
     idle = mprGetListLength(MPR->workerService->busyThreads) == 0 && 
            mprGetListLength(MPR->cmdService->cmds) == 0 && 
@@ -424,7 +433,7 @@ int mprMakeArgv(cchar *command, int *argcp, char ***argvp, int flags)
     /*
         Allocate one vector for argv and the actual args themselves
      */
-    len = strlen(command) + 1;
+    len = slen(command) + 1;
     argc = parseArgs((char*) command, NULL);
     if (flags & MPR_ARGV_ARGS_ONLY) {
         argc++;

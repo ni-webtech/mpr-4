@@ -123,14 +123,18 @@ static ssize writeFile(MprFile *file, cvoid *buf, ssize count)
 }
 
 
-static MprOffset seekFile(MprFile *file, int seekType, MprOffset distance)
+static MprOff seekFile(MprFile *file, int seekType, MprOff distance)
 {
     mprAssert(file);
 
     if (file == 0) {
         return MPR_ERR_BAD_HANDLE;
     }
-    return (MprOffset) lseek(file->fd, distance, seekType);
+#if BLD_WIN_LIKE
+    return (MprOff) _lseeki64(file->fd, (int64) distance, seekType);
+#else
+    return (MprOff) lseek(file->fd, (off_t) distance, seekType);
+#endif
 }
 
 
@@ -161,12 +165,6 @@ static int deletePath(MprDiskFileSystem *fileSystem, cchar *path)
         if (err != ERROR_SHARING_VIOLATION) {
             break;
         }
-#if UNUSED
-        if (err == ERROR_FILE_NOT_FOUND) {
-            break;
-        }
-#endif
-        //  MOB - must be a better way
         mprSleep(10);
     }
     return MPR_ERR_CANT_DELETE;
@@ -203,8 +201,8 @@ static int makeLink(MprDiskFileSystem *fileSystem, cchar *path, cchar *target, i
 
 static int getPathInfo(MprDiskFileSystem *fileSystem, cchar *path, MprPath *info)
 {
+#if WINCE
     struct stat s;
-#if BLD_WIN_LIKE
     cchar       *ext;
 
     mprAssert(path);
@@ -213,7 +211,7 @@ static int getPathInfo(MprDiskFileSystem *fileSystem, cchar *path, MprPath *info
     info->checked = 1;
     info->valid = 0;
 
-    if (stat(path, &s) < 0) {
+    if (_stat64(path, &s) < 0) {
         return -1;
     }
     info->valid = 1;
@@ -230,7 +228,30 @@ static int getPathInfo(MprDiskFileSystem *fileSystem, cchar *path, MprPath *info
         info->isLink = 1;
     }
 
-#if !WINCE
+#elif BLD_WIN_LIKE
+    struct __stat64     s;
+    cchar               *ext;
+
+    mprAssert(path);
+    mprAssert(info);
+    info->checked = 1;
+    info->valid = 0;
+    if (_stat64(path, &s) < 0) {
+        return -1;
+    }
+    info->valid = 1;
+    info->size = s.st_size;
+    info->atime = s.st_atime;
+    info->ctime = s.st_ctime;
+    info->mtime = s.st_mtime;
+    info->inode = s.st_ino;
+    info->isDir = (s.st_mode & S_IFDIR) != 0;
+    info->isReg = (s.st_mode & S_IFREG) != 0;
+    info->isLink = 0;
+    ext = mprGetPathExtension(path);
+    if (ext && strcmp(ext, "lnk") == 0) {
+        info->isLink = 1;
+    }
     /*
         Work hard on windows to determine if the file is a regular file.
      */
@@ -266,33 +287,37 @@ static int getPathInfo(MprDiskFileSystem *fileSystem, cchar *path, MprPath *info
         info->isReg = 0;
     }
 
-#endif
-
-#else /* !BLD_WIN_LIKE */
-    mprAssert(path);
-    mprAssert(info);
-
+#elif VXWORKS
+    struct stat s;
     info->valid = 0;
     info->checked = 1;
-
-#if VXWORKS
     if (stat((char*) path, &s) < 0) {
         return MPR_ERR_CANT_ACCESS;
     }
+    info->valid = 1;
+    info->size = s.st_size;
+    info->atime = s.st_atime;
+    info->ctime = s.st_ctime;
+    info->mtime = s.st_mtime;
+    info->inode = s.st_ino;
+    info->isDir = S_ISDIR(s.st_mode);
+    info->isReg = S_ISREG(s.st_mode);
+    info->perms = s.st_mode & 07777;
 #else
+    struct stat s;
+    info->valid = 0;
+    info->checked = 1;
     if (lstat((char*) path, &s) < 0) {
         return MPR_ERR_CANT_ACCESS;
     }
-#endif
-
-#ifdef S_ISLNK
-    info->isLink = S_ISLNK(s.st_mode);
-    if (info->isLink) {
-        if (stat((char*) path, &s) < 0) {
-            return MPR_ERR_CANT_ACCESS;
+    #ifdef S_ISLNK
+        info->isLink = S_ISLNK(s.st_mode);
+        if (info->isLink) {
+            if (stat((char*) path, &s) < 0) {
+                return MPR_ERR_CANT_ACCESS;
+            }
         }
-    }
-#endif
+    #endif
     info->valid = 1;
     info->size = s.st_size;
     info->atime = s.st_atime;
@@ -313,7 +338,7 @@ static char *getPathLink(MprDiskFileSystem *fileSystem, cchar *path)
 {
 #if BLD_UNIX_LIKE
     char    pbuf[MPR_MAX_PATH];
-    int     len;
+    ssize   len;
 
     if ((len = readlink(path, pbuf, sizeof(pbuf) - 1)) < 0) {
         return NULL;
@@ -326,7 +351,7 @@ static char *getPathLink(MprDiskFileSystem *fileSystem, cchar *path)
 }
 
 
-static int truncateFile(MprDiskFileSystem *fileSystem, cchar *path, MprOffset size)
+static int truncateFile(MprDiskFileSystem *fileSystem, cchar *path, MprOff size)
 {
     if (!mprPathExists(path, F_OK)) {
         return MPR_ERR_CANT_ACCESS;
@@ -336,7 +361,7 @@ static int truncateFile(MprDiskFileSystem *fileSystem, cchar *path, MprOffset si
     HANDLE  h;
 
     h = CreateFile(path, GENERIC_WRITE, 0, NULL, OPEN_EXISTING, 0, NULL);
-    SetFilePointer(h, size, 0, FILE_BEGIN);
+    SetFilePointer(h, (LONG) size, 0, FILE_BEGIN);
     if (h == INVALID_HANDLE_VALUE || SetEndOfFile(h) == 0) {
         CloseHandle(h);
         return MPR_ERR_CANT_WRITE;
@@ -411,8 +436,7 @@ MprDiskFileSystem *mprCreateDiskFileSystem(cchar *path)
     dfs->writeFile = writeFile;
 
 #if !WINCE
-    dfs->stdError = mprAllocObj(MprFile, NULL);
-    if (dfs->stdError == 0) {
+    if ((dfs->stdError = mprAllocStruct(MprFile)) == 0) {
         return NULL;
     }
     mprSetName(dfs->stdError, "stderr");
@@ -420,8 +444,7 @@ MprDiskFileSystem *mprCreateDiskFileSystem(cchar *path)
     dfs->stdError->fileSystem = fs;
     dfs->stdError->mode = O_WRONLY;
 
-    dfs->stdInput = mprAllocObj(MprFile, NULL);
-    if (dfs->stdInput == 0) {
+    if ((dfs->stdInput = mprAllocStruct(MprFile)) == 0) {
         return NULL;
     }
     mprSetName(dfs->stdInput, "stdin");
@@ -429,8 +452,7 @@ MprDiskFileSystem *mprCreateDiskFileSystem(cchar *path)
     dfs->stdInput->fileSystem = fs;
     dfs->stdInput->mode = O_RDONLY;
 
-    dfs->stdOutput = mprAllocObj(MprFile, NULL);
-    if (dfs->stdOutput == 0) {
+    if ((dfs->stdOutput = mprAllocStruct(MprFile)) == 0) {
         return NULL;
     }
     mprSetName(dfs->stdOutput, "stdout");

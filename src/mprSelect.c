@@ -24,8 +24,7 @@ int mprCreateNotifierService(MprWaitService *ws)
 
     ws->highestFd = 0;
     ws->handlerMax = MPR_FD_MIN;
-    ws->handlerMap = mprAllocZeroed(sizeof(MprWaitHandler*) * ws->handlerMax);
-    if (ws->handlerMap == 0) {
+    if ((ws->handlerMap = mprAllocZeroed(sizeof(MprWaitHandler*) * ws->handlerMax)) == 0) {
         return MPR_ERR_CANT_INITIALIZE;
     }
     FD_ZERO(&ws->readMask);
@@ -101,7 +100,7 @@ static int growFds(MprWaitService *ws)
 }
 
 
-int mprAddNotifier(MprWaitService *ws, MprWaitHandler *wp, int mask)
+int mprNotifyOn(MprWaitService *ws, MprWaitHandler *wp, int mask)
 {
     int     fd;
 
@@ -112,10 +111,11 @@ int mprAddNotifier(MprWaitService *ws, MprWaitHandler *wp, int mask)
     }
     lock(ws);
     if (wp->desiredMask != mask) {
-        if (fd >= ws->handlerMax && growFds(ws) < 0) {
-            unlock(ws);
-            mprAssert(!MPR_ERR_MEMORY);
-            return MPR_ERR_MEMORY;
+        if (wp->desiredMask & MPR_READABLE && !(mask & MPR_READABLE)) {
+            FD_CLR(fd, &ws->readMask);
+        }
+        if (wp->desiredMask & MPR_WRITABLE && !(mask & MPR_WRITABLE)) {
+            FD_CLR(fd, &ws->writeMask);
         }
         if (mask & MPR_READABLE) {
             FD_SET(fd, &ws->readMask);
@@ -123,40 +123,28 @@ int mprAddNotifier(MprWaitService *ws, MprWaitHandler *wp, int mask)
         if (mask & MPR_WRITABLE) {
             FD_SET(fd, &ws->writeMask);
         }
+        if (mask) {
+            if (fd >= ws->handlerMax && growFds(ws) < 0) {
+                unlock(ws);
+                mprAssert(!MPR_ERR_MEMORY);
+                return MPR_ERR_MEMORY;
+            }
+        }
         mprAssert(ws->handlerMap[fd] == 0 || ws->handlerMap[fd] == wp);
-        ws->handlerMap[fd] = wp;
+        ws->handlerMap[fd] = (mask) ? wp : 0;
         wp->desiredMask = mask;
         ws->highestFd = max(fd, ws->highestFd);
+        if (mask == 0 && fd == ws->highestFd) {
+            while (--fd > 0) {
+                if (FD_ISSET(fd, &ws->readMask) || FD_ISSET(fd, &ws->writeMask)) {
+                    break;
+                }
+            }
+            ws->highestFd = fd;
+        }
     }
     unlock(ws);
     return 0;
-}
-
-
-void mprRemoveNotifier(MprWaitHandler *wp)
-{
-    MprWaitService  *ws;
-    int             fd;
-
-    ws = wp->service;
-    fd = wp->fd;
-    mprAssert(fd >= 0);
-
-    lock(ws);
-    FD_CLR(fd, &ws->readMask);
-    FD_CLR(fd, &ws->writeMask);
-    mprAssert(ws->handlerMap[fd] == 0 || ws->handlerMap[fd] == wp);
-    ws->handlerMap[fd] = 0;
-    wp->desiredMask = 0;
-    if (fd == ws->highestFd) {
-        while (--fd > 0) {
-            if (FD_ISSET(fd, &ws->readMask) || FD_ISSET(fd, &ws->writeMask)) {
-                break;
-            }
-        }
-        ws->highestFd = fd;
-    }
-    unlock(ws);
 }
 
 
@@ -171,12 +159,12 @@ int mprWaitForSingleIO(int fd, int mask, MprTime timeout)
     fd_set          readMask, writeMask;
     int             rc;
 
-    if (timeout < 0) {
+    if (timeout < 0 || timeout > MAXINT) {
         timeout = MAXINT;
     }
     ws = MPR->waitService;
-    tval.tv_sec = timeout / 1000;
-    tval.tv_usec = (timeout % 1000) * 1000;
+    tval.tv_sec = (int) (timeout / 1000);
+    tval.tv_usec = (int) ((timeout % 1000) * 1000);
 
     FD_ZERO(&readMask);
     if (mask & MPR_READABLE) {
@@ -210,6 +198,9 @@ void mprWaitForIO(MprWaitService *ws, MprTime timeout)
     struct timeval  tval;
     int             rc, maxfd;
 
+    if (timeout < 0 || timeout > MAXINT) {
+        timeout = MAXINT;
+    }
 #if BLD_DEBUG
     if (mprGetDebugMode() && timeout > 30000) {
         timeout = 30000;
@@ -219,8 +210,8 @@ void mprWaitForIO(MprWaitService *ws, MprTime timeout)
     /* Minimize VxWorks task starvation */
     timeout = max(timeout, 50);
 #endif
-    tval.tv_sec = timeout / 1000;
-    tval.tv_usec = (timeout % 1000) * 1000;
+    tval.tv_sec = (int) (timeout / 1000);
+    tval.tv_usec = (int) ((timeout % 1000) * 1000);
 
     if (ws->needRecall) {
         mprDoWaitRecall(ws);
@@ -267,8 +258,8 @@ static void serviceIO(MprWaitService *ws, int maxfd)
             continue;
         }
         wp->presentMask = mask & wp->desiredMask;
-        mprRemoveNotifier(wp);
         if (wp->presentMask) {
+            mprNotifyOn(ws, wp, 0);
             mprQueueIOEvent(wp);
         }
     }
@@ -283,13 +274,14 @@ static void serviceIO(MprWaitService *ws, int maxfd)
 void mprWakeNotifier()
 {
     MprWaitService  *ws;
-    int             c, rc;
+    ssize           rc;
+    int             c;
 
     ws = MPR->waitService;
     if (!ws->wakeRequested) {
         ws->wakeRequested = 1;
         c = 0;
-        rc = sendto(ws->breakSock, (char*) &c, 1, 0, (struct sockaddr*) &ws->breakAddress, sizeof(ws->breakAddress));
+        rc = sendto(ws->breakSock, (char*) &c, 1, 0, (struct sockaddr*) &ws->breakAddress, (int) sizeof(ws->breakAddress));
         if (rc < 0) {
             static int warnOnce = 0;
             if (warnOnce++ == 0) {
@@ -303,14 +295,13 @@ void mprWakeNotifier()
 static void readPipe(MprWaitService *ws)
 {
     char        buf[128];
-    int         rc;
 
 #if VXWORKS
     int len = sizeof(ws->breakAddress);
-    rc = recvfrom(ws->breakSock, buf, sizeof(buf), 0, (struct sockaddr*) &ws->breakAddress, (int*) &len);
+    (void) recvfrom(ws->breakSock, buf, (int) sizeof(buf), 0, (struct sockaddr*) &ws->breakAddress, (int*) &len);
 #else
     socklen_t   len = sizeof(ws->breakAddress);
-    rc = recvfrom(ws->breakSock, buf, sizeof(buf), 0, (struct sockaddr*) &ws->breakAddress, (socklen_t*) &len);
+    (void) recvfrom(ws->breakSock, buf, (int) sizeof(buf), 0, (struct sockaddr*) &ws->breakAddress, (socklen_t*) &len);
 #endif
 }
 

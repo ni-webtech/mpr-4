@@ -18,14 +18,13 @@
 /**************************** Forward Declarations ****************************/
 
 static void *dupKey(MprHashTable *table, MprHash *sp, cvoid *key);
-static MprHash  *lookupHash(int *bucketIndex, MprHash **prevSp, MprHashTable *table, cvoid *key);
+static MprHash  *lookupHash(int *index, MprHash **prevSp, MprHashTable *table, cvoid *key);
 static void manageHashTable(MprHashTable *table, int flags);
 
 /*********************************** Code *************************************/
 /*
     Create a new hash table of a given size. Caller should provide a size that is a prime number for the greatest efficiency.
  */
-
 MprHashTable *mprCreateHash(int hashSize, int flags)
 {
     MprHashTable    *table;
@@ -33,7 +32,6 @@ MprHashTable *mprCreateHash(int hashSize, int flags)
     if ((table = mprAllocObj(MprHashTable, manageHashTable)) == 0) {
         return 0;
     }
-    /*  TODO -- should support rehashing */
     if (hashSize < MPR_DEFAULT_HASH_SIZE) {
         hashSize = MPR_DEFAULT_HASH_SIZE;
     }
@@ -101,10 +99,10 @@ MprHashTable *mprCloneHash(MprHashTable *master)
     if (table == 0) {
         return 0;
     }
-    hp = mprGetFirstHash(master);
+    hp = mprGetFirstKey(master);
     while (hp) {
         mprAddKey(table, hp->key, hp->data);
-        hp = mprGetNextHash(master, hp);
+        hp = mprGetNextKey(master, hp);
     }
     return table;
 }
@@ -132,7 +130,7 @@ MprHash *mprAddKey(MprHashTable *table, cvoid *key, cvoid *ptr)
     /*
         Hash entries are managed by manageHashTable
      */
-    if ((sp = mprAllocObj(MprHash, NULL)) == NULL) {
+    if ((sp = mprAllocStruct(MprHash)) == 0) {
         unlock(table);
         return 0;
     }
@@ -173,7 +171,7 @@ MprHash *mprAddDuplicateKey(MprHashTable *table, cvoid *key, cvoid *ptr)
     MprHash     *sp;
     int         index;
 
-    if ((sp = mprAllocObj(MprHash, NULL)) == 0) {
+    if ((sp = mprAllocStruct(MprHash)) == 0) {
         return 0;
     }
     sp->data = ptr;
@@ -193,10 +191,7 @@ MprHash *mprAddDuplicateKey(MprHashTable *table, cvoid *key, cvoid *ptr)
 }
 
 
-/*
-    Remove an entry from the table
- */
-int mprRemoveHash(MprHashTable *table, cvoid *key)
+int mprRemoveKey(MprHashTable *table, cvoid *key)
 {
     MprHash     *sp, *prevSp;
     int         index;
@@ -220,7 +215,7 @@ int mprRemoveHash(MprHashTable *table, cvoid *key)
 /*
     Lookup a key and return the hash entry
  */
-MprHash *mprLookupHashEntry(MprHashTable *table, cvoid *key)
+MprHash *mprLookupKeyEntry(MprHashTable *table, cvoid *key)
 {
     mprAssert(key);
 
@@ -231,7 +226,7 @@ MprHash *mprLookupHashEntry(MprHashTable *table, cvoid *key)
 /*
     Lookup a key and return the hash entry data
  */
-void *mprLookupHash(MprHashTable *table, cvoid *key)
+void *mprLookupKey(MprHashTable *table, cvoid *key)
 {
     MprHash     *sp;
 
@@ -246,19 +241,66 @@ void *mprLookupHash(MprHashTable *table, cvoid *key)
 
 
 /*
+    Exponential primes
+ */
+static int hashSizes[] = {
+     19, 29, 59, 79, 97, 193, 389, 769, 1543, 3079, 6151, 12289, 24593, 49157, 98317, 196613, 0
+};
+
+
+static int getHashSize(int numKeys)
+{
+    int     i;
+
+    for (i = 0; hashSizes[i]; i++) {
+        if (numKeys < hashSizes[i]) {
+            return hashSizes[i];
+        }
+    }
+    return hashSizes[i - 1];
+}
+
+
+/*
     This is unlocked because it is read-only
  */
 static MprHash *lookupHash(int *bucketIndex, MprHash **prevSp, MprHashTable *table, cvoid *key)
 {
-    MprHash     *sp, *prev;
-    int         index, rc;
+    MprHash     *sp, *prev, *next;
+    MprHash     **buckets;
+    int         hashSize, i, index, rc;
 
     mprAssert(key);
 
     if (key == 0 || table == 0) {
         return 0;
     }
-    index = table->hash(key, strlen(key)) % table->hashSize;
+    if (table->length > table->hashSize) {
+        hashSize = getHashSize(table->length * 4 / 3);
+        if (table->hashSize < hashSize) {
+            if ((buckets = mprAllocZeroed(sizeof(MprHash*) * hashSize)) != 0) {
+                table->length = 0;
+                for (i = 0; i < table->hashSize; i++) {
+                    for (sp = table->buckets[i]; sp; sp = next) {
+                        next = sp->next;
+                        mprAssert(next != sp);
+                        index = table->hash(sp->key, slen(sp->key)) % hashSize;
+                        if (buckets[index]) {
+                            sp->next = buckets[index];
+                        } else {
+                            sp->next = 0;
+                        }
+                        buckets[index] = sp;
+                        sp->bucket = index;
+                        table->length++;
+                    }
+                }
+                table->hashSize = hashSize;
+                table->buckets = buckets;
+            }
+        }
+    }
+    index = table->hash(key, slen(key)) % table->hashSize;
     if (bucketIndex) {
         *bucketIndex = index;
     }
@@ -307,7 +349,7 @@ int mprGetHashLength(MprHashTable *table)
 /*
     Return the first entry in the table.
  */
-MprHash *mprGetFirstHash(MprHashTable *table)
+MprHash *mprGetFirstKey(MprHashTable *table)
 {
     MprHash     *sp;
     int         i;
@@ -326,7 +368,7 @@ MprHash *mprGetFirstHash(MprHashTable *table)
 /*
     Return the next entry in the table
  */
-MprHash *mprGetNextHash(MprHashTable *table, MprHash *last)
+MprHash *mprGetNextKey(MprHashTable *table, MprHash *last)
 {
     MprHash     *sp;
     int         i;
@@ -334,7 +376,7 @@ MprHash *mprGetNextHash(MprHashTable *table, MprHash *last)
     mprAssert(table);
 
     if (last == 0) {
-        return mprGetFirstHash(table);
+        return mprGetFirstKey(table);
     }
     if (last->next) {
         return last->next;

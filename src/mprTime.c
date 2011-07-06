@@ -27,8 +27,11 @@
 #define MIN_YEAR    1901
 #define MAX_YEAR    2037
 
+/*
+    MacOSX can't handle MIN_TIME == -0x7FFFFFFF
+ */
 #define MAX_TIME    0x7FFFFFFF
-#define MIN_TIME    -(MAX_TIME)
+#define MIN_TIME    -0xFFFFFFF
 
 /*
     Token types or'd into the TimeToken value
@@ -198,7 +201,7 @@ int mprCreateTimeService()
     TimeToken           *tt;
 
     mpr = MPR;
-    mpr->timeTokens = mprCreateHash(-1, MPR_HASH_STATIC_KEYS | MPR_HASH_STATIC_VALUES);
+    mpr->timeTokens = mprCreateHash(59, MPR_HASH_STATIC_KEYS | MPR_HASH_STATIC_VALUES);
     for (tt = days; tt->name; tt++) {
         mprAddKey(mpr->timeTokens, tt->name, (void*) tt);
     }
@@ -316,7 +319,7 @@ int mprGetTimeZoneOffset(MprTime when)
     if (secs < MIN_TIME || secs > MAX_TIME) {
         /* secs overflows time_t on this platform. Need to map to an alternate valid year */
         decodeTime(&t, when, 0);
-        t.tm_year = 110;
+        t.tm_year = 111;
         alternate = makeTime(&t);
     }
     t.tm_isdst = -1;
@@ -344,7 +347,7 @@ MprTime mprMakeTime(struct tm *tp)
         offset = getTimeZoneOffsetFromTm(&t);
     } else {
         t = *tp;
-        t.tm_year = 110;
+        t.tm_year = 111;
         alternate = makeTime(&t);
         localTime(&t, alternate);
         offset = getTimeZoneOffsetFromTm(&t);
@@ -379,6 +382,7 @@ static int localTime(struct tm *timep, MprTime time)
     return 0;
 }
 
+
 struct tm *universalTime(struct tm *timep, MprTime time)
 {
 #if BLD_UNIX_LIKE || WINCE
@@ -399,7 +403,7 @@ struct tm *universalTime(struct tm *timep, MprTime time)
 
 /*
     Return the timezone offset (including DST) in msec. local == (UTC + offset)
-    Assumes a valid "tm" with isdst correctly set.
+    Assumes a valid (local) "tm" with isdst correctly set.
  */
 static int getTimeZoneOffsetFromTm(struct tm *tp)
 {
@@ -429,11 +433,11 @@ static int getTimeZoneOffsetFromTm(struct tm *tp)
     }
     return offset;
 #elif BLD_UNIX_LIKE && !CYGWIN
-    return tp->tm_gmtoff * MS_PER_SEC;
+    return (int) tp->tm_gmtoff * MS_PER_SEC;
 #else
     struct timezone     tz;
     struct timeval      tv;
-    int offset;
+    int                 offset;
     gettimeofday(&tv, &tz);
     offset = -tz.tz_minuteswest * MS_PER_MIN;
     if (tp->tm_isdst) {
@@ -445,7 +449,7 @@ static int getTimeZoneOffsetFromTm(struct tm *tp)
 
 /********************************* Calculations *********************************/
 /*
-    Convert "struct tm" to MprTime
+    Convert "struct tm" to MprTime. This ignores GMT offset and DST.
  */
 static MprTime makeTime(struct tm *tp)
 {
@@ -467,7 +471,7 @@ static MprTime makeTime(struct tm *tp)
 
 static MprTime daysSinceEpoch(int year)
 {
-    int     days;
+    MprTime     days;
 
     days = ((MprTime) 365) * (year - 1970);
     days += ((year-1) / 4) - (1970 / 4);
@@ -544,7 +548,7 @@ static void decodeTime(struct tm *tp, MprTime when, bool local)
     offset = dst = 0;
 
     if (local) {
-        //  MOB -- cache the results somehow
+        //  TODO -- cache the results somehow
         timeForZoneCalc = when;
         secs = when / MS_PER_SEC;
         if (secs < MIN_TIME || secs > MAX_TIME) {
@@ -687,7 +691,8 @@ char *mprFormatTime(cchar *fmt, struct tm *tp)
     cchar           *cp;
     char            *dp, *endp, *sign;
     char            buf[MPR_MAX_STRING];
-    int             value, size;
+    ssize           size;
+    int             value;
 
     dp = localFmt;
     if (fmt == 0) {
@@ -698,7 +703,7 @@ char *mprFormatTime(cchar *fmt, struct tm *tp)
         tp = &tm;
     }
     endp = &localFmt[sizeof(localFmt) - 1];
-    size = (int) sizeof(localFmt) - 1;
+    size = sizeof(localFmt) - 1;
     for (cp = fmt; *cp && dp < &localFmt[sizeof(localFmt) - 32]; size = (int) (endp - dp - 1)) {
         if (*cp == '%') {
             *dp++ = *cp++;
@@ -711,14 +716,14 @@ char *mprFormatTime(cchar *fmt, struct tm *tp)
                 } else {
                     strcpy(dp, "a %b %d %H:%M:%S %Z %Y");
                 }
-                dp += strlen(dp);
+                dp += slen(dp);
                 cp++;
                 break;
 
             case 'C':
                 dp--;
-                itos(dp, size, (int64) (1900 + tp->tm_year) / 100, 10);
-                dp += strlen(dp);
+                itos(dp, size, (1900 + tp->tm_year) / 100, 10);
+                dp += slen(dp);
                 cp++;
                 break;
 
@@ -734,7 +739,7 @@ char *mprFormatTime(cchar *fmt, struct tm *tp)
                     *dp++ = ' ';
                 }
                 itos(dp, size - 1, (int64) tp->tm_mday, 10);
-                dp += strlen(dp);
+                dp += slen(dp);
                 cp++;
                 break;
 
@@ -760,7 +765,7 @@ char *mprFormatTime(cchar *fmt, struct tm *tp)
                     *dp++ = ' ';
                 }
                 itos(dp, size - 1, (int64) tp->tm_hour, 10);
-                dp += strlen(dp);
+                dp += slen(dp);
                 cp++;
                 break;
 
@@ -774,7 +779,7 @@ char *mprFormatTime(cchar *fmt, struct tm *tp)
                     value -= 12;
                 }
                 itos(dp, size - 1, (int64) value, 10);
-                dp += strlen(dp);
+                dp += slen(dp);
                 cp++;
                 break;
 
@@ -810,7 +815,7 @@ char *mprFormatTime(cchar *fmt, struct tm *tp)
             case 's':
                 dp--;
                 itos(dp, size, (int64) mprMakeTime(tp) / MS_PER_SEC, 10);
-                dp += strlen(dp);
+                dp += slen(dp);
                 cp++;
                 break;
 
@@ -832,7 +837,7 @@ char *mprFormatTime(cchar *fmt, struct tm *tp)
                     value = 7;
                 }
                 itos(dp, size, (int64) value, 10);
-                dp += strlen(dp);
+                dp += slen(dp);
                 cp++;
                 break;
 
@@ -843,7 +848,7 @@ char *mprFormatTime(cchar *fmt, struct tm *tp)
                     *dp++ = ' ';
                 }
                 itos(dp, size - 1, (int64) tp->tm_mday, 10);
-                dp += strlen(dp);
+                dp += slen(dp);
                 cp++;
                 strcpy(dp, "-%b-%Y");
                 dp += 6;
@@ -857,7 +862,7 @@ char *mprFormatTime(cchar *fmt, struct tm *tp)
                     value = -value;
                 }
                 mprSprintf(dp, size, "%s%02d%02d", sign, value / 60, value % 60);
-                dp += strlen(dp);
+                dp += slen(dp);
                 cp++;
                 break;
 
@@ -1220,7 +1225,7 @@ static int lookupSym(cchar *token, int kind)
 {
     TimeToken   *tt;
 
-    if ((tt = (TimeToken*) mprLookupHash(MPR->timeTokens, token)) == 0) {
+    if ((tt = (TimeToken*) mprLookupKey(MPR->timeTokens, token)) == 0) {
         return -1;
     }
     if (kind != (tt->value & TOKEN_MASK)) {
@@ -1334,7 +1339,7 @@ int mprParseTime(MprTime *time, cchar *dateString, int zoneFlags, struct tm *def
 #endif
 
     /*
-        Set to -1 to cause mktime will try to determine if DST is in effect
+        Set to -1 to try to determine if DST is in effect
      */
     tm.tm_isdst = -1;
     str = slower(dateString);
@@ -1342,7 +1347,7 @@ int mprParseTime(MprTime *time, cchar *dateString, int zoneFlags, struct tm *def
     /*
         Handle ISO dates: "2009-05-21t16:06:05.000z
      */
-    if (strchr(str, ' ') == 0 && strchr(str, '-') && str[strlen(str) - 1] == 'z') {
+    if (strchr(str, ' ') == 0 && strchr(str, '-') && str[slen(str) - 1] == 'z') {
         for (cp = str; *cp; cp++) {
             if (*cp == '-') {
                 *cp = '/';
@@ -1391,7 +1396,7 @@ int mprParseTime(MprTime *time, cchar *dateString, int zoneFlags, struct tm *def
             explicitZone = 1;
 
         } else if (isalpha((int) *token)) {
-            if ((tt = (TimeToken*) mprLookupHash(MPR->timeTokens, token)) != 0) {
+            if ((tt = (TimeToken*) mprLookupKey(MPR->timeTokens, token)) != 0) {
                 kind = tt->value & TOKEN_MASK;
                 value = tt->value & ~TOKEN_MASK; 
                 switch (kind) {

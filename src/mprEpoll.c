@@ -78,57 +78,50 @@ static int growEvents(MprWaitService *ws)
 }
 
 
-int mprAddNotifier(MprWaitService *ws, MprWaitHandler *wp, int mask)
+int mprNotifyOn(MprWaitService *ws, MprWaitHandler *wp, int mask)
 {
     struct epoll_event  ev;
-    int                 fd, oldlen;
+    int                 fd;
 
     mprAssert(wp);
+    fd = wp->fd;
 
     lock(ws);
     if (wp->desiredMask != mask) {
-        fd = wp->fd;
         memset(&ev, 0, sizeof(ev));
         ev.data.fd = fd;
+        if (wp->desiredMask & MPR_READABLE && !(mask & MPR_READABLE)) {
+            ev.events |= (EPOLLIN | EPOLLHUP);
+        }
+        if (wp->desiredMask & MPR_WRITABLE && !(mask & MPR_WRITABLE)) {
+            ev.events |= EPOLLOUT;
+        }
+        if (ev.events) {
+            epoll_ctl(ws->epoll, EPOLL_CTL_DEL, fd, &ev);
+        }
+        ev.events = 0;
         if (mask & MPR_READABLE) {
             ev.events |= (EPOLLIN | EPOLLHUP);
         }
         if (mask & MPR_WRITABLE) {
             ev.events |= EPOLLOUT;
         }
-        epoll_ctl(ws->epoll, EPOLL_CTL_ADD, fd, &ev);
-
-        if (fd >= ws->handlerMax) {
-            oldlen = ws->handlerMax;
+        if (ev.events) {
+            epoll_ctl(ws->epoll, EPOLL_CTL_ADD, fd, &ev);
+        }
+        if (mask && fd >= ws->handlerMax) {
             ws->handlerMax = fd + 32;
             if ((ws->handlerMap = mprRealloc(ws->handlerMap, sizeof(MprWaitHandler*) * ws->handlerMax)) == 0) {
                 mprAssert(!MPR_ERR_MEMORY);
                 return MPR_ERR_MEMORY;
             }
         }
-        mprAssert(ws->handlerMap[fd] == 0);
-        ws->handlerMap[fd] = wp;
+        mprAssert(ws->handlerMap[fd] == 0 || ws->handlerMap[fd] == wp);
         wp->desiredMask = mask;
     }
+    ws->handlerMap[fd] = (mask) ? wp : 0;
     unlock(ws);
     return 0;
-}
-
-
-void mprRemoveNotifier(MprWaitHandler *wp)
-{
-    MprWaitService  *ws;
-    int             fd;
-
-    ws = wp->service;
-    fd = wp->fd;
-    mprAssert(fd >= 0);
-    lock(ws);
-    epoll_ctl(ws->epoll, EPOLL_CTL_DEL, fd, NULL);
-    mprAssert(ws->handlerMap[fd] == 0 || ws->handlerMap[fd] == wp);
-    ws->handlerMap[fd] = 0;
-    wp->desiredMask = 0;
-    unlock(ws);
 }
 
 
@@ -138,12 +131,10 @@ void mprRemoveNotifier(MprWaitHandler *wp)
  */
 int mprWaitForSingleIO(int fd, int mask, MprTime timeout)
 {
-    MprWaitService      *ws;
     struct epoll_event  ev, events[2];
-    int                 epfd, rc, err;
+    int                 epfd, rc;
 
-    ws = MPR->waitService;
-    if (timeout < 0) {
+    if (timeout < 0 || timeout > MAXINT) {
         timeout = MAXINT;
     }
     memset(&ev, 0, sizeof(ev));
@@ -163,7 +154,6 @@ int mprWaitForSingleIO(int fd, int mask, MprTime timeout)
     }
     mask = 0;
     rc = epoll_wait(epfd, events, sizeof(events) / sizeof(struct epoll_event), timeout);
-    err = errno;
     close(epfd);
     if (rc < 0) {
         mprLog(2, "Epoll returned %d, errno %d", rc, errno);
@@ -188,6 +178,9 @@ void mprWaitForIO(MprWaitService *ws, MprTime timeout)
 {
     int     rc;
 
+    if (timeout < 0 || timeout > MAXINT) {
+        timeout = MAXINT;
+    }
 #if BLD_DEBUG
     if (mprGetDebugMode() && timeout > 30000) {
         timeout = 30000;
@@ -197,7 +190,6 @@ void mprWaitForIO(MprWaitService *ws, MprTime timeout)
         mprDoWaitRecall(ws);
         return;
     }
-
     mprYield(MPR_YIELD_STICKY);
     rc = epoll_wait(ws->epoll, ws->events, ws->eventsMax, timeout);
     mprResetYield();
@@ -220,7 +212,7 @@ static void serviceIO(MprWaitService *ws, int count)
 {
     MprWaitHandler      *wp;
     struct epoll_event  *ev;
-    int                 fd, i, mask, rc;
+    int                 fd, i, mask;
 
     lock(ws);
     for (i = 0; i < count; i++) {
@@ -230,7 +222,7 @@ static void serviceIO(MprWaitService *ws, int count)
         if ((wp = ws->handlerMap[fd]) == 0) {
             char    buf[128];
             if ((ev->events & (EPOLLIN | EPOLLERR | EPOLLHUP)) && (fd == ws->breakPipe[MPR_READ_PIPE])) {
-                rc = read(fd, buf, sizeof(buf));
+                if (read(fd, buf, sizeof(buf)) < 0) {}
             }
             continue;
         }
@@ -246,9 +238,13 @@ static void serviceIO(MprWaitService *ws, int count)
             continue;
         }
         wp->presentMask = mask & wp->desiredMask;
-        mprAssert(wp->presentMask);
-        mprRemoveNotifier(wp);
         if (wp->presentMask) {
+            struct epoll_event  ev;
+            memset(&ev, 0, sizeof(ev));
+            ev.data.fd = fd;
+            wp->desiredMask = 0;
+            ws->handlerMap[wp->fd] = 0;
+            epoll_ctl(ws->epoll, EPOLL_CTL_DEL, wp->fd, &ev);
             mprQueueIOEvent(wp);
         }
     }
@@ -263,13 +259,13 @@ static void serviceIO(MprWaitService *ws, int count)
 void mprWakeNotifier()
 {
     MprWaitService  *ws;
-    int             c, rc;
+    int             c;
 
     ws = MPR->waitService;
     if (!ws->wakeRequested) {
         ws->wakeRequested = 1;
         c = 0;
-        rc = write(ws->breakPipe[MPR_WRITE_PIPE], (char*) &c, 1);
+        if (write(ws->breakPipe[MPR_WRITE_PIPE], (char*) &c, 1) < 0) {};
     }
 }
 

@@ -53,7 +53,7 @@ HWND mprGetHwnd()
 }
 
 
-int mprGetRandomBytes(char *buf, int length, int block)
+int mprGetRandomBytes(char *buf, ssize length, int block)
 {
     HCRYPTPROV      prov;
     int             rc;
@@ -177,39 +177,10 @@ void mprSetSocketMessage(int socketMessage)
 }
 
 
-void mprSleep(int milliseconds)
+void mprSleep(MprTime milliseconds)
 {
-    Sleep(milliseconds);
+    Sleep((int) milliseconds);
 }
-
-
-#if UNUSED
-uni *mprToUni(cchar* a, int *len)
-{
-    uni     *wstr;
-    int     *len;
-
-    *len = MultiByteToWideChar(CP_ACP, 0, a, -1, NULL, 0);
-    wstr = mprAlloc((*len + 1) * sizeof(uni));
-    if (wstr) {
-        MultiByteToWideChar(CP_ACP, 0, a, -1, wstr, *len);
-    }
-    return wstr;
-}
-
-
-char *mprToMulti(cuni *w)
-{
-    char    *str;
-    int     len;
-
-    len = WideCharToMultiByte(CP_ACP, 0, w, -1, NULL, 0, NULL, NULL);
-    if ((str = mprAlloc(len + 1)) != 0) {
-        WideCharToMultiByte(CP_ACP, 0, w, -1, str, (DWORD) len, NULL, NULL);
-    }
-    return str;
-}
-#endif
 
 
 void mprWriteToOsLog(cchar *message, int flags, int level)
@@ -223,7 +194,7 @@ void mprWriteToOsLog(cchar *message, int flags, int level)
     static int  once = 0;
 
     scopy(buf, sizeof(buf), message);
-    cp = &buf[strlen(buf) - 1];
+    cp = &buf[slen(buf) - 1];
     while (*cp == '\n' && cp > buf) {
         *cp-- = '\0';
     }
@@ -243,7 +214,7 @@ void mprWriteToOsLog(cchar *message, int flags, int level)
         if (RegCreateKeyEx(HKEY_LOCAL_MACHINE, logName, 0, NULL, 0, KEY_ALL_ACCESS, NULL, &hkey, &exists) == ERROR_SUCCESS) {
             value = "%SystemRoot%\\System32\\netmsg.dll";
             if (RegSetValueEx(hkey, "EventMessageFile", 0, REG_EXPAND_SZ, 
-                    (uchar*) value, (int) strlen(value) + 1) != ERROR_SUCCESS) {
+                    (uchar*) value, (int) slen(value) + 1) != ERROR_SUCCESS) {
                 RegCloseKey(hkey);
                 return;
             }
@@ -291,7 +262,7 @@ int mprWriteRegistry(cchar *key, cchar *name, cchar *value)
         if (RegOpenKeyEx(top, key, 0, KEY_ALL_ACCESS, &h) != ERROR_SUCCESS) {
             return MPR_ERR_CANT_ACCESS;
         }
-        if (RegSetValueEx(h, name, 0, REG_SZ, value, (int) strlen(value) + 1) != ERROR_SUCCESS) {
+        if (RegSetValueEx(h, name, 0, REG_SZ, value, (int) slen(value) + 1) != ERROR_SUCCESS) {
             RegCloseKey(h);
             return MPR_ERR_CANT_READ;
         }
@@ -350,7 +321,7 @@ static cchar *getHive(cchar *keyPath, HKEY *hive)
     if (*hive == 0) {
         return 0;
     }
-    len = strlen(key) + 1;
+    len = slen(key) + 1;
     return keyPath + len;
 }
 

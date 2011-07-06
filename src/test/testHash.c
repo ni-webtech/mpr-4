@@ -37,8 +37,8 @@ static void testIsTableEmpty(MprTestGroup *gp)
     assert(table != 0);
 
     assert(mprGetHashLength(table) == 0);
-    assert(mprGetFirstHash(table) == 0);
-    assert(mprLookupHash(table, "") == 0);
+    assert(mprGetFirstKey(table) == 0);
+    assert(mprLookupKey(table, "") == 0);
 }
 
 
@@ -58,7 +58,7 @@ static void testInsertAndRemoveHash(MprTestGroup *gp)
     sp = mprAddKey(table, "Peter", "123 Madison Ave");
     assert(sp != 0);
 
-    sp = mprGetFirstHash(table);
+    sp = mprGetFirstKey(table);
     assert(sp != 0);
     assert(sp->key != 0);
     assert(strcmp(sp->key, "Peter") == 0);
@@ -68,18 +68,18 @@ static void testInsertAndRemoveHash(MprTestGroup *gp)
     /*
         Lookup
      */
-    str = mprLookupHash(table, "Peter");
+    str = mprLookupKey(table, "Peter");
     assert(str != 0);
     assert(strcmp(str, "123 Madison Ave") == 0);
 
-    rc = mprRemoveHash(table, "Peter");
+    rc = mprRemoveKey(table, "Peter");
     assert(rc == 0);
 
     assert(mprGetHashLength(table) == 0);
-    sp = mprGetFirstHash(table);
+    sp = mprGetFirstKey(table);
     assert(sp == 0);
 
-    str = mprLookupHash(table, "Peter");
+    str = mprLookupKey(table, "Peter");
     assert(str == 0);
 }
 
@@ -88,11 +88,11 @@ static void testHashScale(MprTestGroup *gp)
 {
     MprHashTable    *table;
     MprHash         *sp;
-    cchar           *str, *address;
-    char            name[80];
+    char            *str;
+    char            name[80], *address;
     int             i;
 
-    table = mprCreateHash(0, 0);
+    table = mprCreateHash(HASH_COUNT, 0);
     assert(mprGetHashLength(table) == 0);
 
     /*
@@ -112,7 +112,7 @@ static void testHashScale(MprTestGroup *gp)
      */
     for (i = 0; i < HASH_COUNT; i++) {
         mprSprintf(name, sizeof(name), "name.%d", i);
-        str = mprLookupHash(table, name);
+        str = mprLookupKey(table, name);
         assert(str != 0);
         address = mprAsprintf("%d Park Ave", i);
         assert(strcmp(str, address) == 0);
@@ -125,10 +125,10 @@ static void testIterateHash(MprTestGroup *gp)
     MprHashTable    *table;
     MprHash         *sp;
     char            name[80], address[80];
-    const char      *who, *where;
+    cchar           *where;
     int             count, i, check[HASH_COUNT];
 
-    table = mprCreateHash(0, 0);
+    table = mprCreateHash(HASH_COUNT, 0);
 
     memset(check, 0, sizeof(check));
 
@@ -146,16 +146,15 @@ static void testIterateHash(MprTestGroup *gp)
     /*
         Check data entered into the table
      */
-    sp = mprGetFirstHash(table);
+    sp = mprGetFirstKey(table);
     count = 0;
     while (sp) {
         assert(sp != 0);
-        who = sp->key;
         where = sp->data;
         assert(isdigit((int) where[0]) != 0);
         i = atoi(where);
         check[i] = 1;
-        sp = mprGetNextHash(table, sp);
+        sp = mprGetNextKey(table, sp);
         count++;
     }
     assert(count == HASH_COUNT);
@@ -169,7 +168,8 @@ static void testIterateHash(MprTestGroup *gp)
     assert(count == HASH_COUNT);
 }
 
-//  MOB -- test caseless and unicode
+
+//  TODO -- test caseless and unicode
 
 MprTestDef testHash = {
     "hash", 0, 0, 0,

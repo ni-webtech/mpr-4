@@ -90,72 +90,70 @@ static int growHandlers(MprWaitService *ws, int fd)
 }
 
 
-int mprAddNotifier(MprWaitService *ws, MprWaitHandler *wp, int mask)
+int mprNotifyOn(MprWaitService *ws, MprWaitHandler *wp, int mask)
 {
     struct pollfd   *pollfd;
-    int             fd;
+    int             fd, index;
+
+    fd = wp->fd;
 
     lock(ws);
     if (wp->desiredMask != mask) {
-        fd = wp->fd;
-        if (wp->notifierIndex < 0) {
-            if (ws->fdsCount >= ws->fdMax && growFds(ws) < 0) {
-                unlock(ws);
-                mprAssert(!MPR_ERR_MEMORY);
-                return MPR_ERR_MEMORY;
+        index = wp->notifierIndex;
+        pollfd = 0;
+        if (mask) {
+            if (index < 0) {
+                if (ws->fdsCount >= ws->fdMax && growFds(ws) < 0) {
+                    unlock(ws);
+                    mprAssert(!MPR_ERR_MEMORY);
+                    return MPR_ERR_MEMORY;
+                }
+                if (fd >= ws->handlerMax && growHandlers(ws, fd) < 0) {
+                    unlock(ws);
+                    return MPR_ERR_MEMORY;
+                }
+                mprAssert(fd < ws->handlerMax);
+                mprAssert(ws->handlerMap[fd] == 0 || ws->handlerMap[fd] == wp);
+                ws->handlerMap[fd] = wp;
+                index = wp->notifierIndex = ws->fdsCount++;
+                pollfd = &ws->fds[index];
+                pollfd->fd = fd;
+            } else {
+                pollfd = &ws->fds[index];
             }
-            if (fd >= ws->handlerMax && growHandlers(ws, fd) < 0) {
-                unlock(ws);
-                return MPR_ERR_MEMORY;
-            }
-            mprAssert(fd < ws->handlerMax);
-            mprAssert(ws->handlerMap[fd] == 0);
-            ws->handlerMap[fd] = wp;
-            wp->notifierIndex = ws->fdsCount++;
-            pollfd = &ws->fds[wp->notifierIndex];
-            pollfd->fd = fd;
         } else {
-            pollfd = &ws->fds[wp->notifierIndex];
+            /* Removal */
+            if (index >= 0) {
+                pollfd = &ws->fds[index];
+            }
         }
-        pollfd->events = 0;
-        if (mask & MPR_READABLE) {
-            pollfd->events |= POLLIN | POLLHUP;
+        if (pollfd) {
+            pollfd->events = 0;
+            if (mask & MPR_READABLE) {
+                pollfd->events |= POLLIN | POLLHUP;
+            }
+            if (mask & MPR_WRITABLE) {
+                pollfd->events |= POLLOUT;
+            }
+            wp->desiredMask = mask;
         }
-        if (mask & MPR_WRITABLE) {
-            pollfd->events |= POLLOUT;
+
+        /*
+            Compact on removal. If not the last entry, copy last poll entry to replace the deleted fd.
+         */
+        if (mask == 0) {
+            if (index >= 0 && --ws->fdsCount > index) {
+                ws->fds[index] = ws->fds[ws->fdsCount];
+                ws->handlerMap[ws->fds[index].fd]->notifierIndex = index;
+                ws->fds[ws->fdsCount].fd = -1;
+            }
+            ws->handlerMap[wp->fd] = 0;
+            wp->notifierIndex = -1;
+            wp->desiredMask = 0;
         }
-        wp->desiredMask = mask;
     }
     unlock(ws);
     return 0;
-}
-
-
-void mprRemoveNotifier(MprWaitHandler *wp)
-{
-    MprWaitService  *ws;
-    int             fd, index;
-
-    ws = wp->service;
-    fd = wp->fd;
-    mprAssert(fd >= 0);
-
-    lock(ws);
-    index = wp->notifierIndex;
-    if (index >= 0 && --ws->fdsCount > index) {
-        /*
-            If not the last entry, copy last poll entry to replace the deleted fd.
-         */
-        ws->fds[index] = ws->fds[ws->fdsCount];
-        ws->handlerMap[ws->fds[index].fd]->notifierIndex = index;
-        fd = ws->fds[index].fd;
-        ws->fds[ws->fdsCount].fd = -1;
-    }
-    mprAssert(ws->handlerMap[wp->fd] == 0 || ws->handlerMap[wp->fd] == wp);
-    ws->handlerMap[wp->fd] = 0;
-    wp->notifierIndex = -1;
-    wp->desiredMask = 0;
-    unlock(ws);
 }
 
 
@@ -168,7 +166,7 @@ int mprWaitForSingleIO(int fd, int mask, MprTime timeout)
     struct pollfd   fds[1];
     int             rc;
 
-    if (timeout < 0) {
+    if (timeout < 0 || timeout > MAXINT) {
         timeout = MAXINT;
     }
     fds[0].fd = fd;
@@ -183,7 +181,7 @@ int mprWaitForSingleIO(int fd, int mask, MprTime timeout)
     }
     mask = 0;
 
-    rc = poll(fds, 1, timeout);
+    rc = poll(fds, 1, (int) timeout);
     if (rc < 0) {
         mprLog(8, "Poll returned %d, errno %d", rc, mprGetOsError());
     } else if (rc > 0) {
@@ -205,6 +203,9 @@ void mprWaitForIO(MprWaitService *ws, MprTime timeout)
 {
     int     count, rc;
 
+    if (timeout < 0 || timeout > MAXINT) {
+        timeout = MAXINT;
+    }
 #if BLD_DEBUG
     if (mprGetDebugMode() && timeout > 30000) {
         timeout = 30000;
@@ -223,7 +224,7 @@ void mprWaitForIO(MprWaitService *ws, MprTime timeout)
     unlock(ws);
 
     mprYield(MPR_YIELD_STICKY);
-    rc = poll(ws->pollFds, count, timeout);
+    rc = poll(ws->pollFds, count, (int) timeout);
     mprResetYield();
 
     if (rc < 0) {
@@ -267,8 +268,8 @@ static void serviceIO(MprWaitService *ws, struct pollfd *fds, int count)
         }
         wp->presentMask = mask & wp->desiredMask;
         fp->revents = 0;
-        mprRemoveNotifier(wp);
         if (wp->presentMask) {
+            mprNotifyOn(ws, wp, 0);
             mprQueueIOEvent(wp);
         }
     }
@@ -283,13 +284,13 @@ static void serviceIO(MprWaitService *ws, struct pollfd *fds, int count)
 void mprWakeNotifier()
 {
     MprWaitService  *ws;
-    int             c, rc;
+    int             c;
 
     ws = MPR->waitService;
     if (!ws->wakeRequested) {
         ws->wakeRequested = 1;
         c = 0;
-        rc = write(ws->breakPipe[MPR_WRITE_PIPE], (char*) &c, 1);
+        (void) write(ws->breakPipe[MPR_WRITE_PIPE], (char*) &c, 1);
     }
 }
 

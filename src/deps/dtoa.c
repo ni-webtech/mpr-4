@@ -595,13 +595,11 @@ Balloc
 #ifdef Omit_Private_Memory
         rv = (Bigint *)MALLOC(sizeof(Bigint) + (x-1)*sizeof(ULong));
 #else
-        len = (sizeof(Bigint) + (x-1)*sizeof(ULong) + sizeof(double) - 1)
-            /sizeof(double);
+        len = (unsigned int) ((sizeof(Bigint) + (x-1)*sizeof(ULong) + sizeof(double) - 1) / sizeof(double));
         if (k <= Kmax && pmem_next - private_mem + len <= PRIVATE_mem) {
             rv = (Bigint*)pmem_next;
             pmem_next += len;
-            }
-        else
+        } else
             rv = (Bigint*)MALLOC(len*sizeof(double));
 #endif
         rv->k = k;
@@ -667,7 +665,7 @@ multadd
 #ifdef ULLong
         y = *x * (ULLong)m + carry;
         carry = y >> 32;
-        *x++ = (ULong) y & FFFFFFFF;
+        *x++ = (ULong) (y & FFFFFFFF);
 #else
 #ifdef Pack_32
         xi = *x;

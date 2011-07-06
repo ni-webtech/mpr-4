@@ -150,14 +150,13 @@ static int readEvent(MprTestGroup *gp, MprEvent *event)
 {
     TestSocket      *ts;
     MprSocket       *sp;
-    ssize           len, nbytes, space;
+    ssize           nbytes, space;
     char            *buf;
     int             rc;
 
     ts = (TestSocket*) gp->data;
     sp = ts->accepted;
 
-    len = mprGetBufLength(ts->inBuf);
     space = mprGetBufSpace(ts->inBuf);
     if (space < (bufsize / 2)) {
         rc = mprGrowBuf(ts->inBuf, bufsize - space);
@@ -218,13 +217,10 @@ static void testClient(MprTestGroup *gp)
 static void testClientServer(MprTestGroup *gp, cchar *host)
 {
     TestSocket      *ts;
-    MprDispatcher   *dispatcher;
     MprTime         mark;
-    ssize           len, thisLen, nbytes, sofar;
+    ssize           len, thisLen, nbytes;
     char            *buf, *thisBuf;
     int             i, rc, count;
-
-    dispatcher = mprGetDispatcher(gp);
 
     ts = gp->data;
     ts->accepted = 0;
@@ -251,7 +247,6 @@ static void testClientServer(MprTestGroup *gp, cchar *host)
         Write a set of lines to the client. Server should receive. Use blocking mode. This writes about 5K of data.
      */
     mprSetSocketBlockingMode(ts->client, 1);
-    sofar = 0;
     count = 100;
     for (i = 0; i < count; i++) {
         /*

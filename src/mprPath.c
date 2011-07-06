@@ -120,7 +120,7 @@ static MPR_INLINE char *lastSep(MprFileSystem *fs, cchar *path)
 {
     char    *cp;
 
-    for (cp = (char*) &path[strlen(path)] - 1; cp >= path; cp--) {
+    for (cp = (char*) &path[slen(path)] - 1; cp >= path; cp--) {
         if (isSep(fs, *cp)) {
             return cp;
         }
@@ -316,7 +316,7 @@ char *mprGetPathDir(cchar *path)
     }
 
     fs = mprLookupFileSystem(path);
-    len = strlen(path);
+    len = slen(path);
     cp = &path[len - 1];
 
     /*
@@ -634,7 +634,7 @@ char *mprGetRelPath(cchar *pathArg)
         cp++;
     }
     
-    hp = result = mprAlloc(homeSegments * 3 + strlen(path) + 2);
+    hp = result = mprAlloc(homeSegments * 3 + slen(path) + 2);
     for (i = commonSegments; i < homeSegments; i++) {
         *hp++ = '.';
         *hp++ = '.';
@@ -673,7 +673,6 @@ bool mprIsRelPath(cchar *path)
 }
 
 
-//  MOB -- should take a list of paths
 /*
     Join paths. Returns a joined (normalized) path.
     If other is absolute, then return other. If other is null, empty or "." then return path.
@@ -722,6 +721,7 @@ char *mprJoinPath(cchar *path, cchar *other)
 
 /*
     Join an extension to a path. If path already has an extension, this call does nothing.
+    MOB - the extension should not have "." But BLD_EXE and buildConfig extensions do.
  */
 char *mprJoinPathExt(cchar *path, cchar *ext)
 {
@@ -841,7 +841,7 @@ static char *toCygPath(cchar *path)
     mprAssert(isFullPath(path);
         
     if (fs->cygdrive) {
-        len = strlen(fs->cygdrive);
+        len = slen(fs->cygdrive);
         if (sncasecmp(fs->cygdrive, &path[2], len) == 0 && isSep(path[len+2])) {
             /*
                 If path is like: "c:/cygdrive/c/..."
@@ -854,7 +854,7 @@ static char *toCygPath(cchar *path)
                 Path is like: "c:/some/other/path". Prepend "/cygdrive/c/"
              */
             result = mprAsprintf("%s/%c%s", fs->cygdrive, path[0], &path[2]);
-            len = strlen(result);
+            len = slen(result);
             if (isSep(result[len-1])) {
                 result[len-1] = '\0';
             }
@@ -881,7 +881,7 @@ static char *fromCygPath(cchar *path)
         return sclone(path);
     }
     if (fs->cygdrive) {
-        len = strlen(fs->cygdrive);
+        len = slen(fs->cygdrive);
         if (mprComparePath(fs->cygdrive, path, len) == 0 && isSep(path[len]) && 
                 isalpha(path[len+1]) && isSep(path[len+2])) {
             /*
@@ -906,7 +906,7 @@ static char *fromCygPath(cchar *path)
 #endif
 
 
-//  MOB -- should this be mprNormalizePath?  apply to all APIs
+//  TODO -- should this be mprNormalizePath?  apply to all APIs
 /*
     Normalize a path to remove redundant "./" and cleanup "../" and make separator uniform. Does not make an abs path.
     It does not map separators nor change case. 
@@ -927,7 +927,7 @@ char *mprGetNormalizedPath(cchar *pathArg)
         Allocate one spare byte incase we need to break into segments. If so, will add a trailing "/" to make 
         parsing easier later.
      */
-    len = strlen(pathArg);
+    len = slen(pathArg);
     if ((path = mprAlloc(len + 2)) == 0) {
         return NULL;
     }
@@ -958,7 +958,7 @@ char *mprGetNormalizedPath(cchar *pathArg)
     }
     if (!hasDot && segmentCount == 0) {
         if (fs->hasDriveSpecs) {
-            last = path[strlen(path) - 1];
+            last = path[slen(path) - 1];
             if (last == ':') {
                 path = sjoin(path, ".", NULL);
             }
@@ -1036,7 +1036,7 @@ char *mprGetNormalizedPath(cchar *pathArg)
     addSep = 0;
     sp = segments[0];
     if (fs->hasDriveSpecs && *sp != '\0') {
-        last = sp[strlen(sp) - 1];
+        last = sp[slen(sp) - 1];
         if (last == ':') {
             /* This matches an original path of: "c:/" but not "c:filename" */
             addSep++;
@@ -1057,7 +1057,7 @@ char *mprGetNormalizedPath(cchar *pathArg)
      */
     dp = path;
     strcpy(dp, segments[0]);
-    dp += strlen(segments[0]);
+    dp += slen(segments[0]);
 
     if (segmentCount == 1 && (addSep || (*segments[0] == '\0'))) {
         *dp++ = sep;
@@ -1066,7 +1066,7 @@ char *mprGetNormalizedPath(cchar *pathArg)
     for (i = 1; i < segmentCount; i++) {
         *dp++ = sep;
         strcpy(dp, segments[i]);
-        dp += strlen(segments[i]);
+        dp += slen(segments[i]);
     }
     *dp = '\0';
     return path;
@@ -1127,7 +1127,6 @@ bool mprPathExists(cchar *path, int omode)
 }
 
 
-//  MOB -- should take a list of paths
 /*
     Resolve one path against another path. Returns a joined (normalized) path.
     If other is absolute, then return other. If other is null, empty or "." then return path.
@@ -1264,16 +1263,16 @@ char *mprSearchPath(cchar *file, int flags, cchar *search, ...)
         nextDir = sclone(nextDir);
         dir = stok(nextDir, MPR_SEARCH_SEP, &tok);
         while (dir && *dir) {
-            mprLog(5, "mprSearchForFile: %s in directory %s", file, nextDir);
+            mprLog(7, "mprSearchForFile: %s in directory %s", file, nextDir);
             path = mprJoinPath(dir, file);
             if (mprPathExists(path, access)) {
-                mprLog(5, "mprSearchForFile: found %s", path);
+                mprLog(7, "mprSearchForFile: found %s", path);
                 return mprGetNormalizedPath(path);
             }
             if ((flags & MPR_SEARCH_EXE) && *BLD_EXE) {
                 path = mprJoinPathExt(path, BLD_EXE);
                 if (mprPathExists(path, access)) {
-                    mprLog(5, "mprSearchForFile: found %s", path);
+                    mprLog(7, "mprSearchForFile: found %s", path);
                     return mprGetNormalizedPath(path);
                 }
             }
@@ -1356,7 +1355,7 @@ char *mprGetAppPath()
 {
     char    path[MPR_MAX_PATH], pbuf[MPR_MAX_PATH];
     uint    size;
-    int     len;
+    ssize   len;
 
     size = sizeof(path) - 1;
     if (_NSGetExecutablePath(path, &size) < 0) {
