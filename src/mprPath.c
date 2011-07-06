@@ -721,6 +721,7 @@ char *mprJoinPath(cchar *path, cchar *other)
 
 /*
     Join an extension to a path. If path already has an extension, this call does nothing.
+    MOB - the extension should not have "." But BLD_EXE and buildConfig extensions do.
  */
 char *mprJoinPathExt(cchar *path, cchar *ext)
 {
