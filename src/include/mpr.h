@@ -2719,6 +2719,9 @@ extern char *supper(cchar *str);
  */
 extern char *strim(cchar *str, cchar *set, int where);
 
+//  DOC
+extern char *sreplace(char *str, char *pattern, char *replacement);
+
 /********************************************************* Unicode *********************************************************/
 /*
     Low-level unicode wide string support. Unicode characters are build-time configurable to be 1, 2 or 4 bytes

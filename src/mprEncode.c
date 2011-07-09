@@ -79,7 +79,8 @@ char *mprUriEncode(cchar *inbuf, int map)
 }
 
 
-/*  Decode a string using URL encoding. Return an allocated string.
+/*  
+    Decode a string using URL encoding. Return an allocated string.
  */
 char *mprUriDecode(cchar *inbuf)
 {

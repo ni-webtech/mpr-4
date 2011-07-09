@@ -232,8 +232,7 @@ void *mprLookupKey(MprHashTable *table, cvoid *key)
 
     mprAssert(key);
 
-    sp = lookupHash(0, 0, table, key);
-    if (sp == 0) {
+    if ((sp = lookupHash(0, 0, table, key)) == 0) {
         return 0;
     }
     return (void*) sp->data;

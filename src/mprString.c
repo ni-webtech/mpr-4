@@ -79,6 +79,35 @@ int scasecmp(cchar *s1, cchar *s2)
 }
 
 
+char *scontains(cchar *str, cchar *pattern, ssize limit)
+{
+    cchar   *cp, *s1, *s2;
+    ssize   lim;
+
+    if (limit < 0) {
+        limit = MAXINT;
+    }
+    if (str == 0) {
+        return 0;
+    }
+    if (pattern == 0 || *pattern == '\0') {
+        return 0;
+    }
+    for (cp = str; *cp && limit > 0; cp++, limit--) {
+        s1 = cp;
+        s2 = pattern;
+        for (lim = limit; *s1 && *s2 && (*s1 == *s2) && lim > 0; lim--) {
+            s1++;
+            s2++;
+        }
+        if (*s2 == '\0') {
+            return (char*) cp;
+        }
+    }
+    return 0;
+}
+
+
 ssize scopy(char *dest, ssize destMax, cchar *src)
 {
     ssize      len;
@@ -524,6 +553,24 @@ char *srejoinv(char *buf, va_list args)
 }
 
 
+char *sreplace(char *str, char *pattern, char *replacement)
+{
+    MprBuf      *buf;
+    char        *s;
+
+    buf = mprCreateBuf(-1, -1);
+    for (s = str; *s; s++) {
+        if (strstr(s, pattern) != 0) {
+            mprPutStringToBuf(buf, replacement);
+        } else {
+            mprPutCharToBuf(buf, *s);
+        }
+    }
+    mprAddNullToBuf(buf);
+    return sclone(mprGetBufStart(buf));
+}
+
+
 ssize sspn(cchar *str, cchar *set)
 {
 #if KEEP
@@ -560,35 +607,6 @@ int sstarts(cchar *str, cchar *prefix)
     }
     if (strncmp(str, prefix, slen(prefix)) == 0) {
         return 1;
-    }
-    return 0;
-}
-
-
-char *scontains(cchar *str, cchar *pattern, ssize limit)
-{
-    cchar   *cp, *s1, *s2;
-    ssize   lim;
-
-    if (limit < 0) {
-        limit = MAXINT;
-    }
-    if (str == 0) {
-        return 0;
-    }
-    if (pattern == 0 || *pattern == '\0') {
-        return 0;
-    }
-    for (cp = str; *cp && limit > 0; cp++, limit--) {
-        s1 = cp;
-        s2 = pattern;
-        for (lim = limit; *s1 && *s2 && (*s1 == *s2) && lim > 0; lim--) {
-            s1++;
-            s2++;
-        }
-        if (*s2 == '\0') {
-            return (char*) cp;
-        }
     }
     return 0;
 }
