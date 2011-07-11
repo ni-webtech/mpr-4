@@ -249,10 +249,13 @@ int mprLoadModule(MprModule *mp)
 
 void mprUnloadModule(MprModule *mp)
 {
+    mprLog(6, "Unloading native module %s from %s", mp->name, mp->path);
     mprStopModule(mp);
 #if BLD_CC_DYN_LOAD
     if (mp->handle) {
-        mprUnloadNativeModule(mp);
+        if (mprUnloadNativeModule(mp) != 0) {
+            mprError("Can't unload module %s", mp->name);
+        }
         mp->handle = 0;
     }
 #endif

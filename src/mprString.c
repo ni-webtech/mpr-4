@@ -702,6 +702,7 @@ int64 stoi(cchar *str, int radix, int *err)
 
 /*
     Note "str" is modifed as per strtok()
+    MOB - warning this does not allocate
  */
 char *stok(char *str, cchar *delim, char **last)
 {

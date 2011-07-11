@@ -1323,6 +1323,7 @@ char *mprGetTransformedPath(cchar *path, int flags)
 }
 
 
+//  MOB - should be TrimPathExt
 /*
     Return the extension portion of a pathname.
  */
