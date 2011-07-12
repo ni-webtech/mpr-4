@@ -6,8 +6,7 @@
 
 include			.makedep
 
-# MAKE_DFLAGS	= -DBLD_MPRLIB
-PRE_DIRS		+= deps
+PRE_DIRS		+= include deps
 ifeq ($(BLD_FEATURE_SSL),1)
 	PRE_DIRS	+= ssl
 endif
