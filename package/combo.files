@@ -4,42 +4,46 @@
 #	Copyright (c) Embedthis Software LLC, 2003-2011. All Rights Reserved.
 #
 
-INC=${BLD_INC_DIR}
-SRC=${BLD_TOP}/src
+S=${BLD_TOP}/src
 
 #
 #   Output directories. Note: these are in the staging directory.
 #
 DIR="${BLD_OUT_DIR}/staging/${BLD_PRODUCT}-${BLD_VERSION}"
-MPR="${DIR}/src/deps/mpr"
+SRC="${DIR}/src/deps/mpr"
 DOC="${DIR}/doc"
 
 #
 #	Order of headers matters (linux and mac sort files differently wrt mpr.c)
 #
-MPR_SOURCES="${SRC}/mprMem.c ${SRC}/mpr.c `find ${SRC}/*.c ${SRC}/deps/*.c | egrep -v 'angel|mprMem|mpr.c'`"
-SSL_SOURCES="${SRC}/include/mprSsl.h ${SRC}/ssl/*.c"
+MPR_SOURCES="${S}/mprMem.c ${S}/mpr.c `find ${S}/*.c ${S}/deps/*.c | egrep -v 'angel|mprMem|mpr.c'`"
+SSL_SOURCES="${BLD_INC_DIR}/mprSsl.h ${S}/ssl/*.c"
 
-mkdir -p ${MPR} ${DOC}/man ${DOC}/api
+#
+#	Build files
+#
+mkdir -p ${SRC} ${DOC}/man ${DOC}/api
+cp ${BLD_TOP}/package/Makefile.combo "${SRC}/Makefile"
+# cp ${BLD_INC_DIR}/buildConfig.h "${DIR}/buildConfig.h"
 
 #
 #	Headers
 #
 TITLE="${BLD_NAME} Header" \
-combo ${SRC}/include/mpr.h | egrep -v '#include.*mpr|#inc.*config.h|#inc.*ucp.*\.h|#inc.*pcre' >${MPR}/mpr.h
-cp ${SRC}/include/mprSsl.h ${MPR}
+combo ${BLD_INC_DIR}/mpr.h | egrep -v '#include.*mpr|#inc.*config.h|#inc.*ucp.*\.h|#inc.*pcre' >${SRC}/mpr.h
+cp ${S}/include/mprSsl.h ${SRC}
 
 #
 #	mprLib.c
 #
-echo -e '#include "mpr.h"' >${MPR}/mprLib.c
-TITLE="${BLD_NAME} Library Source" combo ${MPR_SOURCES} | egrep -v '#inc.*mpr' >>${MPR}/mprLib.c
+echo -e '#include "mpr.h"' >${SRC}/mprLib.c
+TITLE="${BLD_NAME} Library Source" combo ${MPR_SOURCES} | egrep -v '#inc.*mpr' >>${SRC}/mprLib.c
 
 #
 #	mprSsl.c
 #
-echo -e '#include "mpr.h"' >${MPR}/mprSsl.c
-TITLE="MPR SSL" combo ${SSL_SOURCES} | egrep -v '#inc.*mpr' >>${MPR}/mprSsl.c
+echo -e '#include "mpr.h"' >${SRC}/mprSsl.c
+TITLE="MPR SSL" combo ${SSL_SOURCES} | egrep -v '#inc.*mpr' >>${SRC}/mprSsl.c
 
 #
 #   Doc
@@ -50,15 +54,8 @@ cp ${BLD_TOP}/doc/man/*.1 ${DOC}/man
 #
 #	Other source
 #
-cp ${SRC}/utils/makerom.c ${MPR}/makerom.c
-cp ${SRC}/angel.c ${MPR}/angel.c
-
-##	flat $(REL_DIR)/$(FLAT_VER_NAME):
-##		find $(TDIR)/src -type f | xargs -I % mv % $(TDIR) 
-##		rm -fr $(TDIR)/doc $(TDIR)/src $(TDIR)/Makefile
-##		$(call log) "[Generate]" "tar cfz $(REL_DIR)/$(FLAT_VER_NAME) -C $(STAGE_DIR) ."
-##		tar cfz $(REL_DIR)/$(FLAT_VER_NAME) -C $(STAGE_DIR) .
-##		ln -s $(FLAT_VER_NAME) $(REL_DIR)/$(FLAT_PERM_NAME)
+cp ${S}/utils/makerom.c ${SRC}/makerom.c
+cp ${S}/angel.c ${SRC}/angel.c
 
 #
 #   Local variables:

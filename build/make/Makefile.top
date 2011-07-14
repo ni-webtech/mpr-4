@@ -264,7 +264,7 @@ combo packageCombo:
 
 flat packageFlat:
 	$(BLD_TOP)/build/bin/makeInstall --root=$(PKG_DIR) --package flat && \
-			$(BLD_TOOLS_DIR)/makePackage --combo --root=$(PKG_DIR) flat ; \
+	$(BLD_TOOLS_DIR)/makePackage --combo --root=$(PKG_DIR) flat ; \
 
 packageRelease:
 	if [ "$(BUILD_DEPTH)" -ge 2 ] ; then \
