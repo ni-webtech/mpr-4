@@ -437,7 +437,11 @@ PACKS=${PACKS:=binary dev}
 setup
 
 if [ "$COMBO" = 1 ] ; then
-    . ${BLD_TOOLS_DIR}/makeComboPackage
+    if [ "$PACKS" = combo ] ; then
+        . ${BLD_TOOLS_DIR}/makeComboPackage
+    elif [ "$PACKS" = flat ] ; then
+        . ${BLD_TOOLS_DIR}/makeFlatPackage
+    fi
 else
     createArchives
     createScripts

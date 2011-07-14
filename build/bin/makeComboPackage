@@ -1,6 +1,6 @@
 #!/bin/bash
 #
-#   makeComborPackage - Create combo package
+#   makeComboPackage - Create combo package
 #
 #   This script creates ....
 #
@@ -20,7 +20,7 @@ makeComboPackage() {
     log Run "tar -cfz ${COMBO} ."
     tar -czf ${COMBO} .
     cd ${HOME}
-    rm -f "${BLD_OUT_DIR}/releases/${BLD_PRODUCT}-combo.tgz"
+    rm -f "${GENERIC}"
     ln -s ${COMBO} ${GENERIC}
 }
 

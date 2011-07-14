@@ -1,8 +1,9 @@
 #
-#	combo.files - Files needed for the combo installation
+#	combo.files - Files needed for the combo MPR installation
 #
 #	Copyright (c) Embedthis Software LLC, 2003-2011. All Rights Reserved.
 #
+
 INC=${BLD_INC_DIR}
 SRC=${BLD_TOP}/src
 
@@ -32,14 +33,13 @@ cp ${SRC}/include/mprSsl.h ${MPR}
 #	mprLib.c
 #
 echo -e '#include "mpr.h"' >${MPR}/mprLib.c
-TITLE="${BLD_NAME} Library Source" \
-combo ${MPR_SOURCES} | egrep -v '#inc.*mpr' >>${MPR}/mprLib.c
+TITLE="${BLD_NAME} Library Source" combo ${MPR_SOURCES} | egrep -v '#inc.*mpr' >>${MPR}/mprLib.c
 
 #
 #	mprSsl.c
 #
 echo -e '#include "mpr.h"' >${MPR}/mprSsl.c
-combo ${SSL_SOURCES} | egrep -v '#inc.*mpr' >>${MPR}/mprSsl.c
+TITLE="MPR SSL" combo ${SSL_SOURCES} | egrep -v '#inc.*mpr' >>${MPR}/mprSsl.c
 
 #
 #   Doc

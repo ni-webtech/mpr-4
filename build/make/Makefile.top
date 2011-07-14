@@ -262,6 +262,10 @@ combo packageCombo:
 	$(BLD_TOP)/build/bin/makeInstall --root=$(PKG_DIR) --package combo && \
 			$(BLD_TOOLS_DIR)/makePackage --combo --root=$(PKG_DIR) combo ; \
 
+flat packageFlat:
+	$(BLD_TOP)/build/bin/makeInstall --root=$(PKG_DIR) --package flat && \
+			$(BLD_TOOLS_DIR)/makePackage --combo --root=$(PKG_DIR) flat ; \
+
 packageRelease:
 	if [ "$(BUILD_DEPTH)" -ge 2 ] ; then \
 		export OPTIONS=$(OPTIONS) TRACE=$(TRACE) ; \
