@@ -23,7 +23,7 @@ $(BLD_BIN_DIR)/benchMpr$(BLD_EXE): $(OBJECTS) $(BLD_LIB_DIR)/libmpr$(BLD_LIB) $(
 	bld --exe $(BLD_BIN_DIR)/benchMpr$(BLD_EXE) --search "$(BLD_MPR_LIBPATHS)" --libs "$(BLD_MPR_LIBS)" benchMpr
 
 ifneq	($(BLD_CROSS),1)
-testExtra: 
+testExtra:: 
 	$(call log) "[Test]" "Basic unit tests" ; \
 	$(BLD_BIN_DIR)/testMpr -v -i 2 --depth $(BUILD_DEPTH)
 	if [ $(BUILD_DEPTH) -ge 3 ] ; then \
