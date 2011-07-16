@@ -620,7 +620,6 @@ void mprSetMinWorkers(int n)
     MprWorkerService    *ws;
 
     ws = MPR->workerService;
-
     mprLock(ws->mutex);
     ws->minThreads = n; 
     
