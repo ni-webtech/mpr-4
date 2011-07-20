@@ -266,7 +266,6 @@ static int listenSocket(MprSocket *sp, cchar *ip, int port, int initialFlags)
         unlock(sp);
         return MPR_ERR_CANT_FIND;
     }
-
     sp->fd = (int) socket(family, datagram ? SOCK_DGRAM: SOCK_STREAM, protocol);
     if (sp->fd < 0) {
         unlock(sp);
@@ -1226,7 +1225,7 @@ int mprGetSocketInfo(cchar *ip, int port, int *family, int *protocol, struct soc
     }
     v6 = ipv6(ip);
     hints.ai_socktype = SOCK_STREAM;
-    if (ip) {
+    if (ip && *ip) {
         hints.ai_family = v6 ? AF_INET6 : AF_INET;
     } else {
         hints.ai_family = AF_UNSPEC;
@@ -1250,7 +1249,7 @@ int mprGetSocketInfo(cchar *ip, int port, int *family, int *protocol, struct soc
                 break;
             }
         } else {
-            if (r->ai_family == AF_INET) {
+            if (r->ai_family == AF_INET || ip == 0 || *ip == '\0') {
                 break;
             }
         }
