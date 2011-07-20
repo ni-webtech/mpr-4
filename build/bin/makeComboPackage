@@ -10,18 +10,18 @@
 #
 ################################################################################
 
-COMBO="${BLD_OUT_DIR}/releases/${BLD_PRODUCT}-${BLD_VERSION}-${BLD_NUMBER}-combo.tgz"
-GENERIC="${BLD_OUT_DIR}/releases/${BLD_PRODUCT}-combo.tgz"
-
 makeComboPackage() {
+    local COMBO_NAME="${BLD_OUT_DIR}/releases/${BLD_PRODUCT}-${BLD_VERSION}-${BLD_NUMBER}-combo.tgz"
+    local GENERIC_NAME="${BLD_OUT_DIR}/releases/${BLD_PRODUCT}-combo.tgz"
+
     log Create Combo package
     cd ${ROOT_DIR}
-    rm -f ${COMBO}
-    log Run "tar -cfz ${COMBO} ."
-    tar -czf ${COMBO} .
+    rm -f ${COMBO_NAME}
+    log Run "tar -cfz ${COMBO_NAME} ."
+    tar -czf ${COMBO_NAME} .
     cd ${HOME}
-    rm -f "${GENERIC}"
-    ln -s ${COMBO} ${GENERIC}
+    rm -f "${GENERIC_NAME}"
+    ln -s ${COMBO_NAME} ${GENERIC_NAME}
 }
 
 makeComboPackage
