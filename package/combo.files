@@ -31,7 +31,7 @@ cp ${BLD_TOP}/package/Makefile.combo "${SRC}/Makefile"
 #
 TITLE="${BLD_NAME} Header" \
 combo ${BLD_INC_DIR}/mpr.h | egrep -v '#include.*mpr|#inc.*config.h|#inc.*ucp.*\.h|#inc.*pcre' >${SRC}/mpr.h
-cp ${S}/include/mprSsl.h ${SRC}
+cp ${S}/mprSsl.h ${SRC}
 
 #
 #	mprLib.c

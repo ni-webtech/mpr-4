@@ -6,7 +6,7 @@
 
 include			.makedep
 
-PRE_DIRS		+= include deps
+PRE_DIRS		+= deps
 ifeq ($(BLD_FEATURE_SSL),1)
 	PRE_DIRS	+= ssl
 endif
