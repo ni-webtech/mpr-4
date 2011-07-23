@@ -14,7 +14,7 @@
 
 /****************************** Forward Declarations **************************/
 
-static MprXmlToken getToken(MprXml *xp, int state);
+static MprXmlToken getXmlToken(MprXml *xp, int state);
 static int  getNextChar(MprXml *xp);
 static void manageXml(MprXml *xml, int flags);
 static int  scanFor(MprXml *xp, char *str);
@@ -121,7 +121,7 @@ static int parseNext(MprXml *xp, int state)
      */
     while (1) {
 
-        token = getToken(xp, state);
+        token = getXmlToken(xp, state);
 
         if (token == MPR_XMLTOK_TOO_BIG) {
             xmlError(xp, "XML token is too big");
@@ -205,13 +205,13 @@ static int parseNext(MprXml *xp, int state)
                     Must be an attribute name
                  */
                 aname = sclone(mprGetBufStart(tokBuf));
-                token = getToken(xp, state);
+                token = getXmlToken(xp, state);
                 if (token != MPR_XMLTOK_EQ) {
                     xmlError(xp, "Missing assignment for attribute \"%s\"", aname);
                     return MPR_ERR_BAD_SYNTAX;
                 }
 
-                token = getToken(xp, state);
+                token = getXmlToken(xp, state);
                 if (token != MPR_XMLTOK_TEXT) {
                     xmlError(xp, "Missing value for attribute \"%s\"", aname);
                     return MPR_ERR_BAD_SYNTAX;
@@ -314,7 +314,7 @@ static int parseNext(MprXml *xp, int state)
             if (rc < 0) {
                 return rc;
             }
-            if (getToken(xp, state) != MPR_XMLTOK_GR) {
+            if (getXmlToken(xp, state) != MPR_XMLTOK_GR) {
                 xmlError(xp, "Syntax error");
                 return MPR_ERR_BAD_SYNTAX;
             }
@@ -338,7 +338,7 @@ static int parseNext(MprXml *xp, int state)
     has special cases for the states MPR_XML_ELT_DATA where we have an optimized read of element data, and 
     MPR_XML_AFTER_LS where we distinguish between element names, processing instructions and comments. 
  */
-static MprXmlToken getToken(MprXml *xp, int state)
+static MprXmlToken getXmlToken(MprXml *xp, int state)
 {
     MprBuf      *tokBuf;
     char        *cp;

@@ -1564,7 +1564,7 @@ hexdig_init(void)
 #endif
 
  static int
-match
+dmatch
 #ifdef KR_headers
     (sp, t) char **sp, *t;
 #else
@@ -2668,9 +2668,9 @@ strtod
              switch(c) {
               case 'i':
               case 'I':
-                if (match(&s,"nf")) {
+                if (dmatch(&s,"nf")) {
                     --s;
-                    if (!match(&s,"inity"))
+                    if (!dmatch(&s,"inity"))
                         ++s;
                     word0(&rv) = 0x7ff00000;
                     word1(&rv) = 0;
@@ -2679,7 +2679,7 @@ strtod
                 break;
               case 'n':
               case 'N':
-                if (match(&s, "an")) {
+                if (dmatch(&s, "an")) {
                     word0(&rv) = NAN_WORD0;
                     word1(&rv) = NAN_WORD1;
 #ifndef No_Hex_NaN
