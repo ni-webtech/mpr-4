@@ -1249,7 +1249,7 @@ int mprGetSocketInfo(cchar *ip, int port, int *family, int *protocol, struct soc
                 break;
             }
         } else {
-            if (r->ai_family == AF_INET || ip == 0) {
+            if (r->ai_family == AF_INET) {
                 break;
             }
         }
