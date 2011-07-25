@@ -434,6 +434,9 @@ int mprStartCmd(MprCmd *cmd, int argc, char **argv, char **envp, int flags)
     cmd->program = sclone(program);
     cmd->flags = flags;
 
+    if (envp == 0) {
+        envp = (char**) cmd->defaultEnv;
+    }
     if (sanitizeArgs(cmd, argc, argv, envp) < 0) {
         mprAssert(!MPR_ERR_MEMORY);
         return MPR_ERR_MEMORY;
@@ -882,9 +885,6 @@ void mprSetCmdDir(MprCmd *cmd, cchar *dir)
  */
 static int sanitizeArgs(MprCmd *cmd, int argc, char **argv, char **env)
 {
-    if (env == 0) {
-        env = (char**) cmd->defaultEnv;
-    }
 #if VXWORKS
     cmd->argv = argv;
     cmd->argc = argc;
