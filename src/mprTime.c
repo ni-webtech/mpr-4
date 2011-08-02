@@ -250,6 +250,18 @@ void mprDecodeUniversalTime(struct tm *tp, MprTime when)
 }
 
 
+char *mprGetDate(char *fmt)
+{
+    struct tm   tm;
+
+    mprDecodeLocalTime(&tm, mprGetTime());
+    if (fmt == 0 || *fmt == '\0') {
+        fmt = "%a %b %d %Y %T GMT%z (%Z)";
+    }
+    return mprFormatTime(fmt, &tm);
+}
+
+
 char *mprFormatLocalTime(MprTime time)
 {
     struct tm   tm;

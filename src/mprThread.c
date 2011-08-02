@@ -366,8 +366,7 @@ MprThreadLocal *mprCreateThreadLocal()
 {
     MprThreadLocal      *tls;
 
-    tls = mprAllocObj(MprThreadLocal, manageThreadLocal);
-    if (tls == 0) {
+    if ((tls = mprAllocObj(MprThreadLocal, manageThreadLocal)) == 0) {
         return 0;
     }
 #if BLD_UNIX_LIKE

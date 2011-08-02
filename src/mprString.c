@@ -144,6 +144,10 @@ char *sclone(cchar *str)
 }
 
 
+/*
+    Clone a sub-string of a specified length. The null is added after the length. The given len can be longer than the
+    source string.
+ */
 char *snclone(cchar *str, ssize len)
 {
     char    *ptr;

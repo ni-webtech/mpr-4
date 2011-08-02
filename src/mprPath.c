@@ -60,6 +60,9 @@ static MPR_INLINE bool isAbsPath(MprFileSystem *fs, cchar *path)
     mprAssert(fs);
     mprAssert(path);
 
+    if (path == NULL || *path == '\0') {
+        return 0;
+    }
     if (fs->hasDriveSpecs) {
         if ((cp = firstSep(fs, path)) != 0) {
             if ((endDrive = strchr(path, ':')) != 0) {
