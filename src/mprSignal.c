@@ -295,7 +295,7 @@ static void signalEvent(MprSignal *sp, MprEvent *event)
 static void standardSignalHandler(void *ignored, MprSignal *sp)
 {
     mprLog(6, "standardSignalHandler signo %d, flags %x", sp->signo, sp->flags);
-#if DEBUG_IDE
+#if DEBUG_IDE && UNUSED
     if (sp->signo == SIGINT) return;
 #endif
     if (sp->signo == SIGTERM) {

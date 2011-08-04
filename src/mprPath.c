@@ -1130,6 +1130,30 @@ bool mprPathExists(cchar *path, int omode)
 }
 
 
+char *mprReadPath(cchar *path)
+{
+    MprFile     *file;
+    MprPath     info;
+    char        *buf;
+
+    if ((file = mprOpenFile(path, O_RDONLY | O_BINARY, 0)) == 0) {
+        mprError("Can't open %s", path);
+        return 0;
+    }
+    if (mprGetPathInfo(path, &info) < 0) {
+        return 0;
+    }
+    if ((buf = mprAlloc(info.size + 1)) == 0) {
+        return 0;
+    }
+    if (mprReadFile(file, buf, info.size) != info.size) {
+        return 0;
+    }
+    buf[info.size] = '\0';
+    return buf;
+}
+
+
 /*
     Resolve one path against another path. Returns a joined (normalized) path.
     If other is absolute, then return other. If other is null, empty or "." then return path.
@@ -1427,6 +1451,7 @@ char *mprGetAppDir()
     }
     return sclone(MPR->appDir); 
 } 
+
 
 /*
     @copy   default

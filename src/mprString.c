@@ -561,13 +561,18 @@ char *sreplace(char *str, char *pattern, char *replacement)
 {
     MprBuf      *buf;
     char        *s;
+    ssize       plen;
 
     buf = mprCreateBuf(-1, -1);
-    for (s = str; *s; s++) {
-        if (strstr(s, pattern) != 0) {
-            mprPutStringToBuf(buf, replacement);
-        } else {
-            mprPutCharToBuf(buf, *s);
+    if (pattern && *pattern && replacement && *replacement) {
+        plen = slen(pattern);
+        for (s = str; *s; s++) {
+            if (sncmp(s, pattern, plen) == 0) {
+                mprPutStringToBuf(buf, replacement);
+                s += plen - 1;
+            } else {
+                mprPutCharToBuf(buf, *s);
+            }
         }
     }
     mprAddNullToBuf(buf);
@@ -801,6 +806,56 @@ char *supper(cchar *str)
         str = s;
     }
     return (char*) str;
+}
+
+
+/*
+    Expand ${token} references in a path or string.
+    Currently support DOCUMENT_ROOT, SERVER_ROOT and PRODUCT, OS and VERSION.
+ */
+char *stemplate(cchar *str, MprHashTable *keys)
+{
+    MprBuf      *buf;
+    char        *src, *result, *cp, *tok, *value;
+
+    if (str) {
+        if (schr(str, '$') == 0) {
+            return sclone(str);
+        }
+        buf = mprCreateBuf(0, 0);
+        for (src = (char*) str; *src; ) {
+            if (*src == '$') {
+                if (*++src == '{') {
+                    for (cp = ++src; *cp && *cp != '}'; cp++) ;
+                    tok = snclone(src, cp - src);
+                } else {
+                    for (cp = src; *cp && (isalnum((int) *cp) || *cp == '_'); cp++) ;
+                    tok = snclone(src, cp - src);
+                }
+                if ((value = mprLookupKey(keys, tok)) != 0) {
+                    mprPutStringToBuf(buf, value);
+                    if (src > str && src[-1] == '{') {
+                        src = cp + 1;
+                    } else {
+                        src = cp;
+                    }
+                } else {
+                    mprPutCharToBuf(buf, '$');
+                    if (src > str && src[-1] == '{') {
+                        mprPutCharToBuf(buf, '{');
+                    }
+                    mprPutCharToBuf(buf, *src++);
+                }
+            } else {
+                mprPutCharToBuf(buf, *src++);
+            }
+        }
+        mprAddNullToBuf(buf);
+        result = sclone(mprGetBufStart(buf));
+    } else {
+        result = MPR->emptyString;
+    }
+    return result;
 }
 
 
