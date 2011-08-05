@@ -7127,6 +7127,36 @@ extern int mprIsCmdComplete(MprCmd *cmd);
 
 extern void mprSetDefaultCmdEnv(MprCmd *cmd, cchar **env);
 
+/************************************** Cache***************************************/
+
+#define MPR_CACHE_SHARED        0x1     /* Use shared cache */
+#define MPR_CACHE_ADD           0x2     /* Add key if not already existing */
+#define MPR_CACHE_SET           0x4     /* Update key value, create if required */
+#define MPR_CACHE_APPEND        0x8     /* Set and append if already existing */
+#define MPR_CACHE_PREPEND       0x10    /* Set and prepend if already existing */
+
+typedef struct MprCache
+{
+    MprHashTable    *store;             /* Key/value store */
+    MprMutex        *mutex;             /* Cache lock*/
+    MprEvent        *timer;             /* Pruning timer */
+    MprTime         lifespan;           /* Default lifespan (msec) */
+    int             resolution;         /* Frequence for pruner */
+    ssize           usedMem;            /* Memory in use for keys and data */
+    ssize           maxKeys;            /* Max number of keys */
+    ssize           maxMem;             /* Max memory for session data */
+    struct MprCache *shared;            /* Shared common cache */
+} MprCache;
+
+extern MprCache *mprCreateCache(int argc, int options);
+extern void *mprDestroyCache(MprCache *cache);
+extern int mprExpireCache(MprCache *cache, cchar *key, MprTime expires);
+extern int64 mprIncCacheItem(MprCache *cache, cchar *key, int64 amount);
+extern char *mprReadCache(MprCache *cache, cchar *key, int64 *version);
+extern bool mprRemoveCacheItem(MprCache *cache, cchar *key);
+extern void mprSetCacheLimits(MprCache *cache, int64 keys, int64 lifespan, int64 memory, int resolution);
+extern ssize mprWriteCacheItem(MprCache *cache, cchar *key, cchar *value, MprTime expires, int64 version, int options);
+
 /************************************** Mime ***************************************/
 /**
     Mime Type hash table entry (the URL extension is the key)
