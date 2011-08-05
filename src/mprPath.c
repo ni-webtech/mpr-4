@@ -555,6 +555,7 @@ char *mprGetPortablePath(cchar *path)
 }
 
 
+//  MOB - could generalize this to get a path relative to any directory
 /*
     This returns a path relative to the current working directory for the given path
  */
@@ -1155,36 +1156,49 @@ char *mprReadPath(cchar *path)
 
 
 /*
-    Resolve one path against another path. Returns a joined (normalized) path.
-    If other is absolute, then return other. If other is null, empty or "." then return path.
+    Resolve paths in the neighborhood of this path. Resolve operates like join, except that it joins the 
+    given paths to the directory portion of the current ("this") path. For example: 
+    Path("/usr/bin/ejs/bin").resolve("lib") will return "/usr/lib/ejs/lib". i.e. it will return the
+    sibling directory "lib".
+
+    Resolve operates by determining a virtual current directory for this Path object. It then successively 
+    joins the given paths to the directory portion of the current result. If the next path is an absolute path, 
+    it is used unmodified.  The effect is to find the given paths with a virtual current directory set to the 
+    directory containing the prior path.
+
+    Resolve is useful for creating paths in the region of the current path and gracefully handles both 
+    absolute and relative path segments.
+
+    Returns a joined (normalized) path.
+    If path is absolute, then return path. If path is null, empty or "." then return path.
  */
-char *mprResolvePath(cchar *path, cchar *other)
+char *mprResolvePath(cchar *base, cchar *path)
 {
     MprFileSystem   *fs;
     char            *join, *drive, *cp, *dir;
 
-    fs = mprLookupFileSystem(path);
-    if (other == NULL || *other == '\0' || strcmp(other, ".") == 0) {
-        return sclone(path);
+    fs = mprLookupFileSystem(base);
+    if (path == NULL || *path == '\0' || strcmp(path, ".") == 0) {
+        return sclone(base);
     }
-    if (isAbsPath(fs, other)) {
-        if (fs->hasDriveSpecs && !isFullPath(fs, other) && isFullPath(fs, path)) {
+    if (isAbsPath(fs, path)) {
+        if (fs->hasDriveSpecs && !isFullPath(fs, path) && isFullPath(fs, base)) {
             /*
-                Other is absolute, but without a drive. Use the drive from path.
+                Other is absolute, but without a drive. Use the drive from base.
              */
-            drive = sclone(path);
+            drive = sclone(base);
             if ((cp = strchr(drive, ':')) != 0) {
                 *++cp = '\0';
             }
-            return sjoin(drive, other, NULL);
+            return sjoin(drive, path, NULL);
         }
-        return mprGetNormalizedPath(other);
+        return mprGetNormalizedPath(path);
     }
-    if (path == NULL || *path == '\0') {
-        return mprGetNormalizedPath(other);
+    if (base == NULL || *base == '\0') {
+        return mprGetNormalizedPath(path);
     }
-    dir = mprGetPathDir(path);
-    if ((join = mprAsprintf("%s/%s", dir, other)) == 0) {
+    dir = mprGetPathDir(base);
+    if ((join = mprAsprintf("%s/%s", dir, path)) == 0) {
         return 0;
     }
     return mprGetNormalizedPath(join);
@@ -1231,6 +1245,7 @@ int mprSamePath(cchar *path1, cchar *path2)
 }
 
 
+//  MOB - not a great name
 /*
     Compare two file path to determine if they point to the same file.
  */

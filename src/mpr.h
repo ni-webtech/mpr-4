@@ -4930,13 +4930,13 @@ extern bool mprIsRelPath(cchar *path);
 
 /**
     Join paths
-    @description Resolve one path relative to another
-    @param dir Directory path name to test use as the base/dir.
+    @description Join a path to a base path. If path is absolute, it will be returned.
+    @param base Directory path name to use as the base.
     @param other Other path name to resolve against path.
     @returns Allocated string containing the resolved path.
     @ingroup MprPath
  */
-extern char *mprJoinPath(cchar *dir, cchar *other);
+extern char *mprJoinPath(cchar *base, cchar *path);
 
 /**
     Join an extension to a path
@@ -5009,14 +5009,27 @@ extern char *mprReadPath(cchar *path);
 
 /**
     Resolve paths
-    @description Resolve one path relative to another. If the other path is absolute, it is returned. Otherwise
-        it is resolved relative to the directory containing the first path.
-    @param path Path name to test use as the base.
-    @param other Other path name to resolve against path.
+    @description Resolve paths in the neighborhood of this path. Resolve operates like join, except that it joins the 
+    given paths to the directory portion of the current ("this") path. For example: 
+    Path("/usr/bin/ejs/bin").resolve("lib") will return "/usr/lib/ejs/lib". i.e. it will return the
+    sibling directory "lib".
+
+    Resolve operates by determining a virtual current directory for this Path object. It then successively 
+    joins the given paths to the directory portion of the current result. If the next path is an absolute path, 
+    it is used unmodified.  The effect is to find the given paths with a virtual current directory set to the 
+    directory containing the prior path.
+
+    Resolve is useful for creating paths in the region of the current path and gracefully handles both 
+    absolute and relative path segments.
+
+    Returns a joined (normalized) path.
+    If path is absolute, then return path. If path is null, empty or "." then return path.
+    @param base Base path to use as the base.
+    @param path Path name to resolve against base.
     @returns Allocated string containing the resolved path.
     @ingroup MprPath
  */
-extern char *mprResolvePath(cchar *path, cchar *other);
+extern char *mprResolvePath(cchar *base, cchar *path);
 
 /**
     Compare two paths if they are the same
