@@ -5075,6 +5075,8 @@ extern char *mprSearchPath(cchar *path, int flags, cchar *search, ...);
  */
 extern char *mprTrimPathExtension(cchar *path);
 
+extern int mprWritePath(cchar *path, cchar *buf, ssize len, int mode);
+
 /******************************************************** O/S Dep **********************************************************/
 
 /**
