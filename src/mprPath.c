@@ -1135,6 +1135,7 @@ char *mprReadPath(cchar *path)
 {
     MprFile     *file;
     MprPath     info;
+    ssize       len;
     char        *buf;
 
     if ((file = mprOpenFile(path, O_RDONLY | O_BINARY, 0)) == 0) {
@@ -1144,13 +1145,14 @@ char *mprReadPath(cchar *path)
     if (mprGetPathInfo(path, &info) < 0) {
         return 0;
     }
-    if ((buf = mprAlloc(info.size + 1)) == 0) {
+    len = (ssize) info.size;
+    if ((buf = mprAlloc(len + 1)) == 0) {
         return 0;
     }
-    if (mprReadFile(file, buf, info.size) != info.size) {
+    if (mprReadFile(file, buf, len) != len) {
         return 0;
     }
-    buf[info.size] = '\0';
+    buf[len] = '\0';
     return buf;
 }
 
