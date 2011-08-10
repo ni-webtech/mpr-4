@@ -126,7 +126,6 @@ int mprReadRegistry(char **buf, ssize max, cchar *key, cchar *name)
     if ((key = getHive(key, &top)) == 0) {
         return MPR_ERR_CANT_ACCESS;
     }
-
     if (RegOpenKeyEx(top, key, 0, KEY_READ, &h) != ERROR_SUCCESS) {
         return MPR_ERR_CANT_ACCESS;
     }
@@ -254,7 +253,6 @@ int mprWriteRegistry(cchar *key, cchar *name, cchar *value)
     if ((key = getHive(key, &top)) == 0) {
         return MPR_ERR_CANT_ACCESS;
     }
-
     if (name) {
         /*
             Write a registry string value
