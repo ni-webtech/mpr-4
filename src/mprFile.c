@@ -529,6 +529,7 @@ ssize mprWriteFileString(MprFile *file, cchar *str)
 }
 
 
+//  MOB - rethink name
 ssize mprWriteFileFormat(MprFile *file, cchar *fmt, ...)
 {
     va_list     ap;

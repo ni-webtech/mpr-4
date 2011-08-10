@@ -173,6 +173,38 @@ int mprDeletePath(cchar *path)
 }
 
 
+static MprList *findFiles(MprList *list, cchar *dir, int flags)
+{
+    MprDirEntry     *dp;
+    MprList         *files;
+    int             next, enumDirs, incDirs;
+
+    enumDirs = flags & MPR_PATH_ENUM_DIRS ? 1 : 0;
+    incDirs = flags & MPR_PATH_INC_DIRS ? 1 : 0;
+
+    files = mprGetPathFiles(dir, enumDirs);
+    for (next = 0; (dp = mprGetNextItem(files, &next)) != 0; ) {
+        if (dp->isDir) {
+            if (incDirs) {
+                mprAddItem(list, mprJoinPath(dir, dp->name));
+            }
+            if (enumDirs) {
+                findFiles(list, mprJoinPath(dir, dp->name), flags);
+            } 
+        } else {
+            mprAddItem(list, mprJoinPath(dir, dp->name));
+        }
+    }
+    return list;
+}
+
+
+MprList *mprFindFiles(cchar *dir, int flags)
+{
+    return findFiles(mprCreateList(-1, 0), dir, flags);
+}
+
+
 /*
     Return an absolute (normalized) path.
  */
@@ -320,7 +352,7 @@ char *mprGetAppPath()
  */
 char *mprGetCurrentPath()
 {
-    char            dir[MPR_MAX_PATH];
+    char    dir[MPR_MAX_PATH];
 
     if (getcwd(dir, sizeof(dir)) == 0) {
         return mprGetAbsPath("/");
@@ -367,6 +399,9 @@ char *mprGetPathBase(cchar *path)
     MprFileSystem   *fs;
     char            *cp;
 
+    if (path == 0) {
+        return sclone("");
+    }
     fs = mprLookupFileSystem(path);
     cp = (char*) lastSep(fs, path);
     if (cp == 0) {
@@ -1450,7 +1485,7 @@ char *mprSearchPath(cchar *file, int flags, cchar *search, ...)
 }
 
 
-int mprWritePath(cchar *path, cchar *buf, ssize len, int mode)
+ssize mprWritePath(cchar *path, cchar *buf, ssize len, int mode)
 {
     MprFile     *file;
 
@@ -1466,7 +1501,7 @@ int mprWritePath(cchar *path, cchar *buf, ssize len, int mode)
         return MPR_ERR_CANT_WRITE;
     }
     mprCloseFile(file);
-    return 0;
+    return len;
 }
 
 
