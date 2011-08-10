@@ -4,9 +4,12 @@
 #	Copyright (c) Embedthis Software LLC, 2003-2011. All Rights Reserved.
 #
 
-MAKE_IFLAGS		= $(BLD_OPENSSL_IFLAGS) $(BLD_MATRIXSSL_IFLAGS)
-
 include 		.makedep
+
+MAKE_IFLAGS		+= $(BLD_OPENSSL_IFLAGS) $(BLD_MATRIXSSL_IFLAGS)
+ifeq ($(MACOSX),1)
+	MAKE_IFLAGS	+= -Wno-deprecated-declarations
+endif
 
 ifeq ($(BLD_FEATURE_SSL),1)
 	IMPORTS 	+= $(BLD_OPENSSL_IMPORTS) $(BLD_MATRIXSSL_IMPORTS)
