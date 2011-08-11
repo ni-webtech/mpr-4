@@ -217,7 +217,7 @@ char *mprEncode64(cchar *s)
 
 
 /*
-    Return the MD5 hash of a block. Returns allocated string.
+    Return the MD5 hash of a block. Returns allocated string. A prefix for the result can be supplied.
  */
 char *mprGetMD5Hash(cchar *buf, ssize length, cchar *prefix)
 {

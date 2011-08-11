@@ -256,17 +256,32 @@ char *mprGetDate(char *fmt)
 
     mprDecodeLocalTime(&tm, mprGetTime());
     if (fmt == 0 || *fmt == '\0') {
-        fmt = "%a %b %d %Y %T GMT%z (%Z)";
+        // UNUSED fmt = MPR_LEGACY_DATE;
+        fmt = MPR_DEFAULT_DATE;
     }
-    return mprFormatTime(fmt, &tm);
+    return mprFormatTm(fmt, &tm);
 }
 
 
-char *mprFormatLocalTime(MprTime time)
+char *mprFormatLocalTime(cchar *fmt, MprTime time)
 {
     struct tm   tm;
     mprDecodeLocalTime(&tm, time);
-    return mprFormatTime(MPR_DEFAULT_DATE, &tm);
+    if (fmt == 0) {
+        fmt = MPR_DEFAULT_DATE;
+    }
+    return mprFormatTm(MPR_DEFAULT_DATE, &tm);
+}
+
+
+char *mprFormatUniversalTime(cchar *fmt, MprTime time)
+{
+    struct tm   tm;
+    mprDecodeUniversalTime(&tm, time);
+    if (fmt == 0) {
+        fmt = MPR_DEFAULT_DATE;
+    }
+    return mprFormatTm(MPR_DEFAULT_DATE, &tm);
 }
 
 
@@ -696,7 +711,7 @@ static void decodeTime(struct tm *tp, MprTime when, bool local)
 /*
     Preferred implementation as strftime() will be localized
  */
-char *mprFormatTime(cchar *fmt, struct tm *tp)
+char *mprFormatTm(cchar *fmt, struct tm *tp)
 {
     struct tm       tm;
     char            localFmt[MPR_MAX_STRING];
@@ -947,7 +962,7 @@ static char *getTimeZoneName(struct tm *tp)
 }
 
 
-char *mprFormatTime(cchar *fmt, struct tm *tp)
+char *mprFormatTm(cchar *fmt, struct tm *tp)
 {
     struct tm       tm;
     MprBuf          *buf;

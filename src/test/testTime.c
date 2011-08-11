@@ -50,7 +50,7 @@ static void testFormatTime(MprTestGroup *gp)
     /* TODO - need some tests here */
     now = mprGetTime();
     mprDecodeLocalTime(&tm, now);
-    str = mprFormatTime(NULL, &tm);
+    str = mprFormatTm(NULL, &tm);
     assert(str && *str);
 }
 

@@ -16,7 +16,8 @@ typedef struct CacheItem
 {
     char        *key;                   /* Original key */
     char        *data;                  /* Cache data */
-    MprTime     expires;                /* Fixed expiry date. If zero, key is imortal. */
+    MprTime     lastModified;           /* Last update time */
+    MprTime     expires;                /* Fixed expiry date. If zero, key is imortal */
     MprTime     lifespan;               /* Lifespan after each access to key (msec) */
     int64       version;
 } CacheItem;
@@ -134,7 +135,7 @@ int64 mprIncCache(MprCache *cache, cchar *key, int64 amount)
 }
 
 
-char *mprReadCache(MprCache *cache, cchar *key, int64 *version)
+char *mprReadCache(MprCache *cache, cchar *key, MprTime *modified, int64 *version)
 {
     CacheItem   *item;
     char        *result;
@@ -157,6 +158,9 @@ char *mprReadCache(MprCache *cache, cchar *key, int64 *version)
     }
     if (version) {
         *version = item->version;
+    }
+    if (modified) {
+        *modified = item->lastModified;
     }
     result = item->data;
     unlock(cache);
@@ -229,7 +233,8 @@ void mprSetCacheLimits(MprCache *cache, int64 keys, MprTime lifespan, int64 memo
 }
 
 
-ssize mprWriteCache(MprCache *cache, cchar *key, cchar *value, MprTime lifespan, int64 version, int options)
+ssize mprWriteCache(MprCache *cache, cchar *key, cchar *value, MprTime modified, MprTime lifespan, 
+    int64 version, int options)
 {
     CacheItem   *item;
     MprHash     *hp;
@@ -285,7 +290,8 @@ ssize mprWriteCache(MprCache *cache, cchar *key, cchar *value, MprTime lifespan,
         item->data = sjoin(value, item->data, 0);
     }
     item->lifespan = lifespan;
-    item->expires = mprGetTime() + lifespan;
+    item->lastModified = modified ? modified : mprGetTime();
+    item->expires = item->lastModified + lifespan;
     item->version++;
     len = slen(item->key) + slen(item->data);
     cache->usedMem += (len - oldLen);
