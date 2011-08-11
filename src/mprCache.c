@@ -157,9 +157,8 @@ char *mprReadCache(MprCache *cache, cchar *key, int64 *version)
     }
     if (version) {
         *version = item->version;
-    } else {
-        result = item->data;
     }
+    result = item->data;
     unlock(cache);
     return result;
 }
