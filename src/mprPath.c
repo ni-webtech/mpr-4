@@ -557,8 +557,7 @@ MprList *mprGetPathFiles(cchar *path, bool enumDirs)
     char            *fileName;
     int             rc;
 
-    dir = opendir((char*) path);
-    if (dir == 0) {
+    if ((dir = opendir((char*) path)) == 0) {
         return 0;
     }
     list = mprCreateList(256, 0);

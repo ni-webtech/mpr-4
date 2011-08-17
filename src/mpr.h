@@ -2733,6 +2733,8 @@ extern char *strim(cchar *str, cchar *set, int where);
 
 //  DOC
 extern char *sreplace(cchar *str, cchar *pattern, cchar *replacement);
+extern bool ssame(cchar *s1, cchar *s2);
+extern bool scasesame(cchar *s1, cchar *s2);
 
 /********************************************************* Unicode *********************************************************/
 /*
