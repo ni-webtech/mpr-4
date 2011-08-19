@@ -95,6 +95,9 @@ void mprConfigureSsl(MprSsl *ssl)
 {
     MprSocketProvider   *provider;
 
+    if (ssl == 0) {
+        return;
+    }
     provider = MPR->socketService->secureProvider;
     if (provider) {
         provider->configureSsl(ssl);

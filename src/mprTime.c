@@ -1309,19 +1309,6 @@ static int getNumOrSym(char **token, int sep, int kind, int *isAlpah)
 }
 
 
-static bool allDigits(cchar *token)
-{
-    cchar   *cp;
-
-    for (cp = token; *cp; cp++) {
-        if (!isdigit((int) *cp)) {
-            return 0;
-        }
-    }
-    return 1;
-} 
-
-
 static void swapDayMonth(struct tm *tp)
 {
     int     tmp;
@@ -1386,7 +1373,7 @@ int mprParseTime(MprTime *time, cchar *dateString, int zoneFlags, struct tm *def
     token = stok(str, sep, &next);
 
     while (token && *token) {
-        if (allDigits(token)) {
+        if (snumber(token)) {
             /*
                 Parse either day of month or year. Priority to day of month. Format: <29> Jan <15> <2011>
              */ 

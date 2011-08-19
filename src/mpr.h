@@ -2733,8 +2733,9 @@ extern char *strim(cchar *str, cchar *set, int where);
 
 //  DOC
 extern char *sreplace(cchar *str, cchar *pattern, cchar *replacement);
-extern bool ssame(cchar *s1, cchar *s2);
-extern bool scasesame(cchar *s1, cchar *s2);
+extern bool smatch(cchar *s1, cchar *s2);
+extern bool scasematch(cchar *s1, cchar *s2);
+extern bool snumber(cchar *s);
 
 /********************************************************* Unicode *********************************************************/
 /*
@@ -4678,10 +4679,10 @@ extern int mprGetFileFd(MprFile *file);
     @description MprPath is the cross platform Path (filename) information structure.
     @stability Evolving.
     @see MprPath mprComparePath mprCopyPath mprDeletePath mprGetAbsPath mprGetCurrentPath
-        mprGetPathBase mprGetPathDir mprGetPathFiles mprGetPathExtension mprGetPathLink mprGetPathParent 
+        mprGetPathBase mprGetPathDir mprGetPathFiles mprGetPathExt mprGetPathLink mprGetPathParent 
         mprGetPathNewline mprGetPathSeparators mprGetPortablePath mprGetRelPath mprGetTempPath  mprGetTransformedPath
         mprIsAbsPath mprIsRelPath mprMakeDir mprMakeLink mprGetNormalizedPath mprJoinPath mprJoinPathExt mprMapSeparators 
-        mprPathExists mprResolvePath mprSearchPath mprTruncatePath mprTrimExtension
+        mprPathExists mprResolvePath mprSearchPath mprTruncatePath mprTrimExt
         MprFile
     @defgroup MprPath MprPath
  */
@@ -4837,7 +4838,7 @@ extern MprList *mprGetPathFiles(cchar *dir, bool enumDirs);
     @returns A path extension. 
     @ingroup MprPath
  */
-extern char *mprGetPathExtension(cchar *path);
+extern char *mprGetPathExt(cchar *path);
 
 /**
     Return information about a file represented by a path.
@@ -5092,7 +5093,7 @@ extern char *mprSearchPath(cchar *path, int flags, cchar *search, ...);
     @returns An allocated string with the trimmed path.
     @ingroup MprPath
  */
-extern char *mprTrimPathExtension(cchar *path);
+extern char *mprTrimPathExt(cchar *path);
 
 extern ssize mprWritePath(cchar *path, cchar *buf, ssize len, int mode);
 
