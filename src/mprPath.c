@@ -884,6 +884,7 @@ char *mprJoinPath(cchar *path, cchar *other)
 
 /*
     Join an extension to a path. If path already has an extension, this call does nothing.
+    The extension should not have a ".", but this routine is tolerant if it does.
  */
 char *mprJoinPathExt(cchar *path, cchar *ext)
 {
@@ -898,7 +899,11 @@ char *mprJoinPathExt(cchar *path, cchar *ext)
     if (cp && firstSep(fs, cp) == 0) {
         return sclone(path);
     }
-    return sjoin(path, ".", ext, NULL);
+    if (ext[0] == '.') {
+        return sjoin(path, ext, NULL);
+    } else {
+        return sjoin(path, ".", ext, NULL);
+    }
 }
 
 
@@ -1507,22 +1512,19 @@ ssize mprWritePath(cchar *path, cchar *buf, ssize len, int mode)
 
 
 
-/*
-    Return the extension portion of a pathname.
- */
 char *mprTrimPathExt(cchar *path)
 {
     MprFileSystem   *fs;
-    char            *cp, *ext;
+    char            *cp, *result;
 
     fs = mprLookupFileSystem(path);
-    ext = sclone(path);
-    if ((cp = srchr(ext, '.')) != NULL) {
+    result = sclone(path);
+    if ((cp = srchr(result, '.')) != NULL) {
         if (firstSep(fs, cp) == 0) {
             *cp = '\0';
         }
     } 
-    return ext;
+    return result;
 }
 
 
