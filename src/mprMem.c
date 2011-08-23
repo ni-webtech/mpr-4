@@ -1425,9 +1425,6 @@ static void marker(void *unused, MprThread *tp)
         MPR_MEASURE(7, "GC", "mark", mark());
     }
     heap->mustYield = 0;
-#if UNUSED
-    mprResumeThreads();
-#endif
     MPR->marker = 0;
 }
 

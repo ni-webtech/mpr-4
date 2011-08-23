@@ -171,7 +171,6 @@ void mprDestroy(int how)
             break;
         }
 #if UNUSED && KEEP
-        //  MOB - cleanup
         printf("marker %d, eventing %d, busyThreads %d, threads %d\n", MPR->marker, MPR->eventing, 
                 MPR->workerService->busyThreads->length,
                 MPR->threadService->threads->length);

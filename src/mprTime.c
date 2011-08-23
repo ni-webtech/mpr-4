@@ -256,7 +256,6 @@ char *mprGetDate(char *fmt)
 
     mprDecodeLocalTime(&tm, mprGetTime());
     if (fmt == 0 || *fmt == '\0') {
-        // UNUSED fmt = MPR_LEGACY_DATE;
         fmt = MPR_DEFAULT_DATE;
     }
     return mprFormatTm(fmt, &tm);

@@ -69,10 +69,6 @@ static void manageEvent(MprEvent *event, int flags)
         mprMark(event->name);
         mprMark(event->dispatcher);
         mprMark(event->handler);
-#if UNUSED
-        mprMark(event->next);
-        mprMark(event->prev);
-#endif
         if (!(event->flags & MPR_EVENT_STATIC_DATA)) {
             mprMark(event->data);
         }
