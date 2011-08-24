@@ -1424,7 +1424,7 @@ int startProcess(MprCmd *cmd)
     }
     program = mprGetPathBase(cmd->program);
     if (entryPoint == 0) {
-        program = mprTrimPathExtension(program);
+        program = mprTrimPathExt(program);
 #if BLD_HOST_CPU_ARCH == MPR_CPU_IX86 || BLD_HOST_CPU_ARCH == MPR_CPU_IX64
         entryPoint = sjoin("_", program, "Main", NULL);
 #else

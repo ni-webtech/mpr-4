@@ -223,7 +223,7 @@ static int getPathInfo(MprDiskFileSystem *fileSystem, cchar *path, MprPath *info
     info->isDir = (s.st_mode & S_IFDIR) != 0;
     info->isReg = (s.st_mode & S_IFREG) != 0;
     info->isLink = 0;
-    ext = mprGetPathExtension(path);
+    ext = mprGetPathExt(path);
     if (ext && strcmp(ext, "lnk") == 0) {
         info->isLink = 1;
     }
@@ -248,7 +248,7 @@ static int getPathInfo(MprDiskFileSystem *fileSystem, cchar *path, MprPath *info
     info->isDir = (s.st_mode & S_IFDIR) != 0;
     info->isReg = (s.st_mode & S_IFREG) != 0;
     info->isLink = 0;
-    ext = mprGetPathExtension(path);
+    ext = mprGetPathExt(path);
     if (ext && strcmp(ext, "lnk") == 0) {
         info->isLink = 1;
     }
