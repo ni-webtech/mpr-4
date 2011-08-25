@@ -627,6 +627,7 @@ char *mprGetPathExt(cchar *path)
 }
 
 
+//  MOB - better boolean?
 int mprGetPathInfo(cchar *path, MprPath *info)
 {
     MprFileSystem  *fs;
