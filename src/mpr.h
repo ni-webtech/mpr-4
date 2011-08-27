@@ -3445,7 +3445,7 @@ extern int mprPutFmtToWideBuf(MprBuf *buf, cchar *fmt, ...);
  */
 #define MPR_HTTP_DATE       "%a, %d %b %Y %T GMT"
 
-#if UNUSED
+#if UNUSED && KEEP
 #define MPR_LEGACY_DATE     "%a %b %d %Y %T GMT%z (%Z)"
 #endif
 
