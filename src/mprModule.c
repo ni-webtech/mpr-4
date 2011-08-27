@@ -99,11 +99,11 @@ MprModule *mprCreateModule(cchar *name, cchar *path, cchar *entry, void *data)
             return 0;
         }
         path = at;
+        mprGetPathInfo(path, &info);
     }
     if ((mp = mprAllocObj(MprModule, manageModule)) == 0) {
         return 0;
     }
-    mprGetPathInfo(path, &info);
     mp->name = sclone(name);
     mp->path = sclone(path);
     mp->entry = sclone(entry);
