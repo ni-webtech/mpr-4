@@ -1239,7 +1239,7 @@ SEARCH_INCLUDES        = YES
 # contain include files that are not input files but should be processed by 
 # the preprocessor.
 
-INCLUDE_PATH           = ../../../src/include
+INCLUDE_PATH           = ../../../src
 
 # You can use the INCLUDE_FILE_PATTERNS tag to specify one or more wildcard 
 # patterns (like *.h and *.hpp) to filter out the header-files in the 
@@ -1261,12 +1261,8 @@ PREDEFINED             = WIN=1 \
                          BLD_UNIX_LIKE=1 \
                          BLD_WIN_LIKE=1 \
                          BLD_FEATURE_ASSERT=1 \
-                         BLD_FEATURE_FLOATING_POINT=1 \
-                         BLD_FEATURE_INT64=1 \
-                         BLD_FEATURE_LEGACY_API=1 \
-                         BLD_FEATURE_TEST=1 \
+                         BLD_FEATURE_FLOAT=1 \
                          BLD_FEATURE_ROMFS=1 \
-                         BLD_FEATURE_CMD=1 \
                          BLD_FEATURE_SSL=1 \
                          BLD_FEATURE_OPENSSL=1 \
                          BLD_FEATURE_MATRIXSSL=1 \

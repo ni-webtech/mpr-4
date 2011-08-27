@@ -9,16 +9,14 @@ STAGING		:= staging
 include		.makedep
 
 gen:
-	make SKIP_CLEAN=1 -C ../../../package dist
+	make SKIP_CLEAN=1 -C ../../.. packageCombo
 	rm -fr ./$(STAGING) xml html
 	mkdir -p ./$(STAGING) xml html
-	tar xf $(BLD_OUT_DIR)/releases/$(BLD_PRODUCT)-dist.tgz -C $(STAGING)
+	tar xf $(BLD_OUT_DIR)/releases/$(BLD_PRODUCT)-combo.tgz -C $(STAGING)
 	mv $(STAGING)/mpr-$(BLD_VERSION)/* $(STAGING)
 	rmdir $(STAGING)/mpr-$(BLD_VERSION)
 	$(call log) "[Generate]" "doxygen mpr.spec"
 	doxygen mpr.spec
-
-x:
 	$(call log) "[Transform]" "gendoc"
 	ejs $(BLD_TOOLS_DIR)/gendoc.es --bare --title "MPR - Multithreaded Portable Runtime Native API" --tags ../mpr.tags \
 		xml/mpr_8h.xml xml/group* xml/struct_*.xml >../mprBare.html

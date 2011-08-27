@@ -1632,21 +1632,49 @@ extern void mprGlobalUnlock();
     Lock free primitives
  */
 
-//MOB
-/*
+/**
     Apply a full (read+write) memory barrier
  */ 
 extern void mprAtomicBarrier();
 
-/*
-    Apply a full (read+write) memory barrier
+/**
+    Atomic list insertion. Inserts "item" at the "head" of the list. The "link" field is the next field in item.
+    This is a lock-free function
+    @param head list head
+    @param link Reference to the list head link field
+    @param item Item to insert
  */ 
 extern void mprAtomicListInsert(void * volatile *head, volatile void **link, void *item);
 
-extern int mprAtomicCas(void * volatile * addr, void *expected, cvoid *value);
+/**
+    Atomic Compare and Swap. This is a lock free function.
+    @param target Address of the target word to swap
+    @param expected Expected value of the target
+    @param value New value to store at the target
+    @return TRUE if the swap was successful
+ */
+extern int mprAtomicCas(void * volatile * target, void *expected, cvoid *value);
+
+/**
+    Atomic Add. This is a lock free function.
+    @param target Address of the target word to add to.
+    @param value Value to add to the target
+ */
 extern void mprAtomicAdd(volatile int *ptr, int value);
+
+/**
+    Atomic 64 bit Add. This is a lock free function.
+    @param target Address of the target word to add to.
+    @param value Value to add to the target
+ */
 extern void mprAtomicAdd64(volatile int64 *ptr, int value);
-extern void *mprAtomicExchange(void * volatile *addr, cvoid *value);
+
+/**
+    Exchange the target and a value
+    @param target Address of the target word to exchange
+    @param value Value to store to the target
+ */
+extern void *mprAtomicExchange(void * volatile *target, cvoid *value);
 
 /********************************* Memory Allocator ***************************/
 /*
@@ -2365,7 +2393,13 @@ extern void mprRemoveRoot(void *ptr);
 } else {
 #endif
 
-//MOB
+/**
+    Mark a block as "in-use" for the Garbage Collector.
+    The MPR memory garbage collector requires that all allocated memory be marked as in-use during a garbage collection
+    sweep. When a memory block is allocated, it may provide a "manage" callback function that will be invoked during
+    garbage collection so the block can be marked as "in-use".
+    @param ptr Reference to the block to mark as currently being used.
+ */
 extern void mprMarkBlock(cvoid *ptr);
 
 /*
@@ -2423,6 +2457,16 @@ extern char *schr(cchar *str, int c);
     @ingroup MprString
  */
 extern int scasecmp(cchar *s1, cchar *s2);
+
+/**
+    Compare strings ignoring case. This is similar to scasecmp but it returns a boolean.
+    @description Compare two strings ignoring case differences.
+    @param s1 First string to compare.
+    @param s2 Second string to compare. 
+    @return Returns true if the strings are equivalent, otherwise false.
+    @ingroup MprString
+ */
+extern bool scasematch(cchar *s1, cchar *s2);
 
 /**
     Clone a string.
@@ -2564,6 +2608,16 @@ extern ssize slen(cchar *str);
 extern char *slower(cchar *str);
 
 /**
+    Compare strings.
+    @description Compare two strings. This is similar to #scmp but it returns a boolean.
+    @param s1 First string to compare.
+    @param s2 Second string to compare.
+    @return Returns true if the strings are equivalent, otherwise false.
+    @ingroup MprString
+ */
+extern bool smatch(cchar *s1, cchar *s2);
+
+/**
     Compare strings ignoring case.
     @description Compare two strings ignoring case differences for a given string length. This call operates 
         similarly to strncasecmp.
@@ -2656,6 +2710,15 @@ extern char *srejoin(char *buf, ...);
  */
 extern char *srejoinv(char *buf, va_list args);
 
+/*
+    Replace a pattern in a string
+    @param str
+    @param pattern
+    @param replacmenet
+    @return
+ */
+extern char *sreplace(cchar *str, cchar *pattern, cchar *replacement);
+
 /**
     Find the end of a spanning prefix
     @description This scans the given string for characters from the set and returns a reference to the 
@@ -2743,9 +2806,6 @@ extern char *supper(cchar *str);
 extern char *strim(cchar *str, cchar *set, int where);
 
 //MOB DOC - and move inline
-extern char *sreplace(cchar *str, cchar *pattern, cchar *replacement);
-extern bool smatch(cchar *s1, cchar *s2);
-extern bool scasematch(cchar *s1, cchar *s2);
 extern bool snumber(cchar *s);
 
 /************************************ Unicode *********************************/
