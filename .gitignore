@@ -67,3 +67,4 @@ projects/WIN/mpr-dynamic/ipch
 *.cltmp
 .embedthis
 .publisher
+doc/api/mpr.html
