@@ -1295,7 +1295,7 @@ bool mprPathExists(cchar *path, int omode)
 }
 
 
-char *mprReadPath(cchar *path)
+char *mprReadPath(cchar *path, ssize *lenp)
 {
     MprFile     *file;
     MprPath     info;
@@ -1317,6 +1317,9 @@ char *mprReadPath(cchar *path)
         return 0;
     }
     buf[len] = '\0';
+    if (lenp) {
+        *lenp = len;
+    }
     return buf;
 }
 

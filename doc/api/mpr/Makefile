@@ -17,11 +17,15 @@ gen:
 	rmdir $(STAGING)/mpr-$(BLD_VERSION)
 	$(call log) "[Generate]" "doxygen mpr.spec"
 	doxygen mpr.spec
+
+next:
 	$(call log) "[Transform]" "gendoc"
-	ejs $(BLD_TOOLS_DIR)/gendoc.es --bare --title "MPR - Multithreaded Portable Runtime Native API" --tags ../mpr.tags \
-		xml/mpr_8h.xml xml/group* xml/struct_*.xml >../mprBare.html
 	ejs $(BLD_TOOLS_DIR)/gendoc.es --title "MPR - Multithreaded Portable Runtime Native API" --tags ../mpr.tags \
 		xml/mpr_8h.xml xml/group* xml/struct_*.xml >../mpr.html
+
+rest:
+	ejs $(BLD_TOOLS_DIR)/gendoc.es --bare --title "MPR - Multithreaded Portable Runtime Native API" --tags ../mpr.tags \
+		xml/mpr_8h.xml xml/group* xml/struct_*.xml >../mprBare.html
 	rm -fr ./$(STAGING) xml html
 
 cleanExtra:

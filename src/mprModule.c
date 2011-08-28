@@ -193,6 +193,9 @@ void *mprLookupModuleData(cchar *name)
 
 void mprSetModuleTimeout(MprModule *module, MprTime timeout)
 {
+    /*
+        Module timeouts are not yet implemented
+     */
     module->timeout = timeout;
 }
 

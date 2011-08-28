@@ -290,7 +290,7 @@ static void signalEvent(MprSignal *sp, MprEvent *event)
 
 /*
     Standard signal handler.  Ignore signals SIGPIPE and SIGXFSZ. 
-    Do graceful shutdown for SIGTERM, immediate exit for SIGABRT.  All other signals do normal exit.
+    Do graceful shutdown for SIGTERM, immediate exit for SIGINT.  All other signals do normal exit.
  */
 static void standardSignalHandler(void *ignored, MprSignal *sp)
 {
@@ -327,7 +327,9 @@ void mprAddStandardSignals()
     mprAddItem(ssp->standard, mprAddSignalHandler(SIGINT,  standardSignalHandler, 0, 0, MPR_SIGNAL_AFTER));
     mprAddItem(ssp->standard, mprAddSignalHandler(SIGQUIT, standardSignalHandler, 0, 0, MPR_SIGNAL_AFTER));
     mprAddItem(ssp->standard, mprAddSignalHandler(SIGTERM, standardSignalHandler, 0, 0, MPR_SIGNAL_AFTER));
+#if UNUSED && KEEP
     mprAddItem(ssp->standard, mprAddSignalHandler(SIGUSR1, standardSignalHandler, 0, 0, MPR_SIGNAL_AFTER));
+#endif
     mprAddItem(ssp->standard, mprAddSignalHandler(SIGPIPE, standardSignalHandler, 0, 0, MPR_SIGNAL_AFTER));
 #if SIGXFSZ
     mprAddItem(ssp->standard, mprAddSignalHandler(SIGXFSZ, standardSignalHandler, 0, 0, MPR_SIGNAL_AFTER));

@@ -50,7 +50,6 @@ MprSocketService *mprCreateSocketService()
     if (ss == 0) {
         return 0;
     }
-    ss->next = 0;
     ss->maxClients = MAXINT;
     ss->numClients = 0;
 
