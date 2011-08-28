@@ -101,7 +101,7 @@ int mprSetListLimits(MprList *lp, int initialSize, int maxSize)
 }
 
 
-int mprCopyList(MprList *dest, MprList *src)
+int mprCopyListContents(MprList *dest, MprList *src)
 {
     void        *item;
     int         next;
@@ -133,7 +133,7 @@ MprList *mprCloneList(MprList *src)
     if ((lp = mprCreateList(src->capacity, src->flags)) == 0) {
         return 0;
     }
-    if (mprCopyList(lp, src) < 0) {
+    if (mprCopyListContents(lp, src) < 0) {
         return 0;
     }
     return lp;

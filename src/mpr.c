@@ -230,11 +230,11 @@ static void getArgs(Mpr *mpr, int argc, char **argv)
 #if WINCE
     MprArgs *args = (MprArgs*) argv;
     command = mprToMulti((uni*) args->command);
-    mprMakeArgv(command, &argc, &argv, MPR_ARGV_ARGS_ONLY);
+    argc = mprMakeArgv(command, &argv, MPR_ARGV_ARGS_ONLY);
     argv[0] = sclone(args->program);
 #elif VXWORKS
     MprArgs *args = (MprArgs*) argv;
-    mprMakeArgv("", &argc, &argv, MPR_ARGV_ARGS_ONLY);
+    argc = mprMakeArgv("", &argv, MPR_ARGV_ARGS_ONLY);
     argv[0] = sclone(args->program);
 #endif
     mpr->argc = argc;
