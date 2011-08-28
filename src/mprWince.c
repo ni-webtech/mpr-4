@@ -62,13 +62,12 @@ void mprStopOsService()
 }
 
 
-int mprGetRandomBytes(char *buf, int length, int block)
+int mprGetRandomBytes(char *buf, int length, bool block)
 {
     HCRYPTPROV      prov;
     int             rc;
 
     rc = 0;
-
     if (!CryptAcquireContext(&prov, NULL, NULL, PROV_RSA_FULL, CRYPT_VERIFYCONTEXT | 0x40)) {
         return mprGetError();
     }

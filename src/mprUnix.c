@@ -42,7 +42,7 @@ void mprStopOsService()
 }
 
 
-int mprGetRandomBytes(char *buf, ssize length, int block)
+int mprGetRandomBytes(char *buf, ssize length, bool block)
 {
     ssize   sofar, rc;
     int     fd;
@@ -51,7 +51,6 @@ int mprGetRandomBytes(char *buf, ssize length, int block)
     if (fd < 0) {
         return MPR_ERR_CANT_OPEN;
     }
-
     sofar = 0;
     do {
         rc = read(fd, &buf[sofar], length);

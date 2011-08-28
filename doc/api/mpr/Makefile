@@ -9,6 +9,7 @@ STAGING		:= staging
 include		.makedep
 
 gen:
+	make -C ../../..
 	make SKIP_CLEAN=1 -C ../../.. packageCombo
 	rm -fr ./$(STAGING) xml html
 	mkdir -p ./$(STAGING) xml html

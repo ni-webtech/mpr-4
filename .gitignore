@@ -68,3 +68,4 @@ projects/WIN/mpr-dynamic/ipch
 .embedthis
 .publisher
 doc/api/mpr.html
+.DS_Store

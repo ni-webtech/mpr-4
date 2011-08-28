@@ -106,6 +106,7 @@ int mprExpireCache(MprCache *cache, cchar *key, MprTime expires)
 int64 mprIncCache(MprCache *cache, cchar *key, int64 amount)
 {
     CacheItem   *item;
+    int64       value;
     char        nbuf[32];
 
     mprAssert(cache);
@@ -115,6 +116,7 @@ int64 mprIncCache(MprCache *cache, cchar *key, int64 amount)
         cache = cache->shared;
         mprAssert(cache == shared);
     }
+    value = amount;
 
     lock(cache);
     if ((item = mprLookupKey(cache->store, key)) == 0) {
@@ -122,16 +124,16 @@ int64 mprIncCache(MprCache *cache, cchar *key, int64 amount)
             return 0;
         }
     } else {
-        amount += stoi(item->data, 10, 0);
+        value += stoi(item->data, 10, 0);
     }
     if (item->data) {
         cache->usedMem -= slen(item->data);
     }
-    item->data = itos(nbuf, sizeof(nbuf), amount, 10);
+    item->data = itos(nbuf, sizeof(nbuf), value, 10);
     cache->usedMem += slen(item->data);
     item->version++;
     unlock(cache);
-    return stoi(item->data, 10, 0);
+    return value;
 }
 
 

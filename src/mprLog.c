@@ -230,9 +230,9 @@ void mprSetLogLevel(int level)
 }
 
 
-int mprSetCmdlineLogging(int on)
+bool mprSetCmdlineLogging(bool on)
 {
-    int     wasLogging;
+    bool    wasLogging;
 
     wasLogging = MPR->cmdlineLogging;
     MPR->cmdlineLogging = on;
@@ -240,7 +240,7 @@ int mprSetCmdlineLogging(int on)
 }
 
 
-int mprGetCmdlineLogging()
+bool mprGetCmdlineLogging()
 {
     return MPR->cmdlineLogging;
 }

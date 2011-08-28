@@ -421,7 +421,7 @@ static int parseArgs(char *args, char **argv)
 /*
     Make an argv array
  */
-int mprMakeArgv(cchar *command, int *argcp, char ***argvp, int flags)
+int mprMakeArgv(cchar *command, char ***argvp, int flags)
 {
     char    **argv, *vector, *args;
     ssize   len;
@@ -447,12 +447,9 @@ int mprMakeArgv(cchar *command, int *argcp, char ***argvp, int flags)
 
     parseArgs(args, argv);
     if (flags & MPR_ARGV_ARGS_ONLY) {
-        argv[0] = sclone("");
+        argv[0] = MPR->emptyString;
     }
     argv[argc] = 0;
-    if (argcp) {
-        *argcp = argc;
-    }
     *argvp = argv;
     return argc;
 }

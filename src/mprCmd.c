@@ -304,7 +304,7 @@ int mprRunCmd(MprCmd *cmd, cchar *command, char **out, char **err, int flags)
     int     argc;
 
     mprAssert(cmd);
-    if (mprMakeArgv(command, &argc, &argv, 0) < 0 || argv == 0) {
+    if ((argc = mprMakeArgv(command, &argv, 0)) < 0 || argv == 0) {
         return 0;
     }
     cmd->makeArgv = argv;

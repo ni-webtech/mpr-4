@@ -36,7 +36,7 @@ int access(const char *path, int mode)
 }
 
 
-int mprGetRandomBytes(char *buf, int length, int block)
+int mprGetRandomBytes(char *buf, int length, bool block)
 {
     int     i;
 
