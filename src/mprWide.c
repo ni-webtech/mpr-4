@@ -185,7 +185,7 @@ MprChar *wfmt(MprChar *fmt, ...)
 
     va_start(ap, fmt);
     mfmt = awtom(fmt, NULL);
-    mresult = mprAsprintfv(mfmt, ap);
+    mresult = sfmtv(mfmt, ap);
     va_end(ap);
     return amtow(mresult, NULL);
 }
@@ -197,7 +197,7 @@ MprChar *wfmtv(MprChar *fmt, va_list arg)
 
     mprAssert(fmt);
     mfmt = awtom(fmt, NULL);
-    mresult = mprAsprintfv(mfmt, arg);
+    mresult = sfmtv(mfmt, arg);
     return amtow(mresult, NULL);
 }
 

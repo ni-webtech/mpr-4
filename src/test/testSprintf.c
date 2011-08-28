@@ -28,7 +28,7 @@ static void testBasicSprintf(MprTestGroup *gp)
     assert(strlen(buf) == 9);
     assert(strcmp(buf, "-12345678") == 0);
 
-    str = mprAsprintf("%d", 12345678);
+    str = sfmt("%d", 12345678);
     count = (int) strlen(str);
     assert(count == 8);
     assert(strcmp(str, "12345678") == 0);

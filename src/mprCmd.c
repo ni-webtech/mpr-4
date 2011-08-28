@@ -371,11 +371,11 @@ int mprRunCmdV(MprCmd *cmd, int argc, char **argv, char **out, char **err, int f
     if (rc < 0) {
         if (err) {
             if (rc == MPR_ERR_CANT_ACCESS) {
-                *err = mprAsprintf("Can't access command %s", cmd->program);
+                *err = sfmt("Can't access command %s", cmd->program);
             } else if (MPR_ERR_CANT_OPEN) {
-                *err = mprAsprintf("Can't open standard I/O for command %s", cmd->program);
+                *err = sfmt("Can't open standard I/O for command %s", cmd->program);
             } else if (rc == MPR_ERR_CANT_CREATE) {
-                *err = mprAsprintf("Can't create process for %s", cmd->program);
+                *err = sfmt("Can't create process for %s", cmd->program);
             }
         }
         return rc;
@@ -931,10 +931,10 @@ static int sanitizeArgs(MprCmd *cmd, int argc, char **argv, char **env)
             Add PATH and LD_LIBRARY_PATH 
          */
         if (!hasPath && (cp = getenv("PATH")) != 0) {
-            envp[index++] = mprAsprintf("PATH=%s", cp);
+            envp[index++] = sfmt("PATH=%s", cp);
         }
         if (!hasLibPath && (cp = getenv(LD_LIBRARY_PATH)) != 0) {
-            envp[index++] = mprAsprintf("%s=%s", LD_LIBRARY_PATH, cp);
+            envp[index++] = sfmt("%s=%s", LD_LIBRARY_PATH, cp);
         }
         envp[index++] = '\0';
         mprLog(4, "mprStartCmd %s", cmd->program);
@@ -1218,7 +1218,7 @@ static int makeChannel(MprCmd *cmd, int index)
     now = ((int) mprGetTime() & 0xFFFF) % 64000;
 
     lock(MPR->cmdService);
-    pipeName = mprAsprintf("\\\\.\\pipe\\MPR_%d_%d_%d.tmp", getpid(), (int) now, ++tempSeed);
+    pipeName = sfmt("\\\\.\\pipe\\MPR_%d_%d_%d.tmp", getpid(), (int) now, ++tempSeed);
     unlock(MPR->cmdService);
 
     /*
@@ -1291,7 +1291,7 @@ static int makeChannel(MprCmd *cmd, int index)
     static int      tempSeed = 0;
 
     file = &cmd->files[index];
-    file->name = mprAsprintf("/pipe/%s_%d_%d", BLD_PRODUCT, taskIdSelf(), tempSeed++);
+    file->name = sfmt("/pipe/%s_%d_%d", BLD_PRODUCT, taskIdSelf(), tempSeed++);
 
     if (pipeDevCreate(file->name, 5, MPR_BUFSIZE) < 0) {
         mprError("Can't create pipes to run %s", cmd->program);

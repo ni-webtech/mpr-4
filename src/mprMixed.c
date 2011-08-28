@@ -105,7 +105,7 @@ MprChar *mfmt(cchar *fmt, ...)
     mprAssert(fmt);
 
     va_start(ap, fmt);
-    mresult = mprAsprintfv(fmt, ap);
+    mresult = sfmtv(fmt, ap);
     va_end(ap);
     return amtow(mresult, NULL);
 }
@@ -116,7 +116,7 @@ MprChar *mfmtv(cchar *fmt, va_list arg)
     char    *mresult;
 
     mprAssert(fmt);
-    mresult = mprAsprintfv(fmt, arg);
+    mresult = sfmtv(fmt, arg);
     return amtow(mresult, NULL);
 }
 

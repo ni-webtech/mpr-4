@@ -101,7 +101,7 @@ static void testHashScale(MprTestGroup *gp)
      */
     for (i = 0; i < HASH_COUNT; i++) {
         mprSprintf(name, sizeof(name), "name.%d", i);
-        address = mprAsprintf("%d Park Ave", i);
+        address = sfmt("%d Park Ave", i);
         sp = mprAddKey(table, name, address);
         assert(sp != 0);
     }
@@ -114,7 +114,7 @@ static void testHashScale(MprTestGroup *gp)
         mprSprintf(name, sizeof(name), "name.%d", i);
         str = mprLookupKey(table, name);
         assert(str != 0);
-        address = mprAsprintf("%d Park Ave", i);
+        address = sfmt("%d Park Ave", i);
         assert(strcmp(str, address) == 0);
     }
 }

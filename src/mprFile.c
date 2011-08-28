@@ -539,7 +539,7 @@ ssize mprWriteFileFormat(MprFile *file, cchar *fmt, ...)
 
     rc = -1;
     va_start(ap, fmt);
-    if ((buf = mprAsprintfv(fmt, ap)) != NULL) {
+    if ((buf = sfmtv(fmt, ap)) != NULL) {
         rc = mprWriteFileString(file, buf);
     }
     va_end(ap);

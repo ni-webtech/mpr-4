@@ -320,9 +320,9 @@ char *mprGetAppPath()
     char    pbuf[MPR_MAX_STRING], *path;
     int     len;
 #if SOLARIS
-    path = mprAsprintf("/proc/%i/path/a.out", getpid()); 
+    path = sfmt("/proc/%i/path/a.out", getpid()); 
 #else
-    path = mprAsprintf("/proc/%i/exe", getpid()); 
+    path = sfmt("/proc/%i/exe", getpid()); 
 #endif
     len = readlink(path, pbuf, sizeof(pbuf) - 1);
     if (len < 0) {
@@ -876,7 +876,7 @@ char *mprJoinPath(cchar *path, cchar *other)
     } else {
         sep = defaultSep(fs);
     }
-    if ((join = mprAsprintf("%s%c%s", path, sep, other)) == 0) {
+    if ((join = sfmt("%s%c%s", path, sep, other)) == 0) {
         return 0;
     }
     return mprGetNormalizedPath(join);
@@ -978,7 +978,7 @@ char *mprGetTempPath(cchar *tempDir)
     path = 0;
 
     for (i = 0; i < 128; i++) {
-        path = mprAsprintf("%s/MPR_%d_%d_%d.tmp", dir, getpid(), now, ++tempSeed);
+        path = sfmt("%s/MPR_%d_%d_%d.tmp", dir, getpid(), now, ++tempSeed);
         file = mprOpenFile(path, O_CREAT | O_EXCL | O_BINARY, 0664);
         if (file) {
             mprCloseFile(file);
@@ -1021,7 +1021,7 @@ static char *toCygPath(cchar *path)
             /*
                 Path is like: "c:/some/other/path". Prepend "/cygdrive/c/"
              */
-            result = mprAsprintf("%s/%c%s", fs->cygdrive, path[0], &path[2]);
+            result = sfmt("%s/%c%s", fs->cygdrive, path[0], &path[2]);
             len = slen(result);
             if (isSep(result[len-1])) {
                 result[len-1] = '\0';
@@ -1055,13 +1055,13 @@ static char *fromCygPath(cchar *path)
             /*
                 Has a "/cygdrive/c/" style prefix
              */
-            buf = mprAsprintf("%c:", path[len+1], &path[len + 2]);
+            buf = sfmt("%c:", path[len+1], &path[len + 2]);
 
         } else {
             /*
                 Cygwin path. Prepend "c:/cygdrive"
              */
-            buf = mprAsprintf("%s/%s", fs->cygdrive, path);
+            buf = sfmt("%s/%s", fs->cygdrive, path);
         }
         result = mprGetAbsPath(buf);
 
@@ -1367,7 +1367,7 @@ char *mprResolvePath(cchar *base, cchar *path)
         return mprGetNormalizedPath(path);
     }
     dir = mprGetPathDir(base);
-    if ((join = mprAsprintf("%s/%s", dir, path)) == 0) {
+    if ((join = sfmt("%s/%s", dir, path)) == 0) {
         return 0;
     }
     return mprGetNormalizedPath(join);

@@ -753,7 +753,7 @@ static bool filterTestCast(MprTestGroup *gp, MprTestCase *tc)
         See if this test has been filtered
      */
     if (mprGetListLength(testFilter) > 0) {
-        fullName = mprAsprintf("%s.%s", gp->fullName, tc->name);
+        fullName = sfmt("%s.%s", gp->fullName, tc->name);
         next = 0;
         pattern = mprGetNextItem(testFilter, &next);
         while (pattern) {

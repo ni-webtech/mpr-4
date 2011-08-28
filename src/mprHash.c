@@ -155,7 +155,7 @@ MprHash *mprAddKeyFmt(MprHashTable *table, cvoid *key, cchar *fmt, ...)
     char        *value;
 
     va_start(ap, fmt);
-    value = mprAsprintfv(fmt, ap);
+    value = sfmtv(fmt, ap);
     va_end(ap);
     return mprAddKey(table, key, value);
 }

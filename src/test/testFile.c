@@ -214,7 +214,7 @@ static char *makePath(cchar *name)
 {
     char    *path;
 
-    if ((path = mprAsprintf("%s-%d-%s", name, getpid(), mprGetCurrentThreadName())) == 0) {
+    if ((path = sfmt("%s-%d-%s", name, getpid(), mprGetCurrentThreadName())) == 0) {
         return 0;
     }
     return path;

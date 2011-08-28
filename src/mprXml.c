@@ -623,9 +623,9 @@ static void xmlError(MprXml *xp, char *fmt, ...)
     mprAssert(fmt);
 
     va_start(args, fmt);
-    buf = mprAsprintfv(fmt, args);
+    buf = sfmtv(fmt, args);
     va_end(args);
-    xp->errMsg = mprAsprintf("XML error: %s\nAt line %d\n", buf, xp->lineNumber);
+    xp->errMsg = sfmt("XML error: %s\nAt line %d\n", buf, xp->lineNumber);
 }
 
 

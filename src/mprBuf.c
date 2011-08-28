@@ -394,7 +394,7 @@ ssize mprPutFmtToBuf(MprBuf *bp, cchar *fmt, ...)
         return 0;
     }
     va_start(ap, fmt);
-    buf = mprAsprintfv(fmt, ap);
+    buf = sfmtv(fmt, ap);
     va_end(ap);
     return mprPutStringToBuf(bp, buf);
 }
@@ -563,7 +563,7 @@ int mprPutFmtToWideBuf(MprBuf *bp, cchar *fmt, ...)
     va_start(ap, fmt);
     space = mprGetBufSpace(bp);
     space += (bp->maxsize - bp->buflen);
-    buf = mprAsprintfv(fmt, ap);
+    buf = sfmtv(fmt, ap);
     wbuf = amtow(bp, buf, &len);
     rc = mprPutBlockToBuf(bp, (char*) wbuf, len * sizeof(MprChar));
     va_end(ap);

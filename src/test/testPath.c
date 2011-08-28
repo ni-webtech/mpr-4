@@ -37,7 +37,7 @@ static int initPath(MprTestGroup *gp)
     ts = (TestPath*) gp->data;
 
     ts->dir1 = makePath(DIR1);
-    ts->dir2 = mprAsprintf("%s%s", ts->dir1, DIR2);
+    ts->dir2 = sfmt("%s%s", ts->dir1, DIR2);
     if (ts->dir1 == 0 || ts->dir2 == 0) {
         gp->data = 0;
         return MPR_ERR_MEMORY;
@@ -73,14 +73,14 @@ static void testCopyPath(MprTestGroup *gp)
     MprFile     *file;
     char        *from, *to;
 
-    from = mprAsprintf("copyTest-%s.tmp", mprGetCurrentThreadName(gp));
+    from = sfmt("copyTest-%s.tmp", mprGetCurrentThreadName(gp));
     assert(from != 0);
     file = mprOpenFile(from, O_CREAT | O_TRUNC | O_WRONLY, 0664);
     assert(file != 0);
     mprWriteFileString(file, "Hello World");
     mprCloseFile(file);
 
-    to = mprAsprintf("newTest-%s.tmp", mprGetCurrentThreadName(gp));
+    to = sfmt("newTest-%s.tmp", mprGetCurrentThreadName(gp));
     assert(mprPathExists(from, F_OK));
     mprCopyPath(from, to, 0664);
     assert(mprPathExists(to, F_OK));
@@ -369,7 +369,7 @@ static void testTransform(MprTestGroup *gp)
  */
 static char *makePath(cchar *name)
 {
-    return mprAsprintf("%s-%d-%s", name, getpid(), mprGetCurrentThreadName());
+    return sfmt("%s-%d-%s", name, getpid(), mprGetCurrentThreadName());
 }
 
 

@@ -59,7 +59,7 @@ void mprRawLog(int level, cchar *fmt, ...)
         return;
     }
     va_start(args, fmt);
-    buf = mprAsprintfv(fmt, args);
+    buf = sfmtv(fmt, args);
     va_end(args);
 
     logOutput(MPR_RAW, 0, buf);
