@@ -2447,6 +2447,7 @@ extern int  mprSyncThreads(MprTime timeout);
  */
 typedef struct MprString { void *dummy; } MprString;
 
+//  MOB - better char *itos(int64 value, int radix);
 /**
     Convert an integer to a string.
     @description This call converts the supplied 64 bit integer into a string formatted into the supplied buffer according

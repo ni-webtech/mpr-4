@@ -48,7 +48,9 @@ TITLE="MPR SSL" combo ${SSL_SOURCES} | egrep -v '#inc.*mpr' >>${SRC}/mprSsl.c
 #
 #   Doc
 #
+cp ${BLD_TOP}/doc/api/mpr.html ${DOC}/api
 cp ${BLD_TOP}/doc/api/mprBare.html ${DOC}/api
+cp ${BLD_TOP}/doc/api/mpr.*tags ${DOC}/api
 cp ${BLD_TOP}/doc/man/*.1 ${DOC}/man
 
 #

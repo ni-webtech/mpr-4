@@ -1266,6 +1266,7 @@ PREDEFINED             = WIN=1 \
                          BLD_FEATURE_SSL=1 \
                          BLD_FEATURE_OPENSSL=1 \
                          BLD_FEATURE_MATRIXSSL=1 \
+                         BLD_FEATURE_VALLOC=1 \
                          DOXYGEN=1
 
 # If the MACRO_EXPANSION and EXPAND_ONLY_PREDEF tags are set to YES then 
@@ -1309,7 +1310,7 @@ TAGFILES               =
 # When a file name is specified after GENERATE_TAGFILE, doxygen will create 
 # a tag file that is based on the input files it reads.
 
-GENERATE_TAGFILE       =
+GENERATE_TAGFILE       = ../mpr.dtags
 
 # If the ALLEXTERNALS tag is set to YES all external classes will be listed 
 # in the class index. If set to NO only the inherited external classes 

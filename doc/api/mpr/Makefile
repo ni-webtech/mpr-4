@@ -4,6 +4,7 @@
 #	Copyright (c) Embedthis Software LLC, 2003-2011. All Rights Reserved.
 #
 
+NAME		:= mpr
 STAGING		:= staging
 
 include		.makedep
@@ -14,26 +15,26 @@ gen:
 	rm -fr ./$(STAGING) xml html
 	mkdir -p ./$(STAGING) xml html
 	tar xf $(BLD_OUT_DIR)/releases/$(BLD_PRODUCT)-combo.tgz -C $(STAGING)
-	mv $(STAGING)/mpr-$(BLD_VERSION)/* $(STAGING)
-	rmdir $(STAGING)/mpr-$(BLD_VERSION)
-	$(call log) "[Generate]" "doxygen mpr.spec"
-	doxygen mpr.spec
+	mv $(STAGING)/$(NAME)-$(BLD_VERSION)/* $(STAGING)
+	rmdir $(STAGING)/$(NAME)-$(BLD_VERSION)
+	$(call log) "[Generate]" "doxygen $(NAME).spec"
+	doxygen $(NAME).spec
 
 next:
 	$(call log) "[Transform]" "gendoc"
-	ejs $(BLD_TOOLS_DIR)/gendoc.es --title "MPR - Multithreaded Portable Runtime Native API" --tags ../mpr.tags \
-		xml/mpr_8h.xml xml/group* xml/struct_*.xml >../mpr.html
+	ejs $(BLD_TOOLS_DIR)/gendoc.es --title "MPR - Multithreaded Portable Runtime Native API" --out ../$(NAME).html \
+		xml/$(NAME)_8h.xml xml/group* xml/struct_*.xml
 
 rest:
-	ejs $(BLD_TOOLS_DIR)/gendoc.es --bare --title "MPR - Multithreaded Portable Runtime Native API" --tags ../mpr.tags \
-		xml/mpr_8h.xml xml/group* xml/struct_*.xml >../mprBare.html
+	ejs $(BLD_TOOLS_DIR)/gendoc.es --bare --title "MPR - Multithreaded Portable Runtime Native API" \
+		--out ../$(NAME)Bare.html xml/$(NAME)_8h.xml xml/group* xml/struct_*.xml
 	rm -fr ./$(STAGING) xml html
 
 cleanExtra:
-	rm -rf xml html ../mpr.tags
+	rm -rf xml html ../$(NAME).tags
 
 clobberExtra:
-	rm -f ../mpr.html ../mprBare.html
+	rm -f ../$(NAME).html ../$(NAME)Bare.html
 	rm -fr ./$(STAGING)
 
 #
