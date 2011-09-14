@@ -112,6 +112,7 @@ static void manageMpr(Mpr *mpr, int flags)
         mprMark(mpr->httpService);
         mprMark(mpr->appwebService);
         mprMark(mpr->testService);
+        mprMark(mpr->espService);
         mprMark(mpr->mutex);
         mprMark(mpr->spin);
         mprMark(mpr->emptyString);

@@ -7875,10 +7875,15 @@ typedef struct Mpr {
     struct MprDispatcher    *dispatcher;    /**< Primary dispatcher */
     struct MprDispatcher    *nonBlock;      /**< Nonblocking dispatcher */
 
+    /*
+        These are here to optimize access to these singleton service objects
+     */
     void            *ejsService;            /**< Ejscript service */
     void            *httpService;           /**< Http service object */
     void            *appwebService;         /**< Appweb service object */
+    void            *espService;            /**< ESP service object */
     void            *testService;           /**< Test service object */
+
     MprIdleCallback idleCallback;           /**< Invoked to determine if the process is idle */
     MprOsThread     mainOsThread;           /**< Main OS thread ID */
     MprMutex        *mutex;                 /**< Thread synchronization */
