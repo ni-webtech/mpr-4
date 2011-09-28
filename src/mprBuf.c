@@ -453,12 +453,9 @@ int mprGrowBuf(MprBuf *bp, ssize need)
  */
 ssize mprPutIntToBuf(MprBuf *bp, int64 i)
 {
-    char        numBuf[16];
     ssize       rc;
 
-    itos(numBuf, sizeof(numBuf), i, 10);
-    rc = mprPutStringToBuf(bp, numBuf);
-
+    rc = mprPutStringToBuf(bp, itos(i, 10));
     if (bp->end < bp->endbuf) {
         *((char*) bp->end) = (char) '\0';
     }

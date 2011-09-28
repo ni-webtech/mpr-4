@@ -37,25 +37,25 @@ static void testBasicSprintf(MprTestGroup *gp)
 
 static void testItos(MprTestGroup *gp)
 {
-    char    buf[256];
+    char    *s;
 
-    itos(buf, sizeof(buf), 0, 10);
-    assert(strcmp(buf, "0") == 0);
+    s = itos(0, 10);
+    assert(strcmp(s, "0") == 0);
 
-    itos(buf, sizeof(buf), 1, 10);
-    assert(strcmp(buf, "1") == 0);
+    s = itos(1, 10);
+    assert(strcmp(s, "1") == 0);
 
-    itos(buf, sizeof(buf), -1, 10);
-    assert(strcmp(buf, "-1") == 0);
+    s = itos(-1, 10);
+    assert(strcmp(s, "-1") == 0);
 
-    itos(buf, sizeof(buf), 12345678, 10);
-    assert(strcmp(buf, "12345678") == 0);
+    s = itos(12345678, 10);
+    assert(strcmp(s, "12345678") == 0);
 
-    itos(buf, sizeof(buf), -12345678, 10);
-    assert(strcmp(buf, "-12345678") == 0);
+    s = itos(-12345678, 10);
+    assert(strcmp(s, "-12345678") == 0);
 
-    itos(buf, sizeof(buf), 0x1234, 16);
-    assert(strcmp(buf, "1234") == 0);
+    s = itos(0x1234, 16);
+    assert(strcmp(s, "1234") == 0);
 }
 
 

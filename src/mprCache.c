@@ -107,7 +107,6 @@ int64 mprIncCache(MprCache *cache, cchar *key, int64 amount)
 {
     CacheItem   *item;
     int64       value;
-    char        nbuf[32];
 
     mprAssert(cache);
     mprAssert(key && *key);
@@ -129,7 +128,7 @@ int64 mprIncCache(MprCache *cache, cchar *key, int64 amount)
     if (item->data) {
         cache->usedMem -= slen(item->data);
     }
-    item->data = itos(nbuf, sizeof(nbuf), value, 10);
+    item->data = itos(value, 10);
     cache->usedMem += slen(item->data);
     item->version++;
     unlock(cache);
@@ -239,7 +238,7 @@ ssize mprWriteCache(MprCache *cache, cchar *key, cchar *value, MprTime modified,
     int64 version, int options)
 {
     CacheItem   *item;
-    MprHash     *hp;
+    MprKey      *kp;
     ssize       len, oldLen;
     int         exists, add, set, prepend, append, throw;
 
@@ -260,9 +259,9 @@ ssize mprWriteCache(MprCache *cache, cchar *key, cchar *value, MprTime modified,
         set = 1;
     }
     lock(cache);
-    if ((hp = mprLookupKeyEntry(cache->store, key)) != 0) {
+    if ((kp = mprLookupKeyEntry(cache->store, key)) != 0) {
         exists++;
-        item = (CacheItem*) hp->data;
+        item = (CacheItem*) kp->data;
         if (version) {
             if (item->version != version) {
                 unlock(cache);
@@ -287,9 +286,9 @@ ssize mprWriteCache(MprCache *cache, cchar *key, cchar *value, MprTime modified,
         }
         item->data = sclone(value);
     } else if (append) {
-        item->data = sjoin(item->data, value, 0);
+        item->data = sjoin(item->data, value, NULL);
     } else if (prepend) {
-        item->data = sjoin(value, item->data, 0);
+        item->data = sjoin(value, item->data, NULL);
     }
     item->lifespan = lifespan;
     item->lastModified = modified ? modified : mprGetTime();
@@ -329,7 +328,7 @@ static void removeItem(MprCache *cache, CacheItem *item)
 static void localPruner(MprCache *cache, MprEvent *event)
 {
     MprTime         when, factor;
-    MprHash         *hp;
+    MprKey          *kp;
     CacheItem       *item;
     ssize           excessKeys;
 
@@ -338,12 +337,12 @@ static void localPruner(MprCache *cache, MprEvent *event)
 
     if (mprTryLock(cache->mutex)) {
         when = mprGetTime();
-        for (hp = 0; (hp = mprGetNextKey(cache->store, hp)) != 0; ) {
-            item = (CacheItem*) hp->data;
+        for (kp = 0; (kp = mprGetNextKey(cache->store, kp)) != 0; ) {
+            item = (CacheItem*) kp->data;
             mprLog(6, "Cache: \"%@\" lifespan %d, expires in %d secs", item->key, 
                     item->lifespan / 1000, (item->expires - when) / 1000);
             if (item->expires && item->expires <= when) {
-                mprLog(5, "Cache prune expired key %s", hp->key);
+                mprLog(5, "Cache prune expired key %s", kp->key);
                 removeItem(cache, item);
             }
         }
@@ -356,11 +355,11 @@ static void localPruner(MprCache *cache, MprEvent *event)
             excessKeys = mprGetHashLength(cache->store) - cache->maxKeys;
             while (excessKeys > 0 || cache->usedMem > cache->maxMem) {
                 for (factor = 3600; excessKeys > 0 && factor < (86400 * 1000); factor *= 4) {
-                    for (hp = 0; (hp = mprGetNextKey(cache->store, hp)) != 0; ) {
-                        item = (CacheItem*) hp->data;
+                    for (kp = 0; (kp = mprGetNextKey(cache->store, kp)) != 0; ) {
+                        item = (CacheItem*) kp->data;
                         if (item->expires && item->expires <= when) {
                             mprLog(5, "Cache too big execess keys %Ld, mem %Ld, prune key %s", 
-                                    excessKeys, (cache->maxMem - cache->usedMem), hp->key);
+                                    excessKeys, (cache->maxMem - cache->usedMem), kp->key);
                             removeItem(cache, item);
                         }
                     }

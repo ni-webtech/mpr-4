@@ -16,7 +16,7 @@
 
 static void testCreateTable(MprTestGroup *gp)
 {
-    MprHashTable    *table;
+    MprHash     *table;
 
     table = mprCreateHash(211, 0);
     assert(table != 0);
@@ -31,7 +31,7 @@ static void testCreateTable(MprTestGroup *gp)
 
 static void testIsTableEmpty(MprTestGroup *gp)
 {
-    MprHashTable    *table;
+    MprHash     *table;
 
     table = mprCreateHash(0, 0);
     assert(table != 0);
@@ -44,10 +44,10 @@ static void testIsTableEmpty(MprTestGroup *gp)
 
 static void testInsertAndRemoveHash(MprTestGroup *gp)
 {
-    MprHashTable    *table;
-    MprHash         *sp;
-    cchar           *str;
-    int             rc;
+    MprHash     *table;
+    MprKey      *sp;
+    cchar       *str;
+    int         rc;
 
     table = mprCreateHash(0, MPR_HASH_STATIC_KEYS | MPR_HASH_STATIC_VALUES);
     assert(table != 0);
@@ -86,11 +86,11 @@ static void testInsertAndRemoveHash(MprTestGroup *gp)
 
 static void testHashScale(MprTestGroup *gp)
 {
-    MprHashTable    *table;
-    MprHash         *sp;
-    char            *str;
-    char            name[80], *address;
-    int             i;
+    MprHash     *table;
+    MprKey      *sp;
+    char        *str;
+    char        name[80], *address;
+    int         i;
 
     table = mprCreateHash(HASH_COUNT, 0);
     assert(mprGetHashLength(table) == 0);
@@ -122,11 +122,11 @@ static void testHashScale(MprTestGroup *gp)
 
 static void testIterateHash(MprTestGroup *gp)
 {
-    MprHashTable    *table;
-    MprHash         *sp;
-    char            name[80], address[80];
-    cchar           *where;
-    int             count, i, check[HASH_COUNT];
+    MprHash     *table;
+    MprKey      *sp;
+    char        name[80], address[80];
+    cchar       *where;
+    int         count, i, check[HASH_COUNT];
 
     table = mprCreateHash(HASH_COUNT, 0);
 

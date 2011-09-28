@@ -1289,8 +1289,10 @@ bool mprPathExists(cchar *path, int omode)
 {
     MprFileSystem  *fs;
 
+    if (path == 0 || *path == '\0') {
+        return 0;
+    }
     fs = mprLookupFileSystem(path);
-
     return fs->accessPath(fs, path, omode);
 }
 
@@ -1321,6 +1323,12 @@ char *mprReadPath(cchar *path, ssize *lenp)
         *lenp = len;
     }
     return buf;
+}
+
+
+char *mprReplacePathExt(cchar *path, cchar *ext)
+{
+    return mprJoinPathExt(mprTrimPathExt(path), ext);
 }
 
 

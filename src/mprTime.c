@@ -748,7 +748,7 @@ char *mprFormatTm(cchar *fmt, struct tm *tp)
 
             case 'C':
                 dp--;
-                itos(dp, size, (1900 + tp->tm_year) / 100, 10);
+                itosbuf(dp, size, (1900 + tp->tm_year) / 100, 10);
                 dp += slen(dp);
                 cp++;
                 break;
@@ -764,7 +764,7 @@ char *mprFormatTm(cchar *fmt, struct tm *tp)
                 if (tp->tm_mday < 10) {
                     *dp++ = ' ';
                 }
-                itos(dp, size - 1, (int64) tp->tm_mday, 10);
+                itosbuf(dp, size - 1, (int64) tp->tm_mday, 10);
                 dp += slen(dp);
                 cp++;
                 break;
@@ -790,7 +790,7 @@ char *mprFormatTm(cchar *fmt, struct tm *tp)
                 if (tp->tm_hour < 10) {
                     *dp++ = ' ';
                 }
-                itos(dp, size - 1, (int64) tp->tm_hour, 10);
+                itosbuf(dp, size - 1, (int64) tp->tm_hour, 10);
                 dp += slen(dp);
                 cp++;
                 break;
@@ -804,7 +804,7 @@ char *mprFormatTm(cchar *fmt, struct tm *tp)
                 if (value > 12) {
                     value -= 12;
                 }
-                itos(dp, size - 1, (int64) value, 10);
+                itosbuf(dp, size - 1, (int64) value, 10);
                 dp += slen(dp);
                 cp++;
                 break;
@@ -840,7 +840,7 @@ char *mprFormatTm(cchar *fmt, struct tm *tp)
 
             case 's':
                 dp--;
-                itos(dp, size, (int64) mprMakeTime(tp) / MS_PER_SEC, 10);
+                itosbuf(dp, size, (int64) mprMakeTime(tp) / MS_PER_SEC, 10);
                 dp += slen(dp);
                 cp++;
                 break;
@@ -862,7 +862,7 @@ char *mprFormatTm(cchar *fmt, struct tm *tp)
                 if (value == 0) {
                     value = 7;
                 }
-                itos(dp, size, (int64) value, 10);
+                itosbuf(dp, size, (int64) value, 10);
                 dp += slen(dp);
                 cp++;
                 break;
@@ -873,7 +873,7 @@ char *mprFormatTm(cchar *fmt, struct tm *tp)
                 if (tp->tm_mday < 10) {
                     *dp++ = ' ';
                 }
-                itos(dp, size - 1, (int64) tp->tm_mday, 10);
+                itosbuf(dp, size - 1, (int64) tp->tm_mday, 10);
                 dp += slen(dp);
                 cp++;
                 strcpy(dp, "-%b-%Y");

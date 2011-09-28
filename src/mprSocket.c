@@ -1203,7 +1203,7 @@ int mprGetSocketInfo(cchar *ip, int port, int *family, int *protocol, struct soc
 {
     MprSocketService    *ss;
     struct addrinfo     hints, *res, *r;
-    char                portBuf[MPR_MAX_IP_PORT];
+    char                *portStr;
     int                 v6;
 
     mprAssert(ip);
@@ -1229,13 +1229,13 @@ int mprGetSocketInfo(cchar *ip, int port, int *family, int *protocol, struct soc
     } else {
         hints.ai_family = AF_UNSPEC;
     }
-    itos(portBuf, sizeof(portBuf), port, 10);
+    portStr = itos(port, 10);
 
     /*  
         Try to sleuth the address to avoid duplicate address lookups. Then try IPv4 first then IPv6.
      */
     res = 0;
-    if (getaddrinfo(ip, portBuf, &hints, &res) != 0) {
+    if (getaddrinfo(ip, portStr, &hints, &res) != 0) {
         mprUnlock(ss->mutex);
         return MPR_ERR_CANT_OPEN;
     }

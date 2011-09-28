@@ -331,7 +331,6 @@ int mprRemoveLastItem(MprList *lp)
 int mprRemoveItemAtPos(MprList *lp, int index)
 {
     void    **items;
-    int     i;
 
     mprAssert(lp);
     mprAssert(lp->capacity > 0);
@@ -358,9 +357,12 @@ int mprRemoveItemAtPos(MprList *lp, int index)
         lp->length--;
     }
 #else
+    memmove(&items[index], &items[index + 1], (lp->length - index - 1) * sizeof(void*));
+#if OLD
     for (i = index; i < (lp->length - 1); i++) {
         items[i] = items[i + 1];
     }
+#endif
     lp->length--;
 #endif
     lp->items[lp->length] = 0;

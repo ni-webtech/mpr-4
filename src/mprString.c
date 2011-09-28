@@ -15,10 +15,10 @@
 /*
     Format a number as a string. Support radix 10 and 16.
  */
-char *itos(char *buf, ssize count, int64 value, int radix)
+char *itos(int64 value, int radix)
 {
     char    numBuf[32];
-    char    *cp, *dp, *endp;
+    char    *cp;
     char    digits[] = "0123456789ABCDEF";
     int     negative;
 
@@ -31,7 +31,6 @@ char *itos(char *buf, ssize count, int64 value, int radix)
     if (value < 0) {
         negative = 1;
         value = -value;
-        count--;
     } else {
         negative = 0;
     }
@@ -43,28 +42,63 @@ char *itos(char *buf, ssize count, int64 value, int radix)
     if (negative) {
         *--cp = '-';
     }
-    dp = buf;
-    endp = &buf[count];
-    while (dp < endp && *cp) {
-        *dp++ = *cp++;
+    return sclone(cp);
+}
+
+
+char *itosbuf(char *buf, ssize size, int64 value, int radix)
+{
+    char    *cp;
+    char    digits[] = "0123456789ABCDEF";
+    int     negative;
+
+    if ((radix != 10 && radix != 16) || size < 2) {
+        return 0;
     }
-    *dp = '\0';
+    cp = &buf[size];
+    *--cp = '\0';
+
+    if (value < 0) {
+        negative = 1;
+        value = -value;
+        size--;
+    } else {
+        negative = 0;
+    }
+    do {
+        *--cp = digits[value % radix];
+        value /= radix;
+    } while (value > 0 && cp > buf);
+
+    if (negative) {
+        if (cp <= buf) {
+            return 0;
+        }
+        *--cp = '-';
+    }
+    if (buf < cp) {
+        memmove(buf, cp, strlen(cp));
+    }
     return buf;
 }
 
 
-bool snumber(cchar *s)
+char *scamel(cchar *str)
 {
-    return s && *s && strspn(s, "1234567890") == strlen(s);
-} 
+    char    *ptr;
+    ssize   size, len;
 
-
-char *schr(cchar *s, int c)
-{
-    if (s == 0) {
-        return 0;
+    if (str == 0) {
+        str = "";
     }
-    return strchr(s, c);
+    len = slen(str);
+    size = len + 1;
+    if ((ptr = mprAlloc(size)) != 0) {
+        memcpy(ptr, str, len);
+        ptr[len] = '\0';
+    }
+    ptr[0] = (char) tolower((int) ptr[0]);
+    return ptr;
 }
 
 
@@ -88,6 +122,15 @@ int scasecmp(cchar *s1, cchar *s2)
 bool scasematch(cchar *s1, cchar *s2)
 {
     return scasecmp(s1, s2) == 0;
+}
+
+
+char *schr(cchar *s, int c)
+{
+    if (s == 0) {
+        return 0;
+    }
+    return strchr(s, c);
 }
 
 
@@ -169,6 +212,7 @@ int scmp(cchar *s1, cchar *s2)
 }
 
 
+//  MOB should return bool
 int sends(cchar *str, cchar *suffix)
 {
     if (str == 0 || suffix == 0) {
@@ -505,6 +549,31 @@ ssize sncopy(char *dest, ssize destMax, cchar *src, ssize count)
 }
 
 
+bool snumber(cchar *s)
+{
+    return s && *s && strspn(s, "1234567890") == strlen(s);
+} 
+
+
+char *spascal(cchar *str)
+{
+    char    *ptr;
+    ssize   size, len;
+
+    if (str == 0) {
+        str = "";
+    }
+    len = slen(str);
+    size = len + 1;
+    if ((ptr = mprAlloc(size)) != 0) {
+        memcpy(ptr, str, len);
+        ptr[len] = '\0';
+    }
+    ptr[0] = (char) toupper((int) ptr[0]);
+    return ptr;
+}
+
+
 char *spbrk(cchar *str, cchar *set)
 {
     cchar       *sp;
@@ -582,7 +651,7 @@ char *sreplace(cchar *str, cchar *pattern, cchar *replacement)
     ssize       plen;
 
     buf = mprCreateBuf(-1, -1);
-    if (pattern && *pattern && replacement && *replacement) {
+    if (pattern && *pattern && replacement) {
         plen = slen(pattern);
         for (s = str; *s; s++) {
             if (sncmp(s, pattern, plen) == 0) {
@@ -627,6 +696,7 @@ ssize sspn(cchar *str, cchar *set)
 }
  
 
+//  MOB should return bool
 int sstarts(cchar *str, cchar *prefix)
 {
     if (str == 0 || prefix == 0) {
@@ -729,7 +799,7 @@ int64 stoi(cchar *str, int radix, int *err)
 
 /*
     Note "str" is modifed as per strtok()
-    MOB - warning this does not allocate
+    MOB - warning this does not allocate - should it?
  */
 char *stok(char *str, cchar *delim, char **last)
 {
@@ -834,7 +904,7 @@ char *supper(cchar *str)
     Expand ${token} references in a path or string.
     Currently support DOCUMENT_ROOT, SERVER_ROOT and PRODUCT, OS and VERSION.
  */
-char *stemplate(cchar *str, MprHashTable *keys)
+char *stemplate(cchar *str, MprHash *keys)
 {
     MprBuf      *buf;
     char        *src, *result, *cp, *tok, *value;

@@ -25,7 +25,10 @@ MprModuleService *mprCreateModuleService()
         return 0;
     }
     ms->modules = mprCreateList(-1, 0);
-    ms->searchPath = sfmt(".:%s:%s/../%s:%s", mprGetAppDir(), mprGetAppDir(), BLD_LIB_NAME, BLD_LIB_PREFIX);
+    ms->searchPath = sfmt(".%s%s%s/../%s%s%s", \
+        mprGetAppDir(), MPR_SEARCH_SEP, 
+        mprGetAppDir(), BLD_LIB_NAME, MPR_SEARCH_SEP, 
+        BLD_LIB_PREFIX);
     ms->mutex = mprCreateLock();
     return ms;
 }
@@ -94,7 +97,7 @@ MprModule *mprCreateModule(cchar *name, cchar *path, cchar *entry, void *data)
 
     if (path) {
         if ((at = mprSearchForModule(path)) == 0) {
-            mprError("Can't find module \"%s\", cwd: \"%s\" search path \"%s\"", path, mprGetCurrentPath(),
+            mprError("Can't find module \"%s\", cwd: \"%s\", search path \"%s\"", path, mprGetCurrentPath(),
                 mprGetModuleSearchPath());
             return 0;
         }
