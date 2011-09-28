@@ -244,7 +244,7 @@ ssize mprWriteCache(MprCache *cache, cchar *key, cchar *value, MprTime modified,
 
     mprAssert(cache);
     mprAssert(key && *key);
-    mprAssert(value && *value);
+    mprAssert(value);
 
     if (cache->shared) {
         cache = cache->shared;

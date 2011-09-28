@@ -292,7 +292,7 @@ int mprInsertItemAtPos(MprList *lp, int index, cvoid *item)
 /*
     Remove an item from the list. Return the index where the item resided.
  */
-int mprRemoveItem(MprList *lp, void *item)
+int mprRemoveItem(MprList *lp, cvoid *item)
 {
     int     index;
 
