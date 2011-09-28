@@ -240,7 +240,7 @@ ssize mprGetBufSpace(MprBuf *bp)
 }
 
 
-char *mprGetBufOrigin(MprBuf *bp)
+char *mprGetBuf(MprBuf *bp)
 {
     return (char*) bp->data;
 }

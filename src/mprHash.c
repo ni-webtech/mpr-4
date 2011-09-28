@@ -256,20 +256,6 @@ void *mprLookupKey(MprHash *hash, cvoid *key)
 }
 
 
-#if UNUSED
-void mprSetKeyBits(MprKey *kp, int bits)
-{
-    kp->bits = bits;
-}
-
-
-int mprGetKeyBits(MprKey *kp)
-{
-    return kp->bits;
-}
-#endif
-
-
 /*
     Exponential primes
  */
@@ -432,15 +418,18 @@ static void *dupKey(MprHash *hash, MprKey *sp, cvoid *key)
 }
 
 
+#if UNUSED
 /*
     The serial format is a subset of JSON without array support.
     This is designed to be as fast as possible for encoding one level of properties.
  */
 static MprHash *parseHash(MprHash *hash, cchar **token)
 {
-    cchar   *cp, *ep;
-    char    key[MPR_MAX_STRING];
-    int     quote;
+    MprHash     *obj;
+    MprKey      *kp;
+    cchar       *cp, *ep;
+    char        key[MPR_MAX_STRING];
+    int         quote;
 
     for (cp = *token; *cp; cp++) {
         while (isspace((int) *cp)) cp++;
@@ -450,8 +439,7 @@ static MprHash *parseHash(MprHash *hash, cchar **token)
 
         } else if ((ep = strchr(cp, ':')) != 0 && (ep == *token || ep[-1] != '\\')) {
             if (*cp == '}') {
-                /* By continuing, we permit:  {options}{more options} */
-                continue;
+                break;
             } else if (*cp == ',') {
                 continue;
             }
@@ -467,7 +455,10 @@ static MprHash *parseHash(MprHash *hash, cchar **token)
             for (cp = ep + 1; isspace((int) *cp); cp++) ;
             if (*cp == '{') {
                 ++cp;
-                mprAddKey(hash, key, parseHash(mprCreateHash(0, 0), &cp));
+                obj = parseHash(mprCreateHash(0, 0), &cp);
+                if ((kp = mprAddKey(hash, key, obj)) != 0) {
+                    kp->isHash = 1;
+                }
 
             } else if (*cp == '"' || *cp == '\'') {
                 quote = *cp;
@@ -492,18 +483,54 @@ static MprHash *parseHash(MprHash *hash, cchar **token)
                 break;
             }
         }
+        if (*cp == '\0') {
+            break;
+        }
     }
     *token = cp;
     return hash;
 }
+#endif
 
 
+#if UNUSED
 MprHash *mprParseHash(cchar *str)
 {
     if (str == 0 || *str == '\0') {
         return mprCreateHash(-1, 0);
     }
+#if UNUSED
     return parseHash(NULL, &str);
+#else
+    return mprDeserialize(str);
+#endif
+}
+
+
+/*
+    Supports hashes where properties are strings or hashes of strings. N-level nest is supported.
+ */
+static cchar *hashToString(MprBuf *buf, MprHash *hash, int pretty)
+{
+    MprKey  *kp;
+
+    mprPutCharToBuf(buf, '{');
+    if (pretty) mprPutCharToBuf(buf, '\n');
+    for (ITERATE_KEYS(hash, kp)) {
+        if (pretty) mprPutStringToBuf(buf, "    ");
+        mprPutStringToBuf(buf, kp->key);
+        mprPutStringToBuf(buf, ": ");
+        if (kp->isHash) {
+            hashToString(buf, (MprHash*) kp->data, pretty);
+        } else {
+            mprPutStringToBuf(buf, kp->data);
+        }
+        mprPutCharToBuf(buf, ',');
+        if (pretty) mprPutCharToBuf(buf, '\n');
+    }
+    mprPutCharToBuf(buf, '}');
+    if (pretty) mprPutCharToBuf(buf, '\n');
+    return sclone(mprGetBufStart(buf));
 }
 
 
@@ -512,7 +539,6 @@ MprHash *mprParseHash(cchar *str)
  */
 cchar *mprHashToString(MprHash *hash, int flags)
 {
-    MprKey  *kp;
     MprBuf  *buf;
     int     pretty;
 
@@ -520,19 +546,10 @@ cchar *mprHashToString(MprHash *hash, int flags)
     if ((buf = mprCreateBuf(0, 0)) == 0) {
         return 0;
     }
-    mprPutCharToBuf(buf, '{');
-    if (pretty) mprPutCharToBuf(buf, '\n');
-    for (ITERATE_KEYS(hash, kp)) {
-        if (pretty) mprPutStringToBuf(buf, "    ");
-        //  MOB - printable?
-        mprPutFmtToBuf(buf, "'%s': '%s',", kp->key, kp->data);
-        if (pretty) mprPutCharToBuf(buf, '\n');
-    }
-    mprPutCharToBuf(buf, '}');
-    if (pretty) mprPutCharToBuf(buf, '\n');
+    hashToString(buf, hash, pretty);
     return sclone(mprGetBufStart(buf));
 }
-
+#endif
 
 /*
     @copy   default
