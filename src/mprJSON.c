@@ -3,7 +3,6 @@
 
     Copyright (c) All Rights Reserved. See details at the end of the file.
  */
-
 /********************************** Includes **********************************/
 
 #include    "mpr.h"
@@ -16,25 +15,30 @@ static cchar *findEndKeyword(MprJson *jp, cchar *str);
 static cchar *findQuote(cchar *tok, int quote);
 static MprObj *makeObj(MprJson *jp, bool list);
 static cchar *parseComment(MprJson *jp);
-static void parseError(MprJson *jp, cchar *fmt, ...);
 static cchar *parseName(MprJson *jp);
 static cchar *parseValue(MprJson *jp);
 static int peekSep(MprJson *jp);
-static int setItem(MprObj *obj, cchar *value, int type, int index);
-static int setKey(MprObj *obj, cchar *name, cchar *value, int type);
+static int setItem(MprJson *jp, MprObj *obj, cchar *value, int type, int index);
+static int setKey(MprJson *jp, MprObj *obj, cchar *name, cchar *value, int type);
 
 /************************************ Code ************************************/
 
-MprObj *mprDeserializeCustom(cchar *str, MprSetItem setItem, MprSetKey setKey, MprMakeObj makeObj)
+MprObj *mprDeserializeCustom(cchar *str, MprMakeObj makeObj, MprCheckState checkState, MprSetItem setItem, 
+        MprSetKey setKey, void *data)
 {
-    MprJson         jp;
+    MprJson     jp;
 
+    /*
+        There is no need for GC management as this routine does not yield
+     */
     memset(&jp, 0, sizeof(jp));
     jp.lineNumber = 1;
     jp.tok = str;
+    jp.checkState = checkState;
     jp.setItem = setItem;
     jp.setKey = setKey;
     jp.makeObj = makeObj;
+    jp.data = data;
     return deserialize(&jp);
 }
 
@@ -44,7 +48,7 @@ MprObj *mprDeserializeCustom(cchar *str, MprSetItem setItem, MprSetKey setKey, M
  */
 MprObj *mprDeserialize(cchar *str)
 {
-    return mprDeserializeCustom(str, setItem, setKey, makeObj); 
+    return mprDeserializeCustom(str, makeObj, NULL, setItem, setKey, NULL); 
 }
 
 
@@ -79,7 +83,7 @@ static MprObj *deserialize(MprJson *jp)
             if (jp->tok[1] == '/' || jp->tok[1] == '*') {
                 jp->tok = parseComment(jp);
             } else {
-                parseError(jp, "Unexpected character'%c'", *jp->tok);
+                mprJsonParseError(jp, "Unexpected character'%c'", *jp->tok);
                 return 0;
             }
             continue;
@@ -100,18 +104,20 @@ static MprObj *deserialize(MprJson *jp)
         case ']':
             /* End of object or array */
             jp->tok++;
+            if (jp->checkState && jp->checkState(jp, NULL) < 0) {
+                return 0;
+            }
             return obj;
             
         default:
             if (obj == 0) {
-                parseError(jp, "Bad format");
+                mprJsonParseError(jp, "Bad format");
                 return 0;
             }
             if ((name = parseName(jp)) == 0) {
                 return 0;
             }
-            if (jp->check && jp->check(jp, name) < 0) {
-                parseError(jp, "Check state failed for '%s'", name);
+            if (jp->checkState && jp->checkState(jp, name) < 0) {
                 return 0;
             }
             if ((sep = peekSep(jp)) < 0) {
@@ -120,7 +126,7 @@ static MprObj *deserialize(MprJson *jp)
             }
             if (sep == ':') {
                 if (isArray) {
-                    parseError(jp, "Bad separator '%c' in list", sep);
+                    mprJsonParseError(jp, "Bad separator '%c' in list", sep);
                     return 0;
                 }
                 jp->tok = eatSpace(jp->tok + 1);
@@ -140,22 +146,20 @@ static MprObj *deserialize(MprJson *jp)
                     /* Error already reported */
                     return 0;
                 }
-                if ((rc = jp->setKey(obj, name, value, valueType)) < 0) {
-                    parseError(jp, "Can't set key '%s' value '%s'", name, value);
+                if ((rc = jp->setKey(jp, obj, name, value, valueType)) < 0) {
                     return 0;
                 }
             } else if (sep == ',' || sep == ']') {
                 if (isArray) {
-                    if ((rc = jp->setItem(obj, name, valueType, index)) < 0) {
-                        parseError(jp, "Can't set item '%s'", name);
+                    if ((rc = jp->setItem(jp, obj, name, valueType, index)) < 0) {
                         return 0;
                     }
                 } else {
-                    parseError(jp, "Bad separator '%c' in properties", sep);
+                    mprJsonParseError(jp, "Bad separator '%c' in properties", sep);
                     return 0;
                 }
             } else {
-                parseError(jp, "Bad separator '%c'", sep);
+                mprJsonParseError(jp, "Bad separator '%c'", sep);
                 return 0;
             }
         }
@@ -191,7 +195,7 @@ static cchar *parseQuotedName(MprJson *jp)
 
     quote = *jp->tok;
     if ((etok = findQuote(++jp->tok, quote)) == 0) {
-        parseError(jp, "Missing closing quote");
+        mprJsonParseError(jp, "Missing closing quote");
         return 0;
     }
     name = snclone(jp->tok, etok - jp->tok);
@@ -229,7 +233,7 @@ static int peekSep(MprJson *jp)
     jp->tok = eatSpace(jp->tok);
     sep = *jp->tok;
     if (sep != ':' && sep != ',' && sep != ']') {
-        parseError(jp, "Missing ':', ',' or ']' in input");
+        mprJsonParseError(jp, "Missing ':', ',' or ']' in input");
         return MPR_ERR_BAD_FORMAT;
     } 
     return sep;
@@ -245,7 +249,7 @@ static cchar *parseValue(MprJson *jp)
     if (*jp->tok == '"' || *jp->tok == '\'') {
         quote = *jp->tok;
         if ((etok = findQuote(++jp->tok, quote)) == 0) {
-            parseError(jp, "Missing closing quote");
+            mprJsonParseError(jp, "Missing closing quote");
             return 0;
         }
         value = snclone(jp->tok, etok - jp->tok);
@@ -259,7 +263,7 @@ static cchar *parseValue(MprJson *jp)
 }
 
 
-static int setItem(MprObj *obj, cchar *value, int type, int index)
+static int setItem(MprJson *jp, MprObj *obj, cchar *value, int type, int index)
 {
     MprKey  *kp;
     char    ibuf[32];
@@ -273,7 +277,7 @@ static int setItem(MprObj *obj, cchar *value, int type, int index)
 }
 
 
-static int setKey(MprObj *obj, cchar *key, cchar *value, int type)
+static int setKey(MprJson *jp, MprObj *obj, cchar *key, cchar *value, int type)
 {
     MprKey  *kp;
 
@@ -282,6 +286,16 @@ static int setKey(MprObj *obj, cchar *key, cchar *value, int type)
     }
     kp->type = type;
     return 0;
+}
+
+
+//  MOB - remove jp arg
+static MprObj *makeObj(MprJson *jp, bool list)
+{
+    if (list) {
+        return (MprObj*) mprCreateList(0, 0);
+    }
+    return (MprObj*) mprCreateHash(0, 0);
 }
 
 
@@ -387,7 +401,7 @@ static cchar *findEndKeyword(MprJson *jp, cchar *str)
 }
 
 
-static void parseError(MprJson *jp, cchar *fmt, ...)
+void mprJsonParseError(MprJson *jp, cchar *fmt, ...)
 {
     va_list     args;
     cchar       *msg;
@@ -400,16 +414,6 @@ static void parseError(MprJson *jp, cchar *fmt, ...)
     mprError("%s\nAt line %d", msg, jp->lineNumber);
 #endif
     va_end(args);
-}
-
-
-//  MOB - remove jp arg
-static MprObj *makeObj(MprJson *jp, bool list)
-{
-    if (list) {
-        return (MprObj*) mprCreateList(0, 0);
-    }
-    return (MprObj*) mprCreateHash(0, 0);
 }
 
 
