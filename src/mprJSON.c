@@ -391,7 +391,7 @@ static cchar *findEndKeyword(MprJson *jp, cchar *str)
 
     mprAssert(str);
     for (cp = jp->tok; *cp; cp++) {
-        if ((etok = strpbrk(cp, " \t\n\r:,")) != 0) {
+        if ((etok = strpbrk(cp, " \t\n\r:,}]")) != 0) {
             if (etok == jp->tok || *etok != '\\') {
                 return etok;
             }
