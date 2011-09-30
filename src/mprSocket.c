@@ -1206,9 +1206,7 @@ int mprGetSocketInfo(cchar *ip, int port, int *family, int *protocol, struct soc
     char                *portStr;
     int                 v6;
 
-    mprAssert(ip);
     mprAssert(addr);
-
     ss = MPR->socketService;
 
     mprLock(ss->mutex);
