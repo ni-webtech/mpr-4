@@ -10,21 +10,18 @@
 /****************************** Forward Declarations **************************/
 
 static MprObj *deserialize(MprJson *jp);
-static cchar *eatSpace(cchar *tok);
+static char advanceToken(MprJson *jp);
 static cchar *findEndKeyword(MprJson *jp, cchar *str);
 static cchar *findQuote(cchar *tok, int quote);
 static MprObj *makeObj(MprJson *jp, bool list);
 static cchar *parseComment(MprJson *jp);
 static cchar *parseName(MprJson *jp);
 static cchar *parseValue(MprJson *jp);
-static int peekSep(MprJson *jp);
-static int setItem(MprJson *jp, MprObj *obj, cchar *value, int type, int index);
-static int setKey(MprJson *jp, MprObj *obj, cchar *name, cchar *value, int type);
+static int setValue(MprJson *jp, MprObj *obj, int index, cchar *name, cchar *value, int type);
 
 /************************************ Code ************************************/
 
-MprObj *mprDeserializeCustom(cchar *str, MprMakeObj makeObj, MprCheckState checkState, MprSetItem setItem, 
-        MprSetKey setKey, void *data)
+MprObj *mprDeserializeCustom(cchar *str, MprMakeObj makeObj, MprCheckState checkState, MprSetValue setValue, void *data)
 {
     MprJson     jp;
 
@@ -34,10 +31,9 @@ MprObj *mprDeserializeCustom(cchar *str, MprMakeObj makeObj, MprCheckState check
     memset(&jp, 0, sizeof(jp));
     jp.lineNumber = 1;
     jp.tok = str;
-    jp.checkState = checkState;
-    jp.setItem = setItem;
-    jp.setKey = setKey;
     jp.makeObj = makeObj;
+    jp.checkState = checkState;
+    jp.setValue = setValue;
     jp.data = data;
     return deserialize(&jp);
 }
@@ -48,123 +44,105 @@ MprObj *mprDeserializeCustom(cchar *str, MprMakeObj makeObj, MprCheckState check
  */
 MprObj *mprDeserialize(cchar *str)
 {
-    return mprDeserializeCustom(str, makeObj, NULL, setItem, setKey, NULL); 
+    return mprDeserializeCustom(str, makeObj, NULL, setValue, NULL); 
 }
 
 
 static MprObj *deserialize(MprJson *jp)
 {
     cvoid   *value;
-    void    *obj;
+    MprObj  *obj;
     cchar   *name;
-    int     rc, sep, isArray, index, valueType;
+    int     token, rc, index, valueType;
 
-    obj = 0;
-    isArray = 0;
-    index = 0;
+    if ((token = advanceToken(jp)) == '[') {
+        obj = jp->makeObj(jp, 1);
+        index = 0;
+    } else if (token == '{') {
+        obj = jp->makeObj(jp, 0);
+        index = -1;
+    } else {
+        return (MprObj*) parseValue(jp);
+    }
+    jp->tok++;
 
     while (*jp->tok) {
-        jp->tok = eatSpace(jp->tok);
-        switch (*jp->tok) {
+        switch (advanceToken(jp)) {
         case '\0':
-            return obj;
+            break;
 
+        //  MOB - remove
         case '\n':
+            mprAssert(0);
             jp->lineNumber++;
             jp->tok++;
             break;
 
         case ',':
+            if (index >= 0) {
+                index++;
+            }
             jp->tok++;
-            index++;
             continue;
 
         case '/':
             if (jp->tok[1] == '/' || jp->tok[1] == '*') {
                 jp->tok = parseComment(jp);
             } else {
-                mprJsonParseError(jp, "Unexpected character'%c'", *jp->tok);
+                mprJsonParseError(jp, "Unexpected character '%c'", *jp->tok);
                 return 0;
             }
             continue;
 
-        case '{':
-            obj = jp->makeObj(jp, 0);
-            isArray = 0;
-            ++jp->tok;
-            break;
-
-        case '[':
-            obj = jp->makeObj(jp, 1);
-            isArray = 1;
-            ++jp->tok;
-            break;
-
         case '}':
         case ']':
             /* End of object or array */
-            jp->tok++;
             if (jp->checkState && jp->checkState(jp, NULL) < 0) {
                 return 0;
             }
+            jp->tok++;
             return obj;
             
         default:
-            if (obj == 0) {
-                mprJsonParseError(jp, "Bad format");
-                return 0;
+            /*
+                Value: String, "{" or "]"
+             */
+            if (index < 0) {
+                if ((name = parseName(jp)) == 0) {
+                    return 0;
+                }
+                if (advanceToken(jp) != ':') {
+                    mprJsonParseError(jp, "Bad separator '%c'", *jp->tok);
+                    return 0;
+                }
+                jp->tok++;
             }
-            if ((name = parseName(jp)) == 0) {
-                return 0;
-            }
+            advanceToken(jp);
             if (jp->checkState && jp->checkState(jp, name) < 0) {
                 return 0;
             }
-            if ((sep = peekSep(jp)) < 0) {
-                /* Already reported */
+            if (*jp->tok == '{') {
+                value = deserialize(jp);
+                valueType = MPR_JSON_OBJ;
+
+            } else if (*jp->tok == '[') {
+                value = deserialize(jp);
+                valueType = MPR_JSON_ARRAY;
+
+            } else {
+                value = parseValue(jp);
+                valueType = MPR_JSON_STRING;
+            }
+            if (value == 0) {
+                /* Error already reported */
                 return 0;
             }
-            if (sep == ':') {
-                if (isArray) {
-                    mprJsonParseError(jp, "Bad separator '%c' in list", sep);
-                    return 0;
-                }
-                jp->tok = eatSpace(jp->tok + 1);
-                if (*jp->tok == '{') {
-                    value = deserialize(jp);
-                    valueType = MPR_JSON_OBJ;
-
-                } else if (*jp->tok == '[') {
-                    value = deserialize(jp);
-                    valueType = MPR_JSON_ARRAY;
-
-                } else {
-                    value = parseValue(jp);
-                    valueType = MPR_JSON_STRING;
-                }
-                if (value == 0) {
-                    /* Error already reported */
-                    return 0;
-                }
-                if ((rc = jp->setKey(jp, obj, name, value, valueType)) < 0) {
-                    return 0;
-                }
-            } else if (sep == ',' || sep == ']') {
-                if (isArray) {
-                    if ((rc = jp->setItem(jp, obj, name, valueType, index)) < 0) {
-                        return 0;
-                    }
-                } else {
-                    mprJsonParseError(jp, "Bad separator '%c' in properties", sep);
-                    return 0;
-                }
-            } else {
-                mprJsonParseError(jp, "Bad separator '%c'", sep);
+            if ((rc = jp->setValue(jp, obj, index, name, value, valueType)) < 0) {
                 return 0;
             }
         }
     }
-    return 0;
+    return obj;
 }
 
 
@@ -217,26 +195,14 @@ static cchar *parseUnquotedName(MprJson *jp)
 
 static cchar *parseName(MprJson *jp)
 {
-    jp->tok = eatSpace(jp->tok);
-    if (*jp->tok == '"' || *jp->tok == '\'') {
+    char    token;
+
+    token = advanceToken(jp);
+    if (token == '"' || token == '\'') {
         return parseQuotedName(jp);
     } else {
         return parseUnquotedName(jp);
     }
-}
-
-
-static int peekSep(MprJson *jp)
-{
-    int     sep;
-
-    jp->tok = eatSpace(jp->tok);
-    sep = *jp->tok;
-    if (sep != ':' && sep != ',' && sep != ']') {
-        mprJsonParseError(jp, "Missing ':', ',' or ']' in input");
-        return MPR_ERR_BAD_FORMAT;
-    } 
-    return sep;
 }
 
 
@@ -264,24 +230,15 @@ static cchar *parseValue(MprJson *jp)
 }
 
 
-static int setItem(MprJson *jp, MprObj *obj, cchar *value, int type, int index)
+static int setValue(MprJson *jp, MprObj *obj, int index, cchar *key, cchar *value, int type)
 {
     MprKey  *kp;
-    char    ibuf[32];
+    char    keybuf[32];
 
-    itosbuf(ibuf, sizeof(ibuf), index, 10);
-    if ((kp = mprAddKey(obj, ibuf, value)) == 0) {
-        return MPR_ERR_MEMORY;
+    if (index >= 0) {
+        itosbuf(keybuf, sizeof(keybuf), index, 10);
+        key = keybuf;
     }
-    kp->type = type;
-    return index;
-}
-
-
-static int setKey(MprJson *jp, MprObj *obj, cchar *key, cchar *value, int type)
-{
-    MprKey  *kp;
-
     if ((kp = mprAddKey(obj, key, value)) == 0) {
         return MPR_ERR_MEMORY;
     }
@@ -290,12 +247,8 @@ static int setKey(MprJson *jp, MprObj *obj, cchar *key, cchar *value, int type)
 }
 
 
-//  MOB - remove jp arg
 static MprObj *makeObj(MprJson *jp, bool list)
 {
-    if (list) {
-        return (MprObj*) mprCreateList(0, 0);
-    }
     return (MprObj*) mprCreateHash(0, 0);
 }
 
@@ -321,12 +274,15 @@ static void quoteValue(MprBuf *buf, cchar *str)
 static cchar *objToString(MprBuf *buf, MprObj *obj, int type, int pretty)
 {
     MprKey  *kp;
-    void    *item;
-    int     next;
+    char    numbuf[32];
+    int     i, len;
 
     if (type == MPR_JSON_ARRAY) {
         mprPutCharToBuf(buf, '[');
         if (pretty) mprPutCharToBuf(buf, '\n');
+#if UNUSED
+    void    *item;
+    int     next;
         for (ITERATE_ITEMS(obj, item, next)) {
             if (pretty) mprPutStringToBuf(buf, "    ");
             if (kp->type == MPR_JSON_ARRAY || kp->type == MPR_JSON_OBJ) {
@@ -337,6 +293,24 @@ static cchar *objToString(MprBuf *buf, MprObj *obj, int type, int pretty)
             mprPutCharToBuf(buf, ',');
             if (pretty) mprPutCharToBuf(buf, '\n');
         }
+#else
+        len = mprGetHashLength(obj);
+        for (i = 0; i < len; i++) {
+            itosbuf(numbuf, sizeof(numbuf), i, 10);
+            if (pretty) mprPutStringToBuf(buf, "    ");
+            if ((kp = mprLookupKeyEntry(obj, numbuf)) == 0) {
+                mprAssert(kp);
+                continue;
+            }
+            if (kp->type == MPR_JSON_ARRAY || kp->type == MPR_JSON_OBJ) {
+                objToString(buf, (MprObj*) kp->data, kp->type, pretty);
+            } else {
+                quoteValue(buf, kp->data);
+            }
+            mprPutCharToBuf(buf, ',');
+            if (pretty) mprPutCharToBuf(buf, '\n');
+        }
+#endif
         mprPutCharToBuf(buf, ']');
 
     } else if (type == MPR_JSON_OBJ) {
@@ -379,12 +353,15 @@ cchar *mprSerialize(MprObj *obj, int flags)
 }
 
 
-static cchar *eatSpace(cchar *tok)
+static char advanceToken(MprJson *jp)
 {
-    while (isspace((int) *tok) && *tok != '\n') {
-        tok++;
+    while (isspace((int) *jp->tok)) {
+        if (*jp->tok == '\n') {
+            jp->lineNumber++;
+        }
+        jp->tok++;
     }
-    return tok;
+    return *jp->tok;
 }
 
 
