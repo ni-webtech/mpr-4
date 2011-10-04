@@ -345,7 +345,7 @@ int access(cchar *path, int flags)
     char    *tmpPath;
     int     rc;
 
-    if (!mprIsAbsPath(MPR, path)) {
+    if (!mprIsPathAbs(MPR, path)) {
         path = (cchar*) tmpPath = mprJoinPath(MPR, currentDir, path);
     } else {
         tmpPath = 0;
@@ -421,7 +421,7 @@ int mkdir(cchar *dir, int mode)
     uni     *wdir;
     int     rc;
 
-    if (!mprIsAbsPath(MPR, dir)) {
+    if (!mprIsPathAbs(MPR, dir)) {
         dir = (cchar*) tmpDir = mprJoinPath(MPR, currentDir, dir);
     } else {
         tmpDir = 0;
@@ -468,7 +468,7 @@ uint open(cchar *path, int mode, va_list arg)
     DWORD   accessFlags, shareFlags, createFlags;
     HANDLE  h;
 
-    if (!mprIsAbsPath(MPR, path)) {
+    if (!mprIsPathAbs(MPR, path)) {
         path = (cchar*) tmpPath = mprGetAbsPath(MPR, path);
     } else {
         tmpPath = 0;
@@ -512,12 +512,12 @@ int rename(cchar *oldname, cchar *newname)
     char    *tmpOld, *tmpNew;
     int     rc;
 
-    if (!mprIsAbsPath(MPR, oldname)) {
+    if (!mprIsPathAbs(MPR, oldname)) {
         oldname = (cchar*) tmpOld = mprJoinPath(MPR, currentDir, oldname);
     } else {
         tmpOld = 0;
     }
-    if (!mprIsAbsPath(MPR, newname)) {
+    if (!mprIsPathAbs(MPR, newname)) {
         newname = (cchar*) tmpNew = mprJoinPath(MPR, currentDir, newname);
     } else {
         tmpNew = 0;
@@ -535,7 +535,7 @@ int rmdir(cchar *dir)
     char    *tmpDir;
     int     rc;
 
-    if (!mprIsAbsPath(MPR, dir)) {
+    if (!mprIsPathAbs(MPR, dir)) {
         dir = (cchar*) tmpDir = mprJoinPath(MPR, currentDir, dir);
     } else {
         tmpDir = 0;
@@ -561,7 +561,7 @@ int stat(cchar *path, struct stat *sbuf)
 
     memset(sbuf, 0, sizeof(struct stat));
 
-    if (!mprIsAbsPath(MPR, path)) {
+    if (!mprIsPathAbs(MPR, path)) {
         path = (cchar*) tmpPath = mprJoinPath(MPR, currentDir, path);
     } else {
         tmpPath = 0;

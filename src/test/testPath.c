@@ -110,21 +110,21 @@ static void testAbsPath(MprTestGroup *gp)
 #endif
 
     path = mprGetAbsPath("");
-    assert(mprIsAbsPath(path));
+    assert(mprIsPathAbs(path));
     
     path = mprGetAbsPath("/");
-    assert(mprIsAbsPath(path));
+    assert(mprIsPathAbs(path));
     
     path = mprGetAbsPath(".../../../../../../../../../../..");
-    assert(mprIsAbsPath(path));
-    assert(mprIsAbsPath(mprGetAbsPath("Makefile")));
+    assert(mprIsPathAbs(path));
+    assert(mprIsPathAbs(mprGetAbsPath("Makefile")));
 
     /*
         Manually check incase mprIsAbs gets it wrong
      */
     path = mprGetAbsPath("Makefile");
     assert(path && *path);
-    assert(mprIsAbsPath(path));
+    assert(mprIsPathAbs(path));
 #if BLD_WIN_LIKE
     assert(isalpha(path[0]));
     assert(path[1] == ':' && path[2] == '\\');
@@ -249,27 +249,27 @@ static void testRelPath(MprTestGroup *gp)
     assert(strcmp(path, "../a.b") == 0);
 
     path = mprGetRelPath("/");
-    assert(mprIsRelPath(path));
+    assert(mprIsPathRel(path));
     assert(strncmp(path, "../", 3) == 0);
     
     path = mprGetRelPath("//");
-    assert(mprIsRelPath(path));
+    assert(mprIsPathRel(path));
     assert(strncmp(path, "../", 3) == 0);
     
     path = mprGetRelPath("/tmp");
-    assert(mprIsRelPath(path));
+    assert(mprIsPathRel(path));
     assert(strncmp(path, "../", 3) == 0);
 
     path = mprGetRelPath("/Unknown/someone/junk");
-    assert(mprIsRelPath(path));
+    assert(mprIsPathRel(path));
     assert(strncmp(path, "../", 3) == 0);
            
     path = mprGetRelPath("/Users/mob/junk");
-    assert(mprIsRelPath(path));
+    assert(mprIsPathRel(path));
     assert(strncmp(path, "../", 3) == 0);
     
     path = mprGetRelPath("/Users/mob/././../mob/junk");
-    assert(mprIsRelPath(path));
+    assert(mprIsPathRel(path));
     assert(strncmp(path, "../", 3) == 0);
     
     path = mprGetRelPath(".");
@@ -279,9 +279,9 @@ static void testRelPath(MprTestGroup *gp)
     assert(strcmp(path, "..") == 0);
 
     absPath = mprGetAbsPath("Makefile");
-    assert(mprIsAbsPath(absPath));
+    assert(mprIsPathAbs(absPath));
     path = mprGetRelPath(absPath);
-    assert(!mprIsAbsPath(path));
+    assert(!mprIsPathAbs(path));
     assert(strcmp(path, "Makefile") == 0);
 }
 
@@ -317,7 +317,7 @@ static void testTemp(MprTestGroup *gp)
 
     path = mprGetTempPath(NULL);
     assert(path && *path);
-    assert(mprIsAbsPath(path));
+    assert(mprIsPathAbs(path));
     assert(mprPathExists(path, F_OK));
     mprDeletePath(path);
 }
@@ -328,10 +328,10 @@ static void testTransform(MprTestGroup *gp)
     char    *path;
 
     path = mprGetTransformedPath("/", MPR_PATH_ABS);
-    assert(mprIsAbsPath(path));
+    assert(mprIsPathAbs(path));
 
     path = mprGetTransformedPath("/", MPR_PATH_REL);
-    assert(mprIsRelPath(path));
+    assert(mprIsPathRel(path));
     assert(path[0] == '.');
 
     path = mprGetTransformedPath("/", 0);
@@ -339,7 +339,7 @@ static void testTransform(MprTestGroup *gp)
 
 #if BLD_WIN_LIKE 
     path = mprGetTransformedPath("/", MPR_PATH_ABS);
-    mprAssert(mprIsAbsPath(path));
+    mprAssert(mprIsPathAbs(path));
 
 #if FUTURE && CYGWIN
     path = mprGetTransformedPath("c:/cygdrive/c/tmp/a.txt", 0);
@@ -359,7 +359,7 @@ static void testTransform(MprTestGroup *gp)
     path = mprGetPortablePath(path);
     mprAssert(*path == '/');
     assert(strchr(path, '\\') == 0);
-    assert(mprIsAbsPath(path));
+    assert(mprIsPathAbs(path));
 #endif
 }
 

@@ -186,12 +186,11 @@ static char *findNewline(cchar *str, cchar *newline, ssize len, ssize *nlen)
 }
 
 
-//  MOB -- rename mprReadFileLine
 /*
     Get a string from the file. This will put the file into buffered mode.
     Return NULL on eof.
  */
-char *mprGetFileString(MprFile *file, ssize maxline, ssize *lenp)
+char *mprReadLine(MprFile *file, ssize maxline, ssize *lenp)
 {
     MprBuf          *bp;
     MprFileSystem   *fs;
@@ -529,8 +528,7 @@ ssize mprWriteFileString(MprFile *file, cchar *str)
 }
 
 
-//  MOB - rethink name
-ssize mprWriteFileFormat(MprFile *file, cchar *fmt, ...)
+ssize mprWriteFileFmt(MprFile *file, cchar *fmt, ...)
 {
     va_list     ap;
     char        *buf;

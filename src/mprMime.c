@@ -130,7 +130,7 @@ MprHash *mprCreateMimeTypes(cchar *path)
             return 0;
         }
         line = 0;
-        while ((buf = mprGetFileString(file, 0, NULL)) != 0) {
+        while ((buf = mprReadLine(file, 0, NULL)) != 0) {
             line++;
             if (buf[0] == '#' || isspace((int) buf[0])) {
                 continue;

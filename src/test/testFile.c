@@ -195,7 +195,7 @@ static void testBufferedIO(MprTestGroup *gp)
     assert(mprPeekFileChar(file) == 'a');
     c = mprGetFileChar(file);
     assert(c == 'a');
-    str = mprGetFileString(file, 0, NULL);
+    str = mprReadLine(file, 0, NULL);
     assert(str != 0);
     len = strlen(str);
     assert(len == 5);   

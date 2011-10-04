@@ -199,12 +199,6 @@ static MprList *findFiles(MprList *list, cchar *dir, int flags)
 }
 
 
-MprList *mprFindFiles(cchar *dir, int flags)
-{
-    return findFiles(mprCreateList(-1, 0), dir, flags);
-}
-
-
 /*
     Return an absolute (normalized) path.
  */
@@ -464,6 +458,28 @@ char *mprGetPathDir(cchar *path)
 }
 
 
+/*
+    Return the extension portion of a pathname.
+    Return the extension without the "."
+ */
+char *mprGetPathExt(cchar *path)
+{
+    MprFileSystem  *fs;
+    char            *cp;
+
+    if ((cp = srchr(path, '.')) != NULL) {
+        fs = mprLookupFileSystem(path);
+        /*
+            If there is no separator ("/") after the extension, then use it.
+         */
+        if (firstSep(fs, cp) == 0) {
+            return sclone(++cp);
+        }
+    } 
+    return 0;
+}
+
+
 #if BLD_WIN_LIKE
 MprList *mprGetPathFiles(cchar *dir, bool enumDirs)
 {
@@ -596,37 +612,6 @@ MprList *mprGetPathFiles(cchar *path, bool enumDirs)
 #endif
 
 
-char *mprGetPathLink(cchar *path)
-{
-    MprFileSystem  *fs;
-
-    fs = mprLookupFileSystem(path);
-    return fs->getPathLink(fs, path);
-}
-
-
-/*
-    Return the extension portion of a pathname.
-    Return the extension without the "."
- */
-char *mprGetPathExt(cchar *path)
-{
-    MprFileSystem  *fs;
-    char            *cp;
-
-    if ((cp = srchr(path, '.')) != NULL) {
-        fs = mprLookupFileSystem(path);
-        /*
-            If there is no separator ("/") after the extension, then use it.
-         */
-        if (firstSep(fs, cp) == 0) {
-            return sclone(++cp);
-        }
-    } 
-    return 0;
-}
-
-
 //  MOB - better boolean?
 int mprGetPathInfo(cchar *path, MprPath *info)
 {
@@ -634,6 +619,15 @@ int mprGetPathInfo(cchar *path, MprPath *info)
 
     fs = mprLookupFileSystem(path);
     return fs->getPathInfo(fs, path, info);
+}
+
+
+char *mprGetPathLink(cchar *path)
+{
+    MprFileSystem  *fs;
+
+    fs = mprLookupFileSystem(path);
+    return fs->getPathLink(fs, path);
 }
 
 
@@ -659,6 +653,12 @@ char *mprGetPathParent(cchar *path)
         return mprGetPathDir(dir);
     }
     return mprGetPathDir(path);
+}
+
+
+MprList *mprGetPathTree(cchar *dir, int flags)
+{
+    return findFiles(mprCreateList(-1, 0), dir, flags);
 }
 
 
@@ -780,6 +780,71 @@ char *mprGetRelPath(cchar *pathArg)
 }
 
 
+/*
+    Return a pointer into the path at the last path separator or null if none found
+ */
+cchar *mprGetLastPathSeparator(cchar *path) 
+{
+    MprFileSystem   *fs;
+
+    fs = mprLookupFileSystem(path);
+    return lastSep(fs, path);
+}
+
+
+cchar *mprGetFirstPathSeparator(cchar *path) 
+{
+    MprFileSystem   *fs;
+
+    fs = mprLookupFileSystem(path);
+    return firstSep(fs, path);
+}
+
+
+char *mprGetTempPath(cchar *tempDir)
+{
+    MprFile         *file;
+    char            *dir, *path;
+    int             i, now;
+    static int      tempSeed = 0;
+
+    if (tempDir == 0) {
+#if WINCE
+        dir = sclone("/Temp");
+#elif BLD_WIN_LIKE
+{
+        MprFileSystem   *fs;
+        fs = mprLookupFileSystem(tempDir ? tempDir : (cchar*) "/");
+        dir = sclone(getenv("TEMP"));
+        mprMapSeparators(dir, defaultSep(fs));
+}
+#elif VXWORKS
+        dir = sclone(".");
+#else
+        dir = sclone("/tmp");
+#endif
+    } else {
+        dir = sclone(tempDir);
+    }
+    now = ((int) mprGetTime() & 0xFFFF) % 64000;
+    file = 0;
+    path = 0;
+
+    for (i = 0; i < 128; i++) {
+        path = sfmt("%s/MPR_%d_%d_%d.tmp", dir, getpid(), now, ++tempSeed);
+        file = mprOpenFile(path, O_CREAT | O_EXCL | O_BINARY, 0664);
+        if (file) {
+            mprCloseFile(file);
+            break;
+        }
+    }
+    if (file == 0) {
+        return 0;
+    }
+    return path;
+}
+
+
 // TODO - handle cygwin paths and converting to and from.
 /*
     This normalizes a path. Returns a normalized path according to flags. Default is absolute. 
@@ -816,24 +881,6 @@ char *mprGetTransformedPath(cchar *path, int flags)
     }
 #endif
     return result;
-}
-
-
-bool mprIsAbsPath(cchar *path)
-{
-    MprFileSystem   *fs;
-
-    fs = mprLookupFileSystem(path);
-    return isAbsPath(fs, path);
-}
-
-
-bool mprIsRelPath(cchar *path)
-{
-    MprFileSystem   *fs;
-
-    fs = mprLookupFileSystem(path);
-    return !isAbsPath(fs, path);
 }
 
 
@@ -945,50 +992,6 @@ int mprMakeLink(cchar *path, cchar *target, bool hard)
         return 0;
     }
     return fs->makeLink(fs, path, target, hard);
-}
-
-
-char *mprGetTempPath(cchar *tempDir)
-{
-    MprFile         *file;
-    char            *dir, *path;
-    int             i, now;
-    static int      tempSeed = 0;
-
-    if (tempDir == 0) {
-#if WINCE
-        dir = sclone("/Temp");
-#elif BLD_WIN_LIKE
-{
-        MprFileSystem   *fs;
-        fs = mprLookupFileSystem(tempDir ? tempDir : (cchar*) "/");
-        dir = sclone(getenv("TEMP"));
-        mprMapSeparators(dir, defaultSep(fs));
-}
-#elif VXWORKS
-        dir = sclone(".");
-#else
-        dir = sclone("/tmp");
-#endif
-    } else {
-        dir = sclone(tempDir);
-    }
-    now = ((int) mprGetTime() & 0xFFFF) % 64000;
-    file = 0;
-    path = 0;
-
-    for (i = 0; i < 128; i++) {
-        path = sfmt("%s/MPR_%d_%d_%d.tmp", dir, getpid(), now, ++tempSeed);
-        file = mprOpenFile(path, O_CREAT | O_EXCL | O_BINARY, 0664);
-        if (file) {
-            mprCloseFile(file);
-            break;
-        }
-    }
-    if (file == 0) {
-        return 0;
-    }
-    return path;
 }
 
 
@@ -1241,33 +1244,30 @@ char *mprGetNormalizedPath(cchar *pathArg)
 }
 
 
+bool mprIsPathAbs(cchar *path)
+{
+    MprFileSystem   *fs;
+
+    fs = mprLookupFileSystem(path);
+    return isAbsPath(fs, path);
+}
+
+
+bool mprIsPathRel(cchar *path)
+{
+    MprFileSystem   *fs;
+
+    fs = mprLookupFileSystem(path);
+    return !isAbsPath(fs, path);
+}
+
+
 bool mprIsPathSeparator(cchar *path, cchar c)
 {
     MprFileSystem   *fs;
 
     fs = mprLookupFileSystem(path);
     return isSep(fs, c);
-}
-
-
-/*
-    Return a pointer into the path at the last path separator or null if none found
- */
-cchar *mprGetLastPathSeparator(cchar *path) 
-{
-    MprFileSystem   *fs;
-
-    fs = mprLookupFileSystem(path);
-    return lastSep(fs, path);
-}
-
-
-cchar *mprGetFirstPathSeparator(cchar *path) 
-{
-    MprFileSystem   *fs;
-
-    fs = mprLookupFileSystem(path);
-    return firstSep(fs, path);
 }
 
 
@@ -1297,7 +1297,7 @@ bool mprPathExists(cchar *path, int omode)
 }
 
 
-char *mprReadPath(cchar *path, ssize *lenp)
+char *mprReadPathContents(cchar *path, ssize *lenp)
 {
     MprFile     *file;
     MprPath     info;
