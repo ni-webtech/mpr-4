@@ -5979,22 +5979,33 @@ struct MprJson;
 typedef void MprObj;
 
 /**
-    Check state callback for JSON deserialization
-    @internal
+    JSON callbacks
  */
-typedef int (*MprCheckState)(struct MprJson *jp, cchar *name);
+typedef struct MprJsonCallback {
+    /**
+        Check state callback for JSON deserialization
+        @internal
+     */
+    int (*checkState)(struct MprJson *jp, cchar *name);
 
-/**
-    SetValue callback for JSON deserialization
-    @internal
- */
-typedef int (*MprSetValue)(struct MprJson *jp, MprObj *obj, int index, cchar *name, cchar *value, int valueType);
+    /**
+        MakeObject callback for JSON deserialization
+        @internal
+     */
+    MprObj *(*makeObj)(struct MprJson *jp, bool list);
 
-/**
-    MakeObject callback for JSON deserialization
-    @internal
- */
-typedef MprObj *(*MprMakeObj)(struct MprJson *jp, bool list);
+    /**
+        Handle a parse error
+     */
+    void (*parseError)(struct MprJson *jp, cchar *msg);
+
+    /**
+        SetValue callback for JSON deserialization
+        @internal
+     */
+    int (*setValue)(struct MprJson *jp, MprObj *obj, int index, cchar *name, cchar *value, int valueType);
+} MprJsonCallback;
+
 
 /**
     JSON parser
@@ -6002,11 +6013,10 @@ typedef MprObj *(*MprMakeObj)(struct MprJson *jp, bool list);
     @defgroup MprJson MprJson
  */
 typedef struct MprJson {
+    cchar           *path;          /* Optional JSON filename */
     cchar           *tok;           /* Current parse token */
     int             lineNumber;     /* Current line number in path */
-    MprCheckState   checkState;     /* Check state before defining key/item */
-    MprSetValue     setValue;       /* Property set callback function */
-    MprMakeObj      makeObj;        /* Make obj callback */
+    MprJsonCallback callback;       /* JSON callbacks */
     int             state;          /* Custom extended state */
     void            *data;          /* Custom data handle */
 } MprJson;
@@ -6036,7 +6046,7 @@ extern cchar *mprSerialize(MprObj *obj, int flags);
     @ingroup MprJson
     @internal
  */
-extern MprObj *mprDeserializeCustom(cchar *str, MprMakeObj makeObj, MprCheckState check, MprSetValue setValue, void *data);
+extern MprObj *mprDeserializeCustom(cchar *str, MprJsonCallback callback, void *data);
 
 /**
     Deserialize a JSON string into an object tree.
