@@ -9,9 +9,9 @@ STAGING		:= staging
 
 include		.makedep
 
-regen: gen next rest
+gen: dox next rest
 
-gen:
+dox:
 	make -C ../../..
 	make SKIP_CLEAN=1 -C ../../.. packageCombo
 	rm -fr ./$(STAGING) xml html
