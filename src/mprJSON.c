@@ -76,13 +76,6 @@ static MprObj *deserialize(MprJson *jp)
         case '\0':
             break;
 
-        //  MOB - remove
-        case '\n':
-            mprAssert(0);
-            jp->lineNumber++;
-            jp->tok++;
-            break;
-
         case ',':
             if (index >= 0) {
                 index++;
@@ -285,20 +278,6 @@ static cchar *objToString(MprBuf *buf, MprObj *obj, int type, int pretty)
     if (type == MPR_JSON_ARRAY) {
         mprPutCharToBuf(buf, '[');
         if (pretty) mprPutCharToBuf(buf, '\n');
-#if UNUSED
-    void    *item;
-    int     next;
-        for (ITERATE_ITEMS(obj, item, next)) {
-            if (pretty) mprPutStringToBuf(buf, "    ");
-            if (kp->type == MPR_JSON_ARRAY || kp->type == MPR_JSON_OBJ) {
-                objToString(buf, (MprObj*) kp->data, kp->type, pretty);
-            } else {
-                quoteValue(buf, kp->data);
-            }
-            mprPutCharToBuf(buf, ',');
-            if (pretty) mprPutCharToBuf(buf, '\n');
-        }
-#else
         len = mprGetHashLength(obj);
         for (i = 0; i < len; i++) {
             itosbuf(numbuf, sizeof(numbuf), i, 10);
@@ -315,7 +294,6 @@ static cchar *objToString(MprBuf *buf, MprObj *obj, int type, int pretty)
             mprPutCharToBuf(buf, ',');
             if (pretty) mprPutCharToBuf(buf, '\n');
         }
-#endif
         mprPutCharToBuf(buf, ']');
 
     } else if (type == MPR_JSON_OBJ) {

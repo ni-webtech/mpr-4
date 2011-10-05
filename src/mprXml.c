@@ -388,7 +388,6 @@ static MprXmlToken getXmlToken(MprXml *xp, int state)
             If all white space, then zero the token buffer
          */
         for (cp = tokBuf->start; *cp; cp++) {
-            //  MOB - temp
             if (!isspace((int) *cp & 0x7f)) {
                 return MPR_XMLTOK_TEXT;
             }

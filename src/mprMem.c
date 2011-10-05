@@ -1151,7 +1151,6 @@ static void mark()
     LOG(7, "GC: mark started");
 
     /*
-        TODO here on how marking strategy works
         When parallel, we mark blocks using the current heap->active mark. After marking, synchronization will rotate
         the active/stale/dead markers. After this, existing alive blocks may be marked stale. No blocks will be marked
         active.

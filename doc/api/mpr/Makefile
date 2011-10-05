@@ -9,6 +9,8 @@ STAGING		:= staging
 
 include		.makedep
 
+regen: gen next rest
+
 gen:
 	make -C ../../..
 	make SKIP_CLEAN=1 -C ../../.. packageCombo

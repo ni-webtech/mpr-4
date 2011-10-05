@@ -212,12 +212,12 @@ char *mprGetAbsPath(cchar *pathArg)
     }
 
 #if BLD_FEATURE_ROMFS
-    return mprGetNormalizedPath(pathArg);
+    return mprNormalizePath(pathArg);
 #endif
 
     fs = mprLookupFileSystem(pathArg);
     if (isFullPath(fs, pathArg)) {
-        return mprGetNormalizedPath(pathArg);
+        return mprNormalizePath(pathArg);
     }
 
 #if BLD_WIN_LIKE && !WINCE
@@ -225,7 +225,7 @@ char *mprGetAbsPath(cchar *pathArg)
     char    buf[MPR_MAX_PATH];
     GetFullPathName(pathArg, sizeof(buf) - 1, buf, NULL);
     buf[sizeof(buf) - 1] = '\0';
-    path = mprGetNormalizedPath(buf);
+    path = mprNormalizePath(buf);
 }
 #elif VXWORKS
 {
@@ -695,7 +695,7 @@ char *mprGetRelPath(cchar *pathArg)
     /*
         Must clean to ensure a minimal relative path result.
      */
-    path = mprGetNormalizedPath(pathArg);
+    path = mprNormalizePath(pathArg);
 
     if (!isAbsPath(fs, path)) {
         return path;
@@ -872,7 +872,7 @@ char *mprGetTransformedPath(cchar *path, int flags)
         result = mprGetRelPath(path);
 
     } else {
-        result = mprGetNormalizedPath(path);
+        result = mprNormalizePath(path);
     }
 
 #if BLD_WIN_LIKE
@@ -910,11 +910,11 @@ char *mprJoinPath(cchar *path, cchar *other)
             }
             return sjoin(drive, other, NULL);
         } else {
-            return mprGetNormalizedPath(other);
+            return mprNormalizePath(other);
         }
     }
     if (path == NULL || *path == '\0') {
-        return mprGetNormalizedPath(other);
+        return mprNormalizePath(other);
     }
     if ((cp = firstSep(fs, path)) != 0) {
         sep = *cp;
@@ -926,7 +926,7 @@ char *mprJoinPath(cchar *path, cchar *other)
     if ((join = sfmt("%s%c%s", path, sep, other)) == 0) {
         return 0;
     }
-    return mprGetNormalizedPath(join);
+    return mprNormalizePath(join);
 }
 
 
@@ -1077,12 +1077,11 @@ static char *fromCygPath(cchar *path)
 #endif
 
 
-//  TODO -- should this be mprNormalizePath?  apply to all APIs
 /*
     Normalize a path to remove redundant "./" and cleanup "../" and make separator uniform. Does not make an abs path.
     It does not map separators nor change case. 
  */
-char *mprGetNormalizedPath(cchar *pathArg)
+char *mprNormalizePath(cchar *pathArg)
 {
     MprFileSystem   *fs;
     char            *path, *sp, *dp, *mark, **segments;
@@ -1369,16 +1368,16 @@ char *mprResolvePath(cchar *base, cchar *path)
             }
             return sjoin(drive, path, NULL);
         }
-        return mprGetNormalizedPath(path);
+        return mprNormalizePath(path);
     }
     if (base == NULL || *base == '\0') {
-        return mprGetNormalizedPath(path);
+        return mprNormalizePath(path);
     }
     dir = mprGetPathDir(base);
     if ((join = sfmt("%s/%s", dir, path)) == 0) {
         return 0;
     }
-    return mprGetNormalizedPath(join);
+    return mprNormalizePath(join);
 }
 
 
@@ -1393,17 +1392,18 @@ int mprSamePath(cchar *path1, cchar *path2)
     fs = mprLookupFileSystem(path1);
 
     /*
-        Convert to absolute (normalized) paths to compare. TODO - resolve symlinks.
+        Convert to absolute (normalized) paths to compare. 
+        TODO - resolve symlinks.
      */
     if (!isFullPath(fs, path1)) {
         path1 = mprGetAbsPath(path1);
     } else {
-        path1 = mprGetNormalizedPath(path1);
+        path1 = mprNormalizePath(path1);
     }
     if (!isFullPath(fs, path2)) {
         path2 = mprGetAbsPath(path2);
     } else {
-        path2 = mprGetNormalizedPath(path2);
+        path2 = mprNormalizePath(path2);
     }
     if (fs->caseSensitive) {
         for (p1 = path1, p2 = path2; *p1 && *p2; p1++, p2++) {
@@ -1434,7 +1434,8 @@ int mprSamePathCount(cchar *path1, cchar *path2, ssize len)
     fs = mprLookupFileSystem(path1);
 
     /*
-        Convert to absolute paths to compare. TODO - resolve symlinks.
+        Convert to absolute paths to compare. 
+        TODO - resolve symlinks.
      */
     if (!isFullPath(fs, path1)) {
         path1 = mprGetAbsPath(path1);
@@ -1486,13 +1487,13 @@ char *mprSearchPath(cchar *file, int flags, cchar *search, ...)
             path = mprJoinPath(dir, file);
             if (mprPathExists(path, access)) {
                 mprLog(7, "mprSearchForFile: found %s", path);
-                return mprGetNormalizedPath(path);
+                return mprNormalizePath(path);
             }
             if ((flags & MPR_SEARCH_EXE) && *BLD_EXE) {
                 path = mprJoinPathExt(path, BLD_EXE);
                 if (mprPathExists(path, access)) {
                     mprLog(7, "mprSearchForFile: found %s", path);
-                    return mprGetNormalizedPath(path);
+                    return mprNormalizePath(path);
                 }
             }
             dir = stok(0, MPR_SEARCH_SEP, &tok);

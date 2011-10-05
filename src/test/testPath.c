@@ -94,12 +94,12 @@ static void testAbsPath(MprTestGroup *gp)
     char        *path;
 
 #if MANUAL_TESTING
-    path = mprGetNormalizedPath("/");
-    path = mprGetNormalizedPath("C:/");
-    path = mprGetNormalizedPath("C:/abc");
-    path = mprGetNormalizedPath("");
-    path = mprGetNormalizedPath("c:abc");
-    path = mprGetNormalizedPath("abc");
+    path = mprNormalizePath("/");
+    path = mprNormalizePath("C:/");
+    path = mprNormalizePath("C:/abc");
+    path = mprNormalizePath("");
+    path = mprNormalizePath("c:abc");
+    path = mprNormalizePath("abc");
 
     path = mprGetAbsPath("/");
     path = mprGetAbsPath("C:/");
@@ -204,36 +204,36 @@ static void testNormalize(MprTestGroup *gp)
 {
     char        *path;
 
-    assert(strcmp(mprGetNormalizedPath(""), "") == 0);
-    assert(strcmp(mprGetNormalizedPath("/"), "/") == 0);
-    assert(strcmp(mprGetNormalizedPath("."), ".") == 0);
-    assert(strcmp(mprGetNormalizedPath("abc/"), "abc") == 0);
-    assert(strcmp(mprGetNormalizedPath("./"), ".") == 0);
-    assert(strcmp(mprGetNormalizedPath("../"), "..") == 0);
-    assert(strcmp(mprGetNormalizedPath("/.."), "/") == 0);
-    assert(strcmp(mprGetNormalizedPath("./.."), "..") == 0);
-    assert(strcmp(mprGetNormalizedPath("//.."), "/") == 0);
-    assert(strcmp(mprGetNormalizedPath("/abc/.."), "/") == 0);
-    assert(strcmp(mprGetNormalizedPath("abc/.."), ".") == 0);
-    assert(strcmp(mprGetNormalizedPath("/abc/../def"), "/def") == 0);
-    assert(strcmp(mprGetNormalizedPath("/abc/../def/../xyz"), "/xyz") == 0);
-    assert(strcmp(mprGetNormalizedPath("/abc/def/../.."), "/") == 0);
-    assert(strcmp(mprGetNormalizedPath("/abc/def/../../xyz"), "/xyz") == 0);
-    assert(strcmp(mprGetNormalizedPath("/abc/def/.././../xyz"), "/xyz") == 0);
-    assert(strcmp(mprGetNormalizedPath("//a//b//./././c/d/e/f/../../g"), "/a/b/c/d/g") == 0);
-    assert(strcmp(mprGetNormalizedPath("../../modules/ejs.mod"), "../../modules/ejs.mod") == 0);
+    assert(strcmp(mprNormalizePath(""), "") == 0);
+    assert(strcmp(mprNormalizePath("/"), "/") == 0);
+    assert(strcmp(mprNormalizePath("."), ".") == 0);
+    assert(strcmp(mprNormalizePath("abc/"), "abc") == 0);
+    assert(strcmp(mprNormalizePath("./"), ".") == 0);
+    assert(strcmp(mprNormalizePath("../"), "..") == 0);
+    assert(strcmp(mprNormalizePath("/.."), "/") == 0);
+    assert(strcmp(mprNormalizePath("./.."), "..") == 0);
+    assert(strcmp(mprNormalizePath("//.."), "/") == 0);
+    assert(strcmp(mprNormalizePath("/abc/.."), "/") == 0);
+    assert(strcmp(mprNormalizePath("abc/.."), ".") == 0);
+    assert(strcmp(mprNormalizePath("/abc/../def"), "/def") == 0);
+    assert(strcmp(mprNormalizePath("/abc/../def/../xyz"), "/xyz") == 0);
+    assert(strcmp(mprNormalizePath("/abc/def/../.."), "/") == 0);
+    assert(strcmp(mprNormalizePath("/abc/def/../../xyz"), "/xyz") == 0);
+    assert(strcmp(mprNormalizePath("/abc/def/.././../xyz"), "/xyz") == 0);
+    assert(strcmp(mprNormalizePath("//a//b//./././c/d/e/f/../../g"), "/a/b/c/d/g") == 0);
+    assert(strcmp(mprNormalizePath("../../modules/ejs.mod"), "../../modules/ejs.mod") == 0);
 
-    path = mprGetNormalizedPath("//a//b//./././c/d/e/f/../../g");
+    path = mprNormalizePath("//a//b//./././c/d/e/f/../../g");
     mprAssert(strcmp(path, "/a/b/c/d/g") == 0);
 
 #if VXWORKS || BLD_WIN_LIKE
-    path = mprGetNormalizedPath("\\\\a\\\\b\\\\.\\.\\.\\c\\d\\e\\f\\..\\..\\g");
+    path = mprNormalizePath("\\\\a\\\\b\\\\.\\.\\.\\c\\d\\e\\f\\..\\..\\g");
     mprAssert(strcmp(path, "\\a\\b\\c\\d\\g") == 0);
-    assert(strcmp(mprGetNormalizedPath("host:"), "host:.") == 0);
-    assert(strcmp(mprGetNormalizedPath("host:/"), "host:/") == 0);
-    assert(strcmp(mprGetNormalizedPath("host:////"), "host:/") == 0);
-    assert(strcmp(mprGetNormalizedPath("host:abc"), "host:abc") == 0);
-    assert(strcmp(mprGetNormalizedPath("c:abc"), "c:abc") == 0);
+    assert(strcmp(mprNormalizePath("host:"), "host:.") == 0);
+    assert(strcmp(mprNormalizePath("host:/"), "host:/") == 0);
+    assert(strcmp(mprNormalizePath("host:////"), "host:/") == 0);
+    assert(strcmp(mprNormalizePath("host:abc"), "host:abc") == 0);
+    assert(strcmp(mprNormalizePath("c:abc"), "c:abc") == 0);
 #endif
 }
 
@@ -245,7 +245,7 @@ static void testRelPath(MprTestGroup *gp)
     path = mprGetRelPath("Makefile");
     assert(strcmp(path, "Makefile") == 0);
     
-    path = mprGetNormalizedPath("../a.b");
+    path = mprNormalizePath("../a.b");
     assert(strcmp(path, "../a.b") == 0);
 
     path = mprGetRelPath("/");

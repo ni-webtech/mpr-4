@@ -112,7 +112,6 @@ MprModule *mprCreateModule(cchar *name, cchar *path, cchar *entry, void *data)
     mp->entry = sclone(entry);
     mp->moduleData = data;
     mp->modified = info.mtime;
-    //  MOB - this is not fully implemented
     mp->lastActivity = mprGetTime();
     index = mprAddItem(ms->modules, mp);
     if (index < 0 || mp->name == 0) {
@@ -128,8 +127,6 @@ static void manageModule(MprModule *mp, int flags)
         mprMark(mp->name);
         mprMark(mp->path);
         mprMark(mp->entry);
-    } else if (flags & MPR_MANAGE_FREE) {
-        //  TODO - should this unload the module?
     }
 }
 
@@ -310,7 +307,7 @@ char *mprSearchForModule(cchar *filename)
 #if BLD_CC_DYN_LOAD
     char    *path, *f, *searchPath, *dir, *tok;
 
-    filename = mprGetNormalizedPath(filename);
+    filename = mprNormalizePath(filename);
 
     /*
         Search for the path directly

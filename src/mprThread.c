@@ -68,7 +68,6 @@ void mprStopThreadService()
     mprAssert(ts);
     mprAssert(ts->mainThread);
 
-    //  MOB - why
     ts->threads->mutex = 0;
     ts->mutex = 0;
     mprRemoveItem(ts->threads, ts->mainThread);
