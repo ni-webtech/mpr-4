@@ -156,6 +156,9 @@ MprKey *mprAddDuplicateKey(MprHash *hash, cvoid *key, cvoid *ptr)
     MprKey      *sp;
     int         index;
 
+    mprAssert(hash);
+    mprAssert(key);
+
     if ((sp = mprAllocStruct(MprKey)) == 0) {
         return 0;
     }
@@ -180,6 +183,9 @@ int mprRemoveKey(MprHash *hash, cvoid *key)
 {
     MprKey      *sp, *prevSp;
     int         index;
+
+    mprAssert(hash);
+    mprAssert(key);
 
     lock(hash);
     if ((sp = lookupHash(&index, &prevSp, hash, key)) == 0) {
@@ -235,6 +241,7 @@ MprHash *mprCloneHash(MprHash *master)
 MprKey *mprLookupKeyEntry(MprHash *hash, cvoid *key)
 {
     mprAssert(key);
+    mprAssert(hash);
 
     return lookupHash(0, 0, hash, key);
 }
@@ -248,6 +255,7 @@ void *mprLookupKey(MprHash *hash, cvoid *key)
     MprKey      *sp;
 
     mprAssert(key);
+    mprAssert(hash);
 
     if ((sp = lookupHash(0, 0, hash, key)) == 0) {
         return 0;
@@ -287,6 +295,7 @@ static MprKey *lookupHash(int *bucketIndex, MprKey **prevSp, MprHash *hash, cvoi
     int         hashSize, i, index, rc;
 
     mprAssert(key);
+    mprAssert(hash);
 
     if (key == 0 || hash == 0) {
         return 0;
@@ -416,6 +425,22 @@ static void *dupKey(MprHash *hash, MprKey *sp, cvoid *key)
 #endif
         return sclone(key);
 }
+
+
+MprHash *mprCreateHashFromWords(cchar *str)
+{
+    MprHash     *hash;
+    char        *word, *next;
+
+    hash = mprCreateHash(0, 0);
+    word = stok(sclone(str), ", \t\n\r", &next);
+    while (word) {
+        mprAddKey(hash, word, word);
+        word = stok(NULL, " \t\n\r", &next);
+    }
+    return hash;
+}
+
 
 /*
     @copy   default
