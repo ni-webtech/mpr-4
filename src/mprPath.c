@@ -480,6 +480,9 @@ char *mprGetPathExt(cchar *path)
 }
 
 
+/*
+    This returns a list of MprDirEntry objects
+ */
 #if BLD_WIN_LIKE
 MprList *mprGetPathFiles(cchar *dir, bool enumDirs)
 {
@@ -656,6 +659,9 @@ char *mprGetPathParent(cchar *path)
 }
 
 
+/*
+    This returns a list of filenames
+ */
 MprList *mprGetPathTree(cchar *dir, int flags)
 {
     return findFiles(mprCreateList(-1, 0), dir, flags);
@@ -1504,6 +1510,7 @@ char *mprSearchPath(cchar *file, int flags, cchar *search, ...)
 }
 
 
+//  MOB - should be writePathContents
 ssize mprWritePath(cchar *path, cchar *buf, ssize len, int mode)
 {
     MprFile     *file;

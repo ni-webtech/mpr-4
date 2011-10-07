@@ -918,7 +918,7 @@ char *mprDtoa(double value, int ndigits, int mode, int flags)
     char    *intermediate, *ip;
     int     period, sign, len, exponentForm, fixedForm, exponent, count, totalDigits, npad;
 
-    buf = mprCreateBuf(MPR_MAX_STRING, -1);
+    buf = mprCreateBuf(64, -1);
     intermediate = 0;
     exponentForm = 0;
     fixedForm = 0;
