@@ -32,8 +32,8 @@
 #
 
 SHELL		= bash
-BUILD_DEPTH	?= 2
 USER		?= root
+BUILD_DEPTH	?= 2
 BLD_TOP		= .
 FIRST		= first
 IMG_NAME	= $(BLD_PRODUCT)-$(BLD_VERSION)-$(BLD_NUMBER)
