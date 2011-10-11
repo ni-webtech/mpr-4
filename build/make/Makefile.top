@@ -298,7 +298,7 @@ flat packageFlat:
 
 packageRelease:
 	if [ "$(BUILD_DEPTH)" -ge 2 -a -f package/binary.files ] ; then \
-		export OPTIONS=$(OPTIONS) TRACE=$(TRACE) ; \
+		export OPTIONS=$(OPTIONS) TRACE=$(TRACE) ; echo MOB HERE $$USER uuu $(USER) \
 		fakePriv "$(BLD_TOP)/build/bin/makeInstall --root=$(PKG_DIR) $(INS_WITH) --package $(PACKS) && \
 			$(BLD_TOOLS_DIR)/makePackage --root=$(PKG_DIR) $(PACKS) && chown -R $$USER $(BLD_OUT_DIR)" ; \
 	else \
