@@ -290,7 +290,7 @@ uninstall-%:
 	
 combo packageCombo:
 	$(BLD_TOP)/build/bin/makeInstall --root=$(PKG_DIR) --package combo && \
-			$(BLD_TOOLS_DIR)/makePackage --combo --root=$(PKG_DIR) combo ; chown -R $$USER $(BLD_OUT_DIR)
+			$(BLD_TOOLS_DIR)/makePackage --combo --root=$(PKG_DIR) combo ; echo USER $$USER ; set -x ; chown -R $$USER $(BLD_OUT_DIR)
 
 flat packageFlat:
 	$(BLD_TOP)/build/bin/makeInstall --root=$(PKG_DIR) --package flat && \
