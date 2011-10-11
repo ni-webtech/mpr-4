@@ -289,24 +289,28 @@ uninstall-%:
 		--root=$(ROOT_DIR) --remove $(INS_WITH) pre $$packs post
 	
 combo packageCombo:
+	echo COMBO
 	$(BLD_TOP)/build/bin/makeInstall --root=$(PKG_DIR) --package combo && \
-			$(BLD_TOOLS_DIR)/makePackage --combo --root=$(PKG_DIR) combo ; echo MOB1 $$USER ; chown -R $$USER $(BLD_OUT_DIR)
+			$(BLD_TOOLS_DIR)/makePackage --combo --root=$(PKG_DIR) combo ; echo MOB1 $$USER >&2 ; chown -R $$USER $(BLD_OUT_DIR)
 
 flat packageFlat:
+	echo FLAT
 	$(BLD_TOP)/build/bin/makeInstall --root=$(PKG_DIR) --package flat && \
-	$(BLD_TOOLS_DIR)/makePackage --combo --root=$(PKG_DIR) flat ; echo MOB2 $$USER ; chown -R $$USER $(BLD_OUT_DIR)
+	$(BLD_TOOLS_DIR)/makePackage --combo --root=$(PKG_DIR) flat ; echo MOB2 $$USER >&2 ; chown -R $$USER $(BLD_OUT_DIR)
 
 packageRelease:
+	echo PACKAGE
+	$(BLD_TOP)/build/bin/makeInstall --root=$(PKG_DIR) --package flat && \
 	if [ "$(BUILD_DEPTH)" -ge 2 -a -f package/binary.files ] ; then \
 		export OPTIONS=$(OPTIONS) TRACE=$(TRACE) ; \
 		fakePriv "$(BLD_TOP)/build/bin/makeInstall --root=$(PKG_DIR) $(INS_WITH) --package $(PACKS) && \
-			$(BLD_TOOLS_DIR)/makePackage --root=$(PKG_DIR) $(PACKS) && echo MOB3 && chown -R $$USER $(BLD_OUT_DIR)" ; \
+			$(BLD_TOOLS_DIR)/makePackage --root=$(PKG_DIR) $(PACKS) && echo MOB3 $$USER >&2 && chown -R $$USER $(BLD_OUT_DIR)" ; \
 	else \
 		$(call log) "[INFO]" "Packaging skipped at build depth $(BUILD_DEPTH)" ; \
 	fi
 
 package-only:
-	fakePriv "$(BLD_TOOLS_DIR)/makePackage --root=$(PKG_DIR) $(PACKS) && echo MOB4 && chown -R $$USER $(BLD_OUT_DIR)"
+	fakePriv "$(BLD_TOOLS_DIR)/makePackage --root=$(PKG_DIR) $(PACKS) && echo MOB4 $$USER >&2 && chown -R $$USER $(BLD_OUT_DIR)"
 
 upload:
 	if [ "$(BUILD_DEPTH)" -lt 2 ] ; then \
