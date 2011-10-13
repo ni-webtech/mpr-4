@@ -114,6 +114,8 @@ static MprObj *deserialize(MprJson *jp)
                     return 0;
                 }
                 jp->tok++;
+            } else {
+                name = 0;
             }
             advanceToken(jp);
             if (jp->callback.checkState && jp->callback.checkState(jp, name) < 0) {
