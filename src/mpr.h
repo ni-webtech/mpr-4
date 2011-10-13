@@ -247,12 +247,14 @@
     Standard types
  */
 #ifndef HAS_BOOL
-    #if !MACOSX
-        #define HAS_BOOL 1
-        /**
-            Boolean data type.
-         */
-        typedef int bool;
+    #ifndef __cplusplus
+        #if !MACOSX
+            #define HAS_BOOL 1
+            /**
+                Boolean data type.
+             */
+            typedef int bool;
+        #endif
     #endif
 #endif
 
