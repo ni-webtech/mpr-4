@@ -238,6 +238,7 @@ void manageRomFileSystem(MprRomFileSystem *rfs, int flags)
         mprMark(fs->root);
 #if BLD_WIN_LIKE
         mprMark(fs->cygdrive);
+        mprMark(fs->cygwin);
 #endif
         mprMark(rfs->fileIndex);
         mprMark(rfs->romInodes);

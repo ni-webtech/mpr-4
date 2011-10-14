@@ -53,9 +53,9 @@ MprFileSystem *mprCreateFileSystem(cchar *path)
     if ((cp = strpbrk(fs->root, fs->separators)) != 0) {
         *++cp = '\0';
     }
-#if BLD_WIN_LIKE && FUTURE
-    mprReadRegistry(&fs->cygdrive, MPR_BUFSIZE, "HKEY_LOCAL_MACHINE\\SOFTWARE\\Cygnus Solutions\\Cygwin\\mounts v2",
-        "cygdrive prefix");
+#if BLD_WIN_LIKE
+    fs->cygwin = mprReadRegistry("HKEY_LOCAL_MACHINE\\SOFTWARE\\Cygwin\\setup", "rootdir");
+    fs->cygdrive = sclone("/cygdrive");
 #endif
     return fs;
 }

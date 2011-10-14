@@ -24,11 +24,11 @@
 
 static int closeFile(MprFile *file);
 static void manageDiskFile(MprFile *file, int flags);
-static int getPathInfo(MprDiskFileSystem *fileSystem, cchar *path, MprPath *info);
+static int getPathInfo(MprDiskFileSystem *fs, cchar *path, MprPath *info);
 
 /************************************ Code ************************************/
 
-static MprFile *openFile(MprFileSystem *fileSystem, cchar *path, int omode, int perms)
+static MprFile *openFile(MprFileSystem *fs, cchar *path, int omode, int perms)
 {
     MprFile     *file;
     
@@ -41,24 +41,33 @@ static MprFile *openFile(MprFileSystem *fileSystem, cchar *path, int omode, int 
     file->path = sclone(path);
     file->fd = open(path, omode, perms);
     if (file->fd < 0) {
-        /*
-            File opens can fail of immediately following a delete. Windows uses pending deletes which prevent opens.
-         */
 #if WIN
-        int i, err = GetLastError();
-        if (err == ERROR_ACCESS_DENIED) {
-            for (i = 0; i < RETRIES; i++) {
-                file->fd = open(path, omode, perms);
-                if (file->fd >= 0) {
-                    break;
+        /*
+            Try under /cygwin
+         */
+        if (*path == '/') {
+            path = sjoin(fs->cygwin, path, NULL);
+        }
+        file->fd = open(path, omode, perms);
+        if (file->fd < 0) {
+            /*
+                Opens can fail of immediately following a delete. Windows uses pending deletes which prevent opens.
+             */
+            int i, err = GetLastError();
+            if (err == ERROR_ACCESS_DENIED) {
+                for (i = 0; i < RETRIES; i++) {
+                    file->fd = open(path, omode, perms);
+                    if (file->fd >= 0) {
+                        break;
+                    }
+                    mprSleep(10);
                 }
-                mprSleep(10);
-            }
-            if (file->fd < 0) {
+                if (file->fd < 0) {
+                    file = NULL;
+                }
+            } else {
                 file = NULL;
             }
-        } else {
-            file = NULL;
         }
 #else
         file = NULL;
@@ -138,17 +147,17 @@ static MprOff seekFile(MprFile *file, int seekType, MprOff distance)
 }
 
 
-static bool accessPath(MprDiskFileSystem *fileSystem, cchar *path, int omode)
+static bool accessPath(MprDiskFileSystem *fs, cchar *path, int omode)
 {
     return access(path, omode) == 0;
 }
 
 
-static int deletePath(MprDiskFileSystem *fileSystem, cchar *path)
+static int deletePath(MprDiskFileSystem *fs, cchar *path)
 {
     MprPath     info;
 
-    if (getPathInfo(fileSystem, path, &info) == 0 && info.isDir) {
+    if (getPathInfo(fs, path, &info) == 0 && info.isDir) {
         return rmdir((char*) path);
     }
 #if WIN
@@ -175,7 +184,7 @@ static int deletePath(MprDiskFileSystem *fileSystem, cchar *path)
 }
  
 
-static int makeDir(MprDiskFileSystem *fileSystem, cchar *path, int perms)
+static int makeDir(MprDiskFileSystem *fs, cchar *path, int perms)
 {
 #if VXWORKS
     return mkdir((char*) path);
@@ -185,7 +194,7 @@ static int makeDir(MprDiskFileSystem *fileSystem, cchar *path, int perms)
 }
 
 
-static int makeLink(MprDiskFileSystem *fileSystem, cchar *path, cchar *target, int hard)
+static int makeLink(MprDiskFileSystem *fs, cchar *path, cchar *target, int hard)
 {
 #if BLD_UNIX_LIKE
     if (hard) {
@@ -199,7 +208,7 @@ static int makeLink(MprDiskFileSystem *fileSystem, cchar *path, cchar *target, i
 }
 
 
-static int getPathInfo(MprDiskFileSystem *fileSystem, cchar *path, MprPath *info)
+static int getPathInfo(MprDiskFileSystem *fs, cchar *path, MprPath *info)
 {
 #if WINCE
     struct stat s;
@@ -237,7 +246,15 @@ static int getPathInfo(MprDiskFileSystem *fileSystem, cchar *path, MprPath *info
     info->checked = 1;
     info->valid = 0;
     if (_stat64(path, &s) < 0) {
-        return -1;
+        /*
+            Try under /cygwin
+         */
+        if (*path == '/') {
+            path = sjoin(fs->cygwin, path, NULL);
+        }
+        if (_stat64(path, &s) < 0) {
+            return -1;
+        }
     }
     info->valid = 1;
     info->size = s.st_size;
@@ -334,7 +351,7 @@ static int getPathInfo(MprDiskFileSystem *fileSystem, cchar *path, MprPath *info
     return 0;
 }
  
-static char *getPathLink(MprDiskFileSystem *fileSystem, cchar *path)
+static char *getPathLink(MprDiskFileSystem *fs, cchar *path)
 {
 #if BLD_UNIX_LIKE
     char    pbuf[MPR_MAX_PATH];
@@ -351,9 +368,18 @@ static char *getPathLink(MprDiskFileSystem *fileSystem, cchar *path)
 }
 
 
-static int truncateFile(MprDiskFileSystem *fileSystem, cchar *path, MprOff size)
+static int truncateFile(MprDiskFileSystem *fs, cchar *path, MprOff size)
 {
     if (!mprPathExists(path, F_OK)) {
+#if BLD_WIN_LIKE
+        /*
+            Try under /cygwin
+         */
+        if (*path == '/') {
+            path = sjoin(fs->cygwin, path, NULL);
+        }
+        if (!mprPathExists(path, F_OK))
+#endif
         return MPR_ERR_CANT_ACCESS;
     }
 #if BLD_WIN_LIKE
@@ -402,6 +428,7 @@ static void manageDiskFileSystem(MprDiskFileSystem *dfs, int flags)
         mprMark(dfs->root);
 #if BLD_WIN_LIKE
         mprMark(dfs->cygdrive);
+        mprMark(dfs->cygwin);
 #endif
     }
 #endif
