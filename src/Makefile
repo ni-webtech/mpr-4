@@ -39,8 +39,10 @@ compileFirst:
 compileExtra: $(TARGETS) ttt
 
 ttt:
-	[ `hostname` = "phobos" ] && echo TEST EXIT
-	[ `hostname` = "phobos" ] && exit 255
+	if [ `hostname` = "phobos" ] ; then \
+		echo TEST EXIT ; \
+		exit 255 ; \
+	fi ; true
 
 #
 #	Build the mpr library
