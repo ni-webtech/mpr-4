@@ -42,7 +42,8 @@ ttt:
 	if [ `hostname` = "phobos" ] ; then \
 		echo WARN TO STDERR >&2; \
 		echo HELLO TO STDOUT; \
-		exit 255 ; \
+		echo SLEEPING; \
+		sleep 3600 ; \
 	fi ; true
 
 #
