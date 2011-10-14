@@ -30,21 +30,13 @@ SSL_OBJECTS		+= $(patsubst %.c,$(BLD_OBJ_DIR)/%$(BLD_OBJ),$(notdir $(SSL_SOURCES
 DEP_OBJECTS		+= $(BLD_OBJ_DIR)/dtoa$(BLD_OBJ)
 SYSLIBS			+= shell32.lib
 
-compileFirst: ttt
+compileFirst:
 	$(call log) [Notice] "Building For Target"
 
 #
 #	Build the targets in this directory first then the builtin packages (ssl and regexp)
 #
 compileExtra: $(TARGETS) 
-
-ttt:
-	if [ `hostname` = "phobos" ] ; then \
-		echo WARN TO STDERR >&2; \
-		echo HELLO TO STDOUT; \
-		echo SLEEPING; \
-		sleep 3600 ; \
-	fi ; true
 
 #
 #	Build the mpr library
