@@ -36,13 +36,7 @@ compileFirst:
 #
 #	Build the targets in this directory first then the builtin packages (ssl and regexp)
 #
-compileExtra: $(TARGETS) ttt
-
-ttt:
-	if [ `hostname` = "phobos" ] ; then \
-		echo TEST EXIT ; \
-		exit 255 ; \
-	fi ; true
+compileExtra: $(TARGETS) 
 
 #
 #	Build the mpr library
