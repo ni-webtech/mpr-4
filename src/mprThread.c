@@ -409,7 +409,7 @@ int mprSetThreadData(MprThreadLocal *tls, void *value)
 #elif BLD_WIN_LIKE
     err = TlsSetValue(tls->key, value) != 0;
 #else
-    err = mprAddKey(tls->ts->local, tls->key, value) != 0
+    err = mprAddKey(tls->ts->local, tls->key, value) != 0;
 #endif
     return (err) ? MPR_ERR_CANT_WRITE: 0;
 }
@@ -422,7 +422,7 @@ void *mprGetThreadData(MprThreadLocal *tls)
 #elif BLD_WIN_LIKE
     return TlsGetValue(tls->key);
 #else
-    return mprGetKey(tls->ts->local, tls->key);
+    return mprLookupKey(tls->ts->local, tls->key);
 #endif
 }
 
