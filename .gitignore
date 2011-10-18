@@ -69,3 +69,4 @@ projects/WIN/mpr-dynamic/ipch
 doc/api/mpr/html
 doc/ap/mpr/xml
 doc/api/mpr/xml
+*.guid
