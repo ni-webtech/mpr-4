@@ -1,349 +1,126 @@
-<?xml version="1.0" encoding="UTF-8"?>
-<VisualStudioProject
-    ProjectType="Visual C++"
-    Version="8.00"
-    Name="libmpr"
-    ProjectGUID="96ba08ce-eed8-4c72-bf5e-9774be13fe54"
-    RootNamespace=""
-    Keyword="Win32Proj"
-    TargetFrameworkVersion="0"
-    >
-    <Platforms>
-        <Platform
-            Name="Win32"
-        />
-    </Platforms>
-    <ToolFiles>
-    </ToolFiles>
-    <Configurations>
-        <Configuration
-            Name="Release|Win32"
-            OutputDirectory="$(PlatformName)\$(ConfigurationName)"
-            IntermediateDirectory="$(PlatformName)\$(ConfigurationName)"
-            ConfigurationType="2"
-            CharacterSet="0"
-            >
-            <Tool
-                Name="VCPreBuildEventTool"
-            />
-<Tool Name="VCCustomBuildTool" />
-            <Tool
-                Name="VCManagedResourceCompilerTool"
-            />
-            <Tool
-                Name="VCResourceCompilerTool"
-            />
-            <Tool
-                Name="VCPreLinkEventTool"
-            />
-            <Tool
-                Name="VCALinkTool"
-            />
-            <Tool
-                Name="VCManifestTool"
-            />
-            <Tool
-                Name="VCXDCMakeTool"
-            />
-            <Tool
-                Name="VCBscMakeTool"
-            />
-            <Tool
-                Name="VCFxCopTool"
-            />
-            <Tool
-                Name="VCAppVerifierTool"
-            />
-            <Tool
-                Name="VCPostBuildEventTool"
-            />
-            <Tool
-                Name="VCCLCompilerTool"
-                UsePrecompiledHeader="0"
-                WarningLevel="3"
-                ExceptionHandling="0"
-                CompileAs="0"
-                StringPooling="true"
-                MinimalRebuild="true"
-                AdditionalIncludeDirectories="../../../src/include;../../../src/include/master;../../../out/include;../../../src/include"
-                PreprocessorDefinitions="WIN32;_DEBUG;_WINDOWS;DEBUG_IDE;_REENTRANT;_MT"
-                Optimization="1"
-                FavorSizeOrSpeed="1"
-                RuntimeLibrary="2"
-                DebugInformationFormat="3"
-                EnableIntrinsicFunctions="true"
-                EnableFunctionLevelLinking="true"
-            />
-            <Tool
-                Name="VCLinkerTool"
-                AdditionalLibraryDirectories="$(OutDir)"
-                AdditionalDependencies="ws2_32.lib"
-                ModuleDefinitionFile="libmpr.def"
-                Targetmachine="1"
-                SubSystem="1"
-                LinkIncremental="1"
-                GenerateDebugInformation="false"
-                OptimizeReferences="2"
-                EnableCOMDATAFolding="2"
-            />
-        </Configuration>
-        <Configuration
-            Name="Debug|Win32"
-            OutputDirectory="$(PlatformName)\$(ConfigurationName)"
-            IntermediateDirectory="$(PlatformName)\$(ConfigurationName)"
-            ConfigurationType="2"
-            CharacterSet="0"
-            >
-            <Tool
-                Name="VCPreBuildEventTool"
-            />
-<Tool Name="VCCustomBuildTool" />
-            <Tool
-                Name="VCManagedResourceCompilerTool"
-            />
-            <Tool
-                Name="VCResourceCompilerTool"
-            />
-            <Tool
-                Name="VCPreLinkEventTool"
-            />
-            <Tool
-                Name="VCALinkTool"
-            />
-            <Tool
-                Name="VCManifestTool"
-            />
-            <Tool
-                Name="VCXDCMakeTool"
-            />
-            <Tool
-                Name="VCBscMakeTool"
-            />
-            <Tool
-                Name="VCFxCopTool"
-            />
-            <Tool
-                Name="VCAppVerifierTool"
-            />
-            <Tool
-                Name="VCPostBuildEventTool"
-            />
-            <Tool
-                Name="VCCLCompilerTool"
-                UsePrecompiledHeader="0"
-                WarningLevel="3"
-                ExceptionHandling="0"
-                CompileAs="0"
-                StringPooling="true"
-                MinimalRebuild="true"
-                AdditionalIncludeDirectories="../../../src/include;../../../src/include/master;../../../out/include;../../../src/include"
-                PreprocessorDefinitions="WIN32;_DEBUG;_WINDOWS;DEBUG_IDE;_REENTRANT;_MT"
-                Optimization="0"
-                FavorSizeOrSpeed="1"
-                BasicRuntimeChecks="3"
-                RuntimeLibrary="3"
-                DebugInformationFormat="4"
-            />
-            <Tool
-                Name="VCLinkerTool"
-                AdditionalLibraryDirectories="$(OutDir)"
-                AdditionalDependencies="ws2_32.lib"
-                ModuleDefinitionFile="libmpr.def"
-                Targetmachine="1"
-                SubSystem="1"
-                LinkIncremental="2"
-                GenerateDebugInformation="true"
-            />
-        </Configuration>
-    </Configurations>
-    <References>
-    </References>
-    <Files>
-        <Filter
-            Name="Header Files"
-            Filter="h;hpp;hxx;hm;inl;inc;xsd"
-            UniqueIdentifier="{f11147f0-ad3a-47c6-916e-2da2d5a75359}"
-            >
-            <File
-                RelativePath="..\..\..\out\include\buildConfig.h"
-                >
-            </File>
-            <File
-                RelativePath="..\..\..\src\include\mpr.h"
-                >
-            </File>
-            <File
-                RelativePath="..\..\..\src\include\mprSsl.h"
-                >
-            </File>
-        </Filter>
-        <Filter
-            Name="Source Files"
-            Filter="cpp;c;cc;cxx;def;odl;idl;hpj;bat;asm;asmx"
-            UniqueIdentifier="{db6d68ec-1208-4bac-8163-c377593c1c9f}"
-            >
-            <File
-                RelativePath="..\..\..\src\deps\dtoa.c"
-                >
-            </File>
-            <File
-                RelativePath="..\..\..\src\mpr.c"
-                >
-            </File>
-            <File
-                RelativePath="..\..\..\src\mprAsync.c"
-                >
-            </File>
-            <File
-                RelativePath="..\..\..\src\mprAtomic.c"
-                >
-            </File>
-            <File
-                RelativePath="..\..\..\src\mprBuf.c"
-                >
-            </File>
-            <File
-                RelativePath="..\..\..\src\mprCmd.c"
-                >
-            </File>
-            <File
-                RelativePath="..\..\..\src\mprCond.c"
-                >
-            </File>
-            <File
-                RelativePath="..\..\..\src\mprCrypt.c"
-                >
-            </File>
-            <File
-                RelativePath="..\..\..\src\mprDisk.c"
-                >
-            </File>
-            <File
-                RelativePath="..\..\..\src\mprDispatcher.c"
-                >
-            </File>
-            <File
-                RelativePath="..\..\..\src\mprEncode.c"
-                >
-            </File>
-            <File
-                RelativePath="..\..\..\src\mprEpoll.c"
-                >
-            </File>
-            <File
-                RelativePath="..\..\..\src\mprEvent.c"
-                >
-            </File>
-            <File
-                RelativePath="..\..\..\src\mprFile.c"
-                >
-            </File>
-            <File
-                RelativePath="..\..\..\src\mprFileSystem.c"
-                >
-            </File>
-            <File
-                RelativePath="..\..\..\src\mprHash.c"
-                >
-            </File>
-            <File
-                RelativePath="..\..\..\src\mprKqueue.c"
-                >
-            </File>
-            <File
-                RelativePath="..\..\..\src\mprList.c"
-                >
-            </File>
-            <File
-                RelativePath="..\..\..\src\mprLock.c"
-                >
-            </File>
-            <File
-                RelativePath="..\..\..\src\mprLog.c"
-                >
-            </File>
-            <File
-                RelativePath="..\..\..\src\mprMem.c"
-                >
-            </File>
-            <File
-                RelativePath="..\..\..\src\mprMixed.c"
-                >
-            </File>
-            <File
-                RelativePath="..\..\..\src\mprModule.c"
-                >
-            </File>
-            <File
-                RelativePath="..\..\..\src\mprPath.c"
-                >
-            </File>
-            <File
-                RelativePath="..\..\..\src\mprPoll.c"
-                >
-            </File>
-            <File
-                RelativePath="..\..\..\src\mprPrintf.c"
-                >
-            </File>
-            <File
-                RelativePath="..\..\..\src\mprRomFile.c"
-                >
-            </File>
-            <File
-                RelativePath="..\..\..\src\mprSelect.c"
-                >
-            </File>
-            <File
-                RelativePath="..\..\..\src\mprSocket.c"
-                >
-            </File>
-            <File
-                RelativePath="..\..\..\src\mprString.c"
-                >
-            </File>
-            <File
-                RelativePath="..\..\..\src\mprTest.c"
-                >
-            </File>
-            <File
-                RelativePath="..\..\..\src\mprThread.c"
-                >
-            </File>
-            <File
-                RelativePath="..\..\..\src\mprTime.c"
-                >
-            </File>
-            <File
-                RelativePath="..\..\..\src\mprUnix.c"
-                >
-            </File>
-            <File
-                RelativePath="..\..\..\src\mprVxworks.c"
-                >
-            </File>
-            <File
-                RelativePath="..\..\..\src\mprWait.c"
-                >
-            </File>
-            <File
-                RelativePath="..\..\..\src\mprWide.c"
-                >
-            </File>
-            <File
-                RelativePath="..\..\..\src\mprWin.c"
-                >
-            </File>
-            <File
-                RelativePath="..\..\..\src\mprWince.c"
-                >
-            </File>
-            <File
-                RelativePath="..\..\..\src\mprXml.c"
-                >
-            </File>
-        </Filter>
-    </Files>
-    <Globals>
-    </Globals>
-</VisualStudioProject>
+<?xml version="1.0" encoding="utf-8"?>
+<Project DefaultTargets="Build" ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+
+  <ItemGroup Label="ProjectConfigurations">
+    <ProjectConfiguration Include="Debug|Win32">
+      <Configuration>Debug</Configuration>
+      <Platform>Win32</Platform>
+    </ProjectConfiguration>
+    <ProjectConfiguration Include="Release|Win32">
+      <Configuration>Release</Configuration>
+      <Platform>Win32</Platform>
+    </ProjectConfiguration>
+  </ItemGroup>
+
+  <PropertyGroup Label="Globals">
+    <ProjectGuid>{21B7B0CD-4CE5-446D-8648-A6616748AE9C}</ProjectGuid>
+    <RootNamespace />
+    <Keyword>Win32Proj</Keyword>
+  </PropertyGroup>
+
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
+
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'" Label="Configuration">
+    <ConfigurationType>DynamicLibrary</ConfigurationType>
+    <CharacterSet>NotSet</CharacterSet>
+  </PropertyGroup>
+
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'" Label="Configuration">
+    <ConfigurationType>DynamicLibrary</ConfigurationType>
+    <CharacterSet>NotSet</CharacterSet>
+  </PropertyGroup>
+
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.props" />
+
+  <ImportGroup Label="ExtensionSettings">
+  </ImportGroup>
+
+  <ImportGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'" Label="PropertySheets">
+    <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
+    
+    <Import Project="debug.props" />
+  </ImportGroup>
+
+  <ImportGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'" Label="PropertySheets">
+    <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
+    
+    <Import Project="release.props" />
+  </ImportGroup>
+
+  <PropertyGroup Label="UserMacros" />
+
+  <PropertyGroup>
+    <_ProjectFileVersion>10.0.30319.1</_ProjectFileVersion>
+    <OutDir Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">..\..\..\out\bin\</OutDir>
+    <IntDir Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">..\..\..\out\obj\</IntDir>
+    <OutDir Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">..\..\..\out\bin\</OutDir>
+    <IntDir Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">..\..\..\out\obj\</IntDir>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <ClInclude Include="..\..\..\out\include\buildConfig.h" />
+  </ItemGroup>
+
+  <ItemGroup >
+    <ClCompile Include="..\..\..\src\deps\dtoa.c" />
+    <ClCompile Include="..\..\..\src\mpr.c" />
+    <ClCompile Include="..\..\..\src\mprAsync.c" />
+    <ClCompile Include="..\..\..\src\mprAtomic.c" />
+    <ClCompile Include="..\..\..\src\mprBuf.c" />
+    <ClCompile Include="..\..\..\src\mprCache.c" />
+    <ClCompile Include="..\..\..\src\mprCmd.c" />
+    <ClCompile Include="..\..\..\src\mprCond.c" />
+    <ClCompile Include="..\..\..\src\mprCrypt.c" />
+    <ClCompile Include="..\..\..\src\mprDisk.c" />
+    <ClCompile Include="..\..\..\src\mprDispatcher.c" />
+    <ClCompile Include="..\..\..\src\mprEncode.c" />
+    <ClCompile Include="..\..\..\src\mprEpoll.c" />
+    <ClCompile Include="..\..\..\src\mprEvent.c" />
+    <ClCompile Include="..\..\..\src\mprFile.c" />
+    <ClCompile Include="..\..\..\src\mprFileSystem.c" />
+    <ClCompile Include="..\..\..\src\mprHash.c" />
+    <ClCompile Include="..\..\..\src\mprJSON.c" />
+    <ClCompile Include="..\..\..\src\mprKqueue.c" />
+    <ClCompile Include="..\..\..\src\mprList.c" />
+    <ClCompile Include="..\..\..\src\mprLock.c" />
+    <ClCompile Include="..\..\..\src\mprLog.c" />
+    <ClCompile Include="..\..\..\src\mprMem.c" />
+    <ClCompile Include="..\..\..\src\mprMime.c" />
+    <ClCompile Include="..\..\..\src\mprMixed.c" />
+    <ClCompile Include="..\..\..\src\mprModule.c" />
+    <ClCompile Include="..\..\..\src\mprPath.c" />
+    <ClCompile Include="..\..\..\src\mprPoll.c" />
+    <ClCompile Include="..\..\..\src\mprPrintf.c" />
+    <ClCompile Include="..\..\..\src\mprRomFile.c" />
+    <ClCompile Include="..\..\..\src\mprSelect.c" />
+    <ClCompile Include="..\..\..\src\mprSignal.c" />
+    <ClCompile Include="..\..\..\src\mprSocket.c" />
+    <ClCompile Include="..\..\..\src\mprString.c" />
+    <ClCompile Include="..\..\..\src\mprTest.c" />
+    <ClCompile Include="..\..\..\src\mprThread.c" />
+    <ClCompile Include="..\..\..\src\mprTime.c" />
+    <ClCompile Include="..\..\..\src\mprUnix.c" />
+    <ClCompile Include="..\..\..\src\mprVxworks.c" />
+    <ClCompile Include="..\..\..\src\mprWait.c" />
+    <ClCompile Include="..\..\..\src\mprWide.c" />
+    <ClCompile Include="..\..\..\src\mprWin.c" />
+    <ClCompile Include="..\..\..\src\mprWince.c" />
+    <ClCompile Include="..\..\..\src\mprXml.c" />
+  </ItemGroup>
+
+  <ItemDefinitionGroup>
+    <Link>
+      <ModuleDefinitionFile>libmpr.def</ModuleDefinitionFile>
+    </Link>
+  </ItemDefinitionGroup>
+
+  <ItemDefinitionGroup >
+    <Link>
+      <AdditionalDependencies>ws2_32.lib;%(AdditionalDependencies)</AdditionalDependencies>
+    </Link>
+  </ItemDefinitionGroup>
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
+
+  <ImportGroup Label="ExtensionTargets">
+  </ImportGroup>
+</Project>
