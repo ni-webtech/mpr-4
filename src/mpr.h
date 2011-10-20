@@ -2458,6 +2458,7 @@ extern int  mprSyncThreads(MprTime timeout);
  */
 typedef struct MprString { void *dummy; } MprString;
 
+//  MOB - remove radix and have itosRadix version
 /**
     Convert an integer to a string.
     @description This call converts the supplied 64 bit integer to a string according to the specified radix.
@@ -2468,6 +2469,7 @@ typedef struct MprString { void *dummy; } MprString;
  */
 extern char *itos(int64 value, int radix);
 
+//  MOB - remove radix and have itosBufRadix version
 /**
     Convert an integer to a string buffer.
     @description This call converts the supplied 64 bit integer into a string formatted into the supplied buffer according
@@ -6091,8 +6093,10 @@ typedef struct MprThreadService {
     MprMutex        *mutex;             /**< Multi-thread lock */
     MprCond         *cond;              /**< Multi-thread sync */
 #if !BLD_UNIX_LIKE && !BLD_WIN_LIKE
+#if UNUSED
     MprHash         *local;             /**< Thread local storage */
     int             nextLocal;          /**< Next key to use */
+#endif
 #endif
     int             stackSize;          /**< Default thread stack size */
 } MprThreadService;
@@ -6147,13 +6151,12 @@ typedef struct MprThread {
     @internal
  */
 typedef struct MprThreadLocal {
-    MprThreadService *ts;
 #if BLD_UNIX_LIKE
     pthread_key_t   key;                /**< Data key */
 #elif BLD_WIN_LIKE
     DWORD           key;
 #else
-    char            *key;
+    MprHash         *store;
 #endif
 } MprThreadLocal;
 

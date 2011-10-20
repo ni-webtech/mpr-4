@@ -100,6 +100,7 @@ MprKey *mprAddKey(MprHash *hash, cvoid *key, cvoid *ptr)
     int         index;
 
     if (hash == 0) {
+        mprAssert(hash);
         return 0;
     }
     lock(hash);
