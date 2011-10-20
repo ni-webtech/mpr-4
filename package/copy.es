@@ -99,8 +99,8 @@ print("TARG " + target)
                 fold(dest, options)
             }
             if (options.strip && build.BLD_STRIP != "" && build.BLD_UNIX_LIKE == 1 && build.BLD_BUILD_OS != "MACOSX") {
+                log.activity("Strip", dest)
                 Cmd.sh(build.BLD_STRIP + " " + dest)
-                Cmd.sh(". " + App.dir.parent.join("inc/buildConfig.sh") + " ; " + build.BLD_STRIP + " " + dest)
             }
             if (zip) {
                 dest.joinExt(".gz").remove
@@ -125,13 +125,23 @@ print("TARG " + target)
 public function readBuildConfig(options)
 {
     options.build = {}
-    data = options.top.join("out/inc/buildConfig.h").readLines()
-    for each (line in data) {
-        if (line.startsWith("#") || line.trim() == "" || line.startsWith("if")) continue
+    lines = options.top.join("out/inc/buildConfig.h").readLines()
+    for (l in lines) {
+        let line = lines[l]
+        if (line.startsWith("#") || line.trim() == "" || line.startsWith("if")) {
+            continue
+        }
+        if (line.contains("(BUILDING_NATIVE)")) {
+            for (; l < lines.length; l++) {
+                if (line.contains("Configuration for the Target")) {
+                    break;
+                }
+            }
+        }
         if (line.contains("EXPORT_OBJECTS")) {
             break
         }
-        let [key, value] = line.split("=")
+        let [key, value] = line.trim().split("=")
         options.build[key] = value
     }
 }
