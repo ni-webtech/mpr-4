@@ -27,7 +27,7 @@ static void manageDiskFile(MprFile *file, int flags);
 static int getPathInfo(MprDiskFileSystem *fs, cchar *path, MprPath *info);
 
 /************************************ Code ************************************/
-
+#if FUTURE
 /*
     Open a file with support for cygwin paths. Tries windows path first then under /cygwin.
  */
@@ -46,7 +46,7 @@ static int cygOpen(MprFileSystem *fs, cchar *path, int omode, int perms)
 #endif
     return fd;
 }
-
+#endif
 
 static MprFile *openFile(MprFileSystem *fs, cchar *path, int omode, int perms)
 {
@@ -59,7 +59,7 @@ static MprFile *openFile(MprFileSystem *fs, cchar *path, int omode, int perms)
         return NULL;
     }
     file->path = sclone(path);
-    file->fd = cygOpen(fs, path, omode, perms);
+    file->fd = open(path, omode, perms);
     if (file->fd < 0) {
 #if WIN
         /*
@@ -160,6 +160,13 @@ static MprOff seekFile(MprFile *file, int seekType, MprOff distance)
 
 static bool accessPath(MprDiskFileSystem *fs, cchar *path, int omode)
 {
+#if BLD_WIN && FUTURE
+    if (access(path, omode) < 0) {
+        if (*path == '/') {
+            path = sjoin(fs->cygwin, path, NULL);
+        }
+    }
+#endif
     return access(path, omode) == 0;
 }
 
@@ -257,6 +264,7 @@ static int getPathInfo(MprDiskFileSystem *fs, cchar *path, MprPath *info)
     info->checked = 1;
     info->valid = 0;
     if (_stat64(path, &s) < 0) {
+#if BLD_WIN && FUTURE
         /*
             Try under /cygwin
          */
@@ -266,6 +274,9 @@ static int getPathInfo(MprDiskFileSystem *fs, cchar *path, MprPath *info)
         if (_stat64(path, &s) < 0) {
             return -1;
         }
+#else
+        return -1;
+#endif
     }
     info->valid = 1;
     info->size = s.st_size;
@@ -386,7 +397,7 @@ static char *getPathLink(MprDiskFileSystem *fs, cchar *path)
 static int truncateFile(MprDiskFileSystem *fs, cchar *path, MprOff size)
 {
     if (!mprPathExists(path, F_OK)) {
-#if BLD_WIN_LIKE
+#if BLD_WIN_LIKE && FUTURE
         /*
             Try under /cygwin
          */

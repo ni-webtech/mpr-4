@@ -853,7 +853,6 @@ char *mprGetTempPath(cchar *tempDir)
 }
 
 
-// TODO - handle cygwin paths and converting to and from.
 /*
     This normalizes a path. Returns a normalized path according to flags. Default is absolute. 
     if MPR_PATH_NATIVE_SEP is specified in the flags, map separators to the native format.
