@@ -452,7 +452,7 @@ static void manageDiskFileSystem(MprDiskFileSystem *dfs, int flags)
         mprMark(dfs->separators);
         mprMark(dfs->newline);
         mprMark(dfs->root);
-#if BLD_WIN_LIKE
+#if BLD_WIN_LIKE || CYGWIN
         mprMark(dfs->cygdrive);
         mprMark(dfs->cygwin);
 #endif

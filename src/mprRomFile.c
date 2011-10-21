@@ -236,7 +236,7 @@ void manageRomFileSystem(MprRomFileSystem *rfs, int flags)
         mprMark(fs->separators);
         mprMark(fs->newline);
         mprMark(fs->root);
-#if BLD_WIN_LIKE
+#if BLD_WIN_LIKE || CYGWIN
         mprMark(fs->cygdrive);
         mprMark(fs->cygwin);
 #endif

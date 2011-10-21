@@ -28,7 +28,7 @@ MprFileSystem *mprCreateFileSystem(cchar *path)
     fs = (MprFileSystem*) mprCreateDiskFileSystem(path);
 #endif
 
-#if BLD_WIN_LIKE
+#if BLD_WIN_LIKE || CYGWIN
     fs->separators = sclone("\\/");
     fs->newline = sclone("\r\n");
 #else
@@ -36,13 +36,13 @@ MprFileSystem *mprCreateFileSystem(cchar *path)
     fs->newline = sclone("\n");
 #endif
 
-#if BLD_WIN_LIKE || MACOSX
+#if BLD_WIN_LIKE || MACOSX || CYGWIN
     fs->caseSensitive = 0;
 #else
     fs->caseSensitive = 1;
 #endif
 
-#if BLD_WIN_LIKE || VXWORKS
+#if BLD_WIN_LIKE || VXWORKS || CYGWIN
     fs->hasDriveSpecs = 1;
 #endif
 
@@ -53,7 +53,7 @@ MprFileSystem *mprCreateFileSystem(cchar *path)
     if ((cp = strpbrk(fs->root, fs->separators)) != 0) {
         *++cp = '\0';
     }
-#if BLD_WIN_LIKE
+#if BLD_WIN_LIKE || CYGWIN
     fs->cygwin = mprReadRegistry("HKEY_LOCAL_MACHINE\\SOFTWARE\\Cygwin\\setup", "rootdir");
     fs->cygdrive = sclone("/cygdrive");
 #endif
