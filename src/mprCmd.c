@@ -511,6 +511,7 @@ int mprStopCmd(MprCmd *cmd, int signal)
     if (signal < 0) {
         signal = SIGTERM;
     }
+    cmd->stopped = 1;
     if (cmd->pid) {
 #if BLD_WIN_LIKE
         return TerminateProcess(cmd->process, 2) == 0;
@@ -520,7 +521,6 @@ int mprStopCmd(MprCmd *cmd, int signal)
         return kill(cmd->pid, signal);
 #endif
     }
-    cmd->stopped = 1;
     return 0;
 }
 
