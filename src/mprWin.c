@@ -9,7 +9,7 @@
 #include    "mpr.h"
 
 #if CYGWIN
-#include "w32api/windows.h"
+ #include "w32api/windows.h"
 #endif
 
 #if BLD_WIN_LIKE && !WINCE

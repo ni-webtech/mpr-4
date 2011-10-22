@@ -10,17 +10,19 @@
 
 #include    "mpr.h"
 
-/****************************** Forward Declarations **************************/
+/********************************** Defines ***********************************/
 /*
     Find the first separator in the path
  */
 #if BLD_UNIX_LIKE
-    #define firstSep(fs, path)      strchr(path, fs->separators[0])
+    #define firstSep(fs, path)  strchr(path, fs->separators[0])
 #else
-    #define firstSep(fs, path)      strpbrk(path, fs->separators)
+    #define firstSep(fs, path)  strpbrk(path, fs->separators)
 #endif
 
-#define defaultSep(fs)              (fs->separators[0])
+#define defaultSep(fs)          (fs->separators[0])
+
+/************************************* Code ***********************************/
 
 static MPR_INLINE bool isSep(MprFileSystem *fs, int c) 
 {
@@ -856,6 +858,7 @@ char *mprGetTempPath(cchar *tempDir)
 }
 
 
+//  MOB - rename mprTransformPath
 /*
     This normalizes a path. Returns a normalized path according to flags. Default is absolute. 
     if MPR_PATH_NATIVE_SEP is specified in the flags, map separators to the native format.
@@ -868,10 +871,7 @@ char *mprGetTransformedPath(cchar *path, int flags)
     if (flags & MPR_PATH_CYGWIN) {
         result = toCygPath(path, flags);
     } else {
-        /*
-            Issues here. "/" is ambiguous. Is this "c:/" or is it "c:/cygdrive/c" which may map to c:/cygwin/...
-         */
-        result = fromCygPath(path);
+        result = toWinPath(path);
     }
 #endif
 
@@ -1007,7 +1007,7 @@ int mprMakeLink(cchar *path, cchar *target, bool hard)
 
 #if BLD_WIN_LIKE && FUTURE
 /*
-    Normalize to a cygwin path without a drive spec
+    Normalize to an absolute cygwin path without a drive spec
  */
 static char *toCygPath(cchar *path)
 {
@@ -1051,9 +1051,9 @@ static char *toCygPath(cchar *path)
 
 
 /*
-    Convert from a cygwin path
+    Convert to an absolute windows path
  */
-static char *fromCygPath(cchar *path)
+static char *toWinPath(cchar *path)
 {
     char    *buf, *result;
     int     len;
