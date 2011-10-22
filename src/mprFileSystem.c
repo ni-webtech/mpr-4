@@ -28,9 +28,12 @@ MprFileSystem *mprCreateFileSystem(cchar *path)
     fs = (MprFileSystem*) mprCreateDiskFileSystem(path);
 #endif
 
-#if BLD_WIN_LIKE || CYGWIN
+#if BLD_WIN_LIKE
     fs->separators = sclone("\\/");
     fs->newline = sclone("\r\n");
+#elif CYGWIN
+    fs->separators = sclone("/\\");
+    fs->newline = sclone("\n");
 #else
     fs->separators = sclone("/");
     fs->newline = sclone("\n");
