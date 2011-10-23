@@ -115,7 +115,7 @@ static void testAbsPath(MprTestGroup *gp)
     path = mprGetAbsPath("/");
     assert(mprIsPathAbs(path));
     
-    path = mprGetAbsPath(".../../../../../../../../../../..");
+    path = mprGetAbsPath("../../../../../../../../../../..");
     assert(mprIsPathAbs(path));
     assert(mprIsPathAbs(mprGetAbsPath("Makefile")));
 
@@ -327,27 +327,20 @@ static void testTransform(MprTestGroup *gp)
 {
     char    *path;
 
-    path = mprGetTransformedPath("/", MPR_PATH_ABS);
+    path = mprTransformPath("/", MPR_PATH_ABS);
     assert(mprIsPathAbs(path));
 
-    path = mprGetTransformedPath("/", MPR_PATH_REL);
+    path = mprTransformPath("/", MPR_PATH_REL);
     assert(mprIsPathRel(path));
     assert(path[0] == '.');
 
-    path = mprGetTransformedPath("/", 0);
+    path = mprTransformPath("/", 0);
     assert(strcmp(path, "/") == 0);
 
-#if BLD_WIN_LIKE 
-    path = mprGetTransformedPath("/", MPR_PATH_ABS);
+    path = mprTransformPath("/", MPR_PATH_ABS);
     mprAssert(mprIsPathAbs(path));
 
-#if FUTURE && CYGWIN
-    path = mprGetTransformedPath("c:/cygdrive/c/tmp/a.txt", 0);
-    mprAssert(strcmp(path, "/tmp/a.txt"));
-    path = mprGetTransformedPath("c:/cygdrive/c/tmp/a.txt", MPR_PATH_CYGWIN);
-    mprAssert(strcmp(path, "/cygdrive/c/tmp/a.txt"));
-#endif
-
+#if BLD_WIN_LIKE || CYGWIN
     /* Test MapSeparators */
     path = sclone("\\a\\b\\c\\d");
     mprMapSeparators(path, '/');
@@ -360,6 +353,19 @@ static void testTransform(MprTestGroup *gp)
     mprAssert(*path == '/');
     assert(strchr(path, '\\') == 0);
     assert(mprIsPathAbs(path));
+#endif
+
+#if CYGWIN
+    path = mprGetAbsPath("c:/a/b");
+    assert(smatch(path, "/cygdrive/c/a/b"));
+    path = mprGetAbsPath("/a/b");
+    assert(smatch(path, "/a/b"));
+    path = mprGetAbsPath("c:/cygwin/a/b");
+    assert(smatch(path, "/a/b"));
+    path = mprGetWinPath("c:/a/b");
+    assert(smatch(path, "C:\\a\\b"));
+    path = mprGetWinPath("/cygdrive/c/a/b");
+    assert(smatch(path, "C:\\a\\b"));
 #endif
 }
 
