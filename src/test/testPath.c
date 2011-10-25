@@ -167,7 +167,7 @@ static void testMakeDir(MprTestGroup *gp)
     ts = (TestPath*) gp->data;
 
     mprGlobalLock(gp);
-    rc = mprMakeDir(ts->dir1, DIRMODE, 1);
+    rc = mprMakeDir(ts->dir1, DIRMODE, -1, -1, 1);
     assert(rc == 0);
     assert(access(ts->dir1, X_OK) == 0);
 
@@ -185,7 +185,7 @@ static void testMakeDir(MprTestGroup *gp)
     /*
         Make directory path
      */
-    rc = mprMakeDir(ts->dir2, DIRMODE, 1);
+    rc = mprMakeDir(ts->dir2, DIRMODE, -1, -1, 1);
     assert(rc == 0);
     assert(access(ts->dir2, X_OK) == 0);
 

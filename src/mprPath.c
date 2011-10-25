@@ -1044,7 +1044,7 @@ char *mprJoinPathExt(cchar *path, cchar *ext)
 /*
     Make a directory with all necessary intervening directories.
  */
-int mprMakeDir(cchar *path, int perms, bool makeMissing)
+int mprMakeDir(cchar *path, int perms, int owner, int group, bool makeMissing)
 {
     MprFileSystem   *fs;
     char            *parent;
@@ -1055,15 +1055,15 @@ int mprMakeDir(cchar *path, int perms, bool makeMissing)
     if (mprPathExists(path, X_OK)) {
         return 0;
     }
-    if (fs->makeDir(fs, path, perms) == 0) {
+    if (fs->makeDir(fs, path, perms, owner, group) == 0) {
         return 0;
     }
     if (makeMissing && !isRoot(fs, path)) {
         parent = mprGetPathParent(path);
-        if ((rc = mprMakeDir(parent, perms, makeMissing)) < 0) {
+        if ((rc = mprMakeDir(parent, perms, owner, group, makeMissing)) < 0) {
             return rc;
         }
-        return fs->makeDir(fs, path, perms);
+        return fs->makeDir(fs, path, perms, owner, group);
     }
     return MPR_ERR_CANT_CREATE;
 }

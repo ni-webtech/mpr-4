@@ -129,7 +129,7 @@ static int deletePath(MprRomFileSystem *fileSystem, cchar *path)
 }
  
 
-static int makeDir(MprRomFileSystem *fileSystem, cchar *path, int perms)
+static int makeDir(MprRomFileSystem *fileSystem, cchar *path, int perms, int owner, int group)
 {
     return MPR_ERR_CANT_WRITE;
 }

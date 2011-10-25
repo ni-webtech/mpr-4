@@ -202,13 +202,22 @@ static int deletePath(MprDiskFileSystem *fs, cchar *path)
 }
  
 
-static int makeDir(MprDiskFileSystem *fs, cchar *path, int perms)
+static int makeDir(MprDiskFileSystem *fs, cchar *path, int perms, int owner, int group)
 {
+    int     rc;
+
 #if VXWORKS
-    return mkdir((char*) path);
+    rc = mkdir((char*) path);
 #else
-    return mkdir(path, perms);
+    rc = mkdir(path, perms);
 #endif
+    if (rc < 0) {
+        return MPR_ERR_CANT_CREATE;
+    }
+    if ((owner >= 0 || group >= 0) && chown(path, owner, group) < 0) {
+        return MPR_ERR_CANT_CREATE;
+    }
+    return 0;
 }
 
 
