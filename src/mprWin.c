@@ -59,7 +59,6 @@ int mprGetRandomBytes(char *buf, ssize length, bool block)
     int             rc;
 
     rc = 0;
-
     if (!CryptAcquireContext(&prov, NULL, NULL, PROV_RSA_FULL, CRYPT_VERIFYCONTEXT | 0x40)) {
         return mprGetError();
     }

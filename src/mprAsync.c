@@ -235,8 +235,11 @@ static LRESULT msgProc(HWND hwnd, uint msg, uint wp, long lp)
 }
 
 
-void mprSetWinMsgCallback(MprWaitService *ws, MprMsgCallback callback)
+void mprSetWinMsgCallback(MprMsgCallback callback)
 {
+    MprWaitService  *ws;
+
+    ws = MPR->waitService;
     ws->msgCallback = callback;
 }
 
