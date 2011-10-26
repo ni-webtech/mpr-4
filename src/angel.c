@@ -27,6 +27,7 @@ typedef struct App {
     int     runAsDaemon;                /* Run as a daemon */
     int     servicePid;                 /* Process ID for the service */
     char    *serviceArgs;               /* Args to pass to service */
+    char    *serviceHome;               /* Service home */
     char    *serviceName;               /* Basename of service program */
     char    *serviceProgram;            /* Program to start */
     int     verbose;                    /* Run in verbose mode */
