@@ -1005,16 +1005,11 @@ static void WINAPI serviceCallback(ulong cmd)
 }
 
 
-/*
-    Install the window's service
- */ 
 static int installService()
 {
     SC_HANDLE   svc, mgr;
     char        cmd[MPR_MAX_FNAME], key[MPR_MAX_FNAME];
     int         serviceType;
-
-    GetModuleFileName(0, cmd, sizeof(cmd));
 
     mgr = OpenSCManager(NULL, NULL, SC_MANAGER_ALL_ACCESS);
     if (! mgr) {
@@ -1030,6 +1025,7 @@ static int installService()
         if (app->createConsole) {
             serviceType |= SERVICE_INTERACTIVE_PROCESS;
         }
+        GetModuleFileName(0, cmd, sizeof(cmd));
         svc = CreateService(mgr, app->serviceName, app->serviceTitle, SERVICE_ALL_ACCESS, serviceType, SERVICE_AUTO_START, 
             SERVICE_ERROR_NORMAL, cmd, NULL, NULL, "", NULL, NULL);
         if (! svc) {
