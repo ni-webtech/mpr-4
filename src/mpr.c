@@ -446,9 +446,11 @@ int mprMakeArgv(cchar *command, char ***argvp, int flags)
     strcpy(args, command);
     argv = (char**) vector;
 
-    parseArgs(args, argv);
     if (flags & MPR_ARGV_ARGS_ONLY) {
+        parseArgs(args, &argv[1]);
         argv[0] = MPR->emptyString;
+    } else {
+        parseArgs(args, argv);
     }
     argv[argc] = 0;
     *argvp = argv;
