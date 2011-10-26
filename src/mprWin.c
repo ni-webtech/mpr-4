@@ -62,7 +62,7 @@ int mprGetRandomBytes(char *buf, ssize length, bool block)
     if (!CryptAcquireContext(&prov, NULL, NULL, PROV_RSA_FULL, CRYPT_VERIFYCONTEXT | 0x40)) {
         return mprGetError();
     }
-    if (!CryptGenRandom(prov, length, buf)) {
+    if (!CryptGenRandom(prov, (wsize) length, buf)) {
         rc = mprGetError();
     }
     CryptReleaseContext(prov, 0);

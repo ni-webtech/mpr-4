@@ -194,7 +194,7 @@ static void testWithData(MprTestGroup *gp)
     for (i = 0; i < 10; i++) {
         mprSprintf(line, sizeof(line), "line %d\n", i);
         len = (int) strlen(line);
-        rc = write(fd, line, len);
+        rc = write(fd, line, (wsize) len);
         assert(rc == len);
         if (rc != len) {
             break;

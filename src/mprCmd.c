@@ -567,7 +567,7 @@ ssize mprWriteCmd(MprCmd *cmd, int channel, char *buf, ssize bufsize)
         return -1;
     }
 #endif
-    return write(cmd->files[channel].fd, buf, bufsize);
+    return write(cmd->files[channel].fd, buf, (wsize) bufsize);
 }
 
 
