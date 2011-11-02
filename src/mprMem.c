@@ -2225,7 +2225,7 @@ ssize mprGetMem()
             buf[nbytes] = '\0';
             if ((tok = strstr(buf, "VmRSS:")) != 0) {
                 for (tok += 6; tok && isspace((int) *tok); tok++) {}
-                size = stoi(tok, 10, 0) * 1024;
+                size = stoi(tok) * 1024;
             }
         }
     }

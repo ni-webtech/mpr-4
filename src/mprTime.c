@@ -450,7 +450,7 @@ static int getTimeZoneOffsetFromTm(struct tm *tp)
     if ((tze = getenv("TIMEZONE")) != 0) {
         if ((p = strchr(tze, ':')) != 0) {
             if ((p = strchr(tze, ':')) != 0) {
-                offset = - stoi(++p, 10, NULL) * MS_PER_MIN;
+                offset = - stoi(++p) * MS_PER_MIN;
             }
         }
         if (tp->tm_isdst) {
@@ -1376,7 +1376,7 @@ int mprParseTime(MprTime *time, cchar *dateString, int zoneFlags, struct tm *def
             /*
                 Parse either day of month or year. Priority to day of month. Format: <29> Jan <15> <2011>
              */ 
-            value = stoi(token, 10, NULL);
+            value = stoi(token);
             if (value > 3000) {
                 *time = value;
                 return 0;
@@ -1669,7 +1669,7 @@ int gettimeofday(struct timeval *tv, struct timezone *tz)
             if ((tze = getenv("TIMEZONE")) != 0) {
                 if ((p = strchr(tze, ':')) != 0) {
                     if ((p = strchr(tze, ':')) != 0) {
-                        tz->tz_minuteswest = stoi(++p, 10, NULL);
+                        tz->tz_minuteswest = stoi(++p);
                     }
                 }
                 t = tickGet();

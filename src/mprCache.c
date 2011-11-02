@@ -123,12 +123,12 @@ int64 mprIncCache(MprCache *cache, cchar *key, int64 amount)
             return 0;
         }
     } else {
-        value += stoi(item->data, 10, 0);
+        value += stoi(item->data);
     }
     if (item->data) {
         cache->usedMem -= slen(item->data);
     }
-    item->data = itos(value, 10);
+    item->data = itos(value);
     cache->usedMem += slen(item->data);
     item->version++;
     unlock(cache);

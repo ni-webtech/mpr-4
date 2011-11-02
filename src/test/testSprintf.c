@@ -39,22 +39,22 @@ static void testItos(MprTestGroup *gp)
 {
     char    *s;
 
-    s = itos(0, 10);
+    s = itos(0);
     assert(strcmp(s, "0") == 0);
 
-    s = itos(1, 10);
+    s = itos(1);
     assert(strcmp(s, "1") == 0);
 
-    s = itos(-1, 10);
+    s = itos(-1);
     assert(strcmp(s, "-1") == 0);
 
-    s = itos(12345678, 10);
+    s = itos(12345678);
     assert(strcmp(s, "12345678") == 0);
 
-    s = itos(-12345678, 10);
+    s = itos(-12345678);
     assert(strcmp(s, "-12345678") == 0);
 
-    s = itos(0x1234, 16);
+    s = itosradix(0x1234, 16);
     assert(strcmp(s, "1234") == 0);
 }
 

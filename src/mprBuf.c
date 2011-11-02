@@ -455,7 +455,7 @@ ssize mprPutIntToBuf(MprBuf *bp, int64 i)
 {
     ssize       rc;
 
-    rc = mprPutStringToBuf(bp, itos(i, 10));
+    rc = mprPutStringToBuf(bp, itos(i));
     if (bp->end < bp->endbuf) {
         *((char*) bp->end) = (char) '\0';
     }

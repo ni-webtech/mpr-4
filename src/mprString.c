@@ -12,10 +12,16 @@
 #include    "mpr.h"
 
 /************************************ Code ************************************/
+
+char *itos(int64 value)
+{
+    return itosradix(value, 10);
+}
+
 /*
     Format a number as a string. Support radix 10 and 16.
  */
-char *itos(int64 value, int radix)
+char *itosradix(int64 value, int radix)
 {
     char    numBuf[32];
     char    *cp;
@@ -710,6 +716,12 @@ int sstarts(cchar *str, cchar *prefix)
 }
 
 
+int64 stoi(cchar *str)
+{
+    return stoiradix(str, 10, NULL);
+}
+
+
 /*
     Parse a number and check for parse errors. Supports radix 8, 10 or 16. 
     If radix is <= 0, then the radix is sleuthed from the input.
@@ -719,7 +731,7 @@ int sstarts(cchar *str, cchar *prefix)
         [(+|-)][DIGITS]
 
  */
-int64 stoi(cchar *str, int radix, int *err)
+int64 stoiradix(cchar *str, int radix, int *err)
 {
     cchar   *start;
     int64   val;

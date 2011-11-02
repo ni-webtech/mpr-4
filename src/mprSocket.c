@@ -1227,7 +1227,7 @@ int mprGetSocketInfo(cchar *ip, int port, int *family, int *protocol, struct soc
     } else {
         hints.ai_family = AF_UNSPEC;
     }
-    portStr = itos(port, 10);
+    portStr = itos(port);
 
     /*  
         Try to sleuth the address to avoid duplicate address lookups. Then try IPv4 first then IPv6.

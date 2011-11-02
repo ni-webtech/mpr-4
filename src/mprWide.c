@@ -593,7 +593,13 @@ int wstarts(MprChar *str, MprChar *prefix)
 }
 
 
-int64 wtoi(MprChar *str, int radix, int *err)
+int64 wtoi(MprChar *str)
+{
+    return wtoiradix(str, 10, NULL);
+}
+
+
+int64 wtoiradix(MprChar *str, int radix, int *err)
 {
     char    *bp, buf[32];
 
@@ -601,7 +607,7 @@ int64 wtoi(MprChar *str, int radix, int *err)
         *bp++ = *str++;
     }
     buf[sizeof(buf) - 1] = 0;
-    return stoi(buf, radix, err);
+    return stoiradix(buf, radix, err);
 }
 
 

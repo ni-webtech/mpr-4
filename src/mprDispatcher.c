@@ -221,7 +221,10 @@ int mprServiceEvents(MprTime timeout, int flags)
     beginEventCount = eventCount = es->eventCount;
 
     es->now = mprGetTime();
-    expires = timeout < 0 ? (es->now + MPR_MAX_TIMEOUT) : (es->now + timeout);
+    expires = timeout < 0 ? MAXINT64 : (es->now + timeout);
+    if (expires < 0) {
+        expires = MAXINT64;
+    }
     justOne = (flags & MPR_SERVICE_ONE_THING) ? 1 : 0;
 
     while (es->now < expires && !mprIsStoppingCore()) {
