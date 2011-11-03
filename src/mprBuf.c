@@ -222,40 +222,52 @@ ssize mprGetBlockFromBuf(MprBuf *bp, char *buf, ssize size)
 }
 
 
+#ifndef mprGetBufLength
 ssize mprGetBufLength(MprBuf *bp)
 {
     return (bp->end - bp->start);
 }
+#endif
 
 
+#ifndef mprGetBufSize
 ssize mprGetBufSize(MprBuf *bp)
 {
     return bp->buflen;
 }
+#endif
 
 
+#ifndef mprGetBufSpace
 ssize mprGetBufSpace(MprBuf *bp)
 {
     return (bp->endbuf - bp->end);
 }
+#endif
 
 
+#ifndef mprGetBuf
 char *mprGetBuf(MprBuf *bp)
 {
     return (char*) bp->data;
 }
+#endif
 
 
+#ifndef mprGetBufStart
 char *mprGetBufStart(MprBuf *bp)
 {
     return (char*) bp->start;
 }
+#endif
 
 
+#ifndef mprGetBufEnd
 char *mprGetBufEnd(MprBuf *bp)
 {
     return (char*) bp->end;
 }
+#endif
 
 
 //  TODO - rename mprPutbackCharToBuf as it really can't insert if the buffer is empty

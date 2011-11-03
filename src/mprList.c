@@ -525,6 +525,7 @@ void *mprPopItem(MprList *lp)
 }
 
 
+#ifndef mprGetListLength
 int mprGetListLength(MprList *lp)
 {
     if (lp == 0) {
@@ -532,6 +533,7 @@ int mprGetListLength(MprList *lp)
     }
     return lp->length;
 }
+#endif
 
 
 int mprGetListCapacity(MprList *lp)
