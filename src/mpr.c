@@ -12,6 +12,7 @@
 
 static void getArgs(Mpr *mpr, int argc, char **argv);
 static void manageMpr(Mpr *mpr, int flags);
+static void restartProgram();
 static void serviceEventsThread(void *data, MprThread *tp);
 static void startThreads(int flags);
 
@@ -31,7 +32,6 @@ Mpr *mprCreate(int argc, char **argv, int flags)
         mprAssert(mpr);
         return 0;
     }
-    getArgs(mpr, argc, argv);
     mpr->exitStrategy = MPR_EXIT_NORMAL;
     mpr->emptyString = sclone("");
     mpr->title = sclone(BLD_NAME);
@@ -58,6 +58,7 @@ Mpr *mprCreate(int argc, char **argv, int flags)
 
     fs = mprCreateFileSystem("/");
     mprAddFileSystem(fs);
+    getArgs(mpr, argc, argv);
 
     mpr->signalService = mprCreateSignalService();
     mpr->threadService = mprCreateThreadService();
@@ -127,7 +128,6 @@ static void manageMpr(Mpr *mpr, int flags)
  */
 void mprDestroy(int how)
 {
-    MprTime     mark;
     int         gmode;
 
     if (how != MPR_EXIT_DEFAULT) {
@@ -150,6 +150,7 @@ void mprDestroy(int how)
     MPR->state = MPR_STOPPING_CORE;
     MPR->exitStrategy = MPR_EXIT_IMMEDIATE;
 
+    mprWakeWorkers();
     mprStopCmdService();
     mprStopModuleService();
     mprStopEventService();
@@ -161,25 +162,11 @@ void mprDestroy(int how)
     MPR->state = MPR_FINISHED;
     mprStopGCService();
     mprStopThreadService();
-
-    /*
-        Must wait for the GC, ServiceEvents, threads and worker threads to exit. Otherwise we have races when freeing memory.
-     */
-    mark = mprGetTime();
-    while (MPR->marker || MPR->eventing || mprGetListLength(MPR->workerService->busyThreads) > 0 ||
-            mprGetListLength(MPR->threadService->threads) > 0) {
-        if (mprGetRemainingTime(mark, MPR_TIMEOUT_STOP) <= 0) {
-            break;
-        }
-#if UNUSED && KEEP
-        printf("marker %d, eventing %d, busyThreads %d, threads %d\n", MPR->marker, MPR->eventing, 
-                MPR->workerService->busyThreads->length,
-                MPR->threadService->threads->length);
-#endif
-        mprSleep(1);
-    }
     mprStopOsService();
     mprDestroyMemService();
+    if (MPR->restart) {
+        restartProgram();
+    }
 }
 
 
@@ -195,14 +182,17 @@ void mprTerminate(int how, int status)
     }
     how = MPR->exitStrategy;
     if (how == MPR_EXIT_IMMEDIATE) {
-        mprLog(5, "Immediate exit. Aborting all requests and services.");
+        mprLog(2, "Immediate exit. Aborting all requests and services.");
         exit(status);
+
     } else if (how == MPR_EXIT_NORMAL) {
-        mprLog(5, "Normal exit. Flush buffers, close files and aborting existing requests.");
+        mprLog(2, "Normal exit. Flush buffers, close files and aborting existing requests.");
+
     } else if (how == MPR_EXIT_GRACEFUL) {
-        mprLog(5, "Graceful exit. Waiting for existing requests to complete.");
+        mprLog(2, "Graceful exit. Waiting for existing requests to complete.");
+
     } else {
-        mprLog(7, "HOW %d", how);
+        mprLog(7, "mprTerminate: how %d", how);
     }
 
     /*
@@ -223,6 +213,28 @@ void mprTerminate(int how, int status)
 }
 
 
+static void restartProgram()
+{
+    //  MOB TODO - Other systems
+#if BLD_UNIX_LIKE
+    int     i;
+    for (i = 3; i < MPR_MAX_FILE; i++) {
+        close(i);
+    }
+    execv(MPR->argv[0], MPR->argv);
+
+    /*
+        Should not reach here
+     */
+    printf("Failed to exec errno %d: ", errno);
+    for (i = 0; MPR->argv[i]; i++) {
+        printf("%s ", MPR->argv[i]);
+    }
+    printf("\n");
+#endif
+}
+
+
 /*
     Wince and Vxworks passes an arg via argc, and the program name in argv. NOTE: this will only work on 32-bit systems.
  */
@@ -232,11 +244,18 @@ static void getArgs(Mpr *mpr, int argc, char **argv)
     MprArgs *args = (MprArgs*) argv;
     command = mprToMulti((uni*) args->command);
     argc = mprMakeArgv(command, &argv, MPR_ARGV_ARGS_ONLY);
+    mprHold(argv);
     argv[0] = sclone(args->program);
+    mprHold(argv[0]);
 #elif VXWORKS
     MprArgs *args = (MprArgs*) argv;
     argc = mprMakeArgv("", &argv, MPR_ARGV_ARGS_ONLY);
+    mprHold(argv);
     argv[0] = sclone(args->program);
+    mprHold(argv[0]);
+#else
+    argv[0] = mprGetAppPath();
+    mprHold(argv[0]);
 #endif
     mpr->argc = argc;
     mpr->argv = argv;
@@ -323,11 +342,15 @@ bool mprIsFinished()
 
 int mprWaitTillIdle(MprTime timeout)
 {
-    MprTime     mark;
+    MprTime     mark, remaining, lastTrace;
 
-    mark = mprGetTime(); 
-    while (!mprIsIdle() && mprGetRemainingTime(mark, timeout) > 0) {
+    lastTrace = mark = mprGetTime(); 
+    while (!mprIsIdle() && (remaining = mprGetRemainingTime(mark, timeout)) > 0) {
         mprSleep(1);
+        if ((lastTrace - remaining) > MPR_TICKS_PER_SEC) {
+            mprLog(1, "Waiting for requests to complete, %d secs remaining ...", remaining / MPR_TICKS_PER_SEC);
+            lastTrace = remaining;
+        }
     }
     return mprIsIdle();
 }
@@ -340,15 +363,20 @@ bool mprServicesAreIdle()
 {
     bool    idle;
 
-    //  FUTURE - should also measure open sockets?
-
+#if UNUSED && KEEP
     idle = mprGetListLength(MPR->workerService->busyThreads) == 0 && 
            mprGetListLength(MPR->cmdService->cmds) == 0 && 
            mprDispatchersAreIdle() && !MPR->eventing;
+#else
+    /*
+        Only test top level services. Dispatchers may have timers scheduled, but that is okay.
+     */
+    idle = mprGetListLength(MPR->workerService->busyThreads) == 0 && 
+           mprGetListLength(MPR->cmdService->cmds) == 0 && !MPR->eventing;
+#endif
     if (!idle) {
-        mprLog(1, "Not idle: cmds %d, busy threads %d, dispatchers %d, eventing %d",
-            mprGetListLength(MPR->cmdService->cmds), mprGetListLength(MPR->workerService->busyThreads),
-           !mprDispatchersAreIdle(), MPR->eventing);
+        mprLog(4, "Not idle: cmds %d, busy threads %d, eventing %d",
+            mprGetListLength(MPR->cmdService->cmds), mprGetListLength(MPR->workerService->busyThreads), MPR->eventing);
     }
     return idle;
 }
@@ -420,7 +448,7 @@ static int parseArgs(char *args, char **argv)
 
 
 /*
-    Make an argv array
+    Make an argv array. All args are in a single memory block of which argv points to the start.
  */
 int mprMakeArgv(cchar *command, char ***argvp, int flags)
 {

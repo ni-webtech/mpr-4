@@ -104,7 +104,10 @@ int mprUnloadNativeModule(MprModule *mp)
 #endif
 
 
-void mprSleep(MprTime timeout)
+/*
+    This routine does not yield
+ */
+void mprNap(MprTime timeout)
 {
     MprTime         remaining, mark;
     struct timespec t;
@@ -121,6 +124,14 @@ void mprSleep(MprTime timeout)
         rc = nanosleep(&t, NULL);
         remaining = mprGetRemainingTime(mark, timeout);
     } while (rc < 0 && errno == EINTR && remaining > 0);
+}
+
+
+void mprSleep(MprTime timeout)
+{
+    mprYield(MPR_YIELD_STICKY);
+    mprNap(timeout);
+    mprResetYield();
 }
 
 

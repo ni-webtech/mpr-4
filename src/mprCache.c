@@ -28,9 +28,9 @@ typedef struct CacheItem
 
 /*********************************** Forwards *********************************/
 
-static void localPruner(MprCache *cache, MprEvent *event);
 static void manageCache(MprCache *cache, int flags);
 static void manageCacheItem(CacheItem *item, int flags);
+static void pruneCache(MprCache *cache, MprEvent *event);
 static void removeItem(MprCache *cache, CacheItem *item);
 
 /************************************* Code ***********************************/
@@ -304,7 +304,7 @@ ssize mprWriteCache(MprCache *cache, cchar *key, cchar *value, MprTime modified,
         /* 
             Use the MPR dispatcher incase this VM is destroyed 
          */
-        cache->timer = mprCreateTimerEvent(MPR->dispatcher, "localCacheTimer", cache->resolution, localPruner, cache, 
+        cache->timer = mprCreateTimerEvent(MPR->dispatcher, "localCacheTimer", cache->resolution, pruneCache, cache, 
             MPR_EVENT_STATIC_DATA); 
     }
     unlock(cache);
@@ -324,21 +324,26 @@ static void removeItem(MprCache *cache, CacheItem *item)
 }
 
 
-/*
-    Check for expired keys
- */
-static void localPruner(MprCache *cache, MprEvent *event)
+static void pruneCache(MprCache *cache, MprEvent *event)
 {
     MprTime         when, factor;
     MprKey          *kp;
     CacheItem       *item;
     ssize           excessKeys;
 
-    mprAssert(cache);
-    mprAssert(event);
-
-    if (mprTryLock(cache->mutex)) {
+    if (!cache) {
+        cache = shared;
+        if (!cache) {
+            return;
+        }
+    }
+    if (event) {
         when = mprGetTime();
+    } else {
+        /* Expire all items by setting event to NULL */
+        when = MAXINT64;
+    }
+    if (mprTryLock(cache->mutex)) {
         /*
             Check for expired items
          */
@@ -379,11 +384,19 @@ static void localPruner(MprCache *cache, MprEvent *event)
         mprAssert(cache->usedMem >= 0);
 
         if (mprGetHashLength(cache->store) == 0) {
-            mprRemoveEvent(event);
-            cache->timer = 0;
+            if (event) {
+                mprRemoveEvent(event);
+                cache->timer = 0;
+            }
         }
         unlock(cache);
     }
+}
+
+
+void mprPruneCache(MprCache *cache)
+{
+    pruneCache(cache, NULL);
 }
 
 

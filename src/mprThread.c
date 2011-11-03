@@ -13,7 +13,7 @@
 /*************************** Forward Declarations ****************************/
 
 static int changeState(MprWorker *worker, int state);
-static MprWorker *createWorker(MprWorkerService *ws, int stackSize);
+static MprWorker *createWorker(MprWorkerService *ws, ssize stackSize);
 static int getNextThreadNum(MprWorkerService *ws);
 static void manageThreadService(MprThreadService *ts, int flags);
 static void manageThread(MprThread *tp, int flags);
@@ -87,7 +87,7 @@ static void manageThreadService(MprThreadService *ts, int flags)
 }
 
 
-void mprSetThreadStackSize(int size)
+void mprSetThreadStackSize(ssize size)
 {
     MPR->threadService->stackSize = size;
 }
@@ -147,7 +147,7 @@ void mprSetCurrentThreadPriority(int pri)
 /*
     Create a main thread
  */
-MprThread *mprCreateThread(cchar *name, void *entry, void *data, int stackSize)
+MprThread *mprCreateThread(cchar *name, void *entry, void *data, ssize stackSize)
 {
     MprThreadService    *ts;
     MprThread           *tp;
@@ -857,7 +857,7 @@ void mprGetWorkerServiceStats(MprWorkerService *ws, MprWorkerStats *stats)
 /*
     Create a new thread for the task
  */
-static MprWorker *createWorker(MprWorkerService *ws, int stackSize)
+static MprWorker *createWorker(MprWorkerService *ws, ssize stackSize)
 {
     MprWorker   *worker;
 

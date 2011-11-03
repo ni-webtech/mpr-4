@@ -403,7 +403,7 @@ static int blockingWrite(MprSocket *sp, sslBuf_t *out)
             return -1;
             
         } else if (bytes == 0) {
-            mprSleep(10);
+            mprNap(10);
         }
         out->start += bytes;
     }

@@ -134,6 +134,9 @@ static void signalHandler(int signo, siginfo_t *info, void *arg)
     if (signo <= 0 || signo >= MPR_MAX_SIGNALS || MPR == 0) {
         return;
     }
+    if (MPR->state >= MPR_STOPPING && signo == SIGINT) {
+        exit(1);
+    }
     ssp = MPR->signalService;
     maskSignal(signo);
     ip = &ssp->info[signo];

@@ -25,7 +25,7 @@ void mprBreakpoint()
         int         i;
         printf("Paused to permit debugger to attach - will awake in 2 minutes\n");
         for (i = 0; i < 120 && paused; i++) {
-            mprSleep(1000);
+            mprNap(1000);
         }
     }
 #endif

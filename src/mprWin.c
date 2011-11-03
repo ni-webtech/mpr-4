@@ -128,9 +128,17 @@ void mprSetSocketMessage(int socketMessage)
 }
 
 
-void mprSleep(MprTime milliseconds)
+void mprNap(MprTime timeout)
 {
-    Sleep((int) milliseconds);
+    Sleep((int) timeout);
+}
+
+
+void mprSleep(MprTime timeout)
+{
+    mprYield(MPR_YIELD_STICKY);
+    mprNap(timeout);
+    mprResetYield();
 }
 
 

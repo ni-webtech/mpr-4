@@ -218,9 +218,17 @@ void mprSetSocketMessage(int socketMessage)
 #endif /* WINCE */
 
 
-void mprSleep(MprTime milliseconds)
+void mprSleep(MprTime timeout)
 {
-    Sleep((int) milliseconds);
+    Sleep((int) timeout);
+}
+
+
+void mprSleep(MprTime timeout)
+{
+    mprYield(MPR_YIELD_STICKY);
+    mprNap(timeout);
+    mprResetYield();
 }
 
 

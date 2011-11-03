@@ -103,7 +103,7 @@ int mprUnloadNativeModule(MprModule *mp)
 }
 
 
-void mprSleep(MprTime milliseconds)
+void mprNap(MprTime milliseconds)
 {
     struct timespec timeout;
     int             rc;
@@ -114,6 +114,14 @@ void mprSleep(MprTime milliseconds)
     do {
         rc = nanosleep(&timeout, &timeout);
     } while (rc < 0 && errno == EINTR);
+}
+
+
+void mprSleep(MprTime timeout)
+{
+    mprYield(MPR_YIELD_STICKY);
+    mprNap(timeout);
+    mprResetYield();
 }
 
 

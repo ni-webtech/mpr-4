@@ -72,7 +72,7 @@ static MprFile *openFile(MprFileSystem *fs, cchar *path, int omode, int perms)
                 if (file->fd >= 0) {
                     break;
                 }
-                mprSleep(10);
+                mprNap(10);
             }
             if (file->fd < 0) {
                 file = NULL;
@@ -192,7 +192,7 @@ static int deletePath(MprDiskFileSystem *fs, cchar *path)
         if (err != ERROR_SHARING_VIOLATION) {
             break;
         }
-        mprSleep(10);
+        mprNap(10);
     }
     return MPR_ERR_CANT_DELETE;
 }

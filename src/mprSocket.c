@@ -825,7 +825,7 @@ static ssize writeSocket(MprSocket *sp, cvoid *buf, ssize bufsize)
                         Windows sockets don't support blocking I/O. So we simulate here
                      */
                     if (sp->flags & MPR_SOCKET_BLOCK) {
-                        mprSleep(0);
+                        mprNap(0);
                         continue;
                     }
 #endif
