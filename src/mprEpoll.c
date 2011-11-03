@@ -196,7 +196,7 @@ void mprWaitForIO(MprWaitService *ws, MprTime timeout)
 
     if (rc < 0) {
         if (errno != EINTR) {
-            mprLog(2, "Kevent returned %d, errno %d", mprGetOsError());
+            mprLog(7, "epoll returned %d, errno %d", mprGetOsError());
         }
     } else if (rc > 0) {
         serviceIO(ws, rc);

@@ -161,7 +161,7 @@ int mprWaitForSingleIO(int fd, int mask, MprTime timeout)
     rc = kevent(kq, interest, interestCount, events, 1, &ts);
     close(kq);
     if (rc < 0) {
-        mprLog(6, "Kevent returned %d, errno %d", rc, errno);
+        mprLog(7, "Kevent returned %d, errno %d", rc, errno);
     } else if (rc > 0) {
         if (rc > 0) {
             if (events[0].filter == EVFILT_READ) {

@@ -12,7 +12,6 @@
 
 static void getArgs(Mpr *mpr, int argc, char **argv);
 static void manageMpr(Mpr *mpr, int flags);
-static void restartProgram();
 static void serviceEventsThread(void *data, MprThread *tp);
 static void startThreads(int flags);
 
@@ -38,6 +37,7 @@ Mpr *mprCreate(int argc, char **argv, int flags)
     mpr->version = sclone(BLD_VERSION);
     mpr->idleCallback = mprServicesAreIdle;
     mpr->mimeTypes = mprCreateMimeTypes(NULL);
+    mpr->terminators = mprCreateList(0, MPR_LIST_STATIC_VALUES);
 
     if (mpr->argv && mpr->argv[0] && *mpr->argv[0]) {
         name = mpr->argv[0];
@@ -119,6 +119,7 @@ static void manageMpr(Mpr *mpr, int flags)
         mprMark(mpr->emptyString);
         mprMark(mpr->pathEnv);
         mprMark(mpr->heap.markerCond);
+        mprMark(mpr->terminators);
     }
 }
 
@@ -130,11 +131,16 @@ void mprDestroy(int how)
 {
     int         gmode;
 
-    if (how != MPR_EXIT_DEFAULT) {
+    if (!(how & MPR_EXIT_DEFAULT)) {
         MPR->exitStrategy = how;
     }
     how = MPR->exitStrategy;
-    if (how == MPR_EXIT_IMMEDIATE) {
+    if (how & MPR_EXIT_IMMEDIATE) {
+        if (how & MPR_EXIT_RESTART) {
+            mprRestart();
+            /* No return */
+            return;
+        }
         exit(0);
     }
     mprYield(MPR_YIELD_STICKY);
@@ -144,11 +150,12 @@ void mprDestroy(int how)
     gmode = MPR_FORCE_GC | MPR_COMPLETE_GC | MPR_WAIT_GC;
     mprRequestGC(gmode);
 
-    if (how == MPR_EXIT_GRACEFUL) {
+    if (how & MPR_EXIT_GRACEFUL) {
         mprWaitTillIdle(MPR_TIMEOUT_STOP);
     }
     MPR->state = MPR_STOPPING_CORE;
-    MPR->exitStrategy = MPR_EXIT_IMMEDIATE;
+    MPR->exitStrategy &= MPR_EXIT_GRACEFUL;
+    MPR->exitStrategy |= MPR_EXIT_IMMEDIATE;
 
     mprWakeWorkers();
     mprStopCmdService();
@@ -159,13 +166,19 @@ void mprDestroy(int how)
     /* Final GC to run all finalizers */
     mprRequestGC(gmode);
 
+    if (how & MPR_EXIT_RESTART) {
+        mprLog(2, "Restarting\n\n");
+    } else {
+        mprLog(2, "Exiting");
+    }
     MPR->state = MPR_FINISHED;
     mprStopGCService();
     mprStopThreadService();
     mprStopOsService();
     mprDestroyMemService();
-    if (MPR->restart) {
-        restartProgram();
+
+    if (how & MPR_EXIT_RESTART) {
+        mprRestart();
     }
 }
 
@@ -176,19 +189,22 @@ void mprDestroy(int how)
  */
 void mprTerminate(int how, int status)
 {
+    MprTerminator   terminator;
+    int             next;
+
     MPR->exitStatus = status;
-    if (how != MPR_EXIT_DEFAULT) {
+    if (!(how & MPR_EXIT_DEFAULT)) {
         MPR->exitStrategy = how;
     }
     how = MPR->exitStrategy;
-    if (how == MPR_EXIT_IMMEDIATE) {
+    if (how & MPR_EXIT_IMMEDIATE) {
         mprLog(2, "Immediate exit. Aborting all requests and services.");
         exit(status);
 
-    } else if (how == MPR_EXIT_NORMAL) {
+    } else if (how & MPR_EXIT_NORMAL) {
         mprLog(2, "Normal exit. Flush buffers, close files and aborting existing requests.");
 
-    } else if (how == MPR_EXIT_GRACEFUL) {
+    } else if (how & MPR_EXIT_GRACEFUL) {
         mprLog(2, "Graceful exit. Waiting for existing requests to complete.");
 
     } else {
@@ -200,20 +216,33 @@ void mprTerminate(int how, int status)
         complete if graceful exit strategy.
      */
     if (MPR->state >= MPR_STOPPING) {
+        /* Already stopping and done the code below */
         return;
     }
+
     /*
-        Set stopping state and wake up everybody
+        Invoke terminators, set stopping state and wake up everybody
+        Must invoke terminators before setting stopping state. Otherwise, the main app event loop will return from
+        mprServiceEvents and starting calling destroy before we have completed this routine.
      */
+    for (ITERATE_ITEMS(MPR->terminators, terminator, next)) {
+        (terminator)(how, status);
+    }
     MPR->state = MPR_STOPPING;
-    mprWakeDispatchers();
     mprWakeWorkers();
     mprWakeGCService();
+    mprWakeDispatchers();
     mprWakeNotifier();
 }
 
 
-static void restartProgram()
+void mprAddTerminator(MprTerminator terminator)
+{
+    mprAddItem(MPR->terminators, terminator);
+}
+
+
+void mprRestart()
 {
     //  MOB TODO - Other systems
 #if BLD_UNIX_LIKE
@@ -224,7 +253,7 @@ static void restartProgram()
     execv(MPR->argv[0], MPR->argv);
 
     /*
-        Should not reach here
+        Last-ditch trace. Can only use stdout. Logging may be closed.
      */
     printf("Failed to exec errno %d: ", errno);
     for (i = 0; MPR->argv[i]; i++) {
@@ -312,7 +341,7 @@ static void serviceEventsThread(void *data, MprThread *tp)
  */
 bool mprShouldAbortRequests()
 {
-    return (mprIsStopping() && MPR->exitStrategy != MPR_EXIT_GRACEFUL);
+    return (mprIsStopping() && !(MPR->exitStrategy & MPR_EXIT_GRACEFUL));
 }
 
 

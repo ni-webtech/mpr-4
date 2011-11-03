@@ -15,6 +15,7 @@ static void manageSignal(MprSignal *sp, int flags);
 static void manageSignalService(MprSignalService *ssp, int flags);
 static void signalEvent(MprSignal *sp, MprEvent *event);
 static void signalHandler(int signo, siginfo_t *info, void *arg);
+static void standardSignalHandler(void *ignored, MprSignal *sp);
 static void unhookSignal(int signo);
 
 /************************************ Code ************************************/
@@ -292,36 +293,14 @@ static void signalEvent(MprSignal *sp, MprEvent *event)
 
 
 /*
-    Standard signal handler.  Ignore signals SIGPIPE and SIGXFSZ. 
-    Do graceful shutdown for SIGTERM, immediate exit for SIGINT.  All other signals do normal exit.
+    Standard signal handler. The following signals are handled:
+        SIGINT - immediate exit
+        SIGTERM - graceful shutdown
+        SIGPIPE - ignore
+        SIGXFZ - ignore
+        SIGUSR1 - restart
+        All others - default exit
  */
-static void standardSignalHandler(void *ignored, MprSignal *sp)
-{
-    mprLog(6, "standardSignalHandler signo %d, flags %x", sp->signo, sp->flags);
-#if DEBUG_IDE && UNUSED
-    if (sp->signo == SIGINT) return;
-#endif
-    if (sp->signo == SIGTERM) {
-        mprTerminate(MPR_EXIT_GRACEFUL, -1);
-
-    } else if (sp->signo == SIGINT) {
-#if BLD_UNIX_LIKE
-        /*  Ensure shells are on a new line */
-        if (isatty(1)) {
-            if (write(1, "\n", 1) < 0) {}
-        }
-#endif
-        mprTerminate(MPR_EXIT_IMMEDIATE, -1);
-
-    } else if (sp->signo == SIGPIPE || sp->signo == SIGXFSZ) {
-        /* Ignore */
-
-    } else {
-        mprTerminate(MPR_EXIT_DEFAULT, -1);
-    }
-}
-
-
 void mprAddStandardSignals()
 {
     MprSignalService    *ssp;
@@ -330,13 +309,38 @@ void mprAddStandardSignals()
     mprAddItem(ssp->standard, mprAddSignalHandler(SIGINT,  standardSignalHandler, 0, 0, MPR_SIGNAL_AFTER));
     mprAddItem(ssp->standard, mprAddSignalHandler(SIGQUIT, standardSignalHandler, 0, 0, MPR_SIGNAL_AFTER));
     mprAddItem(ssp->standard, mprAddSignalHandler(SIGTERM, standardSignalHandler, 0, 0, MPR_SIGNAL_AFTER));
-#if UNUSED && KEEP
-    mprAddItem(ssp->standard, mprAddSignalHandler(SIGUSR1, standardSignalHandler, 0, 0, MPR_SIGNAL_AFTER));
-#endif
     mprAddItem(ssp->standard, mprAddSignalHandler(SIGPIPE, standardSignalHandler, 0, 0, MPR_SIGNAL_AFTER));
+    mprAddItem(ssp->standard, mprAddSignalHandler(SIGUSR1, standardSignalHandler, 0, 0, MPR_SIGNAL_AFTER));
 #if SIGXFSZ
     mprAddItem(ssp->standard, mprAddSignalHandler(SIGXFSZ, standardSignalHandler, 0, 0, MPR_SIGNAL_AFTER));
 #endif
+}
+
+
+static void standardSignalHandler(void *ignored, MprSignal *sp)
+{
+    mprLog(6, "standardSignalHandler signo %d, flags %x", sp->signo, sp->flags);
+    if (sp->signo == SIGTERM) {
+        mprTerminate(MPR_EXIT_GRACEFUL, -1);
+
+    } else if (sp->signo == SIGINT) {
+#if BLD_UNIX_LIKE
+        /*  Ensure shell input goes to a new line */
+        if (isatty(1)) {
+            if (write(1, "\n", 1) < 0) {}
+        }
+#endif
+        mprTerminate(MPR_EXIT_IMMEDIATE, -1);
+
+    } else if (sp->signo == SIGUSR1) {
+        mprTerminate(MPR_EXIT_GRACEFUL | MPR_EXIT_RESTART, 0);
+
+    } else if (sp->signo == SIGPIPE || sp->signo == SIGXFSZ) {
+        /* Ignore */
+
+    } else {
+        mprTerminate(MPR_EXIT_DEFAULT, -1);
+    }
 }
 
 

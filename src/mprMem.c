@@ -2047,17 +2047,17 @@ static void allocException(int cause, ssize size)
     mprStaticError("%s: Consider increasing memory limit.", MPR->name);
     
     if (heap->notifier) {
-        (heap->notifier)(cause, size, used);
+        (heap->notifier)(cause, heap->allocPolicy,  size, used);
     }
     if (cause & (MPR_MEM_TOO_BIG | MPR_MEM_FAIL)) {
         mprError("Application exiting immediately due to memory depletion.");
         mprTerminate(MPR_EXIT_IMMEDIATE, 2);
 
     } else if (cause & (MPR_MEM_REDLINE | MPR_MEM_LIMIT)) {
+        /* Prune policy must be implemented by applications in their heap notifier */
         if (heap->allocPolicy == MPR_ALLOC_POLICY_RESTART) {
             mprError("Application restarting due to low memory condition.");
-            MPR->restart = 1;
-            mprTerminate(MPR_EXIT_GRACEFUL, 1);
+            mprTerminate(MPR_EXIT_GRACEFUL | MPR_EXIT_RESTART, 1);
 
         } else if (heap->allocPolicy == MPR_ALLOC_POLICY_EXIT) {
             mprError("Application exiting immediately due to memory depletion.");
