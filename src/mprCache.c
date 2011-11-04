@@ -349,7 +349,7 @@ static void pruneCache(MprCache *cache, MprEvent *event)
          */
         for (kp = 0; (kp = mprGetNextKey(cache->store, kp)) != 0; ) {
             item = (CacheItem*) kp->data;
-            mprLog(6, "Cache: \"%@\" lifespan %d, expires in %d secs", item->key, 
+            mprLog(6, "Cache: \"%s\" lifespan %d, expires in %d secs", item->key, 
                     item->lifespan / 1000, (item->expires - when) / 1000);
             if (item->expires && item->expires <= when) {
                 mprLog(5, "Cache prune expired key %s", kp->key);

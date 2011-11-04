@@ -215,7 +215,7 @@ void mprWaitForIO(MprWaitService *ws, MprTime timeout)
     LOG(8, "kevent wakes rc %d", rc);
 
     if (rc < 0) {
-        mprLog(6, "Kevent returned %d, errno %d", rc, mprGetOsError());
+        mprLog(7, "Kevent returned %d, errno %d", rc, mprGetOsError());
     } else if (rc > 0) {
         serviceIO(ws, rc);
     }
