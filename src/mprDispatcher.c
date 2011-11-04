@@ -57,12 +57,12 @@ MprEventService *mprCreateEventService()
 static void manageEventService(MprEventService *es, int flags)
 {
     if (flags & MPR_MANAGE_MARK) {
-        mprMark(es->waitCond);
-        mprMark(es->mutex);
         mprMark(es->runQ);
         mprMark(es->readyQ);
-        mprMark(es->idleQ);
         mprMark(es->waitQ);
+        mprMark(es->idleQ);
+        mprMark(es->waitCond);
+        mprMark(es->mutex);
 
     } else if (flags & MPR_MANAGE_FREE) {
         /* Needed for race with manageDispatcher */
@@ -144,7 +144,9 @@ static void manageDispatcher(MprDispatcher *dispatcher, int flags)
     if (flags & MPR_MANAGE_MARK) {
         mprMark(dispatcher->name);
         mprMark(dispatcher->eventQ);
+        mprMark(dispatcher->current);
         mprMark(dispatcher->cond);
+        mprMark(dispatcher->parent);
         mprMark(dispatcher->service);
         mprMark(dispatcher->requiredWorker);
 
@@ -154,8 +156,6 @@ static void manageDispatcher(MprDispatcher *dispatcher, int flags)
             mprAssert(event->magic == MPR_EVENT_MAGIC);
             mprMark(event);
         }
-        mprMark(dispatcher->current);
-        mprMark(dispatcher->eventQ);
         unlock(es);
         
     } else if (flags & MPR_MANAGE_FREE) {

@@ -126,7 +126,7 @@ static void manageModule(MprModule *mp, int flags)
     if (flags & MPR_MANAGE_MARK) {
         mprMark(mp->name);
         mprMark(mp->path);
-        mprMark(mp->entry);
+        mprMark(mp->moduleData);
     }
 }
 

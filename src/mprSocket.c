@@ -32,6 +32,7 @@ static int getSocketIpAddr(struct sockaddr *addr, int addrlen, char *ip, int siz
 static int ipv6(cchar *ip);
 static int listenSocket(MprSocket *sp, cchar *ip, int port, int initialFlags);
 static void manageSocket(MprSocket *sp, int flags);
+static void manageSocketProvider(MprSocketProvider *provider, int flags);
 static void manageSocketService(MprSocketService *ss, int flags);
 static ssize readSocket(MprSocket *sp, void *buf, ssize bufsize);
 static ssize writeSocket(MprSocket *sp, cvoid *buf, ssize bufsize);
@@ -98,11 +99,10 @@ static MprSocketProvider *createStandardProvider(MprSocketService *ss)
 {
     MprSocketProvider   *provider;
 
-    provider = mprAlloc(sizeof(MprSocketProvider));
-    if (provider == 0) {
+    if ((provider = mprAllocObj(MprSocketProvider, manageSocketProvider)) == 0) {
         return 0;
     }
-    provider->name = "standard";
+    provider->name = sclone("standard");
     provider->acceptSocket = acceptSocket;
     provider->closeSocket = closeSocket;
     provider->connectSocket = connectSocket;
@@ -113,6 +113,16 @@ static MprSocketProvider *createStandardProvider(MprSocketService *ss)
     provider->readSocket = readSocket;
     provider->writeSocket = writeSocket;
     return provider;
+}
+
+
+static void manageSocketProvider(MprSocketProvider *provider, int flags)
+{
+    if (flags & MPR_MANAGE_MARK) {
+        mprMark(provider->name);
+        mprMark(provider->data);
+        mprMark(provider->defaultSsl);
+    }
 }
 
 

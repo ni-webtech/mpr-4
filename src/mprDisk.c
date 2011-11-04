@@ -91,8 +91,10 @@ static MprFile *openFile(MprFileSystem *fs, cchar *path, int omode, int perms)
 static void manageDiskFile(MprFile *file, int flags)
 {
     if (flags & MPR_MANAGE_MARK) {
-        mprMark(file->buf);
         mprMark(file->path);
+        mprMark(file->fileSystem);
+        mprMark(file->buf);
+        //  MOB - mark inode?
 
     } else if (flags & MPR_MANAGE_FREE) {
         closeFile(file);

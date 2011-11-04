@@ -15,15 +15,12 @@ static void manageSpinLock(MprSpin *lock, int flags);
 
 /************************************ Code ************************************/
 
-static int mcount = 0;
-
 MprMutex *mprCreateLock()
 {
     MprMutex    *lock;
 #if BLD_UNIX_LIKE
     pthread_mutexattr_t attr;
 #endif
-    mcount++;
     if ((lock = mprAllocObj(MprMutex, manageLock)) == 0) {
         return 0;
     }
@@ -51,7 +48,6 @@ MprMutex *mprCreateLock()
 static void manageLock(MprMutex *lock, int flags)
 {
     if (flags & MPR_MANAGE_FREE) {
-        mcount--;
         mprAssert(lock);
 #if BLD_UNIX_LIKE
         pthread_mutex_destroy(&lock->cs);

@@ -1421,6 +1421,9 @@ static void marker(void *unused, MprThread *tp)
     while (!mprIsFinished()) {
         if (!heap->mustYield) {
             mprWaitForCond(heap->markerCond, -1);
+            if (mprIsFinished()) {
+                break;
+            }
         }
         MPR_MEASURE(7, "GC", "mark", mark());
     }
@@ -1549,7 +1552,7 @@ static int syncThreads()
 
 
 /*
-    Resume all yielded threads. Called by the GC marker only.
+    Resume all yielded threads. Called by the GC marker only and when destroying the app.
  */
 void mprResumeThreads()
 {

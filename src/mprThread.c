@@ -863,8 +863,7 @@ static MprWorker *createWorker(MprWorkerService *ws, ssize stackSize)
 
     char    name[16];
 
-    worker = mprAllocObj(MprWorker, manageWorker);
-    if (worker == 0) {
+    if ((worker = mprAllocObj(MprWorker, manageWorker)) == 0) {
         return 0;
     }
     worker->flags = 0;

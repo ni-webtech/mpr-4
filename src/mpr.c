@@ -88,6 +88,7 @@ static void manageMpr(Mpr *mpr, int flags)
         mprMark(mpr->logFile);
         mprMark(mpr->mimeTypes);
         mprMark(mpr->timeTokens);
+        mprMark(mpr->pathEnv);
         mprMark(mpr->name);
         mprMark(mpr->title);
         mprMark(mpr->version);
@@ -95,11 +96,11 @@ static void manageMpr(Mpr *mpr, int flags)
         mprMark(mpr->hostName);
         mprMark(mpr->ip);
         mprMark(mpr->serverName);
-        mprMark(mpr->appDir);
         mprMark(mpr->appPath);
+        mprMark(mpr->appDir);
         mprMark(mpr->cmdService);
-        mprMark(mpr->fileSystem);
         mprMark(mpr->eventService);
+        mprMark(mpr->fileSystem);
         mprMark(mpr->moduleService);
         mprMark(mpr->osService);
         mprMark(mpr->signalService);
@@ -109,17 +110,18 @@ static void manageMpr(Mpr *mpr, int flags)
         mprMark(mpr->waitService);
         mprMark(mpr->dispatcher);
         mprMark(mpr->nonBlock);
-        mprMark(mpr->ejsService);
-        mprMark(mpr->httpService);
         mprMark(mpr->appwebService);
-        mprMark(mpr->testService);
+        mprMark(mpr->ediService);
+        mprMark(mpr->ejsService);
         mprMark(mpr->espService);
+        mprMark(mpr->httpService);
+        mprMark(mpr->testService);
+        mprMark(mpr->terminators);
         mprMark(mpr->mutex);
         mprMark(mpr->spin);
+        mprMark(mpr->cond);
         mprMark(mpr->emptyString);
-        mprMark(mpr->pathEnv);
         mprMark(mpr->heap.markerCond);
-        mprMark(mpr->terminators);
     }
 }
 
