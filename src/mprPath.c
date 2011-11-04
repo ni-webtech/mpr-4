@@ -760,7 +760,7 @@ char *mprGetPortablePath(cchar *path)
 char *mprGetRelPath(cchar *pathArg)
 {
     MprFileSystem   *fs;
-    char            home[MPR_MAX_FNAME], *hp, *cp, *result, *path;
+    char            home[MPR_MAX_FNAME], *hp, *cp, *result, *path, *lasthp, *lastcp;
     int             homeSegments, i, commonSegments, sep;
 
     fs = mprLookupFileSystem(pathArg);
@@ -811,7 +811,9 @@ char *mprGetRelPath(cchar *pathArg)
     commonSegments = -1;
     for (hp = home, cp = path; *hp && *cp; hp++, cp++) {
         if (isSep(fs, *hp)) {
+            lasthp = hp + 1;
             if (isSep(fs, *cp)) {
+                lastcp = cp + 1;
                 commonSegments++;
             }
         } else if (fs->caseSensitive) {
@@ -823,6 +825,11 @@ char *mprGetRelPath(cchar *pathArg)
         }
     }
     mprAssert(commonSegments >= 0);
+
+    if (*cp && *hp) {
+        hp = lasthp;
+        cp = lastcp;
+    }
 
     /*
         Add one more segment if the last segment matches. Handle trailing separators

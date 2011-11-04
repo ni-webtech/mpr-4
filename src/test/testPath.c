@@ -278,11 +278,19 @@ static void testRelPath(MprTestGroup *gp)
     path = mprGetRelPath("..");
     assert(strcmp(path, "..") == 0);
 
+    path = mprGetRelPath("/Users/mob/github/admin");
+    assert(sstarts(path, ".."));
+
+    path = mprGetRelPath("/Users/mob/git");
+    path = mprGetRelPath("/Users/mob/git/mpr/test");
+    /* Can't really test the result of this */
+
     absPath = mprGetAbsPath("Makefile");
     assert(mprIsPathAbs(absPath));
     path = mprGetRelPath(absPath);
     assert(!mprIsPathAbs(path));
     assert(strcmp(path, "Makefile") == 0);
+
 }
 
 

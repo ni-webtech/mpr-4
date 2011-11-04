@@ -39,6 +39,15 @@ Mpr *mprCreate(int argc, char **argv, int flags)
     mpr->mimeTypes = mprCreateMimeTypes(NULL);
     mpr->terminators = mprCreateList(0, MPR_LIST_STATIC_VALUES);
 
+    mprCreateTimeService();
+    mprCreateOsService();
+    mpr->mutex = mprCreateLock();
+    mpr->spin = mprCreateSpinLock();
+
+    fs = mprCreateFileSystem("/");
+    mprAddFileSystem(fs);
+    getArgs(mpr, argc, argv);
+
     if (mpr->argv && mpr->argv[0] && *mpr->argv[0]) {
         name = mpr->argv[0];
         if ((cp = strrchr(name, '/')) != 0 || (cp = strrchr(name, '\\')) != 0) {
@@ -51,15 +60,6 @@ Mpr *mprCreate(int argc, char **argv, int flags)
     } else {
         mpr->name = sclone(BLD_PRODUCT);
     }
-    mprCreateTimeService();
-    mprCreateOsService();
-    mpr->mutex = mprCreateLock();
-    mpr->spin = mprCreateSpinLock();
-
-    fs = mprCreateFileSystem("/");
-    mprAddFileSystem(fs);
-    getArgs(mpr, argc, argv);
-
     mpr->signalService = mprCreateSignalService();
     mpr->threadService = mprCreateThreadService();
     mpr->moduleService = mprCreateModuleService();

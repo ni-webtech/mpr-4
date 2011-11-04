@@ -703,8 +703,7 @@ ssize sspn(cchar *str, cchar *set)
 }
  
 
-//  MOB should return bool
-int sstarts(cchar *str, cchar *prefix)
+bool sstarts(cchar *str, cchar *prefix)
 {
     if (str == 0 || prefix == 0) {
         return 0;
