@@ -190,6 +190,9 @@
 #if BLD_FEATURE_FLOAT
 
 #if EMBEDTHIS || 1
+    #define MULTIPLE_THREADS 1
+    extern void mprLockDtoa(int n);
+    extern void mprUnlockDtoa(int n);
     #include    "mpr.h"
     #if WIN || WINCE
         typedef int int32_t;
@@ -550,6 +553,9 @@ BCinfo { int dp0, dp1, dplen, dsign, e0, inexact, nd, nd0, rounding, scale, uflc
 #ifndef MULTIPLE_THREADS
 #define ACQUIRE_DTOA_LOCK(n)    /*nothing*/
 #define FREE_DTOA_LOCK(n)   /*nothing*/
+#else
+#define ACQUIRE_DTOA_LOCK(n) mprLockDtoa(n);
+#define FREE_DTOA_LOCK(n) mprUnlockDtoa(n);
 #endif
 
 #define Kmax 7

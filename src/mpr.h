@@ -8154,6 +8154,7 @@ typedef struct Mpr {
     MprOsThread     mainOsThread;           /**< Main OS thread ID */
     MprMutex        *mutex;                 /**< Thread synchronization */
     MprSpin         *spin;                  /**< Quick thread synchronization */
+    MprSpin         *dtoaSpin[2];           /**< Dtoa thread synchronization */
     MprCond         *cond;                  /**< Sync after starting events thread */
 
     char            *emptyString;           /**< Empty string */
@@ -8638,6 +8639,8 @@ extern int mprWriteRegistry(cchar *key, cchar *name, cchar *value);
     Internal
  */
 extern void mprWriteToOsLog(cchar *msg, int flags, int level);
+extern void mprUnlockDtoa(int n);
+extern void mprLockDtoa(int n);
 
 /*********************************** External *********************************/
 /*
