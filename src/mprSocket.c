@@ -51,8 +51,8 @@ MprSocketService *mprCreateSocketService()
     if (ss == 0) {
         return 0;
     }
-    ss->maxClients = MAXINT;
-    ss->numClients = 0;
+    ss->maxAccept = MAXINT;
+    ss->numAccept = 0;
 
     if ((ss->standardProvider = createStandardProvider(ss)) == 0) {
         return 0;
@@ -138,11 +138,11 @@ bool mprHasSecureSockets()
 }
 
 
-int mprSetMaxSocketClients(int max)
+int mprSetMaxSocketAccept(int max)
 {
     mprAssert(max >= 0);
 
-    MPR->socketService->maxClients = max;
+    MPR->socketService->maxAccept = max;
     return 0;
 }
 
@@ -593,8 +593,8 @@ static void closeSocket(MprSocket *sp, bool gracefully)
 
     if (! (sp->flags & (MPR_SOCKET_LISTENER | MPR_SOCKET_CLIENT))) {
         mprLock(ss->mutex);
-        if (--ss->numClients < 0) {
-            ss->numClients = 0;
+        if (--ss->numAccept < 0) {
+            ss->numAccept = 0;
         }
         mprUnlock(ss->mutex);
     }
@@ -642,9 +642,9 @@ static MprSocket *acceptSocket(MprSocket *listen)
         Limit the number of simultaneous clients
      */
     mprLock(ss->mutex);
-    if (++ss->numClients >= ss->maxClients) {
+    if (++ss->numAccept >= ss->maxAccept) {
         mprUnlock(ss->mutex);
-        mprLog(2, "Rejecting connection, too many client connections (%d)", ss->numClients);
+        mprLog(2, "Rejecting connection, too many client connections (%d)", ss->numAccept);
         mprCloseSocket(nsp, 0);
         return 0;
     }
