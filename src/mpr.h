@@ -5800,6 +5800,7 @@ extern int mprWaitForEvent(MprDispatcher *dispatcher, MprTime timeout);
  */
 extern void mprSignalDispatcher(MprDispatcher *dispatcher);
 
+//  MOB - period should be MprTime
 /**
     Create a new event
     @description Create a new event for service
