@@ -32,6 +32,101 @@ void mprBreakpoint()
 }
 
 
+void mprCreateLogService() 
+{
+    MPR->logFile = MPR->stdError;
+}
+
+
+int mprStartLogging(cchar *logSpec, int showConfig)
+{
+    MprFile     *file;
+    MprPath     info;
+    char        *levelSpec, *spec;
+    int         level, mode;
+
+    level = -1;
+    if (logSpec == 0) {
+        logSpec = "stderr:0";
+    }
+    if (*logSpec && strcmp(logSpec, "none") != 0) {
+        spec = sclone(logSpec);
+        if ((levelSpec = strrchr(spec, ':')) != 0 && isdigit((int) levelSpec[1])) {
+            *levelSpec++ = '\0';
+            level = atoi(levelSpec);
+        }
+        if (strcmp(spec, "stdout") == 0) {
+            file = MPR->stdOutput;
+        } else if (strcmp(spec, "stderr") == 0) {
+            file = MPR->stdError;
+        } else {
+            mode = O_CREAT | O_WRONLY | O_TEXT;
+            if (MPR->logCount) {
+                mode |= O_APPEND;
+                mprGetPathInfo(spec, &info);
+                if (MPR->logSize <= 0 || (info.valid && info.size > MPR->logSize)) {
+                    mprArchiveLog(spec, MPR->logCount);
+                }
+            } else {
+                mode |= O_TRUNC;
+            }
+            if ((file = mprOpenFile(spec, mode, 0664)) == 0) {
+                mprError("Can't open log file %s", spec);
+                return -1;
+            }
+        }
+        if (level >= 0) {
+            mprSetLogLevel(level);
+        }
+        mprSetLogFile(file);
+
+        if (showConfig) {
+            mprLog(MPR_CONFIG, "Configuration for %s", mprGetAppTitle());
+            mprLog(MPR_CONFIG, "---------------------------------------------");
+            mprLog(MPR_CONFIG, "Version:            %s-%s", BLD_VERSION, BLD_NUMBER);
+            mprLog(MPR_CONFIG, "BuildType:          %s", BLD_TYPE);
+            mprLog(MPR_CONFIG, "CPU:                %s", BLD_CPU);
+            mprLog(MPR_CONFIG, "OS:                 %s", BLD_OS);
+            if (strcmp(BLD_DIST, "Unknown") != 0) {
+                mprLog(MPR_CONFIG, "Distribution:       %s %s", BLD_DIST, BLD_DIST_VER);
+            }
+            mprLog(MPR_CONFIG, "Host:               %s", mprGetHostName());
+            mprLog(MPR_CONFIG, "Configure:          %s", BLD_CONFIG_CMD);
+            mprLog(MPR_CONFIG, "---------------------------------------------");
+        }
+    }
+    return 0;
+}
+
+
+int mprArchiveLog(cchar *path, int count)
+{
+    char    *from, *to;
+    int     i;
+
+    for (i = count - 1; i > 0; i--) {
+        from = sfmt("%s.%d", path, i - 1);
+        to = sfmt("%s.%d", path, i);
+        unlink(to);
+        rename(from, to);
+    }
+    from = sfmt("%s", path);
+    to = sfmt("%s.0", path);
+    unlink(to);
+    if (rename(from, to) < 0) {
+        return MPR_ERR_CANT_CREATE;
+    }
+    return 0;
+}
+
+
+void mprSetLogRotation(int logCount, int logSize)
+{
+    MPR->logCount = logCount;
+    MPR->logSize = logSize;
+}
+
+
 void mprLog(int level, cchar *fmt, ...)
 {
     va_list     args;
@@ -158,9 +253,6 @@ void mprStaticError(cchar *fmt, ...)
 }
 
 
-/*
-    Direct output to the standard error. Does not hook into the logging system and does not allocate memory.
- */
 void mprAssertError(cchar *loc, cchar *msg)
 {
 #if BLD_FEATURE_ASSERT
@@ -174,12 +266,15 @@ void mprAssertError(cchar *loc, cchar *msg)
 #endif
         msg = buf;
     }
+    mprLog(1, "%s", buf);
+#if UNUSED
 #if BLD_UNIX_LIKE || VXWORKS
     if (write(2, (char*) msg, slen(msg)) < 0) {}
 #elif BLD_WIN_LIKE
     if (fprintf(stderr, "%s\n", msg) < 0) {}
 #endif
     mprBreakpoint();
+#endif
 #endif
 }
 
@@ -220,6 +315,9 @@ void mprSetLogHandler(MprLogHandler handler)
 
 void mprSetLogFile(MprFile *file)
 {
+    if (file != MPR->logFile && MPR->logFile != MPR->stdOutput && MPR->logFile != MPR->stdError) {
+        mprCloseFile(MPR->logFile);
+    }
     MPR->logFile = file;
 }
 
@@ -264,27 +362,44 @@ static void logOutput(int flags, int level, cchar *msg)
 
 static void defaultLogHandler(int flags, int level, cchar *msg)
 {
-    char    *prefix;
+    MprFile     *file;
+    char        *prefix, buf[MPR_MAX_LOG];
 
-    prefix = MPR->name;
-    if (msg == 0) {
+    if ((file = MPR->logFile) == 0) {
         return;
     }
+    prefix = MPR->name;
+
+    lock(MPR);
     while (*msg == '\n') {
-        mprPrintfError("\n");
+        mprWriteFile(file, "\n", 1);
         msg++;
     }
     if (flags & MPR_LOG_SRC) {
-        mprPrintfError("%s: %d: %s\n", prefix, level, msg);
-    } else if (flags & MPR_ERROR_SRC) {
-        mprPrintfError("%s: Error: %s\n", prefix, msg);
-    } else if (flags & MPR_WARN_SRC) {
-        mprPrintfError("%s: Warning: %s\n", prefix, msg);
+        mprSprintf(buf, sizeof(buf), "%s: %d: %s\n", prefix, level, msg);
+        mprWriteFileString(file, buf);
+
+    } else if (flags & (MPR_WARN_SRC | MPR_ERROR_SRC)) {
+        if (flags & MPR_WARN_SRC) {
+            mprSprintf(buf, sizeof(buf), "%s: Warning: %s\n", prefix, msg);
+        } else {
+            mprSprintf(buf, sizeof(buf), "%s: Error: %s\n", prefix, msg);
+        }
+#if BLD_WIN_LIKE
+        mprWriteToOsLog(buf, flags, level);
+#endif
+        mprSprintf(buf, sizeof(buf), "%s: Error: %s\n", prefix, msg);
+        mprWriteFileString(file, buf);
+
     } else if (flags & MPR_FATAL_SRC) {
-        mprPrintfError("%s: Fatal: %s\n", prefix, msg);
+        mprSprintf(buf, sizeof(buf), "%s: Fatal: %s\n", prefix, msg);
+        mprWriteToOsLog(buf, flags, level);
+        mprWriteFileString(file, buf);
+        
     } else if (flags & MPR_RAW) {
-        mprPrintfError("%s", msg);
+        mprWriteFileString(file, msg);
     }
+    unlock(MPR);
 }
 
 

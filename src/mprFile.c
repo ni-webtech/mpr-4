@@ -95,28 +95,19 @@ MprOff mprGetFileSize(MprFile *file)
 
 MprFile *mprGetStderr()
 {
-    MprFileSystem   *fs;
-
-    fs = mprLookupFileSystem(NULL);
-    return fs->stdError;
+    return MPR->stdError;
 }
 
 
 MprFile *mprGetStdin()
 {
-    MprFileSystem   *fs;
-
-    fs = mprLookupFileSystem(NULL);
-    return fs->stdInput;
+    return MPR->stdInput;
 }
 
 
 MprFile *mprGetStdout()
 {
-    MprFileSystem   *fs;
-
-    fs = mprLookupFileSystem(NULL);
-    return fs->stdOutput;
+    return MPR->stdOutput;
 }
 
 

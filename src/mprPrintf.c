@@ -133,19 +133,17 @@ static void outFloat(Format *fmt, char specChar, double value);
 
 ssize mprPrintf(cchar *fmt, ...)
 {
-    va_list         ap;
-    MprFileSystem   *fs;
-    char            *buf;
-    ssize           len;
+    va_list     ap;
+    char        *buf;
+    ssize       len;
 
     /* No asserts here as this is used as part of assert reporting */
 
-    fs = mprLookupFileSystem("/");
     va_start(ap, fmt);
     buf = mprAsprintfv(fmt, ap);
     va_end(ap);
-    if (buf != 0 && fs->stdOutput) {
-        len = mprWriteFileString(fs->stdOutput, buf);
+    if (buf != 0 && MPR->stdOutput) {
+        len = mprWriteFileString(MPR->stdOutput, buf);
     } else {
         len = -1;
     }
@@ -155,21 +153,17 @@ ssize mprPrintf(cchar *fmt, ...)
 
 ssize mprPrintfError(cchar *fmt, ...)
 {
-    MprFileSystem   *fs;
-    va_list         ap;
-    ssize           len;
-    char            *buf;
+    va_list     ap;
+    ssize       len;
+    char        *buf;
 
     /* No asserts here as this is used as part of assert reporting */
-
-    fs = mprLookupFileSystem("/");
-    mprAssert(fs);
 
     va_start(ap, fmt);
     buf = mprAsprintfv(fmt, ap);
     va_end(ap);
-    if (buf && fs->stdError) {
-        len = mprWriteFileString(fs->stdError, buf);
+    if (buf && MPR->stdError) {
+        len = mprWriteFileString(MPR->stdError, buf);
     } else {
         len = -1;
     }

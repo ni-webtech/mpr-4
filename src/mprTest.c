@@ -983,10 +983,10 @@ static int setLogging(char *logSpec)
     }
 
     if (strcmp(logSpec, "stdout") == 0) {
-        file = MPR->fileSystem->stdOutput;
+        file = MPR->stdOutput;
 
     } else if (strcmp(logSpec, "stderr") == 0) {
-        file = MPR->fileSystem->stdError;
+        file = MPR->stdError;
 
     } else {
         if ((file = mprOpenFile(logSpec, O_CREAT | O_WRONLY | O_TRUNC | O_TEXT, 0664)) == 0) {

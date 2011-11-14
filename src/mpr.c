@@ -48,6 +48,7 @@ Mpr *mprCreate(int argc, char **argv, int flags)
 
     fs = mprCreateFileSystem("/");
     mprAddFileSystem(fs);
+    mprCreateLogService();
     getArgs(mpr, argc, argv);
 
     if (mpr->argv && mpr->argv[0] && *mpr->argv[0]) {
@@ -97,6 +98,9 @@ static void manageMpr(Mpr *mpr, int flags)
         mprMark(mpr->domainName);
         mprMark(mpr->hostName);
         mprMark(mpr->ip);
+        mprMark(mpr->stdError);
+        mprMark(mpr->stdInput);
+        mprMark(mpr->stdOutput);
         mprMark(mpr->serverName);
         mprMark(mpr->appPath);
         mprMark(mpr->appDir);

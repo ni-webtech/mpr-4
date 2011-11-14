@@ -459,9 +459,6 @@ static void manageDiskFileSystem(MprDiskFileSystem *dfs, int flags)
 {
 #if !WINCE
     if (flags & MPR_MANAGE_MARK) {
-        mprMark(dfs->stdError);
-        mprMark(dfs->stdInput);
-        mprMark(dfs->stdOutput);
         mprMark(dfs->separators);
         mprMark(dfs->newline);
         mprMark(dfs->root);
@@ -487,7 +484,6 @@ MprDiskFileSystem *mprCreateDiskFileSystem(cchar *path)
         Temporary
      */
     fs = (MprFileSystem*) dfs;
-
     dfs->accessPath = accessPath;
     dfs->deletePath = deletePath;
     dfs->getPathInfo = getPathInfo;
@@ -502,29 +498,29 @@ MprDiskFileSystem *mprCreateDiskFileSystem(cchar *path)
     dfs->writeFile = writeFile;
 
 #if !WINCE
-    if ((dfs->stdError = mprAllocStruct(MprFile)) == 0) {
+    if ((MPR->stdError = mprAllocStruct(MprFile)) == 0) {
         return NULL;
     }
-    mprSetName(dfs->stdError, "stderr");
-    dfs->stdError->fd = 2;
-    dfs->stdError->fileSystem = fs;
-    dfs->stdError->mode = O_WRONLY;
+    mprSetName(MPR->stdError, "stderr");
+    MPR->stdError->fd = 2;
+    MPR->stdError->fileSystem = fs;
+    MPR->stdError->mode = O_WRONLY;
 
-    if ((dfs->stdInput = mprAllocStruct(MprFile)) == 0) {
+    if ((MPR->stdInput = mprAllocStruct(MprFile)) == 0) {
         return NULL;
     }
-    mprSetName(dfs->stdInput, "stdin");
-    dfs->stdInput->fd = 0;
-    dfs->stdInput->fileSystem = fs;
-    dfs->stdInput->mode = O_RDONLY;
+    mprSetName(MPR->stdInput, "stdin");
+    MPR->stdInput->fd = 0;
+    MPR->stdInput->fileSystem = fs;
+    MPR->stdInput->mode = O_RDONLY;
 
-    if ((dfs->stdOutput = mprAllocStruct(MprFile)) == 0) {
+    if ((MPR->stdOutput = mprAllocStruct(MprFile)) == 0) {
         return NULL;
     }
-    mprSetName(dfs->stdOutput, "stdout");
-    dfs->stdOutput->fd = 1;
-    dfs->stdOutput->fileSystem = fs;
-    dfs->stdOutput->mode = O_WRONLY;
+    mprSetName(MPR->stdOutput, "stdout");
+    MPR->stdOutput->fd = 1;
+    MPR->stdOutput->fileSystem = fs;
+    MPR->stdOutput->mode = O_WRONLY;
 #endif
     return dfs;
 }
