@@ -177,6 +177,7 @@ int mprCopyPath(cchar *fromName, cchar *toName, int mode)
 }
 
 
+//  MOB - should this be called remove?
 int mprDeletePath(cchar *path)
 {
     MprFileSystem   *fs;

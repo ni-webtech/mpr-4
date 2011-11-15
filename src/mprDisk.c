@@ -173,6 +173,7 @@ static bool accessPath(MprDiskFileSystem *fs, cchar *path, int omode)
 }
 
 
+//  MOB - should this be called removePath
 static int deletePath(MprDiskFileSystem *fs, cchar *path)
 {
     MprPath     info;
@@ -217,7 +218,8 @@ static int makeDir(MprDiskFileSystem *fs, cchar *path, int perms, int owner, int
         return MPR_ERR_CANT_CREATE;
     }
 #if BLD_UNIX_LIKE
-    if ((owner >= 0 || group >= 0) && chown(path, owner, group) < 0) {
+    if ((owner != -1 || group != -1) && chown(path, owner, group) < 0) {
+        rmdir(path);
         return MPR_ERR_CANT_CREATE;
     }
 #endif
