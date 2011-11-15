@@ -36,7 +36,6 @@ cleanExtra:
 	rm -rf xml html ../$(NAME).tags
 
 clobberExtra:
-	rm -f ../$(NAME).html ../$(NAME)Bare.html
 	rm -fr ./$(STAGING)
 
 #
