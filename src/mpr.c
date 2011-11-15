@@ -88,6 +88,7 @@ Mpr *mprCreate(int argc, char **argv, int flags)
 static void manageMpr(Mpr *mpr, int flags)
 {
     if (flags & MPR_MANAGE_MARK) {
+        mprMark(mpr->logPath);
         mprMark(mpr->logFile);
         mprMark(mpr->mimeTypes);
         mprMark(mpr->timeTokens);
