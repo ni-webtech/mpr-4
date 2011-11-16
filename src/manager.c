@@ -260,7 +260,7 @@ static bool run(cchar *fmt, ...)
         mprLog(1, "Error: %s", err); 
     }
     if (out && *out) {
-        mprLog(1, "Output: %s", err); 
+        mprLog(1, "Output: %s", out); 
     }
     va_end(args);
     return 1;
