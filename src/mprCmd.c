@@ -47,7 +47,7 @@ static void cmdTaskEntry(char *program, MprCmdTaskFn entry, int cmdArg);
 
 /************************************* Code ***********************************/
 
-MprCmdService *mprCreateCmdService(Mpr *mpr)
+MprCmdService *mprCreateCmdService()
 {
     MprCmdService   *cs;
 

@@ -15,9 +15,9 @@ Key Directories
 Key Files
 ---------
 * Makefile        - MPR Makefile.
+* manager.c       - Source for the Manager (watchdog) program.
 * mpr.h           - Primary MPR header.
 * mprSsl.h
-* angel.c         - Source for the Angel (watchdog) program.
 * mpr.c
 * mprAsync.c
 * mprAtomic.c

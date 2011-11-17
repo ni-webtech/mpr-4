@@ -266,14 +266,6 @@ void mprAssertError(cchar *loc, cchar *msg)
         msg = buf;
     }
     mprLog(1, "%s", buf);
-#if UNUSED
-#if BLD_UNIX_LIKE || VXWORKS
-    if (write(2, (char*) msg, slen(msg)) < 0) {}
-#elif BLD_WIN_LIKE
-    if (fprintf(stderr, "%s\n", msg) < 0) {}
-#endif
-    mprBreakpoint();
-#endif
 #endif
 }
 

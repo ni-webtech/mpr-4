@@ -76,9 +76,10 @@
 		C941899612ADC7FE00AD31B5 /* mprMixed.c in Sources */ = {isa = PBXBuildFile; fileRef = C941899312ADC7FE00AD31B5 /* mprMixed.c */; };
 		C941899712ADC7FE00AD31B5 /* mprWide.c in Sources */ = {isa = PBXBuildFile; fileRef = C941899412ADC7FE00AD31B5 /* mprWide.c */; };
 		C9418A1C12ADCD8100AD31B5 /* libmpr.dylib in Frameworks */ = {isa = PBXBuildFile; fileRef = C90A19EE0FD6DCAD006A9E86 /* libmpr.dylib */; };
+		C96C41741474D97D00C9E151 /* manager.c in Sources */ = {isa = PBXBuildFile; fileRef = C96C41731474D97D00C9E151 /* manager.c */; };
 		C988254812C820FA0029051B /* mprAtomic.c in Sources */ = {isa = PBXBuildFile; fileRef = C988254712C820FA0029051B /* mprAtomic.c */; };
+		C9A0A90014737187003D0589 /* mprCache.c in Sources */ = {isa = PBXBuildFile; fileRef = C9A0A8FF14737187003D0589 /* mprCache.c */; };
 		C9B21F651011D0DD001053BB /* testThread.c in Sources */ = {isa = PBXBuildFile; fileRef = C9B21F641011D0DD001053BB /* testThread.c */; };
-		C9B23295136A193100014E75 /* angel.c in Sources */ = {isa = PBXBuildFile; fileRef = C9B23294136A193100014E75 /* angel.c */; };
 		C9B23298136A198700014E75 /* libmpr.dylib in Frameworks */ = {isa = PBXBuildFile; fileRef = C90A19EE0FD6DCAD006A9E86 /* libmpr.dylib */; };
 		C9CD7935131441D5007794B0 /* testArgv.c in Sources */ = {isa = PBXBuildFile; fileRef = C9CD7934131441D5007794B0 /* testArgv.c */; };
 		C9DC693B131C2DEB00E18F46 /* mprSignal.c in Sources */ = {isa = PBXBuildFile; fileRef = C9DC693A131C2DEB00E18F46 /* mprSignal.c */; };
@@ -223,12 +224,13 @@
 		C941899212ADC7FE00AD31B5 /* mprMem.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; name = mprMem.c; path = ../../../src/mprMem.c; sourceTree = SOURCE_ROOT; };
 		C941899312ADC7FE00AD31B5 /* mprMixed.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; name = mprMixed.c; path = ../../../src/mprMixed.c; sourceTree = SOURCE_ROOT; };
 		C941899412ADC7FE00AD31B5 /* mprWide.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; name = mprWide.c; path = ../../../src/mprWide.c; sourceTree = SOURCE_ROOT; };
+		C96C41731474D97D00C9E151 /* manager.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; name = manager.c; path = ../../../src/manager.c; sourceTree = "<group>"; };
 		C988254712C820FA0029051B /* mprAtomic.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; name = mprAtomic.c; path = ../../../src/mprAtomic.c; sourceTree = SOURCE_ROOT; };
+		C9A0A8FF14737187003D0589 /* mprCache.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; name = mprCache.c; path = ../../../src/mprCache.c; sourceTree = "<group>"; };
 		C9B21F641011D0DD001053BB /* testThread.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; name = testThread.c; path = ../../../src/test/testThread.c; sourceTree = SOURCE_ROOT; };
 		C9B23288136A18F800014E75 /* angel */ = {isa = PBXFileReference; explicitFileType = "compiled.mach-o.executable"; includeInIndex = 0; path = angel; sourceTree = BUILT_PRODUCTS_DIR; };
 		C9B2328B136A18F800014E75 /* main.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = main.c; sourceTree = "<group>"; };
 		C9B2328D136A18F800014E75 /* angel.1 */ = {isa = PBXFileReference; lastKnownFileType = text.man; path = angel.1; sourceTree = "<group>"; };
-		C9B23294136A193100014E75 /* angel.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; name = angel.c; path = ../../../src/angel.c; sourceTree = "<group>"; };
 		C9CD7934131441D5007794B0 /* testArgv.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; name = testArgv.c; path = ../../../src/test/testArgv.c; sourceTree = SOURCE_ROOT; };
 		C9DC693A131C2DEB00E18F46 /* mprSignal.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; name = mprSignal.c; path = ../../../src/mprSignal.c; sourceTree = SOURCE_ROOT; };
 		C9E1001610D833E30085D594 /* mprAsync.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; name = mprAsync.c; path = ../../../src/mprAsync.c; sourceTree = SOURCE_ROOT; };
@@ -324,11 +326,12 @@
 		C90A19E60FD6DC6C006A9E86 /* Source */ = {
 			isa = PBXGroup;
 			children = (
-				C9B23294136A193100014E75 /* angel.c */,
 				C9EAE709110A61D00062863F /* dtoa.c */,
+				C96C41731474D97D00C9E151 /* manager.c */,
 				C90A1A190FD6DD4C006A9E86 /* mpr.c */,
 				C988254712C820FA0029051B /* mprAtomic.c */,
 				C9E1001610D833E30085D594 /* mprAsync.c */,
+				C9A0A8FF14737187003D0589 /* mprCache.c */,
 				C90A1A1D0FD6DD4C006A9E86 /* mprBuf.c */,
 				C90A1A1E0FD6DD4C006A9E86 /* mprCmd.c */,
 				C90A1A1F0FD6DD4C006A9E86 /* mprCond.c */,
@@ -518,9 +521,9 @@
 			productReference = C90A1ACE0FD6E2A4006A9E86 /* testMpr */;
 			productType = "com.apple.product-type.tool";
 		};
-		C9B23287136A18F800014E75 /* angel */ = {
+		C9B23287136A18F800014E75 /* manager */ = {
 			isa = PBXNativeTarget;
-			buildConfigurationList = C9B23290136A18F800014E75 /* Build configuration list for PBXNativeTarget "angel" */;
+			buildConfigurationList = C9B23290136A18F800014E75 /* Build configuration list for PBXNativeTarget "manager" */;
 			buildPhases = (
 				C9B23284136A18F800014E75 /* Sources */,
 				C9B23285136A18F800014E75 /* Frameworks */,
@@ -531,7 +534,7 @@
 			dependencies = (
 				C9B23293136A190400014E75 /* PBXTargetDependency */,
 			);
-			name = angel;
+			name = manager;
 			productName = angel;
 			productReference = C9B23288136A18F800014E75 /* angel */;
 			productType = "com.apple.product-type.tool";
@@ -597,7 +600,7 @@
 				C90A1ACD0FD6E2A4006A9E86 /* testMpr */,
 				C9FA8F821249069800FEAFE2 /* benchMpr */,
 				C9F3AAF51252462100183E33 /* runProgram */,
-				C9B23287136A18F800014E75 /* angel */,
+				C9B23287136A18F800014E75 /* manager */,
 			);
 		};
 /* End PBXProject section */
@@ -649,6 +652,7 @@
 				C988254812C820FA0029051B /* mprAtomic.c in Sources */,
 				C92D5BBB130DE5C40097EBA8 /* mprMime.c in Sources */,
 				C9DC693B131C2DEB00E18F46 /* mprSignal.c in Sources */,
+				C9A0A90014737187003D0589 /* mprCache.c in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -690,7 +694,7 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				C9B23295136A193100014E75 /* angel.c in Sources */,
+				C96C41741474D97D00C9E151 /* manager.c in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -735,7 +739,7 @@
 		};
 		C9B23297136A196B00014E75 /* PBXTargetDependency */ = {
 			isa = PBXTargetDependency;
-			target = C9B23287136A18F800014E75 /* angel */;
+			target = C9B23287136A18F800014E75 /* manager */;
 			targetProxy = C9B23296136A196B00014E75 /* PBXContainerItemProxy */;
 		};
 		C9F3AB021252465600183E33 /* PBXTargetDependency */ = {
@@ -1099,7 +1103,7 @@
 			defaultConfigurationIsVisible = 0;
 			defaultConfigurationName = Release;
 		};
-		C9B23290136A18F800014E75 /* Build configuration list for PBXNativeTarget "angel" */ = {
+		C9B23290136A18F800014E75 /* Build configuration list for PBXNativeTarget "manager" */ = {
 			isa = XCConfigurationList;
 			buildConfigurations = (
 				C9B2328E136A18F800014E75 /* Debug */,
