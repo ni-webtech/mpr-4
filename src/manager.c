@@ -9,10 +9,10 @@
 
 #include    "mpr.h"
 
-#if 0
-#define SERVICE_PROGRAM BLD_BIN_PREFIX BLD_PRODUCT
+#define SERVICE_PROGRAM BLD_BIN_PREFIX "/" BLD_PRODUCT
 #define SERVICE_NAME BLD_PRODUCT
-#else
+
+#if UNUSED
 #define SERVICE_PROGRAM "/home/mob/git/appweb/out/bin/appweb"
 #define SERVICE_NAME "appweb"
 #endif
