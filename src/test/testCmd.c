@@ -79,7 +79,7 @@ static void testRunCmd(MprTestGroup *gp)
 }
 
 
-static void withDataCallback(MprCmd *cmd, int channel, void *data)
+static ssize withDataCallback(MprCmd *cmd, int channel, void *data)
 {
     MprTestGroup    *gp;
     TestCmd         *tc;
@@ -91,6 +91,7 @@ static void withDataCallback(MprCmd *cmd, int channel, void *data)
     assert(tc != NULL);
     buf = tc->buf;
     assert(buf != NULL);
+    len = 0;
     
     switch (channel) {
     case MPR_CMD_STDIN:
@@ -106,7 +107,7 @@ static void withDataCallback(MprCmd *cmd, int channel, void *data)
             if (mprGrowBuf(buf, MPR_BUFSIZE) < 0) {
                 mprAssert(0);
                 mprCloseCmdFd(cmd, channel);
-                return;
+                return 0;
             }
             space = mprGetBufSpace(buf);
         }
@@ -119,7 +120,7 @@ static void withDataCallback(MprCmd *cmd, int channel, void *data)
             } else {
                 mprEnableCmdEvents(cmd, channel);
             }
-            return;
+            return len;
             
         } else {
             mprAdjustBufEnd(buf, len);
@@ -132,6 +133,7 @@ static void withDataCallback(MprCmd *cmd, int channel, void *data)
         /* Child death notification */
         break;
     }
+    return len;
 }
 
 

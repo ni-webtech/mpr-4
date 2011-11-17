@@ -13,7 +13,6 @@
 static void getArgs(Mpr *mpr, int argc, char **argv);
 static void manageMpr(Mpr *mpr, int flags);
 static void serviceEventsThread(void *data, MprThread *tp);
-static void startThreads(int flags);
 
 /************************************* Code ***********************************/
 /*
@@ -76,7 +75,12 @@ Mpr *mprCreate(int argc, char **argv, int flags)
     mpr->nonBlock = mprCreateDispatcher("nonblock", 1);
     mpr->pathEnv = sclone(getenv("PATH"));
 
-    startThreads(flags);
+    if (flags & MPR_USER_EVENTS_THREAD) {
+        mprInitWindow();
+    } else {
+        mprStartEventsThread(flags);
+    }
+    mprStartGCService();
 
     if (MPR->hasError || mprHasMemError()) {
         return 0;
@@ -319,22 +323,18 @@ int mprStart()
 }
 
 
-static void startThreads(int flags)
+int mprStartEventsThread()
 {
     MprThread   *tp;
 
-    if (flags & MPR_USER_EVENTS_THREAD) {
-        mprInitWindow();
+    if ((tp = mprCreateThread("events", serviceEventsThread, NULL, 0)) == 0) {
+        MPR->hasError = 1;
     } else {
-        if ((tp = mprCreateThread("events", serviceEventsThread, NULL, 0)) == 0) {
-            MPR->hasError = 1;
-        } else {
-            MPR->cond = mprCreateCond();
-            mprStartThread(tp);
-            mprWaitForCond(MPR->cond, MPR_TIMEOUT_START_TASK);
-        }
+        MPR->cond = mprCreateCond();
+        mprStartThread(tp);
+        mprWaitForCond(MPR->cond, MPR_TIMEOUT_START_TASK);
     }
-    mprStartGCService();
+    return 0;
 }
 
 
