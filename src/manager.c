@@ -321,8 +321,13 @@ static int process(cchar *operation)
             ;
 
         } else if (service) {
-            if (!run("/sbin/chkconfig --del %s ; /sbin/chkconfig --add %s ; /sbin/chkconfig --level 5 %s", 
-                    name, name, name)) {
+            if (!run("/sbin/chkconfig --del %s", name)) {
+                return MPR_ERR_CANT_COMPLETE;
+            }
+            if (!run("/sbin/chkconfig --add %s", name)) {
+                return MPR_ERR_CANT_COMPLETE;
+            }
+            if (!run("/sbin/chkconfig --level 5 %s", name)) {
                 return MPR_ERR_CANT_COMPLETE;
             }
 
@@ -399,7 +404,7 @@ static int process(cchar *operation)
             return run("/bin/launchctl load /Library/LaunchDaemons/com.%s.%s.plist", slower(BLD_COMPANY), name);
 
         } else if (service) {
-            return run("/sbin/service %s start");
+            return run("/sbin/service %s start", name);
 
         } else if (update) {
             return run("/usr/sbin/invoke-rc.d --quiet %s start", name);
@@ -413,7 +418,7 @@ static int process(cchar *operation)
             return run("/bin/launchctl unload /Library/LaunchDaemons/com.%s.%s.plist", slower(BLD_COMPANY), name);
 
         } else if (service) {
-            if (!run("/sbin/service %s stop")) {
+            if (!run("/sbin/service %s stop", name)) {
                 return killPid();
             }
             return 1;
