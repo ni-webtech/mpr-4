@@ -463,12 +463,10 @@ static bool process(cchar *operation, bool quiet)
         runService();
     }
 
-    if (!rc) {
-        if (app->error && *app->error) {
+    if (!quiet) {
+        if (!rc && app->error && *app->error) {
             mprError("Can't run command: %s\nCommand output: %s\n", app->command, app->error);
         }
-    }
-    if (!quiet) {
         /* Logging at level one will be visible if appman -v is used */
         if (app->error && *app->error) {
             mprLog(1, "Error: %s", app->error); 
