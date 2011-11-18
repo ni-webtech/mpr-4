@@ -2,6 +2,16 @@
     manager.c -- Manager program 
 
     The manager watches over daemon programs.
+    Key commands:
+        uninstall   - Stop, disable then one time removal of configuration. 
+        install     - Do one time installation configuration. Post-state: disabled.
+        enable      - Enable service to run on reboot. Post-state: enabled. Does not start.
+        disable     - Stop, then disable service to run on reboot. Post-state: disabled.
+        stop        - Stop service. Post-state: stopped.
+        start       - Start service. Post-state: running.
+        run         - Run and watch over. Blocks.
+
+    Idempotent. "appweb start" returns 0 if already started.
 
     Copyright (c) All Rights Reserved. See copyright notice at the bottom of the file.
  */
@@ -287,7 +297,7 @@ static bool run(cchar *fmt, ...)
 
 static int process(cchar *operation)
 {
-    cchar   *name;
+    cchar   *name, *off, *path;
     int     launch, update, service, upstart;
 
     /*
@@ -358,11 +368,17 @@ static int process(cchar *operation)
 
     } else if (smatch(operation, "enable")) {
         /* 
-            Enable service (will start on reboot), and start service 
+            Enable service (will start on reboot)
          */
         if (launch) {
-            //  MOB - FIX MUST NOT START
-            return run("/bin/launchctl load -w /Library/LaunchDaemons/com.%s.%s.plist", slower(BLD_COMPANY), name);
+            path = sfmt("/Library/LaunchDaemons/com.%s.%s.plist", slower(BLD_COMPANY), name);
+            /* 
+                Unfortunately, there is no launchctl command to do an enable without starting. So must do a stop below.
+             */
+            if (!run("/bin/launchctl load -w %s", path)) {
+                return MPR_ERR_CANT_COMPLETE;
+            }
+            return process("stop");
 
         } else if (update) {
             if (!run("/usr/sbin/update-rc.d %s enable", name)) {
@@ -375,15 +391,16 @@ static int process(cchar *operation)
             }
 
         } else if (upstart) {
-            if (exists("/etc/init/%s.off", name)) {
-                if (!run("mv /etc/init/%s.off /etc/init/%s.conf", name, name)) {
-                    return MPR_ERR_CANT_COMPLETE;
-                }
+            off = sfmt("/etc/init/%s.off", name);
+            if (exists(off) && !run("mv %s /etc/init/%s.conf", off, name)) {
+                return MPR_ERR_CANT_COMPLETE;
             }
         }
 
     } else if (smatch(operation, "disable")) {
-        /* Stop service and leave in disabled state (won't start on reboot) */
+        if (!process("stop")) {
+            return MPR_ERR_CANT_COMPLETE;
+        }
         if (launch) {
             return run("/bin/launchctl unload -w /Library/LaunchDaemons/com.%s.%s.plist", slower(BLD_COMPANY), name);
 
