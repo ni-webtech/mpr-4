@@ -76,12 +76,11 @@ static int  writePid(int pid);
 
 int main(int argc, char *argv[])
 {
-    Mpr     *mpr;
     char    *argp;
     int     err, nextArg, status;
 
     err = 0;
-    mpr = mprCreate(argc, argv, MPR_USER_EVENTS_THREAD);
+    mprCreate(argc, argv, MPR_USER_EVENTS_THREAD);
     app = mprAllocObj(App, manageApp);
     mprAddRoot(app);
     mprAddTerminator(terminating);
