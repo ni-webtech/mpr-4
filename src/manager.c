@@ -9,11 +9,12 @@
 
 #include    "mpr.h"
 
+#if 0
 #define SERVICE_PROGRAM BLD_BIN_PREFIX "/" BLD_PRODUCT
 #define SERVICE_NAME BLD_PRODUCT
 
-#if UNUSED
-#define SERVICE_PROGRAM "/home/mob/git/appweb/out/bin/appweb"
+#else
+#define SERVICE_PROGRAM "C:/cygwin/home/mob/appweb/out/bin/appweb"
 #define SERVICE_NAME "appweb"
 #endif
 
@@ -50,7 +51,7 @@ static bool killPid();
 static int  makeDaemon();
 static void manageApp(void *unused, int flags);
 static int  readPid();
-static int  process(cchar *operation);
+static bool process(cchar *operation);
 static void runService();
 static void setAppDefaults(Mpr *mpr);
 static void terminating(int how, int status);
@@ -285,7 +286,7 @@ static bool run(cchar *fmt, ...)
 }
 
 
-static int process(cchar *operation)
+static bool process(cchar *operation)
 {
     cchar   *name;
     int     launch, update, service, upstart;
@@ -707,6 +708,7 @@ typedef struct App {
     cchar        *appTitle;          /* Manager title */
     int          createConsole;      /* Display service console */
     int          exiting;            /* Program should exit */
+    char         *logSpec;           /* Log directive for service */
     int          heartBeatPeriod;    /* Service heart beat interval */
     HANDLE       heartBeatEvent;     /* Heart beat event event to sleep on */
     HWND         otherHwnd;          /* Existing instance window handle */
@@ -733,16 +735,19 @@ static SERVICE_TABLE_ENTRY      svcTable[] = {
 };
 
 static void     WINAPI serviceCallback(ulong code);
+static int      enableService(int enable);
 static void     initService();
 static int      installService();
 static void     logHandler(int flags, int level, cchar *msg);
 static int      registerService();
 static int      removeService(int removeFromScmDb);
 static void     gracefulShutdown(MprTime timeout);
+static bool     process(cchar *operation);
 static int      startDispatcher(LPSERVICE_MAIN_FUNCTION svcMain);
 static int      startService();
 static int      stopService(int cmd);
 static int      tellSCM(long state, long exitCode, long wait);
+static void     terminating(int how, int status);
 static void     updateStatus(int status, int exitCode);
 static void     writeToOsLog(cchar *message);
 static void     run();
@@ -760,15 +765,14 @@ static void WINAPI serviceMain(ulong argc, char **argv);
 int APIENTRY WinMain(HINSTANCE inst, HINSTANCE junk, char *args, int junk2)
 {
     char    **argv, *argp;
-    int     argc, err, nextArg, installFlag;
+    int     argc, err, nextArg;
 
-    mpr = mprCreate(0, NULL, 0);
+    mpr = mprCreate(0, NULL, MPR_USER_EVENTS_THREAD);
     app = mprAllocObj(App, manageApp);
     mprAddRoot(app);
-    mprAddStandardSignals();
+    mprAddTerminator(terminating);
 
     err = 0;
-    installFlag = 0;
     app->appInst = inst;
     app->heartBeatPeriod = HEART_BEAT_PERIOD;
 
@@ -827,6 +831,18 @@ int APIENTRY WinMain(HINSTANCE inst, HINSTANCE junk, char *args, int junk2)
                 app->serviceHome = sclone(argv[++nextArg]);
             }
 
+        } else if (strcmp(argp, "--log") == 0) {
+            /*
+                Pass the log directive through to the service
+             */
+            if (nextArg >= argc) {
+                err++;
+            } else {
+                app->logSpec = sclone(argv[++nextArg]);
+                mprStartLogging(app->logSpec, 0);
+                mprSetCmdlineLogging(1);
+            }
+
         } else if (strcmp(argp, "--program") == 0) {
             if (nextArg >= argc) {
                 err++;
@@ -834,11 +850,8 @@ int APIENTRY WinMain(HINSTANCE inst, HINSTANCE junk, char *args, int junk2)
                 app->serviceProgram = sclone(argv[++nextArg]);
             }
 
-        } else if (strcmp(argp, "--install") == 0) {
-            installFlag++;
-
+#if UNUSED
         } else if (strcmp(argp, "--start") == 0) {
-//  MOB - use same operation style 
             /*
                 Start the manager
              */
@@ -862,6 +875,7 @@ int APIENTRY WinMain(HINSTANCE inst, HINSTANCE junk, char *args, int junk2)
             if (removeService(1) < 0) {
                 return FALSE;
             }
+#endif
 
         } else if (strcmp(argp, "--verbose") == 0 || strcmp(argp, "-v") == 0) {
             mprSetLogLevel(1);
@@ -869,6 +883,7 @@ int APIENTRY WinMain(HINSTANCE inst, HINSTANCE junk, char *args, int junk2)
         } else {
             err++;
         }
+
         if (err) {
             mprUserError("Bad command line: %s\n"
                 "  Usage: %s [options] [program args]\n"
@@ -877,35 +892,32 @@ int APIENTRY WinMain(HINSTANCE inst, HINSTANCE junk, char *args, int junk2)
                 "    --console            # Display the service console\n"
                 "    --heartBeat interval # Heart beat interval period (secs)\n"
                 "    --home path          # Home directory for service\n"
-                "    --install            # Install the service\n"
+                "    --log logFile:level  # Log directive for service\n"
                 "    --program            # Service program to start\n"
-                "    --start              # Start the service\n"
-                "    --stop               # Stop the service\n"
-                "    --uninstall          # Uninstall the service\n",
-                "    --verbose            # Show command feedback\n",
+                "    --verbose            # Show command feedback\n"
+                "  Commands:\n"
+                "    disable              # Disable the service\n"
+                "    enable               # Enable the service\n"
+                "    start                # Start the service\n"
+                "    stop                 # Start the service\n"
+                "    run                  # Run and watch over the service\n",
                 args, app->appName);
             return -1;
         }
     }
-    //  MOB - operation style
-    if (installFlag) {
-        /*
-            Install the manager
-         */
-        if (installService(app->serviceArgs) < 0) {
-            return FALSE;
+    if (mprStart() < 0) {
+        mprUserError("Can't start MPR for %s", mprGetAppName());                                           
+    } else {
+        mprStartEventsThread();
+        for (; nextArg < argc; nextArg++) {
+            if (!process(argv[nextArg])) {
+                return FALSE;
+            }
         }
     }
-    if (argc <= 1) {
-        /*
-            This will block if we are a service and are being started by the
-            service control manager. While blocked, the svcMain will be called
-            which becomes the effective main program. 
-         */
-        startDispatcher(serviceMain);
-    }
-    return 0;
+    return TRUE;
 }
+
 
 static void manageApp(void *ptr, int flags)
 {
@@ -920,6 +932,59 @@ static void manageApp(void *ptr, int flags)
     }
 }
 
+
+static bool process(cchar *operation)
+{
+    if (smatch(operation, "install")) {
+        if (installService(app->serviceArgs) < 0) {
+            return 0;
+        }
+
+    } else if (smatch(operation, "uninstall")) {
+        if (removeService(1) < 0) {
+            return 0;
+        }
+
+    } else if (smatch(operation, "enable")) {
+        if (enableService(1) < 0) {
+            return 0;
+        }
+
+    } else if (smatch(operation, "disable")) {
+        if (enableService(0) < 0) {
+            return 0;
+        }
+
+    } else if (smatch(operation, "start")) {
+        if (startService() < 0) {
+            return 0;
+        }
+
+    } else if (smatch(operation, "stop")) {
+        if (removeService(0) < 0) {
+            return 0;
+        }
+
+    } else if (smatch(operation, "reload")) {
+        return process("restart");
+
+    } else if (smatch(operation, "restart")) {
+        if (!process("stop")) {
+            return MPR_ERR_CANT_COMPLETE;
+        }
+        return process("start");
+
+    } else if (smatch(operation, "run")) {
+        /*
+            This thread will block if being started by SCM. While blocked, the serviceMain 
+            will be called which becomes the effective main program. 
+         */
+        startDispatcher(serviceMain);
+    }
+    return 1;
+}
+
+
 /*
     Secondary entry point when started by the service control manager. Remember 
     that the main program thread is blocked in the startDispatcher called from
@@ -928,6 +993,8 @@ static void manageApp(void *ptr, int flags)
 static void WINAPI serviceMain(ulong argc, char **argv)
 {
     int     threadId;
+
+    mprLog(1, "%s: Watching over %s", app->appName, app->serviceProgram);
 
     app->serviceThreadEvent = CreateEvent(0, TRUE, FALSE, 0);
     app->heartBeatEvent = CreateEvent(0, TRUE, FALSE, 0);
@@ -1268,6 +1335,39 @@ static int removeService(int removeFromScmDb)
 }
 
 
+static int enableService(int enable)
+{
+    SC_HANDLE   svc, mgr;
+    int         flag, serviceType;
+
+    mgr = OpenSCManager(NULL, NULL, SC_MANAGER_ALL_ACCESS);
+    if (! mgr) {
+        mprUserError("Can't open service manager");
+        return MPR_ERR_CANT_ACCESS;
+    }
+    svc = OpenService(mgr, app->serviceName, SERVICE_ALL_ACCESS);
+    if (svc == NULL) {
+        mprUserError("Can't access service");
+        CloseServiceHandle(mgr);
+        return MPR_ERR_CANT_ACCESS;
+    }
+    serviceType = SERVICE_WIN32_OWN_PROCESS;
+    if (app->createConsole) {
+        serviceType |= SERVICE_INTERACTIVE_PROCESS;
+    }
+    flag = (enable) ? SERVICE_AUTO_START : SERVICE_DISABLED;
+    if (!ChangeServiceConfig(svc, SERVICE_NO_CHANGE, flag, SERVICE_NO_CHANGE, NULL, NULL, NULL, NULL, NULL, NULL, NULL)) {
+        mprUserError("Can't change service: 0x%x == %d", GetLastError(), GetLastError());
+        CloseServiceHandle(svc);
+        CloseServiceHandle(mgr);
+        return MPR_ERR_CANT_CREATE;
+    }
+    CloseServiceHandle(svc);
+    CloseServiceHandle(mgr);
+    return 0;
+}
+
+
 /*
     Start the window's service
  */ 
@@ -1427,9 +1527,14 @@ static void gracefulShutdown(MprTime timeout)
         }
     }
     if (app->servicePid) {
-        TerminateProcess((HANDLE) app->servicePid, 2);
+        TerminateProcess((HANDLE) app->servicePid, MPR_EXIT_GRACEFUL);
         app->servicePid = 0;
     }
+}
+
+
+static void terminating(int how, int status)
+{
 }
 
 
