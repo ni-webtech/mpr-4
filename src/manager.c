@@ -224,6 +224,7 @@ static void manageApp(void *ptr, int flags)
         mprMark(app->appName);
         mprMark(app->error);
         mprMark(app->output);
+        mprMark(app->command);
         mprMark(app->logSpec);
         mprMark(app->pidDir);
         mprMark(app->pidPath);
