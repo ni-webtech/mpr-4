@@ -693,7 +693,6 @@ int mprWaitForCmd(MprCmd *cmd, MprTime timeout)
  */
 static void reapCmd(MprCmd *cmd, MprSignal *sp)
 {
-//  sp->signo
     ssize   got, nbytes;
     int     status, rc;
 
@@ -704,10 +703,12 @@ static void reapCmd(MprCmd *cmd, MprSignal *sp)
         return;
     }
 #if BLD_UNIX_LIKE
+#if UNUSED
     if (sp && sp->info.siginfo.si_pid != cmd->pid) {
         mprLog(0, "reapCmd signal for pid %d, not for this cmd pid %d", sp->info.siginfo.si_pid, cmd->pid);
         return;
     }
+#endif
     if ((rc = waitpid(cmd->pid, &status, WNOHANG | __WALL)) < 0) {
         mprLog(0, "waitpid failed for pid %d, errno %d", cmd->pid, errno);
 
