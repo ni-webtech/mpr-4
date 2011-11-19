@@ -5943,6 +5943,7 @@ extern void mprScheduleDispatcher(MprDispatcher *dispatcher);
 extern void mprQueueTimerEvent(MprDispatcher *dispatcher, MprEvent *event);
 extern void mprDedicateWorkerToDispatcher(MprDispatcher *dispatcher, struct MprWorker *worker);
 extern void mprReleaseWorkerFromDispatcher(MprDispatcher *dispatcher, struct MprWorker *worker);
+extern bool mprDispatcherHasEvents(MprDispatcher *dispatcher);
 
 /*********************************** XML **************************************/
 /*

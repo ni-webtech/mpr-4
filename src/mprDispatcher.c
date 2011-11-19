@@ -789,6 +789,14 @@ void mprSignalDispatcher(MprDispatcher *dispatcher)
     mprSignalCond(dispatcher->cond);
 }
 
+bool mprDispatcherHasEvents(MprDispatcher *dispatcher)
+{
+    if (dispatcher == 0) {
+        return 0;
+    }
+    return !isEmpty(dispatcher);
+}
+
 
 /*
     @copy   default
