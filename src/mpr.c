@@ -78,7 +78,9 @@ Mpr *mprCreate(int argc, char **argv, int flags)
     mpr->pathEnv = sclone(getenv("PATH"));
 
     if (flags & MPR_USER_EVENTS_THREAD) {
-        mprInitWindow();
+        if (flags & MPR_CREATE_WINDOW) {
+            mprInitWindow();
+        }
     } else {
         mprStartEventsThread();
     }
@@ -345,7 +347,9 @@ int mprStartEventsThread()
 static void serviceEventsThread(void *data, MprThread *tp)
 {
     mprLog(MPR_CONFIG, "Service thread started");
-    mprInitWindow();
+    if (MPR->flags & MPR_CREATE_WINDOW) {
+        mprInitWindow();
+    }
     mprSignalCond(MPR->cond);
     mprServiceEvents(-1, 0);
 }
