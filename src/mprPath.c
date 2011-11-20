@@ -1320,19 +1320,23 @@ char *mprReadPathContents(cchar *path, ssize *lenp)
         return 0;
     }
     if (mprGetPathInfo(path, &info) < 0) {
+        mprCloseFile(file);
         return 0;
     }
     len = (ssize) info.size;
     if ((buf = mprAlloc(len + 1)) == 0) {
+        mprCloseFile(file);
         return 0;
     }
     if (mprReadFile(file, buf, len) != len) {
+        mprCloseFile(file);
         return 0;
     }
     buf[len] = '\0';
     if (lenp) {
         *lenp = len;
     }
+    mprCloseFile(file);
     return buf;
 }
 
