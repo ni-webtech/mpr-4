@@ -1535,6 +1535,7 @@ ssize mprWritePathContents(cchar *path, cchar *buf, ssize len, int mode)
     }
     if (mprWriteFile(file, buf, len) != len) {
         mprError("Can't write %s", path);
+        mprCloseFile(file);
         return MPR_ERR_CANT_WRITE;
     }
     mprCloseFile(file);
