@@ -28,6 +28,7 @@
 
 #define RESTART_DELAY (0 * 1000)        /* Default heart beat period (30 sec) */
 #define RESTART_MAX   (100)             /* Max restarts per hour */
+#define MANAGE_TIMEOUT (20 * 1000)      /* Timeout for actions */
 
 typedef struct App {
     cchar   *appName;                   /* Manager name */
@@ -282,7 +283,7 @@ static bool run(cchar *fmt, ...)
     mprLog(1, "Run: %s", app->command);
 
     cmd = mprCreateCmd(NULL);
-    rc = mprRunCmd(cmd, app->command, &out, &err, 0);
+    rc = mprRunCmd(cmd, app->command, &out, &err, MANAGE_TIMEOUT, 0);
     app->error = sclone(err);
     app->output = sclone(out);
     va_end(args);

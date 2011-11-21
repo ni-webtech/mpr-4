@@ -33,7 +33,7 @@ rest:
 	rm -fr ./$(STAGING) xml html
 
 cleanExtra:
-	rm -rf xml html ../$(NAME).tags
+	rm -rf xml html
 
 clobberExtra:
 	rm -fr ./$(STAGING)

@@ -7792,6 +7792,7 @@ extern int mprReapCmd(MprCmd *cmd, MprTime timeout);
     @param command Command line to run
     @param out Reference to a string to receive the stdout from the command.
     @param err Reference to a string to receive the stderr from the command.
+    @param timeout Time in milliseconds to wait for the command to complete and exit.
     @param flags Flags to modify execution. Valid flags are:
         MPR_CMD_NEW_SESSION     Create a new session on Unix
         MPR_CMD_SHOW            Show the commands window on Windows
@@ -7799,7 +7800,7 @@ extern int mprReapCmd(MprCmd *cmd, MprTime timeout);
     @return Zero if successful. Otherwise a negative MPR error code.
     @ingroup MprCmd
  */
-extern int mprRunCmd(MprCmd *cmd, cchar *command, char **out, char **err, int flags);
+extern int mprRunCmd(MprCmd *cmd, cchar *command, char **out, char **err, MprTime timeout, int flags);
 
 /**
     Run a command using an argv[] array of arguments. This invokes mprStartCmd() and waits for its completion.
@@ -7808,6 +7809,7 @@ extern int mprRunCmd(MprCmd *cmd, cchar *command, char **out, char **err, int fl
     @param argv Command arguments array
     @param out Reference to a string to receive the stdout from the command.
     @param err Reference to a string to receive the stderr from the command.
+    @param timeout Time in milliseconds to wait for the command to complete and exit.
     @param flags Flags to modify execution. Valid flags are:
         MPR_CMD_NEW_SESSION     Create a new session on Unix
         MPR_CMD_SHOW            Show the commands window on Windows
@@ -7815,7 +7817,7 @@ extern int mprRunCmd(MprCmd *cmd, cchar *command, char **out, char **err, int fl
     @return Zero if successful. Otherwise a negative MPR error code.
     @ingroup MprCmd
  */
-extern int mprRunCmdV(MprCmd *cmd, int argc, char **argv, char **out, char **err, int flags);
+extern int mprRunCmdV(MprCmd *cmd, int argc, char **argv, char **out, char **err, MprTime timeout, int flags);
 
 /**
     Define a callback to be invoked to receive response data from the command.
