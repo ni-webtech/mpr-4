@@ -244,9 +244,6 @@ void mprDisconnectCmd(MprCmd *cmd)
             cmd->handlers[i] = 0;
         }
     }
-#if UNUSED
-    cmd->disconnected = 1;
-#endif
 }
 
 
@@ -272,9 +269,6 @@ void mprCloseCmdFd(MprCmd *cmd, int channel)
             cmd->eofCount++;
             if (cmd->eofCount >= cmd->requiredEof && cmd->pid == 0) {
                 cmd->complete = 1;
-#if UNUSED
-                cmd->disconnected = 1;
-#endif
             }
         }
     }
@@ -773,11 +767,6 @@ static void reapCmd(MprCmd *cmd, MprSignal *sp)
         if (cmd->callback) {
             (cmd->callback)(cmd, -1, cmd->callbackData);
         }
-#if UNUSED
-        if (cmd->complete) {
-            cmd->disconnected = 1;
-        }
-#endif
         mprLog(6, "Cmd reaped: status %d, pid %d, eof %d / %d\n", cmd->status, cmd->pid, cmd->eofCount, cmd->requiredEof);
 
         if (cmd->callback) {

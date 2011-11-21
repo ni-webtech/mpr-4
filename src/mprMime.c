@@ -23,16 +23,8 @@ static char *standardMimeTypes[] = {
     "css",   "text/css",
     "dll",   "application/octet-stream",
     "doc",   "application/msword",
-#if UNUSED
-    /* ESP files should never be rendered to users */
-    "ejs",   "application/x-ejs",
-#endif
     "eps",   "application/postscript",
     "es",    "application/x-javascript",
-#if UNSUED
-    /* ESP files should never be rendered to users */
-    "esp",   "application/x-esp",
-#endif
     "exe",   "application/octet-stream",
     "gif",   "image/gif",
     "gz",    "application/x-gzip",
@@ -207,11 +199,7 @@ cchar *mprLookupMime(MprHash *table, cchar *ext)
         table = MPR->mimeTypes;
     }
     if ((mt = mprLookupKey(table, ext)) == 0) {;
-#if UNUSED
-        return "application/octet-stream";
-#else
         return "text/html";
-#endif
     }
     return mt->type;
 }

@@ -146,12 +146,6 @@ static void signalHandler(int signo, siginfo_t *info, void *arg)
     ip->arg = arg;
     ip->triggered = 1;
     ssp->hasSignals = 1;
-#if UNUSED
-    if (signo == SIGCHLD) {
-        mprAssert(info->si_pid);
-        printf("\nSIG %d for %d\n", signo, info->si_pid); 
-    }
-#endif
     mprWakeNotifier();
 }
 
