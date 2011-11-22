@@ -7453,10 +7453,6 @@ typedef void (*MprSignalProc)(void *arg, struct MprSignal *sp);
     @ingroup MprSignal
  */
 typedef struct MprSignalInfo {
-#if UNUSED
-    siginfo_t       siginfo;                /**< Signal info for this signal */
-    void            *arg;                   /**< Arg to pass to MprSignalProc */
-#endif
     int             triggered;              /**< Set to true when triggered */
 } MprSignalInfo;
 
