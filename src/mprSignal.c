@@ -155,7 +155,7 @@ void mprServiceSignals()
                 Create an event for the head of the signal handler chain for this signal
                 Copy info from Thread.sigInfo to MprSignal structure.
              */
-            signo = ip - ssp->info;
+            signo = (int) (ip - ssp->info);
             if ((sp = ssp->signals[signo]) != 0) {
                 mprCreateEvent(sp->dispatcher, "signalEvent", 0, signalEvent, sp, 0);
             }
