@@ -555,6 +555,7 @@ static ssize fillBuf(MprFile *file)
         return len;
     }
     mprAdjustBufEnd(bp, len);
+    mprAddNullToBuf(bp);
     return len;
 }
 
