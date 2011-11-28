@@ -933,7 +933,6 @@ MprOff mprSendFileToSocket(MprSocket *sock, MprFile *file, MprOff offset, MprOff
 #endif
     MprOff          written, toWriteFile;
     ssize           i, rc, toWriteBefore, toWriteAfter, nbytes;
-    off_t           off;
     int             done;
 
     rc = 0;
@@ -979,11 +978,17 @@ MprOff mprSendFileToSocket(MprSocket *sock, MprFile *file, MprOff offset, MprOff
         }
 
         if (!done && toWriteFile > 0 && file->fd >= 0) {
-            off = (off_t) offset;
+#if LINUX && !__UCLIBC__ && !HAS_OFF64
+            off_t off = (off_t) offset;
+#endif
             while (!done && toWriteFile > 0) {
                 nbytes = (ssize) min(MAXSSIZE, toWriteFile);
 #if LINUX && !__UCLIBC__
+    #if HAS_OFF64
+                rc = sendfile64(sock->fd, file->fd, (off64_t) &offset, nbytes);
+    #else
                 rc = sendfile(sock->fd, file->fd, &off, nbytes);
+    #endif
 #else
                 rc = localSendfile(sock, file, offset, nbytes);
 #endif

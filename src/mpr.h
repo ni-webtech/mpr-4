@@ -50,6 +50,15 @@
 #define MPR_CPU_SH4         12
 
 /********************************* O/S Includes *******************************/
+
+#if LINUX
+    #ifdef _G_LSEEK64
+        #define _LARGEFILE64_SOURCE 1
+        #define _FILE_OFFSET_BITS 64
+        #define HAS_OFF64
+    #endif
+#endif
+
 /*
     Out-of-order definitions and includes. Order really matters in this section
  */
@@ -403,7 +412,7 @@
 #endif
 
 /**
-    Signed file offset data type. Supports large files greater than 4GB in size.
+    Signed file offset data type. Supports large files greater than 4GB in size on all systems.
  */
 typedef int64 MprOff;
 
