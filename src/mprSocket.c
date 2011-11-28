@@ -985,7 +985,7 @@ MprOff mprSendFileToSocket(MprSocket *sock, MprFile *file, MprOff offset, MprOff
                 nbytes = (ssize) min(MAXSSIZE, toWriteFile);
 #if LINUX && !__UCLIBC__
     #if HAS_OFF64
-                rc = sendfile64(sock->fd, file->fd, (off64_t) &offset, nbytes);
+                rc = sendfile64(sock->fd, file->fd, &offset, nbytes);
     #else
                 rc = sendfile(sock->fd, file->fd, &off, nbytes);
     #endif
