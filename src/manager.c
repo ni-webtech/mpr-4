@@ -44,6 +44,7 @@ typedef struct App {
     cchar   *appName;                   /* Manager name */
     int     exiting;                    /* Program should exit */
     int     retries;                    /* Number of times to retry staring app */
+    int     signal;                     /* Signal to use to terminate service */
     char    *command;                   /* Last command */
     char    *error;                     /* Command error message */
     char    *output;                    /* Command output message */
@@ -80,7 +81,7 @@ static int  writePid(int pid);
 
 int main(int argc, char *argv[])
 {
-    char    *argp;
+    char    *argp, *value;
     int     err, nextArg, status;
 
     err = 0;
@@ -174,6 +175,30 @@ int main(int argc, char *argv[])
                 app->retries = atoi(argv[++nextArg]);
             }
 
+        } else if (strcmp(argp, "--signal") == 0) {
+            if (nextArg >= argc) {
+                err++;
+            } else {
+                value = argv[++nextArg];
+                if (smatch(value, "SIGABRT")) {
+                    app->signal = SIGABRT;
+                } else if (smatch(value, "SIGINT")) {
+                    app->signal = SIGINT;
+                } else if (smatch(value, "SIGHUP")) {
+                    app->signal = SIGHUP;
+                } else if (smatch(value, "SIGQUIT")) {
+                    app->signal = SIGQUIT;
+                } else if (smatch(value, "SIGTERM")) {
+                    app->signal = SIGTERM;
+                } else if (smatch(value, "SIGUSR1")) {
+                    app->signal = SIGUSR1;
+                } else if (smatch(value, "SIGUSR2")) {
+                    app->signal = SIGUSR2;
+                } else { 
+                    app->signal = atoi(argv[++nextArg]);
+                }
+            }
+
         } else if (strcmp(argp, "--verbose") == 0 || strcmp(argp, "-v") == 0) {
             mprSetLogLevel(1);
 
@@ -197,6 +222,7 @@ int main(int argc, char *argv[])
             "    --name name          # Name of the service to manage\n"
             "    --pidfile path       # Location of the pid file\n"
             "    --program path       # Service program to start\n"
+            "    --signal signo       # Signal number to terminate service\n"
             "    --verbose            # Show command feedback\n"
 #if FUTURE
             "    --heartBeat interval # Heart beat interval period (secs) \n"
@@ -268,6 +294,7 @@ static void setAppDefaults()
     app->serviceName = sclone(SERVICE_NAME);
     app->serviceHome = mprGetNativePath(SERVICE_HOME);
     app->retries = RESTART_MAX;
+    app->signal = SIGTERM;
 
     if (mprPathExists("/var/run", X_OK) && getuid() == 0) {
         app->pidDir = sclone("/var/run");
@@ -622,8 +649,9 @@ static void runService()
 static void cleanup()
 {
     if (app->servicePid > 0) {
-        mprLog(1, "%s: Killing %s at pid %d", app->appName, app->serviceProgram, app->servicePid);
-        kill(app->servicePid, SIGTERM);
+        mprLog(1, "%s: Killing %s at pid %d with signal %d", app->appName, app->serviceProgram, 
+            app->servicePid, app->signal);
+        kill(app->servicePid, app->signal);
         app->servicePid = 0;
     }
 }
@@ -1541,6 +1569,12 @@ static void logHandler(int flags, int level, cchar *msg)
 }
 
 
+static void terminating(int how, int status)
+{
+    cleanup();
+}
+
+
 static void gracefulShutdown(MprTime timeout)
 {
     HWND    hwnd;
@@ -1565,11 +1599,6 @@ static void gracefulShutdown(MprTime timeout)
         TerminateProcess((HANDLE) app->servicePid, MPR_EXIT_GRACEFUL);
         app->servicePid = 0;
     }
-}
-
-
-static void terminating(int how, int status)
-{
 }
 
 

@@ -248,9 +248,12 @@ int mprServiceEvents(MprTime timeout, int flags)
                 es->willAwake = es->now + delay;
                 unlock(es);
                 if (mprIsStopping()) {
-                    break;
+                    if (mprServicesAreIdle()) {
+                        break;
+                    }
+                    delay = 10;
                 }
-                mprWaitForIO(MPR->waitService, (int) delay);
+                mprWaitForIO(MPR->waitService, delay);
             } else {
                 unlock(es);
             }

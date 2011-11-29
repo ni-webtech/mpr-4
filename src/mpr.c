@@ -238,6 +238,7 @@ void mprTerminate(int how, int status)
         /* Already stopping and done the code below */
         return;
     }
+    MPR->state = MPR_STOPPING;
 
     /*
         Invoke terminators, set stopping state and wake up everybody
@@ -247,7 +248,6 @@ void mprTerminate(int how, int status)
     for (ITERATE_ITEMS(MPR->terminators, terminator, next)) {
         (terminator)(how, status);
     }
-    MPR->state = MPR_STOPPING;
     mprWakeWorkers();
     mprWakeGCService();
     mprWakeDispatchers();
@@ -411,17 +411,10 @@ bool mprServicesAreIdle()
 {
     bool    idle;
 
-#if UNUSED && KEEP
-    idle = mprGetListLength(MPR->workerService->busyThreads) == 0 && 
-           mprGetListLength(MPR->cmdService->cmds) == 0 && 
-           mprDispatchersAreIdle() && !MPR->eventing;
-#else
     /*
         Only test top level services. Dispatchers may have timers scheduled, but that is okay.
      */
-    idle = mprGetListLength(MPR->workerService->busyThreads) == 0 && 
-           mprGetListLength(MPR->cmdService->cmds) == 0 && !MPR->eventing;
-#endif
+    idle = mprGetListLength(MPR->workerService->busyThreads) == 0 && mprGetListLength(MPR->cmdService->cmds) == 0;
     if (!idle) {
         mprLog(4, "Not idle: cmds %d, busy threads %d, eventing %d",
             mprGetListLength(MPR->cmdService->cmds), mprGetListLength(MPR->workerService->busyThreads), MPR->eventing);
