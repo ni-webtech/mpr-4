@@ -228,7 +228,7 @@
 		C988254712C820FA0029051B /* mprAtomic.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; name = mprAtomic.c; path = ../../../src/mprAtomic.c; sourceTree = SOURCE_ROOT; };
 		C9A0A8FF14737187003D0589 /* mprCache.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; name = mprCache.c; path = ../../../src/mprCache.c; sourceTree = "<group>"; };
 		C9B21F641011D0DD001053BB /* testThread.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; name = testThread.c; path = ../../../src/test/testThread.c; sourceTree = SOURCE_ROOT; };
-		C9B23288136A18F800014E75 /* angel */ = {isa = PBXFileReference; explicitFileType = "compiled.mach-o.executable"; includeInIndex = 0; path = angel; sourceTree = BUILT_PRODUCTS_DIR; };
+		C9B23288136A18F800014E75 /* angel */ = {isa = PBXFileReference; explicitFileType = "compiled.mach-o.executable"; includeInIndex = 0; name = angel; path = manager; sourceTree = BUILT_PRODUCTS_DIR; };
 		C9B2328B136A18F800014E75 /* main.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = main.c; sourceTree = "<group>"; };
 		C9B2328D136A18F800014E75 /* angel.1 */ = {isa = PBXFileReference; lastKnownFileType = text.man; path = angel.1; sourceTree = "<group>"; };
 		C9CD7934131441D5007794B0 /* testArgv.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; name = testArgv.c; path = ../../../src/test/testArgv.c; sourceTree = SOURCE_ROOT; };
@@ -579,7 +579,7 @@
 			attributes = {
 				LastUpgradeCheck = 0420;
 			};
-			buildConfigurationList = C90A19DF0FD6DC5E006A9E86 /* Build configuration list for PBXProject "mpr-dynamic" */;
+			buildConfigurationList = C90A19DF0FD6DC5E006A9E86 /* Build configuration list for PBXProject "mpr-all" */;
 			compatibilityVersion = "Xcode 3.2";
 			developmentRegion = English;
 			hasScannedForEncodings = 0;
@@ -761,6 +761,7 @@
 				ARCHS = "$(ARCHS_STANDARD_64_BIT)";
 				BBIN = "$(TOP)/build/bin";
 				BLD_PRODUCT_NAME = mpr;
+				CONFIGURATION_BUILD_DIR = "$(SYMROOT)";
 				CONFIGURATION_TEMP_DIR = "$(OUT)/tmp/$(CONFIGURATION)";
 				COPY_PHASE_STRIP = NO;
 				GCC_C_LANGUAGE_STANDARD = gnu99;
@@ -785,7 +786,7 @@
 				OUT = "$(TOP)/out";
 				SKIP_INSTALL = YES;
 				SRC = "$(TOP)/src";
-				SYMROOT = "$(OUT)/tmp/$(CONFIGURATION)";
+				SYMROOT = "$(OUT)/bin";
 				TOP = "$(SRCROOT)/../../..";
 				VERSION_INFO_SUFFIX = 4.0.0;
 			};
@@ -821,7 +822,7 @@
 				OUT = "$(TOP)/out";
 				SKIP_INSTALL = YES;
 				SRC = "$(TOP)/src";
-				SYMROOT = "$(OUT)/tmp/$(CONFIGURATION)";
+				SYMROOT = "$(OUT)/bin";
 				TOP = "$(SRCROOT)/../../..";
 				VERSION_INFO_SUFFIX = 4.0.0;
 			};
@@ -1058,7 +1059,7 @@
 /* End XCBuildConfiguration section */
 
 /* Begin XCConfigurationList section */
-		C90A19DF0FD6DC5E006A9E86 /* Build configuration list for PBXProject "mpr-dynamic" */ = {
+		C90A19DF0FD6DC5E006A9E86 /* Build configuration list for PBXProject "mpr-all" */ = {
 			isa = XCConfigurationList;
 			buildConfigurations = (
 				C90A19DD0FD6DC5E006A9E86 /* Debug */,
