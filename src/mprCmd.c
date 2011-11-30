@@ -696,21 +696,15 @@ static void reapCmd(MprCmd *cmd, MprSignal *sp)
     ssize   got, nbytes;
     int     status, rc;
 
-    mprLog(6, "reapCmd pid %d, eof %d, required %d\n", cmd->pid, cmd->eofCount, cmd->requiredEof);
+    mprLog(6, "reapCmd CHECK pid %d, eof %d, required %d\n", cmd->pid, cmd->eofCount, cmd->requiredEof);
     
     status = 0;
     if (cmd->pid == 0) {
         return;
     }
 #if BLD_UNIX_LIKE
-#if UNUSED
-    if (sp && sp->info.siginfo.si_pid != cmd->pid) {
-        mprLog(0, "reapCmd signal for pid %d, not for this cmd pid %d", sp->info.siginfo.si_pid, cmd->pid);
-        return;
-    }
-#endif
     if ((rc = waitpid(cmd->pid, &status, WNOHANG | __WALL)) < 0) {
-        mprLog(0, "waitpid failed for pid %d, errno %d", cmd->pid, errno);
+        mprLog(6, "waitpid failed for pid %d, errno %d", cmd->pid, errno);
 
     } else if (rc == cmd->pid) {
         mprLog(6, "waitpid pid %d, thread %s", cmd->pid, mprGetCurrentThreadName());
@@ -730,6 +724,8 @@ static void reapCmd(MprCmd *cmd, MprSignal *sp)
         } else {
             mprLog(7, "waitpid ELSE pid %d, errno %d", cmd->pid, errno);
         }
+    } else {
+        mprLog(6, "waitpid still running pid %d, thread %s", cmd->pid, mprGetCurrentThreadName());
     }
 #endif
 #if VXWORKS

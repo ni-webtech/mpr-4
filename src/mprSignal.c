@@ -104,9 +104,8 @@ static void unhookSignal(int signo)
 
 
 /*
-    Actual signal handler - must be async-safe. Do very, very little here. Just set a global flag and wakeup
-    the wait service (mprWakeWaitService is async safe).
-    WARNING: Don't put memory allocation or logging here.
+    Actual signal handler - must be async-safe. Do very, very little here. Just set a global flag and wakeup the wait
+    service (mprWakeNotifier is async-safe). WARNING: Don't put memory allocation, logging or printf here.
 
     NOTES: The problems here are several fold. The signalHandler may be invoked re-entrantly for different threads for
     the same signal (SIGCHLD). Masked signals are blocked by a single bit and so siginfo will only store one such instance, 
@@ -175,6 +174,7 @@ static void signalEvent(MprSignal *sp, MprEvent *event)
     mprAssert(event);
 
     mprLog(7, "signalEvent signo %d, flags %x", sp->signo, sp->flags);
+    np = sp->next;
 
     if (sp->flags & MPR_SIGNAL_BEFORE) {
         (sp->handler)(sp->data, sp);
@@ -184,20 +184,16 @@ static void signalEvent(MprSignal *sp, MprEvent *event)
             Call the original (foreign) action handler. Can't pass on siginfo, because there is no reliable and scalable
             way to save siginfo state when the signalHandler is reentrant for a given signal across multiple threads.
          */
-#if UNUSED
-        (sp->sigaction)(sp->signo, &sp->info.siginfo, sp->info.arg);
-#else
         (sp->sigaction)(sp->signo, NULL, NULL);
-#endif
     }
     if (sp->flags & MPR_SIGNAL_AFTER) {
         (sp->handler)(sp->data, sp);
     }
-    if ((np = sp->next) != 0) {
+    if (np) {
         /* 
             Call all chained signal handlers. Create new event for each handler so we get the right dispatcher.
+            WARNING: sp may have been removed and so sp->next may be null. That is why we capture np = sp->next above.
          */
-        np->info = sp->info;
         mprCreateEvent(np->dispatcher, "signalEvent", 0, signalEvent, np, 0);
     }
 }
@@ -233,6 +229,7 @@ static void unlinkSignalHandler(MprSignal *sp)
         }
         prev = np;
     }
+    mprAssert(np);
     sp->next = 0;
     unlock(ssp);
 }

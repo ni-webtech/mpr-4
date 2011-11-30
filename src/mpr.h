@@ -7470,7 +7470,6 @@ typedef struct MprSignal {
     MprDispatcher   *dispatcher;            /**< Dispatcher to service handler */
     int             flags;                  /**< Control flags */
     int             signo;                  /**< Signal number */
-    MprSignalInfo   info;                   /**< Signal info */
 } MprSignal;
 
 
