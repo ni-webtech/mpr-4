@@ -1490,7 +1490,7 @@ int startProcess(MprCmd *cmd)
     /*
         Pass the server output file to become the client stdin.
      */
-    cmd->pid = taskSpawn(entryPoint, pri, 0, MPR_DEFAULT_STACK, (FUNCPTR) cmdTaskEntry, 
+    cmd->pid = taskSpawn(entryPoint, pri, VX_FP_TASK, MPR_DEFAULT_STACK, (FUNCPTR) cmdTaskEntry, 
         (int) cmd->program, (int) entryFn, (int) cmd, 0, 0, 0, 0, 0, 0, 0);
 
     if (cmd->pid < 0) {
