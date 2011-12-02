@@ -857,7 +857,7 @@ static ssize cmdCallback(MprCmd *cmd, int channel, void *data)
 
 static void stdinCallback(MprCmd *cmd, MprEvent *event)
 {
-    if (cmd->callback) {
+    if (cmd->callback && cmd->files[MPR_CMD_STDIN].fd >= 0) {
         (cmd->callback)(cmd, MPR_CMD_STDIN, cmd->callbackData);
     }
 }
@@ -865,7 +865,10 @@ static void stdinCallback(MprCmd *cmd, MprEvent *event)
 
 static void stdoutCallback(MprCmd *cmd, MprEvent *event)
 {
-    if (cmd->callback) {
+    /*
+        reapCmd can consume data from the client and close the fd
+     */
+    if (cmd->callback && cmd->files[MPR_CMD_STDOUT].fd >= 0) {
         (cmd->callback)(cmd, MPR_CMD_STDOUT, cmd->callbackData);
     }
 }
@@ -873,7 +876,10 @@ static void stdoutCallback(MprCmd *cmd, MprEvent *event)
 
 static void stderrCallback(MprCmd *cmd, MprEvent *event)
 {
-    if (cmd->callback) {
+    /*
+        reapCmd can consume data from the client and close the fd
+     */
+    if (cmd->callback && cmd->files[MPR_CMD_STDERR].fd >= 0) {
         (cmd->callback)(cmd, MPR_CMD_STDERR, cmd->callbackData);
     }
 }
