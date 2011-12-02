@@ -265,7 +265,7 @@ void mprAssertError(cchar *loc, cchar *msg)
 #endif
         msg = buf;
     }
-    mprLog(1, "%s", buf);
+    mprLog(0, "%s", buf);
 #endif
 }
 
