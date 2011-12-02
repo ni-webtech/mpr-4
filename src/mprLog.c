@@ -259,9 +259,9 @@ void mprAssertError(cchar *loc, cchar *msg)
 
     if (loc) {
 #if BLD_UNIX_LIKE
-        snprintf(buf, sizeof(buf), "Assertion %s, failed at %s\n", msg, loc);
+        snprintf(buf, sizeof(buf), "Assertion %s, failed at %s", msg, loc);
 #else
-        sprintf(buf, "Assertion %s, failed at %s\n", msg, loc);
+        sprintf(buf, "Assertion %s, failed at %s", msg, loc);
 #endif
         msg = buf;
     }

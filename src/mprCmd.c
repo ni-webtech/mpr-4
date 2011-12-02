@@ -794,6 +794,9 @@ static void reapCmd(MprCmd *cmd, MprSignal *sp)
             if (cmd->files[MPR_CMD_STDOUT].fd >= 0) {
                 mprCloseCmdFd(cmd, MPR_CMD_STDOUT);
             }
+            if (cmd->eofCount != cmd->requiredEof) {
+                mprLog(0, "reapCmd: insufficient EOFs %d %d, complete %d", cmd->eofCount, cmd->requiredEof, cmd->complete);
+            }
             mprAssert(cmd->eofCount == cmd->requiredEof);
             mprAssert(cmd->complete);
         }
