@@ -142,6 +142,10 @@ static void manageMpr(Mpr *mpr, int flags)
     }
 }
 
+static void wgc(int mode)
+{
+    mprRequestGC(mode);
+}
 
 /*
     Destroy the Mpr and all services
@@ -183,7 +187,7 @@ void mprDestroy(int how)
     mprStopSignalService();
 
     /* Final GC to run all finalizers */
-    mprRequestGC(gmode);
+    wgc(gmode);
 
     if (how & MPR_EXIT_RESTART) {
         mprLog(2, "Restarting\n\n");

@@ -632,6 +632,7 @@ void mprSetMinWorkers(int n)
     ws = MPR->workerService;
     mprLock(ws->mutex);
     ws->minThreads = n; 
+    mprLog(4, "Pre-start %d workers", ws->minThreads);
     
     while (ws->numThreads < ws->minThreads) {
         worker = createWorker(ws, ws->stackSize);
@@ -803,8 +804,13 @@ static void pruneWorkers(MprWorkerService *ws, MprEvent *timer)
     if (mprGetDebugMode()) {
         return;
     }
+    mprLog(4, "Check to prune idle workers. Pool has %d workers. Limits %d-%d", 
+        ws->numThreads, ws->minThreads, ws->maxThreads);
     mprLock(ws->mutex);
     for (index = 0; index < ws->idleThreads->length; index++) {
+        if (ws->numThreads <= ws->minThreads) {
+            break;
+        }
         worker = mprGetItem(ws->idleThreads, index);
         if ((worker->lastActivity + MPR_TIMEOUT_WORKER) < MPR->eventService->now) {
             changeState(worker, MPR_WORKER_PRUNED);
@@ -937,6 +943,7 @@ static void workerMain(MprWorker *worker, MprThread *tp)
     worker->thread = 0;
     ws->numThreads--;
     mprUnlock(ws->mutex);
+    mprLog(4, "Worker exiting. There are %d workers remaining in the pool.", ws->numThreads);
 }
 
 
