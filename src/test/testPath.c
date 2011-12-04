@@ -224,7 +224,7 @@ static void testNormalize(MprTestGroup *gp)
     assert(strcmp(mprNormalizePath("../../modules/ejs.mod"), "../../modules/ejs.mod") == 0);
 
     path = mprNormalizePath("//a//b//./././c/d/e/f/../../g");
-    mprAssert(strcmp(path, "/a/b/c/d/g") == 0);
+    assert(strcmp(path, "/a/b/c/d/g") == 0);
 
 #if VXWORKS || BLD_WIN_LIKE
     path = mprNormalizePath("\\\\a\\\\b\\\\.\\.\\.\\c\\d\\e\\f\\..\\..\\g");

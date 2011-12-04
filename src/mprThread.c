@@ -60,18 +60,6 @@ MprThreadService *mprCreateThreadService()
 
 void mprStopThreadService()
 {
-    MprThreadService    *ts;
-
-    mprAssert(MPR);
-    ts = MPR->threadService;
-    mprAssert(ts);
-    mprAssert(ts->mainThread);
-
-#if UNUSED
-    ts->threads->mutex = 0;
-    ts->mutex = 0;
-    mprRemoveItem(ts->threads, ts->mainThread);
-#endif
 }
 
 
