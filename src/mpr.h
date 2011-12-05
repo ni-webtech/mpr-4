@@ -209,7 +209,6 @@
     #include    <unistd.h>
 #endif
 
-
 #if !VXWORKS
     #include    <wchar.h>
 #endif
