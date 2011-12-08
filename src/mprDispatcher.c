@@ -24,7 +24,7 @@ static void manageEventService(MprEventService *es, int flags);
 static void queueDispatcher(MprDispatcher *prior, MprDispatcher *dispatcher);
 static void scheduleDispatcher(MprDispatcher *dispatcher);
 static void serviceDispatcherMain(MprDispatcher *dispatcher);
-static void serviceDispatcher(MprDispatcher *dp);
+static bool serviceDispatcher(MprDispatcher *dp);
 
 #define isRunning(dispatcher) (dispatcher->parent == dispatcher->service->runQ)
 #define isReady(dispatcher) (dispatcher->parent == dispatcher->service->readyQ)
@@ -49,6 +49,7 @@ MprEventService *mprCreateEventService()
     es->runQ = mprCreateDispatcher("running", 0);
     es->readyQ = mprCreateDispatcher("ready", 0);
     es->idleQ = mprCreateDispatcher("idle", 0);
+    es->pendingQ = mprCreateDispatcher("pending", 0);
     es->waitQ = mprCreateDispatcher("waiting", 0);
     return es;
 }
@@ -61,6 +62,7 @@ static void manageEventService(MprEventService *es, int flags)
         mprMark(es->readyQ);
         mprMark(es->waitQ);
         mprMark(es->idleQ);
+        mprMark(es->pendingQ);
         mprMark(es->waitCond);
         mprMark(es->mutex);
 
@@ -235,7 +237,10 @@ int mprServiceEvents(MprTime timeout, int flags)
         while ((dp = getNextReadyDispatcher(es)) != NULL) {
             mprAssert(!dp->destroyed);
             mprAssert(dp->magic == MPR_DISPATCHER_MAGIC);
-            serviceDispatcher(dp);
+            if (!serviceDispatcher(dp)) {
+                queueDispatcher(es->pendingQ, dp);
+                continue;
+            }
             if (justOne) {
                 return abs(es->eventCount - beginEventCount);
             }
@@ -521,7 +526,7 @@ static int dispatchEvents(MprDispatcher *dispatcher)
 }
 
 
-static void serviceDispatcher(MprDispatcher *dispatcher)
+static bool serviceDispatcher(MprDispatcher *dispatcher)
 {
     mprAssert(isRunning(dispatcher));
     mprAssert(dispatcher->owner == 0);
@@ -538,10 +543,14 @@ static void serviceDispatcher(MprDispatcher *dispatcher)
 
     } else {
         if (mprStartWorker((MprWorkerProc) serviceDispatcherMain, dispatcher) < 0) {
+#if UNUSED
             /* Can't start a worker thread, run using the current thread */
             serviceDispatcherMain(dispatcher);
+#endif
+            return 0;
         } 
     }
+    return 1;
 }
 
 
@@ -573,19 +582,34 @@ void mprClaimDispatcher(MprDispatcher *dispatcher)
 }
 
 
+void mprWakePendingDispatchers()
+{
+    mprWakeNotifier();
+}
+
+
 /*
     Get the next (ready) dispatcher off given runQ and move onto the runQ
  */
 static MprDispatcher *getNextReadyDispatcher(MprEventService *es)
 {
-    MprDispatcher   *dp, *next, *readyQ, *waitQ, *dispatcher;
+    MprDispatcher   *dp, *next, *pendingQ, *readyQ, *waitQ, *dispatcher;
     MprEvent        *event;
 
     waitQ = es->waitQ;
     readyQ = es->readyQ;
+    pendingQ = es->pendingQ;
+    dispatcher = 0;
 
     lock(es);
-    if (readyQ->next == readyQ) {
+    if (pendingQ->next != pendingQ && mprAvailableWorkers()) {
+        dispatcher = pendingQ->next;
+        mprAssert(!dispatcher->destroyed);
+        queueDispatcher(es->runQ, dispatcher);
+        mprAssert(dispatcher->enabled);
+        dispatcher->owner = 0;
+
+    } else if (readyQ->next == readyQ) {
         /*
             ReadyQ is empty, try to transfer a dispatcher with due events onto the readyQ
          */
@@ -601,14 +625,12 @@ static MprDispatcher *getNextReadyDispatcher(MprEventService *es)
             }
         }
     }
-    if (readyQ->next != readyQ) {
+    if (!dispatcher && readyQ->next != readyQ) {
         dispatcher = readyQ->next;
         mprAssert(!dispatcher->destroyed);
         queueDispatcher(es->runQ, dispatcher);
         mprAssert(dispatcher->enabled);
         dispatcher->owner = 0;
-    } else {
-        dispatcher = NULL;
     }
     unlock(es);
     mprAssert(dispatcher == NULL || isRunning(dispatcher));
@@ -774,6 +796,7 @@ static int makeRunnable(MprDispatcher *dispatcher)
 }
 
 
+#if UNUSED
 /*
     Designate the required worker thread to run the event
  */
@@ -789,6 +812,7 @@ void mprReleaseWorkerFromDispatcher(MprDispatcher *dispatcher, MprWorker *worker
     dispatcher->requiredWorker = 0;
     mprReleaseWorker(worker);
 }
+#endif
 
 
 void mprSignalDispatcher(MprDispatcher *dispatcher)
