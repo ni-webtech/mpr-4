@@ -232,13 +232,14 @@ void mprSleep(MprTime timeout)
 }
 
 
-void mprUnloadModule(MprModule *mp)
+void mprUnloadNativeModule(MprModule *mp)
 {
     mprAssert(mp->handle);
 
-    mprStopModule(mp);
-    mprRemoveItem(MPR->moduleService->modules, mp);
-    FreeLibrary((HINSTANCE) mp->handle);
+    if (FreeLibrary((HINSTANCE) mp->handle) == 0) {
+        return MPR_ERR_ABORTED;
+    }
+    return 0;
 }
 
 
