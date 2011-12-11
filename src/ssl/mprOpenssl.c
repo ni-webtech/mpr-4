@@ -71,12 +71,10 @@ static DH       *get_dh1024();
  */
 int mprCreateOpenSslModule(bool lazy)
 {
-    MprSocketService    *ss;
     MprSocketProvider   *provider;
     RandBuf             randBuf;
     int                 i;
 
-    ss = MPR->socketService;
     if ((osl = mprAllocObj(MprOpenssl, manageOpenssl)) == 0) {
         return MPR_ERR_MEMORY;
     }
@@ -208,14 +206,11 @@ static void manageOpenProvider(MprSocketProvider *provider, int flags)
  */
 static int configureOss(MprSsl *ssl)
 {
-    MprSocketService    *ss;
     MprSsl              *defaultSsl;
     SSL_CTX             *context;
     uchar               resume[16];
 
-    ss = MPR->socketService;
     mprSetManager(ssl, manageSslStruct);
-
     context = SSL_CTX_new(SSLv23_method());
     if (context == 0) {
         mprError("OpenSSL: Unable to create SSL context"); 
@@ -267,7 +262,7 @@ static int configureOss(MprSsl *ssl)
                 return MPR_ERR_CANT_ACCESS;
             }
             if (ssl->caFile) {
-                STACK_OF(X509_NAME)     *certNames;
+                STACK_OF(X509_NAME) *certNames;
                 certNames = SSL_load_client_CA_file(ssl->caFile);
                 if (certNames == 0) {
                     ;
@@ -652,10 +647,13 @@ static ssize readOss(MprSocket *sp, void *buf, ssize len)
     for (i = 0; i < retries; i++) {
         rc = SSL_read(osp->osslStruct, buf, (int) len);
         if (rc < 0) {
+            char    ebuf[MPR_MAX_STRING];
             error = SSL_get_error(osp->osslStruct, rc);
             if (error == SSL_ERROR_WANT_READ || error == SSL_ERROR_WANT_CONNECT || error == SSL_ERROR_WANT_ACCEPT) {
                 continue;
             }
+            ERR_error_string_n(error, ebuf, sizeof(ebuf) - 1);
+            mprLog(4, "SSL_read error %d, %s", error, ebuf);
         }
         break;
     }
@@ -691,7 +689,7 @@ static ssize readOss(MprSocket *sp, void *buf, ssize len)
         if (error == SSL_ERROR_WANT_READ) {
             rc = 0;
         } else if (error == SSL_ERROR_WANT_WRITE) {
-            mprSleep(10);
+            mprNap(10);
             rc = 0;
         } else if (error == SSL_ERROR_ZERO_RETURN) {
             sp->flags |= MPR_SOCKET_EOF;
@@ -738,7 +736,7 @@ static ssize writeOss(MprSocket *sp, cvoid *buf, ssize len)
         if (rc <= 0) {
             rc = SSL_get_error(osp->osslStruct, rc);
             if (rc == SSL_ERROR_WANT_WRITE) {
-                mprSleep(10);
+                mprNap(10);
                 continue;
                 
             } else if (rc == SSL_ERROR_WANT_READ) {
@@ -776,13 +774,15 @@ static int verifyX509Certificate(int ok, X509_STORE_CTX *xContext)
     char            subject[260], issuer[260], peer[260];
     int             error, depth;
     
-    return 1;
     subject[0] = issuer[0] = '\0';
 
     osslStruct = (SSL*) X509_STORE_CTX_get_app_data(xContext);
     osp = (MprSslSocket*) SSL_get_app_data(osslStruct);
     ssl = (MprSsl*) osp->ssl;
 
+    if (!ssl->verifyClient) {
+        return ok;
+    }
     cert = X509_STORE_CTX_get_current_cert(xContext);
     depth = X509_STORE_CTX_get_error_depth(xContext);
     error = X509_STORE_CTX_get_error(xContext);
@@ -813,6 +813,7 @@ static int verifyX509Certificate(int ok, X509_STORE_CTX *xContext)
     }
     if (error != 0) {
         mprAssert(!ok);
+        /* X509_V_ERR_UNABLE_TO_GET_ISSUER_CERT_LOCALLY */
     }
 
 #if KEEP
@@ -1050,7 +1051,7 @@ int mprCreateOpenSslModule(bool lazy) { return -1; }
     under the terms of the GNU General Public License as published by the 
     Free Software Foundation; either version 2 of the License, or (at your 
     option) any later version. See the GNU General Public License for more 
-    details at: http://www.embedthis.com/downloads/gplLicense.html
+    details at: http://embedthis.com/downloads/gplLicense.html
     
     This program is distributed WITHOUT ANY WARRANTY; without even the 
     implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. 
@@ -1059,7 +1060,7 @@ int mprCreateOpenSslModule(bool lazy) { return -1; }
     proprietary programs. If you are unable to comply with the GPL, you must
     acquire a commercial license to use this software. Commercial licenses 
     for this software and support services are available from Embedthis 
-    Software at http://www.embedthis.com 
+    Software at http://embedthis.com 
     
     Local variables:
     tab-width: 4

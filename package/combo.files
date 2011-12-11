@@ -1,0 +1,69 @@
+#
+#	combo.files - Files needed for the combo MPR installation
+#
+#	Copyright (c) Embedthis Software LLC, 2003-2011. All Rights Reserved.
+#
+
+S=${BLD_TOP}/src
+
+#
+#   Output directories
+#
+WHERE="$1"
+DIR="${BLD_OUT_DIR}/${WHERE}/${BLD_PRODUCT}-${BLD_VERSION}"
+SRC="${DIR}/src/deps/mpr"
+DOC="${DIR}/doc"
+
+#
+#	Order of headers matters (linux and mac sort files differently wrt mpr.c)
+#
+MPR_SOURCES="${S}/mprMem.c ${S}/mpr.c `find ${S}/*.c ${S}/deps/*.c | egrep -v 'manager|mprMem|mpr.c'`"
+SSL_SOURCES="${BLD_INC_DIR}/mprSsl.h ${S}/ssl/*.c"
+
+#
+#	Build files
+#
+mkdir -p ${SRC} ${DOC}/man ${DOC}/api
+cp ${BLD_TOP}/package/Makefile.combo "${SRC}/Makefile"
+# cp ${BLD_INC_DIR}/buildConfig.h "${DIR}/buildConfig.h"
+
+#
+#	Headers
+#
+TITLE="${BLD_NAME} Header" \
+combo ${BLD_INC_DIR}/mpr.h | egrep -v '#include.*mpr|#inc.*config.h|#inc.*ucp.*\.h|#inc.*pcre' >${SRC}/mpr.h
+cp ${S}/mprSsl.h ${SRC}
+
+#
+#	mprLib.c
+#
+echo -e '#include "mpr.h"' >${SRC}/mprLib.c
+TITLE="${BLD_NAME} Library Source" combo ${MPR_SOURCES} | egrep -v '#inc.*mpr' >>${SRC}/mprLib.c
+
+#
+#	mprSsl.c
+#
+echo -e '#include "mpr.h"' >${SRC}/mprSsl.c
+TITLE="MPR SSL" combo ${SSL_SOURCES} | egrep -v '#inc.*mpr' >>${SRC}/mprSsl.c
+
+#
+#   Doc
+#
+cp ${BLD_TOP}/doc/api/mpr.html ${DOC}/api
+cp ${BLD_TOP}/doc/api/mprBare.html ${DOC}/api
+cp ${BLD_TOP}/doc/api/mpr.*tags ${DOC}/api
+cp ${BLD_TOP}/doc/man/*.1 ${DOC}/man
+
+#
+#	Other source
+#
+cp ${S}/utils/makerom.c ${SRC}/makerom.c
+cp ${S}/manager.c ${SRC}/manager.c
+
+#
+#   Local variables:
+#   tab-width: 4
+#   c-basic-offset: 4
+#   End:
+#   vim: sw=4 ts=4 noexpandtab
+#

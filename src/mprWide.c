@@ -185,7 +185,7 @@ MprChar *wfmt(MprChar *fmt, ...)
 
     va_start(ap, fmt);
     mfmt = awtom(fmt, NULL);
-    mresult = mprAsprintfv(mfmt, ap);
+    mresult = sfmtv(mfmt, ap);
     va_end(ap);
     return amtow(mresult, NULL);
 }
@@ -197,7 +197,7 @@ MprChar *wfmtv(MprChar *fmt, va_list arg)
 
     mprAssert(fmt);
     mfmt = awtom(fmt, NULL);
-    mresult = mprAsprintfv(mfmt, arg);
+    mresult = sfmtv(mfmt, arg);
     return amtow(mresult, NULL);
 }
 
@@ -593,7 +593,13 @@ int wstarts(MprChar *str, MprChar *prefix)
 }
 
 
-int64 wtoi(MprChar *str, int radix, int *err)
+int64 wtoi(MprChar *str)
+{
+    return wtoiradix(str, 10, NULL);
+}
+
+
+int64 wtoiradix(MprChar *str, int radix, int *err)
 {
     char    *bp, buf[32];
 
@@ -601,7 +607,7 @@ int64 wtoi(MprChar *str, int radix, int *err)
         *bp++ = *str++;
     }
     buf[sizeof(buf) - 1] = 0;
-    return stoi(buf, radix, err);
+    return stoiradix(buf, radix, err);
 }
 
 
@@ -1084,7 +1090,7 @@ char *awtom(MprChar *src, ssize *len)
     under the terms of the GNU General Public License as published by the
     Free Software Foundation; either version 2 of the License, or (at your
     option) any later version. See the GNU General Public License for more
-    details at: http://www.embedthis.com/downloads/gplLicense.html
+    details at: http://embedthis.com/downloads/gplLicense.html
 
     This program is distributed WITHOUT ANY WARRANTY; without even the
     implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
@@ -1093,7 +1099,7 @@ char *awtom(MprChar *src, ssize *len)
     proprietary programs. If you are unable to comply with the GPL, you must
     acquire a commercial license to use this software. Commercial licenses
     for this software and support services are available from Embedthis
-    Software at http://www.embedthis.com
+    Software at http://embedthis.com
 
     Local variables:
     tab-width: 4

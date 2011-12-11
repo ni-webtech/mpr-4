@@ -195,7 +195,7 @@ static void testBufferedIO(MprTestGroup *gp)
     assert(mprPeekFileChar(file) == 'a');
     c = mprGetFileChar(file);
     assert(c == 'a');
-    str = mprGetFileString(file, 0, NULL);
+    str = mprReadLine(file, 0, NULL);
     assert(str != 0);
     len = strlen(str);
     assert(len == 5);   
@@ -214,7 +214,7 @@ static char *makePath(cchar *name)
 {
     char    *path;
 
-    if ((path = mprAsprintf("%s-%d-%s", name, getpid(), mprGetCurrentThreadName())) == 0) {
+    if ((path = sfmt("%s-%d-%s", name, getpid(), mprGetCurrentThreadName())) == 0) {
         return 0;
     }
     return path;
@@ -247,7 +247,7 @@ MprTestDef testFile = {
     under the terms of the GNU General Public License as published by the 
     Free Software Foundation; either version 2 of the License, or (at your 
     option) any later version. See the GNU General Public License for more 
-    details at: http://www.embedthis.com/downloads/gplLicense.html
+    details at: http://embedthis.com/downloads/gplLicense.html
     
     This program is distributed WITHOUT ANY WARRANTY; without even the 
     implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. 
@@ -256,7 +256,7 @@ MprTestDef testFile = {
     proprietary programs. If you are unable to comply with the GPL, you must
     acquire a commercial license to use this software. Commercial licenses 
     for this software and support services are available from Embedthis 
-    Software at http://www.embedthis.com 
+    Software at http://embedthis.com 
     
     Local variables:
     tab-width: 4

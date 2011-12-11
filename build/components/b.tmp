@@ -1,5 +1,0 @@
-    if [ "$path" = "" ] ; then
-		echo -e "\n\nCan't find required component: Windows SDK\n"
-        echo -e "Download from http://msdn.microsoft.com/en-us/windowsserver/bb980924.aspx\n"
-		exit 255
-	fi

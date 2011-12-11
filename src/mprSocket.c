@@ -32,6 +32,7 @@ static int getSocketIpAddr(struct sockaddr *addr, int addrlen, char *ip, int siz
 static int ipv6(cchar *ip);
 static int listenSocket(MprSocket *sp, cchar *ip, int port, int initialFlags);
 static void manageSocket(MprSocket *sp, int flags);
+static void manageSocketProvider(MprSocketProvider *provider, int flags);
 static void manageSocketService(MprSocketService *ss, int flags);
 static ssize readSocket(MprSocket *sp, void *buf, ssize bufsize);
 static ssize writeSocket(MprSocket *sp, cvoid *buf, ssize bufsize);
@@ -50,9 +51,8 @@ MprSocketService *mprCreateSocketService()
     if (ss == 0) {
         return 0;
     }
-    ss->next = 0;
-    ss->maxClients = MAXINT;
-    ss->numClients = 0;
+    ss->maxAccept = MAXINT;
+    ss->numAccept = 0;
 
     if ((ss->standardProvider = createStandardProvider(ss)) == 0) {
         return 0;
@@ -99,11 +99,10 @@ static MprSocketProvider *createStandardProvider(MprSocketService *ss)
 {
     MprSocketProvider   *provider;
 
-    provider = mprAlloc(sizeof(MprSocketProvider));
-    if (provider == 0) {
+    if ((provider = mprAllocObj(MprSocketProvider, manageSocketProvider)) == 0) {
         return 0;
     }
-    provider->name = "standard";
+    provider->name = sclone("standard");
     provider->acceptSocket = acceptSocket;
     provider->closeSocket = closeSocket;
     provider->connectSocket = connectSocket;
@@ -114,6 +113,16 @@ static MprSocketProvider *createStandardProvider(MprSocketService *ss)
     provider->readSocket = readSocket;
     provider->writeSocket = writeSocket;
     return provider;
+}
+
+
+static void manageSocketProvider(MprSocketProvider *provider, int flags)
+{
+    if (flags & MPR_MANAGE_MARK) {
+        mprMark(provider->name);
+        mprMark(provider->data);
+        mprMark(provider->defaultSsl);
+    }
 }
 
 
@@ -129,11 +138,11 @@ bool mprHasSecureSockets()
 }
 
 
-int mprSetMaxSocketClients(int max)
+int mprSetMaxSocketAccept(int max)
 {
     mprAssert(max >= 0);
 
-    MPR->socketService->maxClients = max;
+    MPR->socketService->maxAccept = max;
     return 0;
 }
 
@@ -266,7 +275,6 @@ static int listenSocket(MprSocket *sp, cchar *ip, int port, int initialFlags)
         unlock(sp);
         return MPR_ERR_CANT_FIND;
     }
-
     sp->fd = (int) socket(family, datagram ? SOCK_DGRAM: SOCK_STREAM, protocol);
     if (sp->fd < 0) {
         unlock(sp);
@@ -585,8 +593,8 @@ static void closeSocket(MprSocket *sp, bool gracefully)
 
     if (! (sp->flags & (MPR_SOCKET_LISTENER | MPR_SOCKET_CLIENT))) {
         mprLock(ss->mutex);
-        if (--ss->numClients < 0) {
-            ss->numClients = 0;
+        if (--ss->numAccept < 0) {
+            ss->numAccept = 0;
         }
         mprUnlock(ss->mutex);
     }
@@ -634,9 +642,9 @@ static MprSocket *acceptSocket(MprSocket *listen)
         Limit the number of simultaneous clients
      */
     mprLock(ss->mutex);
-    if (++ss->numClients >= ss->maxClients) {
+    if (++ss->numAccept >= ss->maxAccept) {
         mprUnlock(ss->mutex);
-        mprLog(2, "Rejecting connection, too many client connections (%d)", ss->numClients);
+        mprLog(2, "Rejecting connection, too many client connections (%d)", ss->numAccept);
         mprCloseSocket(nsp, 0);
         return 0;
     }
@@ -827,7 +835,7 @@ static ssize writeSocket(MprSocket *sp, cvoid *buf, ssize bufsize)
                         Windows sockets don't support blocking I/O. So we simulate here
                      */
                     if (sp->flags & MPR_SOCKET_BLOCK) {
-                        mprSleep(0);
+                        mprNap(0);
                         continue;
                     }
 #endif
@@ -925,7 +933,6 @@ MprOff mprSendFileToSocket(MprSocket *sock, MprFile *file, MprOff offset, MprOff
 #endif
     MprOff          written, toWriteFile;
     ssize           i, rc, toWriteBefore, toWriteAfter, nbytes;
-    off_t           off;
     int             done;
 
     rc = 0;
@@ -971,11 +978,17 @@ MprOff mprSendFileToSocket(MprSocket *sock, MprFile *file, MprOff offset, MprOff
         }
 
         if (!done && toWriteFile > 0 && file->fd >= 0) {
-            off = (off_t) offset;
+#if LINUX && !__UCLIBC__ && !HAS_OFF64
+            off_t off = (off_t) offset;
+#endif
             while (!done && toWriteFile > 0) {
                 nbytes = (ssize) min(MAXSSIZE, toWriteFile);
 #if LINUX && !__UCLIBC__
+    #if HAS_OFF64
+                rc = sendfile64(sock->fd, file->fd, &offset, nbytes);
+    #else
                 rc = sendfile(sock->fd, file->fd, &off, nbytes);
+    #endif
 #else
                 rc = localSendfile(sock, file, offset, nbytes);
 #endif
@@ -1205,12 +1218,10 @@ int mprGetSocketInfo(cchar *ip, int port, int *family, int *protocol, struct soc
 {
     MprSocketService    *ss;
     struct addrinfo     hints, *res, *r;
-    char                portBuf[MPR_MAX_IP_PORT];
+    char                *portStr;
     int                 v6;
 
-    mprAssert(ip);
     mprAssert(addr);
-
     ss = MPR->socketService;
 
     mprLock(ss->mutex);
@@ -1231,13 +1242,13 @@ int mprGetSocketInfo(cchar *ip, int port, int *family, int *protocol, struct soc
     } else {
         hints.ai_family = AF_UNSPEC;
     }
-    itos(portBuf, sizeof(portBuf), port, 10);
+    portStr = itos(port);
 
     /*  
         Try to sleuth the address to avoid duplicate address lookups. Then try IPv4 first then IPv6.
      */
     res = 0;
-    if (getaddrinfo(ip, portBuf, &hints, &res) != 0) {
+    if (getaddrinfo(ip, portStr, &hints, &res) != 0) {
         mprUnlock(ss->mutex);
         return MPR_ERR_CANT_OPEN;
     }
@@ -1338,6 +1349,20 @@ static int getSocketIpAddr(struct sockaddr *addr, int addrlen, char *ip, int ipL
 #if (BLD_UNIX_LIKE || WIN)
     char    service[NI_MAXSERV];
 
+#ifdef IN6_IS_ADDR_V4MAPPED
+    if (addr->sa_family == AF_INET6) {
+        struct sockaddr_in6* addr6 = (struct sockaddr_in6*) addr;
+        if (IN6_IS_ADDR_V4MAPPED(&addr6->sin6_addr)) {
+            struct sockaddr_in addr4;
+            memset(&addr4, 0, sizeof(addr4));
+            addr4.sin_family = AF_INET;
+            addr4.sin_port = addr6->sin6_port;
+            memcpy(&addr4.sin_addr.s_addr, addr6->sin6_addr.s6_addr + 12, sizeof(addr4.sin_addr.s_addr));
+            memcpy(addr, &addr4, sizeof(addr4));
+            addrlen = sizeof(addr4);
+        }
+    }
+#endif
     if (getnameinfo(addr, addrlen, ip, ipLen, service, sizeof(service), NI_NUMERICHOST | NI_NUMERICSERV | NI_NOFQDN)) {
         return MPR_ERR_BAD_VALUE;
     }
@@ -1367,6 +1392,9 @@ static int ipv6(cchar *ip)
     int     colons;
 
     if (ip == 0 || *ip == 0) {
+        /*
+            Listening on just a bare port means IPv4 only.
+         */
         return 0;
     }
     colons = 0;
@@ -1390,7 +1418,7 @@ static int ipv6(cchar *ip)
     or
         [aaaa:bbbb:cccc:dddd:eeee:ffff:gggg:hhhh:iiii]:port
  */
-int mprParseIp(cchar *ipAddrPort, char **pip, int *pport, int defaultPort)
+int mprParseSocketAddress(cchar *ipAddrPort, char **pip, int *pport, int defaultPort)
 {
     char    *ip;
     char    *cp;
@@ -1498,7 +1526,7 @@ void mprSetSocketPrebindCallback(MprSocketPrebind callback)
     under the terms of the GNU General Public License as published by the
     Free Software Foundation; either version 2 of the License, or (at your
     option) any later version. See the GNU General Public License for more
-    details at: http://www.embedthis.com/downloads/gplLicense.html
+    details at: http://embedthis.com/downloads/gplLicense.html
 
     This program is distributed WITHOUT ANY WARRANTY; without even the
     implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
@@ -1507,7 +1535,7 @@ void mprSetSocketPrebindCallback(MprSocketPrebind callback)
     proprietary programs. If you are unable to comply with the GPL, you must
     acquire a commercial license to use this software. Commercial licenses
     for this software and support services are available from Embedthis
-    Software at http://www.embedthis.com
+    Software at http://embedthis.com
 
     Local variables:
     tab-width: 4

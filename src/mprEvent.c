@@ -13,7 +13,8 @@
 /***************************** Forward Declarations ***************************/
 
 static void dequeueEvent(MprEvent *event);
-static void initEvent(MprDispatcher *dispatcher, MprEvent *event, cchar *name, int period, void *proc, void *data, int flgs);
+static void initEvent(MprDispatcher *dispatcher, MprEvent *event, cchar *name, MprTime period, void *proc, 
+        void *data, int flgs);
 static void initEventQ(MprEvent *q);
 static void manageEvent(MprEvent *event, int flags);
 static void queueEvent(MprEvent *prior, MprEvent *event);
@@ -39,7 +40,7 @@ MprEvent *mprCreateEventQueue(cchar *name)
     Create and queue a new event for service. Period is used as the delay before running the event and as the period between 
     events for continuous events.
  */
-MprEvent *mprCreateEvent(MprDispatcher *dispatcher, cchar *name, int period, void *proc, void *data, int flags)
+MprEvent *mprCreateEvent(MprDispatcher *dispatcher, cchar *name, MprTime period, void *proc, void *data, int flags)
 {
     MprEvent    *event;
 
@@ -69,10 +70,6 @@ static void manageEvent(MprEvent *event, int flags)
         mprMark(event->name);
         mprMark(event->dispatcher);
         mprMark(event->handler);
-#if UNUSED
-        mprMark(event->next);
-        mprMark(event->prev);
-#endif
         if (!(event->flags & MPR_EVENT_STATIC_DATA)) {
             mprMark(event->data);
         }
@@ -87,7 +84,7 @@ static void manageEvent(MprEvent *event, int flags)
 }
 
 
-static void initEvent(MprDispatcher *dispatcher, MprEvent *event, cchar *name, int period, void *proc, void *data, 
+static void initEvent(MprDispatcher *dispatcher, MprEvent *event, cchar *name, MprTime period, void *proc, void *data, 
     int flags)
 {
     mprAssert(dispatcher);
@@ -114,7 +111,7 @@ static void initEvent(MprDispatcher *dispatcher, MprEvent *event, cchar *name, i
 /*
     Create an interval timer
  */
-MprEvent *mprCreateTimerEvent(MprDispatcher *dispatcher, cchar *name, int period, void *proc, void *data, int flags)
+MprEvent *mprCreateTimerEvent(MprDispatcher *dispatcher, cchar *name, MprTime period, void *proc, void *data, int flags)
 {
     return mprCreateEvent(dispatcher, name, period, proc, data, MPR_EVENT_CONTINUOUS | flags);
 }
@@ -177,7 +174,7 @@ void mprRemoveEvent(MprEvent *event)
 }
 
 
-void mprRescheduleEvent(MprEvent *event, int period)
+void mprRescheduleEvent(MprEvent *event, MprTime period)
 {
     MprEventService     *es;
     MprDispatcher       *dispatcher;
@@ -333,7 +330,7 @@ static void dequeueEvent(MprEvent *event)
     under the terms of the GNU General Public License as published by the 
     Free Software Foundation; either version 2 of the License, or (at your 
     option) any later version. See the GNU General Public License for more 
-    details at: http://www.embedthis.com/downloads/gplLicense.html
+    details at: http://embedthis.com/downloads/gplLicense.html
     
     This program is distributed WITHOUT ANY WARRANTY; without even the 
     implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. 
@@ -342,7 +339,7 @@ static void dequeueEvent(MprEvent *event)
     proprietary programs. If you are unable to comply with the GPL, you must
     acquire a commercial license to use this software. Commercial licenses 
     for this software and support services are available from Embedthis 
-    Software at http://www.embedthis.com 
+    Software at http://embedthis.com 
     
     Local variables:
     tab-width: 4

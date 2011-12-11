@@ -161,7 +161,7 @@ int mprWaitForSingleIO(int fd, int mask, MprTime timeout)
     rc = kevent(kq, interest, interestCount, events, 1, &ts);
     close(kq);
     if (rc < 0) {
-        mprLog(6, "Kevent returned %d, errno %d", rc, errno);
+        mprLog(7, "Kevent returned %d, errno %d", rc, errno);
     } else if (rc > 0) {
         if (rc > 0) {
             if (events[0].filter == EVFILT_READ) {
@@ -215,7 +215,7 @@ void mprWaitForIO(MprWaitService *ws, MprTime timeout)
     LOG(8, "kevent wakes rc %d", rc);
 
     if (rc < 0) {
-        mprLog(6, "Kevent returned %d, errno %d", rc, mprGetOsError());
+        mprLog(7, "Kevent returned %d, errno %d", rc, mprGetOsError());
     } else if (rc > 0) {
         serviceIO(ws, rc);
     }
@@ -318,7 +318,7 @@ void stubMprKqueue() {}
     under the terms of the GNU General Public License as published by the
     Free Software Foundation; either version 2 of the License, or (at your
     option) any later version. See the GNU General Public License for more
-    details at: http://www.embedthis.com/downloads/gplLicense.html
+    details at: http://embedthis.com/downloads/gplLicense.html
 
     This program is distributed WITHOUT ANY WARRANTY; without even the
     implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
@@ -327,7 +327,7 @@ void stubMprKqueue() {}
     proprietary programs. If you are unable to comply with the GPL, you must
     acquire a commercial license to use this software. Commercial licenses
     for this software and support services are available from Embedthis
-    Software at http://www.embedthis.com
+    Software at http://embedthis.com
 
     Local variables:
     tab-width: 4

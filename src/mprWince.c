@@ -62,13 +62,12 @@ void mprStopOsService()
 }
 
 
-int mprGetRandomBytes(char *buf, int length, int block)
+int mprGetRandomBytes(char *buf, int length, bool block)
 {
     HCRYPTPROV      prov;
     int             rc;
 
     rc = 0;
-
     if (!CryptAcquireContext(&prov, NULL, NULL, PROV_RSA_FULL, CRYPT_VERIFYCONTEXT | 0x40)) {
         return mprGetError();
     }
@@ -219,19 +218,28 @@ void mprSetSocketMessage(int socketMessage)
 #endif /* WINCE */
 
 
-void mprSleep(MprTime milliseconds)
+void mprSleep(MprTime timeout)
 {
-    Sleep((int) milliseconds);
+    Sleep((int) timeout);
 }
 
 
-void mprUnloadModule(MprModule *mp)
+void mprSleep(MprTime timeout)
+{
+    mprYield(MPR_YIELD_STICKY);
+    mprNap(timeout);
+    mprResetYield();
+}
+
+
+void mprUnloadNativeModule(MprModule *mp)
 {
     mprAssert(mp->handle);
 
-    mprStopModule(mp);
-    mprRemoveItem(MPR->moduleService->modules, mp);
-    FreeLibrary((HINSTANCE) mp->handle);
+    if (FreeLibrary((HINSTANCE) mp->handle) == 0) {
+        return MPR_ERR_ABORTED;
+    }
+    return 0;
 }
 
 
@@ -346,7 +354,7 @@ int access(cchar *path, int flags)
     char    *tmpPath;
     int     rc;
 
-    if (!mprIsAbsPath(MPR, path)) {
+    if (!mprIsPathAbs(MPR, path)) {
         path = (cchar*) tmpPath = mprJoinPath(MPR, currentDir, path);
     } else {
         tmpPath = 0;
@@ -422,7 +430,7 @@ int mkdir(cchar *dir, int mode)
     uni     *wdir;
     int     rc;
 
-    if (!mprIsAbsPath(MPR, dir)) {
+    if (!mprIsPathAbs(MPR, dir)) {
         dir = (cchar*) tmpDir = mprJoinPath(MPR, currentDir, dir);
     } else {
         tmpDir = 0;
@@ -469,7 +477,7 @@ uint open(cchar *path, int mode, va_list arg)
     DWORD   accessFlags, shareFlags, createFlags;
     HANDLE  h;
 
-    if (!mprIsAbsPath(MPR, path)) {
+    if (!mprIsPathAbs(MPR, path)) {
         path = (cchar*) tmpPath = mprGetAbsPath(MPR, path);
     } else {
         tmpPath = 0;
@@ -513,12 +521,12 @@ int rename(cchar *oldname, cchar *newname)
     char    *tmpOld, *tmpNew;
     int     rc;
 
-    if (!mprIsAbsPath(MPR, oldname)) {
+    if (!mprIsPathAbs(MPR, oldname)) {
         oldname = (cchar*) tmpOld = mprJoinPath(MPR, currentDir, oldname);
     } else {
         tmpOld = 0;
     }
-    if (!mprIsAbsPath(MPR, newname)) {
+    if (!mprIsPathAbs(MPR, newname)) {
         newname = (cchar*) tmpNew = mprJoinPath(MPR, currentDir, newname);
     } else {
         tmpNew = 0;
@@ -536,7 +544,7 @@ int rmdir(cchar *dir)
     char    *tmpDir;
     int     rc;
 
-    if (!mprIsAbsPath(MPR, dir)) {
+    if (!mprIsPathAbs(MPR, dir)) {
         dir = (cchar*) tmpDir = mprJoinPath(MPR, currentDir, dir);
     } else {
         tmpDir = 0;
@@ -562,7 +570,7 @@ int stat(cchar *path, struct stat *sbuf)
 
     memset(sbuf, 0, sizeof(struct stat));
 
-    if (!mprIsAbsPath(MPR, path)) {
+    if (!mprIsPathAbs(MPR, path)) {
         path = (cchar*) tmpPath = mprJoinPath(MPR, currentDir, path);
     } else {
         tmpPath = 0;
@@ -887,7 +895,7 @@ void stubMprWince() {}
     under the terms of the GNU General Public License as published by the
     Free Software Foundation; either version 2 of the License, or (at your
     option) any later version. See the GNU General Public License for more
-    details at: http://www.embedthis.com/downloads/gplLicense.html
+    details at: http://embedthis.com/downloads/gplLicense.html
 
     This program is distributed WITHOUT ANY WARRANTY; without even the
     implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
@@ -896,7 +904,7 @@ void stubMprWince() {}
     proprietary programs. If you are unable to comply with the GPL, you must
     acquire a commercial license to use this software. Commercial licenses
     for this software and support services are available from Embedthis
-    Software at http://www.embedthis.com
+    Software at http://embedthis.com
 
     Local variables:
     tab-width: 4

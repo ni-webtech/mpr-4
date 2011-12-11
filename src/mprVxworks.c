@@ -36,7 +36,7 @@ int access(const char *path, int mode)
 }
 
 
-int mprGetRandomBytes(char *buf, int length, int block)
+int mprGetRandomBytes(char *buf, int length, bool block)
 {
     int     i;
 
@@ -103,7 +103,7 @@ int mprUnloadNativeModule(MprModule *mp)
 }
 
 
-void mprSleep(MprTime milliseconds)
+void mprNap(MprTime milliseconds)
 {
     struct timespec timeout;
     int             rc;
@@ -114,6 +114,14 @@ void mprSleep(MprTime milliseconds)
     do {
         rc = nanosleep(&timeout, &timeout);
     } while (rc < 0 && errno == EINTR);
+}
+
+
+void mprSleep(MprTime timeout)
+{
+    mprYield(MPR_YIELD_STICKY);
+    mprNap(timeout);
+    mprResetYield();
 }
 
 
@@ -135,6 +143,7 @@ int fsync(int fd) {
 int ftruncate(int fd, off_t offset) { 
     return 0; 
 }
+
 
 int usleep(uint msec)
 {
@@ -189,7 +198,7 @@ void stubMprVxWorks() {}
     under the terms of the GNU General Public License as published by the 
     Free Software Foundation; either version 2 of the License, or (at your 
     option) any later version. See the GNU General Public License for more 
-    details at: http://www.embedthis.com/downloads/gplLicense.html
+    details at: http://embedthis.com/downloads/gplLicense.html
     
     This program is distributed WITHOUT ANY WARRANTY; without even the 
     implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. 
@@ -198,7 +207,7 @@ void stubMprVxWorks() {}
     proprietary programs. If you are unable to comply with the GPL, you must
     acquire a commercial license to use this software. Commercial licenses 
     for this software and support services are available from Embedthis 
-    Software at http://www.embedthis.com 
+    Software at http://embedthis.com 
     
     Local variables:
     tab-width: 4

@@ -21,18 +21,19 @@ static MprModule *loadSsl(bool lazy)
     if (MPR->flags & MPR_SSL_PROVIDER_LOADED) {
         return mprLookupModule("sslModule");
     }
-
+#if UNUSED
     mprLog(MPR_CONFIG, "Activating the SSL provider");
+#endif
 #if BLD_FEATURE_OPENSSL
     /*
         NOTE: preference given to open ssl if both are enabled
      */
-    mprLog(2, "Loading OpenSSL module");
+    mprLog(4, "Loading OpenSSL module");
     if (mprCreateOpenSslModule(lazy) < 0) {
         return 0;
     }
 #elif BLD_FEATURE_MATRIXSSL
-    mprLog(2, "Loading MatrixSSL module");
+    mprLog(4, "Loading MatrixSSL module");
     if (mprCreateMatrixSslModule(lazy) < 0) {
         return 0;
     }
@@ -95,9 +96,13 @@ void mprConfigureSsl(MprSsl *ssl)
 {
     MprSocketProvider   *provider;
 
+    if (ssl == 0 || ssl->configured) {
+        return;
+    }
     provider = MPR->socketService->secureProvider;
     if (provider) {
         provider->configureSsl(ssl);
+        ssl->configured = 1;
     } else {
         mprError("Secure socket provider not loaded");
     }
@@ -250,7 +255,7 @@ void mprVerifySslClients(MprSsl *ssl, bool on)
     under the terms of the GNU General Public License as published by the 
     Free Software Foundation; either version 2 of the License, or (at your 
     option) any later version. See the GNU General Public License for more 
-    details at: http://www.embedthis.com/downloads/gplLicense.html
+    details at: http://embedthis.com/downloads/gplLicense.html
     
     This program is distributed WITHOUT ANY WARRANTY; without even the 
     implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. 
@@ -259,7 +264,7 @@ void mprVerifySslClients(MprSsl *ssl, bool on)
     proprietary programs. If you are unable to comply with the GPL, you must
     acquire a commercial license to use this software. Commercial licenses 
     for this software and support services are available from Embedthis 
-    Software at http://www.embedthis.com 
+    Software at http://embedthis.com 
     
     Local variables:
     tab-width: 4

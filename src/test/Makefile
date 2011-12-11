@@ -23,22 +23,24 @@ $(BLD_BIN_DIR)/benchMpr$(BLD_EXE): $(OBJECTS) $(BLD_LIB_DIR)/libmpr$(BLD_LIB) $(
 	bld --exe $(BLD_BIN_DIR)/benchMpr$(BLD_EXE) --search "$(BLD_MPR_LIBPATHS)" --libs "$(BLD_MPR_LIBS)" benchMpr
 
 ifneq	($(BLD_CROSS),1)
-testExtra: 
+testExtra::
 	$(call log) "[Test]" "Basic unit tests" ; \
 	$(BLD_BIN_DIR)/testMpr -v -i 2 --depth $(BUILD_DEPTH)
-	if [ $(BUILD_DEPTH) -ge 3 ] ; then \
+	if [ $(BUILD_DEPTH) -ge 13 ] ; then \
 		$(call log) "[Test]" "Light load unit tests" ; \
 		$(BLD_BIN_DIR)/testMpr -i 20 --depth $(BUILD_DEPTH) ; \
 		for t in 2 4 ; do \
 			$(call log) "[Test]" "Light thread load tests" ; \
+			echo $(BLD_BIN_DIR)/testMpr -i 20 --threads $$t --depth $(BUILD_DEPTH) ; \
 			$(BLD_BIN_DIR)/testMpr -i 20 --threads $$t --depth $(BUILD_DEPTH) ; \
 		done ; \
 	fi ; \
-	if [ $(BUILD_DEPTH) -ge 4 ] ; then \
+	if [ $(BUILD_DEPTH) -ge 14 ] ; then \
 		$(call log) "[Test]" "Longevity load tests" ; \
 		$(BLD_BIN_DIR)/testMpr -i 100 --depth $(BUILD_DEPTH) ; \
 		for t in 8 16 ; do \
 			$(call log) "[Test]" "Heavy thread load tests" ; \
+			echo $(BLD_BIN_DIR)/testMpr -i 100 --threads $$t --depth $(BUILD_DEPTH) ; \
 			$(BLD_BIN_DIR)/testMpr -i 100 --threads $$t --depth $(BUILD_DEPTH) ; \
 		done ; \
 	fi

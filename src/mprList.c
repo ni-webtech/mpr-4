@@ -101,7 +101,7 @@ int mprSetListLimits(MprList *lp, int initialSize, int maxSize)
 }
 
 
-int mprCopyList(MprList *dest, MprList *src)
+int mprCopyListContents(MprList *dest, MprList *src)
 {
     void        *item;
     int         next;
@@ -133,7 +133,7 @@ MprList *mprCloneList(MprList *src)
     if ((lp = mprCreateList(src->capacity, src->flags)) == 0) {
         return 0;
     }
-    if (mprCopyList(lp, src) < 0) {
+    if (mprCopyListContents(lp, src) < 0) {
         return 0;
     }
     return lp;
@@ -215,6 +215,32 @@ int mprAddItem(MprList *lp, cvoid *item)
 }
 
 
+int mprAddNullItem(MprList *lp)
+{
+    int     index;
+
+    mprAssert(lp);
+    mprAssert(lp->capacity >= 0);
+    mprAssert(lp->length >= 0);
+
+    lock(lp);
+    if (lp->length != 0 && lp->items[lp->length - 1] == 0) {
+        index = lp->length - 1;
+    } else {
+        if (lp->length >= lp->capacity) {
+            if (growList(lp, 1) < 0) {
+                unlock(lp);
+                return MPR_ERR_TOO_MANY;
+            }
+        }
+        index = lp->length;
+        lp->items[index] = 0;
+    }
+    unlock(lp);
+    return index;
+}
+
+
 /*
     Insert an item to the list at a specified position. We insert before the item at "index".
     ie. The inserted item will go into the "index" location and the other elements will be moved up.
@@ -266,7 +292,7 @@ int mprInsertItemAtPos(MprList *lp, int index, cvoid *item)
 /*
     Remove an item from the list. Return the index where the item resided.
  */
-int mprRemoveItem(MprList *lp, void *item)
+int mprRemoveItem(MprList *lp, cvoid *item)
 {
     int     index;
 
@@ -305,7 +331,6 @@ int mprRemoveLastItem(MprList *lp)
 int mprRemoveItemAtPos(MprList *lp, int index)
 {
     void    **items;
-    int     i;
 
     mprAssert(lp);
     mprAssert(lp->capacity > 0);
@@ -332,9 +357,12 @@ int mprRemoveItemAtPos(MprList *lp, int index)
         lp->length--;
     }
 #else
+    memmove(&items[index], &items[index + 1], (lp->length - index - 1) * sizeof(void*));
+#if OLD
     for (i = index; i < (lp->length - 1); i++) {
         items[i] = items[i + 1];
     }
+#endif
     lp->length--;
 #endif
     lp->items[lp->length] = 0;
@@ -497,6 +525,7 @@ void *mprPopItem(MprList *lp)
 }
 
 
+#ifndef mprGetListLength
 int mprGetListLength(MprList *lp)
 {
     if (lp == 0) {
@@ -504,6 +533,7 @@ int mprGetListLength(MprList *lp)
     }
     return lp->length;
 }
+#endif
 
 
 int mprGetListCapacity(MprList *lp)
@@ -612,8 +642,7 @@ MprKeyValue *mprCreateKeyPair(cchar *key, cchar *value)
 {
     MprKeyValue     *pair;
     
-    pair = mprAllocObj(MprKeyValue, manageKeyValue);
-    if (pair == 0) {
+    if ((pair = mprAllocObj(MprKeyValue, manageKeyValue)) == 0) {
         return 0;
     }
     pair->key = sclone(key);
@@ -638,7 +667,7 @@ MprKeyValue *mprCreateKeyPair(cchar *key, cchar *value)
     under the terms of the GNU General Public License as published by the 
     Free Software Foundation; either version 2 of the License, or (at your 
     option) any later version. See the GNU General Public License for more 
-    details at: http://www.embedthis.com/downloads/gplLicense.html
+    details at: http://embedthis.com/downloads/gplLicense.html
     
     This program is distributed WITHOUT ANY WARRANTY; without even the 
     implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. 
@@ -647,7 +676,7 @@ MprKeyValue *mprCreateKeyPair(cchar *key, cchar *value)
     proprietary programs. If you are unable to comply with the GPL, you must
     acquire a commercial license to use this software. Commercial licenses 
     for this software and support services are available from Embedthis 
-    Software at http://www.embedthis.com 
+    Software at http://embedthis.com 
     
     Local variables:
     tab-width: 4

@@ -222,40 +222,52 @@ ssize mprGetBlockFromBuf(MprBuf *bp, char *buf, ssize size)
 }
 
 
+#ifndef mprGetBufLength
 ssize mprGetBufLength(MprBuf *bp)
 {
     return (bp->end - bp->start);
 }
+#endif
 
 
+#ifndef mprGetBufSize
 ssize mprGetBufSize(MprBuf *bp)
 {
     return bp->buflen;
 }
+#endif
 
 
+#ifndef mprGetBufSpace
 ssize mprGetBufSpace(MprBuf *bp)
 {
     return (bp->endbuf - bp->end);
 }
+#endif
 
 
-char *mprGetBufOrigin(MprBuf *bp)
+#ifndef mprGetBuf
+char *mprGetBuf(MprBuf *bp)
 {
     return (char*) bp->data;
 }
+#endif
 
 
+#ifndef mprGetBufStart
 char *mprGetBufStart(MprBuf *bp)
 {
     return (char*) bp->start;
 }
+#endif
 
 
+#ifndef mprGetBufEnd
 char *mprGetBufEnd(MprBuf *bp)
 {
     return (char*) bp->end;
 }
+#endif
 
 
 //  TODO - rename mprPutbackCharToBuf as it really can't insert if the buffer is empty
@@ -394,7 +406,7 @@ ssize mprPutFmtToBuf(MprBuf *bp, cchar *fmt, ...)
         return 0;
     }
     va_start(ap, fmt);
-    buf = mprAsprintfv(fmt, ap);
+    buf = sfmtv(fmt, ap);
     va_end(ap);
     return mprPutStringToBuf(bp, buf);
 }
@@ -453,12 +465,9 @@ int mprGrowBuf(MprBuf *bp, ssize need)
  */
 ssize mprPutIntToBuf(MprBuf *bp, int64 i)
 {
-    char        numBuf[16];
     ssize       rc;
 
-    itos(numBuf, sizeof(numBuf), i, 10);
-    rc = mprPutStringToBuf(bp, numBuf);
-
+    rc = mprPutStringToBuf(bp, itos(i));
     if (bp->end < bp->endbuf) {
         *((char*) bp->end) = (char) '\0';
     }
@@ -563,7 +572,7 @@ int mprPutFmtToWideBuf(MprBuf *bp, cchar *fmt, ...)
     va_start(ap, fmt);
     space = mprGetBufSpace(bp);
     space += (bp->maxsize - bp->buflen);
-    buf = mprAsprintfv(fmt, ap);
+    buf = sfmtv(fmt, ap);
     wbuf = amtow(bp, buf, &len);
     rc = mprPutBlockToBuf(bp, (char*) wbuf, len * sizeof(MprChar));
     va_end(ap);
@@ -601,7 +610,7 @@ int mprPutStringToWideBuf(MprBuf *bp, cchar *str)
     under the terms of the GNU General Public License as published by the 
     Free Software Foundation; either version 2 of the License, or (at your 
     option) any later version. See the GNU General Public License for more 
-    details at: http://www.embedthis.com/downloads/gplLicense.html
+    details at: http://embedthis.com/downloads/gplLicense.html
     
     This program is distributed WITHOUT ANY WARRANTY; without even the 
     implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. 
@@ -610,7 +619,7 @@ int mprPutStringToWideBuf(MprBuf *bp, cchar *str)
     proprietary programs. If you are unable to comply with the GPL, you must
     acquire a commercial license to use this software. Commercial licenses 
     for this software and support services are available from Embedthis 
-    Software at http://www.embedthis.com 
+    Software at http://embedthis.com 
     
     Local variables:
     tab-width: 4

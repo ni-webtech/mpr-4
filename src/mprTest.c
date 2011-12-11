@@ -753,7 +753,7 @@ static bool filterTestCast(MprTestGroup *gp, MprTestCase *tc)
         See if this test has been filtered
      */
     if (mprGetListLength(testFilter) > 0) {
-        fullName = mprAsprintf("%s.%s", gp->fullName, tc->name);
+        fullName = sfmt("%s.%s", gp->fullName, tc->name);
         next = 0;
         pattern = mprGetNextItem(testFilter, &next);
         while (pattern) {
@@ -925,7 +925,7 @@ static void adjustThreadCount(int adj)
     mprLock(sp->mutex);
     sp->activeThreadCount += adj;
     if (sp->activeThreadCount <= 0) {
-        mprTerminate(MPR_EXIT_DEFAULT, -1);
+        mprTerminate(MPR_EXIT_DEFAULT, 0);
     }
     mprUnlock(sp->mutex);
 }
@@ -983,10 +983,10 @@ static int setLogging(char *logSpec)
     }
 
     if (strcmp(logSpec, "stdout") == 0) {
-        file = MPR->fileSystem->stdOutput;
+        file = MPR->stdOutput;
 
     } else if (strcmp(logSpec, "stderr") == 0) {
-        file = MPR->fileSystem->stdError;
+        file = MPR->stdError;
 
     } else {
         if ((file = mprOpenFile(logSpec, O_CREAT | O_WRONLY | O_TRUNC | O_TEXT, 0664)) == 0) {
@@ -1017,7 +1017,7 @@ static int setLogging(char *logSpec)
     under the terms of the GNU General Public License as published by the 
     Free Software Foundation; either version 2 of the License, or (at your 
     option) any later version. See the GNU General Public License for more 
-    details at: http://www.embedthis.com/downloads/gplLicense.html
+    details at: http://embedthis.com/downloads/gplLicense.html
     
     This program is distributed WITHOUT ANY WARRANTY; without even the 
     implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. 
@@ -1026,7 +1026,7 @@ static int setLogging(char *logSpec)
     proprietary programs. If you are unable to comply with the GPL, you must
     acquire a commercial license to use this software. Commercial licenses 
     for this software and support services are available from Embedthis 
-    Software at http://www.embedthis.com 
+    Software at http://embedthis.com 
     
     Local variables:
     tab-width: 4

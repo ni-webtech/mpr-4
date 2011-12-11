@@ -45,6 +45,14 @@ BLD_MPR_PRODUCT=1
 }
 
 
+emitExtraComponents()
+{
+    local kind
+
+    kind=$1
+}
+
+
 help()
 {
     cat <<!EOF_HELP

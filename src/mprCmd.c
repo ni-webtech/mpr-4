@@ -11,12 +11,12 @@
 /******************************* Forward Declarations *************************/
 
 static void closeFiles(MprCmd *cmd);
-static void cmdCallback(MprCmd *cmd, int channel, void *data);
+static ssize cmdCallback(MprCmd *cmd, int channel, void *data);
 static int makeChannel(MprCmd *cmd, int index);
 static int makeCmdIO(MprCmd *cmd);
 static void manageCmdService(MprCmdService *cmd, int flags);
 static void manageCmd(MprCmd *cmd, int flags);
-static void reapCmd(MprCmd *cmd);
+static void reapCmd(MprCmd *cmd, MprSignal *sp);
 static void resetCmd(MprCmd *cmd);
 static int sanitizeArgs(MprCmd *cmd, int argc, char **argv, char **env);
 static int startProcess(MprCmd *cmd);
@@ -47,7 +47,7 @@ static void cmdTaskEntry(char *program, MprCmdTaskFn entry, int cmdArg);
 
 /************************************* Code ***********************************/
 
-MprCmdService *mprCreateCmdService(Mpr *mpr)
+MprCmdService *mprCreateCmdService()
 {
     MprCmdService   *cs;
 
@@ -103,9 +103,6 @@ MprCmd *mprCreateCmd(MprDispatcher *dispatcher)
         files[i].clientFd = -1;
         files[i].fd = -1;
     }
-#if BLD_UNIX_LIKE
-    cmd->signal = mprAddSignalHandler(SIGCHLD, reapCmd, cmd, dispatcher, MPR_SIGNAL_BEFORE);
-#endif
     cmd->mutex = mprCreateLock();
     mprAddItem(MPR->cmdService->cmds, cmd);
     return cmd;
@@ -119,6 +116,7 @@ static void manageCmd(MprCmd *cmd, int flags)
     if (flags & MPR_MANAGE_MARK) {
         mprMark(cmd->program);
         mprMark(cmd->makeArgv);
+        mprMark(cmd->defaultEnv);
         mprMark(cmd->env);
 #if BLD_UNIX_LIKE
         if (cmd->env) {
@@ -142,6 +140,7 @@ static void manageCmd(MprCmd *cmd, int flags)
         mprMark(cmd->stderrBuf);
         mprMark(cmd->userData);
         mprMark(cmd->mutex);
+        mprMark(cmd->searchPath);
 #if BLD_WIN_LIKE
         mprMark(cmd->command);
         mprMark(cmd->arg0);
@@ -227,7 +226,7 @@ static void resetCmd(MprCmd *cmd)
 
     if (cmd->pid && !(cmd->flags & MPR_CMD_DETACH)) {
         mprStopCmd(cmd, -1);
-        reapCmd(cmd);
+        reapCmd(cmd, 0);
         cmd->pid = 0;
     }
 }
@@ -294,17 +293,33 @@ int mprIsCmdComplete(MprCmd *cmd)
 /*
     Run a simple blocking command. See arg usage below in mprRunCmdV.
  */
-int mprRunCmd(MprCmd *cmd, cchar *command, char **out, char **err, int flags)
+int mprRunCmd(MprCmd *cmd, cchar *command, char **out, char **err, MprTime timeout, int flags)
 {
     char    **argv;
     int     argc;
 
     mprAssert(cmd);
-    if (mprMakeArgv(command, &argc, &argv, 0) < 0 || argv == 0) {
+    if ((argc = mprMakeArgv(command, &argv, 0)) < 0 || argv == 0) {
         return 0;
     }
     cmd->makeArgv = argv;
-    return mprRunCmdV(cmd, argc, argv, out, err, flags);
+    return mprRunCmdV(cmd, argc, argv, out, err, timeout, flags);
+}
+
+
+/*
+    Env is an array of "KEY=VALUE" strings. Null terminated
+ */
+void mprSetCmdDefaultEnv(MprCmd *cmd, cchar **env)
+{
+    /* WARNING: defaultEnv is not cloned */
+    cmd->defaultEnv = env;
+}
+
+
+void mprSetCmdSearchPath(MprCmd *cmd, cchar *search)
+{
+    cmd->searchPath = sclone(search);
 }
 
 
@@ -316,7 +331,7 @@ int mprRunCmd(MprCmd *cmd, cchar *command, char **out, char **err, int flags)
         MPR_CMD_SHOW            Show the commands window on Windows
         MPR_CMD_IN              Connect to stdin
  */
-int mprRunCmdV(MprCmd *cmd, int argc, char **argv, char **out, char **err, int flags)
+int mprRunCmdV(MprCmd *cmd, int argc, char **argv, char **out, char **err, MprTime timeout, int flags)
 {
     int     rc, status;
 
@@ -340,7 +355,7 @@ int mprRunCmdV(MprCmd *cmd, int argc, char **argv, char **out, char **err, int f
         cmd->stderrBuf = mprCreateBuf(MPR_BUFSIZE, -1);
     }
     mprSetCmdCallback(cmd, cmdCallback, NULL);
-    rc = mprStartCmd(cmd, argc, argv, NULL, flags);
+    rc = mprStartCmd(cmd, argc, argv, 0, flags);
 
     /*
         Close the pipe connected to the client's stdin
@@ -351,11 +366,11 @@ int mprRunCmdV(MprCmd *cmd, int argc, char **argv, char **out, char **err, int f
     if (rc < 0) {
         if (err) {
             if (rc == MPR_ERR_CANT_ACCESS) {
-                *err = mprAsprintf("Can't access command %s", cmd->program);
+                *err = sfmt("Can't access command %s", cmd->program);
             } else if (MPR_ERR_CANT_OPEN) {
-                *err = mprAsprintf("Can't open standard I/O for command %s", cmd->program);
+                *err = sfmt("Can't open standard I/O for command %s", cmd->program);
             } else if (rc == MPR_ERR_CANT_CREATE) {
-                *err = mprAsprintf("Can't create process for %s", cmd->program);
+                *err = sfmt("Can't create process for %s", cmd->program);
             }
         }
         return rc;
@@ -363,7 +378,7 @@ int mprRunCmdV(MprCmd *cmd, int argc, char **argv, char **out, char **err, int f
     if (cmd->flags & MPR_CMD_DETACH) {
         return 0;
     }
-    if (mprWaitForCmd(cmd, -1) < 0) {
+    if (mprWaitForCmd(cmd, timeout) < 0) {
         return MPR_ERR_NOT_READY;
     }
     if ((status = mprGetCmdExitStatus(cmd)) < 0) {
@@ -407,7 +422,7 @@ static void addCmdHandlers(MprCmd *cmd)
 int mprStartCmd(MprCmd *cmd, int argc, char **argv, char **envp, int flags)
 {
     MprPath     info;
-    char        *program;
+    char        *program, *search;
     int         rc;
 
     mprAssert(cmd);
@@ -422,11 +437,15 @@ int mprStartCmd(MprCmd *cmd, int argc, char **argv, char **envp, int flags)
     cmd->program = sclone(program);
     cmd->flags = flags;
 
+    if (envp == 0) {
+        envp = (char**) cmd->defaultEnv;
+    }
     if (sanitizeArgs(cmd, argc, argv, envp) < 0) {
         mprAssert(!MPR_ERR_MEMORY);
         return MPR_ERR_MEMORY;
     }
-    if ((program = mprSearchPath(program, MPR_SEARCH_EXE, MPR->pathEnv, NULL)) == 0) {
+    search = cmd->searchPath ? cmd->searchPath : MPR->pathEnv;
+    if ((program = mprSearchPath(program, MPR_SEARCH_EXE, search, NULL)) == 0) {
         mprLog(1, "cmd: can't access %s, errno %d", cmd->program, mprGetOsError());
         return MPR_ERR_CANT_ACCESS;
     }
@@ -487,6 +506,7 @@ int mprStopCmd(MprCmd *cmd, int signal)
     if (signal < 0) {
         signal = SIGTERM;
     }
+    cmd->stopped = 1;
     if (cmd->pid) {
 #if BLD_WIN_LIKE
         return TerminateProcess(cmd->process, 2) == 0;
@@ -511,6 +531,7 @@ ssize mprReadCmd(MprCmd *cmd, int channel, char *buf, ssize bufsize)
     /*
         Need to detect EOF in windows. Pipe always in blocking mode, but reads block even with no one on the other end.
      */
+    mprAssert(cmd->files[channel].handle);
     rc = PeekNamedPipe(cmd->files[channel].handle, NULL, 0, NULL, &count, NULL);
     if (rc > 0 && count > 0) {
         return read(cmd->files[channel].fd, buf, (uint) bufsize);
@@ -524,6 +545,7 @@ ssize mprReadCmd(MprCmd *cmd, int channel, char *buf, ssize bufsize)
     return -1;
 }
 #else
+    mprAssert(cmd->files[channel].fd >= 0);
     return read(cmd->files[channel].fd, buf, bufsize);
 #endif
 }
@@ -542,7 +564,7 @@ ssize mprWriteCmd(MprCmd *cmd, int channel, char *buf, ssize bufsize)
         return -1;
     }
 #endif
-    return write(cmd->files[channel].fd, buf, bufsize);
+    return write(cmd->files[channel].fd, buf, (wsize) bufsize);
 }
 
 
@@ -576,6 +598,9 @@ static void waitForWinEvent(MprCmd *cmd, MprTime timeout)
     int         i, rc, nbytes;
 
     mark = mprGetTime();
+    if (cmd->stopped) {
+        timeout = 0;
+    }
     for (i = MPR_CMD_STDOUT; i < MPR_CMD_MAX_PIPE; i++) {
         if (cmd->files[i].handle) {
             rc = PeekNamedPipe(cmd->files[i].handle, NULL, 0, NULL, &nbytes, NULL);
@@ -594,15 +619,20 @@ static void waitForWinEvent(MprCmd *cmd, MprTime timeout)
     }
     if (cmd->process) {
         delay = (cmd->eofCount == cmd->requiredEof && cmd->files[MPR_CMD_STDIN].handle == 0) ? timeout : 0;
+        mprYield(MPR_YIELD_STICKY);
         if (WaitForSingleObject(cmd->process, (DWORD) delay) == WAIT_OBJECT_0) {
-            reapCmd(cmd);
+            mprResetYield();
+            reapCmd(cmd, 0);
             return;
         }
+        mprResetYield();
         if (cmd->eofCount == cmd->requiredEof) {
             remaining = mprGetRemainingTime(mark, timeout);
+            mprYield(MPR_YIELD_STICKY);
             rc = WaitForSingleObject(cmd->process, (DWORD) remaining);
+            mprResetYield();
             if (rc == WAIT_OBJECT_0) {
-                reapCmd(cmd);
+                reapCmd(cmd, 0);
                 return;
             }
             mprError("Error waiting CGI I/O, error %d", mprGetOsError());
@@ -628,6 +658,9 @@ int mprWaitForCmd(MprCmd *cmd, MprTime timeout)
     }
     if (mprGetDebugMode()) {
         timeout = MAXINT;
+    }
+    if (cmd->stopped) {
+        timeout = 0;
     }
     expires = mprGetTime() + timeout;
     remaining = timeout;
@@ -656,15 +689,16 @@ int mprWaitForCmd(MprCmd *cmd, MprTime timeout)
 
 
 /*
-    Gather the child's exit status. This routine is idempotent.
+    Gather the child's exit status. 
     WARNING: this may be called with a false-positive, ie. SIGCHLD will get invoked for all process deaths and not just
     when this cmd has completed.
  */
-static void reapCmd(MprCmd *cmd)
+static void reapCmd(MprCmd *cmd, MprSignal *sp)
 {
+    ssize   got, nbytes;
     int     status, rc;
 
-    mprLog(6, "reapCmd pid %d, eof %d, required %d\n", cmd->pid, cmd->eofCount, cmd->requiredEof);
+    mprLog(6, "reapCmd CHECK pid %d, eof %d, required %d\n", cmd->pid, cmd->eofCount, cmd->requiredEof);
     
     status = 0;
     if (cmd->pid == 0) {
@@ -672,7 +706,7 @@ static void reapCmd(MprCmd *cmd)
     }
 #if BLD_UNIX_LIKE
     if ((rc = waitpid(cmd->pid, &status, WNOHANG | __WALL)) < 0) {
-        mprLog(0, "waitpid failed for pid %d, errno %d", cmd->pid, errno);
+        mprLog(6, "waitpid failed for pid %d, errno %d", cmd->pid, errno);
 
     } else if (rc == cmd->pid) {
         mprLog(6, "waitpid pid %d, thread %s", cmd->pid, mprGetCurrentThreadName());
@@ -692,6 +726,8 @@ static void reapCmd(MprCmd *cmd)
         } else {
             mprLog(7, "waitpid ELSE pid %d, errno %d", cmd->pid, errno);
         }
+    } else {
+        mprLog(6, "waitpid still running pid %d, thread %s", cmd->pid, mprGetCurrentThreadName());
     }
 #endif
 #if VXWORKS
@@ -730,8 +766,46 @@ static void reapCmd(MprCmd *cmd)
         if (cmd->callback) {
             (cmd->callback)(cmd, -1, cmd->callbackData);
         }
+        mprLog(6, "Cmd reaped: status %d, pid %d, eof %d / %d\n", cmd->status, cmd->pid, cmd->eofCount, cmd->requiredEof);
+
+        if (cmd->callback) {
+            /*
+                Read outstanding data
+             */  
+            while (cmd->eofCount < cmd->requiredEof) {
+                got = 0;
+                if (cmd->files[MPR_CMD_STDERR].fd >= 0) {
+                    if ((nbytes = (cmd->callback)(cmd, MPR_CMD_STDERR, cmd->callbackData)) > 0) {
+                        got += nbytes;
+                    }
+                }
+                if (cmd->files[MPR_CMD_STDOUT].fd >= 0) {
+                    if ((nbytes = (cmd->callback)(cmd, MPR_CMD_STDOUT, cmd->callbackData)) > 0) {
+                        got += nbytes;
+                    }
+                }
+                if (got <= 0) {
+                    break;
+                }
+            }
+            if (cmd->files[MPR_CMD_STDERR].fd >= 0) {
+                mprCloseCmdFd(cmd, MPR_CMD_STDERR);
+            }
+            if (cmd->files[MPR_CMD_STDOUT].fd >= 0) {
+                mprCloseCmdFd(cmd, MPR_CMD_STDOUT);
+            }
+            /*
+                May not close stdin/stdout if command times out
+             */
+#if UNUSED && DONT_USE && KEEP
+            if (cmd->eofCount != cmd->requiredEof) {
+                mprLog(0, "reapCmd: insufficient EOFs %d %d, complete %d", cmd->eofCount, cmd->requiredEof, cmd->complete);
+            }
+            mprAssert(cmd->eofCount == cmd->requiredEof);
+            mprAssert(cmd->complete);
+#endif
+        }
     }
-    mprLog(6, "Cmd reaped: status %d, pid %d, eof %d / %d\n", cmd->status, cmd->pid, cmd->eofCount, cmd->requiredEof);
 }
 
 
@@ -739,7 +813,7 @@ static void reapCmd(MprCmd *cmd)
     Default callback routine for the mprRunCmd routines. Uses may supply their own callback instead of this routine. 
     The callback is run whenever there is I/O to read/write to the CGI gateway.
  */
-static void cmdCallback(MprCmd *cmd, int channel, void *data)
+static ssize cmdCallback(MprCmd *cmd, int channel, void *data)
 {
     MprBuf      *buf;
     ssize       len, space;
@@ -750,7 +824,7 @@ static void cmdCallback(MprCmd *cmd, int channel, void *data)
     buf = 0;
     switch (channel) {
     case MPR_CMD_STDIN:
-        return;
+        return 0;
     case MPR_CMD_STDOUT:
         buf = cmd->stdoutBuf;
         break;
@@ -759,7 +833,7 @@ static void cmdCallback(MprCmd *cmd, int channel, void *data)
         break;
     default:
         /* Child death notification */
-        return;
+        return 0;
     }
     /*
         Read and aggregate the result into a single string
@@ -768,7 +842,7 @@ static void cmdCallback(MprCmd *cmd, int channel, void *data)
     if (space < (MPR_BUFSIZE / 4)) {
         if (mprGrowBuf(buf, MPR_BUFSIZE) < 0) {
             mprCloseCmdFd(cmd, channel);
-            return;
+            return 0;
         }
         space = mprGetBufSpace(buf);
     }
@@ -778,19 +852,20 @@ static void cmdCallback(MprCmd *cmd, int channel, void *data)
     if (len <= 0) {
         if (len == 0 || (len < 0 && !(errno == EAGAIN || errno == EWOULDBLOCK))) {
             mprCloseCmdFd(cmd, channel);
-            return;
+            return len;
         }
     } else {
         mprAdjustBufEnd(buf, len);
     }
     mprAddNullToBuf(buf);
     mprEnableCmdEvents(cmd, channel);
+    return len;
 }
 
 
 static void stdinCallback(MprCmd *cmd, MprEvent *event)
 {
-    if (cmd->callback) {
+    if (cmd->callback && cmd->files[MPR_CMD_STDIN].fd >= 0) {
         (cmd->callback)(cmd, MPR_CMD_STDIN, cmd->callbackData);
     }
 }
@@ -798,7 +873,10 @@ static void stdinCallback(MprCmd *cmd, MprEvent *event)
 
 static void stdoutCallback(MprCmd *cmd, MprEvent *event)
 {
-    if (cmd->callback) {
+    /*
+        reapCmd can consume data from the client and close the fd
+     */
+    if (cmd->callback && cmd->files[MPR_CMD_STDOUT].fd >= 0) {
         (cmd->callback)(cmd, MPR_CMD_STDOUT, cmd->callbackData);
     }
 }
@@ -806,7 +884,10 @@ static void stdoutCallback(MprCmd *cmd, MprEvent *event)
 
 static void stderrCallback(MprCmd *cmd, MprEvent *event)
 {
-    if (cmd->callback) {
+    /*
+        reapCmd can consume data from the client and close the fd
+     */
+    if (cmd->callback && cmd->files[MPR_CMD_STDERR].fd >= 0) {
         (cmd->callback)(cmd, MPR_CMD_STDERR, cmd->callbackData);
     }
 }
@@ -904,10 +985,10 @@ static int sanitizeArgs(MprCmd *cmd, int argc, char **argv, char **env)
             Add PATH and LD_LIBRARY_PATH 
          */
         if (!hasPath && (cp = getenv("PATH")) != 0) {
-            envp[index++] = mprAsprintf("PATH=%s", cp);
+            envp[index++] = sfmt("PATH=%s", cp);
         }
         if (!hasLibPath && (cp = getenv(LD_LIBRARY_PATH)) != 0) {
-            envp[index++] = mprAsprintf("%s=%s", LD_LIBRARY_PATH, cp);
+            envp[index++] = sfmt("%s=%s", LD_LIBRARY_PATH, cp);
         }
         envp[index++] = '\0';
         mprLog(4, "mprStartCmd %s", cmd->program);
@@ -1032,7 +1113,7 @@ static int sanitizeArgs(MprCmd *cmd, int argc, char **argv, char **env)
         dp = (char*) mprAlloc(len);
         endp = &dp[len];
         cmd->env = (char**) dp;
-        for (ep = env; ep && *ep; ep++) {
+        for (ep = env, i = 0; ep && *ep; ep++, i++) {
             mprLog(4, "    env[%d]: %s", i, *ep);
             strcpy(dp, *ep);
             dp += slen(*ep) + 1;
@@ -1191,7 +1272,7 @@ static int makeChannel(MprCmd *cmd, int index)
     now = ((int) mprGetTime() & 0xFFFF) % 64000;
 
     lock(MPR->cmdService);
-    pipeName = mprAsprintf("\\\\.\\pipe\\MPR_%d_%d_%d.tmp", getpid(), (int) now, ++tempSeed);
+    pipeName = sfmt("\\\\.\\pipe\\MPR_%d_%d_%d.tmp", getpid(), (int) now, ++tempSeed);
     unlock(MPR->cmdService);
 
     /*
@@ -1264,7 +1345,7 @@ static int makeChannel(MprCmd *cmd, int index)
     static int      tempSeed = 0;
 
     file = &cmd->files[index];
-    file->name = mprAsprintf("/pipe/%s_%d_%d", BLD_PRODUCT, taskIdSelf(), tempSeed++);
+    file->name = sfmt("/pipe/%s_%d_%d", BLD_PRODUCT, taskIdSelf(), tempSeed++);
 
     if (pipeDevCreate(file->name, 5, MPR_BUFSIZE) < 0) {
         mprError("Can't create pipes to run %s", cmd->program);
@@ -1296,7 +1377,9 @@ static int startProcess(MprCmd *cmd)
     int             rc, i, err;
 
     files = cmd->files;
-
+    if (!cmd->signal) {
+        cmd->signal = mprAddSignalHandler(SIGCHLD, reapCmd, cmd, cmd->dispatcher, MPR_SIGNAL_BEFORE);
+    }
     /*
         Create the child
      */
@@ -1397,7 +1480,7 @@ int startProcess(MprCmd *cmd)
     }
     program = mprGetPathBase(cmd->program);
     if (entryPoint == 0) {
-        program = mprTrimPathExtension(program);
+        program = mprTrimPathExt(program);
 #if BLD_HOST_CPU_ARCH == MPR_CPU_IX86 || BLD_HOST_CPU_ARCH == MPR_CPU_IX64
         entryPoint = sjoin("_", program, "Main", NULL);
 #else
@@ -1423,7 +1506,7 @@ int startProcess(MprCmd *cmd)
     /*
         Pass the server output file to become the client stdin.
      */
-    cmd->pid = taskSpawn(entryPoint, pri, 0, MPR_DEFAULT_STACK, (FUNCPTR) cmdTaskEntry, 
+    cmd->pid = taskSpawn(entryPoint, pri, VX_FP_TASK, MPR_DEFAULT_STACK, (FUNCPTR) cmdTaskEntry, 
         (int) cmd->program, (int) entryFn, (int) cmd, 0, 0, 0, 0, 0, 0, 0);
 
     if (cmd->pid < 0) {
@@ -1580,7 +1663,7 @@ static char **fixenv(MprCmd *cmd)
     under the terms of the GNU General Public License as published by the 
     Free Software Foundation; either version 2 of the License, or (at your 
     option) any later version. See the GNU General Public License for more 
-    details at: http://www.embedthis.com/downloads/gplLicense.html
+    details at: http://embedthis.com/downloads/gplLicense.html
     
     This program is distributed WITHOUT ANY WARRANTY; without even the 
     implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. 
@@ -1589,7 +1672,7 @@ static char **fixenv(MprCmd *cmd)
     proprietary programs. If you are unable to comply with the GPL, you must
     acquire a commercial license to use this software. Commercial licenses 
     for this software and support services are available from Embedthis 
-    Software at http://www.embedthis.com 
+    Software at http://embedthis.com 
     
     Local variables:
     tab-width: 4

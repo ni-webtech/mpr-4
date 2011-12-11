@@ -24,11 +24,31 @@
 
 static int closeFile(MprFile *file);
 static void manageDiskFile(MprFile *file, int flags);
-static int getPathInfo(MprDiskFileSystem *fileSystem, cchar *path, MprPath *info);
+static int getPathInfo(MprDiskFileSystem *fs, cchar *path, MprPath *info);
 
 /************************************ Code ************************************/
+#if FUTURE
+/*
+    Open a file with support for cygwin paths. Tries windows path first then under /cygwin.
+ */
+static int cygOpen(MprFileSystem *fs, cchar *path, int omode, int perms)
+{
+    int     fd;
 
-static MprFile *openFile(MprFileSystem *fileSystem, cchar *path, int omode, int perms)
+    fd = open(path, omode, perms);
+#if WIN
+    if (fd < 0) {
+        if (*path == '/') {
+            path = sjoin(fs->cygwin, path, NULL);
+        }
+        fd = open(path, omode, perms);
+    }
+#endif
+    return fd;
+}
+#endif
+
+static MprFile *openFile(MprFileSystem *fs, cchar *path, int omode, int perms)
 {
     MprFile     *file;
     
@@ -41,10 +61,10 @@ static MprFile *openFile(MprFileSystem *fileSystem, cchar *path, int omode, int 
     file->path = sclone(path);
     file->fd = open(path, omode, perms);
     if (file->fd < 0) {
-        /*
-            File opens can fail of immediately following a delete. Windows uses pending deletes which prevent opens.
-         */
 #if WIN
+        /*
+            Windows opens can fail of immediately following a delete. Windows uses pending deletes which prevent opens.
+         */
         int i, err = GetLastError();
         if (err == ERROR_ACCESS_DENIED) {
             for (i = 0; i < RETRIES; i++) {
@@ -52,7 +72,7 @@ static MprFile *openFile(MprFileSystem *fileSystem, cchar *path, int omode, int 
                 if (file->fd >= 0) {
                     break;
                 }
-                mprSleep(10);
+                mprNap(10);
             }
             if (file->fd < 0) {
                 file = NULL;
@@ -71,8 +91,10 @@ static MprFile *openFile(MprFileSystem *fileSystem, cchar *path, int omode, int 
 static void manageDiskFile(MprFile *file, int flags)
 {
     if (flags & MPR_MANAGE_MARK) {
-        mprMark(file->buf);
         mprMark(file->path);
+        mprMark(file->fileSystem);
+        mprMark(file->buf);
+        //  MOB - mark inode?
 
     } else if (flags & MPR_MANAGE_FREE) {
         closeFile(file);
@@ -132,23 +154,33 @@ static MprOff seekFile(MprFile *file, int seekType, MprOff distance)
     }
 #if BLD_WIN_LIKE
     return (MprOff) _lseeki64(file->fd, (int64) distance, seekType);
+#elif HAS_OFF64
+    return (MprOff) lseek64(file->fd, (off64_t) distance, seekType);
 #else
     return (MprOff) lseek(file->fd, (off_t) distance, seekType);
 #endif
 }
 
 
-static bool accessPath(MprDiskFileSystem *fileSystem, cchar *path, int omode)
+static bool accessPath(MprDiskFileSystem *fs, cchar *path, int omode)
 {
+#if BLD_WIN && FUTURE
+    if (access(path, omode) < 0) {
+        if (*path == '/') {
+            path = sjoin(fs->cygwin, path, NULL);
+        }
+    }
+#endif
     return access(path, omode) == 0;
 }
 
 
-static int deletePath(MprDiskFileSystem *fileSystem, cchar *path)
+//  MOB - should this be called removePath
+static int deletePath(MprDiskFileSystem *fs, cchar *path)
 {
     MprPath     info;
 
-    if (getPathInfo(fileSystem, path, &info) == 0 && info.isDir) {
+    if (getPathInfo(fs, path, &info) == 0 && info.isDir) {
         return rmdir((char*) path);
     }
 #if WIN
@@ -165,7 +197,7 @@ static int deletePath(MprDiskFileSystem *fileSystem, cchar *path)
         if (err != ERROR_SHARING_VIOLATION) {
             break;
         }
-        mprSleep(10);
+        mprNap(10);
     }
     return MPR_ERR_CANT_DELETE;
 }
@@ -175,17 +207,29 @@ static int deletePath(MprDiskFileSystem *fileSystem, cchar *path)
 }
  
 
-static int makeDir(MprDiskFileSystem *fileSystem, cchar *path, int perms)
+static int makeDir(MprDiskFileSystem *fs, cchar *path, int perms, int owner, int group)
 {
+    int     rc;
+
 #if VXWORKS
-    return mkdir((char*) path);
+    rc = mkdir((char*) path);
 #else
-    return mkdir(path, perms);
+    rc = mkdir(path, perms);
 #endif
+    if (rc < 0) {
+        return MPR_ERR_CANT_CREATE;
+    }
+#if BLD_UNIX_LIKE
+    if ((owner != -1 || group != -1) && chown(path, owner, group) < 0) {
+        rmdir(path);
+        return MPR_ERR_CANT_CREATE;
+    }
+#endif
+    return 0;
 }
 
 
-static int makeLink(MprDiskFileSystem *fileSystem, cchar *path, cchar *target, int hard)
+static int makeLink(MprDiskFileSystem *fs, cchar *path, cchar *target, int hard)
 {
 #if BLD_UNIX_LIKE
     if (hard) {
@@ -199,7 +243,7 @@ static int makeLink(MprDiskFileSystem *fileSystem, cchar *path, cchar *target, i
 }
 
 
-static int getPathInfo(MprDiskFileSystem *fileSystem, cchar *path, MprPath *info)
+static int getPathInfo(MprDiskFileSystem *fs, cchar *path, MprPath *info)
 {
 #if WINCE
     struct stat s;
@@ -223,7 +267,7 @@ static int getPathInfo(MprDiskFileSystem *fileSystem, cchar *path, MprPath *info
     info->isDir = (s.st_mode & S_IFDIR) != 0;
     info->isReg = (s.st_mode & S_IFREG) != 0;
     info->isLink = 0;
-    ext = mprGetPathExtension(path);
+    ext = mprGetPathExt(path);
     if (ext && strcmp(ext, "lnk") == 0) {
         info->isLink = 1;
     }
@@ -237,7 +281,19 @@ static int getPathInfo(MprDiskFileSystem *fileSystem, cchar *path, MprPath *info
     info->checked = 1;
     info->valid = 0;
     if (_stat64(path, &s) < 0) {
+#if BLD_WIN && FUTURE
+        /*
+            Try under /cygwin
+         */
+        if (*path == '/') {
+            path = sjoin(fs->cygwin, path, NULL);
+        }
+        if (_stat64(path, &s) < 0) {
+            return -1;
+        }
+#else
         return -1;
+#endif
     }
     info->valid = 1;
     info->size = s.st_size;
@@ -248,7 +304,7 @@ static int getPathInfo(MprDiskFileSystem *fileSystem, cchar *path, MprPath *info
     info->isDir = (s.st_mode & S_IFDIR) != 0;
     info->isReg = (s.st_mode & S_IFREG) != 0;
     info->isLink = 0;
-    ext = mprGetPathExtension(path);
+    ext = mprGetPathExt(path);
     if (ext && strcmp(ext, "lnk") == 0) {
         info->isLink = 1;
     }
@@ -303,6 +359,8 @@ static int getPathInfo(MprDiskFileSystem *fileSystem, cchar *path, MprPath *info
     info->isDir = S_ISDIR(s.st_mode);
     info->isReg = S_ISREG(s.st_mode);
     info->perms = s.st_mode & 07777;
+    info->owner = s.st_uid;
+    info->group = s.st_gid;
 #else
     struct stat s;
     info->valid = 0;
@@ -327,6 +385,8 @@ static int getPathInfo(MprDiskFileSystem *fileSystem, cchar *path, MprPath *info
     info->isDir = S_ISDIR(s.st_mode);
     info->isReg = S_ISREG(s.st_mode);
     info->perms = s.st_mode & 07777;
+    info->owner = s.st_uid;
+    info->group = s.st_gid;
     if (strcmp(path, "/dev/null") == 0) {
         info->isReg = 0;
     }
@@ -334,7 +394,7 @@ static int getPathInfo(MprDiskFileSystem *fileSystem, cchar *path, MprPath *info
     return 0;
 }
  
-static char *getPathLink(MprDiskFileSystem *fileSystem, cchar *path)
+static char *getPathLink(MprDiskFileSystem *fs, cchar *path)
 {
 #if BLD_UNIX_LIKE
     char    pbuf[MPR_MAX_PATH];
@@ -351,9 +411,18 @@ static char *getPathLink(MprDiskFileSystem *fileSystem, cchar *path)
 }
 
 
-static int truncateFile(MprDiskFileSystem *fileSystem, cchar *path, MprOff size)
+static int truncateFile(MprDiskFileSystem *fs, cchar *path, MprOff size)
 {
     if (!mprPathExists(path, F_OK)) {
+#if BLD_WIN_LIKE && FUTURE
+        /*
+            Try under /cygwin
+         */
+        if (*path == '/') {
+            path = sjoin(fs->cygwin, path, NULL);
+        }
+        if (!mprPathExists(path, F_OK))
+#endif
         return MPR_ERR_CANT_ACCESS;
     }
 #if BLD_WIN_LIKE
@@ -394,14 +463,12 @@ static void manageDiskFileSystem(MprDiskFileSystem *dfs, int flags)
 {
 #if !WINCE
     if (flags & MPR_MANAGE_MARK) {
-        mprMark(dfs->stdError);
-        mprMark(dfs->stdInput);
-        mprMark(dfs->stdOutput);
         mprMark(dfs->separators);
         mprMark(dfs->newline);
         mprMark(dfs->root);
-#if BLD_WIN_LIKE
+#if BLD_WIN_LIKE || CYGWIN
         mprMark(dfs->cygdrive);
+        mprMark(dfs->cygwin);
 #endif
     }
 #endif
@@ -421,7 +488,6 @@ MprDiskFileSystem *mprCreateDiskFileSystem(cchar *path)
         Temporary
      */
     fs = (MprFileSystem*) dfs;
-
     dfs->accessPath = accessPath;
     dfs->deletePath = deletePath;
     dfs->getPathInfo = getPathInfo;
@@ -436,29 +502,29 @@ MprDiskFileSystem *mprCreateDiskFileSystem(cchar *path)
     dfs->writeFile = writeFile;
 
 #if !WINCE
-    if ((dfs->stdError = mprAllocStruct(MprFile)) == 0) {
+    if ((MPR->stdError = mprAllocStruct(MprFile)) == 0) {
         return NULL;
     }
-    mprSetName(dfs->stdError, "stderr");
-    dfs->stdError->fd = 2;
-    dfs->stdError->fileSystem = fs;
-    dfs->stdError->mode = O_WRONLY;
+    mprSetName(MPR->stdError, "stderr");
+    MPR->stdError->fd = 2;
+    MPR->stdError->fileSystem = fs;
+    MPR->stdError->mode = O_WRONLY;
 
-    if ((dfs->stdInput = mprAllocStruct(MprFile)) == 0) {
+    if ((MPR->stdInput = mprAllocStruct(MprFile)) == 0) {
         return NULL;
     }
-    mprSetName(dfs->stdInput, "stdin");
-    dfs->stdInput->fd = 0;
-    dfs->stdInput->fileSystem = fs;
-    dfs->stdInput->mode = O_RDONLY;
+    mprSetName(MPR->stdInput, "stdin");
+    MPR->stdInput->fd = 0;
+    MPR->stdInput->fileSystem = fs;
+    MPR->stdInput->mode = O_RDONLY;
 
-    if ((dfs->stdOutput = mprAllocStruct(MprFile)) == 0) {
+    if ((MPR->stdOutput = mprAllocStruct(MprFile)) == 0) {
         return NULL;
     }
-    mprSetName(dfs->stdOutput, "stdout");
-    dfs->stdOutput->fd = 1;
-    dfs->stdOutput->fileSystem = fs;
-    dfs->stdOutput->mode = O_WRONLY;
+    mprSetName(MPR->stdOutput, "stdout");
+    MPR->stdOutput->fd = 1;
+    MPR->stdOutput->fileSystem = fs;
+    MPR->stdOutput->mode = O_WRONLY;
 #endif
     return dfs;
 }
@@ -481,7 +547,7 @@ MprDiskFileSystem *mprCreateDiskFileSystem(cchar *path)
     under the terms of the GNU General Public License as published by the 
     Free Software Foundation; either version 2 of the License, or (at your 
     option) any later version. See the GNU General Public License for more 
-    details at: http://www.embedthis.com/downloads/gplLicense.html
+    details at: http://embedthis.com/downloads/gplLicense.html
     
     This program is distributed WITHOUT ANY WARRANTY; without even the 
     implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. 
@@ -490,7 +556,7 @@ MprDiskFileSystem *mprCreateDiskFileSystem(cchar *path)
     proprietary programs. If you are unable to comply with the GPL, you must
     acquire a commercial license to use this software. Commercial licenses 
     for this software and support services are available from Embedthis 
-    Software at http://www.embedthis.com 
+    Software at http://embedthis.com 
     
     Local variables:
     tab-width: 4

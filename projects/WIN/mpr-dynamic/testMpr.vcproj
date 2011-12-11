@@ -1,251 +1,93 @@
-<?xml version="1.0" encoding="UTF-8"?>
-<VisualStudioProject
-    ProjectType="Visual C++"
-    Version="8.00"
-    Name="testMpr"
-    ProjectGUID="48ab31e1-55c2-4778-8ce5-327131f54112"
-    RootNamespace=""
-    Keyword="Win32Proj"
-    TargetFrameworkVersion="0"
-    >
-    <Platforms>
-        <Platform
-            Name="Win32"
-        />
-    </Platforms>
-    <ToolFiles>
-    </ToolFiles>
-    <Configurations>
-        <Configuration
-            Name="Release|Win32"
-            OutputDirectory="$(PlatformName)\$(ConfigurationName)"
-            IntermediateDirectory="$(PlatformName)\$(ConfigurationName)"
-            ConfigurationType="1"
-            CharacterSet="0"
-            >
-            <Tool
-                Name="VCPreBuildEventTool"
-            />
-<Tool Name="VCCustomBuildTool" />
-            <Tool
-                Name="VCManagedResourceCompilerTool"
-            />
-            <Tool
-                Name="VCResourceCompilerTool"
-            />
-            <Tool
-                Name="VCPreLinkEventTool"
-            />
-            <Tool
-                Name="VCALinkTool"
-            />
-            <Tool
-                Name="VCManifestTool"
-            />
-            <Tool
-                Name="VCXDCMakeTool"
-            />
-            <Tool
-                Name="VCBscMakeTool"
-            />
-            <Tool
-                Name="VCFxCopTool"
-            />
-            <Tool
-                Name="VCAppVerifierTool"
-            />
-            <Tool
-                Name="VCPostBuildEventTool"
-            />
-            <Tool
-                Name="VCCLCompilerTool"
-                UsePrecompiledHeader="0"
-                WarningLevel="3"
-                ExceptionHandling="0"
-                CompileAs="0"
-                StringPooling="true"
-                MinimalRebuild="true"
-                AdditionalIncludeDirectories="../../../src/include;../../../src/include/master;../../../out/include;../../../src/include"
-                PreprocessorDefinitions="WIN32;_DEBUG;_WINDOWS;DEBUG_IDE;_REENTRANT;_MT"
-                Optimization="1"
-                FavorSizeOrSpeed="1"
-                RuntimeLibrary="2"
-                DebugInformationFormat="3"
-                EnableIntrinsicFunctions="true"
-                EnableFunctionLevelLinking="true"
-            />
-            <Tool
-                Name="VCLinkerTool"
-                AdditionalLibraryDirectories="$(OutDir)"
-                AdditionalDependencies="ws2_32.lib libmpr.lib"
-                Targetmachine="1"
-                SubSystem="1"
-                LinkIncremental="1"
-                GenerateDebugInformation="false"
-                OptimizeReferences="2"
-                EnableCOMDATAFolding="2"
-            />
-        </Configuration>
-        <Configuration
-            Name="Debug|Win32"
-            OutputDirectory="$(PlatformName)\$(ConfigurationName)"
-            IntermediateDirectory="$(PlatformName)\$(ConfigurationName)"
-            ConfigurationType="1"
-            CharacterSet="0"
-            >
-            <Tool
-                Name="VCPreBuildEventTool"
-            />
-<Tool Name="VCCustomBuildTool" />
-            <Tool
-                Name="VCManagedResourceCompilerTool"
-            />
-            <Tool
-                Name="VCResourceCompilerTool"
-            />
-            <Tool
-                Name="VCPreLinkEventTool"
-            />
-            <Tool
-                Name="VCALinkTool"
-            />
-            <Tool
-                Name="VCManifestTool"
-            />
-            <Tool
-                Name="VCXDCMakeTool"
-            />
-            <Tool
-                Name="VCBscMakeTool"
-            />
-            <Tool
-                Name="VCFxCopTool"
-            />
-            <Tool
-                Name="VCAppVerifierTool"
-            />
-            <Tool
-                Name="VCPostBuildEventTool"
-            />
-            <Tool
-                Name="VCCLCompilerTool"
-                UsePrecompiledHeader="0"
-                WarningLevel="3"
-                ExceptionHandling="0"
-                CompileAs="0"
-                StringPooling="true"
-                MinimalRebuild="true"
-                AdditionalIncludeDirectories="../../../src/include;../../../src/include/master;../../../out/include;../../../src/include"
-                PreprocessorDefinitions="WIN32;_DEBUG;_WINDOWS;DEBUG_IDE;_REENTRANT;_MT"
-                Optimization="0"
-                FavorSizeOrSpeed="1"
-                BasicRuntimeChecks="3"
-                RuntimeLibrary="3"
-                DebugInformationFormat="4"
-            />
-            <Tool
-                Name="VCLinkerTool"
-                AdditionalLibraryDirectories="$(OutDir)"
-                AdditionalDependencies="ws2_32.lib libmpr.lib"
-                Targetmachine="1"
-                SubSystem="1"
-                LinkIncremental="2"
-                GenerateDebugInformation="true"
-            />
-        </Configuration>
-    </Configurations>
-    <References>
-    </References>
-    <Files>
-        <Filter
-            Name="Header Files"
-            Filter="h;hpp;hxx;hm;inl;inc;xsd"
-            UniqueIdentifier="{8d0afce8-4a6a-4ef8-aa08-9b7e953e4d4f}"
-            >
-            <File
-                RelativePath="..\..\..\out\include\buildConfig.h"
-                >
-            </File>
-            <File
-                RelativePath="..\..\..\src\include\mpr.h"
-                >
-            </File>
-            <File
-                RelativePath="..\..\..\src\include\mprSsl.h"
-                >
-            </File>
-        </Filter>
-        <Filter
-            Name="Source Files"
-            Filter="cpp;c;cc;cxx;def;odl;idl;hpj;bat;asm;asmx"
-            UniqueIdentifier="{792a061c-96fc-4bf2-b63f-f8a6a82a0daf}"
-            >
-            <File
-                RelativePath="..\..\..\src\test\testBuf.c"
-                >
-            </File>
-            <File
-                RelativePath="..\..\..\src\test\testCmd.c"
-                >
-            </File>
-            <File
-                RelativePath="..\..\..\src\test\testCond.c"
-                >
-            </File>
-            <File
-                RelativePath="..\..\..\src\test\testEvent.c"
-                >
-            </File>
-            <File
-                RelativePath="..\..\..\src\test\testFile.c"
-                >
-            </File>
-            <File
-                RelativePath="..\..\..\src\test\testHash.c"
-                >
-            </File>
-            <File
-                RelativePath="..\..\..\src\test\testList.c"
-                >
-            </File>
-            <File
-                RelativePath="..\..\..\src\test\testLock.c"
-                >
-            </File>
-            <File
-                RelativePath="..\..\..\src\test\testMem.c"
-                >
-            </File>
-            <File
-                RelativePath="..\..\..\src\test\testMpr.c"
-                >
-            </File>
-            <File
-                RelativePath="..\..\..\src\test\testPath.c"
-                >
-            </File>
-            <File
-                RelativePath="..\..\..\src\test\testSocket.c"
-                >
-            </File>
-            <File
-                RelativePath="..\..\..\src\test\testSprintf.c"
-                >
-            </File>
-            <File
-                RelativePath="..\..\..\src\test\testThread.c"
-                >
-            </File>
-            <File
-                RelativePath="..\..\..\src\test\testTime.c"
-                >
-            </File>
-            <File
-                RelativePath="..\..\..\src\test\testUnicode.c"
-                >
-            </File>
-        </Filter>
-    </Files>
-    <Globals>
-    </Globals>
-</VisualStudioProject>
+<?xml version="1.0" encoding="utf-8"?>
+<Project DefaultTargets="Build" ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+
+  <ItemGroup Label="ProjectConfigurations">
+    <ProjectConfiguration Include="Debug|Win32">
+      <Configuration>Debug</Configuration>
+      <Platform>Win32</Platform>
+    </ProjectConfiguration>
+    <ProjectConfiguration Include="Release|Win32">
+      <Configuration>Release</Configuration>
+      <Platform>Win32</Platform>
+    </ProjectConfiguration>
+  </ItemGroup>
+
+  <PropertyGroup Label="Globals">
+    <ProjectGuid>{E5115A46-64A6-4666-A849-046C2EC8F8D9}</ProjectGuid>
+    <RootNamespace />
+    <Keyword>Win32Proj</Keyword>
+  </PropertyGroup>
+
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
+
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'" Label="Configuration">
+    <ConfigurationType>Application</ConfigurationType>
+    <CharacterSet>NotSet</CharacterSet>
+  </PropertyGroup>
+
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'" Label="Configuration">
+    <ConfigurationType>Application</ConfigurationType>
+    <CharacterSet>NotSet</CharacterSet>
+  </PropertyGroup>
+
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.props" />
+
+  <ImportGroup Label="ExtensionSettings">
+  </ImportGroup>
+
+  <ImportGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'" Label="PropertySheets">
+    <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
+    
+    <Import Project="debug.props" />
+  </ImportGroup>
+
+  <ImportGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'" Label="PropertySheets">
+    <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
+    
+    <Import Project="release.props" />
+  </ImportGroup>
+
+  <PropertyGroup Label="UserMacros" />
+
+  <PropertyGroup>
+    <_ProjectFileVersion>10.0.30319.1</_ProjectFileVersion>
+    <OutDir Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">..\..\..\out\bin\</OutDir>
+    <IntDir Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">..\..\..\out\obj\testMpr.vcproj\</IntDir>
+    <OutDir Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">..\..\..\out\bin\</OutDir>
+    <IntDir Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">..\..\..\out\obj\testMpr.vcproj\</IntDir>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <ClInclude Include="..\..\..\out\include\buildConfig.h" />
+  </ItemGroup>
+
+  <ItemGroup >
+    <ClCompile Include="..\..\..\src\test\testArgv.c" />
+    <ClCompile Include="..\..\..\src\test\testBuf.c" />
+    <ClCompile Include="..\..\..\src\test\testCmd.c" />
+    <ClCompile Include="..\..\..\src\test\testCond.c" />
+    <ClCompile Include="..\..\..\src\test\testEvent.c" />
+    <ClCompile Include="..\..\..\src\test\testFile.c" />
+    <ClCompile Include="..\..\..\src\test\testHash.c" />
+    <ClCompile Include="..\..\..\src\test\testList.c" />
+    <ClCompile Include="..\..\..\src\test\testLock.c" />
+    <ClCompile Include="..\..\..\src\test\testMem.c" />
+    <ClCompile Include="..\..\..\src\test\testMpr.c" />
+    <ClCompile Include="..\..\..\src\test\testPath.c" />
+    <ClCompile Include="..\..\..\src\test\testSocket.c" />
+    <ClCompile Include="..\..\..\src\test\testSprintf.c" />
+    <ClCompile Include="..\..\..\src\test\testThread.c" />
+    <ClCompile Include="..\..\..\src\test\testTime.c" />
+    <ClCompile Include="..\..\..\src\test\testUnicode.c" />
+  </ItemGroup>
+
+  <ItemDefinitionGroup >
+    <Link>
+      <AdditionalDependencies>ws2_32.lib;libmpr.lib;%(AdditionalDependencies)</AdditionalDependencies>
+    </Link>
+  </ItemDefinitionGroup>
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
+
+  <ImportGroup Label="ExtensionTargets">
+  </ImportGroup>
+</Project>

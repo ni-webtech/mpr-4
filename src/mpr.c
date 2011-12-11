@@ -13,7 +13,6 @@
 static void getArgs(Mpr *mpr, int argc, char **argv);
 static void manageMpr(Mpr *mpr, int flags);
 static void serviceEventsThread(void *data, MprThread *tp);
-static void startThreads(int flags);
 
 /************************************* Code ***********************************/
 /*
@@ -31,14 +30,28 @@ Mpr *mprCreate(int argc, char **argv, int flags)
         mprAssert(mpr);
         return 0;
     }
-    getArgs(mpr, argc, argv);
     mpr->exitStrategy = MPR_EXIT_NORMAL;
     mpr->emptyString = sclone("");
     mpr->title = sclone(BLD_NAME);
     mpr->version = sclone(BLD_VERSION);
     mpr->idleCallback = mprServicesAreIdle;
     mpr->mimeTypes = mprCreateMimeTypes(NULL);
+    mpr->terminators = mprCreateList(0, MPR_LIST_STATIC_VALUES);
 
+    mprCreateTimeService();
+    mprCreateOsService();
+    mpr->mutex = mprCreateLock();
+    mpr->spin = mprCreateSpinLock();
+    mpr->dtoaSpin[0] = mprCreateSpinLock();
+    mpr->dtoaSpin[1] = mprCreateSpinLock();
+
+    fs = mprCreateFileSystem("/");
+    mprAddFileSystem(fs);
+    mprCreateLogService();
+
+    if (argv) {
+        getArgs(mpr, argc, argv);
+    }
     if (mpr->argv && mpr->argv[0] && *mpr->argv[0]) {
         name = mpr->argv[0];
         if ((cp = strrchr(name, '/')) != 0 || (cp = strrchr(name, '\\')) != 0) {
@@ -51,14 +64,6 @@ Mpr *mprCreate(int argc, char **argv, int flags)
     } else {
         mpr->name = sclone(BLD_PRODUCT);
     }
-    mprCreateTimeService();
-    mprCreateOsService();
-    mpr->mutex = mprCreateLock();
-    mpr->spin = mprCreateSpinLock();
-
-    fs = mprCreateFileSystem("/");
-    mprAddFileSystem(fs);
-
     mpr->signalService = mprCreateSignalService();
     mpr->threadService = mprCreateThreadService();
     mpr->moduleService = mprCreateModuleService();
@@ -72,7 +77,14 @@ Mpr *mprCreate(int argc, char **argv, int flags)
     mpr->nonBlock = mprCreateDispatcher("nonblock", 1);
     mpr->pathEnv = sclone(getenv("PATH"));
 
-    startThreads(flags);
+    if (flags & MPR_USER_EVENTS_THREAD) {
+        if (!(flags & MPR_NO_WINDOW)) {
+            mprInitWindow();
+        }
+    } else {
+        mprStartEventsThread();
+    }
+    mprStartGCService();
 
     if (MPR->hasError || mprHasMemError()) {
         return 0;
@@ -84,21 +96,26 @@ Mpr *mprCreate(int argc, char **argv, int flags)
 static void manageMpr(Mpr *mpr, int flags)
 {
     if (flags & MPR_MANAGE_MARK) {
+        mprMark(mpr->logPath);
         mprMark(mpr->logFile);
         mprMark(mpr->mimeTypes);
         mprMark(mpr->timeTokens);
+        mprMark(mpr->pathEnv);
         mprMark(mpr->name);
         mprMark(mpr->title);
         mprMark(mpr->version);
         mprMark(mpr->domainName);
         mprMark(mpr->hostName);
         mprMark(mpr->ip);
+        mprMark(mpr->stdError);
+        mprMark(mpr->stdInput);
+        mprMark(mpr->stdOutput);
         mprMark(mpr->serverName);
-        mprMark(mpr->appDir);
         mprMark(mpr->appPath);
+        mprMark(mpr->appDir);
         mprMark(mpr->cmdService);
-        mprMark(mpr->fileSystem);
         mprMark(mpr->eventService);
+        mprMark(mpr->fileSystem);
         mprMark(mpr->moduleService);
         mprMark(mpr->osService);
         mprMark(mpr->signalService);
@@ -108,32 +125,45 @@ static void manageMpr(Mpr *mpr, int flags)
         mprMark(mpr->waitService);
         mprMark(mpr->dispatcher);
         mprMark(mpr->nonBlock);
-        mprMark(mpr->ejsService);
-        mprMark(mpr->httpService);
         mprMark(mpr->appwebService);
+        mprMark(mpr->ediService);
+        mprMark(mpr->ejsService);
+        mprMark(mpr->espService);
+        mprMark(mpr->httpService);
         mprMark(mpr->testService);
+        mprMark(mpr->terminators);
         mprMark(mpr->mutex);
         mprMark(mpr->spin);
+        mprMark(mpr->dtoaSpin[0]);
+        mprMark(mpr->dtoaSpin[1]);
+        mprMark(mpr->cond);
         mprMark(mpr->emptyString);
-        mprMark(mpr->pathEnv);
         mprMark(mpr->heap.markerCond);
     }
 }
 
+static void wgc(int mode)
+{
+    mprRequestGC(mode);
+}
 
 /*
     Destroy the Mpr and all services
  */
 void mprDestroy(int how)
 {
-    MprTime     mark;
     int         gmode;
 
-    if (how != MPR_EXIT_DEFAULT) {
+    if (!(how & MPR_EXIT_DEFAULT)) {
         MPR->exitStrategy = how;
     }
     how = MPR->exitStrategy;
-    if (how == MPR_EXIT_IMMEDIATE) {
+    if (how & MPR_EXIT_IMMEDIATE) {
+        if (how & MPR_EXIT_RESTART) {
+            mprRestart();
+            /* No return */
+            return;
+        }
         exit(0);
     }
     mprYield(MPR_YIELD_STICKY);
@@ -143,43 +173,36 @@ void mprDestroy(int how)
     gmode = MPR_FORCE_GC | MPR_COMPLETE_GC | MPR_WAIT_GC;
     mprRequestGC(gmode);
 
-    if (how == MPR_EXIT_GRACEFUL) {
+    if (how & MPR_EXIT_GRACEFUL) {
         mprWaitTillIdle(MPR_TIMEOUT_STOP);
     }
     MPR->state = MPR_STOPPING_CORE;
-    MPR->exitStrategy = MPR_EXIT_IMMEDIATE;
+    MPR->exitStrategy &= MPR_EXIT_GRACEFUL;
+    MPR->exitStrategy |= MPR_EXIT_IMMEDIATE;
 
+    mprWakeWorkers();
     mprStopCmdService();
     mprStopModuleService();
     mprStopEventService();
     mprStopSignalService();
 
     /* Final GC to run all finalizers */
-    mprRequestGC(gmode);
+    wgc(gmode);
 
+    if (how & MPR_EXIT_RESTART) {
+        mprLog(2, "Restarting\n\n");
+    } else {
+        mprLog(2, "Exiting");
+    }
     MPR->state = MPR_FINISHED;
     mprStopGCService();
     mprStopThreadService();
-
-    /*
-        Must wait for the GC, ServiceEvents, threads and worker threads to exit. Otherwise we have races when freeing memory.
-     */
-    mark = mprGetTime();
-    while (MPR->marker || MPR->eventing || mprGetListLength(MPR->workerService->busyThreads) > 0 ||
-            mprGetListLength(MPR->threadService->threads) > 0) {
-        if (mprGetRemainingTime(mark, MPR_TIMEOUT_STOP) <= 0) {
-            break;
-        }
-#if UNUSED && KEEP
-        //  MOB - cleanup
-        printf("marker %d, eventing %d, busyThreads %d, threads %d\n", MPR->marker, MPR->eventing, 
-                MPR->workerService->busyThreads->length,
-                MPR->threadService->threads->length);
-#endif
-        mprSleep(1);
-    }
     mprStopOsService();
     mprDestroyMemService();
+
+    if (how & MPR_EXIT_RESTART) {
+        mprRestart();
+    }
 }
 
 
@@ -189,20 +212,26 @@ void mprDestroy(int how)
  */
 void mprTerminate(int how, int status)
 {
+    MprTerminator   terminator;
+    int             next;
+
     MPR->exitStatus = status;
-    if (how != MPR_EXIT_DEFAULT) {
+    if (!(how & MPR_EXIT_DEFAULT)) {
         MPR->exitStrategy = how;
     }
     how = MPR->exitStrategy;
-    if (how == MPR_EXIT_IMMEDIATE) {
-        mprLog(5, "Immediate exit. Aborting all requests and services.");
+    if (how & MPR_EXIT_IMMEDIATE) {
+        mprLog(2, "Immediate exit. Aborting all requests and services.");
         exit(status);
-    } else if (how == MPR_EXIT_NORMAL) {
-        mprLog(5, "Normal exit. Flush buffers, close files and aborting existing requests.");
-    } else if (how == MPR_EXIT_GRACEFUL) {
-        mprLog(5, "Graceful exit. Waiting for existing requests to complete.");
+
+    } else if (how & MPR_EXIT_NORMAL) {
+        mprLog(2, "Normal exit. Flush buffers, close files and aborting existing requests.");
+
+    } else if (how & MPR_EXIT_GRACEFUL) {
+        mprLog(2, "Graceful exit. Waiting for existing requests to complete.");
+
     } else {
-        mprLog(7, "HOW %d", how);
+        mprLog(7, "mprTerminate: how %d", how);
     }
 
     /*
@@ -210,16 +239,57 @@ void mprTerminate(int how, int status)
         complete if graceful exit strategy.
      */
     if (MPR->state >= MPR_STOPPING) {
+        /* Already stopping and done the code below */
         return;
     }
-    /*
-        Set stopping state and wake up everybody
-     */
     MPR->state = MPR_STOPPING;
-    mprWakeDispatchers();
+
+    /*
+        Invoke terminators, set stopping state and wake up everybody
+        Must invoke terminators before setting stopping state. Otherwise, the main app event loop will return from
+        mprServiceEvents and starting calling destroy before we have completed this routine.
+     */
+    for (ITERATE_ITEMS(MPR->terminators, terminator, next)) {
+        (terminator)(how, status);
+    }
     mprWakeWorkers();
     mprWakeGCService();
+    mprWakeDispatchers();
     mprWakeNotifier();
+}
+
+
+int mprGetExitStatus()
+{
+    return MPR->exitStatus;
+}
+
+
+void mprAddTerminator(MprTerminator terminator)
+{
+    mprAddItem(MPR->terminators, terminator);
+}
+
+
+void mprRestart()
+{
+    //  MOB TODO - Other systems
+#if BLD_UNIX_LIKE
+    int     i;
+    for (i = 3; i < MPR_MAX_FILE; i++) {
+        close(i);
+    }
+    execv(MPR->argv[0], MPR->argv);
+
+    /*
+        Last-ditch trace. Can only use stdout. Logging may be closed.
+     */
+    printf("Failed to exec errno %d: ", errno);
+    for (i = 0; MPR->argv[i]; i++) {
+        printf("%s ", MPR->argv[i]);
+    }
+    printf("\n");
+#endif
 }
 
 
@@ -228,18 +298,27 @@ void mprTerminate(int how, int status)
  */
 static void getArgs(Mpr *mpr, int argc, char **argv) 
 {
+    if (argv) {
 #if WINCE
-    MprArgs *args = (MprArgs*) argv;
-    command = mprToMulti((uni*) args->command);
-    mprMakeArgv(command, &argc, &argv, MPR_ARGV_ARGS_ONLY);
-    argv[0] = sclone(args->program);
+        MprArgs *args = (MprArgs*) argv;
+        command = mprToMulti((uni*) args->command);
+        argc = mprMakeArgv(command, &argv, MPR_ARGV_ARGS_ONLY);
+        mprHold(argv);
+        argv[0] = sclone(args->program);
+        mprHold(argv[0]);
 #elif VXWORKS
-    MprArgs *args = (MprArgs*) argv;
-    mprMakeArgv("", &argc, &argv, MPR_ARGV_ARGS_ONLY);
-    argv[0] = sclone(args->program);
+        MprArgs *args = (MprArgs*) argv;
+        argc = mprMakeArgv("", &argv, MPR_ARGV_ARGS_ONLY);
+        mprHold(argv);
+        argv[0] = sclone(args->program);
+        mprHold(argv[0]);
+#else
+        argv[0] = mprGetAppPath();
+        mprHold(argv[0]);
 #endif
-    mpr->argc = argc;
-    mpr->argv = argv;
+        mpr->argc = argc;
+        mpr->argv = argv;
+    }
 }
 
 
@@ -260,29 +339,27 @@ int mprStart()
 }
 
 
-static void startThreads(int flags)
+int mprStartEventsThread()
 {
     MprThread   *tp;
 
-    if (flags & MPR_USER_EVENTS_THREAD) {
-        mprInitWindow();
+    if ((tp = mprCreateThread("events", serviceEventsThread, NULL, 0)) == 0) {
+        MPR->hasError = 1;
     } else {
-        if ((tp = mprCreateThread("events", serviceEventsThread, NULL, 0)) == 0) {
-            MPR->hasError = 1;
-        } else {
-            MPR->cond = mprCreateCond();
-            mprStartThread(tp);
-            mprWaitForCond(MPR->cond, MPR_TIMEOUT_START_TASK);
-        }
+        MPR->cond = mprCreateCond();
+        mprStartThread(tp);
+        mprWaitForCond(MPR->cond, MPR_TIMEOUT_START_TASK);
     }
-    mprStartGCService();
+    return 0;
 }
 
 
 static void serviceEventsThread(void *data, MprThread *tp)
 {
     mprLog(MPR_CONFIG, "Service thread started");
-    mprInitWindow();
+    if (!(MPR->flags & MPR_NO_WINDOW)) {
+        mprInitWindow();
+    }
     mprSignalCond(MPR->cond);
     mprServiceEvents(-1, 0);
 }
@@ -293,7 +370,7 @@ static void serviceEventsThread(void *data, MprThread *tp)
  */
 bool mprShouldAbortRequests()
 {
-    return (mprIsStopping() && MPR->exitStrategy != MPR_EXIT_GRACEFUL);
+    return (mprIsStopping() && !(MPR->exitStrategy & MPR_EXIT_GRACEFUL));
 }
 
 
@@ -323,11 +400,15 @@ bool mprIsFinished()
 
 int mprWaitTillIdle(MprTime timeout)
 {
-    MprTime     mark;
+    MprTime     mark, remaining, lastTrace;
 
-    mark = mprGetTime(); 
-    while (!mprIsIdle() && mprGetRemainingTime(mark, timeout) > 0) {
+    lastTrace = mark = mprGetTime(); 
+    while (!mprIsIdle() && (remaining = mprGetRemainingTime(mark, timeout)) > 0) {
         mprSleep(1);
+        if ((lastTrace - remaining) > MPR_TICKS_PER_SEC) {
+            mprLog(1, "Waiting for requests to complete, %d secs remaining ...", remaining / MPR_TICKS_PER_SEC);
+            lastTrace = remaining;
+        }
     }
     return mprIsIdle();
 }
@@ -340,15 +421,13 @@ bool mprServicesAreIdle()
 {
     bool    idle;
 
-    //  FUTURE - should also measure open sockets?
-
-    idle = mprGetListLength(MPR->workerService->busyThreads) == 0 && 
-           mprGetListLength(MPR->cmdService->cmds) == 0 && 
-           mprDispatchersAreIdle() && !MPR->eventing;
+    /*
+        Only test top level services. Dispatchers may have timers scheduled, but that is okay.
+     */
+    idle = mprGetListLength(MPR->workerService->busyThreads) == 0 && mprGetListLength(MPR->cmdService->cmds) == 0;
     if (!idle) {
-        mprLog(1, "Not idle: cmds %d, busy threads %d, dispatchers %d, eventing %d",
-            mprGetListLength(MPR->cmdService->cmds), mprGetListLength(MPR->workerService->busyThreads),
-           !mprDispatchersAreIdle(), MPR->eventing);
+        mprLog(4, "Not idle: cmds %d, busy threads %d, eventing %d",
+            mprGetListLength(MPR->cmdService->cmds), mprGetListLength(MPR->workerService->busyThreads), MPR->eventing);
     }
     return idle;
 }
@@ -420,9 +499,12 @@ static int parseArgs(char *args, char **argv)
 
 
 /*
-    Make an argv array
+    Make an argv array. All args are in a single memory block of which argv points to the start.
+    Set MPR_ARGV_ARGS_ONLY if not passing in a program name. 
+    Always returns and argv[0] reserved for the program name or empty string.
+    First arg starts at argv[1]
  */
-int mprMakeArgv(cchar *command, int *argcp, char ***argvp, int flags)
+int mprMakeArgv(cchar *command, char ***argvp, int flags)
 {
     char    **argv, *vector, *args;
     ssize   len;
@@ -446,14 +528,13 @@ int mprMakeArgv(cchar *command, int *argcp, char ***argvp, int flags)
     strcpy(args, command);
     argv = (char**) vector;
 
-    parseArgs(args, argv);
     if (flags & MPR_ARGV_ARGS_ONLY) {
-        argv[0] = sclone("");
+        parseArgs(args, &argv[1]);
+        argv[0] = MPR->emptyString;
+    } else {
+        parseArgs(args, argv);
     }
     argv[argc] = 0;
-    if (argcp) {
-        *argcp = argc;
-    }
     *argvp = argv;
     return argc;
 }
@@ -630,6 +711,18 @@ void mprSetExitStrategy(int strategy)
 }
 
 
+void mprLockDtoa(int n)
+{
+    mprSpinLock(MPR->dtoaSpin[n]);
+}
+
+
+void mprUnlockDtoa(int n)
+{
+    mprSpinUnlock(MPR->dtoaSpin[n]);
+}
+
+
 void mprNop(void *ptr) {}
 
 /*
@@ -648,7 +741,7 @@ void mprNop(void *ptr) {}
     under the terms of the GNU General Public License as published by the
     Free Software Foundation; either version 2 of the License, or (at your
     option) any later version. See the GNU General Public License for more
-    details at: http://www.embedthis.com/downloads/gplLicense.html
+    details at: http://embedthis.com/downloads/gplLicense.html
 
     This program is distributed WITHOUT ANY WARRANTY; without even the
     implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
@@ -657,7 +750,7 @@ void mprNop(void *ptr) {}
     proprietary programs. If you are unable to comply with the GPL, you must
     acquire a commercial license to use this software. Commercial licenses
     for this software and support services are available from Embedthis
-    Software at http://www.embedthis.com
+    Software at http://embedthis.com
 
     Local variables:
     tab-width: 4

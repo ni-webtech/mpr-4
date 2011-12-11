@@ -159,17 +159,16 @@ static MprMem   headBlock, *head;
 
 /***************************** Forward Declarations ***************************/
 
-static void allocException(ssize size, bool granted);
+static void allocException(int cause, ssize size);
 static void checkYielded();
 static void dummyManager(void *ptr, int flags);
-static ssize getMemSize();
+static ssize fastMemSize();
 static void *getNextRoot();
 static void getSystemInfo();
 static void initGen();
 static void mark();
 static void marker(void *unused, MprThread *tp);
 static void markRoots();
-static int memoryNotifier(int flags, ssize size);
 static void nextGen();
 static void sweep();
 static void sweeper(void *unused, MprThread *tp);
@@ -268,7 +267,6 @@ Mpr *mprCreateMemService(MprManager manager, int flags)
 
     heap = &MPR->heap;
     heap->flags = flags;
-    heap->notifier = (MprMemNotifier) memoryNotifier;
     heap->nextSeqno = 1;
     heap->chunkSize = MPR_MEM_REGION_SIZE;
     heap->stats.maxMemory = MAXINT;
@@ -318,20 +316,15 @@ Mpr *mprCreateMemService(MprManager manager, int flags)
 
 
 /*
-    Shutdown memory service. Run managers on all allocated blocks
+    Shutdown memory service. Run managers on all allocated blocks.
  */
 void mprDestroyMemService()
 {
     volatile MprRegion  *region;
     MprMem              *mp, *next;
-    MprTime             mark;
 
     if (heap->destroying) {
         return;
-    }
-    mark = mprGetTime();
-    while (MPR->marker && mprGetRemainingTime(mark, MPR_TIMEOUT_STOP) > 0) {
-        mprSleep(1);
     }
     heap->destroying = 1;
     for (region = heap->regions; region; region = region->next) {
@@ -343,8 +336,6 @@ void mprDestroyMemService()
             }
         }
     }
-    heap = 0;
-    MPR = 0;
 }
 
 
@@ -606,7 +597,9 @@ static MprMem *allocFromHeap(ssize required, int flags)
             }
             groupMap &= ~(((ssize) 1) << group);
             heap->groupMap &= ~(((ssize) 1) << group);
+#if UNUSED && KEEP
             triggerGC(0);
+#endif
         }
     }
     unlockHeap();
@@ -631,7 +624,7 @@ static MprMem *growHeap(ssize required, int flags)
     size = max(required + rsize, (ssize) heap->chunkSize);
     size = MPR_PAGE_ALIGN(size, heap->pageSize);
     if (size < 0 || size >= ((ssize) 1 << MPR_SIZE_BITS)) {
-        allocException(size, 0);
+        allocException(MPR_MEM_TOO_BIG, size);
         return 0;
     }
 #if KEEP
@@ -653,7 +646,11 @@ static MprMem *growHeap(ssize required, int flags)
     mp = (MprMem*) region->start;
     hasManager = (flags & MPR_ALLOC_MANAGER) ? 1 : 0;
     spareLen = size - required - rsize;
-    INIT_BLK(mp, required, hasManager, (spareLen > 0) ? 0 : 1, NULL);
+    if (spareLen < sizeof(MprFreeMem)) {
+        required = size - rsize; 
+        spareLen = 0;
+    }
+    INIT_BLK(mp, required, hasManager, spareLen > 0 ? 0 : 1, NULL);
     if (hasManager) {
         SET_MANAGER(mp, dummyManager);
     }
@@ -664,6 +661,7 @@ static MprMem *growHeap(ssize required, int flags)
     } while (!mprAtomicCas((void* volatile*) &heap->regions, region->next, region));
 
     if (spareLen > 0) {
+        mprAssert(spareLen > sizeof(MprFreeMem));
         spare = (MprMem*) ((char*) mp + required);
         INIT_BLK(spare, spareLen, 0, 1, mp);
         CHECK(spare);
@@ -974,18 +972,17 @@ void *mprVirtAlloc(ssize size, int mode)
     ssize       used;
     void        *ptr;
 
-    used = getMemSize();
+    used = fastMemSize();
     if (heap->pageSize) {
         size = MPR_PAGE_ALIGN(size, heap->pageSize);
     }
+#if UNUSED && KEEP
+    printf("VALLOC %d K, total %d K\n", (int) size / 1024, (int) (size + used) / 1024);
+#endif
     if ((size + used) > heap->stats.maxMemory) {
-        allocException(size, 0);
-        /* Prevent allocation as over the maximum memory limit.  */
-        return NULL;
-
+        allocException(MPR_MEM_LIMIT, size);
     } else if ((size + used) > heap->stats.redLine) {
-        /* Warn if allocation puts us over the red line. Then continue to grant the request.  */
-        allocException(size, 1);
+        allocException(MPR_MEM_REDLINE, size);
     }
 #if BLD_CC_MMU
     #if BLD_UNIX_LIKE
@@ -1002,7 +999,7 @@ void *mprVirtAlloc(ssize size, int mode)
     ptr = malloc(size);
 #endif
     if (ptr == NULL) {
-        allocException(size, 0);
+        allocException(MPR_MEM_FAIL, size);
         return 0;
     }
     lockHeap();
@@ -1064,8 +1061,7 @@ void mprStartGCService()
 void mprStopGCService()
 {
     mprWakeGCService();
-    /* Give a yield on some systems */
-    mprSleep(1);
+    mprNap(1);
 }
 
 
@@ -1144,7 +1140,6 @@ static void mark()
     LOG(7, "GC: mark started");
 
     /*
-        TODO here on how marking strategy works
         When parallel, we mark blocks using the current heap->active mark. After marking, synchronization will rotate
         the active/stale/dead markers. After this, existing alive blocks may be marked stale. No blocks will be marked
         active.
@@ -1298,7 +1293,8 @@ static void sweep()
                     mprAssert(rp != NULL);
                 }
             }
-            LOG(9, "DEBUG: Unpin %p to %p size %d", region, ((char*) region) + region->size, region->size);
+            LOG(9, "DEBUG: Unpin %p to %p size %d, used %d", region, ((char*) region) + region->size, region->size,
+                    fastMemSize());
             mprVirtFree(region, region->size);
         } else {
             prior = region;
@@ -1339,7 +1335,7 @@ void mprMarkBlock(cvoid *ptr)
     mp = MPR_GET_MEM(ptr);
 #if BLD_DEBUG
     if (!mprIsValid(ptr)) {
-        mprStaticError("Memory block is either not dynamically allocated, or is corrupted");
+        mprError("Memory block is either not dynamically allocated, or is corrupted");
         return;
     }
     mprAssert(!IS_FREE(mp));
@@ -1388,8 +1384,10 @@ void mprHold(void *ptr)
 
     if (ptr) {
         mp = GET_MEM(ptr);
-        /* Lock-free update of mp->gen */
-        SET_FIELD2(mp, GET_SIZE(mp), heap->eternal, UNMARKED, 0);
+        if (VALID_BLK(mp)) {
+            /* Lock-free update of mp->gen */
+            SET_FIELD2(mp, GET_SIZE(mp), heap->eternal, UNMARKED, 0);
+        }
     }
 }
 
@@ -1400,9 +1398,11 @@ void mprRelease(void *ptr)
 
     if (ptr) {
         mp = GET_MEM(ptr);
-        mprAssert(!IS_FREE(mp));
-        /* Lock-free update of mp->gen */
-        SET_FIELD2(mp, GET_SIZE(mp), heap->active, UNMARKED, 0);
+        if (VALID_BLK(mp)) {
+            mprAssert(!IS_FREE(mp));
+            /* Lock-free update of mp->gen */
+            SET_FIELD2(mp, GET_SIZE(mp), heap->active, UNMARKED, 0);
+        }
     }
 }
 
@@ -1421,13 +1421,13 @@ static void marker(void *unused, MprThread *tp)
     while (!mprIsFinished()) {
         if (!heap->mustYield) {
             mprWaitForCond(heap->markerCond, -1);
+            if (mprIsFinished()) {
+                break;
+            }
         }
         MPR_MEASURE(7, "GC", "mark", mark());
     }
     heap->mustYield = 0;
-#if UNUSED
-    mprResumeThreads();
-#endif
     MPR->marker = 0;
 }
 
@@ -1552,7 +1552,7 @@ static int syncThreads()
 
 
 /*
-    Resume all yielded threads. Called by the GC marker only.
+    Resume all yielded threads. Called by the GC marker only and when destroying the app.
  */
 void mprResumeThreads()
 {
@@ -1566,7 +1566,7 @@ void mprResumeThreads()
     mprLock(ts->mutex);
     for (i = 0; i < ts->threads->length; i++) {
         tp = (MprThread*) mprGetItem(ts->threads, i);
-        if (tp->yielded) {
+        if (tp && tp->yielded) {
             if (!tp->stickyYield) {
                 tp->yielded = 0;
             }
@@ -1611,7 +1611,7 @@ void mprVerifyMem()
                 }
                 for (i = 0; i < usize; i++) {
                     if (ptr[i] != 0xFE) {
-                        mprStaticError("Free memory block %x has been modified at offset %d (MprBlk %x, seqno %d)\n"
+                        mprError("Free memory block %x has been modified at offset %d (MprBlk %x, seqno %d)\n"
                                        "Memory was last allocated by %s", GET_PTR(mp), i, mp, mp->seqno, mp->name);
                     }
                 }
@@ -1896,7 +1896,7 @@ void mprCheckBlock(MprMem *mp)
 
     size = GET_SIZE(mp);
     if (mp->magic != MPR_ALLOC_MAGIC || size <= 0) {
-        mprStaticError("Memory corruption in memory block %x (MprBlk %x, seqno %d)\n"
+        mprError("Memory corruption in memory block %x (MprBlk %x, seqno %d)\n"
             "This most likely happend earlier in the program execution", GET_PTR(mp), mp, mp->seqno);
     }
 }
@@ -1916,7 +1916,7 @@ static void checkFreeMem(MprMem *mp)
         }
         for (i = 0; i < usize; i++) {
             if (ptr[i] != 0xFE) {
-                mprStaticError("Free memory block %x has been modified at offset %d (MprBlk %x, seqno %d)\n"
+                mprError("Free memory block %x has been modified at offset %d (MprBlk %x, seqno %d)\n"
                     "Memory was last allocated by %s", GET_PTR(mp), i, mp, mp->seqno, mp->name);
                 break;
             }
@@ -2015,41 +2015,62 @@ void mprCheckBlock(MprMem *mp) {}
 void *mprSetName(void *ptr, cchar *name) { return 0;}
 #endif
 
-/******************************************************* Misc *************************************************************/
+/********************************************* Misc ***************************************************/
 
-static void allocException(ssize size, bool granted)
+static void allocException(int cause, ssize size)
 {
-    heap->hasError = 1;
+    ssize   used;
 
     lockHeap();
     INC(errors);
-    if (heap->stats.inMemException) {
+    if (heap->stats.inMemException || mprIsStopping()) {
         unlockHeap();
         return;
     }
     heap->stats.inMemException = 1;
+    used = fastMemSize();
     unlockHeap();
 
-    if (heap->notifier) {
-        (heap->notifier)(granted ? MPR_MEM_LOW : MPR_MEM_DEPLETED, size);
-    }
-    heap->stats.inMemException = 0;
+    if (cause == MPR_MEM_FAIL) {
+        heap->hasError = 1;
+        mprLog(0, "%s: Can't allocate memory block of size %,d bytes.", MPR->name, size);
 
-    if (!granted) {
-        switch (heap->allocPolicy) {
-        case MPR_ALLOC_POLICY_EXIT:
-            mprError("Application exiting due to memory allocation failure.");
-            mprTerminate(0, 2);
-            break;
-        case MPR_ALLOC_POLICY_RESTART:
-            mprError("Application restarting due to memory allocation failure.");
-            //  TODO - Other systems
-#if BLD_UNIX_LIKE
-            execv(MPR->argv[0], MPR->argv);
-#endif
-            break;
+    } else if (cause == MPR_MEM_TOO_BIG) {
+        heap->hasError = 1;
+        mprLog(0, "%s: Can't allocate memory block of size %,d bytes.", MPR->name, size);
+
+    } else if (cause == MPR_MEM_REDLINE) {
+        mprLog(0, "%s: Memory request for %,d bytes exceeds memory red-line.", MPR->name, size);
+        mprPruneCache(NULL);
+
+    } else if (cause == MPR_MEM_LIMIT) {
+        mprLog(0, "%s: Memory request for %,d bytes exceeds memory limit.", MPR->name, size);
+    }
+    mprLog(0, "%s: Memory used %,d, redline %,d, limit %,d.", MPR->name, (int) used, (int) MPR->heap.stats.redLine,
+        (int) MPR->heap.stats.maxMemory);
+    mprLog(0, "%s: Consider increasing memory limit.", MPR->name);
+    
+    if (heap->notifier) {
+        (heap->notifier)(cause, heap->allocPolicy,  size, used);
+    }
+    if (cause & (MPR_MEM_TOO_BIG | MPR_MEM_FAIL)) {
+        /*
+            Allocation failed
+         */
+        mprError("Application exiting immediately due to memory depletion.");
+        mprTerminate(MPR_EXIT_IMMEDIATE, 2);
+
+    } else if (cause & MPR_MEM_LIMIT) {
+        if (heap->allocPolicy == MPR_ALLOC_POLICY_RESTART) {
+            mprError("Application restarting due to low memory condition.");
+            mprTerminate(MPR_EXIT_GRACEFUL | MPR_EXIT_RESTART, 1);
+
+        } else if (heap->allocPolicy == MPR_ALLOC_POLICY_EXIT) {
+            mprError("Application exiting immediately due to memory depletion.");
+            mprTerminate(MPR_EXIT_IMMEDIATE, 2);
         }
     }
+    heap->stats.inMemException = 0;
 }
 
 
@@ -2222,7 +2243,7 @@ ssize mprGetMem()
             buf[nbytes] = '\0';
             if ((tok = strstr(buf, "VmRSS:")) != 0) {
                 for (tok += 6; tok && isspace((int) *tok); tok++) {}
-                size = stoi(tok, 10, 0) * 1024;
+                size = stoi(tok) * 1024;
             }
         }
     }
@@ -2250,16 +2271,19 @@ ssize mprGetMem()
 
 
 /*
-    Return the amount of memory currently in use. Use an appropriate (fast) O/S routine. If one is not available,
+    Fast routine to teturn the approximately the amount of memory currently in use. If a fast method is not available,
     use the amount of heap memory allocated by the MPR.
-    WARNING: this routine must be FAST as it is used by the MPR memory allocation mechanism.
+    WARNING: this routine must be FAST as it is used by the MPR memory allocation mechanism when more memory is allocated
+    from the O/S (i.e. not on every block allocation).
  */
-static ssize getMemSize()
+static ssize fastMemSize()
 {
     ssize   size = 0;
 
 #if LINUX
     struct rusage rusage;
+    //  MOB - is this the current maximum or the peak?
+    //  MOB - measure how fast reading is from /proc. Could keep /proc open and then seek+read
     getrusage(RUSAGE_SELF, &rusage);
     size = rusage.ru_maxrss * 1024;
 #elif MACOSX
@@ -2332,24 +2356,6 @@ static MPR_INLINE int flsl(ulong word)
 }
 #endif /* !USE_FFSL_ASM_X86 */
 #endif /* NEED_FFSL */
-
-
-/*
-    Default memory handler
- */
-static int memoryNotifier(int flags, ssize size)
-{
-    if (flags & MPR_MEM_DEPLETED) {
-        mprPrintfError("Can't allocate memory block of size %,d bytes\n", size);
-        mprPrintfError("Total memory used %,d bytes\n", mprGetMem());
-        exit(255);
-
-    } else if (flags & MPR_MEM_LOW) {
-        mprPrintfError("Memory request for %,d bytes exceeds memory red-line\n", size);
-        mprPrintfError("Total memory used %,d bytes\n", mprGetMem());
-    }
-    return 0;
-}
 
 
 #if BLD_WIN_LIKE
@@ -2547,7 +2553,7 @@ static void checkYielded()
     under the terms of the GNU General Public License as published by the
     Free Software Foundation; either version 2 of the License, or (at your
     option) any later version. See the GNU General Public License for more
-    details at: http://www.embedthis.com/downloads/gplLicense.html
+    details at: http://embedthis.com/downloads/gplLicense.html
 
     This program is distributed WITHOUT ANY WARRANTY; without even the
     implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
@@ -2556,7 +2562,7 @@ static void checkYielded()
     proprietary programs. If you are unable to comply with the GPL, you must
     acquire a commercial license to use this software. Commercial licenses
     for this software and support services are available from Embedthis
-    Software at http://www.embedthis.com
+    Software at http://embedthis.com
 
     Local variables:
     tab-width: 4

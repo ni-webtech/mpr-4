@@ -63,7 +63,6 @@ int mprFlushFile(MprFile *file)
     if (file->buf == 0) {
         return 0;
     }
-
     if (file->mode & (O_WRONLY | O_RDWR)) {
         fs = file->fileSystem;
         bp = file->buf;
@@ -96,28 +95,19 @@ MprOff mprGetFileSize(MprFile *file)
 
 MprFile *mprGetStderr()
 {
-    MprFileSystem   *fs;
-
-    fs = mprLookupFileSystem(NULL);
-    return fs->stdError;
+    return MPR->stdError;
 }
 
 
 MprFile *mprGetStdin()
 {
-    MprFileSystem   *fs;
-
-    fs = mprLookupFileSystem(NULL);
-    return fs->stdInput;
+    return MPR->stdInput;
 }
 
 
 MprFile *mprGetStdout()
 {
-    MprFileSystem   *fs;
-
-    fs = mprLookupFileSystem(NULL);
-    return fs->stdOutput;
+    return MPR->stdOutput;
 }
 
 
@@ -191,7 +181,7 @@ static char *findNewline(cchar *str, cchar *newline, ssize len, ssize *nlen)
     Get a string from the file. This will put the file into buffered mode.
     Return NULL on eof.
  */
-char *mprGetFileString(MprFile *file, ssize maxline, ssize *lenp)
+char *mprReadLine(MprFile *file, ssize maxline, ssize *lenp)
 {
     MprBuf          *bp;
     MprFileSystem   *fs;
@@ -529,7 +519,7 @@ ssize mprWriteFileString(MprFile *file, cchar *str)
 }
 
 
-ssize mprWriteFileFormat(MprFile *file, cchar *fmt, ...)
+ssize mprWriteFileFmt(MprFile *file, cchar *fmt, ...)
 {
     va_list     ap;
     char        *buf;
@@ -537,7 +527,7 @@ ssize mprWriteFileFormat(MprFile *file, cchar *fmt, ...)
 
     rc = -1;
     va_start(ap, fmt);
-    if ((buf = mprAsprintfv(fmt, ap)) != NULL) {
+    if ((buf = sfmtv(fmt, ap)) != NULL) {
         rc = mprWriteFileString(file, buf);
     }
     va_end(ap);
@@ -565,6 +555,7 @@ static ssize fillBuf(MprFile *file)
         return len;
     }
     mprAdjustBufEnd(bp, len);
+    mprAddNullToBuf(bp);
     return len;
 }
 
@@ -623,7 +614,7 @@ int mprGetFileFd(MprFile *file)
     under the terms of the GNU General Public License as published by the 
     Free Software Foundation; either version 2 of the License, or (at your 
     option) any later version. See the GNU General Public License for more 
-    details at: http://www.embedthis.com/downloads/gplLicense.html
+    details at: http://embedthis.com/downloads/gplLicense.html
     
     This program is distributed WITHOUT ANY WARRANTY; without even the 
     implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. 
@@ -632,7 +623,7 @@ int mprGetFileFd(MprFile *file)
     proprietary programs. If you are unable to comply with the GPL, you must
     acquire a commercial license to use this software. Commercial licenses 
     for this software and support services are available from Embedthis 
-    Software at http://www.embedthis.com 
+    Software at http://embedthis.com 
     
     Local variables:
     tab-width: 4

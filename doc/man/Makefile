@@ -6,7 +6,7 @@
 
 include		.makedep
 
-compileExtra: http.txt http.html regexp.txt regexp.html
+compileExtra: manager.txt manager.html makerom.txt makerom.html
 
 %.txt: %.1
 	man ./$*.1 | sed 's/.\//g' >$*.txt
@@ -21,7 +21,7 @@ compileExtra: http.txt http.html regexp.txt regexp.html
 	man ./$*.3 | man2html -u >$*.html
 
 cleanExtra:
-	rm -f http.txt
+	rm -f manager.txt
 
 #
 #   Local variables:

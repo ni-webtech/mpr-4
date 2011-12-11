@@ -31,18 +31,21 @@ MprFileSystem *mprCreateFileSystem(cchar *path)
 #if BLD_WIN_LIKE
     fs->separators = sclone("\\/");
     fs->newline = sclone("\r\n");
+#elif CYGWIN
+    fs->separators = sclone("/\\");
+    fs->newline = sclone("\n");
 #else
     fs->separators = sclone("/");
     fs->newline = sclone("\n");
 #endif
 
-#if BLD_WIN_LIKE || MACOSX
+#if BLD_WIN_LIKE || MACOSX || CYGWIN
     fs->caseSensitive = 0;
 #else
     fs->caseSensitive = 1;
 #endif
 
-#if BLD_WIN_LIKE || VXWORKS
+#if BLD_WIN_LIKE || VXWORKS || CYGWIN
     fs->hasDriveSpecs = 1;
 #endif
 
@@ -53,9 +56,9 @@ MprFileSystem *mprCreateFileSystem(cchar *path)
     if ((cp = strpbrk(fs->root, fs->separators)) != 0) {
         *++cp = '\0';
     }
-#if BLD_WIN_LIKE && FUTURE
-    mprReadRegistry(&fs->cygdrive, MPR_BUFSIZE, "HKEY_LOCAL_MACHINE\\SOFTWARE\\Cygnus Solutions\\Cygwin\\mounts v2",
-        "cygdrive prefix");
+#if BLD_WIN_LIKE || CYGWIN
+    fs->cygwin = mprReadRegistry("HKEY_LOCAL_MACHINE\\SOFTWARE\\Cygwin\\setup", "rootdir");
+    fs->cygdrive = sclone("/cygdrive");
 #endif
     return fs;
 }
@@ -141,7 +144,7 @@ void mprSetPathNewline(cchar *path, cchar *newline)
     under the terms of the GNU General Public License as published by the 
     Free Software Foundation; either version 2 of the License, or (at your 
     option) any later version. See the GNU General Public License for more 
-    details at: http://www.embedthis.com/downloads/gplLicense.html
+    details at: http://embedthis.com/downloads/gplLicense.html
     
     This program is distributed WITHOUT ANY WARRANTY; without even the 
     implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. 
@@ -150,7 +153,7 @@ void mprSetPathNewline(cchar *path, cchar *newline)
     proprietary programs. If you are unable to comply with the GPL, you must
     acquire a commercial license to use this software. Commercial licenses 
     for this software and support services are available from Embedthis 
-    Software at http://www.embedthis.com 
+    Software at http://embedthis.com 
     
     Local variables:
     tab-width: 4

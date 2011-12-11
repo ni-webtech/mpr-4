@@ -20,8 +20,6 @@ build/bin/dsi
 build/bin/edep
 build/bin/getpath
 buildConfig.make
-doc/api/http/xml
-doc/api/mpr
 extensions
 lib/*.so
 lib/*.so.*
@@ -66,3 +64,9 @@ projects/WIN/mpr-dynamic/ipch
 *.stackdump
 *.cltmp
 .embedthis
+.publisher
+.DS_Store
+doc/api/mpr/html
+doc/ap/mpr/xml
+doc/api/mpr/xml
+*.guid

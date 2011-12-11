@@ -34,10 +34,7 @@ static ssize    writeMss(MprSocket *sp, cvoid *buf, ssize len);
 
 int mprCreateMatrixSslModule(bool lazy)
 {
-    MprSocketService    *ss;
     MprSocketProvider   *provider;
-
-    ss = MPR->socketService;
 
     /*
         Install this module as the SSL provider (can only have 1)
@@ -109,10 +106,8 @@ static void manageMatrixProvider(MprSocketProvider *provider, int flags)
 
 static int configureMss(MprSsl *ssl)
 {
-    MprSocketService    *ss;
-    char                *password;
+    char    *password;
 
-    ss = MPR->socketService;
     mprSetManager(ssl, (MprManager) manageMatrixSsl);
 
     /*
@@ -403,7 +398,7 @@ static int blockingWrite(MprSocket *sp, sslBuf_t *out)
             return -1;
             
         } else if (bytes == 0) {
-            mprSleep(10);
+            mprNap(10);
         }
         out->start += bytes;
     }
@@ -873,7 +868,7 @@ int mprCreateMatrixSslModule(bool lazy) { return -1; }
     under the terms of the GNU General Public License as published by the 
     Free Software Foundation; either version 2 of the License, or (at your 
     option) any later version. See the GNU General Public License for more 
-    details at: http://www.embedthis.com/downloads/gplLicense.html
+    details at: http://embedthis.com/downloads/gplLicense.html
     
     This program is distributed WITHOUT ANY WARRANTY; without even the 
     implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. 
@@ -882,7 +877,7 @@ int mprCreateMatrixSslModule(bool lazy) { return -1; }
     proprietary programs. If you are unable to comply with the GPL, you must
     acquire a commercial license to use this software. Commercial licenses 
     for this software and support services are available from Embedthis 
-    Software at http://www.embedthis.com 
+    Software at http://embedthis.com 
     
     Local variables:
     tab-width: 4

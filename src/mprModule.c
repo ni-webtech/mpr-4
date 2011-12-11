@@ -25,7 +25,10 @@ MprModuleService *mprCreateModuleService()
         return 0;
     }
     ms->modules = mprCreateList(-1, 0);
-    ms->searchPath = sfmt(".:%s:%s/../%s:%s", mprGetAppDir(), mprGetAppDir(), BLD_MOD_NAME, BLD_MOD_PREFIX);
+    ms->searchPath = sfmt(".%s%s%s/../%s%s%s", \
+        mprGetAppDir(), MPR_SEARCH_SEP, 
+        mprGetAppDir(), BLD_LIB_NAME, MPR_SEARCH_SEP, 
+        BLD_LIB_PREFIX);
     ms->mutex = mprCreateLock();
     return ms;
 }
@@ -85,6 +88,7 @@ MprModule *mprCreateModule(cchar *name, cchar *path, cchar *entry, void *data)
 {
     MprModuleService    *ms;
     MprModule           *mp;
+    MprPath             info;
     char                *at;
     int                 index;
 
@@ -93,10 +97,12 @@ MprModule *mprCreateModule(cchar *name, cchar *path, cchar *entry, void *data)
 
     if (path) {
         if ((at = mprSearchForModule(path)) == 0) {
-            mprError("Can't find module \"%s\" in search path \"%s\"", path, mprGetModuleSearchPath());
+            mprError("Can't find module \"%s\", cwd: \"%s\", search path \"%s\"", path, mprGetCurrentPath(),
+                mprGetModuleSearchPath());
             return 0;
         }
         path = at;
+        mprGetPathInfo(path, &info);
     }
     if ((mp = mprAllocObj(MprModule, manageModule)) == 0) {
         return 0;
@@ -105,6 +111,7 @@ MprModule *mprCreateModule(cchar *name, cchar *path, cchar *entry, void *data)
     mp->path = sclone(path);
     mp->entry = sclone(entry);
     mp->moduleData = data;
+    mp->modified = info.mtime;
     mp->lastActivity = mprGetTime();
     index = mprAddItem(ms->modules, mp);
     if (index < 0 || mp->name == 0) {
@@ -117,11 +124,10 @@ MprModule *mprCreateModule(cchar *name, cchar *path, cchar *entry, void *data)
 static void manageModule(MprModule *mp, int flags)
 {
     if (flags & MPR_MANAGE_MARK) {
+        mprMark(mp->entry);
         mprMark(mp->name);
         mprMark(mp->path);
-        mprMark(mp->entry);
-    } else if (flags & MPR_MANAGE_FREE) {
-        //  TODO - should this unload the module?
+        mprMark(mp->moduleData);
     }
 }
 
@@ -140,14 +146,17 @@ int mprStartModule(MprModule *mp)
 }
 
 
-void mprStopModule(MprModule *mp)
+int mprStopModule(MprModule *mp)
 {
     mprAssert(mp);
 
     if (mp->stop && (mp->flags & MPR_MODULE_STARTED) && !(mp->flags & MPR_MODULE_STOPPED)) {
-        mp->stop(mp);
+        if (mp->stop(mp) < 0) {
+            return MPR_ERR_NOT_READY;
+        }
+        mp->flags |= MPR_MODULE_STOPPED;
     }
-    mp->flags |= MPR_MODULE_STOPPED;
+    return 0;
 }
 
 
@@ -192,6 +201,7 @@ void mprSetModuleTimeout(MprModule *module, MprTime timeout)
 }
 
 
+//  MOB - rename SetModuleStop
 void mprSetModuleFinalizer(MprModule *module, MprModuleProc stop)
 {
     module->stop = stop;
@@ -247,16 +257,22 @@ int mprLoadModule(MprModule *mp)
 }
 
 
-void mprUnloadModule(MprModule *mp)
+int mprUnloadModule(MprModule *mp)
 {
-    mprStopModule(mp);
+    mprLog(6, "Unloading native module %s from %s", mp->name, mp->path);
+    if (mprStopModule(mp) < 0) {
+        return MPR_ERR_NOT_READY;
+    }
 #if BLD_CC_DYN_LOAD
     if (mp->handle) {
-        mprUnloadNativeModule(mp);
+        if (mprUnloadNativeModule(mp) != 0) {
+            mprError("Can't unload module %s", mp->name);
+        }
         mp->handle = 0;
     }
 #endif
     mprRemoveItem(MPR->moduleService->modules, mp);
+    return 0;
 }
 
 
@@ -296,7 +312,7 @@ char *mprSearchForModule(cchar *filename)
 #if BLD_CC_DYN_LOAD
     char    *path, *f, *searchPath, *dir, *tok;
 
-    filename = mprGetNormalizedPath(filename);
+    filename = mprNormalizePath(filename);
 
     /*
         Search for the path directly
@@ -341,7 +357,7 @@ char *mprSearchForModule(cchar *filename)
     under the terms of the GNU General Public License as published by the
     Free Software Foundation; either version 2 of the License, or (at your
     option) any later version. See the GNU General Public License for more
-    details at: http://www.embedthis.com/downloads/gplLicense.html
+    details at: http://embedthis.com/downloads/gplLicense.html
 
     This program is distributed WITHOUT ANY WARRANTY; without even the
     implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
@@ -350,7 +366,7 @@ char *mprSearchForModule(cchar *filename)
     proprietary programs. If you are unable to comply with the GPL, you must
     acquire a commercial license to use this software. Commercial licenses
     for this software and support services are available from Embedthis
-    Software at http://www.embedthis.com
+    Software at http://embedthis.com
 
     Local variables:
     tab-width: 4

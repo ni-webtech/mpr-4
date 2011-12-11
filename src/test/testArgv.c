@@ -16,53 +16,53 @@ static void testMakeArgv(MprTestGroup *gp)
     char    **argv;
 
     //  Simple arg parsing
-    mprMakeArgv("app a b", &argc, &argv, 0);
+    argc = mprMakeArgv("app a b", &argv, 0);
     assert(argc == 3);
     assert(strcmp(argv[0], "app") == 0);
     assert(strcmp(argv[1], "a") == 0);
     assert(strcmp(argv[2], "b") == 0);
 
     //  Quoted arg parsing
-    mprMakeArgv("app \"a\" b", &argc, &argv, 0);
+    argc = mprMakeArgv("app \"a\" b", &argv, 0);
     assert(argc == 3);
     assert(strcmp(argv[0], "app") == 0);
     assert(strcmp(argv[1], "a") == 0);
     assert(strcmp(argv[2], "b") == 0);
 
     //  Embedded spaces in quoted args
-    mprMakeArgv("app \"a b\"", &argc, &argv, 0);
+    argc = mprMakeArgv("app \"a b\"", &argv, 0);
     assert(argc == 2);
     assert(strcmp(argv[0], "app") == 0);
     assert(strcmp(argv[1], "a b") == 0);
 
     //  Single quotes
-    mprMakeArgv("app 'a b'", &argc, &argv, 0);
+    argc = mprMakeArgv("app 'a b'", &argv, 0);
     assert(argc == 2);
     assert(strcmp(argv[0], "app") == 0);
     assert(strcmp(argv[1], "a b") == 0);
 
     //  Backquoting a double quote (need double to get past cc compiler): \"a
-    mprMakeArgv("\\\"a", &argc, &argv, 0);
+    argc = mprMakeArgv("\\\"a", &argv, 0);
     assert(argc == 1);
     assert(strcmp(argv[0], "\"a") == 0);
 
     //  Backquoting a single quote (need double to get past cc compiler): \'a
-    mprMakeArgv("\\'a", &argc, &argv, 0);
+    argc = mprMakeArgv("\\'a", &argv, 0);
     assert(argc == 1);
     assert(strcmp(argv[0], "'a") == 0);
 
     //  Backquoting normal chars preserves the backquote \a
-    mprMakeArgv("\\a", &argc, &argv, 0);
+    argc = mprMakeArgv("\\a", &argv, 0);
     assert(argc == 1);
     assert(strcmp(argv[0], "\\a") == 0);
 
     //  Backquoted path
-    mprMakeArgv("\\a\\b\\c", &argc, &argv, 0);
+    argc = mprMakeArgv("\\a\\b\\c", &argv, 0);
     assert(argc == 1);
     assert(strcmp(argv[0], "\\a\\b\\c") == 0);
 
     //  Backquote at the end (preserved)
-    mprMakeArgv("a\\", &argc, &argv, 0);
+    argc = mprMakeArgv("a\\", &argv, 0);
     assert(argc == 1);
     assert(strcmp(argv[0], "a\\") == 0);
 
@@ -75,14 +75,14 @@ static void testArgvRegressions(MprTestGroup *gp)
     char    **argv;
 
     //  "\bin\sh" "-c" "c:/home/mob/ejs/out/bin/ejs.exe ./args \"a b\" c"
-    mprMakeArgv("\"\\bin\\sh\" \"-c\" \"c:/home/mob/ejs/out/bin/ejs.exe ./args \\\"a b\\\" c\"", &argc, &argv, 0);
+    argc = mprMakeArgv("\"\\bin\\sh\" \"-c\" \"c:/home/mob/ejs/out/bin/ejs.exe ./args \\\"a b\\\" c\"", &argv, 0);
     assert(argc == 3);
     assert(strcmp(argv[0], "\\bin\\sh") == 0);
     assert(strcmp(argv[1], "-c") == 0);
     assert(strcmp(argv[2], "c:/home/mob/ejs/out/bin/ejs.exe ./args \"a b\" c") == 0);
 
     //  "\bin\sh" "-c" "/bin/ejs ./args \"a b\" c"
-    mprMakeArgv("\"\\bin\\sh\" \"-c\" \"/bin/ejs ./args \\\"a b\\\" c\"", &argc, &argv, 0);
+    argc = mprMakeArgv("\"\\bin\\sh\" \"-c\" \"/bin/ejs ./args \\\"a b\\\" c\"", &argv, 0);
     assert(argc == 3);
     assert(strcmp(argv[0], "\\bin\\sh") == 0);
     assert(strcmp(argv[1], "-c") == 0);
@@ -115,7 +115,7 @@ MprTestDef testArgv = {
     under the terms of the GNU General Public License as published by the 
     Free Software Foundation; either version 2 of the License, or (at your 
     option) any later version. See the GNU General Public License for more 
-    details at: http://www.embedthis.com/downloads/gplLicense.html
+    details at: http://embedthis.com/downloads/gplLicense.html
     
     This program is distributed WITHOUT ANY WARRANTY; without even the 
     implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. 
@@ -124,7 +124,7 @@ MprTestDef testArgv = {
     proprietary programs. If you are unable to comply with the GPL, you must
     acquire a commercial license to use this software. Commercial licenses 
     for this software and support services are available from Embedthis 
-    Software at http://www.embedthis.com 
+    Software at http://embedthis.com 
     
     Local variables:
     tab-width: 4

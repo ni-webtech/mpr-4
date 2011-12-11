@@ -133,19 +133,17 @@ static void outFloat(Format *fmt, char specChar, double value);
 
 ssize mprPrintf(cchar *fmt, ...)
 {
-    va_list         ap;
-    MprFileSystem   *fs;
-    char            *buf;
-    ssize           len;
+    va_list     ap;
+    char        *buf;
+    ssize       len;
 
     /* No asserts here as this is used as part of assert reporting */
 
-    fs = mprLookupFileSystem("/");
     va_start(ap, fmt);
     buf = mprAsprintfv(fmt, ap);
     va_end(ap);
-    if (buf != 0 && fs->stdOutput) {
-        len = mprWriteFileString(fs->stdOutput, buf);
+    if (buf != 0 && MPR->stdOutput) {
+        len = mprWriteFileString(MPR->stdOutput, buf);
     } else {
         len = -1;
     }
@@ -155,21 +153,17 @@ ssize mprPrintf(cchar *fmt, ...)
 
 ssize mprPrintfError(cchar *fmt, ...)
 {
-    MprFileSystem   *fs;
-    va_list         ap;
-    ssize           len;
-    char            *buf;
+    va_list     ap;
+    ssize       len;
+    char        *buf;
 
     /* No asserts here as this is used as part of assert reporting */
-
-    fs = mprLookupFileSystem("/");
-    mprAssert(fs);
 
     va_start(ap, fmt);
     buf = mprAsprintfv(fmt, ap);
     va_end(ap);
-    if (buf && fs->stdError) {
-        len = mprWriteFileString(fs->stdError, buf);
+    if (buf && MPR->stdError) {
+        len = mprWriteFileString(MPR->stdError, buf);
     } else {
         len = -1;
     }
@@ -357,7 +351,7 @@ static char *sprintfCore(char *buf, ssize maxsize, cchar *spec, va_list arg)
     int64         iValue;
     uint64        uValue;
     int           state;
-    char          c;
+    char          c, *safe;
 
     if (spec == 0) {
         spec = "";
@@ -508,8 +502,19 @@ static char *sprintfCore(char *buf, ssize maxsize, cchar *spec, va_list arg)
                 }
                 break;
 
-            case 'S':       /* TODO - remove this alias */
-                mprAssert(c != 'S');
+            case 'S':
+                /* Safe string */
+#if BLD_CHAR_LEN > 1
+                if (fmt.flags & SPRINTF_LONG) {
+                    safe = mprEscapeHtml(va_arg(arg, MprChar*));
+                    outWideString(&fmt, safe, -1);
+                } else
+#endif
+                {
+                    safe = mprEscapeHtml(va_arg(arg, MprChar*));
+                    outString(&fmt, safe, -1);
+                }
+                break;
 
             case '@':
                 /* MprEjsString */
@@ -907,7 +912,7 @@ char *mprDtoa(double value, int ndigits, int mode, int flags)
     char    *intermediate, *ip;
     int     period, sign, len, exponentForm, fixedForm, exponent, count, totalDigits, npad;
 
-    buf = mprCreateBuf(MPR_MAX_STRING, -1);
+    buf = mprCreateBuf(64, -1);
     intermediate = 0;
     exponentForm = 0;
     fixedForm = 0;
@@ -1109,7 +1114,7 @@ int print(cchar *fmt, ...)
     under the terms of the GNU General Public License as published by the 
     Free Software Foundation; either version 2 of the License, or (at your 
     option) any later version. See the GNU General Public License for more 
-    details at: http://www.embedthis.com/downloads/gplLicense.html
+    details at: http://embedthis.com/downloads/gplLicense.html
     
     This program is distributed WITHOUT ANY WARRANTY; without even the 
     implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. 
@@ -1118,7 +1123,7 @@ int print(cchar *fmt, ...)
     proprietary programs. If you are unable to comply with the GPL, you must
     acquire a commercial license to use this software. Commercial licenses 
     for this software and support services are available from Embedthis 
-    Software at http://www.embedthis.com 
+    Software at http://embedthis.com 
     
     Local variables:
     tab-width: 4

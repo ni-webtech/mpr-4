@@ -24,7 +24,7 @@ static void manageEventService(MprEventService *es, int flags);
 static void queueDispatcher(MprDispatcher *prior, MprDispatcher *dispatcher);
 static void scheduleDispatcher(MprDispatcher *dispatcher);
 static void serviceDispatcherMain(MprDispatcher *dispatcher);
-static void serviceDispatcher(MprDispatcher *dp);
+static bool serviceDispatcher(MprDispatcher *dp);
 
 #define isRunning(dispatcher) (dispatcher->parent == dispatcher->service->runQ)
 #define isReady(dispatcher) (dispatcher->parent == dispatcher->service->readyQ)
@@ -49,6 +49,7 @@ MprEventService *mprCreateEventService()
     es->runQ = mprCreateDispatcher("running", 0);
     es->readyQ = mprCreateDispatcher("ready", 0);
     es->idleQ = mprCreateDispatcher("idle", 0);
+    es->pendingQ = mprCreateDispatcher("pending", 0);
     es->waitQ = mprCreateDispatcher("waiting", 0);
     return es;
 }
@@ -57,12 +58,13 @@ MprEventService *mprCreateEventService()
 static void manageEventService(MprEventService *es, int flags)
 {
     if (flags & MPR_MANAGE_MARK) {
-        mprMark(es->waitCond);
-        mprMark(es->mutex);
         mprMark(es->runQ);
         mprMark(es->readyQ);
-        mprMark(es->idleQ);
         mprMark(es->waitQ);
+        mprMark(es->idleQ);
+        mprMark(es->pendingQ);
+        mprMark(es->waitCond);
+        mprMark(es->mutex);
 
     } else if (flags & MPR_MANAGE_FREE) {
         /* Needed for race with manageDispatcher */
@@ -142,11 +144,11 @@ static void manageDispatcher(MprDispatcher *dispatcher, int flags)
     es = dispatcher->service;
 
     if (flags & MPR_MANAGE_MARK) {
-        //  MOB -- remove this assert -- when shutting down, stopping may not be set
-        mprAssert(!dispatcher->destroyed || mprIsStopping());
         mprMark(dispatcher->name);
         mprMark(dispatcher->eventQ);
+        mprMark(dispatcher->current);
         mprMark(dispatcher->cond);
+        mprMark(dispatcher->parent);
         mprMark(dispatcher->service);
         mprMark(dispatcher->requiredWorker);
 
@@ -156,8 +158,6 @@ static void manageDispatcher(MprDispatcher *dispatcher, int flags)
             mprAssert(event->magic == MPR_EVENT_MAGIC);
             mprMark(event);
         }
-        mprMark(dispatcher->current);
-        mprMark(dispatcher->eventQ);
         unlock(es);
         
     } else if (flags & MPR_MANAGE_FREE) {
@@ -223,7 +223,10 @@ int mprServiceEvents(MprTime timeout, int flags)
     beginEventCount = eventCount = es->eventCount;
 
     es->now = mprGetTime();
-    expires = timeout < 0 ? (es->now + MPR_MAX_TIMEOUT) : (es->now + timeout);
+    expires = timeout < 0 ? MAXINT64 : (es->now + timeout);
+    if (expires < 0) {
+        expires = MAXINT64;
+    }
     justOne = (flags & MPR_SERVICE_ONE_THING) ? 1 : 0;
 
     while (es->now < expires && !mprIsStoppingCore()) {
@@ -234,7 +237,10 @@ int mprServiceEvents(MprTime timeout, int flags)
         while ((dp = getNextReadyDispatcher(es)) != NULL) {
             mprAssert(!dp->destroyed);
             mprAssert(dp->magic == MPR_DISPATCHER_MAGIC);
-            serviceDispatcher(dp);
+            if (!serviceDispatcher(dp)) {
+                queueDispatcher(es->pendingQ, dp);
+                continue;
+            }
             if (justOne) {
                 return abs(es->eventCount - beginEventCount);
             }
@@ -247,9 +253,12 @@ int mprServiceEvents(MprTime timeout, int flags)
                 es->willAwake = es->now + delay;
                 unlock(es);
                 if (mprIsStopping()) {
-                    break;
+                    if (mprServicesAreIdle()) {
+                        break;
+                    }
+                    delay = 10;
                 }
-                mprWaitForIO(MPR->waitService, (int) delay);
+                mprWaitForIO(MPR->waitService, delay);
             } else {
                 unlock(es);
             }
@@ -267,8 +276,7 @@ int mprServiceEvents(MprTime timeout, int flags)
 /*
     Wait for an event to occur. Expect the event to signal the cond var.
     WARNING: this will enable GC while sleeping
-    Return MPR_ERR_TIMEOUT if no event was seen before the timeout.
-    MOB - should this return a count of events?
+    Return Return 0 if an event was signalled. Return MPR_ERR_TIMEOUT if no event was seen before the timeout.
  */
 int mprWaitForEvent(MprDispatcher *dispatcher, MprTime timeout)
 {
@@ -324,18 +332,24 @@ int mprWaitForEvent(MprDispatcher *dispatcher, MprTime timeout)
         mprAssert(!dispatcher->destroyed);
         unlock(es);
         
+        mprAssert(dispatcher->magic == MPR_DISPATCHER_MAGIC);
         mprYield(MPR_YIELD_STICKY);
+        mprAssert(dispatcher->magic == MPR_DISPATCHER_MAGIC);
+
         if (mprWaitForCond(dispatcher->cond, (int) delay) == 0) {
+            mprAssert(dispatcher->magic == MPR_DISPATCHER_MAGIC);
             mprResetYield();
             dispatcher->waitingOnCond = 0;
             if (runEvents) {
                 makeRunnable(dispatcher);
                 dispatchEvents(dispatcher);
             }
+            mprAssert(dispatcher->magic == MPR_DISPATCHER_MAGIC);
             signalled++;
             break;
         }
         mprResetYield();
+        mprAssert(dispatcher->magic == MPR_DISPATCHER_MAGIC);
         dispatcher->waitingOnCond = 0;
         es->now = mprGetTime();
     }
@@ -345,6 +359,7 @@ int mprWaitForEvent(MprDispatcher *dispatcher, MprTime timeout)
             dispatcher->owner = 0;
         }
     }
+    mprAssert(dispatcher->magic == MPR_DISPATCHER_MAGIC);
     return signalled ? 0 : MPR_ERR_TIMEOUT;
 }
 
@@ -511,7 +526,7 @@ static int dispatchEvents(MprDispatcher *dispatcher)
 }
 
 
-static void serviceDispatcher(MprDispatcher *dispatcher)
+static bool serviceDispatcher(MprDispatcher *dispatcher)
 {
     mprAssert(isRunning(dispatcher));
     mprAssert(dispatcher->owner == 0);
@@ -528,10 +543,14 @@ static void serviceDispatcher(MprDispatcher *dispatcher)
 
     } else {
         if (mprStartWorker((MprWorkerProc) serviceDispatcherMain, dispatcher) < 0) {
+#if UNUSED
             /* Can't start a worker thread, run using the current thread */
             serviceDispatcherMain(dispatcher);
+#endif
+            return 0;
         } 
     }
+    return 1;
 }
 
 
@@ -563,19 +582,34 @@ void mprClaimDispatcher(MprDispatcher *dispatcher)
 }
 
 
+void mprWakePendingDispatchers()
+{
+    mprWakeNotifier();
+}
+
+
 /*
     Get the next (ready) dispatcher off given runQ and move onto the runQ
  */
 static MprDispatcher *getNextReadyDispatcher(MprEventService *es)
 {
-    MprDispatcher   *dp, *next, *readyQ, *waitQ, *dispatcher;
+    MprDispatcher   *dp, *next, *pendingQ, *readyQ, *waitQ, *dispatcher;
     MprEvent        *event;
 
     waitQ = es->waitQ;
     readyQ = es->readyQ;
+    pendingQ = es->pendingQ;
+    dispatcher = 0;
 
     lock(es);
-    if (readyQ->next == readyQ) {
+    if (pendingQ->next != pendingQ && mprAvailableWorkers()) {
+        dispatcher = pendingQ->next;
+        mprAssert(!dispatcher->destroyed);
+        queueDispatcher(es->runQ, dispatcher);
+        mprAssert(dispatcher->enabled);
+        dispatcher->owner = 0;
+
+    } else if (readyQ->next == readyQ) {
         /*
             ReadyQ is empty, try to transfer a dispatcher with due events onto the readyQ
          */
@@ -591,14 +625,12 @@ static MprDispatcher *getNextReadyDispatcher(MprEventService *es)
             }
         }
     }
-    if (readyQ->next != readyQ) {
+    if (!dispatcher && readyQ->next != readyQ) {
         dispatcher = readyQ->next;
         mprAssert(!dispatcher->destroyed);
         queueDispatcher(es->runQ, dispatcher);
         mprAssert(dispatcher->enabled);
         dispatcher->owner = 0;
-    } else {
-        dispatcher = NULL;
     }
     unlock(es);
     mprAssert(dispatcher == NULL || isRunning(dispatcher));
@@ -764,6 +796,7 @@ static int makeRunnable(MprDispatcher *dispatcher)
 }
 
 
+#if UNUSED
 /*
     Designate the required worker thread to run the event
  */
@@ -779,6 +812,7 @@ void mprReleaseWorkerFromDispatcher(MprDispatcher *dispatcher, MprWorker *worker
     dispatcher->requiredWorker = 0;
     mprReleaseWorker(worker);
 }
+#endif
 
 
 void mprSignalDispatcher(MprDispatcher *dispatcher)
@@ -787,6 +821,14 @@ void mprSignalDispatcher(MprDispatcher *dispatcher)
         dispatcher = MPR->dispatcher;
     }
     mprSignalCond(dispatcher->cond);
+}
+
+bool mprDispatcherHasEvents(MprDispatcher *dispatcher)
+{
+    if (dispatcher == 0) {
+        return 0;
+    }
+    return !isEmpty(dispatcher);
 }
 
 
@@ -806,7 +848,7 @@ void mprSignalDispatcher(MprDispatcher *dispatcher)
     under the terms of the GNU General Public License as published by the 
     Free Software Foundation; either version 2 of the License, or (at your 
     option) any later version. See the GNU General Public License for more 
-    details at: http://www.embedthis.com/downloads/gplLicense.html
+    details at: http://embedthis.com/downloads/gplLicense.html
     
     This program is distributed WITHOUT ANY WARRANTY; without even the 
     implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. 
@@ -815,7 +857,7 @@ void mprSignalDispatcher(MprDispatcher *dispatcher)
     proprietary programs. If you are unable to comply with the GPL, you must
     acquire a commercial license to use this software. Commercial licenses 
     for this software and support services are available from Embedthis 
-    Software at http://www.embedthis.com 
+    Software at http://embedthis.com 
     
     Local variables:
     tab-width: 4

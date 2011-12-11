@@ -15,15 +15,12 @@ static void manageSpinLock(MprSpin *lock, int flags);
 
 /************************************ Code ************************************/
 
-static int mcount = 0;
-
 MprMutex *mprCreateLock()
 {
     MprMutex    *lock;
 #if BLD_UNIX_LIKE
     pthread_mutexattr_t attr;
 #endif
-    mcount++;
     if ((lock = mprAllocObj(MprMutex, manageLock)) == 0) {
         return 0;
     }
@@ -51,7 +48,6 @@ MprMutex *mprCreateLock()
 static void manageLock(MprMutex *lock, int flags)
 {
     if (flags & MPR_MANAGE_FREE) {
-        mcount--;
         mprAssert(lock);
 #if BLD_UNIX_LIKE
         pthread_mutex_destroy(&lock->cs);
@@ -402,7 +398,7 @@ void mprSpinUnlock(MprSpin *lock)
     under the terms of the GNU General Public License as published by the
     Free Software Foundation; either version 2 of the License, or (at your
     option) any later version. See the GNU General Public License for more
-    details at: http://www.embedthis.com/downloads/gplLicense.html
+    details at: http://embedthis.com/downloads/gplLicense.html
 
     This program is distributed WITHOUT ANY WARRANTY; without even the
     implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
@@ -411,7 +407,7 @@ void mprSpinUnlock(MprSpin *lock)
     proprietary programs. If you are unable to comply with the GPL, you must
     acquire a commercial license to use this software. Commercial licenses
     for this software and support services are available from Embedthis
-    Software at http://www.embedthis.com
+    Software at http://embedthis.com
 
     Local variables:
     tab-width: 4

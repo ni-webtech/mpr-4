@@ -250,11 +250,37 @@ void mprDecodeUniversalTime(struct tm *tp, MprTime when)
 }
 
 
-char *mprFormatLocalTime(MprTime time)
+char *mprGetDate(char *fmt)
 {
     struct tm   tm;
+
+    mprDecodeLocalTime(&tm, mprGetTime());
+    if (fmt == 0 || *fmt == '\0') {
+        fmt = MPR_DEFAULT_DATE;
+    }
+    return mprFormatTm(fmt, &tm);
+}
+
+
+char *mprFormatLocalTime(cchar *fmt, MprTime time)
+{
+    struct tm   tm;
+    if (fmt == 0) {
+        fmt = MPR_DEFAULT_DATE;
+    }
     mprDecodeLocalTime(&tm, time);
-    return mprFormatTime(MPR_DEFAULT_DATE, &tm);
+    return mprFormatTm(fmt, &tm);
+}
+
+
+char *mprFormatUniversalTime(cchar *fmt, MprTime time)
+{
+    struct tm   tm;
+    if (fmt == 0) {
+        fmt = MPR_DEFAULT_DATE;
+    }
+    mprDecodeUniversalTime(&tm, time);
+    return mprFormatTm(fmt, &tm);
 }
 
 
@@ -424,7 +450,7 @@ static int getTimeZoneOffsetFromTm(struct tm *tp)
     if ((tze = getenv("TIMEZONE")) != 0) {
         if ((p = strchr(tze, ':')) != 0) {
             if ((p = strchr(tze, ':')) != 0) {
-                offset = - stoi(++p, 10, NULL) * MS_PER_MIN;
+                offset = - stoi(++p) * MS_PER_MIN;
             }
         }
         if (tp->tm_isdst) {
@@ -684,7 +710,7 @@ static void decodeTime(struct tm *tp, MprTime when, bool local)
 /*
     Preferred implementation as strftime() will be localized
  */
-char *mprFormatTime(cchar *fmt, struct tm *tp)
+char *mprFormatTm(cchar *fmt, struct tm *tp)
 {
     struct tm       tm;
     char            localFmt[MPR_MAX_STRING];
@@ -722,7 +748,7 @@ char *mprFormatTime(cchar *fmt, struct tm *tp)
 
             case 'C':
                 dp--;
-                itos(dp, size, (1900 + tp->tm_year) / 100, 10);
+                itosbuf(dp, size, (1900 + tp->tm_year) / 100, 10);
                 dp += slen(dp);
                 cp++;
                 break;
@@ -738,7 +764,7 @@ char *mprFormatTime(cchar *fmt, struct tm *tp)
                 if (tp->tm_mday < 10) {
                     *dp++ = ' ';
                 }
-                itos(dp, size - 1, (int64) tp->tm_mday, 10);
+                itosbuf(dp, size - 1, (int64) tp->tm_mday, 10);
                 dp += slen(dp);
                 cp++;
                 break;
@@ -764,7 +790,7 @@ char *mprFormatTime(cchar *fmt, struct tm *tp)
                 if (tp->tm_hour < 10) {
                     *dp++ = ' ';
                 }
-                itos(dp, size - 1, (int64) tp->tm_hour, 10);
+                itosbuf(dp, size - 1, (int64) tp->tm_hour, 10);
                 dp += slen(dp);
                 cp++;
                 break;
@@ -778,7 +804,7 @@ char *mprFormatTime(cchar *fmt, struct tm *tp)
                 if (value > 12) {
                     value -= 12;
                 }
-                itos(dp, size - 1, (int64) value, 10);
+                itosbuf(dp, size - 1, (int64) value, 10);
                 dp += slen(dp);
                 cp++;
                 break;
@@ -814,7 +840,7 @@ char *mprFormatTime(cchar *fmt, struct tm *tp)
 
             case 's':
                 dp--;
-                itos(dp, size, (int64) mprMakeTime(tp) / MS_PER_SEC, 10);
+                itosbuf(dp, size, (int64) mprMakeTime(tp) / MS_PER_SEC, 10);
                 dp += slen(dp);
                 cp++;
                 break;
@@ -836,7 +862,7 @@ char *mprFormatTime(cchar *fmt, struct tm *tp)
                 if (value == 0) {
                     value = 7;
                 }
-                itos(dp, size, (int64) value, 10);
+                itosbuf(dp, size, (int64) value, 10);
                 dp += slen(dp);
                 cp++;
                 break;
@@ -847,7 +873,7 @@ char *mprFormatTime(cchar *fmt, struct tm *tp)
                 if (tp->tm_mday < 10) {
                     *dp++ = ' ';
                 }
-                itos(dp, size - 1, (int64) tp->tm_mday, 10);
+                itosbuf(dp, size - 1, (int64) tp->tm_mday, 10);
                 dp += slen(dp);
                 cp++;
                 strcpy(dp, "-%b-%Y");
@@ -935,7 +961,7 @@ static char *getTimeZoneName(struct tm *tp)
 }
 
 
-char *mprFormatTime(cchar *fmt, struct tm *tp)
+char *mprFormatTm(cchar *fmt, struct tm *tp)
 {
     struct tm       tm;
     MprBuf          *buf;
@@ -1282,19 +1308,6 @@ static int getNumOrSym(char **token, int sep, int kind, int *isAlpah)
 }
 
 
-static bool allDigits(cchar *token)
-{
-    cchar   *cp;
-
-    for (cp = token; *cp; cp++) {
-        if (!isdigit((int) *cp)) {
-            return 0;
-        }
-    }
-    return 1;
-} 
-
-
 static void swapDayMonth(struct tm *tp)
 {
     int     tmp;
@@ -1359,11 +1372,11 @@ int mprParseTime(MprTime *time, cchar *dateString, int zoneFlags, struct tm *def
     token = stok(str, sep, &next);
 
     while (token && *token) {
-        if (allDigits(token)) {
+        if (snumber(token)) {
             /*
                 Parse either day of month or year. Priority to day of month. Format: <29> Jan <15> <2011>
              */ 
-            value = stoi(token, 10, NULL);
+            value = stoi(token);
             if (value > 3000) {
                 *time = value;
                 return 0;
@@ -1656,7 +1669,7 @@ int gettimeofday(struct timeval *tv, struct timezone *tz)
             if ((tze = getenv("TIMEZONE")) != 0) {
                 if ((p = strchr(tze, ':')) != 0) {
                     if ((p = strchr(tze, ':')) != 0) {
-                        tz->tz_minuteswest = stoi(++p, 10, NULL);
+                        tz->tz_minuteswest = stoi(++p);
                     }
                 }
                 t = tickGet();
@@ -1713,7 +1726,7 @@ int gettimeofday(struct timeval *tv, struct timezone *tz)
     under the terms of the GNU General Public License as published by the
     Free Software Foundation; either version 2 of the License, or (at your
     option) any later version. See the GNU General Public License for more
-    details at: http://www.embedthis.com/downloads/gplLicense.html
+    details at: http://embedthis.com/downloads/gplLicense.html
 
     This program is distributed WITHOUT ANY WARRANTY; without even the
     implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
@@ -1722,7 +1735,7 @@ int gettimeofday(struct timeval *tv, struct timezone *tz)
     proprietary programs. If you are unable to comply with the GPL, you must
     acquire a commercial license to use this software. Commercial licenses
     for this software and support services are available from Embedthis
-    Software at http://www.embedthis.com
+    Software at http://embedthis.com
 
     Local variables:
     tab-width: 4

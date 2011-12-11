@@ -1,5 +1,5 @@
 /**
-    mprWin.c - Windows specific adaptions
+    mprWin.c - Windows specific adaptions. Used by BLD_WIN_LIKE and CYGWIN
 
     Copyright (c) All Rights Reserved. See details at the end of the file.
  */
@@ -8,11 +8,11 @@
 
 #include    "mpr.h"
 
+#if CYGWIN
+ #include "w32api/windows.h"
+#endif
+
 #if BLD_WIN_LIKE && !WINCE
-/**************************** Forward Declarations ****************************/
-
-static cchar    *getHive(cchar *key, HKEY *root);
-
 /*********************************** Code *************************************/
 /*
     Initialize the O/S platform layer
@@ -53,17 +53,16 @@ HWND mprGetHwnd()
 }
 
 
-int mprGetRandomBytes(char *buf, ssize length, int block)
+int mprGetRandomBytes(char *buf, ssize length, bool block)
 {
     HCRYPTPROV      prov;
     int             rc;
 
     rc = 0;
-
     if (!CryptAcquireContext(&prov, NULL, NULL, PROV_RSA_FULL, CRYPT_VERIFYCONTEXT | 0x40)) {
         return mprGetError();
     }
-    if (!CryptGenRandom(prov, length, buf)) {
+    if (!CryptGenRandom(prov, (wsize) length, buf)) {
         rc = mprGetError();
     }
     CryptReleaseContext(prov, 0);
@@ -111,54 +110,6 @@ int mprUnloadNativeModule(MprModule *mp)
 }
 
 
-int mprReadRegistry(char **buf, ssize max, cchar *key, cchar *name)
-{
-    HKEY        top, h;
-    char        *value;
-    ulong       type, size;
-
-    mprAssert(key && *key);
-    mprAssert(buf);
-
-    /*
-        Get the registry hive
-     */
-    if ((key = getHive(key, &top)) == 0) {
-        return MPR_ERR_CANT_ACCESS;
-    }
-
-    if (RegOpenKeyEx(top, key, 0, KEY_READ, &h) != ERROR_SUCCESS) {
-        return MPR_ERR_CANT_ACCESS;
-    }
-
-    /*
-        Get the type
-     */
-    if (RegQueryValueEx(h, name, 0, &type, 0, &size) != ERROR_SUCCESS) {
-        RegCloseKey(h);
-        return MPR_ERR_CANT_READ;
-    }
-    if (type != REG_SZ && type != REG_EXPAND_SZ) {
-        RegCloseKey(h);
-        return MPR_ERR_BAD_TYPE;
-    }
-
-    value = mprAlloc(size);
-    if ((int) size > max) {
-        RegCloseKey(h);
-        mprAssert(!MPR_ERR_WONT_FIT);
-        return MPR_ERR_WONT_FIT;
-    }
-    if (RegQueryValueEx(h, name, 0, &type, (uchar*) value, &size) != ERROR_SUCCESS) {
-        RegCloseKey(h);
-        return MPR_ERR_CANT_READ;
-    }
-    RegCloseKey(h);
-    *buf = value;
-    return 0;
-}
-
-
 void mprSetInst(long inst)
 {
     MPR->appInstance = inst;
@@ -177,9 +128,17 @@ void mprSetSocketMessage(int socketMessage)
 }
 
 
-void mprSleep(MprTime milliseconds)
+void mprNap(MprTime timeout)
 {
-    Sleep((int) milliseconds);
+    Sleep((int) timeout);
+}
+
+
+void mprSleep(MprTime timeout)
+{
+    mprYield(MPR_YIELD_STICKY);
+    mprNap(timeout);
+    mprResetYield();
 }
 
 
@@ -239,6 +198,92 @@ void mprWriteToOsLog(cchar *message, int flags, int level)
 }
 
 
+#endif /* BLD_WIN_LIKE */
+
+
+#if (BLD_WIN_LIKE && !WINCE) || CYGWIN
+/*
+    Determine the registry hive by the first portion of the path. Return 
+    a pointer to the rest of key path after the hive portion.
+ */ 
+static cchar *getHive(cchar *keyPath, HKEY *hive)
+{
+    char    key[MPR_MAX_STRING], *cp;
+    ssize   len;
+
+    mprAssert(keyPath && *keyPath);
+
+    *hive = 0;
+
+    scopy(key, sizeof(key), keyPath);
+    key[sizeof(key) - 1] = '\0';
+
+    if ((cp = schr(key, '\\')) != 0) {
+        *cp++ = '\0';
+    }
+    if (cp == 0 || *cp == '\0') {
+        return 0;
+    }
+    if (!scasecmp(key, "HKEY_LOCAL_MACHINE") || !scasecmp(key, "HKLM")) {
+        *hive = HKEY_LOCAL_MACHINE;
+    } else if (!scasecmp(key, "HKEY_CURRENT_USER") || !scasecmp(key, "HKCU")) {
+        *hive = HKEY_CURRENT_USER;
+    } else if (!scasecmp(key, "HKEY_USERS")) {
+        *hive = HKEY_USERS;
+    } else if (!scasecmp(key, "HKEY_CLASSES_ROOT")) {
+        *hive = HKEY_CLASSES_ROOT;
+    } else {
+        return 0;
+    }
+    if (*hive == 0) {
+        return 0;
+    }
+    len = slen(key) + 1;
+    return keyPath + len;
+}
+
+
+char *mprReadRegistry(cchar *key, cchar *name)
+{
+    HKEY        top, h;
+    char        *value;
+    ulong       type, size;
+
+    mprAssert(key && *key);
+
+    /*
+        Get the registry hive
+     */
+    if ((key = getHive(key, &top)) == 0) {
+        return 0;
+    }
+    if (RegOpenKeyEx(top, key, 0, KEY_READ, &h) != ERROR_SUCCESS) {
+        return 0;
+    }
+
+    /*
+        Get the type
+     */
+    if (RegQueryValueEx(h, name, 0, &type, 0, &size) != ERROR_SUCCESS) {
+        RegCloseKey(h);
+        return 0;
+    }
+    if (type != REG_SZ && type != REG_EXPAND_SZ) {
+        RegCloseKey(h);
+        return 0;
+    }
+    if ((value = mprAlloc(size + 1)) == 0) {
+        return 0;
+    }
+    if (RegQueryValueEx(h, name, 0, &type, (uchar*) value, &size) != ERROR_SUCCESS) {
+        RegCloseKey(h);
+        return 0;
+    }
+    RegCloseKey(h);
+    value[size] = '\0';
+    return value;
+}
+
 int mprWriteRegistry(cchar *key, cchar *name, cchar *value)
 {
     HKEY    top, h, subHandle;
@@ -254,7 +299,6 @@ int mprWriteRegistry(cchar *key, cchar *name, cchar *value)
     if ((key = getHive(key, &top)) == 0) {
         return MPR_ERR_CANT_ACCESS;
     }
-
     if (name) {
         /*
             Write a registry string value
@@ -262,7 +306,7 @@ int mprWriteRegistry(cchar *key, cchar *name, cchar *value)
         if (RegOpenKeyEx(top, key, 0, KEY_ALL_ACCESS, &h) != ERROR_SUCCESS) {
             return MPR_ERR_CANT_ACCESS;
         }
-        if (RegSetValueEx(h, name, 0, REG_SZ, value, (int) slen(value) + 1) != ERROR_SUCCESS) {
+        if (RegSetValueEx(h, name, 0, REG_SZ, (uchar*) value, (int) slen(value) + 1) != ERROR_SUCCESS) {
             RegCloseKey(h);
             return MPR_ERR_CANT_READ;
         }
@@ -285,49 +329,7 @@ int mprWriteRegistry(cchar *key, cchar *name, cchar *value)
 }
 
 
-/*
-    Determine the registry hive by the first portion of the path. Return 
-    a pointer to the rest of key path after the hive portion.
- */ 
-static cchar *getHive(cchar *keyPath, HKEY *hive)
-{
-    char    key[MPR_MAX_STRING], *cp;
-    ssize   len;
-
-    mprAssert(keyPath && *keyPath);
-
-    *hive = 0;
-
-    scopy(key, sizeof(key), keyPath);
-    key[sizeof(key) - 1] = '\0';
-
-    if (cp = strchr(key, '\\')) {
-        *cp++ = '\0';
-    }
-    if (cp == 0 || *cp == '\0') {
-        return 0;
-    }
-    if (!scasecmp(key, "HKEY_LOCAL_MACHINE")) {
-        *hive = HKEY_LOCAL_MACHINE;
-    } else if (!scasecmp(key, "HKEY_CURRENT_USER")) {
-        *hive = HKEY_CURRENT_USER;
-    } else if (!scasecmp(key, "HKEY_USERS")) {
-        *hive = HKEY_USERS;
-    } else if (!scasecmp(key, "HKEY_CLASSES_ROOT")) {
-        *hive = HKEY_CLASSES_ROOT;
-    } else {
-        return 0;
-    }
-    if (*hive == 0) {
-        return 0;
-    }
-    len = slen(key) + 1;
-    return keyPath + len;
-}
-
-#else
-void stubMprWin() {}
-#endif /* BLD_WIN_LIKE */
+#endif /* (BLD_WIN_LIKE && !WINCE) || CYGWIN */
 
 /*
     @copy   default
@@ -345,7 +347,7 @@ void stubMprWin() {}
     under the terms of the GNU General Public License as published by the 
     Free Software Foundation; either version 2 of the License, or (at your 
     option) any later version. See the GNU General Public License for more 
-    details at: http://www.embedthis.com/downloads/gplLicense.html
+    details at: http://embedthis.com/downloads/gplLicense.html
     
     This program is distributed WITHOUT ANY WARRANTY; without even the 
     implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. 
@@ -354,7 +356,7 @@ void stubMprWin() {}
     proprietary programs. If you are unable to comply with the GPL, you must
     acquire a commercial license to use this software. Commercial licenses 
     for this software and support services are available from Embedthis 
-    Software at http://www.embedthis.com 
+    Software at http://embedthis.com 
     
     Local variables:
     tab-width: 4

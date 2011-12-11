@@ -190,6 +190,9 @@
 #if BLD_FEATURE_FLOAT
 
 #if EMBEDTHIS || 1
+    #define MULTIPLE_THREADS 1
+    extern void mprLockDtoa(int n);
+    extern void mprUnlockDtoa(int n);
     #include    "mpr.h"
     #if WIN || WINCE
         typedef int int32_t;
@@ -550,6 +553,9 @@ BCinfo { int dp0, dp1, dplen, dsign, e0, inexact, nd, nd0, rounding, scale, uflc
 #ifndef MULTIPLE_THREADS
 #define ACQUIRE_DTOA_LOCK(n)    /*nothing*/
 #define FREE_DTOA_LOCK(n)   /*nothing*/
+#else
+#define ACQUIRE_DTOA_LOCK(n) mprLockDtoa(n);
+#define FREE_DTOA_LOCK(n) mprUnlockDtoa(n);
 #endif
 
 #define Kmax 7
@@ -1564,7 +1570,7 @@ hexdig_init(void)
 #endif
 
  static int
-match
+dmatch
 #ifdef KR_headers
     (sp, t) char **sp, *t;
 #else
@@ -2668,9 +2674,9 @@ strtod
              switch(c) {
               case 'i':
               case 'I':
-                if (match(&s,"nf")) {
+                if (dmatch(&s,"nf")) {
                     --s;
-                    if (!match(&s,"inity"))
+                    if (!dmatch(&s,"inity"))
                         ++s;
                     word0(&rv) = 0x7ff00000;
                     word1(&rv) = 0;
@@ -2679,7 +2685,7 @@ strtod
                 break;
               case 'n':
               case 'N':
-                if (match(&s, "an")) {
+                if (dmatch(&s, "an")) {
                     word0(&rv) = NAN_WORD0;
                     word1(&rv) = NAN_WORD1;
 #ifndef No_Hex_NaN

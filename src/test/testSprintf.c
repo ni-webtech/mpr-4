@@ -28,7 +28,7 @@ static void testBasicSprintf(MprTestGroup *gp)
     assert(strlen(buf) == 9);
     assert(strcmp(buf, "-12345678") == 0);
 
-    str = mprAsprintf("%d", 12345678);
+    str = sfmt("%d", 12345678);
     count = (int) strlen(str);
     assert(count == 8);
     assert(strcmp(str, "12345678") == 0);
@@ -37,25 +37,25 @@ static void testBasicSprintf(MprTestGroup *gp)
 
 static void testItos(MprTestGroup *gp)
 {
-    char    buf[256];
+    char    *s;
 
-    itos(buf, sizeof(buf), 0, 10);
-    assert(strcmp(buf, "0") == 0);
+    s = itos(0);
+    assert(strcmp(s, "0") == 0);
 
-    itos(buf, sizeof(buf), 1, 10);
-    assert(strcmp(buf, "1") == 0);
+    s = itos(1);
+    assert(strcmp(s, "1") == 0);
 
-    itos(buf, sizeof(buf), -1, 10);
-    assert(strcmp(buf, "-1") == 0);
+    s = itos(-1);
+    assert(strcmp(s, "-1") == 0);
 
-    itos(buf, sizeof(buf), 12345678, 10);
-    assert(strcmp(buf, "12345678") == 0);
+    s = itos(12345678);
+    assert(strcmp(s, "12345678") == 0);
 
-    itos(buf, sizeof(buf), -12345678, 10);
-    assert(strcmp(buf, "-12345678") == 0);
+    s = itos(-12345678);
+    assert(strcmp(s, "-12345678") == 0);
 
-    itos(buf, sizeof(buf), 0x1234, 16);
-    assert(strcmp(buf, "1234") == 0);
+    s = itosradix(0x1234, 16);
+    assert(strcmp(s, "1234") == 0);
 }
 
 
@@ -272,7 +272,7 @@ MprTestDef testSprintf = {
     under the terms of the GNU General Public License as published by the 
     Free Software Foundation; either version 2 of the License, or (at your 
     option) any later version. See the GNU General Public License for more 
-    details at: http://www.embedthis.com/downloads/gplLicense.html
+    details at: http://embedthis.com/downloads/gplLicense.html
     
     This program is distributed WITHOUT ANY WARRANTY; without even the 
     implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. 
@@ -281,7 +281,7 @@ MprTestDef testSprintf = {
     proprietary programs. If you are unable to comply with the GPL, you must
     acquire a commercial license to use this software. Commercial licenses 
     for this software and support services are available from Embedthis 
-    Software at http://www.embedthis.com 
+    Software at http://embedthis.com 
     
     Local variables:
     tab-width: 4

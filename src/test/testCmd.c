@@ -67,7 +67,7 @@ static void testRunCmd(MprTestGroup *gp)
         runProgram reads from the input, so it requires stdin to be connected
      */
     mprSprintf(command, sizeof(command), "%s 0", tc->program);
-    status = mprRunCmd(tc->cmd, command, &result, NULL, MPR_CMD_IN);
+    status = mprRunCmd(tc->cmd, command, &result, NULL, -1, MPR_CMD_IN);
     assert(result != NULL);
     assert(status == 0);
 
@@ -79,7 +79,7 @@ static void testRunCmd(MprTestGroup *gp)
 }
 
 
-static void withDataCallback(MprCmd *cmd, int channel, void *data)
+static ssize withDataCallback(MprCmd *cmd, int channel, void *data)
 {
     MprTestGroup    *gp;
     TestCmd         *tc;
@@ -91,6 +91,7 @@ static void withDataCallback(MprCmd *cmd, int channel, void *data)
     assert(tc != NULL);
     buf = tc->buf;
     assert(buf != NULL);
+    len = 0;
     
     switch (channel) {
     case MPR_CMD_STDIN:
@@ -106,7 +107,7 @@ static void withDataCallback(MprCmd *cmd, int channel, void *data)
             if (mprGrowBuf(buf, MPR_BUFSIZE) < 0) {
                 mprAssert(0);
                 mprCloseCmdFd(cmd, channel);
-                return;
+                return 0;
             }
             space = mprGetBufSpace(buf);
         }
@@ -119,7 +120,7 @@ static void withDataCallback(MprCmd *cmd, int channel, void *data)
             } else {
                 mprEnableCmdEvents(cmd, channel);
             }
-            return;
+            return len;
             
         } else {
             mprAdjustBufEnd(buf, len);
@@ -132,6 +133,7 @@ static void withDataCallback(MprCmd *cmd, int channel, void *data)
         /* Child death notification */
         break;
     }
+    return len;
 }
 
 
@@ -194,7 +196,7 @@ static void testWithData(MprTestGroup *gp)
     for (i = 0; i < 10; i++) {
         mprSprintf(line, sizeof(line), "line %d\n", i);
         len = (int) strlen(line);
-        rc = write(fd, line, len);
+        rc = write(fd, line, (wsize) len);
         assert(rc == len);
         if (rc != len) {
             break;
@@ -249,7 +251,7 @@ static void testExitCode(MprTestGroup *gp)
 
     for (i = 0; i < 1; i++) {
         mprSprintf(command, sizeof(command), "%s %d", tc->program, i);
-        status = mprRunCmd(tc->cmd, command, &result, NULL, MPR_CMD_IN);
+        status = mprRunCmd(tc->cmd, command, &result, NULL, -1, MPR_CMD_IN);
         assert(result != NULL);
         assert(status == i);
         if (status != i) {
@@ -275,7 +277,7 @@ static void testNoCapture(MprTestGroup *gp)
     assert(tc->cmd != 0);
 
     mprSprintf(command, sizeof(command), "%s 99", tc->program);
-    status = mprRunCmd(tc->cmd, command, NULL, NULL, MPR_CMD_IN);
+    status = mprRunCmd(tc->cmd, command, NULL, NULL, -1, MPR_CMD_IN);
     assert(status == 99);
 
     status = mprGetCmdExitStatus(tc->cmd);
@@ -302,7 +304,7 @@ static void testMultiple(MprTestGroup *gp)
     }
     for (i = 0; i < CMD_COUNT; i++) {
         mprSprintf(command, sizeof(command), "%s 99", tc->program);
-        status = mprRunCmd(cmds[i], command, NULL, NULL, MPR_CMD_IN);
+        status = mprRunCmd(cmds[i], command, NULL, NULL, -1, MPR_CMD_IN);
         assert(status == 99);
         status = mprGetCmdExitStatus(cmds[i]);
         assert(status == 99);
@@ -345,7 +347,7 @@ MprTestDef testCmd = {
     under the terms of the GNU General Public License as published by the 
     Free Software Foundation; either version 2 of the License, or (at your 
     option) any later version. See the GNU General Public License for more 
-    details at: http://www.embedthis.com/downloads/gplLicense.html
+    details at: http://embedthis.com/downloads/gplLicense.html
     
     This program is distributed WITHOUT ANY WARRANTY; without even the 
     implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. 
@@ -354,7 +356,7 @@ MprTestDef testCmd = {
     proprietary programs. If you are unable to comply with the GPL, you must
     acquire a commercial license to use this software. Commercial licenses 
     for this software and support services are available from Embedthis 
-    Software at http://www.embedthis.com 
+    Software at http://embedthis.com 
     
     Local variables:
     tab-width: 4

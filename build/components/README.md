@@ -1,5 +1,5 @@
-README for the build/components
---------------------------------------------------------------------------------
+Build Components
+================
 
 Component scripts are used to search and configure components for the build. 
 Components may be SDKs such as the Windows SDK, build tools such as the "cc" 
@@ -35,16 +35,18 @@ The defineComponent function may use the "probe" function to search for the
 component along the configured search path.
 
 The probe function supports the following usage:
-
+<pre>
   probe [--name NAME] [--extensions EXT] [--search searchPath] file
    --name            # Component name
    --extensions EXT  # File extensions to append to "file" in search
    --search path     # Override search path
+</pre>
 
 If the existence of the component can be verified, the component script 
 should then call "configureComponent" to add the component to the configuration. 
 The configureComponent function supports the following usage:
 
+<pre>
   configureComponent
         --builtin           # Component is builtin
         --cflags CFLAGS     # Define CFLAGS to pass to the compiler
@@ -63,11 +65,14 @@ The configureComponent function supports the following usage:
                             # component
         --withpaths PATHS   # Define linker library search paths to use when 
                             # creating the component
+</pre>
 
 You can also define mandatory and optional dependencies via the switches:
 
+<pre>
         --dependencies components
         --optional-dependencies components
+</pre>
 
 --------------------------------------------------------------------------------
 

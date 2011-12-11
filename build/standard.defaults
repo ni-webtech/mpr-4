@@ -49,7 +49,7 @@ with --build --optional doxygen
 with --os=win --build --optional pkg
 
 with mpr
-with --host --optional matrixssl openssl ssl
+with --host --optional openssl ssl
 
 ###############################################################################
 #

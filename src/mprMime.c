@@ -21,9 +21,10 @@ static char *standardMimeTypes[] = {
     "bmp",   "image/bmp",
     "class", "application/octet-stream",
     "css",   "text/css",
+    "deb",   "application/octet-stream",
     "dll",   "application/octet-stream",
+    "dmg",   "application/octet-stream",
     "doc",   "application/msword",
-    "ejs",   "text/html",
     "eps",   "application/postscript",
     "es",    "application/x-javascript",
     "exe",   "application/octet-stream",
@@ -39,9 +40,13 @@ static char *standardMimeTypes[] = {
     "json",  "application/json",
     "mp3",   "audio/mpeg",
     "pdf",   "application/pdf",
+    "php",   "application/x-php",
+    "pl",    "application/x-perl",
     "png",   "image/png",
     "ppt",   "application/vnd.ms-powerpoint",
     "ps",    "application/postscript",
+    "py",    "application/x-python",
+    "py",    "application/x-python",
     "ra",    "audio/x-realaudio",
     "ram",   "audio/x-pn-realaudio",
     "rmm",   "audio/x-pn-realaudio",
@@ -56,70 +61,22 @@ static char *standardMimeTypes[] = {
     "wav",   "audio/x-wav",
     "xls",   "application/vnd.ms-excel",
     "zip",   "application/zip",
-    "php",   "application/x-appweb-php",
-    "pl",    "application/x-appweb-perl",
-    "py",    "application/x-appweb-python",
-    "ai",    "application/postscript",
-    "asc",   "text/plain",
-    "au",    "audio/basic",
-    "avi",   "video/x-msvideo",
-    "bin",   "application/octet-stream",
-    "bmp",   "image/bmp",
-    "class", "application/octet-stream",
-    "css",   "text/css",
-    "dll",   "application/octet-stream",
-    "doc",   "application/msword",
-    "ejs",   "text/html",
-    "eps",   "application/postscript",
-    "es",    "application/x-javascript",
-    "exe",   "application/octet-stream",
-    "gif",   "image/gif",
-    "gz",    "application/x-gzip",
-    "htm",   "text/html",
-    "html",  "text/html",
-    "ico",   "image/x-icon",
-    "jar",   "application/octet-stream",
-    "jpeg",  "image/jpeg",
-    "jpg",   "image/jpeg",
-    "js",    "application/javascript",
-    "mp3",   "audio/mpeg",
-    "pdf",   "application/pdf",
-    "png",   "image/png",
-    "ppt",   "application/vnd.ms-powerpoint",
-    "ps",    "application/postscript",
-    "ra",    "audio/x-realaudio",
-    "ram",   "audio/x-pn-realaudio",
-    "rmm",   "audio/x-pn-realaudio",
-    "rtf",   "text/rtf",
-    "rv",    "video/vnd.rn-realvideo",
-    "so",    "application/octet-stream",
-    "swf",   "application/x-shockwave-flash",
-    "tar",   "application/x-tar",
-    "tgz",   "application/x-gzip",
-    "tiff",  "image/tiff",
-    "txt",   "text/plain",
-    "wav",   "audio/x-wav",
-    "xls",   "application/vnd.ms-excel",
-    "zip",   "application/zip",
-    "php",   "application/x-appweb-php",
-    "pl",    "application/x-appweb-perl",
-    "py",    "application/x-appweb-python",
     0,       0,
 };
 
 /********************************** Forward ***********************************/
 
-static void addStandardMimeTypes(MprHashTable *table);
+static void addStandardMimeTypes(MprHash *table);
 static void manageMimeType(MprMime *mt, int flags);
 
 /*********************************** Code *************************************/
 
-MprHashTable *mprCreateMimeTypes(cchar *path)
+MprHash *mprCreateMimeTypes(cchar *path)
 {
-    MprHashTable    *table;
-    MprFile         *file;
-    char            *buf, *tok, *ext, *type;
-    int             line;
+    MprHash     *table;
+    MprFile     *file;
+    char        *buf, *tok, *ext, *type;
+    int         line;
 
     if (path) {
         if ((file = mprOpenFile(path, O_RDONLY | O_TEXT, 0)) == 0) {
@@ -130,7 +87,7 @@ MprHashTable *mprCreateMimeTypes(cchar *path)
             return 0;
         }
         line = 0;
-        while ((buf = mprGetFileString(file, 0, NULL)) != 0) {
+        while ((buf = mprReadLine(file, 0, NULL)) != 0) {
             line++;
             if (buf[0] == '#' || isspace((int) buf[0])) {
                 continue;
@@ -158,7 +115,7 @@ MprHashTable *mprCreateMimeTypes(cchar *path)
 }
 
 
-static void addStandardMimeTypes(MprHashTable *table)
+static void addStandardMimeTypes(MprHash *table)
 {
     char    **cp;
 
@@ -177,7 +134,7 @@ static void manageMimeType(MprMime *mt, int flags)
 }
 
 
-MprMime *mprAddMime(MprHashTable *table, cchar *ext, cchar *mimeType)
+MprMime *mprAddMime(MprHash *table, cchar *ext, cchar *mimeType)
 {
     MprMime  *mt;
 
@@ -193,15 +150,15 @@ MprMime *mprAddMime(MprHashTable *table, cchar *ext, cchar *mimeType)
 }
 
 
-int mprSetMimeProgram(MprHashTable *table, cchar *mimeType, cchar *program)
+int mprSetMimeProgram(MprHash *table, cchar *mimeType, cchar *program)
 {
-    MprHash     *hp;
+    MprKey      *kp;
     MprMime     *mt;
     
-    hp = 0;
+    kp = 0;
     mt = 0;
-    while ((hp = mprGetNextKey(table, hp)) != 0) {
-        mt = (MprMime*) hp->data;
+    while ((kp = mprGetNextKey(table, kp)) != 0) {
+        mt = (MprMime*) kp->data;
         if (mt->type[0] == mimeType[0] && strcmp(mt->type, mimeType) == 0) {
             break;
         }
@@ -215,7 +172,7 @@ int mprSetMimeProgram(MprHashTable *table, cchar *mimeType, cchar *program)
 }
 
 
-cchar *mprGetMimeProgram(MprHashTable *table, cchar *mimeType)
+cchar *mprGetMimeProgram(MprHash *table, cchar *mimeType)
 {
     MprMime      *mt;
 
@@ -229,7 +186,7 @@ cchar *mprGetMimeProgram(MprHashTable *table, cchar *mimeType)
 }
 
 
-cchar *mprLookupMime(MprHashTable *table, cchar *ext)
+cchar *mprLookupMime(MprHash *table, cchar *ext)
 {
     MprMime     *mt;
     cchar       *ep;
@@ -244,7 +201,7 @@ cchar *mprLookupMime(MprHashTable *table, cchar *ext)
         table = MPR->mimeTypes;
     }
     if ((mt = mprLookupKey(table, ext)) == 0) {;
-        return "application/octet-stream";
+        return "text/html";
     }
     return mt->type;
 }
@@ -266,7 +223,7 @@ cchar *mprLookupMime(MprHashTable *table, cchar *ext)
     under the terms of the GNU General Public License as published by the 
     Free Software Foundation; either version 2 of the License, or (at your 
     option) any later version. See the GNU General Public License for more 
-    details at: http://www.embedthis.com/downloads/gplLicense.html
+    details at: http://embedthis.com/downloads/gplLicense.html
     
     This program is distributed WITHOUT ANY WARRANTY; without even the 
     implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. 
@@ -275,7 +232,7 @@ cchar *mprLookupMime(MprHashTable *table, cchar *ext)
     proprietary programs. If you are unable to comply with the GPL, you must
     acquire a commercial license to use this software. Commercial licenses 
     for this software and support services are available from Embedthis 
-    Software at http://www.embedthis.com 
+    Software at http://embedthis.com 
     
     Local variables:
     tab-width: 4

@@ -42,7 +42,7 @@ void mprStopOsService()
 }
 
 
-int mprGetRandomBytes(char *buf, ssize length, int block)
+int mprGetRandomBytes(char *buf, ssize length, bool block)
 {
     ssize   sofar, rc;
     int     fd;
@@ -51,7 +51,6 @@ int mprGetRandomBytes(char *buf, ssize length, int block)
     if (fd < 0) {
         return MPR_ERR_CANT_OPEN;
     }
-
     sofar = 0;
     do {
         rc = read(fd, &buf[sofar], length);
@@ -105,7 +104,10 @@ int mprUnloadNativeModule(MprModule *mp)
 #endif
 
 
-void mprSleep(MprTime timeout)
+/*
+    This routine does not yield
+ */
+void mprNap(MprTime timeout)
 {
     MprTime         remaining, mark;
     struct timespec t;
@@ -125,27 +127,34 @@ void mprSleep(MprTime timeout)
 }
 
 
+void mprSleep(MprTime timeout)
+{
+    mprYield(MPR_YIELD_STICKY);
+    mprNap(timeout);
+    mprResetYield();
+}
+
+
 /*  
     Write a message in the O/S native log (syslog in the case of linux)
  */
 void mprWriteToOsLog(cchar *message, int flags, int level)
 {
-    char    *tag;
     int     sflag;
 
     if (flags & MPR_FATAL_SRC) {
-        tag = "fatal error: ";
         sflag = LOG_ERR;
 
     } else if (flags & MPR_ASSERT_SRC) {
-        tag = "program assertion error: ";
         sflag = LOG_WARNING;
 
+    } else if (flags & MPR_ERROR_SRC) {
+        sflag = LOG_ERR;
+
     } else {
-        tag = "error: ";
         sflag = LOG_WARNING;
     }
-    syslog(sflag, "%s %s", tag, message);
+    syslog(sflag, "%s", message);
 }
 
 
@@ -174,7 +183,7 @@ void stubMprUnix() {}
     under the terms of the GNU General Public License as published by the 
     Free Software Foundation; either version 2 of the License, or (at your 
     option) any later version. See the GNU General Public License for more 
-    details at: http://www.embedthis.com/downloads/gplLicense.html
+    details at: http://embedthis.com/downloads/gplLicense.html
     
     This program is distributed WITHOUT ANY WARRANTY; without even the 
     implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. 
@@ -183,7 +192,7 @@ void stubMprUnix() {}
     proprietary programs. If you are unable to comply with the GPL, you must
     acquire a commercial license to use this software. Commercial licenses 
     for this software and support services are available from Embedthis 
-    Software at http://www.embedthis.com 
+    Software at http://embedthis.com 
     
     Local variables:
     tab-width: 4

@@ -16,7 +16,7 @@
 
 static void testCreateTable(MprTestGroup *gp)
 {
-    MprHashTable    *table;
+    MprHash     *table;
 
     table = mprCreateHash(211, 0);
     assert(table != 0);
@@ -31,7 +31,7 @@ static void testCreateTable(MprTestGroup *gp)
 
 static void testIsTableEmpty(MprTestGroup *gp)
 {
-    MprHashTable    *table;
+    MprHash     *table;
 
     table = mprCreateHash(0, 0);
     assert(table != 0);
@@ -44,10 +44,10 @@ static void testIsTableEmpty(MprTestGroup *gp)
 
 static void testInsertAndRemoveHash(MprTestGroup *gp)
 {
-    MprHashTable    *table;
-    MprHash         *sp;
-    cchar           *str;
-    int             rc;
+    MprHash     *table;
+    MprKey      *sp;
+    cchar       *str;
+    int         rc;
 
     table = mprCreateHash(0, MPR_HASH_STATIC_KEYS | MPR_HASH_STATIC_VALUES);
     assert(table != 0);
@@ -86,11 +86,11 @@ static void testInsertAndRemoveHash(MprTestGroup *gp)
 
 static void testHashScale(MprTestGroup *gp)
 {
-    MprHashTable    *table;
-    MprHash         *sp;
-    char            *str;
-    char            name[80], *address;
-    int             i;
+    MprHash     *table;
+    MprKey      *sp;
+    char        *str;
+    char        name[80], *address;
+    int         i;
 
     table = mprCreateHash(HASH_COUNT, 0);
     assert(mprGetHashLength(table) == 0);
@@ -101,7 +101,7 @@ static void testHashScale(MprTestGroup *gp)
      */
     for (i = 0; i < HASH_COUNT; i++) {
         mprSprintf(name, sizeof(name), "name.%d", i);
-        address = mprAsprintf("%d Park Ave", i);
+        address = sfmt("%d Park Ave", i);
         sp = mprAddKey(table, name, address);
         assert(sp != 0);
     }
@@ -114,7 +114,7 @@ static void testHashScale(MprTestGroup *gp)
         mprSprintf(name, sizeof(name), "name.%d", i);
         str = mprLookupKey(table, name);
         assert(str != 0);
-        address = mprAsprintf("%d Park Ave", i);
+        address = sfmt("%d Park Ave", i);
         assert(strcmp(str, address) == 0);
     }
 }
@@ -122,11 +122,11 @@ static void testHashScale(MprTestGroup *gp)
 
 static void testIterateHash(MprTestGroup *gp)
 {
-    MprHashTable    *table;
-    MprHash         *sp;
-    char            name[80], address[80];
-    cchar           *where;
-    int             count, i, check[HASH_COUNT];
+    MprHash     *table;
+    MprKey      *sp;
+    char        name[80], address[80];
+    cchar       *where;
+    int         count, i, check[HASH_COUNT];
 
     table = mprCreateHash(HASH_COUNT, 0);
 
@@ -199,7 +199,7 @@ MprTestDef testHash = {
     under the terms of the GNU General Public License as published by the 
     Free Software Foundation; either version 2 of the License, or (at your 
     option) any later version. See the GNU General Public License for more 
-    details at: http://www.embedthis.com/downloads/gplLicense.html
+    details at: http://embedthis.com/downloads/gplLicense.html
     
     This program is distributed WITHOUT ANY WARRANTY; without even the 
     implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. 
@@ -208,7 +208,7 @@ MprTestDef testHash = {
     proprietary programs. If you are unable to comply with the GPL, you must
     acquire a commercial license to use this software. Commercial licenses 
     for this software and support services are available from Embedthis 
-    Software at http://www.embedthis.com 
+    Software at http://embedthis.com 
     
     Local variables:
     tab-width: 4

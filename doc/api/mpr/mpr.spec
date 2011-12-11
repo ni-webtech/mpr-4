@@ -429,7 +429,7 @@ SORT_GROUP_NAMES       = YES
 # Note: This option applies only to the class list, not to the 
 # alphabetical list.
 
-SORT_BY_SCOPE_NAME     = YES
+SORT_BY_SCOPE_NAME     = NO
 
 # The GENERATE_TODOLIST tag can be used to enable (YES) or 
 # disable (NO) the todo list. This list is created by putting \todo 
@@ -574,7 +574,7 @@ WARN_LOGFILE           =
 # directories like "/usr/src/myproject". Separate the files or directories 
 # with spaces.
 
-INPUT                  = ./staging/src/deps/mpr/mpr.h
+INPUT                  = staging/src/deps/mpr/mpr.h
 
 # This tag can be used to specify the character encoding of the source files 
 # that doxygen parses. Internally doxygen uses the UTF-8 encoding, which is 
@@ -1239,7 +1239,7 @@ SEARCH_INCLUDES        = YES
 # contain include files that are not input files but should be processed by 
 # the preprocessor.
 
-INCLUDE_PATH           = ../../../src/include
+INCLUDE_PATH           = ../../../src
 
 # You can use the INCLUDE_FILE_PATTERNS tag to specify one or more wildcard 
 # patterns (like *.h and *.hpp) to filter out the header-files in the 
@@ -1261,15 +1261,12 @@ PREDEFINED             = WIN=1 \
                          BLD_UNIX_LIKE=1 \
                          BLD_WIN_LIKE=1 \
                          BLD_FEATURE_ASSERT=1 \
-                         BLD_FEATURE_FLOATING_POINT=1 \
-                         BLD_FEATURE_INT64=1 \
-                         BLD_FEATURE_LEGACY_API=1 \
-                         BLD_FEATURE_TEST=1 \
+                         BLD_FEATURE_FLOAT=1 \
                          BLD_FEATURE_ROMFS=1 \
-                         BLD_FEATURE_CMD=1 \
                          BLD_FEATURE_SSL=1 \
                          BLD_FEATURE_OPENSSL=1 \
                          BLD_FEATURE_MATRIXSSL=1 \
+                         BLD_FEATURE_VALLOC=1 \
                          DOXYGEN=1
 
 # If the MACRO_EXPANSION and EXPAND_ONLY_PREDEF tags are set to YES then 
@@ -1313,7 +1310,7 @@ TAGFILES               =
 # When a file name is specified after GENERATE_TAGFILE, doxygen will create 
 # a tag file that is based on the input files it reads.
 
-GENERATE_TAGFILE       =
+GENERATE_TAGFILE       = ../mpr.dtags
 
 # If the ALLEXTERNALS tag is set to YES all external classes will be listed 
 # in the class index. If set to NO only the inherited external classes 
