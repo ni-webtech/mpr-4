@@ -44,8 +44,12 @@ processPackage() {
     local fileList
     
     if [ "${BLD_EJS}" = "" ] ; then
-        if ! type -p ejs ; then
+        if ! type -p ejs >/dev/null ; then
             echo -e "\nRequire \"ejs\" shell to create packages. Exiting." 1>&2
+            echo PATH is $PATH
+            set -x
+            ls -l /usr/local/bin/ejs
+            set +x
             exit 255
         fi
         BLD_EJS=`type ejs`
