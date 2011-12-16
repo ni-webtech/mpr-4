@@ -429,6 +429,15 @@
  */
 typedef int64 MprOff;
 
+/*
+    Socklen_t
+ */
+#if VXWORKS
+    typedef int MprSocklen;
+#else
+    typedef socklen_t MprSocklen;
+#endif
+
 /**
     Date and Time Service
     @stability Evolving
