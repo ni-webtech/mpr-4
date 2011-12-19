@@ -122,9 +122,16 @@ static void signalHandler(int signo, siginfo_t *info, void *arg)
     if (signo <= 0 || signo >= MPR_MAX_SIGNALS || MPR == 0) {
         return;
     }
+#if UNUSED
     if (MPR->state >= MPR_STOPPING && signo == SIGINT) {
         exit(1);
     }
+#else
+    if (signo == SIGINT) {
+        exit(1);
+        return;
+    }
+#endif
     ssp = MPR->signalService;
     ip = &ssp->info[signo];
     ip->triggered = 1;
