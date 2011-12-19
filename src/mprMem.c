@@ -1487,11 +1487,17 @@ void mprResetYield()
 {
     MprThread   *tp;
 
+    mprAssert(mprGetCurrentThread());
+
     if ((tp = mprGetCurrentThread()) != 0) {
         tp->stickyYield = 0;
     }
-    /* This ensures if marking, we will be not yielded on return */
-    mprYield(0);
+    /* Rather than just clear yield, we must wait till marking is finished if underway */
+    if (heap->mustYield) {
+        mprYield(0);
+    } else {
+        tp->yielded = 0;
+    }
 }
 
 
