@@ -625,7 +625,13 @@ static MprSocket *acceptSocket(MprSocket *listen)
     addr = (struct sockaddr*) &addrStorage;
     addrlen = sizeof(addrStorage);
 
+    if (listen->flags & MPR_SOCKET_BLOCK) {
+        mprYield(MPR_YIELD_STICKY);
+    }
     fd = (int) accept(listen->fd, addr, &addrlen);
+    if (listen->flags & MPR_SOCKET_BLOCK) {
+        mprResetYield();
+    }
     if (fd < 0) {
         if (mprGetError() != EAGAIN) {
             mprError("socket: accept failed, errno %d", mprGetOsError());
@@ -729,11 +735,17 @@ static ssize readSocket(MprSocket *sp, void *buf, ssize bufsize)
         return -1;
     }
 again:
+    if (sp->flags & MPR_SOCKET_BLOCK) {
+        mprYield(MPR_YIELD_STICKY);
+    }
     if (sp->flags & MPR_SOCKET_DATAGRAM) {
         len = sizeof(server);
         bytes = recvfrom(sp->fd, buf, (int) bufsize, MSG_NOSIGNAL, (struct sockaddr*) &server, (MprSocklen*) &len);
     } else {
         bytes = recv(sp->fd, buf, (int) bufsize, MSG_NOSIGNAL);
+    }
+    if (sp->flags & MPR_SOCKET_BLOCK) {
+        mprResetYield();
     }
     if (bytes < 0) {
         errCode = mprGetSocketError(sp);
@@ -819,10 +831,16 @@ static ssize writeSocket(MprSocket *sp, cvoid *buf, ssize bufsize)
         sofar = 0;
         while (len > 0) {
             unlock(sp);
+            if (sp->flags & MPR_SOCKET_BLOCK) {
+                mprYield(MPR_YIELD_STICKY);
+            }
             if ((sp->flags & MPR_SOCKET_BROADCAST) || (sp->flags & MPR_SOCKET_DATAGRAM)) {
                 written = sendto(sp->fd, &((char*) buf)[sofar], (int) len, MSG_NOSIGNAL, addr, addrlen);
             } else {
                 written = send(sp->fd, &((char*) buf)[sofar], (int) len, MSG_NOSIGNAL);
+            }
+            if (sp->flags & MPR_SOCKET_BLOCK) {
+                mprResetYield();
             }
             lock(sp);
             if (written < 0) {
@@ -945,7 +963,13 @@ MprOff mprSendFileToSocket(MprSocket *sock, MprFile *file, MprOff offset, MprOff
 
     if (file && file->fd >= 0) {
         written = bytes;
+        if (sock->flags & MPR_SOCKET_BLOCK) {
+            mprYield(MPR_YIELD_STICKY);
+        }
         rc = sendfile(file->fd, sock->fd, offset, &written, &def, 0);
+        if (sock->flags & MPR_SOCKET_BLOCK) {
+            mprResetYield();
+        }
     } else
 #else
     if (1) 
@@ -983,6 +1007,9 @@ MprOff mprSendFileToSocket(MprSocket *sock, MprFile *file, MprOff offset, MprOff
 #endif
             while (!done && toWriteFile > 0) {
                 nbytes = (ssize) min(MAXSSIZE, toWriteFile);
+                if (sock->flags & MPR_SOCKET_BLOCK) {
+                    mprYield(MPR_YIELD_STICKY);
+                }
 #if LINUX && !__UCLIBC__
     #if HAS_OFF64
                 rc = sendfile64(sock->fd, file->fd, &offset, nbytes);
@@ -992,6 +1019,9 @@ MprOff mprSendFileToSocket(MprSocket *sock, MprFile *file, MprOff offset, MprOff
 #else
                 rc = localSendfile(sock, file, offset, nbytes);
 #endif
+                if (sock->flags & MPR_SOCKET_BLOCK) {
+                    mprResetYield();
+                }
                 if (rc > 0) {
                     written += rc;
                     toWriteFile -= rc;
