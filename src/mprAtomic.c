@@ -19,10 +19,10 @@ void mprAtomicBarrier()
     #elif BLD_CC_SYNC
         __sync_synchronize();
 #if UNUSED
-    #elif BLD_UNIX_LIKE
+    // BLD_UNIX_LIKE
         asm volatile ("sync : : : "memory");
         asm volatile ("mfence : : : "memory");
-    #elif MPR_CPU_IX86
+    // MPR_CPU_IX86
         asm volatile ("lock; add %eax,0");
 #endif
     #else
