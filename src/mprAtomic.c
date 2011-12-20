@@ -18,10 +18,13 @@ void mprAtomicBarrier()
         MemoryBarrier();
     #elif BLD_CC_SYNC
         __sync_synchronize();
+#if UNUSED
     #elif BLD_UNIX_LIKE
-        asm volatile ("" : : : "memory");
+        asm volatile ("sync : : : "memory");
+        asm volatile ("mfence : : : "memory");
     #elif MPR_CPU_IX86
         asm volatile ("lock; add %eax,0");
+#endif
     #else
         mprGlobalLock();
         mprGlobalUnlock();
@@ -82,7 +85,7 @@ void mprAtomicAdd(volatile int *ptr, int value)
         OSAtomicAdd32(value, ptr);
     #elif BLD_WIN_LIKE
         InterlockedExchangeAdd(ptr, value);
-    #elif (BLD_CPU_ARCH == MPR_CPU_IX86 || BLD_CPU_ARCH == MPR_CPU_IX64) && 0
+    #elif (BLD_CPU_ARCH == MPR_CPU_IX86 || BLD_CPU_ARCH == MPR_CPU_IX64) && FUTURE
         asm volatile ("lock; xaddl %0,%1"
             : "=r" (value), "=m" (*ptr)
             : "0" (value), "m" (*ptr)
