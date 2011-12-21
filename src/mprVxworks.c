@@ -76,7 +76,7 @@ int mprLoadNativeModule(MprModule *mp)
     }
     close(fd);
     if (mp->entry) {
-#if BLD_HOST_CPU_ARCH == MPR_CPU_IX86 || BLD_HOST_CPU_ARCH == MPR_CPU_IX64
+#if UNUSED && (BLD_HOST_CPU_ARCH == MPR_CPU_IX86 || BLD_HOST_CPU_ARCH == MPR_CPU_IX64)
         mprSprintf(entryPoint, sizeof(entryPoint), "_%s", mp->entry);
 #else
         scopy(entryPoint, sizeof(entryPoint), mp->entry);
