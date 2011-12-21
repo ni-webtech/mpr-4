@@ -20,14 +20,14 @@ static void manageModuleService(MprModuleService *ms, int flags);
 MprModuleService *mprCreateModuleService()
 {
     MprModuleService    *ms;
+    cchar               *libdir;
 
     if ((ms = mprAllocObj(MprModuleService, manageModuleService)) == 0) {
         return 0;
     }
     ms->modules = mprCreateList(-1, 0);
-    ms->searchPath = sfmt(".%s%s%s/../%s%s%s", \
-        mprGetAppDir(), MPR_SEARCH_SEP, 
-        mprGetAppDir(), BLD_LIB_NAME, MPR_SEARCH_SEP, 
+    libdir = mprJoinPath(mprGetAppDir(), "../lib");
+    ms->searchPath = sfmt("%s%s%s%s%s", mprGetAppDir(), MPR_SEARCH_SEP, libdir, MPR_SEARCH_SEP, 
         BLD_LIB_PREFIX);
     ms->mutex = mprCreateLock();
     return ms;

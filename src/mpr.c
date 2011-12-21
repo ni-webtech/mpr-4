@@ -307,15 +307,16 @@ static void getArgs(Mpr *mpr, int argc, char **argv)
         argv[0] = sclone(args->program);
         mprHold(argv[0]);
 #elif VXWORKS
-        MprArgs *args = (MprArgs*) argv;
-        argc = mprMakeArgv("", &argv, MPR_ARGV_ARGS_ONLY);
+        char **old_argv = argv;
+        argc = mprMakeArgv(old_argv[1],  &argv, MPR_ARGV_ARGS_ONLY);
         mprHold(argv);
-        argv[0] = sclone(args->program);
-        mprHold(argv[0]);
+        argv[0] = old_argv[0];
+        mpr->appPath = sclone(argv[0]);
 #else
         argv[0] = mprGetAppPath();
         mprHold(argv[0]);
 #endif
+        /* argv is not GC managed - must be held above if required */
         mpr->argc = argc;
         mpr->argv = argv;
     }

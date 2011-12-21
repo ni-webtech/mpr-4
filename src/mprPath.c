@@ -100,7 +100,7 @@ static MPR_INLINE bool isFullPath(MprFileSystem *fs, cchar *path)
     mprAssert(fs);
     mprAssert(path);
 
-#if BLD_WIN_LIKE && !WINCE
+#if (BLD_WIN_LIKE || VXWORKS) && !WINCE
 {
     char    *cp, *endDrive;
 
@@ -177,8 +177,7 @@ int mprCopyPath(cchar *fromName, cchar *toName, int mode)
 }
 
 
-//  MOB - need a rename too
-//  MOB - should this be called remove?
+//  MOB - need a rename too - should this be called remove?
 int mprDeletePath(cchar *path)
 {
     MprFileSystem   *fs;
@@ -265,7 +264,6 @@ char *mprGetAbsPath(cchar *path)
         return mprNormalizePath(path);
     }
 
-//  MOB - what does WINCE require?
 #if BLD_WIN_LIKE && !WINCE
 {
     char    buf[MPR_MAX_PATH];
@@ -490,7 +488,7 @@ char *mprGetPathBase(cchar *path)
 char *mprGetPathDir(cchar *path)
 {
     MprFileSystem   *fs;
-    cchar           *cp;
+    cchar           *cp, *start;
     char            *result;
     ssize          len;
 
@@ -503,22 +501,25 @@ char *mprGetPathDir(cchar *path)
     fs = mprLookupFileSystem(path);
     len = slen(path);
     cp = &path[len - 1];
+    start = hasDrive(fs, path) ? strchr(path, ':') + 1 : path;
 
     /*
         Step back over trailing slashes
      */
-    while (cp > path && isSep(fs, *cp)) {
+    while (cp > start && isSep(fs, *cp)) {
         cp--;
     }
-    for (; cp > path && !isSep(fs, *cp); cp--) {
-        ;
-    }
-    if (cp == path) {
+    for (; cp > start && !isSep(fs, *cp); cp--) { }
+
+    if (cp == start) {
         if (!isSep(fs, *cp)) {
             /* No slashes found, parent is current dir */
             return sclone(".");
         }
+        cp++;
+#if UNUSED
         return sclone(fs->root);
+#endif
     }
     len = (cp - path);
     result = mprAlloc(len + 1);
@@ -792,7 +793,7 @@ char *mprGetRelPath(cchar *pathArg)
 
 #if (BLD_WIN_LIKE && !WINCE)
     path = mprGetAbsPath(path);
-#elif CYGWIN
+#elif CYGWIN || VXWORKS
     if (hasDrive(fs, path)) {
         path = mprGetAbsPath(path);
     }
