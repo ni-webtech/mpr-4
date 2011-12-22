@@ -50,7 +50,9 @@ Mpr *mprCreate(int argc, char **argv, int flags)
     if (argv) {
         mpr->argc = argc;
         mpr->argv = argv;
-        mpr->argv[0] = mprGetAppPath();
+        if (!mprIsPathAbs(mpr->argv[0])) {
+            mpr->argv[0] = mprGetAppPath();
+        }
         mpr->name = mprTrimPathExt(mprGetPathBase(mpr->argv[0]));
     }
 

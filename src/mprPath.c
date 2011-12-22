@@ -379,7 +379,11 @@ char *mprGetAppPath()
     MPR->appPath = mprGetAbsPath(pbuf);
 }
 #else
-    MPR->appPath = mprGetCurrentPath();
+    if (mprIsPathAbs(MPR->argv[0])) {
+        MPR->appPath = sclone(MPR->argv[0]);
+    } else {
+        MPR->appPath = mprGetCurrentPath();
+    }
 #endif
     return sclone(MPR->appPath);
 }

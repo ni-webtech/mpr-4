@@ -27,8 +27,8 @@ MprModuleService *mprCreateModuleService()
     }
     ms->modules = mprCreateList(-1, 0);
     libdir = mprJoinPath(mprGetAppDir(), "../lib");
-    ms->searchPath = sfmt("%s%s%s%s%s", mprGetAppDir(), MPR_SEARCH_SEP, libdir, MPR_SEARCH_SEP, 
-        BLD_LIB_PREFIX);
+    ms->searchPath = sjoin(mprGetAppDir(), MPR_SEARCH_SEP, libdir, MPR_SEARCH_SEP, 
+        BLD_LIB_PREFIX, NULL);
     ms->mutex = mprCreateLock();
     return ms;
 }
