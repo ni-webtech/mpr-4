@@ -10,7 +10,6 @@
 
 /**************************** Forward Declarations ****************************/
 
-static void fixArgs(Mpr *mpr, int argc, char **argv);
 static void manageMpr(Mpr *mpr, int flags);
 static void serviceEventsThread(void *data, MprThread *tp);
 
