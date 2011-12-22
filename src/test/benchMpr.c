@@ -50,7 +50,6 @@ MAIN(benchMpr, int argc, char **argv)
     mprAddRoot(app);
     app->mutex = mprCreateLock(mpr);
     app->complete = mprCreateCond();
-
     app->iterations = 5;
     err = 0;
 
@@ -81,9 +80,7 @@ MAIN(benchMpr, int argc, char **argv)
             mprGetAppName(mpr));
         exit(2);
     }
-
     mprStart(mpr);
-
     thread = mprCreateThread("bench", (MprThreadProc) doBenchmark, (void*) MPR, 0);
     mprStartThread(thread);
     
