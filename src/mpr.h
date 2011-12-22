@@ -1202,7 +1202,8 @@ struct  MprXml;
  */
 #define MPR_TEST_POLL_NAP       25
 #define MPR_TEST_SLEEP          (60 * 1000)
-#define MPR_TEST_MAX_STACK      (16)
+#define MPR_TEST_MAX_STACK      16
+#define MAX_ARGC                32
 
 #define MPR_TEST_TIMEOUT        10000       /* Ten seconds */
 #define MPR_TEST_LONG_TIMEOUT   300000      /* 5 minutes */
@@ -1365,7 +1366,7 @@ typedef struct MprArgs {
             return main(0, (char**) &args); \
         } \
         int main(_argc, _argv)
-#elif VXWORKS
+#elif 0
     #define MAIN(name, _argc, _argv)  \
         int name(char *command) { \
             extern int main(); \
@@ -1373,6 +1374,22 @@ typedef struct MprArgs {
             largv[0] = #name; \
             largv[1] = command; \
             return main(2, largv); \
+        } \
+        int main(_argc, _argv)
+#elif VXWORKS
+    #define MAIN(name, _argc, _argv)  \
+        int name(char *arg0, ...) { \
+            extern int main(); \
+            va_list args; \
+            char *argp, *largv[MAX_ARGC]; \
+            int largc = 0; \
+            va_start(args, arg0); \
+            largv[largc++] = #name; \
+            largv[largc++] = arg0; \
+            for (argp = va_arg(args, char*); argp && largc < MAX_ARGC; argp = va_arg(args, char*)) { \
+                largv[largc++] = argp; \
+            } \
+            return main(largc, largv); \
         } \
         int main(_argc, _argv)
 #elif WINCE

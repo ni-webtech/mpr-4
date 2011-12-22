@@ -342,6 +342,7 @@ static int getState(char c, int state)
 }
 
 
+//  MOB - rename arg to args
 static char *sprintfCore(char *buf, ssize maxsize, cchar *spec, va_list arg)
 {
     Format        fmt;
