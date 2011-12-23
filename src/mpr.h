@@ -8310,7 +8310,7 @@ typedef struct Mpr {
 
     char            *emptyString;           /**< Empty string */
 #if BLD_WIN_LIKE
-    long            appInstance;            /**< Application instance (windows) */
+    HINSTANCE       appInstance;            /**< Application instance (windows) */
 #endif
 } Mpr;
 
@@ -8781,7 +8781,7 @@ extern void mprSetHwnd(HWND handle);
     Set the windows application instance
     @param inst The new windows application instance to set
  */
-extern void mprSetInst(long inst);
+extern void mprSetInst(HINSTANCE inst);
 
 /**
     Set the socket message number.
