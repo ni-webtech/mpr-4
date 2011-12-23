@@ -58,7 +58,7 @@ int mprLoadNativeModule(MprModule *mp)
     fn = 0;
     handle = 0;
 
-    if (!mpr->entry || symFindByName(sysSymTbl, mp->entry, (char**) &fn, &symType) == -1) {
+    if (!mp->entry || symFindByName(sysSymTbl, mp->entry, (char**) &fn, &symType) == -1) {
         if ((fd = open(mp->path, O_RDONLY, 0664)) < 0) {
             mprError("Can't open module \"%s\"", mp->path);
             return MPR_ERR_CANT_OPEN;
