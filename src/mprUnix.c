@@ -74,12 +74,25 @@ int mprLoadNativeModule(MprModule *mp)
 
     mprAssert(mp);
 
-    if ((handle = dlopen(mp->path, RTLD_LAZY | RTLD_GLOBAL)) == 0) {
-        mprError("Can't load module %s\nReason: \"%s\"", mp->path, dlerror());
-        return MPR_ERR_CANT_OPEN;
-    } 
-    mp->handle = handle;
-
+    /*
+        Search the image incase the module has been statically linked
+     */
+#ifdef RTLD_MAIN_ONLY
+    handle = RTLD_MAIN_ONLY;
+#else
+#ifdef RTLD_DEFAULT
+    handle = RTLD_DEFAULT;
+#else
+    handle = 0;
+#endif
+#endif
+    if (!mp->entry || handle == 0 || !dlsym(handle, mp->entry)) {
+        if ((handle = dlopen(mp->path, RTLD_LAZY | RTLD_GLOBAL)) == 0) {
+            mprError("Can't load module %s\nReason: \"%s\"", mp->path, dlerror());
+            return MPR_ERR_CANT_OPEN;
+        } 
+        mp->handle = handle;
+    }
     if (mp->entry) {
         if ((fn = (MprModuleEntry) dlsym(handle, mp->entry)) != 0) {
             if ((fn)(mp->moduleData, mp) < 0) {

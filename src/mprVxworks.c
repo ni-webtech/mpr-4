@@ -52,37 +52,31 @@ int mprLoadNativeModule(MprModule *mp)
     MprModuleEntry  fn;
     SYM_TYPE        symType;
     void            *handle;
-    char            entryPoint[MPR_MAX_FNAME];
     int             fd;
 
     mprAssert(mp);
+    fn = 0;
+    handle = 0;
 
-    if (moduleFindByName(mp->path) != 0) {
-        return 0;
-    }
-    if ((fd = open(mp->path, O_RDONLY, 0664)) < 0) {
-        mprError("Can't open module \"%s\"", mp->path);
-        return MPR_ERR_CANT_OPEN;
-    }
-    errno = 0;
-    handle = loadModule(fd, LOAD_GLOBAL_SYMBOLS);
-    if (handle == 0 || errno != 0) {
-        close(fd);
-        if (handle) {
-            unldByModuleId(handle, 0);
+    if (!mpr->entry || symFindByName(sysSymTbl, mp->entry, (char**) &fn, &symType) == -1) {
+        if ((fd = open(mp->path, O_RDONLY, 0664)) < 0) {
+            mprError("Can't open module \"%s\"", mp->path);
+            return MPR_ERR_CANT_OPEN;
         }
-        mprError("Can't load module %s", mp->path);
-        return MPR_ERR_CANT_READ;
+        errno = 0;
+        handle = loadModule(fd, LOAD_GLOBAL_SYMBOLS);
+        if (handle == 0 || errno != 0) {
+            close(fd);
+            if (handle) {
+                unldByModuleId(handle, 0);
+            }
+            mprError("Can't load module %s", mp->path);
+            return MPR_ERR_CANT_READ;
+        }
+        close(fd);
     }
-    close(fd);
     if (mp->entry) {
-#if UNUSED && (BLD_HOST_CPU_ARCH == MPR_CPU_IX86 || BLD_HOST_CPU_ARCH == MPR_CPU_IX64)
-        mprSprintf(entryPoint, sizeof(entryPoint), "_%s", mp->entry);
-#else
-        scopy(entryPoint, sizeof(entryPoint), mp->entry);
-#endif
-        fn = 0;
-        if (symFindByName(sysSymTbl, entryPoint, (char**) &fn, &symType) == -1) {
+        if (symFindByName(sysSymTbl, mp->entry, (char**) &fn, &symType) == -1) {
             mprError("Can't find symbol %s when loading %s", mp->entry, mp->path);
             return MPR_ERR_CANT_READ;
         }

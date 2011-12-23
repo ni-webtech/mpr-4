@@ -129,19 +129,22 @@ int stopSeqno = -1;
 /*
     Fast find first/last bit set
  */
-#if !MACOSX && !FREEBSD
-    #define NEED_FFSL 1
-    #if WIN
-    #elif BLD_HOST_CPU_ARCH == MPR_CPU_IX86 || BLD_HOST_CPU_ARCH == MPR_CPU_IX64
-        #define USE_FFSL_ASM_X86 1
+#if LINUX
+    #define NEED_FLSL 1
+    #if BLD_HOST_CPU_ARCH == MPR_CPU_IX86 || BLD_HOST_CPU_ARCH == MPR_CPU_IX64
+        #define USE_FLSL_ASM_X86 1
     #endif
+    static MPR_INLINE int flsl(ulong word);
+
+#elif BLD_WIN_LIKE
+    #define NEED_FFSL 1
+    #define NEED_FLSL 1
     static MPR_INLINE int ffsl(ulong word);
     static MPR_INLINE int flsl(ulong word);
-#elif BSD_EMULATION
-    #define ffsl FFSL
-    #define flsl FLSL
+
+#elif !MACOSX && !FREEBSD
     #define NEED_FFSL 1
-    #define USE_FFSL_ASM_X86 1
+    #define NEED_FLSL 1
     static MPR_INLINE int ffsl(ulong word);
     static MPR_INLINE int flsl(ulong word);
 #endif
@@ -2307,6 +2310,9 @@ static ssize fastMemSize()
 
 
 #if NEED_FFSL
+/* 
+    Find first bit set in word 
+ */
 #if USE_FFSL_ASM_X86
 static MPR_INLINE int ffsl(ulong x)
 {
@@ -2318,24 +2324,7 @@ static MPR_INLINE int ffsl(ulong x)
         "1:" : "=r" (r) : "rm" (x));
     return (int) r + 1;
 }
-
-
-static MPR_INLINE int flsl(ulong x)
-{
-    long r;
-
-    asm("bsr %1,%0\n\t"
-        "jnz 1f\n\t"
-        "mov $-1,%0\n"
-        "1:" : "=r" (r) : "rm" (x));
-    return (int) r + 1;
-}
-#else /* USE_FFSL_ASM_X86 */ 
-
-
-/* 
-    Find first bit set in word 
- */
+#else
 static MPR_INLINE int ffsl(ulong word)
 {
     int     b;
@@ -2348,11 +2337,27 @@ static MPR_INLINE int ffsl(ulong word)
     }
     return b;
 }
+#endif
+#endif
 
 
+#if NEED_FLSL
 /* 
     Find last bit set in word 
  */
+#if USE_FFSL_ASM_X86
+static MPR_INLINE int flsl(ulong x)
+{
+    long r;
+
+    asm("bsr %1,%0\n\t"
+        "jnz 1f\n\t"
+        "mov $-1,%0\n"
+        "1:" : "=r" (r) : "rm" (x));
+    return (int) r + 1;
+}
+#else /* USE_FFSL_ASM_X86 */ 
+
 static MPR_INLINE int flsl(ulong word)
 {
     int     b;
