@@ -9,6 +9,7 @@
 #define _CRT_SECURE_NO_WARNINGS
 
 #include "buildConfig.h"
+
 #if VXWORKS
     #ifndef _VSB_CONFIG_FILE
         #define _VSB_CONFIG_FILE "vsbConfig.h"
@@ -17,6 +18,10 @@
 
 #include <stdio.h>
 #include <stdlib.h>
+
+#if BLD_UNIX_LIKE
+#include <signal.h>
+#endif
 
 #if _WIN32
 #include    <io.h>
