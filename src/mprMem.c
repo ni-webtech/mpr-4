@@ -9,6 +9,13 @@
 #include    "mpr.h"
 
 /******************************* Local Defines ********************************/
+
+#if BLD_CC_MMU 
+    #define VALLOC 1                /* Use virtual memory allocations */
+#else
+    #define VALLOC 0
+#endif
+
 #if BLD_MEMORY_DEBUG
 /*
     Set this address to break when this address is allocated or freed
@@ -22,28 +29,19 @@ int stopSeqno = -1;
 #define GET_USIZE(mp)               ((ssize) (GET_SIZE(mp) - sizeof(MprMem) - (HAS_MANAGER(mp) * sizeof(void*))))
 #define UNMARKED                    MPR_GEN_ETERNAL
 
-#if BLD_FEATURE_VALLOC
-    #define GET_NEXT(mp)            (IS_LAST(mp)) ? NULL : ((MprMem*) ((char*) mp + GET_SIZE(mp)))
-    #define GET_REGION(mp)          ((MprRegion*) (((char*) mp) - MPR_ALLOC_ALIGN(sizeof(MprRegion))))
-#else
-    #define GET_NEXT(mp)            ((((MprMem*) mp)->next == head) ? NULL : ((MprMem*) mp)->next)
-#endif
+#define GET_NEXT(mp)                (IS_LAST(mp)) ? NULL : ((MprMem*) ((char*) mp + GET_SIZE(mp)))
+#define GET_REGION(mp)              ((MprRegion*) (((char*) mp) - MPR_ALLOC_ALIGN(sizeof(MprRegion))))
 
 /*
     Macros to set and extract "prior" fields. All accesses (read and write) must be done locked.
         prior | last << 1 | hasManager
  */
-#if BLD_FEATURE_VALLOC
-    #define GET_PRIOR(mp)           ((MprMem*) ((mp->field1 & MPR_MASK_PRIOR) >> MPR_SHIFT_PRIOR))
-    #define SET_PRIOR(mp, value)    mp->field1 = ((((size_t) value) << MPR_SHIFT_PRIOR) | (mp->field1 & ~MPR_MASK_PRIOR))
-    #define IS_LAST(mp)             ((mp->field1 & MPR_MASK_LAST) >> MPR_SHIFT_LAST)
-    #define SET_LAST(mp, value)     mp->field1 = ((value << MPR_SHIFT_LAST) | (mp->field1 & ~MPR_MASK_LAST))
-    #define SET_FIELD1(mp, prior, last, hasManager) mp->field1 = (((size_t) prior) << MPR_SHIFT_PRIOR) | \
+#define GET_PRIOR(mp)               ((MprMem*) ((mp->field1 & MPR_MASK_PRIOR) >> MPR_SHIFT_PRIOR))
+#define SET_PRIOR(mp, value)        mp->field1 = ((((size_t) value) << MPR_SHIFT_PRIOR) | (mp->field1 & ~MPR_MASK_PRIOR))
+#define IS_LAST(mp)                 ((mp->field1 & MPR_MASK_LAST) >> MPR_SHIFT_LAST)
+#define SET_LAST(mp, value)         mp->field1 = ((value << MPR_SHIFT_LAST) | (mp->field1 & ~MPR_MASK_LAST))
+#define SET_FIELD1(mp, prior, last, hasManager) mp->field1 = (((size_t) prior) << MPR_SHIFT_PRIOR) | \
                                     ((last) << MPR_SHIFT_LAST) | ((hasManager) << MPR_SHIFT_HAS_MANAGER)
-#else
-    #define SET_FIELD1(mp, prior, last, hasManager) \
-                                    mp->field1 = ((hasManager) << MPR_SHIFT_HAS_MANAGER)
-#endif
 
 #define HAS_MANAGER(mp)             ((int) ((mp->field1 & MPR_MASK_HAS_MANAGER) >> MPR_SHIFT_HAS_MANAGER))
 #define SET_HAS_MANAGER(mp, value)  mp->field1 = ((mp->field1 & ~MPR_MASK_HAS_MANAGER) | (value << MPR_SHIFT_HAS_MANAGER))
@@ -65,7 +63,6 @@ int stopSeqno = -1;
                                         (((size_t) (free)) << MPR_SHIFT_FREE) | \
                                         ((size) << MPR_SHIFT_SIZE) | \
                                         ((mark) << MPR_SHIFT_MARK)
-
 /*
     Padding fields (only manager stored in padding region)
  */
@@ -156,10 +153,6 @@ Mpr             *MPR;
 static MprHeap  *heap;
 static int      padding[] = { 0, MANAGER_SIZE };
 
-#if !BLD_FEATURE_VALLOC
-static MprMem   headBlock, *head;
-#endif
-
 /***************************** Forward Declarations ***************************/
 
 static void allocException(int cause, ssize size);
@@ -196,44 +189,29 @@ static void triggerGC(int flags);
     static void printGCStats();
 #endif
 
-#if BLD_FEATURE_VALLOC
-    #define allocMem(required, flags) allocFromHeap(required, flags)
-    #define freeBlock(mp) freeToHeap(mp)
-    static int initFree();
-    static MprMem *allocFromHeap(ssize size, int flags);
-    static MprMem *freeToHeap(MprMem *mp);
-    static int getQueueIndex(ssize size, int roundup);
-    static MprMem *growHeap(ssize size, int flags);
-    static void linkBlock(MprMem *mp); 
-    static void unlinkBlock(MprFreeMem *fp);
-    #define valloc(size, flags) mprVirtAlloc(size, flags)
-    #define vfree(ptr, size) mprVirtFree(ptr, size)
-    #if BLD_MEMORY_STATS
-        static MprFreeMem *getQueue(ssize size);
-    #endif
-#else
-    #define allocMem(required, flags) allocFromMalloc(required, flags)
-    #define freeBlock(mp) freeToMalloc(mp)
-    static MprMem *allocFromMalloc(ssize required, int flags);
-    static MprMem *freeToMalloc(MprMem *mp);
-    #define valloc(size, flags) malloc(size)
-    #define vfree(ptr, size) free(ptr)
+static int initFree();
+static MprMem *allocMem(ssize size, int flags);
+static MprMem *freeBlock(MprMem *mp);
+static int getQueueIndex(ssize size, int roundup);
+static MprMem *growHeap(ssize size, int flags);
+static void linkBlock(MprMem *mp); 
+static void unlinkBlock(MprFreeMem *fp);
+#define valloc(size, flags) mprVirtAlloc(size, flags)
+#define vfree(ptr, size) mprVirtFree(ptr, size)
+#if BLD_MEMORY_STATS
+    static MprFreeMem *getQueue(ssize size);
 #endif
 
 /************************************* Code ***********************************/
-/*
-    Initialize the memory subsystem
- */
+
 Mpr *mprCreateMemService(MprManager manager, int flags)
 {
     MprHeap     initHeap;
     MprMem      *mp;
     ssize       size, mprSize, spareSize;
-#if BLD_FEATURE_VALLOC
     MprMem      *spare;
     MprRegion   *region;
     ssize       regionSize;
-#endif
 
     flags |= MPR_THREAD_PATTERN;
     heap = &initHeap;
@@ -247,8 +225,6 @@ Mpr *mprCreateMemService(MprManager manager, int flags)
         Hand-craft the Mpr structure
      */
     mprSize = MPR_ALLOC_ALIGN(sizeof(MprMem) + sizeof(Mpr) + (MANAGER_SIZE * sizeof(void*)));
-
-#if BLD_FEATURE_VALLOC
     regionSize = MPR_ALLOC_ALIGN(sizeof(MprRegion));
     size = max(mprSize + regionSize, MPR_MEM_REGION_SIZE);
     if ((region = valloc(size, MPR_MAP_READ | MPR_MAP_WRITE)) == NULL) {
@@ -256,12 +232,6 @@ Mpr *mprCreateMemService(MprManager manager, int flags)
     }
     mp = region->start = (MprMem*) (((char*) region) + regionSize);
     region->size = size;
-#else
-    head = &headBlock;
-    head->next = head->prev = head;
-    mp = malloc(mprSize);
-    size = mprSize;
-#endif
 
     MPR = (Mpr*) GET_PTR(mp);
     INIT_BLK(mp, mprSize, 1, 0, NULL);
@@ -293,13 +263,11 @@ Mpr *mprCreateMemService(MprManager manager, int flags)
     INC(allocs);
 
     mprInitSpinLock(&heap->heapLock);
-    mprInitSpinLock(&heap->heapLock2);
     mprInitSpinLock(&heap->rootLock);
     getSystemInfo();
     initGen();
     initFree();
 
-#if BLD_FEATURE_VALLOC
     spareSize = size - regionSize - mprSize;
     if (spareSize > 0) {
         spare = (MprMem*) (((char*) mp) + mprSize);
@@ -310,7 +278,7 @@ Mpr *mprCreateMemService(MprManager manager, int flags)
         SCRIBBLE(spare);
         linkBlock(spare);
     }
-#endif
+
     heap->markerCond = mprCreateCond();
     heap->roots = mprCreateList(-1, MPR_LIST_STATIC_VALUES);
     mprAddRoot(MPR);
@@ -417,6 +385,8 @@ void *mprReallocMem(void *ptr, ssize usize)
 }
 
 
+//  MOB - rename mprMemdup
+
 void *mprMemdupMem(cvoid *ptr, ssize usize)
 {
     char    *newp;
@@ -470,7 +440,6 @@ ssize mprMemcpy(void *dest, ssize destMax, cvoid *src, ssize nbytes)
     }
 }
 
-#if BLD_FEATURE_VALLOC
 /*************************** Virtual Heap Allocations *************************/
 /*
     Initialize the free space map and queues.
@@ -516,7 +485,7 @@ static int initFree()
 }
 
 
-static MprMem *allocFromHeap(ssize required, int flags)
+static MprMem *allocMem(ssize required, int flags)
 {
     MprFreeMem  *freeq, *fp;
     MprMem      *mp, *after, *spare;
@@ -646,6 +615,7 @@ static MprMem *growHeap(ssize required, int flags)
     mprInitSpinLock(&((MprRegion*) region)->lock);
     region->size = size;
     region->start = (MprMem*) (((char*) region) + rsize);
+    region->freeable = 0;
     mp = (MprMem*) region->start;
     hasManager = (flags & MPR_ALLOC_MANAGER) ? 1 : 0;
     spareLen = size - required - rsize;
@@ -659,25 +629,21 @@ static MprMem *growHeap(ssize required, int flags)
     }
     CHECK(mp);
 
-    do {
-        region->next = heap->regions;
-    } while (!mprAtomicCas((void* volatile*) &heap->regions, region->next, region));
+    lockHeap();
+    region->next = heap->regions;
+    heap->regions = region;
 
     if (spareLen > 0) {
         mprAssert(spareLen > sizeof(MprFreeMem));
         spare = (MprMem*) ((char*) mp + required);
         INIT_BLK(spare, spareLen, 0, 1, mp);
         CHECK(spare);
-        lockHeap();
         INC(allocs);
         linkBlock(spare);
-        unlockHeap();
     } else {
-        //  OPT
-        lockHeap();
         INC(allocs);
-        unlockHeap();
     }
+    unlockHeap();
     return mp;
 }
 
@@ -686,16 +652,14 @@ static MprMem *growHeap(ssize required, int flags)
     Free a block. MUST only ever be called by the sweeper. The sweeper takes advantage of the fact that only it 
     coalesces blocks.
  */
-static MprMem *freeToHeap(MprMem *mp)
+static MprMem *freeBlock(MprMem *mp)
 {
     MprMem      *prev, *next, *after;
-    ssize       size;
-#if BLD_CC_MMU
     MprRegion   *region;
-#endif
+    ssize       size;
+
     BREAKPOINT(mp);
     SCRIBBLE(mp);
-
     size = GET_SIZE(mp);
     prev = NULL;
     lockHeap();
@@ -748,16 +712,13 @@ static MprMem *freeToHeap(MprMem *mp)
     /*
         Release entire regions back to the O/S. (Blocks equal to Empty regions have no prior and are last)
      */
-#if BLD_CC_MMU
     if (GET_PRIOR(mp) == NULL && IS_LAST(mp) && heap->stats.bytesFree > (MPR_MEM_REGION_SIZE * 4)) {
         INC(unpins);
         unlockHeap();
         region = GET_REGION(mp);
         region->freeable = 1;
         mprAssert(next == NULL);
-    } else
-#endif
-    {
+    } else {
         linkBlock(mp);
         unlockHeap();
     }
@@ -821,7 +782,7 @@ static int getQueueIndex(ssize size, int roundup)
 
 /*
     Add a block to a free q. Must be called locked.
-    Called by user threads from allocFromHeap and by sweeper from freeToHeap.
+    Called by user threads from allocMem and by sweeper from freeBlock.
  */
 static void linkBlock(MprMem *mp) 
 {
@@ -910,60 +871,6 @@ static MprFreeMem *getQueue(ssize size)
 }
 #endif
 
-/****************************** Malloc Allocations ****************************/
-#else /* !BLD_FEATURE_VALLOC */
-
-static MprMem *allocFromMalloc(ssize required, int flags)
-{
-    MprMem      *mp;
-    int         hasManager;
-    
-    lockHeap();
-    if ((mp = malloc(required)) == 0) {
-        unlockHeap();
-        return NULL;
-    }
-    //  OPT - should not do this - alloc block will zero if requried
-    memset(mp, 0, required);
-    hasManager = (flags & MPR_ALLOC_MANAGER) ? 1 : 0;
-    INIT_BLK(mp, required, hasManager, 0, NULL);
-    SET_GEN(mp, heap->active);
-    SET_SIZE(mp, required);
-    if (hasManager) {
-        SET_MANAGER(mp, dummyManager);
-    }
-    mp->next = head->next;
-    mp->prev = head;
-    head->next->prev = mp;
-    head->next = mp;
-    CHECK(mp);
-    CHECK_FREE_MEMORY(mp);
-    heap->newCount += 5;
-    triggerGC(0);
-    mprAssert(mp->next);
-    heap->stats.bytesAllocated += required;
-    unlockHeap();
-    return mp;
-}
-
-
-static MprMem *freeToMalloc(MprMem *mp)
-{
-    MprMem  *next;
-
-    lockHeap();
-    next = GET_NEXT(mp);
-    mp->prev->next = mp->next;
-    mp->next->prev = mp->prev;
-    mp->next = mp->prev = mp;
-    heap->stats.bytesAllocated -= GET_SIZE(mp);
-    memset((char*) mp, 0xFE, GET_SIZE(mp));
-    free(mp);
-    unlockHeap();
-    return next;
-}
-#endif /* !BLD_FEATURE_VALLOC */
-
 
 /*
     Allocate virtual memory and check a memory allocation request against configured maximums and redlines. 
@@ -987,7 +894,7 @@ void *mprVirtAlloc(ssize size, int mode)
     } else if ((size + used) > heap->stats.redLine) {
         allocException(MPR_MEM_REDLINE, size);
     }
-#if BLD_CC_MMU
+#if VALLOC
     #if BLD_UNIX_LIKE
         ptr = mmap(0, size, mode, MAP_PRIVATE | MAP_ANON, -1, 0);
         if (ptr == (void*) -1) {
@@ -1014,7 +921,7 @@ void *mprVirtAlloc(ssize size, int mode)
 
 void mprVirtFree(void *ptr, ssize size)
 {
-#if BLD_CC_MMU
+#if VALLOC
     #if BLD_UNIX_LIKE
         if (munmap(ptr, size) != 0) {
             mprAssert(0);
@@ -1187,9 +1094,7 @@ static void mark()
 */
 static void sweep()
 {
-#if BLD_FEATURE_VALLOC
-    MprRegion   *rp, *region, *nextRegion, *prior;
-#endif
+    MprRegion   *region, *nextRegion, *prior;
     MprMem      *mp, *next;
     MprManager  mgr;
     
@@ -1208,15 +1113,11 @@ static void sweep()
         Run all destructors first so all destructors can guarantee dependant memory blocks will still exist.
         Actually free the memory in a 2nd pass below.
      */
-#if BLD_FEATURE_VALLOC
     for (region = heap->regions; region; region = region->next) {
         /*
             This code assumes that no other code coalesces blocks and that splitting blocks will be done lock-free
          */
         for (mp = region->start; mp; mp = GET_NEXT(mp)) {
-#else
-        for (mp = head->next; mp; mp = GET_NEXT(mp)) {
-#endif
             if (unlikely(GET_GEN(mp) == heap->dead && HAS_MANAGER(mp))) {
                 mgr = GET_MANAGER(mp);
                 mprAssert(!IS_FREE(mp));
@@ -1227,9 +1128,7 @@ static void sweep()
                 }
             }
         }
-#if BLD_FEATURE_VALLOC
     }
-#endif
     heap->stats.sweepVisited = 0;
     heap->stats.swept = 0;
 
@@ -1238,7 +1137,6 @@ static void sweep()
         is the only code that frees regions.
         RACE: Take from the front. Racing with growHeap.
      */
-#if BLD_FEATURE_VALLOC
     prior = NULL;
     for (region = heap->regions; region; region = nextRegion) {
         nextRegion = region->next;
@@ -1246,9 +1144,6 @@ static void sweep()
             This code assumes that no other code coalesces blocks and that splitting blocks will be done lock-free
          */
         for (mp = region->start; mp; mp = next) {
-#else
-        for (mp = head->next; mp; mp = next) {
-#endif
             CHECK(mp);
             INC(sweepVisited);
             if (unlikely(GET_GEN(mp) == heap->dead)) {
@@ -1270,39 +1165,25 @@ static void sweep()
                  */
                 next = GET_NEXT(mp);
             }
-#if BLD_FEATURE_VALLOC
         }
-#endif
-
-#if BLD_FEATURE_VALLOC
         /*
-            The sweeper is the only one who removes regions. Do this lock-free because user code traverses the region list.
+            The sweeper is the only one who removes regions. 
+            Currently all threads are suspended so no locks needed. FUTURE - When doing parallel collection, do this 
+            lock-free because user code traverses the region list.
          */ 
         if (region->freeable) {
+            lockHeap();
             if (prior) {
                 prior->next = nextRegion;
             } else {
-                /*
-                    The region was the first in the list. If the update to the list head fails, some other thread beta us. 
-                    Thereafter, we can guarantee there is a prior entry, so rescan for the region and then update the prior.
-                 */
-                if (!mprAtomicCas((void*volatile*) &heap->regions, region, nextRegion)) {
-                    for (rp = heap->regions; rp; rp = rp->next) {
-                        if (rp->next == region) {
-                            rp->next = nextRegion;
-                            break;
-                        }
-                    }
-                    mprAssert(rp != NULL);
-                }
+                heap->regions = nextRegion;
             }
-            LOG(9, "DEBUG: Unpin %p to %p size %d, used %d", region, ((char*) region) + region->size, region->size,
-                    fastMemSize());
+            unlockHeap();
+            LOG(9, "DEBUG: Unpin %p to %p size %d, used %d", region, ((char*) region) + region->size, region->size,fastMemSize());
             mprVirtFree(region, region->size);
         } else {
             prior = region;
         }
-#endif
     }
 }
 

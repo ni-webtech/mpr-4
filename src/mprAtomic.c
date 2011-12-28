@@ -18,18 +18,23 @@ void mprAtomicBarrier()
         MemoryBarrier();
     #elif BLD_CC_SYNC
         __sync_synchronize();
-#if UNUSED
-/*  BLD_UNIX_LIKE
-        asm volatile ("sync : : : "memory");
-        asm volatile ("mfence : : : "memory");
-    MPR_CPU_IX86
-        asm volatile ("lock; add %eax,0");
-*/
-#endif
+    #elif VXWORKS
+        #ifdef VX_MEM_BARRIER_RW
+            VX_MEM_BARRIER_RW();
+        #else
+            mprGlobalLock(); mprGlobalUnlock();
+        #endif
     #else
-        mprGlobalLock();
-        mprGlobalUnlock();
+        mprGlobalLock(); mprGlobalUnlock();
     #endif
+
+#if FUTURE && KEEP
+        //  MOB - understand what these actually do
+        __asm volatile ("nop" ::: "memory")
+        asm volatile ("sync" : : : "memory");
+        asm volatile ("mfence" : : : "memory");
+        asm volatile ("lock; add %eax,0");
+#endif
 }
 
 
@@ -46,8 +51,11 @@ int mprAtomicCas(void * volatile *addr, void *expected, cvoid *value)
             prev = InterlockedCompareExchangePointer(addr, (void*) value, expected);
             return expected == prev;
         }
-    #elif BLD_CC_SYNC
+    #elif BLD_CC_SYNC_CAS
         return __sync_bool_compare_and_swap(addr, expected, value);
+    #elif VXWORKS && !MPR_64BIT
+        /* vxCas operates with integer values */
+        return vxCas((atomic_t*) addr, (atomicVal_t) expected, (atomicVal_t) value);
     #elif BLD_CPU_ARCH == MPR_CPU_IX86
         {
             void *prev;
@@ -69,6 +77,7 @@ int mprAtomicCas(void * volatile *addr, void *expected, cvoid *value)
         mprGlobalLock();
         if (*addr == expected) {
             *addr = value;
+            mprGlobalUnlock();
             return 1;
         }
         mprGlobalUnlock();
@@ -86,6 +95,8 @@ void mprAtomicAdd(volatile int *ptr, int value)
         OSAtomicAdd32(value, ptr);
     #elif BLD_WIN_LIKE
         InterlockedExchangeAdd(ptr, value);
+    #elif VXWORKS
+        vxAtomicAdd(ptr, value);
     #elif (BLD_CPU_ARCH == MPR_CPU_IX86 || BLD_CPU_ARCH == MPR_CPU_IX64) && FUTURE
         asm volatile ("lock; xaddl %0,%1"
             : "=r" (value), "=m" (*ptr)
@@ -99,6 +110,9 @@ void mprAtomicAdd(volatile int *ptr, int value)
 }
 
 
+/*
+    On some platforms, this operation is only atomic with respect to other calls to mprAtomicAdd64
+ */
 void mprAtomicAdd64(volatile int64 *ptr, int value)
 {
 #if MACOSX

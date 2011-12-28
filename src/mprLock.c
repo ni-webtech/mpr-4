@@ -118,43 +118,12 @@ bool mprTryLock(MprMutex *lock)
 
 MprSpin *mprCreateSpinLock()
 {
-#if BLD_UNIX_LIKE && !BLD_HAS_SPINLOCK && !MACOSX
-    pthread_mutexattr_t attr;
-#endif
-
     MprSpin    *lock;
 
-    lock = mprAllocObj(MprSpin, manageSpinLock);
-    if (lock == 0) {
+    if ((lock = mprAllocObj(MprSpin, manageSpinLock)) == 0) {
         return 0;
     }
-#if USE_MPR_LOCK
-    mprInitLock(&lock->cs);
-#elif MACOSX
-    lock->cs = OS_SPINLOCK_INIT;
-#elif BLD_UNIX_LIKE && BLD_HAS_SPINLOCK
-    pthread_spin_init(&lock->cs, 0);
-#elif BLD_UNIX_LIKE
-    pthread_mutexattr_init(&attr);
-    pthread_mutexattr_settype(&attr, PTHREAD_MUTEX_RECURSIVE_NP);
-    pthread_mutex_init(&lock->cs, &attr);
-    pthread_mutexattr_destroy(&attr);
-#elif WINCE
-    InitializeCriticalSection(&lock->cs);
-#elif BLD_WIN_LIKE
-    InitializeCriticalSectionAndSpinCount(&lock->cs, 5000);
-#elif VXWORKS
-    /* Removed SEM_INVERSION_SAFE */
-    lock->cs = semMCreate(SEM_Q_PRIORITY | SEM_DELETE_SAFE);
-    if (lock->cs == 0) {
-        mprAssert(0);
-        return 0;
-    }
-#endif
-#if BLD_DEBUG
-    lock->owner = 0;
-#endif
-    return lock;
+    return mprInitSpinLock(lock);
 }
 
 
@@ -203,13 +172,17 @@ MprSpin *mprInitSpinLock(MprSpin *lock)
 #elif BLD_WIN_LIKE
     InitializeCriticalSectionAndSpinCount(&lock->cs, 5000);
 #elif VXWORKS
-    /* Removed SEM_INVERSION_SAFE */
-    lock->cs = semMCreate(SEM_Q_PRIORITY | SEM_DELETE_SAFE);
-    if (lock->cs == 0) {
-        mprAssert(0);
-        return 0;
-    }
-#endif
+    #if FUTURE
+        spinLockTaskInit(&lock->cs, 0);
+    #else
+        /* Removed SEM_INVERSION_SAFE */
+        lock->cs = semMCreate(SEM_Q_PRIORITY | SEM_DELETE_SAFE);
+        if (lock->cs == 0) {
+            mprAssert(0);
+            return 0;
+        }
+    #endif
+#endif /* VXWORKS */
 #if BLD_DEBUG
     lock->owner = 0;
 #endif

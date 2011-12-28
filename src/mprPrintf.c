@@ -35,13 +35,51 @@
 #define STATE_TYPE      7               /* Data type */
 #define STATE_COUNT     8
 
+char stateMap[] = {
+    /*     STATES:  Normal Percent Modifier Width  Dot  Prec Bits Type */
+    /* CLASS           0      1       2       3     4     5    6    7  */
+    /* Normal   0 */   0,     0,      0,      0,    0,    0,   0,   0,
+    /* Percent  1 */   1,     0,      1,      1,    1,    1,   1,   1,
+    /* Modifier 2 */   0,     2,      2,      0,    0,    0,   0,   0,
+    /* Zero     3 */   0,     2,      2,      3,    5,    5,   0,   0,
+    /* Star     4 */   0,     3,      3,      0,    5,    0,   0,   0,
+    /* Digit    5 */   0,     3,      3,      3,    5,    5,   0,   0,
+    /* Dot      6 */   0,     4,      4,      4,    0,    0,   0,   0,
+    /* Bits     7 */   0,     6,      6,      6,    6,    6,   6,   0,
+    /* Types    8 */   0,     7,      7,      7,    7,    7,   7,   0,
+};
+
 /*
     Format:         %[modifier][width][precision][bits][type]
-
-    [-+ #,]         Modifiers
-    [hlL]           Length bits
+  
+    The Class map will map from a specifier letter to a state.
  */
-
+char classMap[] = {
+    /*   0  ' '    !     "     #     $     %     &     ' */
+             2,    0,    0,    2,    0,    1,    0,    0,
+    /*  07   (     )     *     +     ,     -     .     / */
+             0,    0,    4,    2,    2,    2,    6,    0,
+    /*  10   0     1     2     3     4     5     6     7 */
+             3,    5,    5,    5,    5,    5,    5,    5,
+    /*  17   8     9     :     ;     <     =     >     ? */
+             5,    5,    0,    0,    0,    0,    0,    0,
+    /*  20   @     A     B     C     D     E     F     G */
+             8,    0,    0,    0,    0,    0,    0,    0,
+    /*  27   H     I     J     K     L     M     N     O */
+             0,    0,    0,    0,    7,    0,    8,    0,
+    /*  30   P     Q     R     S     T     U     V     W */
+             0,    0,    0,    8,    0,    0,    0,    0,
+    /*  37   X     Y     Z     [     \     ]     ^     _ */
+             8,    0,    0,    0,    0,    0,    0,    0,
+    /*  40   '     a     b     c     d     e     f     g */
+             0,    0,    0,    8,    8,    8,    8,    8,
+    /*  47   h     i     j     k     l     m     n     o */
+             7,    8,    0,    0,    7,    0,    8,    8,
+    /*  50   p     q     r     s     t     u     v     w */
+             8,    0,    0,    8,    0,    8,    0,    8,
+    /*  57   x     y     z  */
+             8,    0,    0,
+};
 
 /*
     Flags
@@ -279,55 +317,6 @@ char *mprAsprintfv(cchar *fmt, va_list arg)
 
 static int getState(char c, int state)
 {
-    /*
-     *  Declared here for Brew which can't handle globals.
-     */
-    char stateMap[] = {
-    /*     STATES:  Normal Percent Modifier Width  Dot  Prec Bits Type */
-    /* CLASS           0      1       2       3     4     5    6    7  */
-    /* Normal   0 */   0,     0,      0,      0,    0,    0,   0,   0,
-    /* Percent  1 */   1,     0,      1,      1,    1,    1,   1,   1,
-    /* Modifier 2 */   0,     2,      2,      0,    0,    0,   0,   0,
-    /* Zero     3 */   0,     2,      2,      3,    5,    5,   0,   0,
-    /* Star     4 */   0,     3,      3,      0,    5,    0,   0,   0,
-    /* Digit    5 */   0,     3,      3,      3,    5,    5,   0,   0,
-    /* Dot      6 */   0,     4,      4,      4,    0,    0,   0,   0,
-    /* Bits     7 */   0,     6,      6,      6,    6,    6,   6,   0,
-    /* Types    8 */   0,     7,      7,      7,    7,    7,   7,   0,
-    };
-
-    /*
-     *  Format:         %[modifier][width][precision][bits][type]
-     *
-     *  The Class map will map from a specifier letter to a state.
-     */
-    char classMap[] = {
-        /*   0  ' '    !     "     #     $     %     &     ' */
-                 2,    0,    0,    2,    0,    1,    0,    0,
-        /*  07   (     )     *     +     ,     -     .     / */
-                 0,    0,    4,    2,    2,    2,    6,    0,
-        /*  10   0     1     2     3     4     5     6     7 */
-                 3,    5,    5,    5,    5,    5,    5,    5,
-        /*  17   8     9     :     ;     <     =     >     ? */
-                 5,    5,    0,    0,    0,    0,    0,    0,
-        /*  20   @     A     B     C     D     E     F     G */
-                 8,    0,    0,    0,    0,    0,    0,    0,
-        /*  27   H     I     J     K     L     M     N     O */
-                 0,    0,    0,    0,    7,    0,    8,    0,
-        /*  30   P     Q     R     S     T     U     V     W */
-                 0,    0,    0,    8,    0,    0,    0,    0,
-        /*  37   X     Y     Z     [     \     ]     ^     _ */
-                 8,    0,    0,    0,    0,    0,    0,    0,
-        /*  40   '     a     b     c     d     e     f     g */
-                 0,    0,    0,    8,    8,    8,    8,    8,
-        /*  47   h     i     j     k     l     m     n     o */
-                 7,    8,    0,    0,    7,    0,    8,    8,
-        /*  50   p     q     r     s     t     u     v     w */
-                 8,    0,    0,    8,    0,    8,    0,    8,
-        /*  57   x     y     z  */
-                 8,    0,    0,
-    };
-
     int     chrClass;
 
     if (c < ' ' || c > 'z') {
@@ -366,14 +355,14 @@ static char *sprintfCore(char *buf, ssize maxsize, cchar *spec, va_list arg)
         if (maxsize <= 0) {
             maxsize = MAXINT;
         }
-        len = min(MPR_DEFAULT_ALLOC, maxsize);
+        len = min(MPR_SMALL_ALLOC, maxsize);
         buf = mprAlloc(len);
         if (buf == 0) {
             return 0;
         }
         fmt.buf = (uchar*) buf;
         fmt.endbuf = &fmt.buf[len];
-        fmt.growBy = min(MPR_DEFAULT_ALLOC * 2, maxsize - len);
+        fmt.growBy = min(MPR_SMALL_ALLOC * 2, maxsize - len);
     }
     fmt.maxsize = maxsize;
     fmt.start = fmt.buf;
