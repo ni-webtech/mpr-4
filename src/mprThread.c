@@ -896,7 +896,7 @@ static MprWorker *createWorker(MprWorkerService *ws, ssize stackSize)
     worker->idleCond = mprCreateCond();
 
     mprSprintf(name, sizeof(name), "worker.%u", getNextThreadNum(ws));
-    worker->thread = mprCreateThread(name, (MprThreadProc) workerMain, worker, 0);
+    worker->thread = mprCreateThread(name, (MprThreadProc) workerMain, worker, stackSize);
     return worker;
 }
 
