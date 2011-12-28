@@ -929,6 +929,9 @@ void mprVirtFree(void *ptr, ssize size)
     #elif BLD_WIN_LIKE
         VirtualFree(ptr, 0, MEM_RELEASE);
     #else
+        if (heap->scribble) {
+            memset(ptr, 0x11, size);
+        }
         free(ptr);
     #endif
 #else
@@ -1139,7 +1142,9 @@ static void sweep()
      */
     prior = NULL;
     for (region = heap->regions; region; region = nextRegion) {
+        mprAssert(region->freeable == 0 || region->freeable == 1);
         nextRegion = region->next;
+
         /*
             This code assumes that no other code coalesces blocks and that splitting blocks will be done lock-free
          */
