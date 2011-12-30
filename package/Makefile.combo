@@ -4,7 +4,7 @@
 #	Copyright (c) Embedthis Software LLC, 2003-2012. All Rights Reserved.
 #
 #	This is an all-in-one build where all the MPR source files are catenated into as few files as possible. 
-#	See http://hg.embedthis.com/mpr if you require the full source for the MPR.
+#	See http://github.com/embedthis/mpr-4 if you require the full source for the MPR.
 #
 
 include 			.makedep
