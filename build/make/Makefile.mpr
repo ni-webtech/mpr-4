@@ -16,6 +16,9 @@ release:
 cross64:
 	./configure --host=x86_64-apple-darwin --without-ssl
 
+cross32:
+	./configure --host=i386-apple-darwin --without-ssl
+
 config64:
 	./configure --host=x86_64-apple-darwin --build=x86_64-apple-darwin
 

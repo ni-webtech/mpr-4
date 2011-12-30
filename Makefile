@@ -13,6 +13,7 @@
 #
 
 DEPS		= tools
+PRE_DIRS    := build src doc projects package
 
 include		build/make/Makefile.top
 include		build/make/Makefile.mpr
