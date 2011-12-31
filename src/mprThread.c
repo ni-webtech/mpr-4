@@ -817,7 +817,7 @@ static void pruneWorkers(MprWorkerService *ws, MprEvent *timer)
     if (mprGetDebugMode()) {
         return;
     }
-    mprLog(4, "Check to prune idle workers. Pool has %d workers. Limits %d-%d", 
+    mprLog(6, "Check to prune idle workers. Pool has %d workers. Limits %d-%d", 
         ws->numThreads, ws->minThreads, ws->maxThreads);
     mprLock(ws->mutex);
     for (index = 0; index < ws->idleThreads->length; index++) {

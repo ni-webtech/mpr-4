@@ -312,7 +312,7 @@ int mprRunCmd(MprCmd *cmd, cchar *command, char **out, char **err, MprTime timeo
  */
 void mprSetCmdDefaultEnv(MprCmd *cmd, cchar **env)
 {
-    /* WARNING: defaultEnv is not cloned */
+    /* WARNING: defaultEnv is not cloned, but is marked */
     cmd->defaultEnv = env;
 }
 

@@ -1566,6 +1566,23 @@ char *mprTrimPathExt(cchar *path)
 }
 
 
+char *mprTrimPathDrive(cchar *path)
+{
+    MprFileSystem   *fs;
+    char            *cp, *endDrive;
+
+    fs = mprLookupFileSystem(path);
+    if (fs->hasDriveSpecs) {
+        cp = firstSep(fs, path);
+        endDrive = strchr(path, ':');
+        if (endDrive && (cp == NULL || endDrive < cp)) {
+            return sclone(++endDrive);
+        }
+    }
+    return sclone(path);
+}
+
+
 /*
     @copy   default
     
