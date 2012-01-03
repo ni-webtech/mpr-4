@@ -1481,6 +1481,13 @@ int mprSamePathCount(cchar *path1, cchar *path2, ssize len)
 }
 
 
+void mprSetAppPath(cchar *path)
+{ 
+    MPR->appPath = sclone(path);
+    MPR->appDir = mprGetPathDir(MPR->appPath);
+}
+
+
 static char* checkPath(cchar *path, int flags) 
 {
     MprPath     info;
