@@ -266,8 +266,8 @@
     #include    <unldLib.h>
 #if _WRS_VXWORKS_MAJOR >= 6
     #include    <wait.h>
-#endif
     #include    <vxAtomicLib.h>
+#endif
 #endif
 
 /************************************** Defines *******************************/
