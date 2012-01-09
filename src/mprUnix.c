@@ -70,6 +70,8 @@ int mprGetRandomBytes(char *buf, ssize length, bool block)
 int mprLoadNativeModule(MprModule *mp)
 {
     MprModuleEntry  fn;
+    MprPath         info;
+    char            *at;
     void            *handle;
 
     mprAssert(mp);
@@ -86,12 +88,25 @@ int mprLoadNativeModule(MprModule *mp)
     handle = 0;
 #endif
 #endif
+
     if (!mp->entry || handle == 0 || !dlsym(handle, mp->entry)) {
+        if ((at = mprSearchForModule(mp->path)) == 0) {
+            mprError("Can't find module \"%s\", cwd: \"%s\", search path \"%s\"", mp->path, mprGetCurrentPath(),
+                mprGetModuleSearchPath());
+            return 0;
+        }
+        mp->path = at;
+        mprGetPathInfo(mp->path, &info);
+        mp->modified = info.mtime;
+        mprLog(2, "Loading native module %s from %s", mp->name, mp->path);
         if ((handle = dlopen(mp->path, RTLD_LAZY | RTLD_GLOBAL)) == 0) {
             mprError("Can't load module %s\nReason: \"%s\"", mp->path, dlerror());
             return MPR_ERR_CANT_OPEN;
         } 
         mp->handle = handle;
+
+    } else if (mp->entry) {
+        mprLog(2, "Activating native module %s", mp->name);
     }
     if (mp->entry) {
         if ((fn = (MprModuleEntry) dlsym(handle, mp->entry)) != 0) {

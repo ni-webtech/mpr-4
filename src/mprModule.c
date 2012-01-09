@@ -86,13 +86,14 @@ MprModule *mprCreateModule(cchar *name, cchar *path, cchar *entry, void *data)
 {
     MprModuleService    *ms;
     MprModule           *mp;
-    MprPath             info;
-    char                *at;
     int                 index;
 
     ms = MPR->moduleService;
     mprAssert(ms);
 
+#if UNUSED
+    MprPath             info;
+    char                *at;
     if (path) {
         if ((at = mprSearchForModule(path)) == 0) {
             mprError("Can't find module \"%s\", cwd: \"%s\", search path \"%s\"", path, mprGetCurrentPath(),
@@ -102,6 +103,7 @@ MprModule *mprCreateModule(cchar *name, cchar *path, cchar *entry, void *data)
         path = at;
         mprGetPathInfo(path, &info);
     }
+#endif
     if ((mp = mprAllocObj(MprModule, manageModule)) == 0) {
         return 0;
     }
@@ -109,7 +111,6 @@ MprModule *mprCreateModule(cchar *name, cchar *path, cchar *entry, void *data)
     mp->path = sclone(path);
     mp->entry = sclone(entry);
     mp->moduleData = data;
-    mp->modified = info.mtime;
     mp->lastActivity = mprGetTime();
     index = mprAddItem(ms->modules, mp);
     if (index < 0 || mp->name == 0) {
@@ -251,7 +252,6 @@ int mprLoadModule(MprModule *mp)
 #if BLD_CC_DYN_LOAD
     mprAssert(mp);
 
-    mprLog(6, "Loading native module %s from %s", mp->name, mp->path);
     if (mprLoadNativeModule(mp) < 0) {
         return MPR_ERR_CANT_READ;
     }

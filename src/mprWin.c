@@ -73,19 +73,32 @@ int mprGetRandomBytes(char *buf, ssize length, bool block)
 int mprLoadNativeModule(MprModule *mp)
 {
     MprModuleEntry  fn;
-    char            *baseName;
+    MprPath         info;
+    char            *at, *baseName;
     void            *handle;
 
     mprAssert(mp);
 
     handle = (HANDLE) MPR->appInstance;
     if (!handle || !mp->entry || !GetProcAddress((HINSTANCE) MPR->appInstance, mp->entry)) {
+        if ((at = mprSearchForModule(mp->path)) == 0) {
+            mprError("Can't find module \"%s\", cwd: \"%s\", search path \"%s\"", mp->path, mprGetCurrentPath(),
+                mprGetModuleSearchPath());
+            return 0;
+        }
+        mp->path = at;
+        mprGetPathInfo(mp->path, &info);
+        mp->modified = info.mtime;
+        mprLog(2, "Loading native module %s from %s", mp->name, mp->path);
         baseName = mprGetPathBase(mp->path);
         if ((handle = GetModuleHandle(baseName)) == 0 && (handle = LoadLibrary(mp->path)) == 0) {
             mprError("Can't load module %s\nReason: \"%d\"\n", mp->path, mprGetOsError());
             return MPR_ERR_CANT_READ;
         } 
         mp->handle = handle;
+
+    } else if (mp->entry) {
+        mprLog(2, "Activating native module %s", mp->name);
     }
     if (mp->entry) {
         if ((fn = (MprModuleEntry) GetProcAddress((HINSTANCE) handle, mp->entry)) == 0) {

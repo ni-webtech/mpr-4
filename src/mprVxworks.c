@@ -50,6 +50,8 @@ int mprLoadNativeModule(MprModule *mp)
 {
     MprModuleEntry  fn;
     SYM_TYPE        symType;
+    MprPath         info;
+    char            *at;
     void            *handle;
     int             fd;
 
@@ -58,6 +60,16 @@ int mprLoadNativeModule(MprModule *mp)
     handle = 0;
 
     if (!mp->entry || symFindByName(sysSymTbl, mp->entry, (char**) &fn, &symType) == -1) {
+        if ((at = mprSearchForModule(mp->path)) == 0) {
+            mprError("Can't find module \"%s\", cwd: \"%s\", search path \"%s\"", mp->path, mprGetCurrentPath(),
+                mprGetModuleSearchPath());
+            return 0;
+        }
+        mp->path = at;
+        mprGetPathInfo(mp->path, &info);
+        mp->modified = info.mtime;
+
+        mprLog(2, "Loading native module %s from %s", mp->name, mp->path);
         if ((fd = open(mp->path, O_RDONLY, 0664)) < 0) {
             mprError("Can't open module \"%s\"", mp->path);
             return MPR_ERR_CANT_OPEN;
@@ -73,6 +85,9 @@ int mprLoadNativeModule(MprModule *mp)
             return MPR_ERR_CANT_READ;
         }
         close(fd);
+
+    } else if (mp->entry) {
+        mprLog(2, "Activating module %s", mp->name);
     }
     if (mp->entry) {
         if (symFindByName(sysSymTbl, mp->entry, (char**) &fn, &symType) == -1) {
