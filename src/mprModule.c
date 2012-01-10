@@ -109,7 +109,9 @@ MprModule *mprCreateModule(cchar *name, cchar *path, cchar *entry, void *data)
     }
     mp->name = sclone(name);
     mp->path = sclone(path);
-    mp->entry = sclone(entry);
+    if (entry && *entry) {
+        mp->entry = sclone(entry);
+    }
     mp->moduleData = data;
     mp->lastActivity = mprGetTime();
     index = mprAddItem(ms->modules, mp);

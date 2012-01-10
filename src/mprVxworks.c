@@ -85,6 +85,7 @@ int mprLoadNativeModule(MprModule *mp)
             return MPR_ERR_CANT_READ;
         }
         close(fd);
+        mp->handle = handle;
 
     } else if (mp->entry) {
         mprLog(2, "Activating module %s", mp->name);
@@ -94,7 +95,6 @@ int mprLoadNativeModule(MprModule *mp)
             mprError("Can't find symbol %s when loading %s", mp->entry, mp->path);
             return MPR_ERR_CANT_READ;
         }
-        mp->handle = handle;
         if ((fn)(mp->moduleData, mp) < 0) {
             mprError("Initialization for %s failed.", mp->path);
             return MPR_ERR_CANT_INITIALIZE;

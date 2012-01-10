@@ -267,8 +267,13 @@ void mprCloseCmdFd(MprCmd *cmd, int channel)
 #endif
         if (channel != MPR_CMD_STDIN) {
             cmd->eofCount++;
-            if (cmd->eofCount >= cmd->requiredEof && cmd->pid == 0) {
-                cmd->complete = 1;
+            if (cmd->eofCount >= cmd->requiredEof) {
+#if VXWORKS
+                reapCmd(cmd, 0);
+#endif
+                if (cmd->pid == 0) {
+                    cmd->complete = 1;
+                }
             }
         }
     }
@@ -526,7 +531,6 @@ int mprStopCmd(MprCmd *cmd, int signal)
 ssize mprReadCmd(MprCmd *cmd, int channel, char *buf, ssize bufsize)
 {
 #if BLD_WIN_LIKE
-{
     int     rc, count;
     /*
         Need to detect EOF in windows. Pipe always in blocking mode, but reads block even with no one on the other end.
@@ -543,7 +547,28 @@ ssize mprReadCmd(MprCmd *cmd, int channel, char *buf, ssize bufsize)
     /* This maps to EAGAIN */
     SetLastError(WSAEWOULDBLOCK);
     return -1;
-}
+
+#elif VXWORKS
+    /*
+        Only needed when using non-blocking I/O
+     */
+    int     rc;
+
+    rc = read(cmd->files[channel].fd, buf, bufsize);
+
+    /*
+        VxWorks can't signal EOF on non-blocking pipes. Need a pattern indicator.
+     */
+    if (rc == MPR_CMD_VXWORKS_EOF_LEN && strncmp(buf, MPR_CMD_VXWORKS_EOF, MPR_CMD_VXWORKS_EOF_LEN) == 0) {
+        /* EOF */
+        return 0;
+
+    } else if (rc == 0) {
+        rc = -1;
+        errno = EAGAIN;
+    }
+    return rc;
+
 #else
     mprAssert(cmd->files[channel].fd >= 0);
     return read(cmd->files[channel].fd, buf, bufsize);
@@ -1481,14 +1506,14 @@ int startProcess(MprCmd *cmd)
     program = mprGetPathBase(cmd->program);
     if (entryPoint == 0) {
         program = mprTrimPathExt(program);
-#if BLD_HOST_CPU_ARCH == MPR_CPU_IX86 || BLD_HOST_CPU_ARCH == MPR_CPU_IX64
+#if UNUSED && (BLD_HOST_CPU_ARCH == MPR_CPU_IX86 || BLD_HOST_CPU_ARCH == MPR_CPU_IX64)
         entryPoint = sjoin("_", program, "Main", NULL);
 #else
-        entryPoint = sjoin(program, "Main", NULL);
+        entryPoint = program;
 #endif
     }
     if (symFindByName(sysSymTbl, entryPoint, (char**) &entryFn, &symType) < 0) {
-        if ((mp = mprCreateModule(cmd->program, cmd->program, entryPoint, NULL)) == 0) {
+        if ((mp = mprCreateModule(cmd->program, cmd->program, NULL, NULL)) == 0) {
             mprError("start: can't create module");
             return MPR_ERR_CANT_CREATE;
         }
