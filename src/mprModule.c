@@ -91,19 +91,6 @@ MprModule *mprCreateModule(cchar *name, cchar *path, cchar *entry, void *data)
     ms = MPR->moduleService;
     mprAssert(ms);
 
-#if UNUSED
-    MprPath             info;
-    char                *at;
-    if (path) {
-        if ((at = mprSearchForModule(path)) == 0) {
-            mprError("Can't find module \"%s\", cwd: \"%s\", search path \"%s\"", path, mprGetCurrentPath(),
-                mprGetModuleSearchPath());
-            return 0;
-        }
-        path = at;
-        mprGetPathInfo(path, &info);
-    }
-#endif
     if ((mp = mprAllocObj(MprModule, manageModule)) == 0) {
         return 0;
     }
@@ -202,7 +189,6 @@ void mprSetModuleTimeout(MprModule *module, MprTime timeout)
 }
 
 
-//  MOB - rename SetModuleStop
 void mprSetModuleFinalizer(MprModule *module, MprModuleProc stop)
 {
     module->stop = stop;
@@ -215,28 +201,12 @@ void mprSetModuleSearchPath(char *searchPath)
     cchar               *libdir;
 
     ms = MPR->moduleService;
-
     if (searchPath == 0) {
         libdir = mprJoinPath(mprGetPathParent(mprGetAppDir()), mprGetPathBase(BLD_LIB_NAME));
         ms->searchPath = sjoin(mprGetAppDir(), MPR_SEARCH_SEP, libdir, MPR_SEARCH_SEP, BLD_LIB_PREFIX, NULL);
     } else {
         ms->searchPath = sclone(searchPath);
     }
-
-#if UNUSED && KEEP
-#if BLD_WIN_LIKE && !WINCE
-    {
-        /*
-            Set PATH so dependent DLLs can be loaded by LoadLibrary
-            WARNING: this will leak if called too much.
-         */
-        char *path = sjoin("PATH=", searchPath, ";", getenv("PATH"), NULL);
-        mprMapSeparators(path, '\\');
-        mprHold(path);
-        putenv(path);
-    }
-#endif
-#endif
 }
 
 

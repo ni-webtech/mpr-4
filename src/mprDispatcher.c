@@ -543,10 +543,6 @@ static bool serviceDispatcher(MprDispatcher *dispatcher)
 
     } else {
         if (mprStartWorker((MprWorkerProc) serviceDispatcherMain, dispatcher) < 0) {
-#if UNUSED
-            /* Can't start a worker thread, run using the current thread */
-            serviceDispatcherMain(dispatcher);
-#endif
             return 0;
         } 
     }
@@ -796,7 +792,7 @@ static int makeRunnable(MprDispatcher *dispatcher)
 }
 
 
-#if UNUSED
+#if UNUSED && KEEP
 /*
     Designate the required worker thread to run the event
  */

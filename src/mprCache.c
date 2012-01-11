@@ -69,7 +69,6 @@ void *mprDestroyCache(MprCache *cache)
         mprRemoveEvent(cache->timer);
         cache->timer = 0;
     }
-    //  MOB - race here
     if (cache == shared) {
         shared = 0;
     }

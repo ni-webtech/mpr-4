@@ -80,7 +80,6 @@ int mprFlushFile(MprFile *file)
 }
 
 
-//  MOB - naming vs mprSeekFile or mprSetFilePosition or mprTellFile
 MprOff mprGetFilePosition(MprFile *file)
 {
     return file->pos;

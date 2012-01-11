@@ -821,9 +821,6 @@ static void reapCmd(MprCmd *cmd, MprSignal *sp)
             if (cmd->files[MPR_CMD_STDOUT].fd >= 0) {
                 mprCloseCmdFd(cmd, MPR_CMD_STDOUT);
             }
-            /*
-                May not close stdin/stdout if command times out
-             */
 #if UNUSED && DONT_USE && KEEP
             if (cmd->eofCount != cmd->requiredEof) {
                 mprLog(0, "reapCmd: insufficient EOFs %d %d, complete %d", cmd->eofCount, cmd->requiredEof, cmd->complete);
@@ -979,12 +976,6 @@ void mprSetCmdDir(MprCmd *cmd, cchar *dir)
  */
 static int sanitizeArgs(MprCmd *cmd, int argc, char **argv, char **env)
 {
-#if VXWORKS && UNUSED
-    cmd->argv = argv;
-    cmd->argc = argc;
-    cmd->env = 0;
-#endif
-
 #if BLD_UNIX_LIKE || VXWORKS
     char    **envp;
     int     ecount, index, i, hasPath, hasLibPath;
@@ -1516,11 +1507,7 @@ int startProcess(MprCmd *cmd)
     program = mprGetPathBase(cmd->program);
     if (entryPoint == 0) {
         program = mprTrimPathExt(program);
-#if UNUSED && (BLD_HOST_CPU_ARCH == MPR_CPU_IX86 || BLD_HOST_CPU_ARCH == MPR_CPU_IX64)
-        entryPoint = sjoin("_", program, "Main", NULL);
-#else
         entryPoint = program;
-#endif
     }
     if (symFindByName(sysSymTbl, entryPoint, (char**) &entryFn, &symType) < 0) {
         if ((mp = mprCreateModule(cmd->program, cmd->program, NULL, NULL)) == 0) {
@@ -1537,13 +1524,6 @@ int startProcess(MprCmd *cmd)
         }
     }
     taskPriorityGet(taskIdSelf(), &pri);
-
-{
-    char where[512];
-    getcwd(where, 511);
-
-    mprLog(0, "Before SPAWN, cwd %s", where);
-}
 
     cmd->pid = taskSpawn(entryPoint, pri, VX_FP_TASK | VX_PRIVATE_ENV, MPR_DEFAULT_STACK, (FUNCPTR) cmdTaskEntry, 
         (int) cmd->program, (int) entryFn, (int) cmd, 0, 0, 0, 0, 0, 0, 0);

@@ -94,7 +94,9 @@ static void manageDiskFile(MprFile *file, int flags)
         mprMark(file->path);
         mprMark(file->fileSystem);
         mprMark(file->buf);
-        //  MOB - mark inode?
+#if BLD_FEATURE_ROMFS
+        mprMark(file->inode);
+#endif
 
     } else if (flags & MPR_MANAGE_FREE) {
         closeFile(file);
@@ -175,7 +177,6 @@ static bool accessPath(MprDiskFileSystem *fs, cchar *path, int omode)
 }
 
 
-//  MOB - should this be called removePath
 static int deletePath(MprDiskFileSystem *fs, cchar *path)
 {
     MprPath     info;

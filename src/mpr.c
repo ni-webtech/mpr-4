@@ -265,7 +265,6 @@ void mprAddTerminator(MprTerminator terminator)
 
 void mprRestart()
 {
-    //  MOB TODO - Other systems
 #if BLD_UNIX_LIKE
     int     i;
     for (i = 3; i < MPR_MAX_FILE; i++) {
@@ -281,6 +280,8 @@ void mprRestart()
         printf("%s ", MPR->argv[i]);
     }
     printf("\n");
+#else
+    mprError("mprRestart not supported on this platform");
 #endif
 }
 

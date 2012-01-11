@@ -390,8 +390,6 @@ void *mprReallocMem(void *ptr, ssize usize)
 }
 
 
-//  MOB - rename mprMemdup
-
 void *mprMemdupMem(cvoid *ptr, ssize usize)
 {
     char    *newp;
@@ -885,7 +883,7 @@ static MprFreeMem *getQueue(ssize size)
     Allocate virtual memory and check a memory allocation request against configured maximums and redlines. 
     An application-wide memory allocation failure routine can be invoked from here when a memory redline is exceeded. 
     It is the application's responsibility to set the red-line value suitable for the system.
-    MOB _ is memory zeroed?
+    Memory is not zereod on all platforms.
  */
 void *mprVirtAlloc(ssize size, int mode)
 {
@@ -896,9 +894,6 @@ void *mprVirtAlloc(ssize size, int mode)
     if (memStats.pageSize) {
         size = MPR_PAGE_ALIGN(size, memStats.pageSize);
     }
-#if UNUSED && KEEP
-    printf("VALLOC %d K, total %d K\n", (int) size / 1024, (int) (size + used) / 1024);
-#endif
     if ((size + used) > heap->stats.maxMemory) {
         allocException(MPR_MEM_LIMIT, size);
     } else if ((size + used) > heap->stats.redLine) {
@@ -1404,14 +1399,6 @@ void mprResetYield()
     if ((tp = mprGetCurrentThread()) != 0) {
         tp->stickyYield = 0;
     }
-#if UNUSED
-    /* Rather than just clear yield, we must wait till marking is finished if underway */
-    if (heap->mustYield) {
-        mprYield(0);
-    } else {
-        tp->yielded = 0;
-    }
-#else
     lock(MPR);
     if (MPR->marking) {
         unlock(MPR);
@@ -1420,7 +1407,6 @@ void mprResetYield()
         tp->yielded = 0;
         unlock(MPR);
     }
-#endif
 }
 
 
@@ -2216,8 +2202,6 @@ static ssize fastMemSize()
 
 #if LINUX
     struct rusage rusage;
-    //  MOB - is this the current maximum or the peak?
-    //  MOB - measure how fast reading is from /proc. Could keep /proc open and then seek+read
     getrusage(RUSAGE_SELF, &rusage);
     size = rusage.ru_maxrss * 1024;
 #elif MACOSX

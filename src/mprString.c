@@ -111,7 +111,7 @@ char *scamel(cchar *str)
 
 /*
     Case insensitive string comparison. Limited by length
-    MOB TODO - name is not great. scaselesscmp, sncaselesscmp
+    MOB rename sacasecmp
  */
 int scasecmp(cchar *s1, cchar *s2)
 {
@@ -126,6 +126,7 @@ int scasecmp(cchar *s1, cchar *s2)
 }
 
 
+// MOB rename sacasematch
 bool scasematch(cchar *s1, cchar *s2)
 {
     return scasecmp(s1, s2) == 0;
@@ -436,6 +437,8 @@ bool smatch(cchar *s1, cchar *s2)
     return scmp(s1, s2) == 0;
 }
 
+
+// MOB rename snacasecmp
 
 int sncasecmp(cchar *s1, cchar *s2, ssize n)
 {
@@ -811,7 +814,7 @@ int64 stoiradix(cchar *str, int radix, int *err)
 
 /*
     Note "str" is modifed as per strtok()
-    MOB - warning this does not allocate - should it?
+    WARNING:  this does not allocate
  */
 char *stok(char *str, cchar *delim, char **last)
 {

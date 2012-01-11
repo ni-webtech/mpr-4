@@ -301,7 +301,7 @@ static void defaultLogHandler(int flags, int level, cchar *msg)
     lock(MPR);
 
     if (MPR->logBackup > 0 && MPR->logSize) {
-        //  MOB - slow. Should not check every time
+        //  OPT - slow. Should not check every time
         mprGetPathInfo(MPR->logPath, &info);
         if (info.valid && info.size > MPR->logSize) {
             mprSetLogFile(0);

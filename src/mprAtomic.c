@@ -29,7 +29,6 @@ void mprAtomicBarrier()
     #endif
 
 #if FUTURE && KEEP
-        //  MOB - understand what these actually do
         __asm volatile ("nop" ::: "memory")
         asm volatile ("sync" : : : "memory");
         asm volatile ("mfence" : : : "memory");

@@ -177,7 +177,7 @@ int mprCopyPath(cchar *fromName, cchar *toName, int mode)
 }
 
 
-//  MOB - need a rename too - should this be called remove?
+//  MOB - need a rename too
 int mprDeletePath(cchar *path)
 {
     MprFileSystem   *fs;
@@ -521,9 +521,6 @@ char *mprGetPathDir(cchar *path)
             return sclone(".");
         }
         cp++;
-#if UNUSED
-        return sclone(fs->root);
-#endif
     }
     len = (cp - path);
     result = mprAlloc(len + 1);
@@ -694,7 +691,7 @@ MprList *mprGetPathFiles(cchar *path, bool enumDirs)
 
 
 //  MOB - need mprIsPathDir
-//  MOB - better boolean?
+
 int mprGetPathInfo(cchar *path, MprPath *info)
 {
     MprFileSystem  *fs;

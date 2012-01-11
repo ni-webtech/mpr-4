@@ -331,8 +331,7 @@ static int getState(char c, int state)
 }
 
 
-//  MOB - rename arg to args
-static char *sprintfCore(char *buf, ssize maxsize, cchar *spec, va_list arg)
+static char *sprintfCore(char *buf, ssize maxsize, cchar *spec, va_list args)
 {
     Format        fmt;
     MprEjsString  *es;
@@ -411,7 +410,7 @@ static char *sprintfCore(char *buf, ssize maxsize, cchar *spec, va_list arg)
 
         case STATE_WIDTH:
             if (c == '*') {
-                fmt.width = va_arg(arg, int);
+                fmt.width = va_arg(args, int);
                 if (fmt.width < 0) {
                     fmt.width = -fmt.width;
                     fmt.flags |= SPRINTF_LEFT;
@@ -431,7 +430,7 @@ static char *sprintfCore(char *buf, ssize maxsize, cchar *spec, va_list arg)
 
         case STATE_PRECISION:
             if (c == '*') {
-                fmt.precision = va_arg(arg, int);
+                fmt.precision = va_arg(args, int);
             } else {
                 while (isdigit((int) c)) {
                     fmt.precision = fmt.precision * 10 + (c - '0');
@@ -464,17 +463,17 @@ static char *sprintfCore(char *buf, ssize maxsize, cchar *spec, va_list arg)
             case 'g':
             case 'f':
                 fmt.radix = 10;
-                outFloat(&fmt, c, (double) va_arg(arg, double));
+                outFloat(&fmt, c, (double) va_arg(args, double));
                 break;
 #endif /* BLD_FEATURE_FLOAT */
 
             case 'c':
-                BPUT(&fmt, (char) va_arg(arg, int));
+                BPUT(&fmt, (char) va_arg(args, int));
                 break;
 
             case 'N':
                 /* Name */
-                qname = va_arg(arg, MprEjsName);
+                qname = va_arg(args, MprEjsName);
                 if (qname.name) {
 #if BLD_CHAR_LEN == 1
                     outString(&fmt, qname.space->value, qname.space->length);
@@ -496,19 +495,19 @@ static char *sprintfCore(char *buf, ssize maxsize, cchar *spec, va_list arg)
                 /* Safe string */
 #if BLD_CHAR_LEN > 1
                 if (fmt.flags & SPRINTF_LONG) {
-                    safe = mprEscapeHtml(va_arg(arg, MprChar*));
+                    safe = mprEscapeHtml(va_arg(args, MprChar*));
                     outWideString(&fmt, safe, -1);
                 } else
 #endif
                 {
-                    safe = mprEscapeHtml(va_arg(arg, MprChar*));
+                    safe = mprEscapeHtml(va_arg(args, MprChar*));
                     outString(&fmt, safe, -1);
                 }
                 break;
 
             case '@':
                 /* MprEjsString */
-                es = va_arg(arg, MprEjsString*);
+                es = va_arg(args, MprEjsString*);
                 if (es) {
 #if BLD_CHAR_LEN == 1
                     outString(&fmt, es->value, es->length);
@@ -523,7 +522,7 @@ static char *sprintfCore(char *buf, ssize maxsize, cchar *spec, va_list arg)
             case 'w':
                 /* Wide string of MprChar characters (Same as %ls"). Null terminated. */
 #if BLD_CHAR_LEN > 1
-                outWideString(&fmt, va_arg(arg, MprChar*), -1);
+                outWideString(&fmt, va_arg(args, MprChar*), -1);
                 break;
 #else
                 /* Fall through */
@@ -533,10 +532,10 @@ static char *sprintfCore(char *buf, ssize maxsize, cchar *spec, va_list arg)
                 /* Standard string */
 #if BLD_CHAR_LEN > 1
                 if (fmt.flags & SPRINTF_LONG) {
-                    outWideString(&fmt, va_arg(arg, MprChar*), -1);
+                    outWideString(&fmt, va_arg(args, MprChar*), -1);
                 } else
 #endif
-                    outString(&fmt, va_arg(arg, char*), -1);
+                    outString(&fmt, va_arg(args, char*), -1);
                 break;
 
             case 'i':
@@ -545,13 +544,13 @@ static char *sprintfCore(char *buf, ssize maxsize, cchar *spec, va_list arg)
             case 'd':
                 fmt.radix = 10;
                 if (fmt.flags & SPRINTF_SHORT) {
-                    iValue = (short) va_arg(arg, int);
+                    iValue = (short) va_arg(args, int);
                 } else if (fmt.flags & SPRINTF_LONG) {
-                    iValue = (long) va_arg(arg, long);
+                    iValue = (long) va_arg(args, long);
                 } else if (fmt.flags & SPRINTF_INT64) {
-                    iValue = (int64) va_arg(arg, int64);
+                    iValue = (int64) va_arg(args, int64);
                 } else {
-                    iValue = (int) va_arg(arg, int);
+                    iValue = (int) va_arg(args, int);
                 }
                 if (iValue >= 0) {
                     if (fmt.flags & SPRINTF_LEAD_SPACE) {
@@ -579,13 +578,13 @@ static char *sprintfCore(char *buf, ssize maxsize, cchar *spec, va_list arg)
             case 'x':
             case 'u':
                 if (fmt.flags & SPRINTF_SHORT) {
-                    uValue = (ushort) va_arg(arg, uint);
+                    uValue = (ushort) va_arg(args, uint);
                 } else if (fmt.flags & SPRINTF_LONG) {
-                    uValue = (ulong) va_arg(arg, ulong);
+                    uValue = (ulong) va_arg(args, ulong);
                 } else if (fmt.flags & SPRINTF_INT64) {
-                    uValue = (uint64) va_arg(arg, uint64);
+                    uValue = (uint64) va_arg(args, uint64);
                 } else {
-                    uValue = va_arg(arg, uint);
+                    uValue = va_arg(args, uint);
                 }
                 if (c == 'u') {
                     fmt.radix = 10;
@@ -613,22 +612,22 @@ static char *sprintfCore(char *buf, ssize maxsize, cchar *spec, va_list arg)
 
             case 'n':       /* Count of chars seen thus far */
                 if (fmt.flags & SPRINTF_SHORT) {
-                    short *count = va_arg(arg, short*);
+                    short *count = va_arg(args, short*);
                     *count = (int) (fmt.end - fmt.start);
                 } else if (fmt.flags & SPRINTF_LONG) {
-                    long *count = va_arg(arg, long*);
+                    long *count = va_arg(args, long*);
                     *count = (int) (fmt.end - fmt.start);
                 } else {
-                    int *count = va_arg(arg, int *);
+                    int *count = va_arg(args, int *);
                     *count = (int) (fmt.end - fmt.start);
                 }
                 break;
 
             case 'p':       /* Pointer */
 #if MPR_64_BIT
-                uValue = (uint64) va_arg(arg, void*);
+                uValue = (uint64) va_arg(args, void*);
 #else
-                uValue = (uint) PTOI(va_arg(arg, void*));
+                uValue = (uint) PTOI(va_arg(args, void*));
 #endif
                 fmt.radix = 16;
                 outNum(&fmt, "0x", uValue);
