@@ -55,7 +55,7 @@ static MprTestDef master = {
 
 /************************************* Code ***********************************/
 
-MAIN(testMain, int argc, char *argv[]) 
+MAIN(testMain, int argc, char **argv, char **envp)
 {
     Mpr             *mpr;
     MprTestService  *ts;

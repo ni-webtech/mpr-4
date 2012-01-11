@@ -693,6 +693,7 @@ MprList *mprGetPathFiles(cchar *path, bool enumDirs)
 #endif
 
 
+//  MOB - need mprIsPathDir
 //  MOB - better boolean?
 int mprGetPathInfo(cchar *path, MprPath *info)
 {

@@ -759,9 +759,11 @@ static void reapCmd(MprCmd *cmd, MprSignal *sp)
     /*
         The command exit status (cmd->status) is set in cmdTaskEntry
      */
-    if (semTake(cmd->exitCond, MPR_TIMEOUT_STOP_TASK) != OK) {
-        mprError("cmd: child %s did not exit, errno %d", cmd->program);
-        return;
+    if (!cmd->stopped) {
+        if (semTake(cmd->exitCond, MPR_TIMEOUT_STOP_TASK) != OK) {
+            mprError("cmd: child %s did not exit, errno %d", cmd->program);
+            return;
+        }
     }
     semDelete(cmd->exitCond);
     cmd->exitCond = 0;
@@ -962,9 +964,13 @@ MprBuf *mprGetCmdBuf(MprCmd *cmd, int channel)
 
 void mprSetCmdDir(MprCmd *cmd, cchar *dir)
 {
+#if VXWORKS
+    mprError("WARNING: Setting working directory on VxWorks is global: %s", dir);
+#else
     mprAssert(dir && *dir);
 
     cmd->dir = sclone(dir);
+#endif
 }
 
 
@@ -973,14 +979,14 @@ void mprSetCmdDir(MprCmd *cmd, cchar *dir)
  */
 static int sanitizeArgs(MprCmd *cmd, int argc, char **argv, char **env)
 {
-#if VXWORKS
+#if VXWORKS && UNUSED
     cmd->argv = argv;
     cmd->argc = argc;
     cmd->env = 0;
 #endif
 
-#if BLD_UNIX_LIKE
-    char    *cp, **envp;
+#if BLD_UNIX_LIKE || VXWORKS
+    char    **envp;
     int     ecount, index, i, hasPath, hasLibPath;
 
     cmd->argv = argv;
@@ -1005,16 +1011,20 @@ static int sanitizeArgs(MprCmd *cmd, int argc, char **argv, char **env)
             }
             envp[index++] = sclone(env[i]);
         }
-
+#if BLD_UNIX_LIKE
+{
         /*
             Add PATH and LD_LIBRARY_PATH 
          */
+        char *cp;
         if (!hasPath && (cp = getenv("PATH")) != 0) {
             envp[index++] = sfmt("PATH=%s", cp);
         }
         if (!hasLibPath && (cp = getenv(LD_LIBRARY_PATH)) != 0) {
             envp[index++] = sfmt("%s=%s", LD_LIBRARY_PATH, cp);
         }
+}
+#endif
         envp[index++] = '\0';
         mprLog(4, "mprStartCmd %s", cmd->program);
         for (i = 0; i < argc; i++) {
@@ -1528,6 +1538,13 @@ int startProcess(MprCmd *cmd)
     }
     taskPriorityGet(taskIdSelf(), &pri);
 
+{
+    char where[512];
+    getcwd(where, 511);
+
+    mprLog(0, "Before SPAWN, cwd %s", where);
+}
+
     cmd->pid = taskSpawn(entryPoint, pri, VX_FP_TASK | VX_PRIVATE_ENV, MPR_DEFAULT_STACK, (FUNCPTR) cmdTaskEntry, 
         (int) cmd->program, (int) entryFn, (int) cmd, 0, 0, 0, 0, 0, 0, 0);
 
@@ -1555,8 +1572,8 @@ static void cmdTaskEntry(char *program, MprCmdTaskFn entry, int cmdArg)
     MprCmd          *cmd;
     MprCmdFile      *files;
     WIND_TCB        *tcb;
-    char            **ep, *dir;
-    int             inFd, outFd, errFd, id, rc;
+    char            **ep;
+    int             inFd, outFd, errFd, id;
 
     cmd = (MprCmd*) cmdArg;
 
@@ -1591,8 +1608,14 @@ static void cmdTaskEntry(char *program, MprCmdTaskFn entry, int cmdArg)
         putenv(*ep);
     }
 
+#if !VXWORKS
+{
+    char    *dir;
+    int     rc;
+
     /*
         Set current directory if required
+        WARNING: Setting working directory on VxWorks is global
      */
     if (cmd->dir) {
         rc = chdir(cmd->dir);
@@ -1604,6 +1627,8 @@ static void cmdTaskEntry(char *program, MprCmdTaskFn entry, int cmdArg)
         mprError("cmd: Can't change directory to %s", cmd->dir);
         exit(255);
     }
+}
+#endif
 
     /*
         Call the user's entry point

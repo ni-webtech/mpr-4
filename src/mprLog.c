@@ -89,7 +89,7 @@ int mprStartLogging(cchar *logSpec, int showConfig)
                 mprLog(MPR_CONFIG, "Distribution:       %s %s", BLD_DIST, BLD_DIST_VER);
             }
             mprLog(MPR_CONFIG, "Host:               %s", mprGetHostName());
-            mprLog(MPR_CONFIG, "Dir:                %s", mprGetCurrentPath());
+            mprLog(MPR_CONFIG, "Directory:          %s", mprGetCurrentPath());
             mprLog(MPR_CONFIG, "Configure:          %s", BLD_CONFIG_CMD);
             mprLog(MPR_CONFIG, "---------------------------------------------");
         }
