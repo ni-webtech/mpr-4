@@ -69,7 +69,7 @@ int mprLoadNativeModule(MprModule *mp)
         mprGetPathInfo(mp->path, &info);
         mp->modified = info.mtime;
 
-        mprLog(2, "Loading native module %s from %s", mp->name, mp->path);
+        mprLog(2, "Loading native module %s", mp->name);
         if ((fd = open(mp->path, O_RDONLY, 0664)) < 0) {
             mprError("Can't open module \"%s\"", mp->path);
             return MPR_ERR_CANT_OPEN;
