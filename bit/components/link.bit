@@ -3,8 +3,8 @@
  */
 
 /*
-let path = probe('doxygen')
+let path = probe('link')
 if (path) {
-    bit({components: { doxygen: { path: path }}})
+    bit({components: { link: { path: path }}})
 }
 */

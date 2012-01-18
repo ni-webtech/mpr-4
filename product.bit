@@ -4,14 +4,12 @@
 
 bit({
     settings: {
+        /* Default configuration overridden by build.bit */
 		product: 'mpr',
 		title: 'Multithreaded Portable Runtime',
 		version: '4.0.0',
-
-        //  MOB - rename number
-		number: 'B0',
-
-		//	 Default settings overridden by build.bit
+		buildNumber: 'B0',
+        configuration: 'debug',
         charlen: 1,
         tune: 'size',
         assert: true,
