@@ -8,7 +8,7 @@ bit({
     '+blend': [
         'bit/x86_64-apple-macosx.bit',
         'depend.bit',
-        'mpr.bit',
+        'product.bit',
     ],
     '+settings': {
         configuration: 'debug',

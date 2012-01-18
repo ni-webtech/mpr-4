@@ -1,0 +1,10 @@
+/*
+    link.bit - Linker component for Bit
+ */
+
+/*
+let path = probe('doxygen')
+if (path) {
+    bit({components: { doxygen: { path: path }}})
+}
+*/

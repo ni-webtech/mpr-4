@@ -13,6 +13,8 @@ bit({
         'shlib': 'dylib',
         'shobj': 'dylib',
     },
+    '+required': [ 'compile', 'lib', 'link' ],
+    '+optional': [ 'package', ],
     common: {
         '+compiler': [ '-fPIC', '-Wall', '-Wno-unused-result' ],
         '+defines':  [ '-DPIC' ],

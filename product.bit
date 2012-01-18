@@ -1,17 +1,17 @@
 /*
-    Build file for Mpr
+    product.bit -- Product Bit File for the Multithreaded Portable Runtime (MPR)
  */
 
 bit({
     settings: {
 		product: 'mpr',
-		title: 'Embedthis Portable Runtime',
+		title: 'Multithreaded Portable Runtime',
 		version: '4.0.0',
 
         //  MOB - rename number
 		number: 'B0',
 
-		//	 Default settings overridden by config.bit
+		//	 Default settings overridden by build.bit
         charlen: 1,
         tune: 'size',
         assert: true,
@@ -31,7 +31,7 @@ bit({
             }
         },
     },
-    '+optional': [ 'doxygen' ],
+    '+optional': [ 'openssl', 'doxygen' ],
     common: {
         '+include':  [ ],
         '+compiler': [ ],

@@ -1,0 +1,10 @@
+/*
+    lib.bit - Library component for Bit
+ */
+
+/*
+let path = probe('doxygen')
+if (path) {
+    bit({components: { doxygen: { path: path }}})
+}
+*/
