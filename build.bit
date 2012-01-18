@@ -1,0 +1,64 @@
+/*
+    build.bit -- Master Build It file
+
+    Generated and edited by bit.
+ */
+
+bit({
+    '+blend': [
+        'bit/x86_64-apple-macosx.bit',
+        'depend.bit',
+        'mpr.bit',
+    ],
+    '+settings': {
+        configuration: 'debug',
+		charlen: 1,
+		tune: 'size',
+		assert: true,
+		float: true,
+		legacy: false,
+		rom: false,
+
+        hasDiab: false,
+        hasDoubleBraces: true,
+        hasDynamicLoad: true,
+        hasMtune: true,
+        hasMmu: true,
+        hasWarnUnused: false,
+        hasWarn64to32: true,
+        hasEditline: true,
+        hasPam: false,
+        hasStackProtector: true,
+        hasSync: true,
+        hasSyncCas: true,
+        hasUnnamedUnions: true,
+	},
+	components: {
+		ar: { 
+            path: '/usr/bin/ar',
+        },
+		cc: {
+            path: '/usr/bin/cc',
+		},
+		strip: {
+            path: '/usr/bin/strip',
+		},
+		doxygen: {
+            path: '/usr/local/bin/doxygen',
+		},
+		openssl: {
+            path: '/Users/mob/git/mpr.bit/extensions/openssl/latest',
+            'compile': [ '-I/Users/mob/git/mpr.bit/extensions/openssl/latest/include' ],
+            'import': [ 
+                '/Users/mob/git/mpr.bit/extensions/openssl/latest/libcrypto.dylib',
+                '/Users/mob/git/mpr.bit/extensions/openssl/latest/libcrypto.1.0.dylib',
+                '/Users/mob/git/mpr.bit/extensions/openssl/latest/libssl.1.0.dylib',
+                '/Users/mob/git/mpr.bit/extensions/openssl/latest/libssl.1.0.dylib',
+            ],
+            '+linker': [ '-lssl', '-lcrypto' ],
+		},
+        ssl: {
+            path: '',
+        },
+    },
+})
