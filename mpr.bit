@@ -1,0 +1,102 @@
+/*
+    Build file for Mpr
+ */
+
+bit({
+    settings: {
+		product: 'mpr',
+		title: 'Embedthis Portable Runtime',
+		version: '4.0.0',
+
+        //  MOB - rename number
+		number: 'B0',
+
+		//	 Default settings overridden by config.bit
+        charlen: 1,
+        tune: 'size',
+        assert: true,
+        float: true,
+        legacy: false,
+        rom: false,
+    },
+    configurations: {
+        debug: {
+            debug: true,
+        },
+        release: {
+            debug: false,
+        },
+    },
+    '+optional': [ 'doxygen' ],
+    env: {
+    },
+    common: {
+        '+include':  [ ],
+        '+compiler': [ ],
+        '+defines':  [ ],
+        '+linker':   [ ],
+        '+script':   ' ',
+    },
+    targets: {
+		all: {
+			group: [ 'libmpr', 'libmprssl', 'manager'],
+		},
+        //  MOB - how to make a target conditional
+        libmpr: {
+            type: 'lib',
+			//	BIT understand that sources are compiled into objects ${OBJ}
+            sources: {
+                include: ['src/*.c', 'src/deps/dtoa.c'],
+                exclude: [ /manager.c|\/ssl\/|\/utils\// ],
+            },
+			headers: [ 'mpr.h' ]
+			build: ['dev', 'host' ],
+        },
+        libmprssl: {
+            type: 'lib',
+            depend: [
+                // MOB OpenSSL, ...
+                'libmpr',
+            ],
+            //  MOB -- probably need libraries: []
+            '+linker': [ '-lmpr', '-lssl', '-lcrypto' ],
+            sources: {
+                include: [ 'src/ssl/*.c' ],
+            }
+        },
+        manager: {
+            type: 'exe',
+            depend: [
+                'libmpr',        //  MOB - what if ssl is disable?
+            ],
+            sources: {
+				include: [ 'src/manager.c' ],
+			},
+            '+linker': [ '-lmpr' ],
+			//	MOB - what about pre/post actions
+			'+action': "print('Custom script')",
+            //  MOB - when does this message get emitted?
+            '+message': 'Custom build message - Building manager'
+        },
+        makerom: {
+            type: 'exe',
+            depend: [
+                'libmpr',
+            ],
+            '+linker': [ '-lmpr' ],
+            sources: {
+				include: ['src/utils/makerom.c'],
+			},
+        },
+        chargen: {
+            type: 'exe',
+            depend: [
+                'libmpr',
+            ],
+            '+linker': [ '-lmpr' ],
+            sources: {
+				include: [ 'src/utils/charGen.c' ],
+			},
+        },
+	},
+})

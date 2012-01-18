@@ -1,0 +1,11 @@
+/*
+    depend.bit -- File timestamps
+ */
+
+bit({
+    targets: {
+        'src/mpr.c': {
+            depend: [ 'mpr.h' ],
+        },
+    },
+})

@@ -1,0 +1,18 @@
+/*
+    x86_64-apple-macosx.bit -- Mac 64 Platform Build Configuration
+ */
+
+bit({
+    SYSTEM: 'x86_64-apple-macosx',
+
+    '+blend': [
+        'standard.bit',
+        'arch/x86_64.bit',
+        'os/macosx.bit',
+        'globals.bit',
+    ],
+	host: {
+		arch: 'x86_64',
+		os: 'MACOSX',
+	},
+})

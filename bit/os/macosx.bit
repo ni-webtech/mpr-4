@@ -1,0 +1,58 @@
+/*
+    macosx.bit -- MAC OS X Settings
+ */
+
+bit({
+    OS: 'MACOSX',
+    LIKE: 'POSIX',
+
+    '+blend': [    
+        'posix.bit',
+    ],
+    extensions: {
+        'shlib': 'dylib',
+        'shobj': 'dylib',
+    },
+    common: {
+        '+compiler': [ '-fPIC', '-Wall', '-Wno-unused-result' ],
+        '+defines':  [ '-DPIC' ],
+        '+linker': [
+            '-L${directories.lib}',
+            "-Wl,-rpath,@executable_path/../lib",   //  MOB - only for libs?
+            "-Wl,-rpath,@executable_path/",         //  MOB - only for libs?
+            "-Wl,-rpath,@loader_path/",             //  MOB - only for libs?
+            "-lpthread",
+            "-lm",
+        ],
+        '+script': '
+            if (${settings.preprocess}) {
+                common.compiler += [ "-E" ]
+            }
+            if (${settings.debug}) {
+                common.linker += [ "-g" ]
+            }
+            if (${settings.hasDynamicLoad}) {
+                common.linker += [ "-ldl" ]
+            }
+
+//  MOB - check out configure parseSystemConfiguration
+//MOB - need to map to tune names
+            let families = [/^amd/, /^arm/, /^i.86|^x86/, /^m68/, /^power|^ppc/, /^sparc/, /^strongarm/, /^x86_64/, /^xscale/, /^sh/, /^univsal/ ]
+
+            let tune = ${settings.hasMtune} ? "mtune" : "mcpu"
+            if (${ARCH}.startsWith("arm")) {
+                common.compiler += [ tune + "=arm" + MODEL, "-mno-sched-prolog" ]
+            }
+        ',
+    },
+    rules: {
+        'c->o': '${components.cc.path} -c -arch ${ARCH} ${DEBUG} ${target.defines} ${target.include} ${PREPROCESS} -o ${OUT} ${IN}',
+        'LIB':  '${components.cc.path} -dynamiclib -arch ${ARCH} ${DEBUG} ${target.linker} -install_name @rpath/${OUT} ${LIBS} -o ${OUT} ${IN}'
+        'EXE':  '${components.cc.path} -arch ${ARCH} ${DEBUG} ${target.linker} -L${directories.lib} ${LIBS} -o ${OUT} ${IN}'
+
+/*
+"/usr/bin/cc" "-o" "../out/bin/manager" "../out/obj/manager.o" "-L../out/lib" "-Wl,-rpath,@executable_path/../lib"
+"-Wl,-rpath,@executable_path/" "-Wl,-rpath,@loader_path/" "-lmpr" "-g" "-arch" "x86_64" "-lpthread" "-lm" 
+*/
+    },
+})

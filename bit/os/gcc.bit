@@ -1,0 +1,41 @@
+/*
+    gcc.bit -- GCC Build Settings
+ */
+
+bit({
+    common: {
+        '+compiler': [ '-fPIC', '-Wall', '-Wno-unused-result' ],
+        '+defines':  [ '-DPIC' ],
+        '+linker':   [ 
+                '-L${directories.lib}', 
+                '-lm', 
+                '-Wl,--enable-new-dtags', 
+                '-Wl,-rpath,$ORIGIN/', 
+                '-Wl,-rpath,$ORIGIN/../lib' 
+        ],
+        '+script': '
+            if (${settings.preprocess}) {
+                common.compiler += [ "-E" ]
+            }
+            if (${settings.debug}) {
+                common.linker += [ "-g" ]
+            }
+            if (${settings.hasDynamicLoad}) {
+                common.linker += [ "-ldl" ]
+            }
+            //  MOB - check out configure parseSystemConfiguration
+            //MOB - need to map to tune names
+            let families = [/^amd/, /^arm/, /^i.86|^x86/, /^m68/, /^power|^ppc/, /^sparc/, /^strongarm/, /^x86_64/, /^xscale/, /^sh/, /^univsal/ ]
+
+            let tune = ${settings.hasMtune} ? "mtune" : "mcpu"
+            if (${ARCH}.startsWith("arm")) {
+                common.compiler += [ tune + "=arm" + MODEL, "-mno-sched-prolog" ]
+            }
+        ',
+    },
+    rules: {
+        'c->o': '${components.cc.path} -c -arch ${ARCH} ${DEBUG} ${target.defines} ${target.include} ${PREPROCESS} -o ${OUT} ${IN}',
+        'so':   '${components.cc.path} -arch ${ARCH} ${DEBUG} ${target.linker} -L${directories.lib} ${LIBS} -o ${OUT} ${IN}'
+        'exe':  '${components.cc.path} -arch ${ARCH} ${DEBUG} ${target.linker} -L${directories.lib} ${LIBS} -o ${OUT} ${IN}'
+    },
+})

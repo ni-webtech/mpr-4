@@ -1,0 +1,22 @@
+/*
+    posix.bit -- POSIX Settings
+ */
+
+bit({
+    extensions: {
+        lib:   'a',
+        shlib: 'so',
+        shobj: 'so',
+        obj:   'o',
+        exe:   '',
+    },
+
+    prefixes: {
+        config: '/etc',
+        header: '/usr/include',
+        product: '/usr/lib/${PRODUCT}',
+    },
+
+    '+required': [ 'compile', 'lib', 'link' ],
+    '+optional': [ 'package', ],
+})

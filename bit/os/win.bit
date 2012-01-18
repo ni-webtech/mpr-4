@@ -1,0 +1,43 @@
+/*
+    win.bit -- Windows Settings
+ */
+
+bit({
+    OS: 'WIN',
+    LIKE: 'WIN',
+
+    extensions: {
+        exe:   'exe',
+        lib:   'a',
+        obj:   'obj',
+        shlib: 'lib',
+        shobj: 'dll',
+    },
+
+    prefixes: {
+        product: 'C:/Program Files/${PRODUCT}',
+        bin:     '${prefixes.product}/bin',
+        config:  '${prefixes.product}',
+        doc:     '${prefixes.product}/doc',
+        header:  '${prefixes.product}/inc',
+        lib:     '${prefixes.product}/bin',
+        log:     '${prefixes.product}/logs',
+        jem:     '${prefixes.product}/jems',
+        samples: '${prefixes.product}/samples',
+        src:     '${prefixes.product}/src',
+        web:     '${prefixes.product}/web',
+    },
+
+    '+required': [ 'compile', 'lib', 'link', 'rcompile', 'winsdk' ],
+    '+optional': [ 'package' ],
+
+    targets: {
+        '+script': "
+            if (${TARGET}.gui) {
+                ${TARGET}.linker += [ '-entry: WinMainCRTStartup', '-subsystem:Windows', 'shell32.lib' ]
+            } else {
+                ${TARGET}.linker += linker: [ '-entry: mainCRTStartup', '-subsystem:console' ]
+            }
+        ",
+    },
+})
