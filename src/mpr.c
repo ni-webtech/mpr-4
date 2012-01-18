@@ -54,8 +54,9 @@ Mpr *mprCreate(int argc, char **argv, int flags)
             mpr->argv[0] = mprGetAppPath();
         }
         mpr->name = mprTrimPathExt(mprGetPathBase(mpr->argv[0]));
+    } else {
+        mpr->name = sclone(BLD_PRODUCT);
     }
-
     mpr->signalService = mprCreateSignalService();
     mpr->threadService = mprCreateThreadService();
     mpr->moduleService = mprCreateModuleService();
