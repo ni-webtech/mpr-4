@@ -9,6 +9,7 @@ bit({
 		inc: 	'${directories.out}/inc',
 		lib: 	'${directories.out}/lib',
 		obj: 	'${directories.out}/obj',
+        ext:    'extensions',
 	},
     common: {
         '+include': [ '-I${directories.out}/inc' ],

@@ -21,15 +21,17 @@ bit({
     },
     configurations: {
         debug: {
-            debug: true,
+            settings: {
+                debug: true,
+            },
         },
         release: {
-            debug: false,
+            settings: {
+                debug: false,
+            }
         },
     },
     '+optional': [ 'doxygen' ],
-    env: {
-    },
     common: {
         '+include':  [ ],
         '+compiler': [ ],

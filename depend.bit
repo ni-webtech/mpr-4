@@ -5,7 +5,7 @@
 bit({
     targets: {
         'src/mpr.c': {
-            depend: [ 'mpr.h' ],
+            '+depend': [ 'xxx.h' ],
         },
     },
 })
