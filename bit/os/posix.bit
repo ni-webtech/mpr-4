@@ -17,6 +17,6 @@ bit({
         product: '/usr/lib/${PRODUCT}',
     },
 
-    '+required': [ 'compile', 'lib', 'link' ],
+    '+required': [ 'compiler' ],
     '+optional': [ 'package', ],
 })

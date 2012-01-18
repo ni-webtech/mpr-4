@@ -1,13 +1,11 @@
 /*
-    compile.bit - Compile component for Bit
+    compiler.bit - Compile component for Bit
  */
-let path = probe('cc', {fullpath: true})
-if (!path) {
-    throw "not found"
-}
-bit({components: { compiler: { path: path }}})
 
-function cc(command: String, contents: String = null): Boolean {
+let cc = probe('cc', {fullpath: true})
+bit({components: { compiler: { path: cc }}})
+
+function compile(command: String, contents: String = null): Boolean {
     //  MOB - what dir for temp file
     let file
     if (contents) {
@@ -18,12 +16,15 @@ function cc(command: String, contents: String = null): Boolean {
         file.write(contents + '\n')
         command += ' -c ' + file
     }
-    command = '' + path + ' ' + command
+    command = '' + cc + ' ' + command
     let cmd = Cmd(command)
     if (cmd.status != 0) {
         App.log.debug(2, cmd.error)
     }
-    if (file) file.remove()
+    if (file) {
+        file.remove()
+        file.replaceExt('o').remove()
+    }
     return cmd.status == 0
 }
 
@@ -34,28 +35,28 @@ if (spec.LIKE == 'POSIX') {
     let settings = {}
     //  MOB -- move -Werror -Wall into cc above
     //  MOB - if env CFLAGS has -mtune=xxx then it should be used instead
-    settings.hasDoubleBraces = cc('-Werror -Wall', 
+    settings.hasDoubleBraces = compile('-Werror -Wall', 
         '#include <stdarg.h>\nva_list d = {{0}};')
-    settings.hasMtune = cc('-Werror -mtune generic', '')
-    settings.hasStackProtector = cc('-Werror -Wall -fno-stack-protector', '')
-    settings.hasSync = cc('-Werror -Wall',
+    settings.hasMtune = compile('-Werror -mtune generic', '')
+    settings.hasStackProtector = compile('-Werror -Wall -fno-stack-protector', '')
+    settings.hasSync = compile('-Werror -Wall',
         '#include <stdio.h>\nint main() { __sync_synchronize(); return 0; }')
-    settings.warnUnused = cc('-Werror -Wall -Wno-unused-result',
+    settings.warnUnused = compile('-Werror -Wall -Wno-unused-result',
         '#include <stdio.h>\n#include <stdlib.h>\nint main() { realloc(0, 1024); return 0; }')
-    settings.warn64to32 = cc('-Werror -Wall -Wshorten-64-to-32', '')
+    settings.warn64to32 = compile('-Werror -Wall -Wshorten-64-to-32', '')
 
     if (spec.OS != 'VXWORKS') {
-        settings.hasDynLoad = cc('-Werror -Wall',
+        settings.hasDynLoad = compile('-Werror -Wall',
             '#include <stdio.h>\n#include <dlfcn.h>\nint main() { dlopen(\"test.so\", 0); return 0; }')
-        settings.hasLibEdit = cc('-Werror -Wall',
+        settings.hasLibEdit = compile('-Werror -Wall',
             '#include <histedit.h>\nint main() { history_init(); return 0; }')
-        settings.hasMmu = cc('-Werror -Wall',
+        settings.hasMmu = compile('-Werror -Wall',
             '#include <stdio.h>\n#include <unistd.h>\nint main() { fork(); return 0; }')
-        settings.hasPam = cc('-Werror -Wall',
+        settings.hasPam = compile('-Werror -Wall',
             'extern pam_start(); \nint main() { void *x = pam_start; return 0; }')
-        settings.hasSyncCas = cc('-Werror -Wall',
+        settings.hasSyncCas = compile('-Werror -Wall',
             '#include <stdio.h>\nint main() { void *ptr; __sync_bool_compare_and_swap(&ptr, ptr, ptr); return 0; }')
-        settings.hasUnnamedUnions = cc('-Werror -Wall', 
+        settings.hasUnnamedUnions = compile('-Werror -Wall', 
             '#include <stdio.h>\nint main() { struct test { union { int x; int y; };}; return 0; }')
     }
     bit({ settings: settings })

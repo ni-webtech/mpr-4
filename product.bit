@@ -29,7 +29,7 @@ bit({
             }
         },
     },
-    '+optional': [ 'openssl', 'doxygen' ],
+    '+optional': [ 'doxygen', 'ejs', 'http', 'openssl' ],
     common: {
         '+include':  [ ],
         '+compiler': [ ],

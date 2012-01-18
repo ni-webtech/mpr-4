@@ -36,23 +36,23 @@ bit({
         "hasUnnamedUnions": true,
     },
     "components": {
-        "compile": {
-        },
         "compiler": {
             "path": "/usr/bin/cc",
-        },
-        "lib": {
-        },
-        "link": {
         },
         "package": {
             "diagnostic": "not found",
         },
+        "doxygen": {
+            "path": "/usr/local/bin/doxygen",
+        },
+        "ejs": {
+            "path": "/Users/mob/git/ejs/out/bin/ejs",
+        },
+        "http": {
+            "path": "/Users/mob/git/appweb/out/bin/http",
+        },
         "openssl": {
             "diagnostic": "component not found",
-        },
-        "doxygen": {
-            "path": "/usr/local/bin",
         },
     },
 })

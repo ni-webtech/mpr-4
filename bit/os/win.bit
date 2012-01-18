@@ -28,7 +28,7 @@ bit({
         web:     '${prefixes.product}/web',
     },
 
-    '+required': [ 'compile', 'lib', 'link', 'rcompile', 'winsdk' ],
+    '+required': [ 'compiler', 'rcompile', 'winsdk' ],
     '+optional': [ 'package' ],
 
     targets: {

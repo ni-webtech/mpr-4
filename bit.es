@@ -16,6 +16,7 @@ class Bit
     private var appName: String = 'bit'
     private var cmd: CmdArgs
     private var currentBit: Path            // Name of the bit file being currently loaded
+    private var currentComponent            // Name of the current component being loaded
 
     /*
         Aggregate Bit configuration. This has all bit files blended into one object.
@@ -81,11 +82,12 @@ class Bit
                 process()
             }
         } catch (e) {
+            let msg: String
             if (e is String) {
                 msg = e
                 App.log.error('bit: Error: ' + msg + '\n')
             } else {
-                msg = e.message
+                msg = (cmd.options.debug) ? e : e.message
                 App.log.error('bit: Error: ' + msg + '\n')
             }
             App.exit(2)
@@ -154,6 +156,7 @@ class Bit
             if (path.exists) {
                 try {
                     spec.components[component] ||= {}
+                    currentComponent = component
                     loadWrapper(path)
                 } catch (e) {
                     if (!(e is String)) {
@@ -171,10 +174,16 @@ class Bit
 
     public function probe(file: Path, options = {}): Path {
         let path: Path
-        if (file.exists) {
-            path = file
-        } else {
-            for each (s in options.search) {
+        if (!file.exists) {
+            let search = []
+            let dir
+            if (dir = spec.components[currentComponent].path) {
+                search.push(dir)
+            }
+            if (options.search && options.search is Array) {
+                search += options.search
+            }
+            for each (s in search) {
                 if (s.join(file).exists) {
                     path = s.join(file)
                     break
@@ -182,13 +191,13 @@ class Bit
             }
             path ||= Cmd.locate(file)
         }
-        if (!path && !options.silent) {
+        if (!path) {
             throw 'component not found'
         }
         if (options.fullpath) {
             return path
         }
-        return path.toString().replace(RegExp('[/\\\\]' + file + '$'), '')
+        return path.toString().replace(RegExp('[/\\\\]' + path + '$'), '')
     }
 
     function process() {
@@ -307,12 +316,12 @@ class Bit
         Expand target.sources include+exclude and create target.files[]
      */
     function expandWildcards() {
-        let stable = targets.clone()
-        for (index in stable) {
-            let target = targets[index]
-            let files
+        let index
+        for (index = 0; index < targets.length; index++) {
+            target = targets[index]
             let src = target.sources
             if (src) {
+                let files
                 if (src.include is RegExp) {
                     files = Path('.').glob('*', {include: src.include})
                 } else if (src.include is Array) {
@@ -334,7 +343,6 @@ class Bit
                         files = files.reject(function (elt) elt.match(src.exclude))
                     }
                 }
-                let targetIndex = index
                 target.files = []
                 for each (file in files) {
                     let obj = spec.directories.obj.join(file.replaceExt(spec.extensions.obj).basename)
@@ -344,7 +352,7 @@ class Bit
                     } else {
                         spec.targets[newTarget.name] = newTarget
                     }
-                    targets.insert(targetIndex++, newTarget)
+                    targets.insert(index++, newTarget)
                     target.files.push(obj)
                 }
             }
@@ -501,6 +509,10 @@ dump('FAILED', target)
             }
         }
         for each (dep in target.depend) {
+            if (!spec.targets[dep]) {
+                whyRebuild(path, 'Rebuild', 'dependent ' + dep + ' not defined as a target.')
+                return true
+            }
             let file = spec.targets[dep].path
             if (file.modified > path.modified) {
                 whyRebuild(path, 'Rebuild', 'dependent ' + file + ' has been modified.')
@@ -600,6 +612,14 @@ public function bit(o: Object) {
 public function probe(file: Path, options = {}): Path {
     return b.probe(file, options)
 }
+
+public function program(name)
+{
+    let components = {}
+    components[name] = { path: probe(name, {fullpath: true})}
+    bit({components: components})
+}
+
 /*
     @copy   default
   

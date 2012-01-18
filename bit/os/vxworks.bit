@@ -14,6 +14,6 @@ bit({
     prefixes: {
     },
 
-    '+required': [ 'compile', 'lib', 'link' ],
-    '+optional': [ 'package', ],
+    '+required': [ 'compiler' ],
+    '+optional': [ ],
 })

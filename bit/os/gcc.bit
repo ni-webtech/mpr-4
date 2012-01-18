@@ -34,8 +34,9 @@ bit({
         ',
     },
     rules: {
-        'c->o': '${components.cc.path} -c -arch ${ARCH} ${DEBUG} ${target.defines} ${target.include} ${PREPROCESS} -o ${OUT} ${IN}',
-        'so':   '${components.cc.path} -arch ${ARCH} ${DEBUG} ${target.linker} -L${directories.lib} ${LIBS} -o ${OUT} ${IN}'
-        'exe':  '${components.cc.path} -arch ${ARCH} ${DEBUG} ${target.linker} -L${directories.lib} ${LIBS} -o ${OUT} ${IN}'
+        'c->o': '${components.compiler.path} -c -o ${OUT} -arch ${ARCH} ${DEBUG} ${target.defines} ${target.include} ${PREPROCESS} -o ${OUT} ${IN}',
+            //  MOB --- missing library switch
+        'so':   '${components.compiler.path} -o ${OUT} -arch ${ARCH} ${DEBUG} ${target.linker} -L${directories.lib} ${LIBS} ${IN}'
+        'exe':  '${components.compiler.path} -o ${OUT} -arch ${ARCH} ${DEBUG} ${target.linker} -L${directories.lib} ${LIBS} ${IN}'
     },
 })
