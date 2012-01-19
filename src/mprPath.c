@@ -177,7 +177,6 @@ int mprCopyPath(cchar *fromName, cchar *toName, int mode)
 }
 
 
-//  MOB - need a rename too
 int mprDeletePath(cchar *path)
 {
     MprFileSystem   *fs;
@@ -190,32 +189,6 @@ int mprDeletePath(cchar *path)
         return 0;
     }
     return fs->deletePath(fs, path);
-}
-
-
-static MprList *findFiles(MprList *list, cchar *dir, int flags)
-{
-    MprDirEntry     *dp;
-    MprList         *files;
-    int             next, enumDirs, incDirs;
-
-    enumDirs = flags & MPR_PATH_ENUM_DIRS ? 1 : 0;
-    incDirs = flags & MPR_PATH_INC_DIRS ? 1 : 0;
-
-    files = mprGetPathFiles(dir, enumDirs);
-    for (next = 0; (dp = mprGetNextItem(files, &next)) != 0; ) {
-        if (dp->isDir) {
-            if (incDirs) {
-                mprAddItem(list, mprJoinPath(dir, dp->name));
-            }
-            if (enumDirs) {
-                findFiles(list, mprJoinPath(dir, dp->name), flags);
-            } 
-        } else {
-            mprAddItem(list, mprJoinPath(dir, dp->name));
-        }
-    }
-    return list;
 }
 
 
@@ -487,7 +460,7 @@ char *mprGetPathBase(cchar *path)
 
 
 /*
-    Return the directory portion of a pathname into the users buffer.
+    Return the directory portion of a pathname.
  */
 char *mprGetPathDir(cchar *path)
 {
@@ -556,7 +529,7 @@ char *mprGetPathExt(cchar *path)
     This returns a list of MprDirEntry objects
  */
 #if BLD_WIN_LIKE
-MprList *mprGetPathFiles(cchar *dir, bool enumDirs)
+static MprList *getDirFiles(cchar *dir, int flags)
 {
     HANDLE          h;
     MprDirEntry     *dp;
@@ -588,7 +561,7 @@ MprList *mprGetPathFiles(cchar *dir, bool enumDirs)
         if (findData.cFileName[0] == '.' && (findData.cFileName[1] == '\0' || findData.cFileName[1] == '.')) {
             continue;
         }
-        if (enumDirs || !(findData.dwFileAttributes & FILE_ATTRIBUTE_DIRECTORY)) {
+        if (!(findData.dwFileAttributes & FILE_ATTRIBUTE_DIRECTORY) || !(flags & MPR_PATH_NODIRS)) {
             dp = mprAlloc(sizeof(MprDirEntry));
             if (dp == 0) {
                 return 0;
@@ -638,7 +611,7 @@ static void manageDirEntry(MprDirEntry *dp, int flags)
 
 
 #if BLD_UNIX_LIKE || VXWORKS || CYGWIN
-MprList *mprGetPathFiles(cchar *path, bool enumDirs)
+static MprList *getDirFiles(cchar *path, int flags)
 {
     DIR             *dir;
     MprPath         fileInfo;
@@ -662,7 +635,7 @@ MprList *mprGetPathFiles(cchar *path, bool enumDirs)
         fileInfo.isLink = 0;
         fileInfo.isDir = 0;
         rc = mprGetPathInfo(fileName, &fileInfo);
-        if (enumDirs || fileInfo.isLink || !fileInfo.isDir) { 
+        if (!fileInfo.isDir || !(flags & MPR_PATH_NODIRS) || fileInfo.isLink) { 
             if ((dp = mprAllocObj(MprDirEntry, manageDirEntry)) == 0) {
                 return 0;
             }
@@ -690,7 +663,89 @@ MprList *mprGetPathFiles(cchar *path, bool enumDirs)
 #endif
 
 
-//  MOB - need mprIsPathDir
+/*
+    Find files in the directory "dir". If base is set, use that as the prefix for returned files.
+ */
+static MprList *findFiles(MprList *list, cchar *dir, cchar *base, int flags)
+{
+    MprDirEntry     *dp;
+    MprList         *files;
+    char            *name;
+    int             next;
+
+    files = getDirFiles(dir, flags);
+    for (next = 0; (dp = mprGetNextItem(files, &next)) != 0; ) {
+        if (dp->name[0] == '.') {
+            if (dp->name[1] == '\0' || (dp->name[1] == '.' && dp->name[2] == '\0')) {
+                continue;
+            }
+            if (!(flags & MPR_PATH_INC_HIDDEN)) {
+                continue;
+            }
+        }
+        name = dp->name;
+        dp->name = mprJoinPath(base, name);
+
+        if (!(flags & MPR_PATH_DEPTH_FIRST) && !(dp->isDir && flags & MPR_PATH_NODIRS)) {
+            mprAddItem(list, dp);
+        }
+        if (dp->isDir) {
+            if (flags & MPR_PATH_DESCEND) {
+                findFiles(list, mprJoinPath(dir, name), mprJoinPath(base, name), flags);
+            } 
+        }
+        if ((flags & MPR_PATH_DEPTH_FIRST) && (!(dp->isDir && flags & MPR_PATH_NODIRS))) {
+            mprAddItem(list, dp);
+        }
+    }
+    return list;
+}
+
+
+/*
+    This returns a list of filenames
+
+    MPR_PATH_DESCEND        to traverse subdirectories
+    MPR_PATH_DEPTH_FIRST    to do a depth-first traversal
+    MPR_PATH_INC_HIDDEN     to include hidden files
+    MPR_PATH_NODIRS         to exclude subdirectories
+    MPR_PATH_RELATIVE       to return paths relative to the initial directory
+ */
+MprList *mprGetPathFiles(cchar *dir, int flags)
+{
+    cchar   *base;
+
+    if (dir == 0 || *dir == '\0') {
+        dir = ".";
+    }
+    base = (flags & MPR_PATH_RELATIVE) ? 0 : dir;
+    return findFiles(mprCreateList(-1, 0), dir, base, flags);
+}
+
+
+/*
+    Return the first directory of a pathname
+ */
+char *mprGetPathFirstDir(cchar *path)
+{
+    MprFileSystem   *fs;
+    cchar           *cp;
+    int             len;
+
+    mprAssert(path);
+
+    fs = mprLookupFileSystem(path);
+    if (isAbsPath(fs, path)) {
+        len = hasDrive(fs, path) ? 2 : 1;
+        return snclone(path, len);
+    } else {
+        if ((cp = firstSep(fs, path)) != 0) {
+            return snclone(path, cp - path);
+        }
+        return sclone(path);
+    }
+}
+
 
 int mprGetPathInfo(cchar *path, MprPath *info)
 {
@@ -732,15 +787,6 @@ char *mprGetPathParent(cchar *path)
         return mprGetPathDir(dir);
     }
     return mprGetPathDir(path);
-}
-
-
-/*
-    This returns a list of filenames
- */
-MprList *mprGetPathTree(cchar *dir, int flags)
-{
-    return findFiles(mprCreateList(-1, 0), dir, flags);
 }
 
 
@@ -944,41 +990,38 @@ char *mprGetWinPath(cchar *path)
 }
 
 
-/*
-    This normalizes a path. Returns a normalized path according to flags. Default is absolute. 
-    if MPR_PATH_NATIVE_SEP is specified in the flags, map separators to the native format.
- */
-char *mprTransformPath(cchar *path, int flags)
+bool mprIsPathAbs(cchar *path)
 {
-    char    *result;
+    MprFileSystem   *fs;
 
-#if CYGWIN
-    if (flags & MPR_PATH_ABS) {
-        if (flags & MPR_PATH_WIN) {
-            result = mprGetWinPath(path);
-        } else {
-            result = mprGetAbsPath(path);
-        }
-#else
-    if (flags & MPR_PATH_ABS) {
-        result = mprGetAbsPath(path);
+    fs = mprLookupFileSystem(path);
+    return isAbsPath(fs, path);
+}
 
-#endif
-    } else if (flags & MPR_PATH_REL) {
-        result = mprGetRelPath(path);
 
-    } else {
-        result = mprNormalizePath(path);
-    }
+bool mprIsPathDir(cchar *path)
+{
+    MprPath     info;
 
-    if (flags & MPR_PATH_NATIVE_SEP) {
-#if BLD_WIN_LIKE
-        mprMapSeparators(result, '\\');
-#elif CYGWIN
-        mprMapSeparators(result, '/');
-#endif
-    }
-    return result;
+    return (mprGetPathInfo(path, &info) == 0 && info.isDir);
+}
+
+
+bool mprIsPathRel(cchar *path)
+{
+    MprFileSystem   *fs;
+
+    fs = mprLookupFileSystem(path);
+    return !isAbsPath(fs, path);
+}
+
+
+bool mprIsPathSeparator(cchar *path, cchar c)
+{
+    MprFileSystem   *fs;
+
+    fs = mprLookupFileSystem(path);
+    return isSep(fs, c);
 }
 
 
@@ -1259,33 +1302,6 @@ char *mprNormalizePath(cchar *pathArg)
 }
 
 
-bool mprIsPathAbs(cchar *path)
-{
-    MprFileSystem   *fs;
-
-    fs = mprLookupFileSystem(path);
-    return isAbsPath(fs, path);
-}
-
-
-bool mprIsPathRel(cchar *path)
-{
-    MprFileSystem   *fs;
-
-    fs = mprLookupFileSystem(path);
-    return !isAbsPath(fs, path);
-}
-
-
-bool mprIsPathSeparator(cchar *path, cchar c)
-{
-    MprFileSystem   *fs;
-
-    fs = mprLookupFileSystem(path);
-    return isSep(fs, c);
-}
-
-
 void mprMapSeparators(char *path, int separator)
 {
     MprFileSystem   *fs;
@@ -1342,6 +1358,12 @@ char *mprReadPathContents(cchar *path, ssize *lenp)
     }
     mprCloseFile(file);
     return buf;
+}
+
+
+int mprRenamePath(cchar *from, cchar *to)
+{
+    return rename(from, to);
 }
 
 
@@ -1548,29 +1570,42 @@ char *mprSearchPath(cchar *file, int flags, cchar *search, ...)
 }
 
 
-ssize mprWritePathContents(cchar *path, cchar *buf, ssize len, int mode)
+/*
+    This normalizes a path. Returns a normalized path according to flags. Default is absolute. 
+    if MPR_PATH_NATIVE_SEP is specified in the flags, map separators to the native format.
+ */
+char *mprTransformPath(cchar *path, int flags)
 {
-    MprFile     *file;
+    char    *result;
 
-    if (mode == 0) {
-        mode = 0644;
+#if CYGWIN
+    if (flags & MPR_PATH_ABS) {
+        if (flags & MPR_PATH_WIN) {
+            result = mprGetWinPath(path);
+        } else {
+            result = mprGetAbsPath(path);
+        }
+#else
+    if (flags & MPR_PATH_ABS) {
+        result = mprGetAbsPath(path);
+
+#endif
+    } else if (flags & MPR_PATH_REL) {
+        result = mprGetRelPath(path);
+
+    } else {
+        result = mprNormalizePath(path);
     }
-    if (len < 0) {
-        len = slen(buf);
+
+    if (flags & MPR_PATH_NATIVE_SEP) {
+#if BLD_WIN_LIKE
+        mprMapSeparators(result, '\\');
+#elif CYGWIN
+        mprMapSeparators(result, '/');
+#endif
     }
-    if ((file = mprOpenFile(path, O_WRONLY | O_TRUNC | O_CREAT | O_BINARY, mode)) == 0) {
-        mprError("Can't open %s", path);
-        return MPR_ERR_CANT_OPEN;
-    }
-    if (mprWriteFile(file, buf, len) != len) {
-        mprError("Can't write %s", path);
-        mprCloseFile(file);
-        return MPR_ERR_CANT_WRITE;
-    }
-    mprCloseFile(file);
-    return len;
+    return result;
 }
-
 
 
 char *mprTrimPathExt(cchar *path)
@@ -1603,6 +1638,30 @@ char *mprTrimPathDrive(cchar *path)
         }
     }
     return sclone(path);
+}
+
+
+ssize mprWritePathContents(cchar *path, cchar *buf, ssize len, int mode)
+{
+    MprFile     *file;
+
+    if (mode == 0) {
+        mode = 0644;
+    }
+    if (len < 0) {
+        len = slen(buf);
+    }
+    if ((file = mprOpenFile(path, O_WRONLY | O_TRUNC | O_CREAT | O_BINARY, mode)) == 0) {
+        mprError("Can't open %s", path);
+        return MPR_ERR_CANT_OPEN;
+    }
+    if (mprWriteFile(file, buf, len) != len) {
+        mprError("Can't write %s", path);
+        mprCloseFile(file);
+        return MPR_ERR_CANT_WRITE;
+    }
+    mprCloseFile(file);
+    return len;
 }
 
 
