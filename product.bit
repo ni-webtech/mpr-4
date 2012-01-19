@@ -30,13 +30,6 @@ bit({
         },
     },
     '+optional': [ 'doxygen', 'ejs', 'http', 'openssl' ],
-    common: {
-        '+include':  [ ],
-        '+compiler': [ ],
-        '+defines':  [ ],
-        '+linker':   [ ],
-        '+script':   ' ',
-    },
     targets: {
 		all: {
 			group: [ 'libmpr', 'libmprssl', 'manager'],
@@ -44,12 +37,13 @@ bit({
         //  MOB - how to make a target conditional
         libmpr: {
             type: 'lib',
-			//	BIT understand that sources are compiled into objects ${OBJ}
             sources: {
                 include: ['src/*.c', 'src/deps/dtoa.c'],
                 exclude: [ /manager.c|\/ssl\/|\/utils\// ],
             },
-			headers: [ 'mpr.h' ]
+            headers: {
+                include: [ 'src/mpr.h' ],
+            },
 			build: ['dev', 'host' ],
         },
         libmprssl: {
@@ -58,6 +52,7 @@ bit({
                 // MOB OpenSSL, ...
                 'libmpr',
             ],
+            headers: [ 'src/mprSsl.h' ],
             //  MOB -- probably need libraries: []
             '+linker': [ '-lmpr', '-lssl', '-lcrypto' ],
             sources: {
@@ -80,9 +75,7 @@ bit({
         },
         makerom: {
             type: 'exe',
-            depend: [
-                'libmpr',
-            ],
+            depend: [ 'libmpr', ],
             '+linker': [ '-lmpr' ],
             sources: {
 				include: ['src/utils/makerom.c'],
@@ -90,9 +83,7 @@ bit({
         },
         chargen: {
             type: 'exe',
-            depend: [
-                'libmpr',
-            ],
+            depend: [ 'libmpr', ],
             '+linker': [ '-lmpr' ],
             sources: {
 				include: [ 'src/utils/charGen.c' ],

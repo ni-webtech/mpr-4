@@ -14,23 +14,12 @@ bit({
                 '-Wl,-rpath,$ORIGIN/../lib' 
         ],
         '+script': '
-            if (${settings.preprocess}) {
-                common.compiler += [ "-E" ]
-            }
-            if (${settings.debug}) {
-                common.linker += [ "-g" ]
-            }
-            if (${settings.hasDynamicLoad}) {
-                common.linker += [ "-ldl" ]
-            }
-            //  MOB - check out configure parseSystemConfiguration
-            //MOB - need to map to tune names
+            if (${settings.preprocess})     common.compiler += [ "-E" ]
+            if (${settings.debug})          common.linker += [ "-g" ]
+            if (${settings.hasDynamicLoad}) common.linker += [ "-ldl" ]
             let families = [/^amd/, /^arm/, /^i.86|^x86/, /^m68/, /^power|^ppc/, /^sparc/, /^strongarm/, /^x86_64/, /^xscale/, /^sh/, /^univsal/ ]
-
             let tune = ${settings.hasMtune} ? "mtune" : "mcpu"
-            if (${ARCH}.startsWith("arm")) {
-                common.compiler += [ tune + "=arm" + MODEL, "-mno-sched-prolog" ]
-            }
+            if (${ARCH}.startsWith("arm"))  common.compiler += [ tune + "=arm" + MODEL, "-mno-sched-prolog" ]
         ',
     },
     rules: {

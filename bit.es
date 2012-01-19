@@ -14,7 +14,9 @@ class Bit
     private const VERSION: Number = 0.1
 
     private var appName: String = 'bit'
-    private var cmd: CmdArgs
+    private var args: Args
+    private var options: Object
+    private var rest: Array
     private var currentBit: Path            // Name of the bit file being currently loaded
     private var currentComponent            // Name of the current component being loaded
 
@@ -24,32 +26,39 @@ class Bit
     private var spec: Object = { components: {} }
 
     private var targets: Array = []         // Ordered set of targets
-    private var cmdTargets                  // Command line targets to build
 
     private var posix = ['MACOSX', 'LINUX', 'UNIX', 'FREEBSD', 'SOLARIS']
     private var windows = ['WIN', 'WINCE']
+    private var start: Date
 
     function Bit() {
     }
 
-    private var cmdOptions = [
-        [ 'build', String ],
-        [ 'config', String ],
-        [ 'debug' ],
-        [ 'init', String ],
-        [ 'dev' ],
-        [ 'host' ],
-        [ 'init', String ],
-        [ 'overwrite' ],
-        [ 'show' ],
-        [ ['verbose', 'v'] ],
-        [ 'version' ],
-        [ 'why' ],
-    ]
+    private var argTemplate = {
+        options: {
+            benchmark: { alias: 'b' },
+            build: { range: String },
+            config: { range: String },
+            debug: {},
+            init: { range: String },
+            dev: {},
+            host: {},
+            init: { range: String },
+            overwrite: {},
+            release: {},
+            save: { range: Path },
+            show: {},
+            verbose: { alias: 'v' },
+            version: { alias: 'V' },
+            why: {},
+        },
+        usage: usage
+    }
 
     function usage(): Void {
-        print('\nUsage: ' + appName + ' [options] [targets] ...\n' +
+        print('\nUsage: bit [options] [targets] ...\n' +
             '  Options:\n' + 
+            '    --benchmark            # Measure elapsed time\n' +
             '    --build path           # Use the specified build.bit\n' +
             '    --config configuration # Use the build configuration\n' +
             '    --debug                # Debug the build\n' +
@@ -58,45 +67,46 @@ class Bit
             '    --init path-to-source  # Initialize for building\n' +
             '    --log logFile          # Send log output to a log file \n' +
             '    --overwrite            # Overwrite when generating files\n' +
+            '    --save path            # Save aggregated bit file\n' +
             '    --show                 # Show commands executed\n' +
             '    --version              # Dispay the bit version\n' +
-            '    --verbose              # Use --log stderr:2\n' +
+            '    --verbose              # Trace operations\n' +
             '')
         App.exit(1)
     }
 
     function main() {
+        let start = new Date
         global._b = this
         global.spec = spec
+        args = Args(argTemplate)
+        options = args.options
         try {
-            cmd = CmdArgs(cmdOptions)
-        } catch (e) {
-            App.log.error(e)
-            usage()
-        }
-        try {
-            processOptions(cmd)
-            if (cmd.options.init) {
-                initialize()
-            } else {
-                process()
-            }
+            processOptions(args)
+            process()
         } catch (e) {
             let msg: String
             if (e is String) {
                 msg = e
                 App.log.error('bit: Error: ' + msg + '\n')
             } else {
-                msg = (cmd.options.debug) ? e : e.message
+                msg = (options.debug) ? e : e.message
                 App.log.error('bit: Error: ' + msg + '\n')
             }
             App.exit(2)
-        } finally {
+        }
+        if (options.benchmark) {
+            App.log.activity('Benchmark', "Elapsed time %.2f" % ((start.elapsed / 1000)) + " secs.")
         }
     }
 
-    function processOptions(cmd: CmdArgs) {
-        let options = cmd.options
+    function processOptions(args: Args) {
+        if (options.debug) {
+            options.config = 'debug'
+        }
+        if (options.release) {
+            options.config = 'release'
+        }
         if (options.version) {
             print(version)
             App.exit(0)
@@ -109,7 +119,6 @@ class Bit
             App.mprLog.redirect(options.log)
         }
         currentBit = options.build
-        cmdTargets = cmd.args
     }
 
     function getDevPlatform() {
@@ -138,18 +147,18 @@ class Bit
             components: spec.components,
         }
         let bbit: Path = 'build.bit'
-        if (bbit.exists && !cmd.options.overwrite) {
+        if (bbit.exists && !options.overwrite) {
             throw 'The ' + bbit + ' file already exists. Use bit --overwrite'
         }
         trace('Generate', bbit)
         bbit.write('/*\n    build.bit -- Build It for ' + spec.settings.title + 
             '\n\n    Generated by bit.\n */\n\nbit(' + 
-            serialize(nspec, {indent: 4, commas: true}) + ')\n')
+            serialize(nspec, {pretty: true, indent: 4, commas: true, quotes: false}) + ')\n')
     }
 
     function findComponents() {
         trace('Find', 'Components')
-        let dir = Path(cmd.options.init)
+        let dir = Path(options.init)
         for each (component in spec.required + spec.optional) {
             let path = dir.join('bit/components', component + '.bit')
             vtrace('Find', 'Component ' + component)
@@ -172,7 +181,7 @@ class Bit
         }
     }
 
-    public function probe(file: Path, options = {}): Path {
+    public function probe(file: Path, control = {}): Path {
         let path: Path
         if (!file.exists) {
             let search = []
@@ -180,8 +189,8 @@ class Bit
             if (dir = spec.components[currentComponent].path) {
                 search.push(dir)
             }
-            if (options.search && options.search is Array) {
-                search += options.search
+            if (control.search && control.search is Array) {
+                search += control.search
             }
             for each (s in search) {
                 if (s.join(file).exists) {
@@ -194,13 +203,17 @@ class Bit
         if (!path) {
             throw 'component not found'
         }
-        if (options.fullpath) {
+        if (control.fullpath) {
             return path
         }
         return path.toString().replace(RegExp('[/\\\\]' + path + '$'), '')
     }
 
     function process() {
+        if (options.init) {
+            initialize()
+            return
+        }
         if (!currentBit) {
             findConfig()
         }
@@ -253,13 +266,17 @@ class Bit
         blendCommon()
         setTypes()
         setTargetPaths()
-
-        debug('Bit Configuration: \n\nBit = ' + serialize(spec, {pretty: true}))
+        Object.sortProperties(spec);
+        if (options.save) {
+            options.save.write(serialize(spec, {pretty: true, commas: true, indent: 4, quotes: false}))
+            trace('Save', options.save)
+            App.exit()
+        }
     }
 
     function getOrderedTargets() {
-        if (cmdTargets.length > 0) {
-            for each (target in cmdTargets) {
+        if (args.rest.length > 0) {
+            for each (target in args.rest) {
                 orderTargets(target, spec.targets[target])
             }
         } else {
@@ -269,7 +286,7 @@ class Bit
                 }
             }
         }
-        if (cmd.options.verbose) {
+        if (options.verbose) {
             let names = ''
             for each (target in targets) {
                 names += target.name + ' '
@@ -312,46 +329,78 @@ class Bit
         }
     }
 
+    function buildFileList(include, exclude)
+    {
+        let files
+        if (include is RegExp) {
+            files = Path('.').glob('*', {include: include})
+        } else if (include is Array) {
+            files = []
+            for each (pattern in include) {
+                files += Path('.').glob(pattern)
+            }
+        } else {
+            files = Path('.').glob(include)
+        }
+        if (exclude) {
+            if (exclude is RegExp) {
+                files = files.reject(function (elt) elt.match(exclude)) 
+            } else if (exclude is Array) {
+                for each (pattern in exclude) {
+                    files = files.reject(function (elt) { return elt.match(pattern); } ) 
+                }
+            } else {
+                files = files.reject(function (elt) elt.match(exclude))
+            }
+        }
+        return files
+    }
+
     /*
-        Expand target.sources include+exclude and create target.files[]
+        Expand target.sources and target.headers. Support include+exclude and create target.files[]
      */
     function expandWildcards() {
         let index
         for (index = 0; index < targets.length; index++) {
             target = targets[index]
-            let src = target.sources
-            if (src) {
-                let files
-                if (src.include is RegExp) {
-                    files = Path('.').glob('*', {include: src.include})
-                } else if (src.include is Array) {
-                    files = []
-                    for each (pattern in src.include) {
-                        files += Path('.').glob(pattern)
-                    }
-                } else {
-                    files = Path('.').glob(src.include)
-                }
-                if (src.exclude) {
-                    if (src.exclude is RegExp) {
-                        files = files.reject(function (elt) elt.match(src.exclude)) 
-                    } else if (src.exclude is Array) {
-                        for each (pattern in src.exclude) {
-                            files = files.reject(function (elt) { return elt.match(pattern); } ) 
-                        }
-                    } else {
-                        files = files.reject(function (elt) elt.match(src.exclude))
-                    }
-                }
-                target.files = []
+            if (target.headers) {
+                let files = buildFileList(target.headers.include, target.headers.exclude)
                 for each (file in files) {
-                    let obj = spec.directories.obj.join(file.replaceExt(spec.extensions.obj).basename)
-                    let newTarget = { name : file, path: obj, type: 'obj', files: [ file ], build: target.build }
+                    //  Create a target for each header
+                    let header = spec.directories.inc.join(file.basename)
+                    //  MOB - do we need a files[], do we need build:
+                    let newTarget = { name : file, path: header, type: 'header', files: [ file ] }
                     if (spec.targets[file]) {
                         newTarget = blend(spec.targets[file], newTarget, {combined: true})
                     } else {
                         spec.targets[newTarget.name] = newTarget
                     }
+                    targets.insert(index++, newTarget)
+                    // target.files.push(header)
+                }
+            }
+            if (target.sources) {
+                target.files = []
+                let files = buildFileList(target.sources.include, target.sources.exclude)
+                for each (file in files) {
+                    /*
+                        Create a target for each source file
+                     */
+                    let obj = spec.directories.obj.join(file.replaceExt(spec.extensions.obj).basename)
+                    //  MOB - do we need files[]
+let includes = spec.common.include
+if (target.include) {
+    includes = includes + target.include
+}
+                    let newTarget = { name : file, path: obj, type: 'obj', files: [ file ], 
+                        include: includes,
+                        /* UNUSED, build: target.build */}
+                    if (spec.targets[file]) {
+                        newTarget = blend(spec.targets[file], newTarget, {combined: true})
+                    } else {
+                        spec.targets[newTarget.name] = newTarget
+                    }
+                    newTarget.depend = depend(newTarget)
                     targets.insert(index++, newTarget)
                     target.files.push(obj)
                 }
@@ -365,7 +414,7 @@ class Bit
             common['+' + name] = spec.common[name]
         }
         for each (target in targets) {
-            if (target.type) {
+            if (target.type && target.type != 'header') {
                 blend(target, common, {combine: true})
             }
         }
@@ -391,6 +440,8 @@ class Bit
             buildLib(target, cross)
         } else if (target.type == 'exe') {
             buildExe(target, cross)
+        } else if (target.type == 'header') {
+            //  MOB
         } else {
             throw 'Unknown target type in ' + target.path
         }
@@ -402,7 +453,7 @@ class Bit
             return
         }
         debug('Building:\n' + target.path + ' = ' + serialize(target, {pretty: true}))
-        if (cmd.options.debug) {
+        if (options.debug) {
             dump('TARGET', target)
         }
         let transition = 'EXE'
@@ -436,7 +487,7 @@ dump('FAILED', target)
             return
         }
         debug('Building:\n' + serialize(target, {pretty: true}))
-        if (cmd.options.debug) {
+        if (options.debug) {
             dump('TARGET', target)
         }
         let transition = 'LIB'
@@ -467,7 +518,7 @@ dump('FAILED', target)
             return
         }
         debug('Building:\n' + serialize(target, {pretty: true}))
-        if (cmd.options.debug) {
+        if (options.debug) {
             dump('TARGET', target)
         }
         let ext = target.path.extension
@@ -482,11 +533,19 @@ dump('FAILED', target)
                     return
                 }
             }
+            //  MOB - rethink how this is done
             spec.target = target
             spec.PREPROCESS = ''
             spec.OUT = target.path
             spec.IN = file
             spec.DEBUG = '-g'
+    /* FUTURE
+            let libs = []
+            for each (lib in target.libraries) {
+                libs.push("-l" + Path(lib).trimExt().toString().replace(/^lib/, ''))
+            }
+            spec.LIBS = libs.join(' ')
+     */
             let command = rule.expand(spec, {fill: ''})
             trace('Compile', file)
             let run = runCmd(command)
@@ -504,14 +563,22 @@ dump('FAILED', target)
         }
         for each (file in inputs) {
             if (file.modified > path.modified) {
-                whyRebuild(path, 'Rebuild', 'ingredient ' + file + ' has been modified.')
+                whyRebuild(path, 'Rebuild', 'input ' + file + ' has been modified.')
                 return true
             }
         }
-        for each (dep in target.depend) {
+        for each (let dep: Path in target.depend) {
             if (!spec.targets[dep]) {
-                whyRebuild(path, 'Rebuild', 'dependent ' + dep + ' not defined as a target.')
-                return true
+                /* If dependency is not a target, then treat as a file */
+                if (!dep.modified) {
+                    whyRebuild(path, 'Rebuild', 'missing dependency ' + dep)
+                    return true
+                }
+                if (dep.modified > path.modified) {
+                    whyRebuild(path, 'Rebuild', 'dependency ' + dep + ' has been modified.')
+                    return true
+                }
+                return false
             }
             let file = spec.targets[dep].path
             if (file.modified > path.modified) {
@@ -523,13 +590,35 @@ dump('FAILED', target)
         return false
     }
 
-    function depend(path) {
-        let str = path.readString()
-        let includes = str.match(/^#include.*"/gm)
-        for (i in includes) {
-            s = includes[i]
-            includes[i] = includes[i].replace(/#include.*"(.*)"/, '$1')
+    function depend(target): Array {
+        let includes: Array = []
+        for each (path in target.files) {
+            let str = path.readString()
+            //  MOB - remove when array += null is a NOP
+            let more = str.match(/^#include.*"/gm)
+            if (more) {
+                includes += more
+            }
         }
+        let depends = []
+        for each (item in includes) {
+            let ifile = item.replace(/#include.*"(.*)"/, '$1')
+            let path
+            for each (dir in target.include) {
+                dir = dir.replace('-I', '')
+                path = Path(dir).join(ifile)
+                if (path.exists && !path.isDir) {
+                    break
+                }
+                path = null
+            }
+            if (path) {
+                depends.push(path)
+            } else {
+                App.log.error('Can\'t find include file ' + ifile + ' in ' + target.name)
+            }
+        }
+        return depends
     }
 
     function setTokens(cross: Boolean) {
@@ -555,7 +644,7 @@ dump('FAILED', target)
     }
 
     function runCmd(command: String): Cmd {
-        if (cmd.options.show) {
+        if (options.show) {
             App.log.activity('Run', command)
         }
         let run = Cmd(command)
@@ -567,31 +656,31 @@ dump('FAILED', target)
     }
 
     function vtrace(tag, msg) {
-        if (cmd.options.verbose) {
+        if (options.verbose) {
             App.log.activity(tag, msg)
         }
     }
 
     function whyRebuild(path, tag, msg) {
-        if (cmd.options.why) {
+        if (options.why) {
             App.log.activity(tag, path + ' because ' + msg)
         }
     }
 
     function whySkip(path, msg) {
-        if (cmd.options.why) {
+        if (options.why) {
             App.log.activity('Target', path + ' ' + msg)
         }
     }
 
     function whyMissing(msg) {
-        if (cmd.options.why) {
+        if (options.why) {
             App.log.activity('Init', msg)
         }
     }
 
     function debug(msg) {
-        if (cmd.options.debug) {
+        if (options.debug) {
             App.log.activity('Debug', msg)
         }
     }
