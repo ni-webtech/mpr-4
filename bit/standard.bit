@@ -12,6 +12,6 @@ bit({
         extensions: 'extensions',
 	},
     common: {
-        '+include': [ '-I${directories.out}/inc' ],
+        '+includes': [ '${directories.out}/inc' ],
     },
 })

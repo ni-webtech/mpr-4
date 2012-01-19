@@ -6,9 +6,9 @@ bit({
     common: {
         '+compiler': [ '-fPIC', '-Wall', '-Wno-unused-result' ],
         '+defines':  [ '-DPIC' ],
+        '+libraries':[ 'm' ],
         '+linker':   [ 
                 '-L${directories.lib}', 
-                '-lm', 
                 '-Wl,--enable-new-dtags', 
                 '-Wl,-rpath,$ORIGIN/', 
                 '-Wl,-rpath,$ORIGIN/../lib' 
@@ -16,7 +16,7 @@ bit({
         '+script': '
             if (${settings.preprocess})     common.compiler += [ "-E" ]
             if (${settings.debug})          common.linker += [ "-g" ]
-            if (${settings.hasDynamicLoad}) common.linker += [ "-ldl" ]
+            if (${settings.hasDynamicLoad}) common.libraries += [ "dl" ]
             let families = [/^amd/, /^arm/, /^i.86|^x86/, /^m68/, /^power|^ppc/, /^sparc/, /^strongarm/, /^x86_64/, /^xscale/, /^sh/, /^univsal/ ]
             let tune = ${settings.hasMtune} ? "mtune" : "mcpu"
             if (${ARCH}.startsWith("arm"))  common.compiler += [ tune + "=arm" + MODEL, "-mno-sched-prolog" ]

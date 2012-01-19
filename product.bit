@@ -29,21 +29,24 @@ bit({
             }
         },
     },
+
     '+optional': [ 'doxygen', 'ejs', 'http', 'openssl' ],
+
     targets: {
 		all: {
 			group: [ 'libmpr', 'libmprssl', 'manager'],
 		},
-        //  MOB - how to make a target conditional
+/*
+        ${@file}
+        ${!cmd ... args}
+        target: { enable: 'expression' }
+        XXXX flags required to link with target
+ */
         libmpr: {
             type: 'lib',
-            sources: {
-                include: ['src/*.c', 'src/deps/dtoa.c'],
-                exclude: [ /manager.c|\/ssl\/|\/utils\// ],
-            },
-            headers: {
-                include: [ 'src/mpr.h' ],
-            },
+            sources: [ 'src/*.c', 'src/deps/dtoa.c' ],
+            exclude: [ /manager.c|\/ssl\/|\/utils\// ],
+            headers: [ 'src/mpr.h' ],
 			build: ['dev', 'host' ],
         },
         libmprssl: {
@@ -53,21 +56,16 @@ bit({
                 'libmpr',
             ],
             headers: [ 'src/mprSsl.h' ],
-            //  MOB -- probably need libraries: []
-            '+linker': [ '-lmpr', '-lssl', '-lcrypto' ],
-            sources: {
-                include: [ 'src/ssl/*.c' ],
-            }
+            sources: [ 'src/ssl/*.c' ],
+            '+libraries': [ 'mpr', 'ssl', 'crypto' ],
         },
         manager: {
             type: 'exe',
             depend: [
                 'libmpr',        //  MOB - what if ssl is disable?
             ],
-            sources: {
-				include: [ 'src/manager.c' ],
-			},
-            '+linker': [ '-lmpr' ],
+            sources: [ 'src/manager.c' ],
+            '+libraries': [ 'mpr' ],
 			//	MOB - what about pre/post actions
 			'+action': "print('Custom script')",
             //  MOB - when does this message get emitted?
@@ -76,18 +74,14 @@ bit({
         makerom: {
             type: 'exe',
             depend: [ 'libmpr', ],
-            '+linker': [ '-lmpr' ],
-            sources: {
-				include: ['src/utils/makerom.c'],
-			},
+            sources: ['src/utils/makerom.c'],
+            '+libraries': [ 'mpr' ],
         },
         chargen: {
             type: 'exe',
             depend: [ 'libmpr', ],
-            '+linker': [ '-lmpr' ],
-            sources: {
-				include: [ 'src/utils/charGen.c' ],
-			},
+            sources: [ 'src/utils/charGen.c' ],
+            '+libraries': [ 'mpr' ],
         },
 	},
 })

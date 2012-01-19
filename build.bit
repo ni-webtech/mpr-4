@@ -7,7 +7,6 @@
 bit({
     "+blend": [
         "bit/x86_64-apple-macosx.bit",
-        "depend.bit",
         "product.bit",
     ],
     "+settings": {

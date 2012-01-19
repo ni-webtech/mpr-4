@@ -140,7 +140,6 @@ class Bit
         let nspec = { 
             '+blend' : [
                 platform,
-                'depend.bit',
                 'product.bit',
             ],
             '+settings': spec.settings,
@@ -268,6 +267,8 @@ class Bit
         setTargetPaths()
         Object.sortProperties(spec);
         if (options.save) {
+            spec.blended = spec.blend
+            delete spec.blend
             options.save.write(serialize(spec, {pretty: true, commas: true, indent: 4, quotes: false}))
             trace('Save', options.save)
             App.exit()
@@ -381,19 +382,19 @@ class Bit
             }
             if (target.sources) {
                 target.files = []
-                let files = buildFileList(target.sources.include, target.sources.exclude)
+                let files = buildFileList(target.sources, target.exclude)
                 for each (file in files) {
                     /*
                         Create a target for each source file
                      */
                     let obj = spec.directories.obj.join(file.replaceExt(spec.extensions.obj).basename)
                     //  MOB - do we need files[]
-let includes = spec.common.include
-if (target.include) {
-    includes = includes + target.include
+let includes = spec.common.includes
+if (target.includes) {
+    includes = includes + target.includes
 }
                     let newTarget = { name : file, path: obj, type: 'obj', files: [ file ], 
-                        include: includes,
+                        includes: includes,
                         /* UNUSED, build: target.build */}
                     if (spec.targets[file]) {
                         newTarget = blend(spec.targets[file], newTarget, {combined: true})
@@ -467,6 +468,7 @@ dump('FAILED', target)
         spec.PREPROCESS = ''
         spec.OUT = target.path
         spec.IN = target.files.join(' ')
+        spec.LIBS = target.libraries.map(function(e) '-l' + Path(e).trimExt().toString().replace(/^lib/, '') )
         spec.DEBUG = '-g'
 
         /* Double expand so rules tokens can use ${OUT} */
@@ -502,6 +504,7 @@ dump('FAILED', target)
         spec.OUT = target.path
         spec.IN = target.files.join(' ')
         spec.DEBUG = '-g'
+        spec.LIBS = target.libraries.map(function(e) '-l' + Path(e).trimExt().toString().replace(/^lib/, '') )
 
         /* Double expand so rules tokens can use ${OUT} */
         let command = rule.expand(spec, {fill: ''})
@@ -539,13 +542,9 @@ dump('FAILED', target)
             spec.OUT = target.path
             spec.IN = file
             spec.DEBUG = '-g'
-    /* FUTURE
-            let libs = []
-            for each (lib in target.libraries) {
-                libs.push("-l" + Path(lib).trimExt().toString().replace(/^lib/, ''))
-            }
-            spec.LIBS = libs.join(' ')
-     */
+            spec.INCLUDES = (target.includes) ? spec.INCLUDES = target.includes.map(function(e) '-I' + e ) : ''
+            spec.LIBS = target.libraries.map(function(e) '-l' + Path(e).trimExt().toString().replace(/^lib/, '') )
+
             let command = rule.expand(spec, {fill: ''})
             trace('Compile', file)
             let run = runCmd(command)
@@ -604,7 +603,7 @@ dump('FAILED', target)
         for each (item in includes) {
             let ifile = item.replace(/#include.*"(.*)"/, '$1')
             let path
-            for each (dir in target.include) {
+            for each (dir in target.includes) {
                 dir = dir.replace('-I', '')
                 path = Path(dir).join(ifile)
                 if (path.exists && !path.isDir) {
@@ -615,7 +614,7 @@ dump('FAILED', target)
             if (path) {
                 depends.push(path)
             } else {
-                App.log.error('Can\'t find include file ' + ifile + ' in ' + target.name)
+                App.log.error('Can\'t find include file ' + ifile + ' for ' + target.name)
             }
         }
         return depends

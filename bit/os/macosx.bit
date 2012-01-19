@@ -18,13 +18,12 @@ bit({
     common: {
         '+compiler': [ '-fPIC', '-Wall', '-Wno-unused-result' ],
         '+defines':  [ '-DPIC' ],
-        '+linker': [
+        '+libraries':[ 'pthread', 'm' ],
+        '+linker':   [
             '-L${directories.lib}',
             "-Wl,-rpath,@executable_path/../lib",   //  MOB - only for libs?
             "-Wl,-rpath,@executable_path/",         //  MOB - only for libs?
             "-Wl,-rpath,@loader_path/",             //  MOB - only for libs?
-            "-lpthread",
-            "-lm",
         ],
         '+script': '
             let families = [/^amd/, /^arm/, /^i.86|^x86/, /^m68/, /^power|^ppc/, /^sparc/, /^strongarm/, /^x86_64/, /^xscale/, /^sh/, /^univsal/ ]
@@ -37,7 +36,7 @@ bit({
     },
 
     rules: {
-        'c->o': '${components.compiler.path} -c -o ${OUT} -arch ${ARCH} ${DEBUG} ${target.defines} ${target.include} ${PREPROCESS} ${IN}',
+        'c->o': '${components.compiler.path} -c -o ${OUT} -arch ${ARCH} ${DEBUG} ${target.defines} ${INCLUDES} ${PREPROCESS} ${IN}',
         'LIB':  '${components.compiler.path} -dynamiclib -o ${OUT} -arch ${ARCH} ${DEBUG} ${target.linker} -install_name @rpath/${OUT} ${LIBS} ${IN}'
         'EXE':  '${components.compiler.path} -o ${OUT} -arch ${ARCH} ${DEBUG} ${target.linker} -L${directories.lib} ${LIBS} ${IN}'
 
