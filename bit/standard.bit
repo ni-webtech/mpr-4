@@ -1,0 +1,17 @@
+/*
+    standard.bit -- Standard Embedthis Build Settings
+ */
+
+bit({
+	directories: {
+        out:        'out',
+		bin:     	'${directories.out}/bin',
+		inc:    	'${directories.out}/inc',
+		lib:    	'${directories.out}/lib',
+		obj:    	'${directories.out}/obj',
+        extensions: 'extensions',
+	},
+    common: {
+        '+includes': [ '${directories.out}/inc' ],
+    },
+})

@@ -1,0 +1,48 @@
+/*
+    macosx.bit -- MAC OS X Settings
+ */
+
+bit({
+    OS: 'MACOSX',
+    LIKE: 'POSIX',
+
+    '+blend': [    
+        'posix.bit',
+    ],
+
+    extensions: {
+        'shlib': 'dylib',
+        'shobj': 'dylib',
+    },
+
+    common: {
+        '+compiler': [ '-fPIC', '-Wall', '-Wno-unused-result' ],
+        '+defines':  [ '-DPIC' ],
+        '+libraries':[ 'pthread', 'm' ],
+        '+linker':   [
+            '-L${directories.lib}',
+            "-Wl,-rpath,@executable_path/../lib",   //  MOB - only for libs?
+            "-Wl,-rpath,@executable_path/",         //  MOB - only for libs?
+            "-Wl,-rpath,@loader_path/",             //  MOB - only for libs?
+        ],
+        '+script': '
+            let families = [/^amd/, /^arm/, /^i.86|^x86/, /^m68/, /^power|^ppc/, /^sparc/, /^strongarm/, /^x86_64/, /^xscale/, /^sh/, /^univsal/ ]
+            if (${settings.preprocess})     common.compiler += [ "-E" ]
+            if (${settings.debug})          common.linker += [ "-g" ]
+            if (${settings.hasDynamicLoad}) common.linker += [ "-ldl" ]
+            let tune = ${settings.hasMtune} ? "mtune" : "mcpu"
+            if (${ARCH}.startsWith("arm"))  common.compiler += [ tune + "=arm" + MODEL, "-mno-sched-prolog" ]
+        ',
+    },
+
+    rules: {
+        'c->o': '${components.compiler.path} -c -o ${OUT} -arch ${ARCH} ${DEBUG} ${target.defines} ${INCLUDES} ${PREPROCESS} ${IN}',
+        'LIB':  '${components.compiler.path} -dynamiclib -o ${OUT} -arch ${ARCH} ${DEBUG} ${target.linker} -install_name @rpath/${OUT} ${LIBS} ${IN}'
+        'EXE':  '${components.compiler.path} -o ${OUT} -arch ${ARCH} ${DEBUG} ${target.linker} -L${directories.lib} ${LIBS} ${IN}'
+
+/*
+"/usr/bin/cc" "-o" "../out/bin/manager" "../out/obj/manager.o" "-L../out/lib" "-Wl,-rpath,@executable_path/../lib"
+"-Wl,-rpath,@executable_path/" "-Wl,-rpath,@loader_path/" "-lmpr" "-g" "-arch" "x86_64" "-lpthread" "-lm" 
+*/
+    },
+})

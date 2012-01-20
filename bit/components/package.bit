@@ -1,0 +1,12 @@
+/*
+    package.bit - Package component for Bit
+ */
+
+throw "not found"
+
+/*
+let path = probe('package')
+if (path) {
+    bit({components: { package: { path: path }}})
+}
+*/

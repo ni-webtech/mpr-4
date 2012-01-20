@@ -1,0 +1,31 @@
+/*
+    gcc.bit -- GCC Build Settings
+ */
+
+bit({
+    common: {
+        '+compiler': [ '-fPIC', '-Wall', '-Wno-unused-result' ],
+        '+defines':  [ '-DPIC' ],
+        '+libraries':[ 'm' ],
+        '+linker':   [ 
+                '-L${directories.lib}', 
+                '-Wl,--enable-new-dtags', 
+                '-Wl,-rpath,$ORIGIN/', 
+                '-Wl,-rpath,$ORIGIN/../lib' 
+        ],
+        '+script': '
+            if (${settings.preprocess})     common.compiler += [ "-E" ]
+            if (${settings.debug})          common.linker += [ "-g" ]
+            if (${settings.hasDynamicLoad}) common.libraries += [ "dl" ]
+            let families = [/^amd/, /^arm/, /^i.86|^x86/, /^m68/, /^power|^ppc/, /^sparc/, /^strongarm/, /^x86_64/, /^xscale/, /^sh/, /^univsal/ ]
+            let tune = ${settings.hasMtune} ? "mtune" : "mcpu"
+            if (${ARCH}.startsWith("arm"))  common.compiler += [ tune + "=arm" + MODEL, "-mno-sched-prolog" ]
+        ',
+    },
+    rules: {
+        'c->o': '${components.compiler.path} -c -o ${OUT} -arch ${ARCH} ${DEBUG} ${target.defines} ${target.include} ${PREPROCESS} -o ${OUT} ${IN}',
+            //  MOB --- missing library switch
+        'so':   '${components.compiler.path} -o ${OUT} -arch ${ARCH} ${DEBUG} ${target.linker} -L${directories.lib} ${LIBS} ${IN}'
+        'exe':  '${components.compiler.path} -o ${OUT} -arch ${ARCH} ${DEBUG} ${target.linker} -L${directories.lib} ${LIBS} ${IN}'
+    },
+})

@@ -1,0 +1,19 @@
+/*
+    vxworks.bit -- VxWorks Settings
+ */
+
+bit({
+    extensions: {
+        lib:   'a',
+        shlib: 'out',
+        shobj: 'out',
+        obj:   'o',
+        exe:   'out',
+    },
+
+    prefixes: {
+    },
+
+    '+required': [ 'compiler' ],
+    '+optional': [ ],
+})

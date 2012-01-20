@@ -1,0 +1,25 @@
+/*
+    globals.bit -- Alias definitions
+ */
+
+bit({
+    //  MOB - reduce this list down
+    //  Use prefixes.XXX
+
+/*
+    DEBUG: "",
+    INC: "",
+    LIB: "",
+    SHOBJ: "",
+    OUT: "",
+    PREFIX: "",
+    PREFIX_USER: "",
+    PREFIX_PRODUCT: "",
+    ORIGIN: "",
+    LIBS: "",
+    SRC: "",
+    PRODUCT: "",
+    VERSION: "",
+    ROOT: "",
+*/
+})
