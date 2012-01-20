@@ -18,5 +18,5 @@ bit({
     },
 
     '+required': [ 'compiler' ],
-    '+optional': [ 'package', ],
+    '+optional': [ ],
 })

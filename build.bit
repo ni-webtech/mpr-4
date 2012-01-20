@@ -9,12 +9,16 @@ bit({
         "bit/x86_64-apple-macosx.bit",
         "product.bit",
     ],
+    directories: {
+        base: ".",
+    },
     "+settings": {
         product: "mpr",
         title: "Multithreaded Portable Runtime",
         version: "4.0.0",
         buildNumber: "B0",
         configuration: "debug",
+        debug: true,
         charlen: 1,
         tune: "size",
         assert: true,

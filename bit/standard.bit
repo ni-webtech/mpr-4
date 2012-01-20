@@ -4,6 +4,7 @@
 
 bit({
 	directories: {
+        src :       '.',
         out:        'out',
 		cfg:     	'${directories.out}/${settings.configuration}',
 		bin:     	'${directories.cfg}/bin',
@@ -13,7 +14,7 @@ bit({
         extensions: 'extensions',
 	},
     common: {
-        //  MOB "." just for buildConfig.h
-        '+includes': [ '.', '${directories.cfg}/inc' ],
+        //  MOB "src." just for buildConfig.h
+        '+includes': [ '.' ],
     },
 })

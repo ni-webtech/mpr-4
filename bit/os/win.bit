@@ -29,7 +29,7 @@ bit({
     },
 
     '+required': [ 'compiler', 'rcompile', 'winsdk' ],
-    '+optional': [ 'package' ],
+    '+optional': [ 'inno' ],
 
     targets: {
         '+script': "

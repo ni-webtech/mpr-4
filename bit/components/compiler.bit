@@ -17,13 +17,17 @@ function compile(command: String, contents: String = null): Boolean {
         command += ' -c ' + file
     }
     command = '' + cc + ' ' + command
-    let cmd = Cmd(command)
-    if (cmd.status != 0) {
-        App.log.debug(2, cmd.error)
-    }
-    if (file) {
-        file.remove()
-        file.replaceExt('o').remove()
+    let cmd
+    try {
+        cmd = Cmd(command)
+        if (cmd.status != 0) {
+            App.log.debug(2, cmd.error)
+        }
+    } finally {
+        if (file) {
+            file.remove()
+            file.basename.replaceExt('o').remove()
+        }
     }
     return cmd.status == 0
 }

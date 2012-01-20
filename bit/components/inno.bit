@@ -1,0 +1,7 @@
+/*
+    inno.bit - InnoSetup component for Bit
+ */
+
+if (spec.OS == 'WIN') {
+    bit({components: { lib: { path: probe('issc', {fullpath: true})}}})
+}

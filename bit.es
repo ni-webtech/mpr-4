@@ -15,6 +15,7 @@ class Bit
 
     private var appName: String = 'bit'
     private var args: Args
+    private var src: Path                   // Source directory
     private var options: Object
     private var settings: Object
     private var rest: Array
@@ -140,14 +141,23 @@ class Bit
 
     function setDefaults() {
         spec.settings.configuration = options.config
+        if (src) {
+            spec.directories.src = src
+        } else {
+            src = spec.directories.src
+        }
     }
 
     function initialize() {
+        src = Path(options.init)
+        //  MOB - what about cross
         let dev = getDevPlatform()
-        //  MOB - 
-        let platform = Path('bit').join(dev).joinExt('bit')
+        let platform = src.join('bit', dev).joinExt('bit')
+        if (!platform.exists) {
+            throw 'Can\'t find bit configuration at "' + src + '"'
+        }
         loadWrapper(platform)
-        loadWrapper('product.bit')
+        loadWrapper(src.join('product.bit'))
         trace('Init', spec.settings.title)
 
         setDefaults()
@@ -159,8 +169,12 @@ class Bit
         let nspec = { 
             '+blend' : [
                 platform,
-                'product.bit',
+                src.join('product.bit'),
             ],
+            directories: { 
+                src: src.absolute,
+                out: Path('.').relativeFrom(src)
+            },
             '+settings': spec.settings,
             components: spec.components,
         }
@@ -176,9 +190,8 @@ class Bit
 
     function findComponents() {
         trace('Find', 'Components')
-        let dir = Path(options.init)
         for each (component in spec.required + spec.optional) {
-            let path = dir.join('bit/components', component + '.bit')
+            let path = src.join('bit/components', component + '.bit')
             vtrace('Find', 'Component ' + component)
             if (path.exists) {
                 try {
@@ -210,7 +223,7 @@ class Bit
             if (control.search && control.search is Array) {
                 search += control.search
             }
-            for each (s in search) {
+            for each (let s: Path in search) {
                 if (s.join(file).exists) {
                     path = s.join(file)
                     break
@@ -233,13 +246,12 @@ class Bit
             return
         }
         if (!currentBit) {
-            findConfig()
+            findBitfile()
         }
         loadWrapper(currentBit)
         setDefaults()
         expandTokens(spec)
         makeDirs()
-
         let host = spec.host
         host.cross ||= (host.arch != Config.CPU || host.os != Config.OS)
         if (host.cross) {
@@ -266,7 +278,7 @@ class Bit
         spec = blend(spec, o, {combine: true})
     }
 
-    function findConfig() {
+    function findBitfile() {
         let base: Path = currentBit || '.'
         for (let d: Path = base; d.parent != d; d = d.parent) {
             let f: Path = d.join('build.bit')
@@ -288,7 +300,6 @@ class Bit
         setTargetPaths()
         Object.sortProperties(spec);
         if (options.save) {
-            spec.blended = spec.blend
             delete spec.blend
             options.save.write(serialize(spec, {pretty: true, commas: true, indent: 4, quotes: false}))
             trace('Save', "Combined Bit files to: " + options.save)
@@ -363,14 +374,14 @@ class Bit
     {
         let files
         if (include is RegExp) {
-            files = Path('.').glob('*', {include: include})
+            files = Path(src).glob('*', {include: include})
         } else if (include is Array) {
             files = []
             for each (pattern in include) {
-                files += Path('.').glob(pattern)
+                files += Path(src).glob(pattern)
             }
         } else {
-            files = Path('.').glob(include)
+            files = Path(src).glob(include)
         }
         if (exclude) {
             if (exclude is RegExp) {
@@ -577,7 +588,8 @@ dump('FAILED', target)
             spec.PREPROCESS = ''
             spec.OUT = target.path
             spec.IN = file
-            spec.INCLUDES = (target.includes) ? spec.INCLUDES = target.includes.map(function(e) '-I' + e ) : ''
+            spec.INCLUDES = (target.includes) ? 
+                spec.INCLUDES = target.includes.map(function(e) '-I' + Path(src).join(e) ) : ''
             spec.LIBS = target.libraries.map(function(e) '-l' + Path(e).trimExt().toString().replace(/^lib/, '') )
 
             let command = rule.expand(spec, {fill: ''})
