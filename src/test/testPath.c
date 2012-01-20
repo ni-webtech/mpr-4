@@ -240,7 +240,7 @@ static void testNormalize(MprTestGroup *gp)
 
 static void testRelPath(MprTestGroup *gp)
 {
-    char    *path, *absPath, *out, *cwd;
+    char    *path, *absPath;
     
     path = mprGetRelPath("Makefile", 0);
     assert(strcmp(path, "Makefile") == 0);
