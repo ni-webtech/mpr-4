@@ -10,55 +10,56 @@ bit({
 		version: '4.0.0',
 		buildNumber: 'B0',
         configuration: 'debug',
+        debug: true,
         charlen: 1,
         tune: 'size',
         assert: true,
         float: true,
         legacy: false,
         rom: false,
+        preprocess: false,
     },
+
     configurations: {
-        debug: {
-            settings: {
-                debug: true,
-            },
-        },
-        release: {
-            settings: {
-                debug: false,
-            }
-        },
+        debug: { settings: { 
+            debug: true, 
+            assert: true,
+        }, },
+        release: { settings: { 
+            debug: false, 
+            assert: false,
+        } },
     },
 
     '+optional': [ 'doxygen', 'ejs', 'http', 'openssl' ],
+
+    common: {
+        '+includes': [ 'src' ]
+    },
 
     targets: {
 		all: {
 			group: [ 'libmpr', 'libmprssl', 'manager'],
 		},
-/*
-        ${@file}
-        ${!cmd ... args}
-        target: { enable: 'expression' }
-        XXXX flags required to link with target
- */
+
         libmpr: {
             type: 'lib',
             sources: [ 'src/*.c', 'src/deps/dtoa.c' ],
             exclude: [ /manager.c|\/ssl\/|\/utils\// ],
-            headers: [ 'src/mpr.h' ],
 			build: ['dev', 'host' ],
         },
+
         libmprssl: {
+            enable: '"${components.openssl.path"',
             type: 'lib',
             depend: [
                 // MOB OpenSSL, ...
                 'libmpr',
             ],
-            headers: [ 'src/mprSsl.h' ],
             sources: [ 'src/ssl/*.c' ],
             '+libraries': [ 'mpr', 'ssl', 'crypto' ],
         },
+
         manager: {
             type: 'exe',
             depend: [
@@ -66,17 +67,15 @@ bit({
             ],
             sources: [ 'src/manager.c' ],
             '+libraries': [ 'mpr' ],
-			//	MOB - what about pre/post actions
-			'+action': "print('Custom script')",
-            //  MOB - when does this message get emitted?
-            '+message': 'Custom build message - Building manager'
         },
+
         makerom: {
             type: 'exe',
             depend: [ 'libmpr', ],
             sources: ['src/utils/makerom.c'],
             '+libraries': [ 'mpr' ],
         },
+
         chargen: {
             type: 'exe',
             depend: [ 'libmpr', ],

@@ -5,13 +5,15 @@
 bit({
 	directories: {
         out:        'out',
-		bin:     	'${directories.out}/bin',
-		inc:    	'${directories.out}/inc',
-		lib:    	'${directories.out}/lib',
-		obj:    	'${directories.out}/obj',
+		cfg:     	'${directories.out}/${settings.configuration}',
+		bin:     	'${directories.cfg}/bin',
+		inc:    	'${directories.cfg}/inc',
+		lib:    	'${directories.cfg}/lib',
+		obj:    	'${directories.cfg}/obj',
         extensions: 'extensions',
 	},
     common: {
-        '+includes': [ '${directories.out}/inc' ],
+        //  MOB "." just for buildConfig.h
+        '+includes': [ '.', '${directories.cfg}/inc' ],
     },
 })

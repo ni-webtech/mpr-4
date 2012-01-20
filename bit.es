@@ -6,7 +6,7 @@
 
 module embedthis.bit {
 
-require ejs.unix
+// require ejs.unix
 
 class Bit 
 {
@@ -16,6 +16,7 @@ class Bit
     private var appName: String = 'bit'
     private var args: Args
     private var options: Object
+    private var settings: Object
     private var rest: Array
     private var currentBit: Path            // Name of the bit file being currently loaded
     private var currentComponent            // Name of the current component being loaded
@@ -38,16 +39,17 @@ class Bit
         options: {
             benchmark: { alias: 'b' },
             build: { range: String },
-            config: { range: String },
+            config: { range: String, value: 'debug' },
             debug: {},
-            init: { range: String },
             dev: {},
-            host: {},
+            diagnose: { alias: 'd' },
             init: { range: String },
-            overwrite: {},
+            host: {},
+            init: { alias: 'i', range: String },
+            overwrite: { alias: 'o' },
             release: {},
             save: { range: Path },
-            show: {},
+            show: { alias: 's'},
             verbose: { alias: 'v' },
             version: { alias: 'V' },
             why: {},
@@ -61,7 +63,8 @@ class Bit
             '    --benchmark            # Measure elapsed time\n' +
             '    --build path           # Use the specified build.bit\n' +
             '    --config configuration # Use the build configuration\n' +
-            '    --debug                # Debug the build\n' +
+            '    --diagnose             # Emit diagnostic trace \n' +
+            '    --debug                # Same as --config debug\n' +
             '    --dev                  # Build the dev tools only\n' +
             '    --host                 # Build for the host only\n' +
             '    --init path-to-source  # Initialize for building\n' +
@@ -69,6 +72,7 @@ class Bit
             '    --overwrite            # Overwrite when generating files\n' +
             '    --save path            # Save aggregated bit file\n' +
             '    --show                 # Show commands executed\n' +
+            '    --release              # Same as --config release\n' +
             '    --version              # Dispay the bit version\n' +
             '    --verbose              # Trace operations\n' +
             '')
@@ -78,9 +82,12 @@ class Bit
     function main() {
         let start = new Date
         global._b = this
-        global.spec = spec
         args = Args(argTemplate)
         options = args.options
+        settings = args.settings
+        global.spec = spec
+        global.settings = settings
+
         try {
             processOptions(args)
             process()
@@ -90,7 +97,7 @@ class Bit
                 msg = e
                 App.log.error('bit: Error: ' + msg + '\n')
             } else {
-                msg = (options.debug) ? e : e.message
+                msg = (options.diagnose) ? e : e.message
                 App.log.error('bit: Error: ' + msg + '\n')
             }
             App.exit(2)
@@ -125,6 +132,16 @@ class Bit
         return 'x86_64-apple-macosx.bit'
     }
 
+    function makeDirs() {
+        for each (d in spec.directories) {
+            Path(d).makeDir()
+        }
+    }
+
+    function setDefaults() {
+        spec.settings.configuration = options.config
+    }
+
     function initialize() {
         let dev = getDevPlatform()
         //  MOB - 
@@ -133,9 +150,11 @@ class Bit
         loadWrapper('product.bit')
         trace('Init', spec.settings.title)
 
+        setDefaults()
         expandTokens(spec)
         setTypes()
         findComponents()
+        makeDirs()
 
         let nspec = { 
             '+blend' : [
@@ -200,12 +219,12 @@ class Bit
             path ||= Cmd.locate(file)
         }
         if (!path) {
-            throw 'component not found'
+            throw 'component ' + file + ' not found'
         }
         if (control.fullpath) {
             return path
         }
-        return path.toString().replace(RegExp('[/\\\\]' + path + '$'), '')
+        return path.toString().replace(RegExp('[/\\\\]' + file + '$'), '')
     }
 
     function process() {
@@ -217,7 +236,9 @@ class Bit
             findConfig()
         }
         loadWrapper(currentBit)
+        setDefaults()
         expandTokens(spec)
+        makeDirs()
 
         let host = spec.host
         host.cross ||= (host.arch != Config.CPU || host.os != Config.OS)
@@ -270,7 +291,7 @@ class Bit
             spec.blended = spec.blend
             delete spec.blend
             options.save.write(serialize(spec, {pretty: true, commas: true, indent: 4, quotes: false}))
-            trace('Save', options.save)
+            trace('Save', "Combined Bit files to: " + options.save)
             App.exit()
         }
     }
@@ -297,10 +318,18 @@ class Bit
     }
 
     function orderTargets(tname, target) {
+        if (target.enable) {
+            let script = target.enable.expand(spec, {fill: ''})
+            let result = eval(script)
+            if (!result) {
+                vtrace('Skip', 'Target ' + tname + ' is disabled on this platform') 
+                return
+            }
+        }
         if (target.depend) {
             for each (dname in target.depend) {
                 let dep = spec.targets[dname]
-                if (!dname) {
+                if (!dep) {
                     throw 'Unknown dependency "' + dname + '" in target "' + tname + '"'
                 }
                 if (!targets.contains(dep)) {
@@ -393,23 +422,32 @@ let includes = spec.common.includes
 if (target.includes) {
     includes = includes + target.includes
 }
-                    let newTarget = { name : file, path: obj, type: 'obj', files: [ file ], 
+                    let newTarget = { name : obj, path: obj, type: 'obj', files: [ file ], 
                         includes: includes,
                         /* UNUSED, build: target.build */}
-                    if (spec.targets[file]) {
-                        newTarget = blend(spec.targets[file], newTarget, {combined: true})
+                    if (spec.targets[obj]) {
+                        newTarget = blend(spec.targets[newTarget.name], newTarget, {combined: true})
                     } else {
                         spec.targets[newTarget.name] = newTarget
                     }
+                    /*
+                        This is an implicit dependency by position in targets
+                     */
                     newTarget.depend = depend(newTarget)
                     targets.insert(index++, newTarget)
                     target.files.push(obj)
+                    target.depend ||= []
+                    target.depend.push(obj)
                 }
             }
         }
     }
 
     function blendCommon() {
+        if (spec.common.script) {
+            let script = spec.common.script.expand(spec, {fill: '${}'})
+            eval(script)
+        }
         let common = {}
         for (name in spec.common) {
             common['+' + name] = spec.common[name]
@@ -453,8 +491,8 @@ if (target.includes) {
             whySkip(target.path, 'is up to date')
             return
         }
-        debug('Building:\n' + target.path + ' = ' + serialize(target, {pretty: true}))
-        if (options.debug) {
+        diagnose('Building:\n' + target.path + ' = ' + serialize(target, {pretty: true}))
+        if (options.diagnose) {
             dump('TARGET', target)
         }
         let transition = 'EXE'
@@ -469,13 +507,12 @@ dump('FAILED', target)
         spec.OUT = target.path
         spec.IN = target.files.join(' ')
         spec.LIBS = target.libraries.map(function(e) '-l' + Path(e).trimExt().toString().replace(/^lib/, '') )
-        spec.DEBUG = '-g'
 
         /* Double expand so rules tokens can use ${OUT} */
         let command = rule.expand(spec, {fill: ''})
         command = command.expand(spec, {fill: ''})
         trace('Link', target.name)
-        debug(2, command)
+        diagnose(2, command)
         let run = runCmd(command)
         if (run.status != 0) {
             throw 'Build failure for ' + target.path + '\n' + run.error
@@ -488,8 +525,8 @@ dump('FAILED', target)
             whySkip(target.path, 'is up to date')
             return
         }
-        debug('Building:\n' + serialize(target, {pretty: true}))
-        if (options.debug) {
+        diagnose('Building:\n' + serialize(target, {pretty: true}))
+        if (options.diagnose) {
             dump('TARGET', target)
         }
         let transition = 'LIB'
@@ -503,7 +540,6 @@ dump('FAILED', target)
         spec.PREPROCESS = ''
         spec.OUT = target.path
         spec.IN = target.files.join(' ')
-        spec.DEBUG = '-g'
         spec.LIBS = target.libraries.map(function(e) '-l' + Path(e).trimExt().toString().replace(/^lib/, '') )
 
         /* Double expand so rules tokens can use ${OUT} */
@@ -520,8 +556,8 @@ dump('FAILED', target)
         if (!stale(target, target.files)) {
             return
         }
-        debug('Building:\n' + serialize(target, {pretty: true}))
-        if (options.debug) {
+        diagnose('Building:\n' + serialize(target, {pretty: true}))
+        if (options.diagnose) {
             dump('TARGET', target)
         }
         let ext = target.path.extension
@@ -541,7 +577,6 @@ dump('FAILED', target)
             spec.PREPROCESS = ''
             spec.OUT = target.path
             spec.IN = file
-            spec.DEBUG = '-g'
             spec.INCLUDES = (target.includes) ? spec.INCLUDES = target.includes.map(function(e) '-I' + e ) : ''
             spec.LIBS = target.libraries.map(function(e) '-l' + Path(e).trimExt().toString().replace(/^lib/, '') )
 
@@ -585,7 +620,7 @@ dump('FAILED', target)
                 return true
             }
         }
-        debug('Building:\n' + serialize(target, {pretty: true}))
+        diagnose('Building:\n' + serialize(target, {pretty: true}))
         return false
     }
 
@@ -678,8 +713,8 @@ dump('FAILED', target)
         }
     }
 
-    function debug(msg) {
-        if (options.debug) {
+    function diagnose(msg) {
+        if (options.diagnose) {
             App.log.activity('Debug', msg)
         }
     }

@@ -11,25 +11,30 @@ if (spec.OS == 'WIN') {
     let search = path ? ([path]) : [spec.directories.extensions.join('openssl', ver) ]
     let libdir = probe('out32dll/libeay32.dll', {search: search})
     let outdir = libpath.join('out32dll')
+    cfg.path = libdir 
     cfg.includes = [ libpath.join('inc32') ]
-    cfg.linker = [ '-L' + libdir, 'libeay32', 'ssleay32' ]
+    cfg.libraries = [ 'libeay32', 'ssleay32' ]
+    cfg.linker = [ '-L' + libdir ]
     cfg.import = [ outdir.join('libeay32.dll'), outdir.join('ssleay32.dll') ]
 
 } else if (spec.OS == 'CYGWIN') {
     let search = path ? ([path]) : ['/usr/lib' ]
     let libdir = probe('libcrypto.a', {search: search})
+    cfg.path = libdir 
     cfg.includes = [ '/usr/lib/include' ]
-    cfg.linker = [ '-L' + libdir, 'libeay32', 'ssleay32' ]
+    cfg.libraries = [ 'libeay32', 'ssleay32' ]
+    cfg.linker = [ '-L' + libdir ]
     cfg.import = [ '/usr/lib/libssl.a', '/usr/lib/libcrypto.a' ]
 
 } else if (spec.OS == 'MACOSX') {
     let search = path ? ([path]) : [spec.directories.extensions.join('openssl', ver), '/usr/lib' ]
     let libdir = probe('libcrypto.dylib', {search: search})
     search = path ? ([path]) : [spec.directories.extensions.join('openssl', ver, 'include'), '/usr/include' ]
-    let incdir = probe('openssl/ssl.h', search)
-
+    let incdir = probe('openssl/ssl.h', {search: search})
+    cfg.path = libdir 
     cfg.includes = [ incdir ]
-    cfg.linker = [ '-L' + libdir, '-lssl', '-lcrypto' ]
+    cfg.libraries = [ 'ssl', 'crypto' ]
+    cfg.linker = [ '-L' + libdir ]
     cfg.import = libdir.glob('libssl*.dylib') + libdir.glob('libcrypto*.dylib')
 
 } else {
@@ -38,8 +43,10 @@ if (spec.OS == 'WIN') {
     let libdir = probe('libcrypto.so', {search: search})
     search = path ? ([path]) : [spec.directories.extensions.join('openssl', ver, 'include'), '/usr/include' ]
     let incdir = probe('openssl/ssl.h', {search: search})
+    cfg.path = libdir 
     cfg.includes = [ incdir ]
-    cfg.linker = [ '-L' + libdir, '-lssl', '-lcrypto' ]
+    cfg.libraries = [ 'ssl', 'crypto' ]
+    cfg.linker = [ '-L' + libdir ]
     cfg.import = libdir.glob('libssl*.dylib*') + libdir.glob('libcrypto*.dylib*')
 }
 
