@@ -240,57 +240,76 @@ static void testNormalize(MprTestGroup *gp)
 
 static void testRelPath(MprTestGroup *gp)
 {
-    char    *path, *absPath;
+    char    *path, *absPath, *out, *cwd;
     
-    path = mprGetRelPath("Makefile");
+    path = mprGetRelPath("Makefile", 0);
     assert(strcmp(path, "Makefile") == 0);
     
     path = mprNormalizePath("../a.b");
     assert(strcmp(path, "../a.b") == 0);
 
-    path = mprGetRelPath("/");
+    path = mprGetRelPath("/", 0);
     assert(mprIsPathRel(path));
     assert(strncmp(path, "../", 3) == 0);
     
-    path = mprGetRelPath("//");
+    path = mprGetRelPath("//", 0);
     assert(mprIsPathRel(path));
     assert(strncmp(path, "../", 3) == 0);
     
-    path = mprGetRelPath("/tmp");
+    path = mprGetRelPath("/tmp", 0);
     assert(mprIsPathRel(path));
     assert(strncmp(path, "../", 3) == 0);
 
-    path = mprGetRelPath("/Unknown/someone/junk");
+    path = mprGetRelPath("/Unknown/someone/junk", 0);
     assert(mprIsPathRel(path));
     assert(strncmp(path, "../", 3) == 0);
            
-    path = mprGetRelPath("/Users/mob/junk");
+    path = mprGetRelPath("/Users/mob/junk", 0);
     assert(mprIsPathRel(path));
     assert(strncmp(path, "../", 3) == 0);
     
-    path = mprGetRelPath("/Users/mob/././../mob/junk");
+    path = mprGetRelPath("/Users/mob/././../mob/junk", 0);
     assert(mprIsPathRel(path));
     assert(strncmp(path, "../", 3) == 0);
     
-    path = mprGetRelPath(".");
+    path = mprGetRelPath(".", 0);
     assert(strcmp(path, ".") == 0);
 
-    path = mprGetRelPath("..");
+    path = mprGetRelPath("..", 0);
     assert(strcmp(path, "..") == 0);
 
-    path = mprGetRelPath("/Users/mob/github/admin");
+    path = mprGetRelPath("/Users/mob/github/admin", 0);
     assert(sstarts(path, ".."));
 
-    path = mprGetRelPath("/Users/mob/git");
-    path = mprGetRelPath("/Users/mob/git/mpr/test");
+    path = mprGetRelPath("/Users/mob/git", 0);
+    path = mprGetRelPath("/Users/mob/git/mpr/test", 0);
     /* Can't really test the result of this */
 
     absPath = mprGetAbsPath("Makefile");
     assert(mprIsPathAbs(absPath));
-    path = mprGetRelPath(absPath);
+    path = mprGetRelPath(absPath, 0);
     assert(!mprIsPathAbs(path));
     assert(strcmp(path, "Makefile") == 0);
 
+#if FUTURE
+    //  MOB - problem in that we don't know the cwd when testMpr runs
+    //  Test relative to an origin
+
+    out = mprGetAbsPath("../../out");
+    cwd = mprGetCurrentPath();
+    assert(smatch(mprGetRelPath(cwd, out), "../src/test"));
+#endif
+}
+
+
+static void testResolvePath(MprTestGroup *gp)
+{
+#if FUTURE
+    char    *path, *absPath, *out;
+    
+    out = mprGetAbsPath("../out");
+    assert(smatch(mprResolvePath(out, mprGetCurrentPath()), "../src/test"));
+#endif
 }
 
 
@@ -396,6 +415,7 @@ MprTestDef testPath = {
         MPR_TEST(0, testMakeDir),
         MPR_TEST(0, testNormalize),
         MPR_TEST(0, testRelPath),
+        MPR_TEST(0, testResolvePath),
         MPR_TEST(0, testSame),
         MPR_TEST(0, testSearch),
         MPR_TEST(0, testTransform),
