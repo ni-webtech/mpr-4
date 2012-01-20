@@ -10,7 +10,7 @@ bit({
         "product.bit",
     ],
     directories: {
-        base: ".",
+        src: "/Users/mob/git/mpr.bit",
     },
     "+settings": {
         product: "mpr",
@@ -42,9 +42,6 @@ bit({
     components: {
         compiler: {
             path: "/usr/bin/cc",
-        },
-        package: {
-            diagnostic: "not found",
         },
         doxygen: {
             path: "/usr/local/bin/doxygen",

@@ -19,6 +19,8 @@ class Bit
     private var options: Object
     private var settings: Object
     private var rest: Array
+
+    //  MOB - think of a better name
     private var currentBit: Path            // Name of the bit file being currently loaded
     private var currentComponent            // Name of the current component being loaded
 
@@ -144,6 +146,8 @@ class Bit
         if (src) {
             spec.directories.src = src
         } else {
+            // For a relative path
+            spec.directories.src = Path(spec.directories.src).relativeFrom('.')
             src = spec.directories.src
         }
     }
@@ -173,7 +177,6 @@ class Bit
             ],
             directories: { 
                 src: src.absolute,
-                out: Path('.').relativeFrom(src)
             },
             '+settings': spec.settings,
             components: spec.components,
@@ -268,12 +271,48 @@ class Bit
         currentBit = saveCurrent
     }
 
+    function rebase(o) {
+        let base = currentBit.dirname
+        if (o.common) {
+            let cinc = o.common.includes
+            for (i in cinc) {
+                cinc[i] = base.join(cinc[i])
+            }
+            cinc = o.common['+includes']
+            for (i in cinc) {
+                cinc[i] = base.join(cinc[i])
+            }
+        }
+        for each (target in o.targets) {
+            if (target.includes is Array) {
+                for (i in target.includes) {
+                    target.includes[i] = base.join(target.includes[i])
+                }
+            } else if (target.includes is RegExp) {
+                ;
+            } else if (target.includes) {
+                target.includes = base.join(target.includes)
+            }
+            for (i in target.sources) {
+                if (target.sources is Array) {
+                    target.sources[i] = base.join(target.sources[i])
+                } else if (target.includes is Regexp) {
+                    ;
+                } else if (target.sources) {
+                    target.sources = base.join(target.sources)
+                }
+            }
+        }
+    }
+
     public function loadBitfile(o) {
+        let base = currentBit.dirname
+        rebase(o)
         let toBlend = blend({}, o, {combine: true})
         /* Blending is depth-first. So blend existing spec over blended spec */
         /* Load blended bit files first */
         for each (path in toBlend.blend) {
-            loadWrapper(currentBit.dirname.join(path))
+            loadWrapper(base.join(path))
         }
         spec = blend(spec, o, {combine: true})
     }
@@ -374,14 +413,15 @@ class Bit
     {
         let files
         if (include is RegExp) {
+            //  MOB - should be relative to the bit file that created this
             files = Path(src).glob('*', {include: include})
         } else if (include is Array) {
             files = []
             for each (pattern in include) {
-                files += Path(src).glob(pattern)
+                files += Path('.').glob(pattern)
             }
         } else {
-            files = Path(src).glob(include)
+            files = Path('.').glob(include)
         }
         if (exclude) {
             if (exclude is RegExp) {
@@ -428,14 +468,11 @@ class Bit
                         Create a target for each source file
                      */
                     let obj = spec.directories.obj.join(file.replaceExt(spec.extensions.obj).basename)
-                    //  MOB - do we need files[]
 let includes = spec.common.includes
 if (target.includes) {
     includes = includes + target.includes
 }
-                    let newTarget = { name : obj, path: obj, type: 'obj', files: [ file ], 
-                        includes: includes,
-                        /* UNUSED, build: target.build */}
+                    let newTarget = { name : obj, path: obj, type: 'obj', files: [ file ], includes: includes }
                     if (spec.targets[obj]) {
                         newTarget = blend(spec.targets[newTarget.name], newTarget, {combined: true})
                     } else {
@@ -588,8 +625,7 @@ dump('FAILED', target)
             spec.PREPROCESS = ''
             spec.OUT = target.path
             spec.IN = file
-            spec.INCLUDES = (target.includes) ? 
-                spec.INCLUDES = target.includes.map(function(e) '-I' + Path(src).join(e) ) : ''
+            spec.INCLUDES = (target.includes) ? target.includes.map(function(e) '-I' + e) : ''
             spec.LIBS = target.libraries.map(function(e) '-l' + Path(e).trimExt().toString().replace(/^lib/, '') )
 
             let command = rule.expand(spec, {fill: ''})
@@ -651,7 +687,6 @@ dump('FAILED', target)
             let ifile = item.replace(/#include.*"(.*)"/, '$1')
             let path
             for each (dir in target.includes) {
-                dir = dir.replace('-I', '')
                 path = Path(dir).join(ifile)
                 if (path.exists && !path.isDir) {
                     break

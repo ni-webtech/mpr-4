@@ -26,7 +26,6 @@ bit({
             "-Wl,-rpath,@loader_path/",             //  MOB - only for libs?
         ],
         '+script': '
-            let families = [/^amd/, /^arm/, /^i.86|^x86/, /^m68/, /^power|^ppc/, /^sparc/, /^strongarm/, /^x86_64/, /^xscale/, /^sh/, /^univsal/ ]
             let common = spec.common.compiler
             if (${settings.preprocess}) common.compiler += [ "-E" ]
             common.compiler += [("${settings.configuration}" == "debug" ? "-g" : "-Os")]
@@ -41,10 +40,5 @@ bit({
         'c->o': '${components.compiler.path} -c -o ${OUT} -arch ${ARCH} ${DEBUG} ${target.defines} ${INCLUDES} ${PREPROCESS} ${IN}',
         'LIB':  '${components.compiler.path} -dynamiclib -o ${OUT} -arch ${ARCH} ${DEBUG} ${target.linker} -install_name @rpath/${OUT} ${LIBS} ${IN}'
         'EXE':  '${components.compiler.path} -o ${OUT} -arch ${ARCH} ${DEBUG} ${target.linker} -L${directories.lib} ${LIBS} ${IN}'
-
-/*
-"/usr/bin/cc" "-o" "../out/bin/manager" "../out/obj/manager.o" "-L../out/lib" "-Wl,-rpath,@executable_path/../lib"
-"-Wl,-rpath,@executable_path/" "-Wl,-rpath,@loader_path/" "-lmpr" "-g" "-arch" "x86_64" "-lpthread" "-lm" 
-*/
     },
 })
