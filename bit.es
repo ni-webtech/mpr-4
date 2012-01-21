@@ -27,7 +27,8 @@ class Bit
     /*
         Aggregate Bit configuration. This has all bit files blended into one object.
      */
-    private var spec: Object = { components: {} }
+    //  MOB - only need env for WIN
+    private var spec: Object = { components: {}, targets: {}, env: { INCLUDE:[], LIB:[], PATH:[] } }
 
     private var targets: Array = []         // Ordered set of targets
 
@@ -46,9 +47,9 @@ class Bit
             debug: {},
             dev: {},
             diagnose: { alias: 'd' },
-            init: { range: String },
             host: {},
             init: { alias: 'i', range: String },
+            log: { alias: 'l', range: String }
             overwrite: { alias: 'o' },
             release: {},
             save: { range: Path },
@@ -132,7 +133,14 @@ class Bit
     }
 
     function getDevPlatform() {
-        return 'x86_64-apple-macosx.bit'
+        if (Config.OS == 'WIN') {
+            return Config.CPU + '-pc-win.bit'
+        } else if (Config.OS == 'MACOSX') {
+            return Config.CPU + '-apple-macosx.bit'
+        } else if (Config.OS == 'LINUX') {
+            return Config.CPU + '-pc-linux.bit'
+        }
+        return Config.CPU + '-unknown-unknown.bit'
     }
 
     function makeDirs() {
@@ -156,7 +164,7 @@ class Bit
         src = Path(options.init)
         //  MOB - what about cross
         let dev = getDevPlatform()
-        let platform = src.join('bit', dev).joinExt('bit')
+        let platform = src.join('bit/platform', dev).joinExt('bit')
         if (!platform.exists) {
             throw 'Can\'t find bit configuration at "' + src + '"'
         }
@@ -164,6 +172,7 @@ class Bit
         loadWrapper(src.join('product.bit'))
         trace('Init', spec.settings.title)
 
+        setTypes()
         setDefaults()
         expandTokens(spec)
         setTypes()
@@ -171,15 +180,16 @@ class Bit
         makeDirs()
 
         let nspec = { 
-            '+blend' : [
+            blend : [
                 platform,
                 src.join('product.bit'),
             ],
             directories: { 
                 src: src.absolute,
             },
-            '+settings': spec.settings,
+            settings: spec.settings,
             components: spec.components,
+            env: spec.env,
         }
         let bbit: Path = 'build.bit'
         if (bbit.exists && !options.overwrite) {
@@ -212,6 +222,9 @@ class Bit
             } else {
                 throw "Unknown component " + path
             }
+            if (options.verbose) {
+                App.log.activity('Probe', 'Found ' + component + ' at ' + spec.components[component].path)
+            }
         }
     }
 
@@ -227,6 +240,7 @@ class Bit
                 search += control.search
             }
             for each (let s: Path in search) {
+                App.log.debug(2, "Probe for " + s.join(file) + ' exists: ' + s.join(file).exists)
                 if (s.join(file).exists) {
                     path = s.join(file)
                     break
@@ -252,6 +266,7 @@ class Bit
             findBitfile()
         }
         loadWrapper(currentBit)
+        setTypes()
         setDefaults()
         expandTokens(spec)
         makeDirs()
@@ -397,7 +412,7 @@ class Bit
         for each (target in targets) {
             if (!target.path) {
                 if (target.type == 'lib') {
-                    target.path = spec.directories.lib.join(target.name).joinExt(spec.extensions.shlib)
+                    target.path = spec.directories.lib.join(target.name).joinExt(spec.extensions.shobj)
                 } else if (target.type == 'obj') {
                     target.path = spec.directories.obj.join(target.name).joinExt(spec.extensions.obj)
                 } else if (target.type == 'exe') {
@@ -492,9 +507,9 @@ if (target.includes) {
     }
 
     function blendCommon() {
-        if (spec.common.script) {
-            let script = spec.common.script.expand(spec, {fill: '${}'})
-            eval(script)
+        if (spec.common.preblend) {
+            let preblend = spec.common.preblend.expand(spec, {fill: '${}'})
+            eval(preblend)
         }
         let common = {}
         for (name in spec.common) {
@@ -502,14 +517,26 @@ if (target.includes) {
         }
         for each (target in targets) {
             if (target.type && target.type != 'header') {
+                if (target.postblend) {
+                    let postblend = target.postblend.expand(spec, {fill: '${}'})
+                    eval(postblend)
+                }
                 blend(target, common, {combine: true})
+                //  MOB - cleanup somehow
+                if (target.preblend) {
+                    delete target.preblend
+                }
+                if (target.type == 'obj') { 
+                    delete target.linker 
+                    delete target.libraries 
+                }
             }
         }
     }
 
     function setTypes() {
         for (let [key,value] in spec.directories) {
-            spec.directories[key] = Path(value)
+            spec.directories[key] = Path(value).natural
         }
     }
 
@@ -521,6 +548,10 @@ if (target.includes) {
     }
 
     function buildTarget(target, cross: Boolean) {
+        if (target.script) {
+            let script = target.script.expand(spec, {fill: '${}'})
+            eval(script)
+        }
         if (target.type == 'obj') {
             buildObj(target, cross)
         } else if (target.type == 'lib') {
@@ -543,7 +574,7 @@ if (target.includes) {
         if (options.diagnose) {
             dump('TARGET', target)
         }
-        let transition = 'EXE'
+        let transition = target.rule || 'exe'
         let rule = spec.rules[transition]
         if (!rule) {
 dump('FAILED', target)
@@ -554,16 +585,21 @@ dump('FAILED', target)
         spec.PREPROCESS = ''
         spec.OUT = target.path
         spec.IN = target.files.join(' ')
-        spec.LIBS = target.libraries.map(function(e) '-l' + Path(e).trimExt().toString().replace(/^lib/, '') )
+dump(target.libraries)
+        if (spec.OS == 'WIN') {
+            spec.LIBS = target.libraries
+        } else {
+            spec.LIBS = target.libraries.map(function(e) '-l' + Path(e).trimExt().toString().replace(/^lib/, '') )
+        }
 
         /* Double expand so rules tokens can use ${OUT} */
         let command = rule.expand(spec, {fill: ''})
         command = command.expand(spec, {fill: ''})
         trace('Link', target.name)
         diagnose(2, command)
-        let run = runCmd(command)
-        if (run.status != 0) {
-            throw 'Build failure for ' + target.path + '\n' + run.error
+        let cmd = runCmd(command)
+        if (cmd.status != 0) {
+            throw 'Build failure for ' + target.path + '\n' + cmd.error + "\n" + cmd.response
         }
     }
 
@@ -577,7 +613,7 @@ dump('FAILED', target)
         if (options.diagnose) {
             dump('TARGET', target)
         }
-        let transition = 'LIB'
+        let transition = target.rule || 'lib'
         let rule = spec.rules[transition]
         if (!rule) {
 dump('FAILED', target)
@@ -588,15 +624,20 @@ dump('FAILED', target)
         spec.PREPROCESS = ''
         spec.OUT = target.path
         spec.IN = target.files.join(' ')
-        spec.LIBS = target.libraries.map(function(e) '-l' + Path(e).trimExt().toString().replace(/^lib/, '') )
+        spec.DEF = Path('out/bin/libmpr.def').natural
+        if (spec.OS == 'WIN') {
+            spec.LIBS = target.libraries
+        } else {
+            spec.LIBS = target.libraries.map(function(e) '-l' + Path(e).trimExt().toString().replace(/^lib/, '') )
+        }
 
         /* Double expand so rules tokens can use ${OUT} */
         let command = rule.expand(spec, {fill: ''})
         command = command.expand(spec, {fill: ''})
         trace('Link', target.name)
-        let run = runCmd(command)
-        if (run.status != 0) {
-            throw 'Build failure for ' + target.path + '\n' + run.error
+        let cmd = runCmd(command)
+        if (cmd.status != 0) {
+            throw 'XXX Build failure for ' + target.path + '\n' + cmd.error + "\n" + cmd.response
         }
     }
 
@@ -611,7 +652,7 @@ dump('FAILED', target)
         let ext = target.path.extension
         for each (file in target.files) {
             let transition = file.extension + '->' + target.path.extension
-            let rule = spec.rules[transition]
+            let rule = target.rule || spec.rules[transition]
             if (!rule) {
                 rule = spec.rules[target.path.extension]
                 if (!rule) {
@@ -625,14 +666,15 @@ dump('FAILED', target)
             spec.PREPROCESS = ''
             spec.OUT = target.path
             spec.IN = file
+            spec.CFLAGS = (target.compiler) ? target.compiler.join(' ') : ''
+//MOB - fixup CFLAGS
             spec.INCLUDES = (target.includes) ? target.includes.map(function(e) '-I' + e) : ''
-            spec.LIBS = target.libraries.map(function(e) '-l' + Path(e).trimExt().toString().replace(/^lib/, '') )
-
+            // spec.LIBS = target.libraries.map(function(e) '-l' + Path(e).trimExt().toString().replace(/^lib/, '') )
             let command = rule.expand(spec, {fill: ''})
             trace('Compile', file)
-            let run = runCmd(command)
-            if (run.status != 0) {
-                throw 'Build failure for ' + target.path + '\n' + run.error
+            let cmd = runCmd(command)
+            if (cmd.status != 0) {
+                throw 'Build failure for ' + target.path + '\n' + cmd.error + "\n" + cmd.response
             }
         }
     }
@@ -717,6 +759,8 @@ dump('FAILED', target)
         for (let [key,value] in o) {
             if (value is String) {
                 o[key] = value.expand(spec, {fill: '${}'})
+            } else if (value is Path) {
+                o[key] = Path(value.toString().expand(spec, {fill: '${}'}))
             } else if (Object.getOwnPropertyCount(value) > 0) {
                 o[key] = expandTokens(value)
             }
@@ -728,8 +772,16 @@ dump('FAILED', target)
         if (options.show) {
             App.log.activity('Run', command)
         }
-        let run = Cmd(command)
-        return run
+        let cmd = new Cmd
+        if (spec.env) {
+            let env = {}
+            for (let [key,values] in spec.env) {
+                env[key] = values.join(App.SearchSeparator)
+            }
+            cmd.env = env
+        }
+        cmd.start(command)
+        return cmd
     }
 
     function trace(tag, msg) {

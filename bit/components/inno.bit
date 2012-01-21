@@ -2,6 +2,8 @@
     inno.bit - InnoSetup component for Bit
  */
 
-if (spec.OS == 'WIN') {
-    bit({components: { lib: { path: probe('issc', {fullpath: true})}}})
+let search = []
+for each (drive in (FileSystem.drives() - ['A', 'B'])) {
+    search += Path(drive + ':/').glob('/Program Files*/Inno Setup*')
 }
+bit({components: { inno: { path: probe('iscc.exe', {fullpath: true, search: search.sort().reverse()})}}})

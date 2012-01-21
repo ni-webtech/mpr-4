@@ -5,14 +5,14 @@
  */
 
 bit({
-    "+blend": [
-        "bit/x86_64-apple-macosx.bit",
+    blend: [
+        "bit/platform/i686-pc-win.bit",
         "product.bit",
     ],
     directories: {
-        src: "/Users/mob/git/mpr.bit",
+        src: "C:\\cygwin\\home\\mob\\mpr",
     },
-    "+settings": {
+    settings: {
         product: "mpr",
         title: "Multithreaded Portable Runtime",
         version: "4.0.0",
@@ -26,50 +26,49 @@ bit({
         legacy: false,
         rom: false,
         preprocess: false,
-        hasDoubleBraces: true,
-        hasMtune: false,
-        hasStackProtector: false,
-        hasSync: true,
-        warnUnused: false,
-        warn64to32: false,
-        hasDynLoad: true,
-        hasLibEdit: true,
-        hasMmu: true,
-        hasPam: false,
-        hasSyncCas: true,
-        hasUnnamedUnions: true,
     },
     components: {
+        winsdk: {
+            path: "C:\\Program Files\\Microsoft SDKs\\Windows\\v7.1\\Include\\WinBase.h",
+        },
         compiler: {
-            path: "/usr/bin/cc",
+            path: "C:\\Program Files\\Microsoft Visual Studio 10.0\\VC\\Bin\\cl.exe",
+        },
+        link: {
+            path: "C:\\Program Files\\Microsoft Visual Studio 10.0\\VC\\Bin\\link.exe",
+        },
+        inno: {
+            path: "C:\\Program Files\\Inno Setup 5\\iscc.exe",
         },
         doxygen: {
-            path: "/usr/local/bin/doxygen",
+            path: "C:\\cygwin\\bin\\doxygen.exe",
         },
         ejs: {
-            path: "/Users/mob/git/ejs/out/bin/ejs",
+            path: "C:\\cygwin\\home\\mob\\ejs\\out\\bin\\ejs.exe",
         },
         http: {
-            path: "/Users/mob/git/appweb/out/bin/http",
+            path: "C:\\cygwin\\home\\mob\\ejs\\out\\bin\\http.exe",
         },
         openssl: {
-            path: "extensions/openssl/latest",
-            includes: [
-                "extensions/openssl/latest/include",
-            ],
-            libraries: [
-                "ssl",
-                "crypto",
-            ],
-            linker: [
-                "-Lextensions/openssl/latest",
-            ],
-            import: [
-                "extensions/openssl/latest/libssl.1.0.0.dylib",
-                "extensions/openssl/latest/libssl.dylib",
-                "extensions/openssl/latest/libcrypto.1.0.0.dylib",
-                "extensions/openssl/latest/libcrypto.dylib",
-            ],
+            diagnostic: "component out32dll/libeay32.dll not found",
         },
+    },
+    env: {
+        INCLUDE: [
+            "C:\\Program Files\\Microsoft SDKs\\Windows\\v7.1\\INCLUDE",
+            "C:\\Program Files\\Microsoft Visual Studio 10.0\\VC\\INCLUDE",
+        ],
+        LIB: [
+            "C:\\Program Files\\Microsoft SDKs\\Windows\\v7.1\\lib",
+            "C:\\Program Files\\Microsoft Visual Studio 10.0\\VC\\lib",
+        ],
+        PATH: [
+            "C:\\Program Files\\Microsoft SDKs\\Windows\\v7.1\\Bin",
+            "C:\\Program Files\\Microsoft Visual Studio 10.0\\VC\\Bin",
+            "C:\\Program Files\\Microsoft Visual Studio 10.0\\Common7\\IDE",
+            "C:\\Program Files\\Microsoft Visual Studio 10.0\\Common7\\Tools",
+            "C:\\Program Files\\Microsoft Visual Studio 10.0\\SDK\\v3.5\\bin",
+            "C:\\Program Files\\Microsoft Visual Studio 10.0\\VC\\VCPackages",
+        ],
     },
 })
