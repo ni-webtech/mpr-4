@@ -501,7 +501,7 @@ if (target.includes) {
             common['+' + name] = spec.common[name]
         }
         for each (target in targets) {
-            if (target.type && target.type != 'header') {
+            if (target.type && (target.type == 'obj' || target.type == 'lib' || target.type == 'exe')) {
                 blend(target, common, {combine: true})
             }
         }
@@ -789,6 +789,9 @@ public function program(name)
     components[name] = { path: probe(name, {fullpath: true})}
     bit({components: components})
 }
+
+public function activity(tag, msg)
+    App.log.activity(tag, msg)
 
 /*
     @copy   default
