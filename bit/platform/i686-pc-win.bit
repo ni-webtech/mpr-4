@@ -1,0 +1,17 @@
+/*
+    i686-pc-win.bit -- Windows 32 bit Platform Build Configuration
+ */
+
+bit({
+    SYSTEM: 'i686-pc-win',
+
+    blend: [
+        '../standard.bit',
+        '../arch/i686.bit',
+        '../os/win.bit',
+    ],
+	host: {
+		arch: 'i686',
+		os: 'WIN',
+	},
+})

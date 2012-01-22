@@ -19,6 +19,7 @@ class Bit
     private var options: Object
     private var settings: Object
     private var rest: Array
+    private var targetsToBuild: String
 
     //  MOB - think of a better name
     private var currentBit: Path            // Name of the bit file being currently loaded
@@ -27,7 +28,8 @@ class Bit
     /*
         Aggregate Bit configuration. This has all bit files blended into one object.
      */
-    private var spec: Object = { components: {} }
+    //  MOB - only need env for WIN
+    private var spec: Object = { components: {}, targets: {}, env: { INCLUDE:[], LIB:[], PATH:[] } }
 
     private var targets: Array = []         // Ordered set of targets
 
@@ -46,9 +48,9 @@ class Bit
             debug: {},
             dev: {},
             diagnose: { alias: 'd' },
-            init: { range: String },
             host: {},
             init: { alias: 'i', range: String },
+            log: { alias: 'l', range: String }
             overwrite: { alias: 'o' },
             release: {},
             save: { range: Path },
@@ -132,7 +134,14 @@ class Bit
     }
 
     function getDevPlatform() {
-        return 'x86_64-apple-macosx.bit'
+        if (Config.OS == 'WIN') {
+            return Config.CPU + '-pc-win.bit'
+        } else if (Config.OS == 'MACOSX') {
+            return Config.CPU + '-apple-macosx.bit'
+        } else if (Config.OS == 'LINUX') {
+            return Config.CPU + '-pc-linux.bit'
+        }
+        return Config.CPU + '-unknown-unknown.bit'
     }
 
     function makeDirs() {
@@ -156,7 +165,7 @@ class Bit
         src = Path(options.init)
         //  MOB - what about cross
         let dev = getDevPlatform()
-        let platform = src.join('bit', dev).joinExt('bit')
+        let platform = src.join('bit/platform', dev).joinExt('bit')
         if (!platform.exists) {
             throw 'Can\'t find bit configuration at "' + src + '"'
         }
@@ -164,6 +173,7 @@ class Bit
         loadWrapper(src.join('product.bit'))
         trace('Init', spec.settings.title)
 
+        setTypes()
         setDefaults()
         expandTokens(spec)
         setTypes()
@@ -171,15 +181,16 @@ class Bit
         makeDirs()
 
         let nspec = { 
-            '+blend' : [
+            blend : [
                 platform,
                 src.join('product.bit'),
             ],
             directories: { 
                 src: src.absolute,
             },
-            '+settings': spec.settings,
+            settings: spec.settings,
             components: spec.components,
+            env: spec.env,
         }
         let bbit: Path = 'build.bit'
         if (bbit.exists && !options.overwrite) {
@@ -212,6 +223,9 @@ class Bit
             } else {
                 throw "Unknown component " + path
             }
+            if (options.verbose) {
+                App.log.activity('Probe', 'Found ' + component + ' at ' + spec.components[component].path)
+            }
         }
     }
 
@@ -227,6 +241,7 @@ class Bit
                 search += control.search
             }
             for each (let s: Path in search) {
+                App.log.debug(2, "Probe for " + s.join(file) + ' exists: ' + s.join(file).exists)
                 if (s.join(file).exists) {
                     path = s.join(file)
                     break
@@ -252,6 +267,7 @@ class Bit
             findBitfile()
         }
         loadWrapper(currentBit)
+        setTypes()
         setDefaults()
         expandTokens(spec)
         makeDirs()
@@ -282,6 +298,9 @@ class Bit
             for (i in cinc) {
                 cinc[i] = base.join(cinc[i])
             }
+        }
+        for (tname in o.targets) {
+            o.targets[tname].name = tname
         }
         for each (target in o.targets) {
             if (target.includes is Array) {
@@ -331,7 +350,7 @@ class Bit
 
     function prepBuild(cross) {
         setTokens(cross)
-        getOrderedTargets()
+        selectTargets()
         setTypes()
         expandWildcards()
         blendCommon()
@@ -346,27 +365,44 @@ class Bit
         }
     }
 
-    function getOrderedTargets() {
+    function selectTargets() {
         if (args.rest.length > 0) {
-            for each (target in args.rest) {
-                orderTargets(target, spec.targets[target])
+            for each (tname in args.rest) {
+                if (!spec.targets[tname]) {
+                    throw "Unknown target " + tname
+                }
+                orderTargets(tname, spec.targets[tname])
             }
         } else {
-            for (let [name, target] in spec.targets) {
-                if (target.type) {
-                    orderTargets(name, target)
+            for (let [tname, target] in spec.targets) {
+                if (target.type && target.type != 'action') {
+                    orderTargets(tname, target)
                 }
             }
         }
-        if (options.verbose) {
-            let names = ''
-            for each (target in targets) {
-                names += target.name + ' '
-            }
-            trace('Targets', names)
+        targetsToBuild = ''
+        for each (target in targets) {
+            targetsToBuild += target.name + ' '
         }
+        vtrace('Targets', targetsToBuild)
     }
 
+/*
+    clean, compile|build, package, test, install 
+
+    clean
+        - remove all targets
+    compile
+        - build all targets
+    test
+        - run kind == test
+        ** Need 'action'
+
+    - Need to be able to define
+
+    bit target
+        - search target.name + target.type
+ */
     function orderTargets(tname, target) {
         if (target.enable) {
             let script = target.enable.expand(spec, {fill: ''})
@@ -389,21 +425,23 @@ class Bit
                 }
             }
         }
+/*
         target.name = tname
+*/
         targets.push(target)
     }
 
     function setTargetPaths() {
-        for each (target in targets) {
+        for each (target in spec.targets) {
             if (!target.path) {
                 if (target.type == 'lib') {
-                    target.path = spec.directories.lib.join(target.name).joinExt(spec.extensions.shlib)
+                    target.path = spec.directories.lib.join(target.name).joinExt(spec.extensions.shobj)
                 } else if (target.type == 'obj') {
                     target.path = spec.directories.obj.join(target.name).joinExt(spec.extensions.obj)
                 } else if (target.type == 'exe') {
                     target.path = spec.directories.bin.join(target.name).joinExt(spec.extensions.exe)
                 } else {
-                    target.path = target.name
+                    target.path = Path(target.name)
                 }
             }
         }
@@ -449,7 +487,6 @@ class Bit
                 for each (file in files) {
                     //  Create a target for each header
                     let header = spec.directories.inc.join(file.basename)
-                    //  MOB - do we need a files[], do we need build:
                     let newTarget = { name : file, path: header, type: 'header', files: [ file ] }
                     if (spec.targets[file]) {
                         newTarget = blend(spec.targets[file], newTarget, {combined: true})
@@ -468,10 +505,10 @@ class Bit
                         Create a target for each source file
                      */
                     let obj = spec.directories.obj.join(file.replaceExt(spec.extensions.obj).basename)
-let includes = spec.common.includes
-if (target.includes) {
-    includes = includes + target.includes
-}
+                    let includes = spec.common.includes
+                    if (target.includes) {
+                        includes = includes + target.includes
+                    }
                     let newTarget = { name : obj, path: obj, type: 'obj', files: [ file ], includes: includes }
                     if (spec.targets[obj]) {
                         newTarget = blend(spec.targets[newTarget.name], newTarget, {combined: true})
@@ -492,9 +529,9 @@ if (target.includes) {
     }
 
     function blendCommon() {
-        if (spec.common.script) {
-            let script = spec.common.script.expand(spec, {fill: '${}'})
-            eval(script)
+        if (spec.common.preblend) {
+            let preblend = spec.common.preblend.expand(spec, {fill: '${}'})
+            eval(preblend)
         }
         let common = {}
         for (name in spec.common) {
@@ -502,14 +539,31 @@ if (target.includes) {
         }
         for each (target in targets) {
             if (target.type && (target.type == 'obj' || target.type == 'lib' || target.type == 'exe')) {
+                if (target.postblend) {
+                    let postblend = target.postblend.expand(spec, {fill: '${}'})
+                    eval(postblend)
+                }
                 blend(target, common, {combine: true})
+                //  MOB - cleanup somehow
+                if (target.preblend) {
+                    delete target.preblend
+                }
+                if (target.type == 'obj') { 
+                    delete target.linker 
+                    delete target.libraries 
+                }
             }
         }
     }
 
     function setTypes() {
         for (let [key,value] in spec.directories) {
-            spec.directories[key] = Path(value)
+            spec.directories[key] = Path(value).natural
+        }
+        for each (target in spec.targets) {
+            if (target.path) {
+                target.path = target.path cast Path
+            }
         }
     }
 
@@ -518,24 +572,32 @@ if (target.includes) {
         for each (target in targets) {
             buildTarget(target, cross)
         }
+        trace('Complete', 'Targets: ' + targetsToBuild)
     }
 
     function buildTarget(target, cross: Boolean) {
-        if (target.type == 'obj') {
-            buildObj(target, cross)
+        if (target.message) {
+            trace('Info', target.message)
+        }
+        if (target.script) {
+            let script = target.script.expand(spec, {fill: '${}'})
+            eval(script)
+        }
+        if (target.type == 'action') {
+            buildAction(target, cross)
         } else if (target.type == 'lib') {
             buildLib(target, cross)
         } else if (target.type == 'exe') {
             buildExe(target, cross)
-        } else if (target.type == 'header') {
-            //  MOB
+        } else if (target.type == 'obj') {
+            buildObj(target, cross)
         } else {
             throw 'Unknown target type in ' + target.path
         }
     }
 
     function buildExe(target, cross: boolean) {
-        if (!stale(target, target.files)) {
+        if (!stale(target)) {
             whySkip(target.path, 'is up to date')
             return
         }
@@ -543,10 +605,9 @@ if (target.includes) {
         if (options.diagnose) {
             dump('TARGET', target)
         }
-        let transition = 'EXE'
+        let transition = target.rule || 'exe'
         let rule = spec.rules[transition]
         if (!rule) {
-dump('FAILED', target)
             throw 'No rule to build target ' + target.path + ' for transition ' + transition
             return
         }
@@ -554,22 +615,22 @@ dump('FAILED', target)
         spec.PREPROCESS = ''
         spec.OUT = target.path
         spec.IN = target.files.join(' ')
-        spec.LIBS = target.libraries.map(function(e) '-l' + Path(e).trimExt().toString().replace(/^lib/, '') )
+        spec.LIBS = mapLibs(target.libraries)
 
         /* Double expand so rules tokens can use ${OUT} */
         let command = rule.expand(spec, {fill: ''})
         command = command.expand(spec, {fill: ''})
         trace('Link', target.name)
         diagnose(2, command)
-        let run = runCmd(command)
-        if (run.status != 0) {
-            throw 'Build failure for ' + target.path + '\n' + run.error
+        let cmd = runCmd(command)
+        if (cmd.status != 0) {
+            throw 'Build failure for ' + target.path + '\n' + cmd.error + "\n" + cmd.response
         }
     }
 
     function buildLib(target, cross: boolean) {
         //  MOB - need libraries[] so we can stat them
-        if (!stale(target, target.files)) {
+        if (!stale(target)) {
             whySkip(target.path, 'is up to date')
             return
         }
@@ -577,31 +638,68 @@ dump('FAILED', target)
         if (options.diagnose) {
             dump('TARGET', target)
         }
-        let transition = 'LIB'
+        buildSym(target, cross)
+        let transition = target.rule || 'lib'
         let rule = spec.rules[transition]
         if (!rule) {
-dump('FAILED', target)
             throw 'No rule to build target ' + target.path + ' for transition ' + transition
             return
         }
         spec.target = target
-        spec.PREPROCESS = ''
         spec.OUT = target.path
         spec.IN = target.files.join(' ')
-        spec.LIBS = target.libraries.map(function(e) '-l' + Path(e).trimExt().toString().replace(/^lib/, '') )
+        spec.DEF = Path(target.path.toString().replace(/dll$/, 'def'))
+        spec.LIBS = mapLibs(target.libraries)
 
         /* Double expand so rules tokens can use ${OUT} */
         let command = rule.expand(spec, {fill: ''})
         command = command.expand(spec, {fill: ''})
         trace('Link', target.name)
-        let run = runCmd(command)
-        if (run.status != 0) {
-            throw 'Build failure for ' + target.path + '\n' + run.error
+        let cmd = runCmd(command)
+        if (cmd.status != 0) {
+            throw 'Build failure for ' + target.path + '\n' + cmd.error + "\n" + cmd.response
         }
     }
 
+    /*
+        Build symbols file for windows libraries
+        MOB - should be selectable
+     */
+    function buildSym(target, cross: boolean) {
+        let rule = spec.rules['sym']
+        if (!rule) {
+            return
+        }
+        spec.IN = target.files.join(' ')
+/*
+UNUSED
+        spec.target = target
+        spec.OUT = target.path
+        spec.LIBS = mapLibs(target.libraries)
+*/
+
+        /* Double expand so rules tokens can use ${OUT} */
+        let command = rule.expand(spec, {fill: ''})
+        command = command.expand(spec, {fill: ''})
+        trace('Symbols', target.name)
+        let cmd = runCmd(command)
+        if (cmd.status != 0) {
+            throw 'Build failure for ' + target.path + '\n' + cmd.error + "\n" + cmd.response
+        }
+        let data = cmd.response
+        let result = []
+        let lines = data.match(/SECT.*External *\| .*/gm)
+        for each (l in lines) {
+            if (l.contains('__real')) continue
+            let sym = l.replace(/.*\| _/, '').replace(/\r$/,'')
+            result.push(sym)
+        }
+        let def = Path(target.path.toString().replace(/dll$/, 'def'))
+        def.write('LIBRARY ' + target.name + '.dll\nEXPORTS\n  ' + result.sort().join('\n  '))
+    }
+
     function buildObj(target, cross: boolean) {
-        if (!stale(target, target.files)) {
+        if (!stale(target)) {
             return
         }
         diagnose('Building:\n' + serialize(target, {pretty: true}))
@@ -611,11 +709,10 @@ dump('FAILED', target)
         let ext = target.path.extension
         for each (file in target.files) {
             let transition = file.extension + '->' + target.path.extension
-            let rule = spec.rules[transition]
+            let rule = target.rule || spec.rules[transition]
             if (!rule) {
                 rule = spec.rules[target.path.extension]
                 if (!rule) {
-                    dump('FAILED', target)
                     throw 'No rule to build target ' + target.path + ' for transition ' + transition
                     return
                 }
@@ -625,25 +722,58 @@ dump('FAILED', target)
             spec.PREPROCESS = ''
             spec.OUT = target.path
             spec.IN = file
+            spec.CFLAGS = (target.compiler) ? target.compiler.join(' ') : ''
+//MOB - fixup CFLAGS
             spec.INCLUDES = (target.includes) ? target.includes.map(function(e) '-I' + e) : ''
-            spec.LIBS = target.libraries.map(function(e) '-l' + Path(e).trimExt().toString().replace(/^lib/, '') )
 
             let command = rule.expand(spec, {fill: ''})
             trace('Compile', file)
-            let run = runCmd(command)
-            if (run.status != 0) {
-                throw 'Build failure for ' + target.path + '\n' + run.error
+            let cmd = runCmd(command)
+            if (cmd.status != 0) {
+                throw 'Build failure for ' + target.path + '\n' + cmd.error + "\n" + cmd.response
             }
         }
     }
 
-    function stale(target, inputs: Array) {
+    function buildAction(target, cross: boolean) {
+        if (!stale(target)) {
+            return
+        }
+        diagnose('Building:\n' + serialize(target, {pretty: true}))
+        if (options.diagnose) {
+            dump('TARGET', target)
+        }
+        spec.target = target
+        let script = target.script.expand(spec, {fill: ''})
+        let result = eval(script)
+    }
+
+    function mapLibs(libs: Array): Array {
+        if (spec.OS == 'WIN') {
+            libs = libs.clone()
+            for (i in libs) {
+                let lib = libs[i]
+                lib = spec.directories.lib.join("lib" + lib).joinExt(spec.extensions.shlib)
+                if (lib.exists) {
+                    libs[i] = lib
+                }
+            }
+        } else {
+            libs = libs.map(function(e) '-l' + Path(e).trimExt().toString().replace(/^lib/, '') )
+        }
+        return libs
+    }
+
+    /*
+        Test if a target is stale vs the inputs AND dependencies
+     */
+    function stale(target) {
         let path = target.path
         if (!path.modified) {
             whyRebuild(path, 'Rebuild', 'is missing.')
             return true
         }
-        for each (file in inputs) {
+        for each (file in target.files) {
             if (file.modified > path.modified) {
                 whyRebuild(path, 'Rebuild', 'input ' + file + ' has been modified.')
                 return true
@@ -717,6 +847,8 @@ dump('FAILED', target)
         for (let [key,value] in o) {
             if (value is String) {
                 o[key] = value.expand(spec, {fill: '${}'})
+            } else if (value is Path) {
+                o[key] = Path(value.toString().expand(spec, {fill: '${}'}))
             } else if (Object.getOwnPropertyCount(value) > 0) {
                 o[key] = expandTokens(value)
             }
@@ -728,8 +860,16 @@ dump('FAILED', target)
         if (options.show) {
             App.log.activity('Run', command)
         }
-        let run = Cmd(command)
-        return run
+        let cmd = new Cmd
+        if (spec.env) {
+            let env = {}
+            for (let [key,values] in spec.env) {
+                env[key] = values.join(App.SearchSeparator)
+            }
+            cmd.env = env
+        }
+        cmd.start(command)
+        return cmd
     }
 
     function trace(tag, msg) {
@@ -763,6 +903,12 @@ dump('FAILED', target)
     function diagnose(msg) {
         if (options.diagnose) {
             App.log.activity('Debug', msg)
+        }
+    }
+
+    public function cleanTargets() {
+        for each (target in spec.targets) {
+            target.path.remove()
         }
     }
 }

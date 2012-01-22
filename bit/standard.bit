@@ -16,4 +16,11 @@ bit({
     common: {
         '+includes': [ '..' ],
     },
+
+    targets: {
+        clean: {
+            type: 'action',
+            script: 'b.cleanTargets()',
+        },
+    },
 })

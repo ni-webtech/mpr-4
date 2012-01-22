@@ -1,0 +1,17 @@
+/*
+    i686-pc-linux.bit -- Linux Platform Build Configuration
+ */
+
+bit({
+    SYSTEM: 'i686-pc-linux',
+
+    blend: [
+        '../standard.bit',
+        '../arch/i686.bit',
+        '../os/macosx.bit',
+    ],
+	host: {
+		arch: 'i686',
+		os: 'LINUX',
+	},
+})

@@ -1,0 +1,7 @@
+/*
+    i686.bit -- Intel 32-bit Architecture Settings
+ */
+
+bit({
+    ARCH: 'i686',
+})

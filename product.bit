@@ -38,10 +38,6 @@ bit({
     },
 
     targets: {
-		all: {
-			group: [ 'libmpr', 'libmprssl', 'manager'],
-		},
-
         libmpr: {
             type: 'lib',
             sources: [ 'src/*.c', 'src/deps/dtoa.c' ],
@@ -52,19 +48,16 @@ bit({
         libmprssl: {
             enable: '"${components.openssl.path"',
             type: 'lib',
-            depend: [
-                // MOB OpenSSL, ...
-                'libmpr',
-            ],
+            // MOB OpenSSL, ...
+            depend: [ 'libmpr' ],
             sources: [ 'src/ssl/*.c' ],
             '+libraries': [ 'mpr', 'ssl', 'crypto' ],
         },
 
         manager: {
             type: 'exe',
-            depend: [
-                'libmpr',        //  MOB - what if ssl is disable?
-            ],
+            rule: 'gui',
+            depend: [ 'libmpr' ],
             sources: [ 'src/manager.c' ],
             '+libraries': [ 'mpr' ],
         },

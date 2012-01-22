@@ -6,7 +6,7 @@ bit({
     OS: 'MACOSX',
     LIKE: 'POSIX',
 
-    '+blend': [    
+    blend: [    
         'posix.bit',
     ],
 
@@ -37,7 +37,7 @@ bit({
     },
 
     rules: {
-        'c->o': '${components.compiler.path} -c -o ${OUT} -arch ${ARCH} ${DEBUG} ${target.defines} ${INCLUDES} ${PREPROCESS} ${IN}',
+        'c->o': '${components.compiler.path} -c -o ${OUT} -arch ${ARCH} ${DEBUG} ${CFLAGS} ${target.defines} ${INCLUDES} ${PREPROCESS} ${IN}',
         'LIB':  '${components.compiler.path} -dynamiclib -o ${OUT} -arch ${ARCH} ${DEBUG} ${target.linker} -install_name @rpath/${OUT} ${LIBS} ${IN}'
         'EXE':  '${components.compiler.path} -o ${OUT} -arch ${ARCH} ${DEBUG} ${target.linker} -L${directories.lib} ${LIBS} ${IN}'
     },
