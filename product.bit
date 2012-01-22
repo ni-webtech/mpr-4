@@ -38,10 +38,6 @@ bit({
     },
 
     targets: {
-		all: {
-			group: [ 'libmpr', 'libmprssl', 'manager'],
-		},
-
         libmpr: {
             type: 'lib',
             sources: [ 'src/*.c', 'src/deps/dtoa.c' ],

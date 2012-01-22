@@ -37,6 +37,9 @@ bit({
         link: {
             path: "C:\\Program Files\\Microsoft Visual Studio 10.0\\VC\\Bin\\link.exe",
         },
+        dumpbin: {
+            path: "C:\\Program Files\\Microsoft Visual Studio 10.0\\VC\\Bin\\dumpbin.exe",
+        },
         inno: {
             path: "C:\\Program Files\\Inno Setup 5\\iscc.exe",
         },

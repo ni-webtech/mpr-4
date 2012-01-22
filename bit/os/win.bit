@@ -6,6 +6,10 @@ bit({
     OS: 'WIN',
     LIKE: 'WIN',
 
+    directories: {
+        lib: '${directories.cfg}/bin',
+    },
+
     extensions: {
         exe:   'exe',
         lib:   'a',
@@ -28,7 +32,7 @@ bit({
         web:     '${prefixes.product}/web',
     },
 
-    '+required': [ 'winsdk', 'compiler', 'link' ],
+    '+required': [ 'winsdk', 'compiler', 'link', 'dumpbin' ],
     '+optional': [ 'inno' ],
 
     common: {
@@ -63,6 +67,6 @@ bit({
         'exe':  '"${components.link.path}" -out:${OUT} -entry:mainCRTStartup -subsystem:console ${target.linker} ${IN} ${LIBS}',
         'gui':  '"${components.link.path}" -out:${OUT} -entry:WinMainCRTStartup -subsystem:Windows ${target.linker} ${IN} ${LIBS} shell32.lib',
 
-        'db':   '${components.dumpbin.path} /symbols ${IN}',
+        'sym':   '"${components.dumpbin.path}" /symbols ${IN}',
     },
 })
