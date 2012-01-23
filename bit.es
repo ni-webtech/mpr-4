@@ -84,9 +84,12 @@ class Bit
         global._b = this
         args = Args(argTemplate)
         options = args.options
-        settings = args.settings
         global.spec = spec
+
+/*
+        settings = args.settings
         global.settings = settings
+*/
 
         try {
             processOptions(args)
@@ -136,6 +139,7 @@ class Bit
         loadWrapper(src.join('product.bit'))
         trace('Init', spec.settings.title)
 
+        setConfiguration()
         setDirectories()
         expandTokens(spec)
         setTypes()
@@ -166,8 +170,12 @@ class Bit
             serialize(nspec, {pretty: true, indent: 4, commas: true, quotes: false}) + ')\n')
     }
 
-    function setDirectories() {
+    function setConfiguration() {
         spec.settings.configuration = options.config
+        blend(spec, spec.configurations[options.config], {combine: true})
+    }
+
+    function setDirectories() {
         if (src) {
             spec.directories.src = src
         } else {
@@ -243,6 +251,7 @@ class Bit
             findBitfile()
         }
         loadWrapper(currentBitFile)
+        setConfiguration()
         setDirectories()
         expandTokens(spec)
         makeOutDirs()
@@ -335,6 +344,8 @@ class Bit
         setTypes()
         setTargetPaths()
         Object.sortProperties(spec);
+        // spec.settings = Object.sortProperties(spec.settings);
+
         if (options.save) {
             delete spec.blend
             options.save.write(serialize(spec, {pretty: true, commas: true, indent: 4, quotes: false}))
@@ -350,6 +361,18 @@ class Bit
                 if (target.type && target.type != 'action') {
                     topTargets.push(tname)
                 }
+            }
+        } else {
+            /* Implement the "build" target */
+            let index = topTargets.indexOf("build")
+            if (index >= 0) {
+                let names = []
+                for (let [tname,target] in spec.targets) {
+                    if (target.type && target.type != 'action') {
+                        names.push(tname)
+                    }
+                }
+                topTargets.splice(index, 1, ...names)
             }
         }
         topTargets = topTargets.sort()
@@ -895,10 +918,13 @@ UNUSED
         }
     }
 
-    public function cleanTargets() {
-        for each (target in spec.targets) {
-            target.path.remove()
-            vtrace('Clean', target.path)
+    public function action(cmd: String) {
+        if (cmd == 'clean') {
+            for each (target in spec.targets) {
+                target.path.remove()
+                vtrace('Clean', target.path)
+            }
+        } else if (cmd == 'compile') {
         }
     }
 }
