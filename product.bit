@@ -3,6 +3,9 @@
  */
 
 bit({
+    blend: [
+        "src/test/test.bit",
+    ],
     settings: {
         /* Default configuration overridden by build.bit */
 		product: 'mpr',
@@ -16,8 +19,9 @@ bit({
         assert: true,
         float: true,
         legacy: false,
-        rom: false,
         preprocess: false,
+        rom: false,
+        testDepth: 1,
     },
 
     configurations: {
@@ -34,7 +38,7 @@ bit({
     '+optional': [ 'doxygen', 'ejs', 'http', 'openssl' ],
 
     common: {
-        '+includes': [ 'src' ]
+        '+includes': [ 'src', 'out/inc' ]
     },
 
     targets: {

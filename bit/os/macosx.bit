@@ -16,7 +16,7 @@ bit({
     },
 
     common: {
-        '+compiler': [ '-fPIC', '-Wall', '-Wno-unused-result' ],
+        '+compiler': [ '-fPIC', '-Wall' ],
         '+defines':  [ '-DPIC' ],
         '+libraries':[ 'pthread', 'm' ],
         '+linker':   [
@@ -26,10 +26,11 @@ bit({
             "-Wl,-rpath,@loader_path/",             //  MOB - only for libs?
         ],
         '+script': '
-            let common = spec.common.compiler
+            let common = spec.common
             if (${settings.preprocess}) common.compiler += [ "-E" ]
             common.compiler += [("${settings.configuration}" == "debug" ? "-g" : "-Os")]
             common.linker += [("${settings.configuration}" == "debug" ? "-g" : "")]
+            if (${settings.warnUnused}) common.compiler += [ "-Wno-unused-result" ]
             if (${settings.hasDynLoad}) common.linker += [ "-ldl" ]
             let tune = ${settings.hasMtune} ? "mtune" : "mcpu"
             if ("${ARCH}".startsWith("arm"))  common.compiler += [ tune + "=arm" + MODEL, "-mno-sched-prolog" ]
@@ -38,7 +39,8 @@ bit({
 
     rules: {
         'c->o': '${components.compiler.path} -c -o ${OUT} -arch ${ARCH} ${DEBUG} ${CFLAGS} ${target.defines} ${INCLUDES} ${PREPROCESS} ${IN}',
-        'LIB':  '${components.compiler.path} -dynamiclib -o ${OUT} -arch ${ARCH} ${DEBUG} ${target.linker} -install_name @rpath/${OUT} ${LIBS} ${IN}'
-        'EXE':  '${components.compiler.path} -o ${OUT} -arch ${ARCH} ${DEBUG} ${target.linker} -L${directories.lib} ${LIBS} ${IN}'
+        'lib':  '${components.compiler.path} -dynamiclib -o ${OUT} -arch ${ARCH} ${DEBUG} ${target.linker} -install_name @rpath/${OUT} ${LIBS} ${IN}'
+        'exe':  '${components.compiler.path} -o ${OUT} -arch ${ARCH} ${DEBUG} ${target.linker} -L${directories.lib} ${LIBS} ${IN}'
+        'gui':  '${components.compiler.path} -o ${OUT} -arch ${ARCH} ${DEBUG} ${target.linker} -L${directories.lib} ${LIBS} ${IN}'
     },
 })

@@ -13,10 +13,10 @@ let winsdk = probe('Include/WinBase.h', {fullpath: true, search: search.sort().r
 bit({components: { winsdk: { path: winsdk }}})
 
 let dir = winsdk.dirname.dirname
-spec.env.PATH += [ dir.join('Bin'), ]
-spec.env.INCLUDE += [ dir.join('INCLUDE') ]
+spec.env.PATH = [ dir.join('Bin'), ]
+spec.env.INCLUDE = [ dir.join('INCLUDE') ]
 if (spec.ARCH == 'x86_64') {
-    spec.env.LIB += [ dir.join('lib/x64') ]
+    spec.env.LIB = [ dir.join('lib/x64') ]
 } else {
-    spec.env.LIB += [ dir.join('lib') ]
+    spec.env.LIB = [ dir.join('lib') ]
 }

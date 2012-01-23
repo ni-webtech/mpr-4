@@ -1,44 +1,37 @@
 #!/usr/bin/env ejs
-
 /*
     bit.es -- Build It! -- Embedthis Build It Framework
  */
 
 module embedthis.bit {
 
-// require ejs.unix
-
 class Bit 
 {
     private const RC: String = '.bitrc'
     private const VERSION: Number = 0.1
 
+    //  MOB - organize
     private var appName: String = 'bit'
     private var args: Args
-    private var src: Path                   // Source directory
+    private var src: Path
     private var options: Object
+    private var out: Stream
     private var settings: Object
     private var rest: Array
-    private var targetsToBuild: String
 
-    //  MOB - think of a better name
-    private var currentBit: Path            // Name of the bit file being currently loaded
-    private var currentComponent            // Name of the current component being loaded
+    private var currentBitFile: Path
+    private var currentComponent
 
     /*
         Aggregate Bit configuration. This has all bit files blended into one object.
      */
-    //  MOB - only need env for WIN
-    private var spec: Object = { components: {}, targets: {}, env: { INCLUDE:[], LIB:[], PATH:[] } }
+    private var spec: Object = { components: {}, targets: {} }
 
-    private var targets: Array = []         // Ordered set of targets
+    private var topTargets: Array
 
     private var posix = ['MACOSX', 'LINUX', 'UNIX', 'FREEBSD', 'SOLARIS']
     private var windows = ['WIN', 'WINCE']
     private var start: Date
-
-    function Bit() {
-    }
 
     private var argTemplate = {
         options: {
@@ -51,6 +44,7 @@ class Bit
             host: {},
             init: { alias: 'i', range: String },
             log: { alias: 'l', range: String }
+            out: { range: String }
             overwrite: { alias: 'o' },
             release: {},
             save: { range: Path },
@@ -63,7 +57,7 @@ class Bit
     }
 
     function usage(): Void {
-        print('\nUsage: bit [options] [targets] ...\n' +
+        print('\nUsage: bit [options] [targets|actions] ...\n' +
             '  Options:\n' + 
             '    --benchmark            # Measure elapsed time\n' +
             '    --build path           # Use the specified build.bit\n' +
@@ -73,7 +67,8 @@ class Bit
             '    --dev                  # Build the dev tools only\n' +
             '    --host                 # Build for the host only\n' +
             '    --init path-to-source  # Initialize for building\n' +
-            '    --log logFile          # Send log output to a log file \n' +
+            '    --log logSpec          # Save debug and errors to a log file\n' +
+            '    --out path             # Save output to a file\n' +
             '    --overwrite            # Overwrite when generating files\n' +
             '    --save path            # Save aggregated bit file\n' +
             '    --show                 # Show commands executed\n' +
@@ -99,16 +94,14 @@ class Bit
         } catch (e) {
             let msg: String
             if (e is String) {
-                msg = e
-                App.log.error('bit: Error: ' + msg + '\n')
+                App.log.error('bit: Error: ' + e + '\n')
             } else {
-                msg = (options.diagnose) ? e : e.message
-                App.log.error('bit: Error: ' + msg + '\n')
+                App.log.error('bit: Error: ' + ((options.diagnose) ? e : e.message) + '\n')
             }
             App.exit(2)
         }
         if (options.benchmark) {
-            App.log.activity('Benchmark', "Elapsed time %.2f" % ((start.elapsed / 1000)) + " secs.")
+            activity('Benchmark', "Elapsed time %.2f" % ((start.elapsed / 1000)) + " secs.")
         }
     }
 
@@ -123,42 +116,12 @@ class Bit
             print(version)
             App.exit(0)
         }
-        if (options.verbose && !options.log) {
-            options.log = 'stderr:1'
-        }
         if (options.log) {
             App.log.redirect(options.log)
             App.mprLog.redirect(options.log)
         }
+        out = (options.out) ? File(options.out, "w") : stdout
         currentBit = options.build
-    }
-
-    function getDevPlatform() {
-        if (Config.OS == 'WIN') {
-            return Config.CPU + '-pc-win.bit'
-        } else if (Config.OS == 'MACOSX') {
-            return Config.CPU + '-apple-macosx.bit'
-        } else if (Config.OS == 'LINUX') {
-            return Config.CPU + '-pc-linux.bit'
-        }
-        return Config.CPU + '-unknown-unknown.bit'
-    }
-
-    function makeDirs() {
-        for each (d in spec.directories) {
-            Path(d).makeDir()
-        }
-    }
-
-    function setDefaults() {
-        spec.settings.configuration = options.config
-        if (src) {
-            spec.directories.src = src
-        } else {
-            // For a relative path
-            spec.directories.src = Path(spec.directories.src).relativeFrom('.')
-            src = spec.directories.src
-        }
     }
 
     function initialize() {
@@ -173,12 +136,11 @@ class Bit
         loadWrapper(src.join('product.bit'))
         trace('Init', spec.settings.title)
 
-        setTypes()
-        setDefaults()
+        setDirectories()
         expandTokens(spec)
         setTypes()
         findComponents()
-        makeDirs()
+        makeOutDirs()
 
         let nspec = { 
             blend : [
@@ -190,7 +152,9 @@ class Bit
             },
             settings: spec.settings,
             components: spec.components,
-            env: spec.env,
+        }
+        if (spec.env) {
+            nspec.env = spec.env
         }
         let bbit: Path = 'build.bit'
         if (bbit.exists && !options.overwrite) {
@@ -200,6 +164,18 @@ class Bit
         bbit.write('/*\n    build.bit -- Build It for ' + spec.settings.title + 
             '\n\n    Generated by bit.\n */\n\nbit(' + 
             serialize(nspec, {pretty: true, indent: 4, commas: true, quotes: false}) + ')\n')
+    }
+
+    function setDirectories() {
+        spec.settings.configuration = options.config
+        if (src) {
+            spec.directories.src = src
+        } else {
+            // For a relative path
+            spec.directories.src = Path(spec.directories.src).relativeFrom('.')
+            src = spec.directories.src
+        }
+        setTypes()
     }
 
     function findComponents() {
@@ -224,7 +200,7 @@ class Bit
                 throw "Unknown component " + path
             }
             if (options.verbose) {
-                App.log.activity('Probe', 'Found ' + component + ' at ' + spec.components[component].path)
+                activity('Probe', 'Found ' + component + ' at ' + spec.components[component].path)
             }
         }
     }
@@ -263,14 +239,13 @@ class Bit
             initialize()
             return
         }
-        if (!currentBit) {
+        if (!currentBitFile) {
             findBitfile()
         }
-        loadWrapper(currentBit)
-        setTypes()
-        setDefaults()
+        loadWrapper(currentBitFile)
+        setDirectories()
         expandTokens(spec)
-        makeDirs()
+        makeOutDirs()
         let host = spec.host
         host.cross ||= (host.arch != Config.CPU || host.os != Config.OS)
         if (host.cross) {
@@ -280,15 +255,18 @@ class Bit
     }
 
     function loadWrapper(path) {
-        let saveCurrent = currentBit
-        currentBit = path
-        vtrace('Loading', currentBit)
+        let saveCurrent = currentBitFile
+        currentBitFile = path
+        vtrace('Loading', currentBitFile)
         load(path)
-        currentBit = saveCurrent
+        currentBitFile = saveCurrent
     }
 
-    function rebase(o) {
-        let base = currentBit.dirname
+    /*
+        Change paths in a bit file to be relative to the bit file
+     */
+    function loadRebase(o) {
+        let base = currentBitFile.dirname
         if (o.common) {
             let cinc = o.common.includes
             for (i in cinc) {
@@ -325,8 +303,8 @@ class Bit
     }
 
     public function loadBitfile(o) {
-        let base = currentBit.dirname
-        rebase(o)
+        let base = currentBitFile.dirname
+        loadRebase(o)
         let toBlend = blend({}, o, {combine: true})
         /* Blending is depth-first. So blend existing spec over blended spec */
         /* Load blended bit files first */
@@ -337,11 +315,11 @@ class Bit
     }
 
     function findBitfile() {
-        let base: Path = currentBit || '.'
+        let base: Path = currentBitFile || '.'
         for (let d: Path = base; d.parent != d; d = d.parent) {
             let f: Path = d.join('build.bit')
             if (f.exists) {
-                currentBit = f
+                currentBitFile = f
                 return
             }
         }
@@ -366,69 +344,32 @@ class Bit
     }
 
     function selectTargets() {
-        if (args.rest.length > 0) {
-            for each (tname in args.rest) {
-                if (!spec.targets[tname]) {
-                    throw "Unknown target " + tname
-                }
-                orderTargets(tname, spec.targets[tname])
-            }
-        } else {
-            for (let [tname, target] in spec.targets) {
+        topTargets = args.rest
+        if (topTargets.length == 0) {
+            for (let [tname,target] in spec.targets) {
                 if (target.type && target.type != 'action') {
-                    orderTargets(tname, target)
+                    topTargets.push(tname)
                 }
             }
         }
-        targetsToBuild = ''
-        for each (target in targets) {
-            targetsToBuild += target.name + ' '
-        }
-        vtrace('Targets', targetsToBuild)
-    }
-
-/*
-    clean, compile|build, package, test, install 
-
-    clean
-        - remove all targets
-    compile
-        - build all targets
-    test
-        - run kind == test
-        ** Need 'action'
-
-    - Need to be able to define
-
-    bit target
-        - search target.name + target.type
- */
-    function orderTargets(tname, target) {
-        if (target.enable) {
-            let script = target.enable.expand(spec, {fill: ''})
-            let result = eval(script)
-            if (!result) {
-                vtrace('Skip', 'Target ' + tname + ' is disabled on this platform') 
-                return
+        topTargets = topTargets.sort()
+        for (let [index, tname] in topTargets) {
+            let target = spec.targets[tname]
+            if (!target) {
+                throw "Unknown target " + tname
             }
         }
-        if (target.depend) {
-            for each (dname in target.depend) {
-                let dep = spec.targets[dname]
-                if (!dep) {
-                    throw 'Unknown dependency "' + dname + '" in target "' + tname + '"'
+        for (let [tname, target] in spec.targets) {
+            if (target.enable) {
+                let script = target.enable.expand(spec, {fill: ''})
+                if (!eval(script)) {
+                    vtrace('Skip', 'Target ' + tname + ' is disabled on this platform') 
+                    target.skip = true
                 }
-                if (!targets.contains(dep)) {
-                    orderTargets(dname, dep)
-                    targets.push(dep)
-                    dep.name = dname
-                }
+                target.name = tname
             }
         }
-/*
-        target.name = tname
-*/
-        targets.push(target)
+        vtrace('Targets', topTargets)
     }
 
     function setTargetPaths() {
@@ -480,8 +421,7 @@ class Bit
      */
     function expandWildcards() {
         let index
-        for (index = 0; index < targets.length; index++) {
-            target = targets[index]
+        for each (target in spec.targets) {
             if (target.headers) {
                 let files = buildFileList(target.headers.include, target.headers.exclude)
                 for each (file in files) {
@@ -493,8 +433,7 @@ class Bit
                     } else {
                         spec.targets[newTarget.name] = newTarget
                     }
-                    targets.insert(index++, newTarget)
-                    // target.files.push(header)
+                    spec.targets.push(newTarget)
                 }
             }
             if (target.sources) {
@@ -519,7 +458,6 @@ class Bit
                         This is an implicit dependency by position in targets
                      */
                     newTarget.depend = depend(newTarget)
-                    targets.insert(index++, newTarget)
                     target.files.push(obj)
                     target.depend ||= []
                     target.depend.push(obj)
@@ -537,7 +475,7 @@ class Bit
         for (name in spec.common) {
             common['+' + name] = spec.common[name]
         }
-        for each (target in targets) {
+        for each (target in spec.targets) {
             if (target.type && (target.type == 'obj' || target.type == 'lib' || target.type == 'exe')) {
                 if (target.postblend) {
                     let postblend = target.postblend.expand(spec, {fill: '${}'})
@@ -569,13 +507,29 @@ class Bit
 
     function build(cross: Boolean) {
         prepBuild(cross)
-        for each (target in targets) {
+        for each (tname in topTargets) {
+            let target = spec.targets[tname]
             buildTarget(target, cross)
         }
-        trace('Complete', 'Targets: ' + targetsToBuild)
+        trace('Complete', 'Targets: ' + topTargets)
     }
 
     function buildTarget(target, cross: Boolean) {
+        for each (dname in target.depend) {
+            let dep = spec.targets[dname]
+            if (!dep) {
+                // throw 'Unknown dependency "' + dname + '" in target "' + target.name + '"'
+                if (!Path(dname).exists) {
+print('Unknown dependency "' + dname + '" in target "' + target.name + '"')
+                    return
+                }
+            } else {
+                if (dep.skip || dep.built) {
+                    continue
+                }
+                buildTarget(dep, cross)
+            }
+        }
         if (target.message) {
             trace('Info', target.message)
         }
@@ -592,6 +546,7 @@ class Bit
         } else if (target.type == 'obj') {
             buildObj(target, cross)
         } else {
+            dump(target)
             throw 'Unknown target type in ' + target.path
         }
     }
@@ -745,7 +700,7 @@ UNUSED
         }
         spec.target = target
         let script = target.script.expand(spec, {fill: ''})
-        let result = eval(script)
+        eval(script)
     }
 
     function mapLibs(libs: Array): Array {
@@ -856,9 +811,9 @@ UNUSED
         return o
     }
 
-    function runCmd(command: String): Cmd {
+    public function runCmd(command: String, coptions = null): Cmd {
         if (options.show) {
-            App.log.activity('Run', command)
+            activity('Run', command)
         }
         let cmd = new Cmd
         if (spec.env) {
@@ -868,47 +823,82 @@ UNUSED
             }
             cmd.env = env
         }
-        cmd.start(command)
+        cmd.start(command, coptions)
+        if (cmd.status != 0) {
+            //  MOB - should this be done?
+            App.log.error(cmd.error)
+        }
+        if (options.show) {
+            out.write(cmd.response + ' ' + cmd.error)
+        }
         return cmd
     }
 
+    function getDevPlatform() {
+        if (Config.OS == 'WIN') {
+            return Config.CPU + '-pc-win.bit'
+        } else if (Config.OS == 'MACOSX') {
+            return Config.CPU + '-apple-macosx.bit'
+        } else if (Config.OS == 'LINUX') {
+            return Config.CPU + '-pc-linux'
+        } else if (Config.OS == 'FREEBSD') {
+            return Config.CPU + '-unknown-freebsd'
+        } else if (Config.OS == 'SOLARIS') {
+            return Config.CPU + '-unknown-solaris'
+        }
+        return Config.CPU + '-unknown-unknown.bit'
+    }
+
+    function makeOutDirs() {
+        for each (d in spec.directories) {
+            Path(d).makeDir()
+        }
+    }
+
+    public function activity(tag: String, ...args): Void {
+        let msg = args.join(" ")
+        let msg = "%12s %s" % (["[" + tag + "]"] + [msg]) + "\n"
+        out.write(msg)
+    }
+
     function trace(tag, msg) {
-        App.log.activity(tag, msg)
+        activity(tag, msg)
     }
 
     function vtrace(tag, msg) {
         if (options.verbose) {
-            App.log.activity(tag, msg)
+            activity(tag, msg)
         }
     }
 
     function whyRebuild(path, tag, msg) {
         if (options.why) {
-            App.log.activity(tag, path + ' because ' + msg)
+            activity(tag, path + ' because ' + msg)
         }
     }
 
     function whySkip(path, msg) {
         if (options.why) {
-            App.log.activity('Target', path + ' ' + msg)
+            activity('Target', path + ' ' + msg)
         }
     }
 
     function whyMissing(msg) {
         if (options.why) {
-            App.log.activity('Init', msg)
+            activity('Init', msg)
         }
     }
 
     function diagnose(msg) {
         if (options.diagnose) {
-            App.log.activity('Debug', msg)
+            activity('Debug', msg)
         }
     }
 
     public function cleanTargets() {
         for each (target in spec.targets) {
             target.path.remove()
+            vtrace('Clean', target.path)
         }
     }
 }
@@ -937,7 +927,10 @@ public function program(name)
 }
 
 public function activity(tag, msg)
-    App.log.activity(tag, msg)
+    b.activity(tag, msg)
+
+public function run(command, options = null)
+    b.runCmd(command, options)
 
 /*
     @copy   default

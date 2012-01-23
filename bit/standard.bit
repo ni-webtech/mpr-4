@@ -13,9 +13,6 @@ bit({
 		obj:    	'${directories.cfg}/obj',
         extensions: 'extensions',
 	},
-    common: {
-        '+includes': [ '..' ],
-    },
 
     targets: {
         clean: {
