@@ -89,7 +89,7 @@ function compile(cc: Path, command: String, contents: String = null): Boolean {
     try {
         cmd = Cmd(command)
         if (cmd.status != 0) {
-            App.log.debug(2, cmd.error)
+            App.log.debug(3, "Compiler component test compile result: " + cmd.error)
         }
     } finally {
         if (file) {

@@ -29,7 +29,7 @@ if (spec.OS == 'WIN') {
 } else if (spec.OS == 'MACOSX') {
     let search = path ? ([path]) : [spec.directories.extensions.join('openssl', ver), '/usr/lib' ]
     let libdir = probe('libcrypto.dylib', {search: search})
-    search = path ? ([path]) : [spec.directories.extensions.join('openssl', ver, 'include'), '/usr/include' ]
+    search = path ? ([path.join('include')]) : [spec.directories.extensions.join('openssl', ver, 'include'), '/usr/include' ]
     let incdir = probe('openssl/ssl.h', {search: search})
     cfg.path = libdir 
     cfg.includes = [ incdir ]

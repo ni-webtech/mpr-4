@@ -50,7 +50,7 @@ bit({
         },
 
         libmprssl: {
-            enable: '"${components.openssl.path}"',
+            enable: '"${components.openssl.path}" != ""',
             type: 'lib',
             // MOB OpenSSL, ...
             depend: [ 'libmpr' ],
