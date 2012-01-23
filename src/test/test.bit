@@ -1,0 +1,56 @@
+/*
+    test.bit
+ */
+
+bit({
+    targets: {
+        test: {
+            type: 'action',
+            //  MOB -- shell: ''
+            //  MOB -- message: ''
+            script: "
+                run('utest -v -i 2 --depth ${settings.testDepth}')
+                if (${settings.testDepth} >= 3) {
+                    activity('Test', 'Light load tests')
+                    Cmd('utest -v -i 20 --depth ${settings.testDepth}')
+                    for each (t in [2, 4]) {
+                        activity('Test', 'Light thread tests')
+                        Cmd('utest -v -i 20 --depth ${settings.testDepth} --threads ' + t)
+                    }
+                }
+                if (${settings.testDepth} >= 4) {
+                    activity('Test', 'Longevity load tests')
+                    Cmd('utest -v -i 100 --depth ${settings.testDepth}')
+                    for each (t in [8, 16]) {
+                        activity('Test', 'Light thread tests')
+                        Cmd('utest -v -i 100 --depth ${settings.testDepth} --threads ' + t)
+                    }
+                }
+                activity('Test', 'Unit tests complete')
+            ",
+        },
+        benchMpr: {
+            type: 'exe',
+            depend: [ 'libmpr', ],
+            sources: [ 'benchMpr.c' ],
+            '+libraries': [ 'mpr' ],
+        },
+        runProgram: {
+            type: 'exe',
+            sources: [ 'runProgram.c' ],
+        },
+        testMpr: {
+            type: 'exe',
+            depend: [ 'libmpr', 'runProgram' ],
+            sources: [ 'test*.c' ],
+            '+libraries': [ 'mpr', 'mprssl', 'ssl', 'crypto' ],
+        },
+        benchmark: {
+            type: 'action',
+            script: "
+                Path('').write(Cmd('benchMpr -T 0'))
+                Path('').write(Cmd('benchMpr -T 20'))
+            ",
+        }
+    },
+})
