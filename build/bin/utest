@@ -87,7 +87,7 @@ enumerable class Test {
             iterations: { alias: 'i', range: Number },
             log: { alias: 'l', range: String },
             name: { range: String },
-            noserver: {},
+            noserver: { alias: 'n' },
             os: { alias: 'o', range: String },
             second: { alias: '2' },
             step: { alias: 's' },
@@ -418,6 +418,7 @@ enumerable class Test {
                 out.write("Test Failed: " + e.message + "\n")
             }
         }
+        let out = this.out
         w.onclose = function (e) {
             if (test.testCount == priorCount) {
                 /*
