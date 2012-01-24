@@ -35,10 +35,10 @@ bit({
         } },
     },
 
-    '+optional': [ 'doxygen', 'ejs', 'http', 'openssl' ],
+    '+optional': [ 'doxygen', 'ejs', 'http', 'openssl', 'matrixssl' ],
 
     common: {
-        '+includes': [ 'src', 'out/inc' ]
+        '+includes': [ 'src', '.' ]
     },
 
     targets: {
@@ -46,16 +46,14 @@ bit({
             type: 'lib',
             sources: [ 'src/*.c', 'src/deps/dtoa.c' ],
             exclude: [ /manager.c|\/ssl\/|\/utils\// ],
-			build: ['dev', 'host' ],
+            platforms: [ 'local', 'vxworks-ppc', 'cross' ]
         },
 
         libmprssl: {
-            enable: '"${components.openssl.path}" != ""',
+            enable: '"${components.openssl.path}" != "" || "${components.matrixssl.path" != ""',
             type: 'lib',
-            // MOB OpenSSL, ...
-            depend: [ 'libmpr' ],
+            depend: [ 'libmpr', 'openssl', 'matrixssl' ],
             sources: [ 'src/ssl/*.c' ],
-            '+libraries': [ 'mpr', 'ssl', 'crypto' ],
         },
 
         manager: {
@@ -63,21 +61,18 @@ bit({
             rule: 'gui',
             depend: [ 'libmpr' ],
             sources: [ 'src/manager.c' ],
-            '+libraries': [ 'mpr' ],
         },
 
         makerom: {
             type: 'exe',
             depend: [ 'libmpr', ],
             sources: ['src/utils/makerom.c'],
-            '+libraries': [ 'mpr' ],
         },
 
         chargen: {
             type: 'exe',
             depend: [ 'libmpr', ],
             sources: [ 'src/utils/charGen.c' ],
-            '+libraries': [ 'mpr' ],
         },
 	},
 })

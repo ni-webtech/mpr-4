@@ -20,14 +20,14 @@ bit({
 
     prefixes: {
         product: 'C:/Program Files/${settings.title}',
-        bin:     '${prefixes.product}/bin',
+        productver: 'C:/Program Files/${settings.title}',
+
         config:  '${prefixes.product}',
-        doc:     '${prefixes.product}/doc',
+        bin:     '${prefixes.product}/bin',
         header:  '${prefixes.product}/inc',
         lib:     '${prefixes.product}/bin',
         log:     '${prefixes.product}/logs',
-        jem:     '${prefixes.product}/jems',
-        samples: '${prefixes.product}/samples',
+        spool:   '${prefixes.product}/tmp',
         src:     '${prefixes.product}/src',
         web:     '${prefixes.product}/web',
     },

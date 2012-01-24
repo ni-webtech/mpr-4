@@ -13,19 +13,19 @@ class Bit
     //  MOB - organize
     private var appName: String = 'bit'
     private var args: Args
-    private var src: Path
+    private var currentBitFile: Path
+    private var currentComponent: String
+    private var currentPlatform: String
+    private var local: String
     private var options: Object
     private var out: Stream
+    private var platforms: Array
     private var settings: Object
     private var rest: Array
+    private var src: Path
 
-    private var currentBitFile: Path
-    private var currentComponent
-
-    /*
-        Aggregate Bit configuration. This has all bit files blended into one object.
-     */
-    private var spec: Object = { components: {}, targets: {} }
+    private var bareSpec: Object = { components: {}, targets: {} }
+    private var spec: Object
 
     private var topTargets: Array
 
@@ -36,18 +36,20 @@ class Bit
     private var argTemplate = {
         options: {
             benchmark: { alias: 'b' },
-            build: { range: String },
+            bit: { range: String },
+            build: { range: String, separator: Array },
             config: { range: String, value: 'debug' },
+            'continue': {},
             debug: {},
-            dev: {},
             diagnose: { alias: 'd' },
             disable: { range: String, separator: Array },
-            enable: { range: String, separator: Array  },
-            host: {},
+            enable: { range: String, separator: Array },
             init: { alias: 'i', range: String },
             log: { alias: 'l', range: String }
             out: { range: String }
             overwrite: { alias: 'o' },
+            platform: { range: String, separator: Array },
+            prefix: { range: String, separator: Array },
             release: {},
             save: { range: Path },
             show: { alias: 's'},
@@ -63,26 +65,26 @@ class Bit
     function usage(): Void {
         print('\nUsage: bit [options] [targets|actions] ...\n' +
             '  Options:\n' + 
-            '    --benchmark            # Measure elapsed time\n' +
-            '    --build path           # Use the specified build.bit\n' +
-            '    --config configuration # Use the build configuration\n' +
-            '    --diagnose             # Emit diagnostic trace \n' +
-            '    --debug                # Same as --config debug\n' +
-            '    --dev                  # Build the dev tools only\n' +
-            '    --enable feature       # Enable a feature\n' +
-            '    --disablefeature       # Disable a feature\n' +
-            '    --host                 # Build for the host only\n' +
-            '    --init path-to-source  # Initialize for building\n' +
-            '    --log logSpec          # Save debug and errors to a log file\n' +
-            '    --out path             # Save output to a file\n' +
-            '    --overwrite            # Overwrite when generating files\n' +
-            '    --save path            # Save aggregated bit file\n' +
-            '    --show                 # Show commands executed\n' +
-            '    --release              # Same as --config release\n' +
-            '    --version              # Dispay the bit version\n' +
-            '    --verbose              # Trace operations\n' +
-            '    --with component=PATH  # Build with component at PATH\n' +
-            '    --without component    # Build without a component\n' +
+            '    --benchmark                # Measure elapsed time\n' +
+            '    --build file.bit           # Build the specified bit file\n' +
+            '    --config configuration     # Use the build configuration\n' +
+            '    --continue                 # Continue on errors\n' +
+            '    --diagnose                 # Emit diagnostic trace \n' +
+            '    --debug                    # Same as --config debug\n' +
+            '    --enable [feature=value]   # Enable a feature\n' +
+            '    --disable feature          # Disable a feature\n' +
+            '    --init path-to-source      # Initialize for building\n' +
+            '    --log logSpec              # Save errors to a log file\n' +
+            '    --out path                 # Save output to a file\n' +
+            '    --overwrite                # Overwrite files\n' +
+            '    --platform os-arch         # Build for this platforms\n' +
+            '    --save path                # Save blended bit file\n' +
+            '    --show                     # Show commands executed\n' +
+            '    --release                  # Same as --config release\n' +
+            '    --version                  # Dispay the bit version\n' +
+            '    --verbose                  # Trace operations\n' +
+            '    --with component[=PATH]    # Build with component at PATH\n' +
+            '    --without component        # Build without a component\n' +
             '')
         App.exit(1)
     }
@@ -92,16 +94,13 @@ class Bit
         global._b = this
         args = Args(argTemplate)
         options = args.options
-        global.spec = spec
-
-/*
-        settings = args.settings
-        global.settings = settings
-*/
-
         try {
-            processOptions(args)
-            process()
+            setup(args)
+            if (options.init) {
+                initialize()
+            } else {
+                process(options.build || findBitFile('local'))
+            }
         } catch (e) {
             let msg: String
             if (e is String) {
@@ -116,7 +115,7 @@ class Bit
         }
     }
 
-    function processOptions(args: Args) {
+    function setup(args: Args) {
         if (options.debug) {
             options.config = 'debug'
         }
@@ -132,49 +131,76 @@ class Bit
             App.mprLog.redirect(options.log)
         }
         out = (options.out) ? File(options.out, "w") : stdout
-        currentBit = options.build
+        local =  Config.OS.toLower() + '-' + Config.CPU + '-' + options.config
+        platforms = options.platform || []
+        if (platforms[0] != local) {
+            platforms.insert(0, local)
+        }
+        bin =  Path('out').join(local + '-' + options.config, 'bin')
+        App.putenv('PATH', bin + App.SearchSeparator + App.getenv('PATH'))
+        App.log.debug(2, "PATH=" + App.getenv('PATH'))
     }
 
     function initialize() {
         src = Path(options.init)
-        //  MOB - what about cross
-        let dev = getDevPlatform()
-        let platform = src.join('bit/platform', dev).joinExt('bit')
-        if (!platform.exists) {
+        if (!src.join('bit/standard.bit').exists) {
             throw 'Can\'t find bit configuration at "' + src + '"'
         }
-        loadWrapper(platform)
-        loadWrapper(src.join('product.bit'))
-        trace('Init', spec.settings.title)
+        for each (platform in platforms) {
+            currentPlatform = platform
+            let [os, arch] = platform.split('-') 
+            global.spec = spec = bareSpec.clone()
+            /* Read to get settings */
+            loadWrapper(src.join('bit/standard.bit'))
+            loadWrapper(src.join('bit/os/' + os + '.bit'))
+            loadWrapper(src.join('product.bit'))
+            trace('Init', spec.settings.title)
 
-        setCommandLineOptions()
-        setConfiguration()
-        setDirectories()
-        expandTokens(spec)
-        setTypes()
-        findComponents()
-        makeOutDirs()
+            setCommandLineOptions()
+            setConfiguration()
+            setDirectories()
+            expandTokens(spec)
+            setTypes()
+            findComponents()
+            makeOutDirs()
+            makeBitFile(platform)
+        }
+    }
 
-        let nspec = { 
+    function makeBitFile(platform) {
+        let nspec = {}
+        if (platforms.length > 1 && platform == platforms[0]) {
+            nspec.cross = platforms.slice(1)
+        }
+        let [os, arch] = platform.split('-') 
+        blend(nspec, {
             blend : [
-                platform,
+                'bit/standard.bit',
+                'bit/os/' + os + '.bit',
                 src.join('product.bit'),
             ],
+            platform: {
+                os: os,
+                arch: arch,
+            },
             directories: { 
                 src: src.absolute,
             },
             settings: spec.settings,
             components: spec.components,
-        }
+        })
         if (spec.env) {
             nspec.env = spec.env
         }
-        let bbit: Path = 'build.bit'
-        if (bbit.exists && !options.overwrite) {
-            throw 'The ' + bbit + ' file already exists. Use bit --overwrite'
+        if (platform == local) {
+            platform = 'local'
         }
-        trace('Generate', bbit)
-        bbit.write('/*\n    build.bit -- Build It for ' + spec.settings.title + 
+        let path: Path = Path(platform).joinExt('bit')
+        if (path.exists && !options.overwrite) {
+            throw 'The ' + path + ' file already exists. Use bit --overwrite'
+        }
+        trace('Generate', path)
+        path.write('/*\n    ' + platform + '.bit -- Build ' + spec.settings.title + ' for ' + platform + 
             '\n\n    Generated by bit.\n */\n\nbit(' + 
             serialize(nspec, {pretty: true, indent: 4, commas: true, quotes: false}) + ')\n')
         if (options.show) {
@@ -191,7 +217,8 @@ class Bit
             spec.settings[field] = false
         }
         for each (field in options.enable) {
-            spec.settings[field] = true
+            let [field,value] = value.split('=')
+            spec.settings[field] = value || true
         }
         for each (value in options['with']) {
             let [field,value] = value.split('=')
@@ -199,6 +226,10 @@ class Bit
         }
         for each (field in options['without']) {
             spec.components[field] = { disable: true, diagnostic: 'initialized --without' }
+        }
+        for each (field in options['prefix']) {
+            let [field,value] = value.split('=')
+            spec.prefixes[field] = Path(value)
         }
     }
 
@@ -279,25 +310,25 @@ class Bit
         return path.toString().replace(RegExp('[/\\\\]' + file + '$'), '')
     }
 
-    function process() {
-        if (options.init) {
-            initialize()
-            return
-        }
-        if (!currentBitFile) {
-            findBitfile()
-        }
-        loadWrapper(currentBitFile)
+    function process(path: Path) {
+        global.spec = spec = bareSpec.clone()
+        loadWrapper(path)
+
+        let startPlatform = spec.platform.os + '-' + spec.platform.arch
+        currentPlatform = startPlatform
+
         setConfiguration()
         setDirectories()
         expandTokens(spec)
         makeOutDirs()
-        let host = spec.host
-        host.cross ||= (host.arch != Config.CPU || host.os != Config.OS)
-        if (host.cross) {
-            build(!host.cross)
-        }
+
         build()
+
+        for each (platform in spec.cross) {
+            if (platform == startPlatform) continue
+            currentPlatform = platform
+            process(Path(platform).joinExt('bit'))
+        }
     }
 
     function loadWrapper(path) {
@@ -324,7 +355,7 @@ class Bit
             }
         }
         for (tname in o.targets) {
-            o.targets[tname].name = tname
+            o.targets[tname].name ||= tname
         }
         for each (target in o.targets) {
             if (target.includes is Array) {
@@ -357,31 +388,32 @@ class Bit
         for each (path in toBlend.blend) {
             loadWrapper(base.join(path))
         }
-        spec = blend(spec, o, {combine: true})
+        global.spec = blend(spec, o, {combine: true})
     }
 
-    function findBitfile() {
+    function findBitFile(name: Path) {
+        name = name.joinExt('bit')
         let base: Path = currentBitFile || '.'
         for (let d: Path = base; d.parent != d; d = d.parent) {
-            let f: Path = d.join('build.bit')
+            let f: Path = d.join(name)
             if (f.exists) {
-                currentBitFile = f
-                return
+                return f
             }
         }
-        throw 'Can\'t locate build.bit'
+        throw 'Can\'t locate ' + name
     }
 
-    function prepBuild(cross) {
-        setTokens(cross)
+    function prepBuild() {
+        setTokens()
         selectTargets()
         setTypes()
-        expandWildcards()
         blendCommon()
+        resolveDependencies()
+        expandWildcards()
         setTypes()
         setTargetPaths()
         Object.sortProperties(spec);
-        // spec.settings = Object.sortProperties(spec.settings);
+        //MOB - reenable spec.settings = Object.sortProperties(spec.settings);
 
         if (options.save) {
             delete spec.blend
@@ -389,6 +421,8 @@ class Bit
             trace('Save', "Combined Bit files to: " + options.save)
             App.exit()
         }
+        trace('Building', currentPlatform)
+        trace('Targets', topTargets)
     }
 
     function selectTargets() {
@@ -426,7 +460,16 @@ class Bit
                     vtrace('Skip', 'Target ' + tname + ' is disabled on this platform') 
                     target.skip = true
                 }
-                target.name = tname
+                target.name ||= tname
+            }
+            if (target.platforms) {
+                if (!target.platforms.contains(currentPlatform)) {
+                    if (local && !target.platforms.contains('local')) {
+                        if (!target.platforms.contains('local')) {
+                            target.skip = true
+                        }
+                    }
+                }
             }
         }
         vtrace('Targets', topTargets)
@@ -476,6 +519,44 @@ class Bit
         return files
     }
 
+    function resolveDependencies() {
+        let index
+        for each (target in spec.targets) {
+            for each (dname in target.depend) {
+                let dep = spec.targets[dname]
+                if (dep) {
+                    if (dep.type == 'lib') {
+                        target.libraries
+                        target.libraries ||= []
+                        target.libraries.push(dname.replace(/^lib/, ''))
+                    }
+                } else {
+                    let component = spec.components[dname]
+                    if (component) {
+                        if (component.includes) {
+                            target.includes ||= []
+                            target.includes += component.includes
+                        }
+                        if (component.libraries) {
+                            target.libraries ||= []
+                            target.libraries += component.libraries
+                        }
+                        if (component.linker) {
+                            target.linker ||= []
+                            target.linker += component.linker
+                        }
+                        /*
+                        //  MOB KEEP - this may be required on windows
+                        if (component.libraries) {
+                            target.libraries += component.libraries
+                        }
+                        */
+                    }
+                }
+            }
+        }
+    }
+
     /*
         Expand target.sources and target.headers. Support include+exclude and create target.files[]
      */
@@ -483,6 +564,7 @@ class Bit
         let index
         for each (target in spec.targets) {
             if (target.headers) {
+//  MOB - what does this actually do?
                 let files = buildFileList(target.headers.include, target.headers.exclude)
                 for each (file in files) {
                     //  Create a target for each header
@@ -504,11 +586,13 @@ class Bit
                         Create a target for each source file
                      */
                     let obj = spec.directories.obj.join(file.replaceExt(spec.extensions.obj).basename)
+            /*
                     let includes = spec.common.includes
                     if (target.includes) {
                         includes = includes + target.includes
                     }
-                    let newTarget = { name : obj, path: obj, type: 'obj', files: [ file ], includes: includes }
+                    */
+                    let newTarget = { name : obj, path: obj, type: 'obj', files: [ file ], includes: target.includes }
                     if (spec.targets[obj]) {
                         newTarget = blend(spec.targets[newTarget.name], newTarget, {combined: true})
                     } else {
@@ -563,31 +647,35 @@ class Bit
                 target.path = target.path cast Path
             }
         }
+        for (let [pname, prefix] in spec.prefixes) {
+            spec.prefixes[pname] = prefix cast Path
+        }
     }
 
-    function build(cross: Boolean) {
-        prepBuild(cross)
+    function build() {
+        prepBuild()
         for each (tname in topTargets) {
             let target = spec.targets[tname]
-            buildTarget(target, cross)
+            buildTarget(target)
         }
-        trace('Complete', 'Targets: ' + topTargets)
+        trace('Complete', '')
     }
 
-    function buildTarget(target, cross: Boolean) {
+    function buildTarget(target) {
         for each (dname in target.depend) {
             let dep = spec.targets[dname]
             if (!dep) {
-                // throw 'Unknown dependency "' + dname + '" in target "' + target.name + '"'
                 if (!Path(dname).exists) {
-                    print('Unknown dependency "' + dname + '" in target "' + target.name + '"')
-                    return
+                    if (!spec.components[dname]) {
+                        print('Unknown dependency "' + dname + '" in target "' + target.name + '"')
+                        return
+                    }
                 }
             } else {
                 if (dep.skip || dep.built) {
                     continue
                 }
-                buildTarget(dep, cross)
+                buildTarget(dep)
             }
         }
         if (target.message) {
@@ -598,20 +686,21 @@ class Bit
             eval(script)
         }
         if (target.type == 'action') {
-            buildAction(target, cross)
+            buildAction(target)
         } else if (target.type == 'lib') {
-            buildLib(target, cross)
+            buildLib(target)
         } else if (target.type == 'exe') {
-            buildExe(target, cross)
+            buildExe(target)
         } else if (target.type == 'obj') {
-            buildObj(target, cross)
+            buildObj(target)
         } else {
             dump(target)
             throw 'Unknown target type in ' + target.path
         }
+        target.built = true
     }
 
-    function buildExe(target, cross: boolean) {
+    function buildExe(target) {
         if (!stale(target)) {
             whySkip(target.path, 'is up to date')
             return
@@ -643,7 +732,7 @@ class Bit
         }
     }
 
-    function buildLib(target, cross: boolean) {
+    function buildLib(target) {
         //  MOB - need libraries[] so we can stat them
         if (!stale(target)) {
             whySkip(target.path, 'is up to date')
@@ -653,7 +742,7 @@ class Bit
         if (options.diagnose) {
             dump('TARGET', target)
         }
-        buildSym(target, cross)
+        buildSym(target)
         let transition = target.rule || 'lib'
         let rule = spec.rules[transition]
         if (!rule) {
@@ -680,7 +769,7 @@ class Bit
         Build symbols file for windows libraries
         MOB - should be selectable
      */
-    function buildSym(target, cross: boolean) {
+    function buildSym(target) {
         let rule = spec.rules['sym']
         if (!rule) {
             return
@@ -713,7 +802,7 @@ UNUSED
         def.write('LIBRARY ' + target.name + '.dll\nEXPORTS\n  ' + result.sort().join('\n  '))
     }
 
-    function buildObj(target, cross: boolean) {
+    function buildObj(target) {
         if (!stale(target)) {
             return
         }
@@ -750,7 +839,7 @@ UNUSED
         }
     }
 
-    function buildAction(target, cross: boolean) {
+    function buildAction(target) {
         if (!stale(target)) {
             return
         }
@@ -847,15 +936,9 @@ UNUSED
         return depends
     }
 
-    function setTokens(cross: Boolean) {
-        if (cross) {
-            spec.ARCH = spec.host.arch
-            spec.OS = spec.host.os
-        } else {
-            spec.OS = Config.OS
-            spec.ARCH = Config.CPU
-        }
-        trace('Building', spec.settings.title + ' for ' + spec.OS + ', ' + spec.ARCH);
+    function setTokens() {
+        spec.ARCH = spec.platform.arch
+        spec.OS = spec.platform.os.toUpper()
     }
 
     function expandTokens(o) {
@@ -884,29 +967,10 @@ UNUSED
             cmd.env = env
         }
         cmd.start(command, coptions)
-        if (cmd.status != 0) {
-            //  MOB - should this be done?
-            App.log.error(cmd.error)
-        }
-        if (options.show) {
+        if (options.show && cmd.status == 0) {
             out.write(cmd.response + ' ' + cmd.error)
         }
         return cmd
-    }
-
-    function getDevPlatform() {
-        if (Config.OS == 'WIN') {
-            return Config.CPU + '-pc-win.bit'
-        } else if (Config.OS == 'MACOSX') {
-            return Config.CPU + '-apple-macosx.bit'
-        } else if (Config.OS == 'LINUX') {
-            return Config.CPU + '-pc-linux'
-        } else if (Config.OS == 'FREEBSD') {
-            return Config.CPU + '-unknown-freebsd'
-        } else if (Config.OS == 'SOLARIS') {
-            return Config.CPU + '-unknown-solaris'
-        }
-        return Config.CPU + '-unknown-unknown.bit'
     }
 
     function makeOutDirs() {

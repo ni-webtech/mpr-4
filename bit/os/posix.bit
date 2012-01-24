@@ -12,9 +12,16 @@ bit({
     },
 
     prefixes: {
-        config: '/etc',
-        header: '/usr/include',
-        product: '/usr/lib/${PRODUCT}',
+        bin:        '/usr/lib/${settings.product}/bin',
+        config:     '/etc',
+        header:     '/usr/include',
+        lib:        '/usr/lib/${settings.product}/lib',
+        log:        '/var/log/${settings.product}',
+        product:    '/usr/lib/${settings.product}',
+        productver: '/usr/lib/${settings.product}/${settings.version}',
+        spool:      '/var/spool/${settings.product}',
+        src:        '/usr/src/${settings.product}-${settings.version}',
+        web:        '/var/www/${settings.product}-default',
     },
 
     '+required': [ 'compiler' ],

@@ -8,14 +8,16 @@ let template = {components: { openssl: cfg}}
 let path = spec.components.openssl.path
 
 if (spec.OS == 'WIN') {
-    let search = path ? ([path]) : [spec.directories.extensions.join('openssl', ver) ]
-    let libdir = probe('out32dll/libeay32.dll', {search: search})
-    let outdir = libpath.join('out32dll')
-    cfg.path = libdir 
-    cfg.includes = [ libpath.join('inc32') ]
+    let search = path ? ([path]) : [spec.directories.extensions.join('openssl', ver, 'out32dll') ]
+    let libdir = probe('libeay32.dll', {search: search})
+    search = path ? ([path.join('include')]) : [spec.directories.extensions.join('openssl', ver, 'include') ]
+    let incdir = probe('openssl/ssl.h', {search: search})
+    //  MOB - not right
+    cfg.path = libdir.parent
+    cfg.includes = [ incdir.join('inc32') ]
     cfg.libraries = [ 'libeay32', 'ssleay32' ]
     cfg.linker = [ '-L' + libdir ]
-    cfg.import = [ outdir.join('libeay32.dll'), outdir.join('ssleay32.dll') ]
+    cfg.import = [ libdir.join('libeay32.dll'), libdir.join('ssleay32.dll') ]
 
 } else if (spec.OS == 'CYGWIN') {
     let search = path ? ([path]) : ['/usr/lib' ]
