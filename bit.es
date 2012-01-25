@@ -109,7 +109,13 @@ class Bit
             if (options.init) {
                 initialize()
             } else {
-                process(options.build || findBitFile('local'))
+                if (!options.build) {
+                    let file = findBitFile('local')
+                    App.log.debug(1, "Change directory to " + file.dirname)
+                    App.chdir(file.dirname)
+                    options.build = file.basename
+                }
+                process(options.build)
             }
         } catch (e) {
             let msg: String
@@ -834,19 +840,22 @@ class Bit
                         Create a target for each source file
                      */
                     let obj = spec.directories.obj.join(file.replaceExt(spec.extensions.obj).basename)
-                    let newTarget = { name : obj, path: obj, type: 'obj', files: [ file ], includes: target.includes }
+                    let objTarget = { name : obj, path: obj, type: 'obj', files: [ file ], includes: target.includes }
                     if (spec.targets[obj]) {
-                        newTarget = blend(spec.targets[newTarget.name], newTarget, {combined: true})
+                        objTarget = blend(spec.targets[objTarget.name], objTarget, {combined: true})
                     } else {
-                        spec.targets[newTarget.name] = newTarget
+                        spec.targets[objTarget.name] = objTarget
                     }
-                    /*
-                        This is an implicit dependency by position in targets
-                     */
-                    newTarget.depend = depend(newTarget)
                     target.files.push(obj)
                     target.depend ||= []
                     target.depend.push(obj)
+
+                    objTarget.depend = depend(objTarget)
+                    for each (header in objTarget.depend) {
+                        if (!spec.targets[header]) {
+                            spec.targets[header] = { name : header, path: header, type: 'header', files: [ header ] }
+                        }
+                    }
                 }
             }
         }
@@ -935,6 +944,8 @@ class Bit
             buildExe(target)
         } else if (target.type == 'obj') {
             buildObj(target)
+        } else if (target.type == 'header') {
+            ;
         } else {
             dump(target)
             throw 'Unknown target type in ' + target.path
@@ -1107,6 +1118,9 @@ class Bit
         Test if a target is stale vs the inputs AND dependencies
      */
     function stale(target) {
+        if (target.built) {
+            return false
+        }
         let path = target.path
         if (!path.modified) {
             whyRebuild(path, 'Rebuild', 'is missing.')
@@ -1118,30 +1132,30 @@ class Bit
                 return true
             }
         }
-        for each (let dep: Path in target.depend) {
+        for each (let dname: Path in target.depend) {
             let file
-            if (!spec.targets[dep]) {
-                let component = spec.components[dep]
+            if (!spec.targets[dname]) {
+                let component = spec.components[dname]
                 if (component) {
                     file = component.path
                     if (!file) {
-                        whyRebuild(path, 'Rebuild', 'missing component ' + dep)
+                        whyRebuild(path, 'Rebuild', 'missing component ' + dname)
                         return true
                     }
                 } else {
                     /* If dependency is not a target, then treat as a file */
-                    if (!dep.modified) {
-                        whyRebuild(path, 'Rebuild', 'missing dependency ' + dep)
+                    if (!dname.modified) {
+                        whyRebuild(path, 'Rebuild', 'missing dependency ' + dname)
                         return true
                     }
-                    if (dep.modified > path.modified) {
-                        whyRebuild(path, 'Rebuild', 'dependency ' + dep + ' has been modified.')
+                    if (dname.modified > path.modified) {
+                        whyRebuild(path, 'Rebuild', 'dependency ' + dname + ' has been modified.')
                         return true
                     }
                     return false
                 }
             } else {
-                file = spec.targets[dep].path
+                file = spec.targets[dname].path
             }
             if (file.modified > path.modified) {
                 whyRebuild(path, 'Rebuild', 'dependent ' + file + ' has been modified.')
@@ -1162,7 +1176,7 @@ class Bit
                 includes += more
             }
         }
-        let depends = []
+        let depends = [ spec.directories.inc.join('bit.h') ]
         for each (item in includes) {
             let ifile = item.replace(/#include.*"(.*)"/, '$1')
             let path
