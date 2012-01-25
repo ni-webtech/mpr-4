@@ -2,6 +2,6 @@
     lib.bit - Library component for Bit
  */
 
-let name = (spec.OS == 'WIN') ? 'lib' : 'ar'
+let name = (spec.platform.os == 'win') ? 'lib' : 'ar'
 bit({components: { lib: { path: probe(name, {fullpath: true})}}})
 

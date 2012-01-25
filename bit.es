@@ -25,12 +25,12 @@ class Bit
 
     private var bareSpec: Object = { components: {}, targets: {} }
     private var spec: Object = {}
+    private var platform: Object
 
     private var topTargets: Array
 
-    //  MOB - implement
-    private var posix = ['MACOSX', 'LINUX', 'UNIX', 'FREEBSD', 'SOLARIS']
-    private var windows = ['WIN', 'WINCE']
+    private var posix = ['macosx', 'linux', 'unix', 'freebsd', 'solaris']
+    private var windows = ['win', 'wince']
     private var start: Date
 
     private var argTemplate = {
@@ -200,7 +200,7 @@ class Bit
             loadWrapper(src.join('bit/standard.bit'))
             loadWrapper(src.join('bit/os/' + os + '.bit'))
             loadWrapper(src.join('product.bit'))
-            spec.platform = { os: os, arch: arch }
+            spec.platform = { os: os, arch: arch, like: like(os) }
             setTokens()
 
             setConfiguration()
@@ -233,6 +233,7 @@ class Bit
             settings: spec.settings,
             components: spec.components,
         })
+        nspec.platform.like = like(spec.platform.os)
         if (spec.env) {
             nspec.env = spec.env
         }
@@ -302,9 +303,9 @@ class Bit
         // f.writeLine('#define BIT_CONFIGURATION "' + settings.configuration + '"')
         f.writeLine('#define BIT_CMD "' + App.args.join(' ') + '"')
 
-        if (posix.contains(spec.platform.os.toUpper())) {
+        if (spec.platform.like == "posix") {
             f.writeLine('#define BIT_UNIX_LIKE 1')
-        } else if (windows.contains(spec.platform.os.toUpper())) {
+        } else if (spec.platform.like == "windows") {
             f.writeLine('#define BIT_WIN_LIKE 1')
         }
         for (let [pname, prefix] in spec.prefixes) {
@@ -358,9 +359,9 @@ class Bit
         f.writeLine('#define BLD_PATCH_VERSION ' + ver[2])
         f.writeLine('#define BLD_VNUM ' + ((((ver[0] * 1000) + ver[1]) * 1000) + ver[2]))
         f.writeLine('#define ' + spec.platform.os.toUpper() + ' 1')
-        if (posix.contains(spec.platform.os.toUpper())) {
+        if (spec.platform.like == "posix") {
             f.writeLine('#define BLD_UNIX_LIKE 1')
-        } else if (windows.contains(spec.platform.os.toUpper())) {
+        } else if (spec.platform.like == "windows") {
             f.writeLine('#define BLD_WIN_LIKE 1')
         }
         f.writeLine('#define BLD_TYPE "' + settings.configuration + '"')
@@ -976,6 +977,7 @@ class Bit
         spec.OUT = target.path
         spec.IN = target.files.join(' ')
         spec.LIBS = mapLibs(target.libraries)
+        spec.ARCH = spec.platform.arch
 
         /* Double expand so rules tokens can use ${OUT} */
         let command = rule.expand(spec, {fill: ''})
@@ -1010,6 +1012,7 @@ class Bit
         spec.IN = target.files.join(' ')
         spec.DEF = Path(target.path.toString().replace(/dll$/, 'def'))
         spec.LIBS = mapLibs(target.libraries)
+        spec.ARCH = spec.platform.arch
 
         /* Double expand so rules tokens can use ${OUT} */
         let command = rule.expand(spec, {fill: ''})
@@ -1078,6 +1081,7 @@ class Bit
             spec.CFLAGS = (target.compiler) ? target.compiler.join(' ') : ''
 //MOB - fixup CFLAGS
             spec.INCLUDES = (target.includes) ? target.includes.map(function(e) '-I' + e) : ''
+            spec.ARCH = spec.platform.arch
 
             let command = rule.expand(spec, {fill: ''})
             trace('Compile', file)
@@ -1200,6 +1204,7 @@ class Bit
     }
 
     function setTokens() {
+/*
         spec.ARCH = spec.platform.arch
         spec.OS = spec.platform.os.toUpper()
         if (posix.contains(spec.OS)) {
@@ -1207,6 +1212,7 @@ class Bit
         } else if (windows.contains(spec.OS)) {
             spec.LIKE = "WIN"
         }
+*/
     }
 
     function expandTokens(o) {
@@ -1297,6 +1303,15 @@ class Bit
             }
         } else if (cmd == 'compile') {
         }
+    }
+
+    function like(os) {
+        if (posix.contains(os)) {
+            return "posix"
+        } else if (windows.contains(os)) {
+            return "win"
+        }
+        return ""
     }
 }
 

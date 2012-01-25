@@ -6,7 +6,7 @@ const ver = 'latest'
 let cfg = {}
 let path = spec.components.matrixssl.path
 
-if (spec.OS == 'WIN') {
+if (spec.platform.os == 'win') {
     let search = path ? ([path]) : [spec.directories.extensions.join('matrixssl', ver, 'src/Release') ]
     let lib = probe('libmatrixssl.dll', {fullpath: true, search: search})
     let dir = lib.parent.parent
@@ -21,7 +21,7 @@ if (spec.OS == 'WIN') {
         import: [ lib ]
     }
 
-} else if (spec.OS == 'MACOSX') {
+} else if (spec.platform.os == 'macosx') {
     let search = path ? ([path]) : [spec.directories.extensions.join('matrixssl', ver, 'src') ]
     let lib = probe('libmatrixssl.dylib', {fullpath: true, search: search})
     let dir = lib.parent.parent

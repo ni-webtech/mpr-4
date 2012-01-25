@@ -5,7 +5,7 @@
 const ver = 'latest'
 let path = spec.components.openssl.path
 
-if (spec.OS == 'WIN') {
+if (spec.platform.os == 'win') {
     let search = path ? ([path]) : [spec.directories.extensions.join('openssl', ver, 'out32dll') ]
     let lib = probe('libeay32.dll', {fullpath: true, search: search})
     let dir = lib.parent.parent
@@ -20,7 +20,7 @@ if (spec.OS == 'WIN') {
         import: [ lib.parent.join('libeay32.dll'), lib.parent.join('ssleay32.dll') ],
     }
 
-} else if (spec.OS == 'MACOSX') {
+} else if (spec.platform.os == 'macosx') {
     let search = path ? ([path]) : [spec.directories.extensions.join('openssl', ver), '/usr/lib' ]
     let lib = probe('libcrypto.dylib', {fullpath: true, search: search})
     let dir = lib.parent

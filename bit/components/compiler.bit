@@ -3,7 +3,7 @@
  */
 var cc: Path
 
-if (spec.LIKE == 'POSIX') {
+if (spec.platform.like == 'posix') {
     cc = probe('cc', {fullpath: true})
     bit({components: { compiler: { path: cc }}})
 
@@ -17,7 +17,7 @@ if (spec.LIKE == 'POSIX') {
         '#include <stdio.h>\n#include <stdlib.h>\nint main() { realloc(0, 1024); return 0; }')
     settings.warn64to32 = compile(cc, '-Wshorten-64-to-32', '')
 
-    if (spec.OS != 'VXWORKS') {
+    if (spec.platform.os != 'vxworks') {
         settings.hasDynLoad = compile(cc, '',
             '#include <stdio.h>\n#include <dlfcn.h>\nint main() { dlopen(\"test.so\", 0); return 0; }')
         settings.hasLibEdit = compile(cc, '',
@@ -33,15 +33,14 @@ if (spec.LIKE == 'POSIX') {
     }
     bit({ settings: settings })
 
-} else if (spec.LIKE == 'WIN') {
+} else if (spec.platform.like == 'windows') {
     let search = []
     for each (drive in (FileSystem.drives() - ['A', 'B'])) {
         search += Path(drive + ':/').glob('/Program Files*/Microsoft Visual Studio*/VC/Bin')
     }
     /*
-        MOB - CROSS
-    if (spec.ARCH == 'x86_64') {
-        if (spec.CROSS) {
+    if (spec.platform.arch == 'x86_64') {
+        if (CROSS) {
             search.map(function(e) Path(e).join('x86_64'))
         } else {
             search.map(function(e) Path(e).join('amd64'))
@@ -78,7 +77,7 @@ function compile(cc: Path, command: String, contents: String = null): Boolean {
     let file
     if (contents) {
         file = Path('/tmp/bit-' + App.pid + '.c')
-        if (spec.OS == 'VXWORKS') {
+        if (spec.platform.os == 'VXWORKS') {
             contents = '#define _VSB_CONFIG_FILE "vsbConfig.h\n' + contents
         }
         file.write(contents + '\n')
