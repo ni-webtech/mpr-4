@@ -779,6 +779,7 @@ class Bit
             for each (dname in target.depend) {
                 let dep = spec.targets[dname]
                 if (dep) {
+                    if (dep.skip) continue
                     if (dep.type == 'lib') {
                         target.libraries
                         target.libraries ||= []
