@@ -907,7 +907,9 @@ class Bit
         prepBuild()
         for each (tname in topTargets) {
             let target = spec.targets[tname]
-            buildTarget(target)
+            if (!target.skip) {
+                buildTarget(target)
+            }
         }
         trace('Complete', currentPlatform)
     }
@@ -1287,8 +1289,10 @@ class Bit
     public function action(cmd: String) {
         if (cmd == 'clean') {
             for each (target in spec.targets) {
-                target.path.remove()
-                vtrace('Clean', target.path)
+                if (target.type == 'obj' || target.type == 'lib' || target.type == 'exe' || target.type == 'gui') {
+                    target.path.remove()
+                    vtrace('Clean', target.path)
+                }
             }
         } else if (cmd == 'compile') {
         }
