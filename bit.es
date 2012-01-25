@@ -42,8 +42,6 @@ class Bit
             'continue': {},
             debug: {},
             diagnose: { alias: 'd' },
-            disable: { alias: 'unset', range: String, separator: Array },
-            enable: { alias: 'set', range: String, separator: Array },
             init: { alias: 'i', range: String },
             log: { alias: 'l', range: String }
             out: { range: String }
@@ -52,7 +50,9 @@ class Bit
             prefix: { range: String, separator: Array },
             release: {},
             save: { range: Path },
+            'set': { range: String, separator: Array },
             show: { alias: 's'},
+            unset: { range: String, separator: Array },
             verbose: { alias: 'v' },
             version: { alias: 'V' },
             why: { alias: 'w' },
@@ -71,16 +71,16 @@ class Bit
             '    --continue                         # Continue on errors\n' +
             '    --diagnose                         # Emit diagnostic trace \n' +
             '    --debug                            # Same as --config debug\n' +
-            '    --enable [feature=value]           # Enable a feature\n' +
-            '    --disable feature                  # Disable a feature\n' +
             '    --init path-to-source              # Initialize for building\n' +
             '    --log logSpec                      # Save errors to a log file\n' +
             '    --out path                         # Save output to a file\n' +
             '    --overwrite                        # Overwrite files\n' +
             '    --platform os-arch                 # Build for this platforms\n' +
             '    --save path                        # Save blended bit file\n' +
+            '    --set [feature=value]              # Enable and a feature\n' +
             '    --show                             # Show commands executed\n' +
             '    --release                          # Same as --config release\n' +
+            '    --unset feature                    # Unset a feature\n' +
             '    --version                          # Dispay the bit version\n' +
             '    --verbose                          # Trace operations\n' +
             '    --with component[-platform][=PATH] # Build with component at PATH\n' +
@@ -154,7 +154,7 @@ class Bit
         App.log.debug(2, "PATH=" + App.getenv('PATH'))
 
         /*
-            The --enable|disable|with|without switches apply to the previous --platform switch
+            The --set|unset|with|without switches apply to the previous --platform switch
          */
         let platform = local
         options.control = {}
@@ -170,10 +170,10 @@ class Bit
             } else if (arg == '--without') {
                 poptions.without ||= []
                 poptions.without.push(App.args[++i])
-            } else if (arg == '--enable') {
+            } else if (arg == '--set') {
                 poptions.enable ||= []
                 poptions.enable.push(App.args[++i])
-            } else if (arg == '--disable') {
+            } else if (arg == '--unset') {
                 poptions.disable ||= []
                 poptions.disable.push(App.args[++i])
             }
@@ -499,6 +499,7 @@ class Bit
 
     function findComponents() {
         vtrace('Find', 'Components: ' + [spec.required + spec.optional].join(' '))
+        let components = (spec.required + spec.optional).sort().unique()
         for each (component in spec.required + spec.optional) {
             if (spec.components[component] && spec.components[component].disable) {
                 continue

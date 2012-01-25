@@ -8,48 +8,47 @@ let path = spec.components.openssl.path
 if (spec.OS == 'WIN') {
     let search = path ? ([path]) : [spec.directories.extensions.join('openssl', ver, 'out32dll') ]
     let lib = probe('libeay32.dll', {fullpath: true, search: search})
-    let libdir = lib.parent
+    let dir = lib.parent.parent
     search = path ? ([path.join('include')]) : [spec.directories.extensions.join('openssl', ver, 'include') ]
     let incdir = probe('openssl/ssl.h', {search: search})
-    //  MOB - not right
     cfg = {
-        dir: libdir,
+        dir: dir,
         path: lib,
         includes: [ incdir.join('inc32') ],
         libraries: [ 'libeay32', 'ssleay32' ],
-        linker: [ '-L' + libdir ],
-        import: [ libdir.join('libeay32.dll'), libdir.join('ssleay32.dll') ],
+        linker: [ '-L' + lib.parent ],
+        import: [ lib.parent.join('libeay32.dll'), lib.parent.join('ssleay32.dll') ],
     }
 
 } else if (spec.OS == 'MACOSX') {
     let search = path ? ([path]) : [spec.directories.extensions.join('openssl', ver), '/usr/lib' ]
     let lib = probe('libcrypto.dylib', {fullpath: true, search: search})
-    let libdir = lib.parent
+    let dir = lib.parent
     search = path ? ([path.join('include')]) : [spec.directories.extensions.join('openssl', ver, 'include'), '/usr/include' ]
     let incdir = probe('openssl/ssl.h', {search: search})
     cfg = {
-        dir: libdir,
+        dir: dir,
         path: lib,
         includes: [ incdir ],
         libraries: [ 'ssl', 'crypto' ],
-        linker: [ '-L' + libdir ],
-        import: libdir.glob('libssl*.dylib') + libdir.glob('libcrypto*.dylib'),
+        linker: [ '-L' + lib.parent ],
+        import: lib.parent.glob('libssl*.dylib') + lib.parent.glob('libcrypto*.dylib'),
     }
 
 } else {
     let search = path ? ([path]) : [spec.directories.extensions.join('openssl', ver), '/usr/lib', '/lib' ] + 
         Path('/lib').glob('*-linux-gnu')
     let lib = probe('libcrypto.so', {fullpath: true, search: search})
-    let libdir = lib
+    let dir = lib.parent
     search = path ? ([path]) : [spec.directories.extensions.join('openssl', ver, 'include'), '/usr/include' ]
     let incdir = probe('openssl/ssl.h', {search: search})
     cfg = {
-        dir: libdir,
+        dir: dir,
         path: lib,
         includes: [ incdir ],
         libraries: [ 'ssl', 'crypto' ],
-        linker: [ '-L' + libdir ],
-        import: libdir.glob('libssl*.dylib*') + libdir.glob('libcrypto*.dylib*'),
+        linker: [ '-L' + lib.parent ],
+        import: lib.parent.glob('libssl*.dylib*') + lib.parent.glob('libcrypto*.dylib*'),
     }
 }
 

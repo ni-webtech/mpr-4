@@ -9,45 +9,46 @@ let path = spec.components.matrixssl.path
 if (spec.OS == 'WIN') {
     let search = path ? ([path]) : [spec.directories.extensions.join('matrixssl', ver, 'src/Release') ]
     let lib = probe('libmatrixssl.dll', {fullpath: true, search: search})
-    let libdir = lib.parent.parent
+    let dir = lib.parent.parent
     search = path ? ([path]) : [spec.directories.extensions.join('matrixssl', ver) ]
     let incdir = probe('matrixSsl.h', {search: search})
     cfg = {
-        dir: libdir.parent.parent,
+        dir: dir,
         path: lib,
         includes: [ incdir.join(ver) ],
         libraries: [ 'libmatrixssl.a' ],
-        linker: [ '-L' + libdir ],
-        import: [ libdir.join('src/Release', 'libmatrixssl.a') ]
+        linker: [ '-L' + lib.parent ],
+        import: [ lib ]
     }
 
 } else if (spec.OS == 'MACOSX') {
     let search = path ? ([path]) : [spec.directories.extensions.join('matrixssl', ver, 'src') ]
     let lib = probe('libmatrixssl.dylib', {fullpath: true, search: search})
-    let libdir = lib.parent.parent
+    let dir = lib.parent.parent
     search = path ? ([path]) : [spec.directories.extensions.join('matrixssl', ver) ]
     let incdir = probe('matrixSsl.h', {search: search})
     cfg = {
-        dir: libdir,
+        dir: dir,
         path: lib,
         includes: [ incdir ],
         libraries: [ 'libmatrixssl.dylib' ],
         linker: [ '-L' + lib.parent ],
-        import: libdir.glob('libmatrixssl.dylib')
+        import: [ lib ]
     }
 
 } else {
     let search = path ? ([path]) : [spec.directories.extensions.join('matrixssl', ver, 'src')]
-    let libdir = probe('libmatrixssl.so', {fullpath: true, search: search})
+    let lib = probe('libmatrixssl.so', {fullpath: true, search: search})
+    let dir = lib.parent.parent
     search = path ? ([path]) : [spec.directories.extensions.join('matrixssl', ver) ]
     let incdir = probe('matrixSsl.h', {search: search})
     cfg = {
-        dir: libdir,
-        path: libdir.parent,
+        dir: dir,
+        path: lib,
         includes: [ incdir ],
         libraries: [ 'libmatrixssl.so' ],
-        linker: [ '-L' + libdir ],
-        import: libdir.glob('libmatrixssl*.so')
+        linker: [ '-L' + lib.parent ],
+        import: [ lib],
     }
 }
 
