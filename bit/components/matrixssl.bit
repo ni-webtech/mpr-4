@@ -4,41 +4,52 @@
 
 const ver = 'latest'
 let cfg = {}
-let template = {components: { matrixssl: cfg}}
 let path = spec.components.matrixssl.path
 
 if (spec.OS == 'WIN') {
     let search = path ? ([path]) : [spec.directories.extensions.join('matrixssl', ver, 'src/Release') ]
-    let libdir = probe('libmatrixssl.dll', {search: search})
-    cfg.path = libdir.parent.parent
+    let lib = probe('libmatrixssl.dll', {fullpath: true, search: search})
+    let libdir = lib.parent.parent
     search = path ? ([path]) : [spec.directories.extensions.join('matrixssl', ver) ]
     let incdir = probe('matrixSsl.h', {search: search})
-    cfg.includes = [ incdir.join(ver) ]
-    cfg.libraries = [ 'libmatrixssl.a' ]
-    cfg.linker = [ '-L' + libdir ]
-    cfg.import = [ libdir.join('src/Release', 'libmatrixssl.a') ]
+    cfg = {
+        dir: libdir.parent.parent,
+        path: lib,
+        includes: [ incdir.join(ver) ],
+        libraries: [ 'libmatrixssl.a' ],
+        linker: [ '-L' + libdir ],
+        import: [ libdir.join('src/Release', 'libmatrixssl.a') ]
+    }
 
 } else if (spec.OS == 'MACOSX') {
     let search = path ? ([path]) : [spec.directories.extensions.join('matrixssl', ver, 'src') ]
-    let libdir = probe('libmatrixssl.dylib', {search: search})
+    let lib = probe('libmatrixssl.dylib', {fullpath: true, search: search})
+    let libdir = lib.parent.parent
     search = path ? ([path]) : [spec.directories.extensions.join('matrixssl', ver) ]
     let incdir = probe('matrixSsl.h', {search: search})
-    cfg.path = libdir.parent
-    cfg.includes = [ incdir ]
-    cfg.libraries = [ 'libmatrixssl.dylib' ]
-    cfg.linker = [ '-L' + libdir ]
-    cfg.import = libdir.glob('libmatrixssl.dylib')
+    cfg = {
+        dir: libdir,
+        path: lib,
+        includes: [ incdir ],
+        libraries: [ 'libmatrixssl.dylib' ],
+        linker: [ '-L' + lib.parent ],
+        import: libdir.glob('libmatrixssl.dylib')
+    }
 
 } else {
     let search = path ? ([path]) : [spec.directories.extensions.join('matrixssl', ver, 'src')]
-    let libdir = probe('libmatrixssl.so', {search: search})
+    let libdir = probe('libmatrixssl.so', {fullpath: true, search: search})
     search = path ? ([path]) : [spec.directories.extensions.join('matrixssl', ver) ]
     let incdir = probe('matrixSsl.h', {search: search})
-    cfg.path = libdir.parent
-    cfg.includes = [ incdir ]
-    cfg.libraries = [ 'libmatrixssl.so' ]
-    cfg.linker = [ '-L' + libdir ]
-    cfg.import = libdir.glob('libmatrixssl*.so')
+    cfg = {
+        dir: libdir,
+        path: libdir.parent,
+        includes: [ incdir ],
+        libraries: [ 'libmatrixssl.so' ],
+        linker: [ '-L' + libdir ],
+        import: libdir.glob('libmatrixssl*.so')
+    }
 }
 
+let template = {components: { matrixssl: cfg}}
 bit(template)

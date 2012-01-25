@@ -33,7 +33,6 @@ bit({
             type: 'exe',
             depend: [ 'libmpr', ],
             sources: [ 'benchMpr.c' ],
-            '+libraries': [ 'mpr' ],
         },
         runProgram: {
             type: 'exe',
@@ -41,9 +40,8 @@ bit({
         },
         testMpr: {
             type: 'exe',
-            depend: [ 'libmpr', 'runProgram' ],
+            depend: [ 'libmpr', 'libmprssl', 'runProgram' ],
             sources: [ 'test*.c' ],
-            '+libraries': [ 'mpr', 'mprssl', 'ssl', 'crypto' ],
         },
         benchmark: {
             type: 'action',

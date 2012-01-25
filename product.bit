@@ -25,6 +25,14 @@ bit({
         testDepth: 1,
     },
 
+    usage: {
+        debug: 'Enable a debug build',
+        tune: 'Optimize for size|speed|balanced',
+        assert: 'Enable program assertions',
+        float: 'Enable floating point',
+        rom: 'Enable ROM based file system',
+    },
+
     configurations: {
         debug: { settings: { 
             debug: true, 
@@ -47,7 +55,6 @@ bit({
             type: 'lib',
             sources: [ 'src/*.c', 'src/deps/dtoa.c' ],
             exclude: [ /manager.c|\/ssl\/|\/utils\// ],
-            platforms: [ 'local', 'vxworks-ppc', 'cross' ]
         },
 
         libmprssl: {

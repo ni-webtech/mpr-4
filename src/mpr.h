@@ -270,6 +270,12 @@
 #endif
 #endif
 
+/************************************** Defaults ******************************/
+
+#ifndef BLD_FEATURE_ROMFS
+    #define BLD_FEATURE_ROMFS 0
+#endif
+
 /************************************** Defines *******************************/
 /*
     Standard types
@@ -1337,6 +1343,9 @@ struct  MprXml;
 /*
     Foundational types
  */
+#ifndef BLD_CHAR_LEN
+    #define BLD_CHAR_LEN 1
+#endif
 #if BLD_CHAR_LEN == 4
     typedef int MprChar;
     #define T(s) L ## s

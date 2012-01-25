@@ -17,14 +17,14 @@ class Bit
     private var currentComponent: String
     private var currentPlatform: String
     private var local: String
-    private var options: Object
+    private var options: Object = {}
     private var out: Stream
     private var platforms: Array
     private var rest: Array
     private var src: Path
 
     private var bareSpec: Object = { components: {}, targets: {} }
-    private var spec: Object
+    private var spec: Object = {}
 
     private var topTargets: Array
 
@@ -42,8 +42,8 @@ class Bit
             'continue': {},
             debug: {},
             diagnose: { alias: 'd' },
-            disable: { range: String, separator: Array },
-            enable: { range: String, separator: Array },
+            disable: { alias: 'unset', range: String, separator: Array },
+            enable: { alias: 'set', range: String, separator: Array },
             init: { alias: 'i', range: String },
             log: { alias: 'l', range: String }
             out: { range: String }
@@ -55,7 +55,7 @@ class Bit
             show: { alias: 's'},
             verbose: { alias: 'v' },
             version: { alias: 'V' },
-            why: {},
+            why: { alias: 'w' },
             'with': { range: String, separator: Array },
             without: { range: String, separator: Array },
         },
@@ -86,6 +86,16 @@ class Bit
             '    --with component[-platform][=PATH] # Build with component at PATH\n' +
             '    --without component[-platform]     # Build without a component\n' +
             '')
+        let path = Path('product.bit')
+        if (path.exists) {
+            b.loadWrapper(path)
+            print('Feature Selection: ')
+            if (spec.usage) {
+                for (let [item,msg] in spec.usage) {
+                    print('  --set %-14s %s' % [item + '=value', msg])
+                }
+            }
+        }
         App.exit(1)
     }
 
@@ -702,12 +712,10 @@ class Bit
                 target.name ||= tname
             }
             if (target.platforms) {
-                if (!target.platforms.contains(currentPlatform)) {
-                    if (local && !target.platforms.contains('local')) {
-                        if (!target.platforms.contains('local')) {
-                            target.skip = true
-                        }
-                    }
+                if (!target.platforms.contains(currentPlatform) &&
+                    !(currentPlatform == local && target.platforms.contains('local')) &&
+                    !(currentPlatform != local && target.platforms.contains('cross'))) {
+                        target.skip = true
                 }
             }
         }
@@ -802,8 +810,8 @@ class Bit
     function expandWildcards() {
         let index
         for each (target in spec.targets) {
-            if (target.headers) {
 //  MOB - what does this actually do?
+            if (target.headers) {
                 let files = buildFileList(target.headers.include, target.headers.exclude)
                 for each (file in files) {
                     //  Create a target for each header
@@ -825,12 +833,6 @@ class Bit
                         Create a target for each source file
                      */
                     let obj = spec.directories.obj.join(file.replaceExt(spec.extensions.obj).basename)
-            /*
-                    let includes = spec.common.includes
-                    if (target.includes) {
-                        includes = includes + target.includes
-                    }
-                    */
                     let newTarget = { name : obj, path: obj, type: 'obj', files: [ file ], includes: target.includes }
                     if (spec.targets[obj]) {
                         newTarget = blend(spec.targets[newTarget.name], newTarget, {combined: true})
@@ -1116,19 +1118,30 @@ class Bit
             }
         }
         for each (let dep: Path in target.depend) {
+            let file
             if (!spec.targets[dep]) {
-                /* If dependency is not a target, then treat as a file */
-                if (!dep.modified) {
-                    whyRebuild(path, 'Rebuild', 'missing dependency ' + dep)
-                    return true
+                let component = spec.components[dep]
+                if (component) {
+                    file = component.path
+                    if (!file) {
+                        whyRebuild(path, 'Rebuild', 'missing component ' + dep)
+                        return true
+                    }
+                } else {
+                    /* If dependency is not a target, then treat as a file */
+                    if (!dep.modified) {
+                        whyRebuild(path, 'Rebuild', 'missing dependency ' + dep)
+                        return true
+                    }
+                    if (dep.modified > path.modified) {
+                        whyRebuild(path, 'Rebuild', 'dependency ' + dep + ' has been modified.')
+                        return true
+                    }
+                    return false
                 }
-                if (dep.modified > path.modified) {
-                    whyRebuild(path, 'Rebuild', 'dependency ' + dep + ' has been modified.')
-                    return true
-                }
-                return false
+            } else {
+                file = spec.targets[dep].path
             }
-            let file = spec.targets[dep].path
             if (file.modified > path.modified) {
                 whyRebuild(path, 'Rebuild', 'dependent ' + file + ' has been modified.')
                 return true
