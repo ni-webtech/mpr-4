@@ -3,9 +3,6 @@
  */
 
 bit({
-    OS: 'WIN',
-    LIKE: 'WIN',
-
     directories: {
         lib: '${directories.cfg}/bin',
     },
@@ -24,7 +21,7 @@ bit({
 
         config:  '${prefixes.product}',
         bin:     '${prefixes.product}/bin',
-        header:  '${prefixes.product}/inc',
+        include: '${prefixes.product}/inc',
         lib:     '${prefixes.product}/bin',
         log:     '${prefixes.product}/logs',
         spool:   '${prefixes.product}/tmp',

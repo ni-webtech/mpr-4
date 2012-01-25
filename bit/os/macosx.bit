@@ -3,9 +3,6 @@
  */
 
 bit({
-    OS: 'MACOSX',
-    LIKE: 'POSIX',
-
     blend: [    
         'posix.bit',
     ],

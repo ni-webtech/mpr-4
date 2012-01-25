@@ -10,6 +10,7 @@ bit({
         /* Default configuration overridden by build.bit */
 		product: 'mpr',
 		title: 'Multithreaded Portable Runtime',
+        company: 'Embedthis',
 		version: '4.0.0',
 		buildNumber: 'B0',
         configuration: 'debug',
@@ -38,7 +39,7 @@ bit({
     '+optional': [ 'doxygen', 'ejs', 'http', 'openssl', 'matrixssl' ],
 
     common: {
-        '+includes': [ 'src', '.' ]
+        '+includes': [ 'src', '${directories.inc}', '.' ]
     },
 
     targets: {

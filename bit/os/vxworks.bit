@@ -11,9 +11,6 @@ bit({
         exe:   'out',
     },
 
-    prefixes: {
-    },
-
     '+required': [ 'compiler' ],
     '+optional': [ ],
 })
