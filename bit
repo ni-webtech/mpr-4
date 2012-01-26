@@ -188,7 +188,7 @@ class Bit
 
     function initialize() {
         src = Path(options.init)
-        if (!src.join('bit/standard.bit').exists) {
+        if (!src.join('bits/standard.bit').exists) {
             throw 'Can\'t find bit configuration at "' + src + '"'
         }
         for each (platform in platforms) {
@@ -197,8 +197,8 @@ class Bit
             let [os, arch] = platform.split('-') 
             global.spec = spec = bareSpec.clone(true)
             /* Read to get settings */
-            loadWrapper(src.join('bit/standard.bit'))
-            loadWrapper(src.join('bit/os/' + os + '.bit'))
+            loadWrapper(src.join('bits/standard.bit'))
+            loadWrapper(src.join('bits/os/' + os + '.bit'))
             loadWrapper(src.join('product.bit'))
             spec.platform = { os: os, arch: arch, like: like(os) }
             setTokens()
@@ -222,8 +222,8 @@ class Bit
         }
         blend(nspec, {
             blend : [
-                'bit/standard.bit',
-                'bit/os/' + spec.platform.os + '.bit',
+                'bits/standard.bit',
+                'bits/os/' + spec.platform.os + '.bit',
                 src.join('product.bit'),
             ],
             platform: spec.platform,
@@ -511,7 +511,7 @@ class Bit
             if (spec.components[component] && spec.components[component].disable) {
                 continue
             }
-            let path = src.join('bit/components', component + '.bit')
+            let path = src.join('bits/components', component + '.bit')
             vtrace('Find', 'Component ' + component)
             if (path.exists) {
                 try {
@@ -842,7 +842,8 @@ class Bit
                         Create a target for each source file
                      */
                     let obj = spec.directories.obj.join(file.replaceExt(spec.extensions.obj).basename)
-                    let objTarget = { name : obj, path: obj, type: 'obj', files: [ file ], includes: target.includes }
+                    let objTarget = { name : obj, path: obj, type: 'obj', files: [ file ], 
+                        defines: target.defines, includes: target.includes }
                     if (spec.targets[obj]) {
                         objTarget = blend(spec.targets[objTarget.name], objTarget, {combined: true})
                     } else {
@@ -1079,6 +1080,7 @@ class Bit
             spec.OUT = target.path
             spec.IN = file
             spec.CFLAGS = (target.compiler) ? target.compiler.join(' ') : ''
+            spec.DEFINES = (target.defines) ? target.defines.join(' ') : ''
 //MOB - fixup CFLAGS
             spec.INCLUDES = (target.includes) ? target.includes.map(function(e) '-I' + e) : ''
             spec.ARCH = spec.platform.arch
