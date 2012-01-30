@@ -255,6 +255,8 @@ static int getPathInfo(MprDiskFileSystem *fs, cchar *path, MprPath *info)
 
     info->checked = 1;
     info->valid = 0;
+    info->isReg = 0;
+    info->isDir = 0;
 
     if (_stat64(path, &s) < 0) {
         return -1;
@@ -281,6 +283,8 @@ static int getPathInfo(MprDiskFileSystem *fs, cchar *path, MprPath *info)
     mprAssert(info);
     info->checked = 1;
     info->valid = 0;
+    info->isReg = 0;
+    info->isDir = 0;
     if (_stat64(path, &s) < 0) {
 #if BLD_WIN && FUTURE
         /*
@@ -347,6 +351,8 @@ static int getPathInfo(MprDiskFileSystem *fs, cchar *path, MprPath *info)
 #elif VXWORKS
     struct stat s;
     info->valid = 0;
+    info->isReg = 0;
+    info->isDir = 0;
     info->checked = 1;
     if (stat((char*) path, &s) < 0) {
         return MPR_ERR_CANT_ACCESS;
@@ -365,6 +371,8 @@ static int getPathInfo(MprDiskFileSystem *fs, cchar *path, MprPath *info)
 #else
     struct stat s;
     info->valid = 0;
+    info->isReg = 0;
+    info->isDir = 0;
     info->checked = 1;
     if (lstat((char*) path, &s) < 0) {
         return MPR_ERR_CANT_ACCESS;
