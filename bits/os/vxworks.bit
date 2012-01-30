@@ -2,7 +2,7 @@
     vxworks.bit -- VxWorks Settings
  */
 
-bit({
+Bit.load({
     extensions: {
         lib:   'a',
         shlib: 'out',

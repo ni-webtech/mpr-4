@@ -2,7 +2,7 @@
     posix.bit -- POSIX Settings
  */
 
-bit({
+Bit.load({
     extensions: {
         lib:   'a',
         shlib: 'so',

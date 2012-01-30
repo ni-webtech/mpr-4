@@ -2,7 +2,7 @@
     product.bit -- Product Bit File for the Multithreaded Portable Runtime (MPR)
  */
 
-bit({
+Bit.load({
     blend: [
         "src/test/test.bit",
     ],
@@ -46,7 +46,7 @@ bit({
 
     '+optional': [ 'doxygen', 'ejs', 'http', 'openssl', 'matrixssl' ],
 
-    common: {
+    defaults: {
         '+includes': [ 'src', '${directories.inc}', '.' ]
     },
 
@@ -58,28 +58,28 @@ bit({
         },
 
         libmprssl: {
-            enable: '"${components.openssl.path}" != "" || "${components.matrixssl.path" != ""',
+            enable: 'bit.components.openssl.enable || bit.components.matrixssl.enable',
             type: 'lib',
-            depend: [ 'libmpr', 'openssl', 'matrixssl' ],
+            depends: [ 'libmpr', 'openssl', 'matrixssl' ],
             sources: [ 'src/ssl/*.c' ],
         },
 
         manager: {
             type: 'exe',
             rule: 'gui',
-            depend: [ 'libmpr' ],
+            depends: [ 'libmpr' ],
             sources: [ 'src/manager.c' ],
         },
 
         makerom: {
             type: 'exe',
-            depend: [ 'libmpr', ],
+            depends: [ 'libmpr', ],
             sources: ['src/utils/makerom.c'],
         },
 
         chargen: {
             type: 'exe',
-            depend: [ 'libmpr', ],
+            depends: [ 'libmpr', ],
             sources: [ 'src/utils/charGen.c' ],
         },
 	},

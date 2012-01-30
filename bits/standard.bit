@@ -2,7 +2,7 @@
     standard.bit -- Standard Embedthis Build Settings
  */
 
-bit({
+Bit.load({
 	directories: {
         src :       '.',
         out:        'out',
@@ -16,8 +16,7 @@ bit({
 
     targets: {
         clean: {
-            type: 'action',
-            script: 'b.action("clean")',
+            action: "action('cleanTargets')",
         },
     },
 })

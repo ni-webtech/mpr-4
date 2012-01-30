@@ -2,7 +2,7 @@
     macosx.bit -- MAC OS X Settings
  */
 
-bit({
+Bit.load({
     blend: [    
         'posix.bit',
     ],
@@ -12,7 +12,7 @@ bit({
         'shobj': 'dylib',
     },
 
-    common: {
+    defaults: {
         '+compiler': [ '-fPIC', '-Wall' ],
         '+defines':  [ '-DPIC' ],
         '+libraries':[ 'pthread', 'm' ],
@@ -22,22 +22,24 @@ bit({
             "-Wl,-rpath,@executable_path/",         //  MOB - only for libs?
             "-Wl,-rpath,@loader_path/",             //  MOB - only for libs?
         ],
-        '+script': '
-            let common = spec.common
-            if (${settings.preprocess}) common.compiler += [ "-E" ]
-            common.compiler += [("${settings.configuration}" == "debug" ? "-g" : "-Os")]
-            common.linker += [("${settings.configuration}" == "debug" ? "-g" : "")]
-            if (${settings.warnUnused}) common.compiler += [ "-Wno-unused-result" ]
-            if (${settings.hasDynLoad}) common.linker += [ "-ldl" ]
-            let tune = ${settings.hasMtune} ? "mtune" : "mcpu"
-            if ("${ARCH}".startsWith("arm"))  common.compiler += [ tune + "=arm" + MODEL, "-mno-sched-prolog" ]
-        ',
+        scripts: {
+            '+preblend': '
+                let defaults = bit.defaults
+                if (${settings.preprocess}) defaults.compiler += [ "-E" ]
+                defaults.compiler += [("${settings.configuration}" == "debug" ? "-g" : "-Os")]
+                defaults.linker += [("${settings.configuration}" == "debug" ? "-g" : "")]
+                if (${settings.warnUnused}) defaults.compiler += [ "-Wno-unused-result" ]
+                if (${settings.hasDynLoad}) defaults.linker += [ "-ldl" ]
+                let tune = ${settings.hasMtune} ? "mtune" : "mcpu"
+                if ("${ARCH}".startsWith("arm"))  defaults.compiler += [ tune + "=arm" + MODEL, "-mno-sched-prolog" ]
+            ',
+        },
     },
 
     rules: {
-        'c->o': '${components.compiler.path} -c -o ${OUT} -arch ${ARCH} ${DEBUG} ${CFLAGS} ${target.defines} ${INCLUDES} ${PREPROCESS} ${IN}',
-        'lib':  '${components.compiler.path} -dynamiclib -o ${OUT} -arch ${ARCH} ${DEBUG} ${target.linker} -install_name @rpath/${OUT} ${LIBS} ${IN}'
-        'exe':  '${components.compiler.path} -o ${OUT} -arch ${ARCH} ${DEBUG} ${target.linker} -L${directories.lib} ${LIBS} ${IN}'
-        'gui':  '${components.compiler.path} -o ${OUT} -arch ${ARCH} ${DEBUG} ${target.linker} -L${directories.lib} ${LIBS} ${IN}'
+        'c->o': '${components.compiler.path} -c -o ${OUT} -arch ${ARCH} ${CFLAGS} ${target.defines} ${INCLUDES} ${PREPROCESS} ${IN}',
+        'lib':  '${components.compiler.path} -dynamiclib -o ${OUT} -arch ${ARCH} ${target.linker} -install_name @rpath/${OUT} ${LIBS} ${IN}'
+        'exe':  '${components.compiler.path} -o ${OUT} -arch ${ARCH} ${target.linker} -L${directories.lib} ${LIBS} ${IN}'
+        'gui':  '${components.compiler.path} -o ${OUT} -arch ${ARCH} ${target.linker} -L${directories.lib} ${LIBS} ${IN}'
     },
 })

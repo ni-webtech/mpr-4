@@ -6,4 +6,4 @@ let search = []
 for each (drive in (FileSystem.drives() - ['A', 'B'])) {
     search += Path(drive + ':/').glob('/Program Files*/Inno Setup*')
 }
-bit({components: { inno: { path: probe('iscc.exe', {fullpath: true, search: search.sort().reverse()})}}})
+Bit.load({components: { inno: { path: probe('iscc.exe', {fullpath: true, search: search.sort().reverse()})}}})

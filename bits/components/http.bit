@@ -1,5 +1,5 @@
 /*
-    http.bit - Ejs component for Bit
+    http.bit - Http component for Bit
  */
 
 program('http')
