@@ -25,11 +25,13 @@ Bit.load({
                 }
                 activity('Test', 'Unit tests complete')
             ",
+            platforms: [ 'local' ],
         },
         benchMpr: {
             type: 'exe',
             depends: [ 'libmpr', ],
             sources: [ 'benchMpr.c' ],
+            platforms: [ 'local' ],
         },
         runProgram: {
             type: 'exe',
@@ -41,13 +43,11 @@ Bit.load({
             sources: [ 'test*.c' ],
         },
         benchmark: {
-            type: 'action',
-            script: {
-                action: "
-                    Path('').write(Cmd('benchMpr -T 0'))
-                    Path('').write(Cmd('benchMpr -T 20'))
-                ",
-            },
+            action: "
+                Path('').write(Cmd('benchMpr -T 0'))
+                Path('').write(Cmd('benchMpr -T 20'))
+            ",
+            platforms: [ 'local' ],
         }
     },
 })

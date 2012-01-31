@@ -879,7 +879,6 @@ extern "C" {
          */
         #if _DIAB_TOOL
             #if BLD_CPU_ARCH == MPR_CPU_PPC
-                /* #define __va_copy(dest, src) *(dest) = *(src) */
                 #define __va_copy(dest, src) memcpy((dest), (src), sizeof(va_list))
             #endif
         #endif
@@ -1408,7 +1407,7 @@ struct  MprXml;
 
 #if BLD_UNIX_LIKE
     typedef pthread_t   MprOsThread;
-#elif BLD_CPU_ARCH == MPR_CPU_IX64
+#elif MPR_64_BIT
     typedef int64       MprOsThread;
 #else
     typedef int         MprOsThread;
@@ -8674,6 +8673,14 @@ extern void mprSetLogLevel(int level);
     @ingroup Mpr
  */
 extern void mprSetDomainName(cchar *s);
+
+/**
+    Set an environment variable value
+    @param key Variable name
+    @param value Variable value
+    @ingroup Mpr
+ */
+extern void mprSetEnv(cchar *key, cchar *value);
 
 /**
     Set the exit strategy for when the application terminates
