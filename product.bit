@@ -5,6 +5,7 @@
 Bit.load({
     blend: [
         "src/test/test.bit",
+        "bits/embedthis.bit",
     ],
     settings: {
         /* Default configuration overridden by build.bit */
@@ -22,6 +23,7 @@ Bit.load({
         legacy: false,
         rom: false,
         testDepth: 1,
+        sync: ['tools'],
     },
 
     usage: {

@@ -5,6 +5,10 @@
 const ver = 'latest'
 let path = bit.packs.openssl.path
 
+if (bit.packs.ssl && bit.packs.ssl.enable == false) {
+    throw "SSL has been disabled"
+}
+
 if (bit.platform.os == 'win') {
     let search = path ? ([path]) : [bit.dirs.packs.join('openssl', ver, 'out32dll') ]
     let lib = probe('libeay32.dll', {fullpath: true, search: search}).absolute
