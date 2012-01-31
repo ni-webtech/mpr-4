@@ -7,7 +7,7 @@ Bit.load({
         'posix.bit',
     ],
 
-    extensions: {
+    suffixes: {
         'shlib': 'dylib',
         'shobj': 'dylib',
     },
@@ -17,18 +17,19 @@ Bit.load({
         '+defines':  [ '-DPIC' ],
         '+libraries':[ 'pthread', 'm' ],
         '+linker':   [
-            '-L${directories.lib}',
-            "-Wl,-rpath,@executable_path/../lib",   //  MOB - only for libs?
-            "-Wl,-rpath,@executable_path/",         //  MOB - only for libs?
-            "-Wl,-rpath,@loader_path/",             //  MOB - only for libs?
+            '-L${dirs.lib}',
+            "-Wl,-rpath,@executable_path/../lib",
+            "-Wl,-rpath,@executable_path/",
+            "-Wl,-rpath,@loader_path/",
         ],
         scripts: {
             '+preblend': '
                 let defaults = bit.defaults
-                if (${settings.preprocess}) defaults.compiler += [ "-E" ]
+                if ("${settings.preprocess}" != "") defaults.compiler += [ "-E" ]
                 defaults.compiler += [("${settings.configuration}" == "debug" ? "-g" : "-Os")]
                 defaults.linker += [("${settings.configuration}" == "debug" ? "-g" : "")]
                 if (${settings.warnUnused}) defaults.compiler += [ "-Wno-unused-result" ]
+                if (${settings.warn64to32}) defaults.compiler += [ "-Wshorten-64-to-32" ]
                 if (${settings.hasDynLoad}) defaults.linker += [ "-ldl" ]
                 let tune = ${settings.hasMtune} ? "mtune" : "mcpu"
                 if ("${ARCH}".startsWith("arm"))  defaults.compiler += [ tune + "=arm" + MODEL, "-mno-sched-prolog" ]
@@ -37,9 +38,9 @@ Bit.load({
     },
 
     rules: {
-        'c->o': '${components.compiler.path} -c -o ${OUT} -arch ${ARCH} ${CFLAGS} ${target.defines} ${INCLUDES} ${PREPROCESS} ${IN}',
-        'lib':  '${components.compiler.path} -dynamiclib -o ${OUT} -arch ${ARCH} ${target.linker} -install_name @rpath/${OUT} ${LIBS} ${IN}'
-        'exe':  '${components.compiler.path} -o ${OUT} -arch ${ARCH} ${target.linker} -L${directories.lib} ${LIBS} ${IN}'
-        'gui':  '${components.compiler.path} -o ${OUT} -arch ${ARCH} ${target.linker} -L${directories.lib} ${LIBS} ${IN}'
+        'c->o': '${packs.compiler.path} -c -o ${OUT} -arch ${ARCH} ${CFLAGS} ${target.defines} ${INCLUDES} ${PREPROCESS} ${IN}',
+        'lib':  '${packs.compiler.path} -dynamiclib -o ${OUT} -arch ${ARCH} ${target.linker} -install_name @rpath/${LIBNAME} ${LIBS} ${IN}'
+        'exe':  '${packs.compiler.path} -o ${OUT} -arch ${ARCH} ${target.linker} -L${dirs.lib} ${LIBS} ${IN}'
+        'gui':  '${packs.compiler.path} -o ${OUT} -arch ${ARCH} ${target.linker} -L${dirs.lib} ${LIBS} ${IN}'
     },
 })

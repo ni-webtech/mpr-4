@@ -3,15 +3,15 @@
  */
 
 Bit.load({
-	directories: {
+	dirs: {
         src :       '.',
         out:        'out',
-		cfg:     	'${directories.out}/${platform.os}-${platform.arch}-${settings.configuration}',
-		bin:     	'${directories.cfg}/bin',
-		inc:     	'${directories.cfg}/inc',
-		lib:    	'${directories.cfg}/lib',
-		obj:    	'${directories.cfg}/obj',
-        extensions: 'extensions',
+		cfg:     	'${dirs.out}/${platform.os}-${platform.arch}-${settings.configuration}',
+		bin:     	'${dirs.cfg}/bin',
+		inc:     	'${dirs.cfg}/inc',
+		lib:    	'${dirs.cfg}/lib',
+		obj:    	'${dirs.cfg}/obj',
+        packs:      '../packages-${platform.name}',
 	},
 
     targets: {

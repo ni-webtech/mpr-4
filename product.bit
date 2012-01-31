@@ -20,7 +20,6 @@ Bit.load({
         assert: true,
         float: true,
         legacy: false,
-        preprocess: false,
         rom: false,
         testDepth: 1,
     },
@@ -47,7 +46,7 @@ Bit.load({
     '+optional': [ 'doxygen', 'ejs', 'http', 'openssl', 'matrixssl' ],
 
     defaults: {
-        '+includes': [ 'src', '${directories.inc}', '.' ]
+        '+includes': [ 'src', '${dirs.inc}', '.' ]
     },
 
     targets: {
@@ -58,7 +57,7 @@ Bit.load({
         },
 
         libmprssl: {
-            enable: 'bit.components.openssl.enable || bit.components.matrixssl.enable',
+            enable: 'bit.packs.openssl.enable || bit.packs.matrixssl.enable',
             type: 'lib',
             depends: [ 'libmpr', 'openssl', 'matrixssl' ],
             sources: [ 'src/ssl/*.c' ],
@@ -75,12 +74,14 @@ Bit.load({
             type: 'exe',
             depends: [ 'libmpr', ],
             sources: ['src/utils/makerom.c'],
+            platforms: [ 'local' ],
         },
 
         chargen: {
             type: 'exe',
             depends: [ 'libmpr', ],
             sources: [ 'src/utils/charGen.c' ],
+            platforms: [ 'local' ],
         },
 	},
 })

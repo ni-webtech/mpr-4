@@ -3,11 +3,11 @@
  */
 
 Bit.load({
-    directories: {
-        lib: '${directories.cfg}/bin',
+    dirs: {
+        lib: '${dirs.cfg}/bin',
     },
 
-    extensions: {
+    suffixes: {
         exe:   'exe',
         lib:   'a',
         obj:   'obj',
@@ -38,7 +38,7 @@ Bit.load({
         '+libraries':[ 'ws2_32.lib', 'advapi32.lib', 'user32.lib', 'kernel32.lib', 'oldnames.lib', 'msvcrt.lib' ],
         '+linker':   [
             '-nologo',
-            '-libpath:${directories.lib}',
+            '-libpath:${dirs.lib}',
             '-nodefaultlib',
             '-incremental:no',
         ],
@@ -61,11 +61,11 @@ Bit.load({
 
     rules: {
         //  MOB -Fd{DIR} should this be named uniquely per target?
-        'c->obj': '"${components.compiler.path}" -c -Fo${OUT} -Fd${directories.obj} ${CFLAGS} ${target.defines} ${INCLUDES} ${PREPROCESS} ${IN}',
-        'lib':  '"${components.link.path}" -dll -out:${OUT} -entry:_DllMainCRTStartup@12 -def:${DEF} ${target.linker} ${IN} ${LIBS}',
-        'exe':  '"${components.link.path}" -out:${OUT} -entry:mainCRTStartup -subsystem:console ${target.linker} ${IN} ${LIBS}',
-        'gui':  '"${components.link.path}" -out:${OUT} -entry:WinMainCRTStartup -subsystem:Windows ${target.linker} ${IN} ${LIBS} shell32.lib',
+        'c->obj': '"${packs.compiler.path}" -c -Fo${OUT} -Fd${dirs.obj} ${CFLAGS} ${target.defines} ${INCLUDES} ${PREPROCESS} ${IN}',
+        'lib':  '"${packs.link.path}" -dll -out:${OUT} -entry:_DllMainCRTStartup@12 -def:${DEF} ${target.linker} ${IN} ${LIBS}',
+        'exe':  '"${packs.link.path}" -out:${OUT} -entry:mainCRTStartup -subsystem:console ${target.linker} ${IN} ${LIBS}',
+        'gui':  '"${packs.link.path}" -out:${OUT} -entry:WinMainCRTStartup -subsystem:Windows ${target.linker} ${IN} ${LIBS} shell32.lib',
 
-        'sym':   '"${components.dumpbin.path}" /symbols ${IN}',
+        'sym':   '"${packs.dumpbin.path}" /symbols ${IN}',
     },
 })

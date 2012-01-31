@@ -8,7 +8,7 @@ Bit.load({
         '+defines':  [ '-DPIC' ],
         '+libraries':[ 'm' ],
         '+linker':   [ 
-                '-L${directories.lib}', 
+                '-L${dirs.lib}', 
                 '-Wl,--enable-new-dtags', 
                 '-Wl,-rpath,$ORIGIN/', 
                 '-Wl,-rpath,$ORIGIN/../lib' 
@@ -25,9 +25,9 @@ Bit.load({
         },
     },
     rules: {
-        'c->o': '${components.compiler.path} -c -o ${OUT} -arch ${ARCH} ${DEFINES} ${target.defines} ${target.include} ${PREPROCESS} -o ${OUT} ${IN}',
+        'c->o': '${packs.compiler.path} -c -o ${OUT} -arch ${ARCH} ${DEFINES} ${target.defines} ${target.include} ${PREPROCESS} -o ${OUT} ${IN}',
             //  MOB --- missing library switch
-        'so':   '${components.compiler.path} -o ${OUT} -arch ${ARCH} ${DEFINES} ${target.linker} -L${directories.lib} ${LIBS} ${IN}'
-        'exe':  '${components.compiler.path} -o ${OUT} -arch ${ARCH} ${DEFINES} ${target.linker} -L${directories.lib} ${LIBS} ${IN}'
+        'so':   '${packs.compiler.path} -o ${OUT} -arch ${ARCH} ${DEFINES} ${target.linker} -L${dirs.lib} ${LIBS} ${IN}'
+        'exe':  '${packs.compiler.path} -o ${OUT} -arch ${ARCH} ${DEFINES} ${target.linker} -L${dirs.lib} ${LIBS} ${IN}'
     },
 })

@@ -1,21 +1,21 @@
 /*
-    compiler.bit - Compile component for Bit
+    compiler.bit - Compile package for Bit
  */
 var cc: Path
 
 if (bit.platform.like == 'posix') {
     cc = probe('cc', {fullpath: true})
-    Bit.load({components: { compiler: { path: cc }}})
+    Bit.load({packs: { compiler: { path: cc }}})
 
     let settings = {}
     settings.hasDoubleBraces = compile(cc, '', '#include <stdarg.h>\nva_list d = {{0}};')
     //  MOB - if env CFLAGS has -mtune=xxx then it should be used instead
-    settings.hasMtune = compile(cc, '-mtune generic', '')
-    settings.hasStackProtector = compile(cc, '-fno-stack-protector', '')
+    settings.hasMtune = compile(cc, '-mtune=generic', 'int main() { return 0;}')
+    settings.hasStackProtector = compile(cc, '-fno-stack-protector', 'int main() { return 0;}')
     settings.hasSync = compile(cc, '', '#include <stdio.h>\nint main() { __sync_synchronize(); return 0; }')
     settings.warnUnused = compile(cc, '-Wno-unused-result',
         '#include <stdio.h>\n#include <stdlib.h>\nint main() { realloc(0, 1024); return 0; }')
-    settings.warn64to32 = compile(cc, '-Wshorten-64-to-32', '')
+    settings.warn64to32 = compile(cc, '-Wshorten-64-to-32', 'int main() { return 0;}')
 
     if (bit.platform.os != 'vxworks') {
         settings.hasDynLoad = compile(cc, '',
@@ -51,7 +51,7 @@ if (bit.platform.like == 'posix') {
     */
 
     cc = probe('cl.exe', {fullpath: true, search: search.sort().reverse()})
-    Bit.load({components: { compiler: { path: cc }}})
+    Bit.load({packs: { compiler: { path: cc }}})
 
     let vsdir = cc.dirname.dirname.dirname
     bit.env.PATH += [
@@ -88,7 +88,8 @@ function compile(cc: Path, command: String, contents: String = null): Boolean {
     try {
         cmd = Cmd(command)
         if (cmd.status != 0) {
-            App.log.debug(3, "Compiler component test compile result: " + cmd.error)
+            App.log.debug(3, "Test " + command)
+            App.log.debug(3, "Compiler package test compile result: " + cmd.error)
         }
     } finally {
         if (file) {
