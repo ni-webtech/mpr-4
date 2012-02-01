@@ -14,26 +14,43 @@ Bit.load({
 
     defaults: {
         '+compiler': [ '-fPIC', '-Wall' ],
-        '+defines':  [ '-DPIC' ],
+        '+defines':  [ '-DPIC', '-DCPU=' + '${ARCH}'.toUpper ],
         '+libraries':[ 'pthread', 'm' ],
         '+linker':   [
             '-L${dirs.lib}',
-            "-Wl,-rpath,@executable_path/../lib",
-            "-Wl,-rpath,@executable_path/",
-            "-Wl,-rpath,@loader_path/",
+            '-Wl,-rpath,@executable_path/../lib',
+            '-Wl,-rpath,@executable_path/',
+            '-Wl,-rpath,@loader_path/',
         ],
         scripts: {
-            '+preblend': '
+            '+preblend': "
                 let defaults = bit.defaults
-                if ("${settings.preprocess}" != "") defaults.compiler += [ "-E" ]
-                defaults.compiler += [("${settings.configuration}" == "debug" ? "-g" : "-Os")]
-                defaults.linker += [("${settings.configuration}" == "debug" ? "-g" : "")]
-                if (${settings.warnUnused}) defaults.compiler += [ "-Wno-unused-result" ]
-                if (${settings.warn64to32}) defaults.compiler += [ "-Wshorten-64-to-32" ]
-                if (${settings.hasDynLoad}) defaults.linker += [ "-ldl" ]
-                let tune = ${settings.hasMtune} ? "mtune" : "mcpu"
-                if ("${ARCH}".startsWith("arm"))  defaults.compiler += [ tune + "=arm" + MODEL, "-mno-sched-prolog" ]
-            ',
+                let tunesw = bit.settings.hasMtune ? 'mtune' : 'mcpu'
+                let arch = bit.platform.arch
+
+                if (bit.settings.preprocess != '') {
+                    defaults.compiler.push('-E')
+                }
+                if (bit.settings.configuration == 'debug') {
+                    defaults.compiler += ['-g']
+                } else if (bit.settings.tune == 'size') {
+                    defaults.compiler += ['-Os']
+                } else {
+                    defaults.compiler += ['-fast']
+                }
+                if (bit.settings.configuration == 'debug') {
+                    defaults.linker.push('-g')
+                }
+                if (bit.settings.warnUnused) {
+                    defaults.compiler.push('-Wno-unused-result')
+                }
+                if (bit.settings.warn64to32) {
+                    defaults.compiler.push('-Wshorten-64-to-32')
+                }
+                if (bit.settings.hasDynLoad) {
+                    defaults.linker.push('-ldl')
+                }
+            ",
         },
     },
 

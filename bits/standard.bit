@@ -1,5 +1,5 @@
 /*
-    standard.bit -- Standard Embedthis Build Settings
+    standard.bit -- Standard Build Settings and Targets
  */
 
 Bit.load({
@@ -11,6 +11,7 @@ Bit.load({
 		inc:     	'${dirs.cfg}/inc',
 		lib:    	'${dirs.cfg}/lib',
 		obj:    	'${dirs.cfg}/obj',
+        rel:        '${dirs.cfg}/rel',
         packs:      '../packages-${platform.name}',
 	},
 

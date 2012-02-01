@@ -1,8 +1,10 @@
 /*
     vxworks.bit -- VxWorks Settings
  */
-
 Bit.load({
+    blend: [    
+        'gcc.bit',
+    ],
     suffixes: {
         lib:   'a',
         shlib: 'out',
@@ -10,7 +12,36 @@ Bit.load({
         obj:   'o',
         exe:   'out',
     },
-
     '+required': [ 'compiler' ],
     '+optional': [ ],
+
+    defaults: {
+        '+defines': [
+            '-DRW_MULTI_THREAD'
+        ],
+        '+compiler': [
+            '-fno-builtin -fno-defer-pop -fvolatile'
+        ],
+        '+libraries': [
+            'gcc'
+        ],
+        '+linker': [
+            '-Wl,-r'
+        ],
+        scripts: {
+            '+preblend': "
+                let defaults = bit.defaults
+                let arch = bit.platform.arch
+                let cpu
+                if (arch == 'i386') {
+                    cpu = 'I80386'
+                } else if (arch == 'i486') {
+                    cpu = 'I80486'
+                } else {
+                    cpu = 'PENTIUM'
+                }
+                defaults.defines.push('-DCPU=' + cpu)
+            ",
+        },
+    },
 })
