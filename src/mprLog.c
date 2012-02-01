@@ -94,9 +94,6 @@ void mprLogHeader()
     mprLog(MPR_CONFIG, "BuildType:          %s", BLD_TYPE);
     mprLog(MPR_CONFIG, "CPU:                %s", BLD_CPU);
     mprLog(MPR_CONFIG, "OS:                 %s", BLD_OS);
-    if (strcmp(BLD_DIST, "Unknown") != 0) {
-        mprLog(MPR_CONFIG, "Distribution:       %s %s", BLD_DIST, BLD_DIST_VER);
-    }
     mprLog(MPR_CONFIG, "Host:               %s", mprGetHostName());
     mprLog(MPR_CONFIG, "Directory:          %s", mprGetCurrentPath());
     mprLog(MPR_CONFIG, "Configure:          %s", BLD_CONFIG_CMD);

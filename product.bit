@@ -2,25 +2,39 @@
     product.bit -- Product Bit File for the Multithreaded Portable Runtime (MPR)
  */
 
-bit({
+Bit.load({
+    blend: [
+        "src/test/test.bit",
+        "bits/embedthis.bit",
+    ],
     settings: {
-        /* Default configuration overridden by build.bit */
+        /* Default settings overridden by build.bit */
 		product: 'mpr',
 		title: 'Multithreaded Portable Runtime',
+        company: 'Embedthis',
 		version: '4.0.0',
 		buildNumber: 'B0',
-        configuration: 'debug',
+        profile: 'debug',
         debug: true,
+        depth: 1,
         charlen: 1,
         tune: 'size',
         assert: true,
         float: true,
         legacy: false,
         rom: false,
-        preprocess: false,
+        sync: ['tools'],
     },
 
-    configurations: {
+    usage: {
+        debug: 'Enable a debug build',
+        tune: 'Optimize for size|speed|balanced',
+        assert: 'Enable program assertions',
+        float: 'Enable floating point',
+        rom: 'Enable ROM based file system',
+    },
+
+    profiles: {
         debug: { settings: { 
             debug: true, 
             assert: true,
@@ -31,10 +45,10 @@ bit({
         } },
     },
 
-    '+optional': [ 'doxygen', 'ejs', 'http', 'openssl' ],
+    '+optional': [ 'doxygen', 'ejs', 'http', 'openssl', 'matrixssl' ],
 
-    common: {
-        '+includes': [ 'src' ]
+    defaults: {
+        '+includes': [ 'src', '${dir.inc}', '.' ]
     },
 
     targets: {
@@ -42,38 +56,34 @@ bit({
             type: 'lib',
             sources: [ 'src/*.c', 'src/deps/dtoa.c' ],
             exclude: [ /manager.c|\/ssl\/|\/utils\// ],
-			build: ['dev', 'host' ],
         },
 
         libmprssl: {
-            enable: '"${components.openssl.path"',
+            enable: 'bit.packs.openssl.enable || bit.packs.matrixssl.enable',
             type: 'lib',
-            // MOB OpenSSL, ...
-            depend: [ 'libmpr' ],
+            depends: [ 'libmpr', 'openssl', 'matrixssl' ],
             sources: [ 'src/ssl/*.c' ],
-            '+libraries': [ 'mpr', 'ssl', 'crypto' ],
         },
 
         manager: {
             type: 'exe',
             rule: 'gui',
-            depend: [ 'libmpr' ],
+            depends: [ 'libmpr' ],
             sources: [ 'src/manager.c' ],
-            '+libraries': [ 'mpr' ],
         },
 
         makerom: {
             type: 'exe',
-            depend: [ 'libmpr', ],
+            depends: [ 'libmpr', ],
             sources: ['src/utils/makerom.c'],
-            '+libraries': [ 'mpr' ],
+            platforms: [ 'local' ],
         },
 
         chargen: {
             type: 'exe',
-            depend: [ 'libmpr', ],
+            depends: [ 'libmpr', ],
             sources: [ 'src/utils/charGen.c' ],
-            '+libraries': [ 'mpr' ],
+            platforms: [ 'local' ],
         },
 	},
 })

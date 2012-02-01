@@ -561,7 +561,9 @@ static MprList *getDirFiles(cchar *dir, int flags)
         if (findData.cFileName[0] == '.' && (findData.cFileName[1] == '\0' || findData.cFileName[1] == '.')) {
             continue;
         }
+#if UNUSED
         if (!(findData.dwFileAttributes & FILE_ATTRIBUTE_DIRECTORY) || !(flags & MPR_PATH_NODIRS)) {
+#endif
             dp = mprAlloc(sizeof(MprDirEntry));
             if (dp == 0) {
                 return 0;
@@ -593,7 +595,9 @@ static MprList *getDirFiles(cchar *dir, int flags)
             dp->size = (uint) findData.nFileSizeLow;
 #endif
             mprAddItem(list, dp);
+#if UNUSED
         }
+#endif
     } while (FindNextFile(h, &findData) != 0);
 
     FindClose(h);
@@ -635,7 +639,9 @@ static MprList *getDirFiles(cchar *path, int flags)
         fileInfo.isLink = 0;
         fileInfo.isDir = 0;
         rc = mprGetPathInfo(fileName, &fileInfo);
-        if (!fileInfo.isDir || !(flags & MPR_PATH_NODIRS) || fileInfo.isLink) { 
+#if UNUSED
+        if (!fileInfo.isDir || /* UNUSED !(flags & MPR_PATH_NODIRS) || */ fileInfo.isLink) { 
+#endif
             if ((dp = mprAllocObj(MprDirEntry, manageDirEntry)) == 0) {
                 return 0;
             }
@@ -655,7 +661,9 @@ static MprList *getDirFiles(cchar *path, int flags)
                 dp->isLink = 0;
             }
             mprAddItem(list, dp);
+#if UNUSED
         }
+#endif
     }
     closedir(dir);
     return list;

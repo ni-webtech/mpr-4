@@ -10,13 +10,13 @@ if (search.length == 0) {
     throw 'Can\'t find the Windows SDK' + 'Download from http://msdn.microsoft.com/en-us/windowsserver/bb980924.aspx'
 }
 let winsdk = probe('Include/WinBase.h', {fullpath: true, search: search.sort().reverse()})
-bit({components: { winsdk: { path: winsdk }}})
+Bit.load({packs: { winsdk: { path: winsdk }}})
 
 let dir = winsdk.dirname.dirname
-spec.env.PATH += [ dir.join('Bin'), ]
-spec.env.INCLUDE += [ dir.join('INCLUDE') ]
-if (spec.ARCH == 'x86_64') {
-    spec.env.LIB += [ dir.join('lib/x64') ]
+bit.env.PATH = [ dir.join('Bin'), ]
+bit.env.INCLUDE = [ dir.join('INCLUDE') ]
+if (bit.platform.arch == 'x86_64') {
+    bit.env.LIB = [ dir.join('lib/x64') ]
 } else {
-    spec.env.LIB += [ dir.join('lib') ]
+    bit.env.LIB = [ dir.join('lib') ]
 }

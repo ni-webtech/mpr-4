@@ -1,7 +1,0 @@
-/*
-    x86_64.bit -- X86 64 bit Architecture Settings
- */
-
-bit({
-    ARCH: 'x86_64',
-})

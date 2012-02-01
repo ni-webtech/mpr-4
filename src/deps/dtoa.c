@@ -200,7 +200,7 @@
     #endif
     #define Long int32_t
     #define ULong uint32_t
-#if BLD_HOST_CPU_ARCH == MPR_CPU_PPC
+#if BLD_CPU_ARCH == MPR_CPU_PPC
     #define IEEE_MC68k 1
 #else
     #define IEEE_8087 1
