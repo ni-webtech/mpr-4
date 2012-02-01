@@ -48,7 +48,7 @@ Bit.load({
     '+optional': [ 'doxygen', 'ejs', 'http', 'openssl', 'matrixssl' ],
 
     defaults: {
-        '+includes': [ 'src', '${dir.inc}', '.' ]
+        '+includes': [ 'src' ]
     },
 
     targets: {
