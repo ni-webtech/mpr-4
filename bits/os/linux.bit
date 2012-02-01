@@ -9,7 +9,7 @@ Bit.load({
     ],
     defaults: {
         '+linker':   [ 
-            '-L${dirs.lib}', 
+            '-L${dir.lib}', 
             '-Wl,--enable-new-dtags', 
             '-Wl,-rpath,$ORIGIN/', 
             '-Wl,-rpath,$ORIGIN/../lib' 

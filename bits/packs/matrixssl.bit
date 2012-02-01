@@ -11,10 +11,10 @@ if (bit.packs.ssl && bit.packs.ssl.enable == false) {
 }
 
 if (bit.platform.os == 'win') {
-    let search = path ? ([path]) : [bit.dirs.packs.join('matrixssl', ver, 'src/Release') ]
+    let search = path ? ([path]) : [bit.dir.packs.join('matrixssl', ver, 'src/Release') ]
     let lib = probe('libmatrixssl.dll', {fullpath: true, search: search}).absolute
     let dir = lib.parent.parent
-    search = path ? ([path]) : [bit.dirs.packs.join('matrixssl', ver) ]
+    search = path ? ([path]) : [bit.dir.packs.join('matrixssl', ver) ]
     let incdir = probe('matrixSsl.h', {search: search}).absolute
     cfg = {
         dir: dir,
@@ -26,10 +26,10 @@ if (bit.platform.os == 'win') {
     }
 
 } else if (bit.platform.os == 'macosx') {
-    let search = path ? ([path]) : [bit.dirs.packs.join('matrixssl', ver, 'src') ]
+    let search = path ? ([path]) : [bit.dir.packs.join('matrixssl', ver, 'src') ]
     let lib = probe('libmatrixssl.dylib', {fullpath: true, search: search}).absolute
     let dir = lib.parent.parent
-    search = path ? ([path]) : [bit.dirs.packs.join('matrixssl', ver) ]
+    search = path ? ([path]) : [bit.dir.packs.join('matrixssl', ver) ]
     let incdir = probe('matrixSsl.h', {search: search}).absolute
     cfg = {
         dir: dir,
@@ -41,10 +41,10 @@ if (bit.platform.os == 'win') {
     }
 
 } else {
-    let search = path ? ([path]) : [bit.dirs.packs.join('matrixssl', ver, 'src')]
+    let search = path ? ([path]) : [bit.dir.packs.join('matrixssl', ver, 'src')]
     let lib = probe('libmatrixssl.so', {fullpath: true, search: search}).absolute
     let dir = lib.parent.parent
-    search = path ? ([path]) : [bit.dirs.packs.join('matrixssl', ver) ]
+    search = path ? ([path]) : [bit.dir.packs.join('matrixssl', ver) ]
     let incdir = probe('matrixSsl.h', {search: search}).absolute
     cfg = {
         dir: dir,

@@ -4,7 +4,8 @@
 
 Bit.load({
     internal: {
-        runopt: {dir: bit.dirs.src, show: true, toss: true}
+        runopt: {dir: bit.dir.src, show: true, toss: true}
+        platforms: [ 'local' ],
     },
 
     targets: {
@@ -12,8 +13,8 @@ Bit.load({
             action: "
                 let parts = bit.settings.package || 'binary dev'
                 let keep = (bit.settings.keep) ? ' --keep' : ''
-                run('makeInstall --package --root=' + bit.dirs.out.join('combo') + ' combo', bit.target.runopt)
-                run('makePackage --combo --root=' + bit.dirs.out.join('combo') + keep + ' combo', bit.target.runopt)
+                run('makeInstall --package --root=' + bit.dir.out.join('combo') + ' combo', bit.target.runopt)
+                run('makePackage --combo --root=' + bit.dir.out.join('combo') + keep + ' combo', bit.target.runopt)
             ",
         },
 
@@ -22,7 +23,7 @@ Bit.load({
                 stdout.write('Enter deployment directory: ')
                 let got = stdin.readLine()
                 let parts = bit.settings.package || 'binary dev'
-                run('priv makeInstall --install --bare --root=' + bit.dirs.out.join('pkg') + 
+                run('priv makeInstall --install --bare --root=' + bit.dir.out.join('pkg') + 
                     ' pre ' + parts + ' post', bit.target.runopt)
             ",
         },
@@ -31,15 +32,15 @@ Bit.load({
             action: "
                 let parts = bit.settings.package || 'binary dev'
                 let keep = (bit.settings.keep) ? ' --keep' : ''
-                run('makeInstall --package --root=' + bit.dirs.out.join('flat') + ' flat', bit.target.runopt)
-                run('makePackage --combo --root=' + bit.dirs.out.join('flat') + keep + ' flat', bit.target.runopt)
+                run('makeInstall --package --root=' + bit.dir.out.join('flat') + ' flat', bit.target.runopt)
+                run('makePackage --combo --root=' + bit.dir.out.join('flat') + keep + ' flat', bit.target.runopt)
             ",
         },
 
         install: {
             action: "
                 let parts = bit.settings.package || 'binary dev'
-                run('priv makeInstall --install --root=' + bit.dirs.out.join('pkg') + 
+                run('priv makeInstall --install --root=' + bit.dir.out.join('pkg') + 
                     ' pre ' + parts + ' post', bit.target.runopt)
             ",
         },
@@ -47,7 +48,7 @@ Bit.load({
         sync: {
             action: "
                 for each (peer in bit.settings.sync) {
-                    let from = bit.dirs.src.parent.join(peer + '/out/releases/' + peer + '-combo.tgz')
+                    let from = bit.dir.src.parent.join(peer + '/out/releases/' + peer + '-combo.tgz')
                     run('syncup --sync ' + from, bit.target.runopt)
                 }
             ",
@@ -58,9 +59,9 @@ Bit.load({
                 if (bit.settings.depth >= 2) {
                     let keep = (bit.settings.keep) ? ' --keep' : ''
                     let parts = bit.settings.package || 'binary dev'
-                    run('fakePriv build/bin/makeInstall --package --root=' + bit.dirs.out.join('pkg') +
+                    run('fakePriv build/bin/makeInstall --package --root=' + bit.dir.out.join('pkg') +
                         ' pre ' + parts + ' post', bit.target.runopt)
-                    run('fakePriv build/bin/makePackage --root=' + bit.dirs.out.join('pkg') + keep + 
+                    run('fakePriv build/bin/makePackage --root=' + bit.dir.out.join('pkg') + keep + 
                         ' pre ' + parts + ' post', bit.target.runopt)
                 } else {
                     activity('Info', 'Packaging skipped at build depth ' + bit.settings.depth)
@@ -90,7 +91,7 @@ Bit.load({
                     if (uri == '') {
                         throw 'Missing a BUILD_UPLOAD uri'
                     }
-                    for each (file in bit.dirs.rel.glob('${settings.product}-${settings.version}-${settings.number}')) {
+                    for each (file in bit.dir.rel.glob('${settings.product}-${settings.version}-${settings.number}')) {
                         if (file.toString().contains('flat.tgz')) {
                             let latest = file.dirname.join('${settings.product}-latest-flat.tgz')
                             file.rename(latest)
@@ -104,19 +105,19 @@ Bit.load({
                     }
                 }
             "
-        }
-
-        version: {
-            action: "print('bit.settings.version')",
-        }
+        },
 
         utest: {
             type: 'test',
             action: "
                 if (bit.packs.ejs && bit.packs.ejs.path) {
-                    run(bit.packs.ejs.path + ' build/bin/utest -v -d ' + bit.settings.depth, {dir: bit.dirs.src.join('src')})
+                    run(bit.packs.ejs.path + ' build/bin/utest -v -d ' + bit.settings.depth, {dir: bit.dir.src.join('src')})
                 }
             ",
         }
+
+        version: {
+            action: "print('bit.settings.version')",
+        },
     },
 })

@@ -7,17 +7,17 @@ Bit.load({
         'posix.bit',
     ],
 
-    suffixes: {
+    ext: {
         'shlib': 'dylib',
         'shobj': 'dylib',
     },
 
     defaults: {
         '+compiler': [ '-fPIC', '-Wall' ],
-        '+defines':  [ '-DPIC', '-DCPU=' + '${ARCH}'.toUpper ],
+        '+defines':  [ '-DPIC' ],
         '+libraries':[ 'pthread', 'm' ],
         '+linker':   [
-            '-L${dirs.lib}',
+            '-L${dir.lib}',
             '-Wl,-rpath,@executable_path/../lib',
             '-Wl,-rpath,@executable_path/',
             '-Wl,-rpath,@loader_path/',
@@ -28,7 +28,7 @@ Bit.load({
                 let tunesw = bit.settings.hasMtune ? 'mtune' : 'mcpu'
                 let arch = bit.platform.arch
 
-                if (bit.settings.preprocess != '') {
+                if (bit.settings.preprocess) {
                     defaults.compiler.push('-E')
                 }
                 if (bit.settings.configuration == 'debug') {
@@ -50,6 +50,7 @@ Bit.load({
                 if (bit.settings.hasDynLoad) {
                     defaults.linker.push('-ldl')
                 }
+                defaults.defines.push('-DCPU=' + bit.platform.arch.toUpper())
             ",
         },
     },
@@ -57,7 +58,7 @@ Bit.load({
     rules: {
         'c->o': '${packs.compiler.path} -c -o ${OUT} -arch ${ARCH} ${CFLAGS} ${target.defines} ${INCLUDES} ${PREPROCESS} ${IN}',
         'lib':  '${packs.compiler.path} -dynamiclib -o ${OUT} -arch ${ARCH} ${target.linker} -install_name @rpath/${LIBNAME} ${LIBS} ${IN}'
-        'exe':  '${packs.compiler.path} -o ${OUT} -arch ${ARCH} ${target.linker} -L${dirs.lib} ${LIBS} ${IN}'
-        'gui':  '${packs.compiler.path} -o ${OUT} -arch ${ARCH} ${target.linker} -L${dirs.lib} ${LIBS} ${IN}'
+        'exe':  '${packs.compiler.path} -o ${OUT} -arch ${ARCH} ${target.linker} -L${dir.lib} ${LIBS} ${IN}'
+        'gui':  '${packs.compiler.path} -o ${OUT} -arch ${ARCH} ${target.linker} -L${dir.lib} ${LIBS} ${IN}'
     },
 })

@@ -5,7 +5,7 @@ Bit.load({
     blend: [    
         'gcc.bit',
     ],
-    suffixes: {
+    ext: {
         lib:   'a',
         shlib: 'out',
         shobj: 'out',

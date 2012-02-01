@@ -3,7 +3,7 @@
  */
 
 Bit.load({
-    suffixes: {
+    ext: {
         lib:   'a',
         shlib: 'so',
         shobj: 'so',

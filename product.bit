@@ -8,13 +8,13 @@ Bit.load({
         "bits/embedthis.bit",
     ],
     settings: {
-        /* Default configuration overridden by build.bit */
+        /* Default settings overridden by build.bit */
 		product: 'mpr',
 		title: 'Multithreaded Portable Runtime',
         company: 'Embedthis',
 		version: '4.0.0',
 		buildNumber: 'B0',
-        configuration: 'debug',
+        profile: 'debug',
         debug: true,
         depth: 1,
         charlen: 1,
@@ -34,7 +34,7 @@ Bit.load({
         rom: 'Enable ROM based file system',
     },
 
-    configurations: {
+    profiles: {
         debug: { settings: { 
             debug: true, 
             assert: true,
@@ -48,7 +48,7 @@ Bit.load({
     '+optional': [ 'doxygen', 'ejs', 'http', 'openssl', 'matrixssl' ],
 
     defaults: {
-        '+includes': [ 'src', '${dirs.inc}', '.' ]
+        '+includes': [ 'src', '${dir.inc}', '.' ]
     },
 
     targets: {

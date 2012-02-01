@@ -5,7 +5,7 @@
 Bit.load({
     defaults: {
         '+compiler': [ '-fPIC', '-Wall', ],
-        '+defines':  [ '-DPIC', '-D_REENTRANT', '-DCPU=' + '${ARCH}'.toUpper ],
+        '+defines':  [ '-DPIC', '-D_REENTRANT', '-DCPU=' + '${ARCH}'.toUpper() ],
         '+libraries':[ 'pthread', 'm' ],
 
         scripts: {
@@ -13,7 +13,7 @@ Bit.load({
                 let defaults = bit.defaults
                 let arch = bit.platform.arch
 
-                if (bit.settings.preprocess != '') {
+                if (bit.settings.preprocess) {
                     defaults.compiler.push('-E')
                 }
                 if (bit.settings.configuration == 'debug') {
@@ -49,7 +49,7 @@ Bit.load({
     rules: {
         'c->o': '${packs.compiler.path} -c -o ${OUT} -arch ${ARCH} ${CFLAGS} ${target.defines} ${INCLUDES} ${PREPROCESS} ${IN}',
         'lib':  '${packs.compiler.path} -dynamiclib -o ${OUT} -arch ${ARCH} ${target.linker} ${LIBS} ${IN}'
-        'exe':  '${packs.compiler.path} -o ${OUT} -arch ${ARCH} ${target.linker} -L${dirs.lib} ${LIBS} ${IN}'
-        'gui':  '${packs.compiler.path} -o ${OUT} -arch ${ARCH} ${target.linker} -L${dirs.lib} ${LIBS} ${IN}'
+        'exe':  '${packs.compiler.path} -o ${OUT} -arch ${ARCH} ${target.linker} -L${dir.lib} ${LIBS} ${IN}'
+        'gui':  '${packs.compiler.path} -o ${OUT} -arch ${ARCH} ${target.linker} -L${dir.lib} ${LIBS} ${IN}'
     },
 })

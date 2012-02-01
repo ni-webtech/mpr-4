@@ -3,15 +3,15 @@
  */
 
 Bit.load({
-	dirs: {
+	dir: {
         src :       '.',
         out:        'out',
-		cfg:     	'${dirs.out}/${platform.os}-${platform.arch}-${settings.configuration}',
-		bin:     	'${dirs.cfg}/bin',
-		inc:     	'${dirs.cfg}/inc',
-		lib:    	'${dirs.cfg}/lib',
-		obj:    	'${dirs.cfg}/obj',
-        rel:        '${dirs.cfg}/rel',
+		cfg:     	'${dir.out}/${platform.os}-${platform.arch}-${settings.profile}',
+		bin:     	'${dir.cfg}/bin',
+		inc:     	'${dir.cfg}/inc',
+		lib:    	'${dir.cfg}/lib',
+		obj:    	'${dir.cfg}/obj',
+        rel:        '${dir.cfg}/rel',
         packs:      '../packages-${platform.name}',
 	},
 
