@@ -25,6 +25,7 @@ SSL_SOURCES="${BLD_INC_DIR}/mprSsl.h ${S}/ssl/*.c"
 #
 mkdir -p ${SRC} ${DOC}/man ${DOC}/api
 cp ${BLD_TOP}/package/Makefile.combo "${SRC}/Makefile"
+cp ${BLD_TOP}/package/mpr.bit "${SRC}/mpr.bit"
 # cp ${BLD_INC_DIR}/buildConfig.h "${DIR}/buildConfig.h"
 
 #
