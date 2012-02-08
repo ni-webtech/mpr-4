@@ -43,7 +43,6 @@ if (bit.platform.os == 'win') {
         dir: dir,
         path: lib,
         defines: [ '-DPOSIX', '-DMATRIX_USE_FILE_SYSTEM' ],
-        _defines: [ '-DPOSIX', '-DHAS_INT32=1', '-DHAS_UINT32', '-DHAS_INT64', '-DHAS_UINT64' ],
         includes: [ incdir, incdir.parent ],
         libraries: [ 'libmatrixssl.dylib' ],
         linker: [ '-L' + lib.parent ],

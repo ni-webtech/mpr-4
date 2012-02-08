@@ -81,21 +81,24 @@ Bit.load({
 
         package: {
             action: "
+                let d = bit.dir.pkg.join('${settings.product}-${settings.version}')
                 safeRemove(bit.dir.pkg)
-                install('bits/mpr.bit', '${PKG}/src/deps/mpr.bit')
-                install(['utils/makerom.c', 'manager.c'], '${PKG}/src/deps')
-                install(['doc/api/mpr.html', 'doc/api/mprBare.html', 'doc/api/mpr*.tags', 'doc/man/*.1'], '${PKG}/doc/api')
-                install('src/mpr.h', '${PKG}/src/deps/mpr.h')
-                install(['mprMem.c', 'mpr.c', 'src/*.c', 'src/deps/*.c'], '${PKG}/src/deps/mprLib.c', {
+                install('bits/mpr.bit', d.join('src/deps/mpr/mpr.bit'))
+                install('bits/Makefile', d.join('src/deps/mpr/Makefile'))
+                install(['src/utils/makerom.c', 'src/manager.c'], d.join('src/deps/mpr'))
+                install(['doc/api/mpr.html', 'doc/api/mprBare.html', 'doc/api/mpr*.tags', 'doc/api/mpr.dtags'], 
+                    d.join('doc/api'))
+                install('doc/man/*.1', d.join('doc/man'))
+                install('src/mpr.h', d.join('src/deps/mpr/mpr.h'))
+                install(['src/mprMem.c', 'src/mpr.c', 'src/*.c', 'src/deps/*.c'], d.join('src/deps/mpr/mprLib.c'), {
                     cat: true,
-                    filter: /^#inc.*mpr.*$/mg, exclude: /manager|mprMem|mpr.c/,
+                    filter: /^#inc.*mpr.*$/mg, 
+                    exclude: /manager|makerom/,
                     header: '#include \"mpr.h\"',
                     title: bit.settings.title + ' Library Source',
                 })
-                install('ssl/*.c', '${PKG}/src/deps/mprSsl.c', {
+                install(['src/ssl/mprMatrixssl.c', 'src/ssl/*.c'], d.join('src/deps/mpr/mprSsl.c'), {
                     cat: true,
-                    filter: /^#inc.*mpr.*$/mg,
-                    header: '#include \"mpr.h\"',
                     title: bit.settings.title + ' SSL Source',
                 })
                 package(['combo', 'flat'])

@@ -542,7 +542,6 @@ static MprSocket *acceptOss(MprSocket *listen)
     lock(sp);
     osp = sp->sslSocket;
     mprAssert(osp);
-    mprAssert(osp->ssl);
 
     /*
         Create and configure the SSL struct

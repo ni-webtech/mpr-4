@@ -52,7 +52,11 @@ Bit.load({
         sync: {
             action: "
                 for each (peer in bit.settings.sync) {
-                    let from = bit.dir.src.parent.join(peer + '/out/releases/' + peer + '-combo.tgz')
+                    let dir = bit.dir.src.parent.join(peer + '/releases')
+                    if (!dir.exists) {
+                        dir = bit.dir.src.parent.join(peer + '/out/releases')
+                    }
+                    let from = dir.join(peer + '-combo.tgz')
                     run('syncup --sync ' + from, bit.target.runopt)
                 }
             ",

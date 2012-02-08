@@ -13,16 +13,25 @@ Bit.load({
         packs:      '../packages-${platform.name}',
         pkg:        '${dir.cfg}/pkg',
         rel:        'releases',
+        src:        '.',
+        top:        '.',
 	},
 
     targets: {
         clean: {
             action: "
                 action('cleanTargets')
-                safeRemove(bit.dir.rel)
-                safeRemove(bit.dir.pkg)
-                safeRemove(bit.dir.flat)
+                safeRemove('${REL}')
+                safeRemove('${PKG}')
+                safeRemove('${FLAT}')
             ",
         },
+        clobber: {
+            depends: ['clean'],
+            action: "
+                rm('${TOP}/local.bit')
+                rmdir(['${TOP}/releases', '${TOP}/*-debug', '${TOP}/*-release'])
+            "
+        }
     },
 })

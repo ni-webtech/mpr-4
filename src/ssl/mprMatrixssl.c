@@ -9,7 +9,7 @@
 #include    "buildConfig.h"
 
 #if BLD_FEATURE_MATRIXSSL
-#include    "matrixsslApi.h"
+ #include    "matrixsslApi.h"
 
 #define     HAS_INT32 1
 #define     HAS_UINT32 1
@@ -316,7 +316,6 @@ static MprSocket *acceptMss(MprSocket *listen)
     lock(sp);
     msp = sp->sslSocket;
     mprAssert(msp);
-    mprAssert(msp->ssl);
 
     /* 
         Associate a new ssl session with this socket.  The session represents the state of the ssl protocol 

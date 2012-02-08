@@ -37,7 +37,11 @@
     #define BLD_FEATURE_FLOAT 1
 #endif
 #ifndef BLD_FEATURE_ASSERT
-    #define BLD_FEATURE_ASSERT 0
+    #if BLD_DEBUG
+        #define BLD_FEATURE_ASSERT 1
+    #else
+        #define BLD_FEATURE_ASSERT 0
+    #endif
 #endif
 #ifndef BLD_FEATURE_ROMFS
     #define BLD_FEATURE_ROMFS 0
