@@ -14,7 +14,7 @@ Bit.load({
         company: 'Embedthis',
 		version: '4.0.0',
 		buildNumber: 'B0',
-        sync: ['tools'],
+        sync: [],
     },
 
     usage: {

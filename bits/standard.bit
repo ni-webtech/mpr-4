@@ -13,8 +13,6 @@ Bit.load({
         packs:      '../packages-${platform.name}',
         pkg:        '${dir.cfg}/pkg',
         rel:        'releases',
-        src:        '.',
-        top:        '.',
 	},
 
     targets: {
