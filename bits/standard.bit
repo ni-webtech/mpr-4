@@ -4,20 +4,25 @@
 
 Bit.load({
 	dir: {
-        src :       '.',
-        out:        'out',
-		cfg:     	'${dir.out}/${platform.os}-${platform.arch}-${settings.profile}',
+		cfg:     	'${platform.os}-${platform.arch}-${settings.profile}',
 		bin:     	'${dir.cfg}/bin',
+        flat:       '${dir.cfg}/flat',
 		inc:     	'${dir.cfg}/inc',
 		lib:    	'${dir.cfg}/lib',
 		obj:    	'${dir.cfg}/obj',
-        rel:        '${dir.cfg}/rel',
         packs:      '../packages-${platform.name}',
+        pkg:        '${dir.cfg}/pkg',
+        rel:        'releases',
 	},
 
     targets: {
         clean: {
-            action: "action('cleanTargets')",
+            action: "
+                action('cleanTargets')
+                safeRemove(bit.dir.rel)
+                safeRemove(bit.dir.pkg)
+                safeRemove(bit.dir.flat)
+            ",
         },
     },
 })

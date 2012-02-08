@@ -7,6 +7,7 @@
 include 		.makedep
 
 MAKE_IFLAGS		+= $(BLD_OPENSSL_IFLAGS) $(BLD_MATRIXSSL_IFLAGS)
+MAKE_DFLAGS		+= $(BLD_OPENSSL_DFLAGS) $(BLD_MATRIXSSL_DFLAGS)
 ifeq ($(MACOSX),1)
 	MAKE_IFLAGS	+= -Wno-deprecated-declarations
 endif

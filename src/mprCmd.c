@@ -1359,7 +1359,7 @@ static int makeChannel(MprCmd *cmd, int index)
         file->fd = fds[0];              /* read fd */
     }
     fcntl(file->fd, F_SETFL, fcntl(file->fd, F_GETFL) | O_NONBLOCK);
-    mprLog(7, "makeCmdIO: pipe handles[%d] read %d, write %d", index, fds[0], fds[1]);
+    mprLog(7, "makeChannel: pipe handles[%d] read %d, write %d", index, fds[0], fds[1]);
     return 0;
 }
 

@@ -7,7 +7,6 @@
 /********************************* Includes ***********************************/
 
 #include    "mpr.h"
-#include    "mprSsl.h"
 
 #if BLD_FEATURE_SSL
 /************************************ Code ************************************/
@@ -58,7 +57,7 @@ MprModule *mprSslInit(cchar *path)
 }
 
 
-static void defaultSslManager(MprSsl *ssl, int flags) 
+static void manageSsl(MprSsl *ssl, int flags) 
 {
     if (flags & MPR_MANAGE_MARK) {
         mprMark(ssl->key);
@@ -68,6 +67,7 @@ static void defaultSslManager(MprSsl *ssl, int flags)
         mprMark(ssl->caFile);
         mprMark(ssl->caPath);
         mprMark(ssl->ciphers);
+        mprMark(ssl->providerData);
     }
 }
 
@@ -79,7 +79,7 @@ MprSsl *mprCreateSsl()
 {
     MprSsl      *ssl;
 
-    if ((ssl = mprAllocObj(MprSsl, defaultSslManager)) == 0) {
+    if ((ssl = mprAllocObj(MprSsl, manageSsl)) == 0) {
         return 0;
     }
     ssl->ciphers = sclone(MPR_DEFAULT_CIPHER_SUITE);
@@ -152,12 +152,14 @@ void mprSetSslProtocols(MprSsl *ssl, int protocols)
 }
 
 
+#if UNUSED
 void mprSetSocketSslConfig(MprSocket *sp, MprSsl *ssl)
 {
     if (sp->sslSocket) {
         sp->sslSocket->ssl = ssl;
     }
 }
+#endif
 
 
 void mprVerifySslClients(MprSsl *ssl, bool on)

@@ -47,8 +47,7 @@ int mprGetRandomBytes(char *buf, ssize length, bool block)
     ssize   sofar, rc;
     int     fd;
 
-    fd = open((block) ? "/dev/random" : "/dev/urandom", O_RDONLY, 0666);
-    if (fd < 0) {
+    if ((fd = open((block) ? "/dev/random" : "/dev/urandom", O_RDONLY, 0666)) < 0) {
         return MPR_ERR_CANT_OPEN;
     }
     sofar = 0;

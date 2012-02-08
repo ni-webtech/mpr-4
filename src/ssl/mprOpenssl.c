@@ -7,19 +7,46 @@
 /********************************** Includes **********************************/
 
 #include    "mpr.h"
-#include    "mprSsl.h"
 
 #if BLD_FEATURE_OPENSSL
 
+/* Clashes with WinCrypt.h */
+#undef OCSP_RESPONSE
+#include    <openssl/ssl.h>
+#include    <openssl/evp.h>
+#include    <openssl/rand.h>
+#include    <openssl/err.h>
 #include    <openssl/dh.h>
 
-/*********************************** Locals ***********************************/
+/************************************* Defines ********************************/
 
-typedef struct MprOpenssl {
+#define MPR_DEFAULT_SERVER_CERT_FILE    "server.crt"
+#define MPR_DEFAULT_SERVER_KEY_FILE     "server.key.pem"
+#define MPR_DEFAULT_CLIENT_CERT_FILE    "client.crt"
+#define MPR_DEFAULT_CLIENT_CERT_PATH    "certs"
+
+typedef struct MprOpenSsl {
+    SSL_CTX         *context;
+    RSA             *rsaKey512;
+    RSA             *rsaKey1024;
+    DH              *dhKey512;
+    DH              *dhKey1024;
+} MprOpenSsl;
+
+
+typedef struct MprOpenSocket
+{
+    MprSocket       *sock;
+    MprOpenSsl      *ossl;
+    SSL             *handle;
+    BIO             *bio;
+} MprOpenSocket;
+
+typedef struct OpenSslLocks {
     MprMutex    **locks;
-} MprOpenssl;
+} OpenSslLocks;
 
-static MprOpenssl *osl;
+static OpenSslLocks *osl;
 
 typedef struct RandBuf {
     MprTime     now;
@@ -47,10 +74,10 @@ static DH       *dhCallback(SSL *ssl, int isExport, int keyLength);
 static void     disconnectOss(MprSocket *sp);
 static ssize    flushOss(MprSocket *sp);
 static int      listenOss(MprSocket *sp, cchar *host, int port, int flags);
-static void     manageOpenssl(MprOpenssl *osl, int flags);
+static void     manageOpenSsl(MprOpenSsl *ossl, int flags);
+static void     manageOpenSslLocks(OpenSslLocks *osl, int flags);
 static void     manageOpenProvider(MprSocketProvider *provider, int flags);
-static void     manageOpenSocket(MprSslSocket *ssp, int flags);
-static void     manageSslStruct(MprSsl *ssl, int flags);
+static void     manageOpenSocket(MprOpenSocket *ssp, int flags);
 static ssize    readOss(MprSocket *sp, void *buf, ssize len);
 static RSA      *rsaCallback(SSL *ssl, int isExport, int keyLength);
 static int      verifyX509Certificate(int ok, X509_STORE_CTX *ctx);
@@ -75,7 +102,7 @@ int mprCreateOpenSslModule(bool lazy)
     RandBuf             randBuf;
     int                 i;
 
-    if ((osl = mprAllocObj(MprOpenssl, manageOpenssl)) == 0) {
+    if ((osl = mprAllocObj(OpenSslLocks, manageOpenSslLocks)) == 0) {
         return MPR_ERR_MEMORY;
     }
 
@@ -125,7 +152,7 @@ int mprCreateOpenSslModule(bool lazy)
 }
 
 
-static void manageOpenssl(MprOpenssl *osl, int flags)
+static void manageOpenSslLocks(OpenSslLocks *osl, int flags)
 {
     int     i;
 
@@ -144,6 +171,7 @@ static MprSsl *getDefaultSslSettings()
 {
     MprSocketService    *ss;
     MprSsl              *ssl;
+    MprOpenSsl          *ossl;
 
     ss = MPR->socketService;
 
@@ -153,14 +181,19 @@ static MprSsl *getDefaultSslSettings()
     if ((ssl = mprCreateSsl()) == 0) {
         return 0;
     }
+    if ((ssl->providerData = mprAllocObj(MprOpenSsl, manageOpenSsl)) == 0) {
+        return 0;
+    }
+    ss->secureProvider->defaultSsl = ssl;
+
     /*
         Pre-generate some keys that are slow to compute.
      */
-    ssl->rsaKey512 = RSA_generate_key(512, RSA_F4, 0, 0);
-    ssl->rsaKey1024 = RSA_generate_key(1024, RSA_F4, 0, 0);
-    ssl->dhKey512 = get_dh512();
-    ssl->dhKey1024 = get_dh1024();
-    ss->secureProvider->defaultSsl = ssl;
+    ossl = ssl->providerData;
+    ossl->rsaKey512 = RSA_generate_key(512, RSA_F4, 0, 0);
+    ossl->rsaKey1024 = RSA_generate_key(1024, RSA_F4, 0, 0);
+    ossl->dhKey512 = get_dh512();
+    ossl->dhKey1024 = get_dh1024();
     return ssl;
 }
 
@@ -207,10 +240,10 @@ static void manageOpenProvider(MprSocketProvider *provider, int flags)
 static int configureOss(MprSsl *ssl)
 {
     MprSsl              *defaultSsl;
+    MprOpenSsl          *ossl, *src;
     SSL_CTX             *context;
     uchar               resume[16];
 
-    mprSetManager(ssl, manageSslStruct);
     context = SSL_CTX_new(SSLv23_method());
     if (context == 0) {
         mprError("OpenSSL: Unable to create SSL context"); 
@@ -331,12 +364,14 @@ static int configureOss(MprSsl *ssl)
         return MPR_ERR_MEMORY;
     }
     if (ssl != defaultSsl) {
-        ssl->rsaKey512 = defaultSsl->rsaKey512;
-        ssl->rsaKey1024 = defaultSsl->rsaKey1024;
-        ssl->dhKey512 = defaultSsl->dhKey512;
-        ssl->dhKey1024 = defaultSsl->dhKey1024;
+        ossl = ssl->providerData;
+        src = defaultSsl->providerData;
+        ossl->rsaKey512 = src->rsaKey512;
+        ossl->rsaKey1024 = src->rsaKey1024;
+        ossl->dhKey512 = src->dhKey512;
+        ossl->dhKey1024 = src->dhKey1024;
     }
-    ssl->context = context;
+    ossl->context = context;
     return 0;
 }
 
@@ -344,38 +379,32 @@ static int configureOss(MprSsl *ssl)
 /*
     Update the destructor for the MprSsl object. 
  */
-static void manageSslStruct(MprSsl *ssl, int flags)
+static void manageOpenSsl(MprOpenSsl *ossl, int flags)
 {
     if (flags & MPR_MANAGE_MARK) {
-        mprMark(ssl->key);
-        mprMark(ssl->cert);
-        mprMark(ssl->keyFile);
-        mprMark(ssl->certFile);
-        mprMark(ssl->caFile);
-        mprMark(ssl->caPath);
-        mprMark(ssl->ciphers);
+        ;
 
     } else if (flags & MPR_MANAGE_FREE) {
-        if (ssl->context != 0) {
-            SSL_CTX_free(ssl->context);
-            ssl->context = 0;
+        if (ossl->context != 0) {
+            SSL_CTX_free(ossl->context);
+            ossl->context = 0;
         }
-        if (ssl == MPR->socketService->secureProvider->defaultSsl) {
-            if (ssl->rsaKey512) {
-                RSA_free(ssl->rsaKey512);
-                ssl->rsaKey512 = 0;
+        if (ossl == MPR->socketService->secureProvider->defaultSsl->providerData) {
+            if (ossl->rsaKey512) {
+                RSA_free(ossl->rsaKey512);
+                ossl->rsaKey512 = 0;
             }
-            if (ssl->rsaKey1024) {
-                RSA_free(ssl->rsaKey1024);
-                ssl->rsaKey1024 = 0;
+            if (ossl->rsaKey1024) {
+                RSA_free(ossl->rsaKey1024);
+                ossl->rsaKey1024 = 0;
             }
-            if (ssl->dhKey512) {
-                DH_free(ssl->dhKey512);
-                ssl->dhKey512 = 0;
+            if (ossl->dhKey512) {
+                DH_free(ossl->dhKey512);
+                ossl->dhKey512 = 0;
             }
-            if (ssl->dhKey1024) {
-                DH_free(ssl->dhKey1024);
-                ssl->dhKey1024 = 0;
+            if (ossl->dhKey1024) {
+                DH_free(ossl->dhKey1024);
+                ossl->dhKey1024 = 0;
             }
         }
     }
@@ -424,7 +453,7 @@ static MprSocket *createOss(MprSsl *ssl)
 {
     MprSocketService    *ss;
     MprSocket           *sp;
-    MprSslSocket        *osp;
+    MprOpenSocket       *osp;
     
     if (ssl == MPR_SECURE_CLIENT) {
         ssl = 0;
@@ -443,36 +472,33 @@ static MprSocket *createOss(MprSsl *ssl)
     /*
         Create a SslSocket object for ssl state. This logically extends MprSocket.
      */
-    osp = (MprSslSocket*) mprAllocObj(MprSslSocket, manageOpenSocket);
+    osp = (MprOpenSocket*) mprAllocObj(MprOpenSocket, manageOpenSocket);
     if (osp == 0) {
         return 0;
     }
+    osp->sock = sp;
     sp->sslSocket = osp;
     sp->ssl = ssl;
-    osp->sock = sp;
-
-    if (ssl) {
-        osp->ssl = ssl;
-    }
+    osp->ossl = ssl->providerData;;
     unlock(sp);
     return sp;
 }
 
 
 /*
-    Destructor for an MprSslSocket object
+    Destructor for an MprOpenSocket object
  */
-static void manageOpenSocket(MprSslSocket *osp, int flags)
+static void manageOpenSocket(MprOpenSocket *osp, int flags)
 {
     if (flags & MPR_MANAGE_MARK) {
         mprMark(osp->sock);
-        mprMark(osp->ssl);
+        mprMark(osp->ossl);
 
     } else if (flags & MPR_MANAGE_FREE) {
-        if (osp->osslStruct) {
-            SSL_set_shutdown(osp->osslStruct, SSL_SENT_SHUTDOWN | SSL_RECEIVED_SHUTDOWN);
-            SSL_free(osp->osslStruct);
-            osp->osslStruct = 0;
+        if (osp->handle) {
+            SSL_set_shutdown(osp->handle, SSL_SENT_SHUTDOWN | SSL_RECEIVED_SHUTDOWN);
+            SSL_free(osp->handle);
+            osp->handle = 0;
         }
     }
 }
@@ -480,11 +506,11 @@ static void manageOpenSocket(MprSslSocket *osp, int flags)
 
 static void closeOss(MprSocket *sp, bool gracefully)
 {
-    MprSslSocket    *osp;
+    MprOpenSocket    *osp;
 
     osp = sp->sslSocket;
-    SSL_free(osp->osslStruct);
-    osp->osslStruct = 0;
+    SSL_free(osp->handle);
+    osp->handle = 0;
     sp->service->standardProvider->closeSocket(sp, gracefully);
 }
 
@@ -504,9 +530,10 @@ static int listenOss(MprSocket *sp, cchar *host, int port, int flags)
 static MprSocket *acceptOss(MprSocket *listen)
 {
     MprSocket       *sp;
-    MprSslSocket    *osp;
+    MprOpenSocket   *osp;
+    MprOpenSsl      *ossl;
     BIO             *bioSock;
-    SSL             *osslStruct;
+    SSL             *handle;
 
     sp = listen->service->standardProvider->acceptSocket(listen);
     if (sp == 0) {
@@ -520,22 +547,23 @@ static MprSocket *acceptOss(MprSocket *listen)
     /*
         Create and configure the SSL struct
      */
-    osslStruct = osp->osslStruct = (SSL*) SSL_new(osp->ssl->context);
-    mprAssert(osslStruct);
-    if (osslStruct == 0) {
-        mprAssert(osslStruct == 0);
+    ossl = osp->ossl;
+    handle = osp->handle = (SSL*) SSL_new(ossl->context);
+    mprAssert(handle);
+    if (handle == 0) {
+        mprAssert(handle == 0);
         unlock(sp);
         return 0;
     }
-    SSL_set_app_data(osslStruct, (void*) osp);
+    SSL_set_app_data(handle, (void*) osp);
 
     /*
         Create a socket bio
      */
     bioSock = BIO_new_socket(sp->fd, BIO_NOCLOSE);
     mprAssert(bioSock);
-    SSL_set_bio(osslStruct, bioSock, bioSock);
-    SSL_set_accept_state(osslStruct);
+    SSL_set_bio(handle, bioSock, bioSock);
+    SSL_set_accept_state(handle);
     osp->bio = bioSock;
     unlock(sp);
     return sp;
@@ -548,7 +576,8 @@ static MprSocket *acceptOss(MprSocket *listen)
 static int connectOss(MprSocket *sp, cchar *host, int port, int flags)
 {
     MprSocketService    *ss;
-    MprSslSocket        *osp;
+    MprOpenSocket       *osp;
+    MprOpenSsl          *ossl;
     MprSsl              *ssl;
     BIO                 *bioSock;
     int                 rc;
@@ -570,9 +599,10 @@ static int connectOss(MprSocket *sp, cchar *host, int port, int flags)
     } else {
         ssl = ss->secureProvider->defaultSsl;
     }
-    osp->ssl = ssl;
+    osp->ossl = ssl->providerData;
+    ossl = osp->ossl;
 
-    if (ssl->context == 0 && configureOss(ssl) < 0) {
+    if (ossl->context == 0 && configureOss(ssl) < 0) {
         unlock(sp);
         return MPR_ERR_CANT_INITIALIZE;
     }
@@ -580,22 +610,22 @@ static int connectOss(MprSocket *sp, cchar *host, int port, int flags)
     /*
         Create and configure the SSL struct
      */
-    osp->osslStruct = (SSL*) SSL_new(ssl->context);
-    mprAssert(osp->osslStruct);
-    if (osp->osslStruct == 0) {
+    osp->handle = (SSL*) SSL_new(ossl->context);
+    mprAssert(osp->handle);
+    if (osp->handle == 0) {
         unlock(sp);
         return MPR_ERR_CANT_INITIALIZE;
     }
-    SSL_set_app_data(osp->osslStruct, (void*) osp);
+    SSL_set_app_data(osp->handle, (void*) osp);
 
     /*
         Create a socket bio
      */
     bioSock = BIO_new_socket(sp->fd, BIO_NOCLOSE);
     mprAssert(bioSock);
-    SSL_set_bio(osp->osslStruct, bioSock, bioSock);
+    SSL_set_bio(osp->handle, bioSock, bioSock);
 
-    //  TODO - should be calling SSL_set_connect_state(osp->osslStruct);
+    //  TODO - should be calling SSL_set_connect_state(osp->handle);
     osp->bio = bioSock;
 
     /*
@@ -603,12 +633,12 @@ static int connectOss(MprSocket *sp, cchar *host, int port, int flags)
      */
     mprSetSocketBlockingMode(sp, 1);
     
-    rc = SSL_connect(osp->osslStruct);
+    rc = SSL_connect(osp->handle);
     if (rc < 1) {
 #if KEEP
-        rc = SSL_get_error(osp->osslStruct, rc);
+        rc = SSL_get_error(osp->handle, rc);
         if (rc == SSL_ERROR_WANT_READ) {
-            rc = SSL_connect(osp->osslStruct);
+            rc = SSL_connect(osp->handle);
         }
 #endif
         unlock(sp);
@@ -632,15 +662,15 @@ static void disconnectOss(MprSocket *sp)
  */
 static ssize readOss(MprSocket *sp, void *buf, ssize len)
 {
-    MprSslSocket    *osp;
+    MprOpenSocket    *osp;
     int             rc, error, retries, i;
 
     lock(sp);
-    osp = (MprSslSocket*) sp->sslSocket;
+    osp = (MprOpenSocket*) sp->sslSocket;
     mprAssert(osp);
 
-    if (osp->osslStruct == 0) {
-        mprAssert(osp->osslStruct);
+    if (osp->handle == 0) {
+        mprAssert(osp->handle);
         unlock(sp);
         return -1;
     }
@@ -650,10 +680,10 @@ static ssize readOss(MprSocket *sp, void *buf, ssize len)
      */
     retries = 5;
     for (i = 0; i < retries; i++) {
-        rc = SSL_read(osp->osslStruct, buf, (int) len);
+        rc = SSL_read(osp->handle, buf, (int) len);
         if (rc < 0) {
             char    ebuf[MPR_MAX_STRING];
-            error = SSL_get_error(osp->osslStruct, rc);
+            error = SSL_get_error(osp->handle, rc);
             if (error == SSL_ERROR_WANT_READ || error == SSL_ERROR_WANT_CONNECT || error == SSL_ERROR_WANT_ACCEPT) {
                 continue;
             }
@@ -690,7 +720,7 @@ static ssize readOss(MprSocket *sp, void *buf, ssize len)
 #endif
 
     if (rc <= 0) {
-        error = SSL_get_error(osp->osslStruct, rc);
+        error = SSL_get_error(osp->handle, rc);
         if (error == SSL_ERROR_WANT_READ) {
             rc = 0;
         } else if (error == SSL_ERROR_WANT_WRITE) {
@@ -706,7 +736,7 @@ static ssize readOss(MprSocket *sp, void *buf, ssize len)
             /* SSL_ERROR_SSL */
             rc = -1;
         }
-    } else if (SSL_pending(osp->osslStruct) > 0) {
+    } else if (SSL_pending(osp->handle) > 0) {
         sp->flags |= MPR_SOCKET_PENDING;
         mprRecallWaitHandlerByFd(sp->fd);
     }
@@ -720,14 +750,14 @@ static ssize readOss(MprSocket *sp, void *buf, ssize len)
  */
 static ssize writeOss(MprSocket *sp, cvoid *buf, ssize len)
 {
-    MprSslSocket    *osp;
+    MprOpenSocket    *osp;
     ssize           totalWritten;
     int             rc;
 
     lock(sp);
-    osp = (MprSslSocket*) sp->sslSocket;
+    osp = (MprOpenSocket*) sp->sslSocket;
 
-    if (osp->bio == 0 || osp->osslStruct == 0 || len <= 0) {
+    if (osp->bio == 0 || osp->handle == 0 || len <= 0) {
         mprAssert(0);
         unlock(sp);
         return -1;
@@ -736,10 +766,10 @@ static ssize writeOss(MprSocket *sp, cvoid *buf, ssize len)
     ERR_clear_error();
 
     do {
-        rc = SSL_write(osp->osslStruct, buf, (int) len);
+        rc = SSL_write(osp->handle, buf, (int) len);
         mprLog(7, "OpenSSL: written %d, requested len %d", rc, len);
         if (rc <= 0) {
-            rc = SSL_get_error(osp->osslStruct, rc);
+            rc = SSL_get_error(osp->handle, rc);
             if (rc == SSL_ERROR_WANT_WRITE) {
                 mprNap(10);
                 continue;
@@ -758,7 +788,7 @@ static ssize writeOss(MprSocket *sp, cvoid *buf, ssize len)
         buf = (void*) ((char*) buf + rc);
         len -= rc;
         mprLog(7, "OpenSSL: write: len %d, written %d, total %d, error %d", len, rc, totalWritten, 
-            SSL_get_error(osp->osslStruct, rc));
+            SSL_get_error(osp->handle, rc));
 
     } while (len > 0);
 
@@ -773,17 +803,17 @@ static ssize writeOss(MprSocket *sp, cvoid *buf, ssize len)
 static int verifyX509Certificate(int ok, X509_STORE_CTX *xContext)
 {
     X509            *cert;
-    SSL             *osslStruct;
-    MprSslSocket    *osp;
+    SSL             *handle;
+    MprOpenSocket    *osp;
     MprSsl          *ssl;
     char            subject[260], issuer[260], peer[260];
     int             error, depth;
     
     subject[0] = issuer[0] = '\0';
 
-    osslStruct = (SSL*) X509_STORE_CTX_get_app_data(xContext);
-    osp = (MprSslSocket*) SSL_get_app_data(osslStruct);
-    ssl = (MprSsl*) osp->ssl;
+    handle = (SSL*) X509_STORE_CTX_get_app_data(xContext);
+    osp = (MprOpenSocket*) SSL_get_app_data(handle);
+    ssl = osp->sock->ssl;
 
     if (!ssl->verifyClient) {
         return ok;
@@ -857,9 +887,9 @@ static int verifyX509Certificate(int ok, X509_STORE_CTX *xContext)
 static ssize flushOss(MprSocket *sp)
 {
 #if KEEP
-    MprSslSocket    *osp;
+    MprOpenSocket    *osp;
 
-    osp = (MprSslSocket*) sp->sslSocket;
+    osp = (MprOpenSocket*) sp->sslSocket;
 
     mprAssert(0);
     return BIO_flush(osp->bio);
@@ -921,24 +951,24 @@ static void sslDynLock(int mode, DynLock *dl, const char *file, int line)
 /*
     Used for ephemeral RSA keys
  */
-static RSA *rsaCallback(SSL *osslStruct, int isExport, int keyLength)
+static RSA *rsaCallback(SSL *handle, int isExport, int keyLength)
 {
-    MprSslSocket    *osp;
-    MprSsl          *ssl;
+    MprOpenSocket   *osp;
+    MprOpenSsl      *ossl;
     RSA             *key;
 
-    osp = (MprSslSocket*) SSL_get_app_data(osslStruct);
-    ssl = (MprSsl*) osp->ssl;
+    osp = (MprOpenSocket*) SSL_get_app_data(handle);
+    ossl = osp->ossl;
 
     key = 0;
     switch (keyLength) {
     case 512:
-        key = ssl->rsaKey512;
+        key = ossl->rsaKey512;
         break;
 
     case 1024:
     default:
-        key = ssl->rsaKey1024;
+        key = ossl->rsaKey1024;
     }
     return key;
 }
@@ -947,24 +977,24 @@ static RSA *rsaCallback(SSL *osslStruct, int isExport, int keyLength)
 /*
     Used for ephemeral DH keys
  */
-static DH *dhCallback(SSL *osslStruct, int isExport, int keyLength)
+static DH *dhCallback(SSL *handle, int isExport, int keyLength)
 {
-    MprSslSocket    *osp;
-    MprSsl          *ssl;
+    MprOpenSocket   *osp;
+    MprOpenSsl      *ossl;
     DH              *key;
 
-    osp = (MprSslSocket*) SSL_get_app_data(osslStruct);
-    ssl = (MprSsl*) osp->ssl;
+    osp = (MprOpenSocket*) SSL_get_app_data(handle);
+    ossl = osp->ossl;
 
     key = 0;
     switch (keyLength) {
     case 512:
-        key = ssl->dhKey512;
+        key = ossl->dhKey512;
         break;
 
     case 1024:
     default:
-        key = ssl->dhKey1024;
+        key = ossl->dhKey1024;
     }
     return key;
 }

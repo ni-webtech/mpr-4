@@ -1,7 +1,5 @@
 Embedthis Multithreaded Portable Runtime License Agreement
 
-This software is licensed according to the provisions of GNU GENERAL PUBLIC LICENSE below. 
-
 Commercial license are also available for those who require them.  The Embedthis Commercial License, allows you to provide commercial software licenses for products containing Embedthis software. This is for individuals or organizations that do not want to release their source code as open source / free software as governed by the GPL license below. For more information on licensing, please see:
 
     http://www.embedthis.com/downloads/licensing.html
@@ -110,6 +108,14 @@ Third Party Components
 3) DTOA (Decimal to Ascii conversion code). This is used in the runtime core. It is licensed by Lucent with a BSD style license.
 4) Hashing algorithm inspired by Paul Hsieh at http://www.azillionmonkeys.com/qed/hash.html
 
-
 Contributors have provided other portions of the software that are covered by the Embedthis Contributor license that grants Embedthis sufficient rights to execute this license Agreement.
+
+---------------------------------------------------------------------------------------------
+
+Copyright (c) 2003-2012 Embedthis Software, LLC. All Rights Reserved.
+Embedthis is a trademark of Embedthis Software, LLC. Other brands and 
+their products are trademarks of their respective holders.
+
+Other copyrights appear in relevant source files.
+This software is licensed according to the provisions of GNU GENERAL PUBLIC LICENSE below. 
 

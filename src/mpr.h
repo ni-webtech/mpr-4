@@ -31,6 +31,26 @@
 
 #include "buildConfig.h"
 
+/******************************* Default Features *****************************/
+
+#ifndef BLD_FEATURE_FLOAT
+    #define BLD_FEATURE_FLOAT 1
+#endif
+#ifndef BLD_FEATURE_ASSERT
+    #define BLD_FEATURE_ASSERT 0
+#endif
+#ifndef BLD_FEATURE_ROMFS
+    #define BLD_FEATURE_ROMFS 0
+#endif
+#ifndef BLD_TUNE
+    #define BLD_TUNE MPR_TUNE_SIZE
+#endif
+#if BLD_FEATURE_MATRIXSSL || BLD_FEATURE_OPENSSL
+    #define BLD_FEATURE_SSL 1
+#else
+    #define BLD_FEATURE_SSL 0
+#endif
+
 /********************************* CPU Families *******************************/
 /*
     CPU families
@@ -1034,10 +1054,6 @@ struct  MprXml;
 #define MPR_TUNE_SIZE       1       /**< Tune for size */
 #define MPR_TUNE_BALANCED   2       /**< Tune balancing speed and size */
 #define MPR_TUNE_SPEED      3       /**< Tune for speed, program will use memory more aggressively */
-
-#ifndef BLD_TUNE
-#define BLD_TUNE MPR_TUNE_BALANCED
-#endif
 
 #if BLD_CC_MMU
     /* 
@@ -5217,7 +5233,7 @@ extern char *mprGetPathExt(cchar *path);
     Create a list of files in a directory or subdirectories.
     @description Get the list of files in a directory and return a list.
     @param dir Directory to list.
-    @param flags The flags may be set to #MPR_PATH_DESCEND to traverse subdirectories. Set #MPR_PATH_NO_DIRS 
+    @param flags The flags may be set to #MPR_PATH_DESCEND to traverse subdirectories. Set $MPR_PATH_NO_DIRS 
         to exclude directories from the results. Set to MPR_PATH_HIDDEN to include hidden files that start with ".".
         Set to MPR_PATH_DEPTH_FIRST to do a depth-first traversal, i.e. traverse subdirectories before considering 
         adding the directory to the list.
@@ -6869,7 +6885,7 @@ typedef struct MprSocket {
     int             flags;              /**< Current state flags */
     MprSocketProvider *provider;        /**< Socket implementation provider */
     struct MprSocket *listenSock;       /**< Listening socket */
-    struct MprSslSocket *sslSocket;     /**< Extended ssl socket state. If set, then using ssl */
+    void            *sslSocket;         /**< Extended SSL socket provider state */
     struct MprSsl   *ssl;               /**< SSL configuration */
     MprMutex        *mutex;             /**< Multi-thread sync */
 } MprSocket;
@@ -7211,6 +7227,36 @@ extern ssize mprWriteSocketString(MprSocket *sp, cchar *str);
 extern ssize mprWriteSocketVector(MprSocket *sp, MprIOVec *iovec, int count);
 
 /************************************ SSL *************************************/
+
+#define MPR_DEFAULT_SERVER_CERT_FILE    "server.crt"
+#define MPR_DEFAULT_SERVER_KEY_FILE     "server.key.pem"
+#define MPR_DEFAULT_CLIENT_CERT_FILE    "client.crt"
+#define MPR_DEFAULT_CLIENT_CERT_PATH    "certs"
+
+typedef struct MprSsl {
+    /*
+        Server key and certificate configuration
+     */
+    char            *key;               /* Key string */
+    char            *cert;              /* Cert string */
+    char            *keyFile;           /* Alternatively, locate the key in a file */
+    char            *certFile;          /* Alternatively, locate the cert in a file */
+    char            *caFile;            /* Client verification cert file or bundle */
+    char            *caPath;            /* Client verification cert directory */
+    char            *ciphers;
+    int             configured;
+
+    /*
+        Client configuration
+     */
+    int             verifyClient;
+    int             verifyDepth;
+    int             protocols;
+
+    void            *providerData;      /* Provider SSL configuration */
+} MprSsl;
+
+
 /*
     SSL protocols
  */
@@ -7304,6 +7350,13 @@ extern void mprSetSslProtocols(struct MprSsl *ssl, int protocols);
     @ingroup MprSocket
  */
 extern void mprVerifySslClients(struct MprSsl *ssl, bool on);
+
+#if BLD_FEATURE_MATRIXSSL
+    extern int mprCreateMatrixSslModule(bool lazy);
+#endif
+#if BLD_FEATURE_OPENSSL
+    extern int mprCreateOpenSslModule(bool lazy);
+#endif
 
 /******************************* Worker Threads *******************************/
 /**
@@ -8634,7 +8687,7 @@ extern int mprSetAppName(cchar *name, cchar *title, cchar *version);
 
 /**
     Set the application executable path
-    @param A string containing the application executable path.
+    @param path A string containing the application executable path.
     @ingroup Mpr
  */
 extern void mprSetAppPath(cchar *path);

@@ -8,6 +8,10 @@ Bit.load({
         platforms: [ 'local' ],
     },
 
+    settings: {
+        depth: 1,
+    },
+
     targets: {
         combo: {
             action: "
@@ -37,7 +41,7 @@ Bit.load({
             ",
         },
 
-        install: {
+        _install: {
             action: "
                 let parts = bit.settings.package || 'binary dev'
                 run('priv makeInstall --install --root=' + bit.dir.out.join('pkg') + 
@@ -54,7 +58,7 @@ Bit.load({
             ",
         },
 
-        package: {
+        _package: {
             action: "
                 if (bit.settings.depth >= 2) {
                     let keep = (bit.settings.keep) ? ' --keep' : ''
@@ -69,7 +73,13 @@ Bit.load({
             ",
         },
 
-        uninstall: {
+        _package2: {
+            action: "
+                load(bit.dirs.src.join('bits/combo.es'))
+            ",
+        },
+
+        _uninstall: {
             action: "
                 let parts = bit.settings.package || 'binary dev'
                 run('priv build/bin/makeInstall --remove pre ' + parts + ' post', bit.target.runopt)

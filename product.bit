@@ -14,24 +14,12 @@ Bit.load({
         company: 'Embedthis',
 		version: '4.0.0',
 		buildNumber: 'B0',
-        profile: 'debug',
-        debug: true,
-        depth: 1,
-        charlen: 1,
-        tune: 'size',
-        assert: true,
-        float: true,
-        legacy: false,
-        rom: false,
         sync: ['tools'],
     },
 
     usage: {
         debug: 'Enable a debug build',
-        tune: 'Optimize for size|speed|balanced',
         assert: 'Enable program assertions',
-        float: 'Enable floating point',
-        rom: 'Enable ROM based file system',
     },
 
     profiles: {
@@ -84,6 +72,34 @@ Bit.load({
             depends: [ 'libmpr', ],
             sources: [ 'src/utils/charGen.c' ],
             platforms: [ 'local' ],
+        },
+
+        doc: {
+            build: "
+            ",
+        },
+
+        package: {
+            action: "
+                safeRemove(bit.dir.pkg)
+                install('bits/mpr.bit', '${PKG}/src/deps/mpr.bit')
+                install(['utils/makerom.c', 'manager.c'], '${PKG}/src/deps')
+                install(['doc/api/mpr.html', 'doc/api/mprBare.html', 'doc/api/mpr*.tags', 'doc/man/*.1'], '${PKG}/doc/api')
+                install('src/mpr.h', '${PKG}/src/deps/mpr.h')
+                install(['mprMem.c', 'mpr.c', 'src/*.c', 'src/deps/*.c'], '${PKG}/src/deps/mprLib.c', {
+                    cat: true,
+                    filter: /^#inc.*mpr.*$/mg, exclude: /manager|mprMem|mpr.c/,
+                    header: '#include \"mpr.h\"',
+                    title: bit.settings.title + ' Library Source',
+                })
+                install('ssl/*.c', '${PKG}/src/deps/mprSsl.c', {
+                    cat: true,
+                    filter: /^#inc.*mpr.*$/mg,
+                    header: '#include \"mpr.h\"',
+                    title: bit.settings.title + ' SSL Source',
+                })
+                package(['combo', 'flat'])
+            ",
         },
 	},
 })
