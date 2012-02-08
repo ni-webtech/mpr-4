@@ -5,7 +5,6 @@
 Bit.load({
     internal: {
         runopt: {dir: bit.dir.src, show: true, toss: true}
-        _runopt: {dir: '${SRC}', show: true, toss: true}
         platforms: [ 'local' ],
     },
 
