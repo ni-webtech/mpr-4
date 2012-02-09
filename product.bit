@@ -5,7 +5,7 @@
 Bit.load({
     blend: [
         "src/test/test.bit",
-        "bits/embedthis.bit",
+        ".bit/embedthis.bit",
     ],
     settings: {
         /* Default settings overridden by build.bit */

@@ -1,6 +1,10 @@
 Embedthis Multithreaded Portable Runtime (MPR)
 ==============================================
 
+To build, you will need to install Ejscript and Bit. See:
+    https://github.com/embedthis/ejs-2
+    https://github.com/embedthis/bit
+
 To build:
 <pre>
     bit -config . 
@@ -18,7 +22,7 @@ Key Files and Directories
 
 --------------------------------------------------------------------------------
 Copyright (c) 2003-2012 Embedthis Software, LLC. All Rights Reserved.
-Embedthis and Ejscript are trademarks of Embedthis Software, LLC. Other 
+Embedthis and MPR are trademarks of Embedthis Software, LLC. Other 
 brands and their products are trademarks of their respective holders.
 
 See LICENSE.TXT for software license details.
