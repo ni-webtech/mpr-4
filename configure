@@ -1,6 +1,6 @@
 #!/bin/sh
 #
-#   configure -- Configure the MPR for building
+#   configure -- Configure for building
 #
 #   This simply invokes Bit to do the work
 
