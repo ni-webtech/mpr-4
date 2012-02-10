@@ -98,7 +98,7 @@ static MprSsl *getDefaultMatrixSsl()
     }
     ss->secureProvider->defaultSsl = ssl;
 
-    if ((ssl->providerData = mprAllocObj(MprMatrixSsl, manageMatrixSsl)) == 0) {
+    if ((ssl->extendedSsl = mprAllocObj(MprMatrixSsl, manageMatrixSsl)) == 0) {
         return 0;
     }
     return ssl;
@@ -142,7 +142,7 @@ static int configureMss(MprSsl *ssl)
     MprMatrixSsl    *ms;
     char            *password;
 
-    ms = (MprMatrixSsl*) ssl->providerData;
+    ms = (MprMatrixSsl*) ssl->extendedSsl;
 
     /*
         Read the certificate and the key file for this server. FUTURE - If using encrypted private keys, 
@@ -233,7 +233,7 @@ static MprSocket *createMss(MprSsl *ssl)
     sp->sslSocket = msp;
     sp->ssl = ssl;
     msp->sock = sp;
-    msp->mssl = ssl->providerData;
+    msp->mssl = ssl->extendedSsl;
 #if UNUSED
     msp->ssl = ssl;
 #endif
@@ -408,7 +408,7 @@ static int connectMss(MprSocket *sp, cchar *host, int port, int flags)
     } else {
         ssl = ss->secureProvider->defaultSsl;
     }
-    msp->mssl = ssl->providerData;
+    msp->mssl = ssl->extendedSsl;
 #if UNUSED
     msp->ssl = ssl;
 #endif

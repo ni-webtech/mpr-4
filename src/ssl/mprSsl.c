@@ -67,7 +67,7 @@ static void manageSsl(MprSsl *ssl, int flags)
         mprMark(ssl->caFile);
         mprMark(ssl->caPath);
         mprMark(ssl->ciphers);
-        mprMark(ssl->providerData);
+        mprMark(ssl->extendedSsl);
     }
 }
 

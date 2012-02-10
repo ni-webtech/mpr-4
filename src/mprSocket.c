@@ -24,7 +24,7 @@
 static MprSocket *acceptSocket(MprSocket *listen);
 static void closeSocket(MprSocket *sp, bool gracefully);
 static int connectSocket(MprSocket *sp, cchar *ipAddr, int port, int initialFlags);
-static MprSocket *createSocket(struct MprSsl *ssl);
+static MprSocket *createSocket(MprSsl *ssl);
 static MprSocketProvider *createStandardProvider(MprSocketService *ss);
 static void disconnectSocket(MprSocket *sp);
 static ssize flushSocket(MprSocket *sp);
@@ -154,8 +154,7 @@ static MprSocket *createSocket(struct MprSsl *ssl)
 {
     MprSocket       *sp;
 
-    sp = mprAllocObj(MprSocket, manageSocket);
-    if (sp == 0) {
+    if ((sp = mprAllocObj(MprSocket, manageSocket)) == 0) {
         return 0;
     }
     sp->port = -1;
@@ -638,8 +637,7 @@ static MprSocket *acceptSocket(MprSocket *listen)
         }
         return 0;
     }
-    nsp = mprCreateSocket(listen->ssl);
-    if (nsp == 0) {
+    if ((nsp = mprCreateSocket(listen->ssl)) == 0) {
         closesocket(fd);
         return 0;
     }
