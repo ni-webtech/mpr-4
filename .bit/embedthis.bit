@@ -188,7 +188,7 @@ Bit.load({
         cleanDoc: {
             type: 'clean',
             action: "
-                rmdir(['../doc/html', '../doc/xml'])
+                rmdir(['../doc/api/html', '../doc/api/xml'])
             "
         },
     
