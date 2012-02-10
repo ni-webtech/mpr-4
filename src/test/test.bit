@@ -8,22 +8,22 @@ Bit.load({
             action: "
                 run('testMpr -v -i 2 --depth ${settings.depth}')
                 if (bit.settings.depth >= 3) {
-                    activity('Test', 'Light load tests')
+                    trace('Test', 'Light load tests')
                     run('testMpr -v -i 20 --depth ${settings.depth}')
                     for each (t in [2, 4]) {
-                        activity('Test', 'Light thread tests')
+                        trace('Test', 'Light thread tests')
                         run('testMpr -v -i 20 --depth ${settings.depth} --threads ' + t)
                     }
                 }
                 if (bit.settings.depth >= 4) {
-                    activity('Test', 'Longevity load tests')
+                    trace('Test', 'Longevity load tests')
                     run('testMpr -v -i 100 --depth ${settings.depth}')
                     for each (t in [8, 16]) {
-                        activity('Test', 'Light thread tests')
+                        trace('Test', 'Light thread tests')
                         run('testMpr -v -i 100 --depth ${settings.depth} --threads ' + t)
                     }
                 }
-                activity('Test', 'Unit tests complete')
+                trace('Test', 'Unit tests complete')
             ",
             platforms: [ 'local' ],
         },
