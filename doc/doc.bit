@@ -1,0 +1,87 @@
+/*
+    doc.bit -- Documentation Bit File for the Multithreaded Portable Runtime (MPR)
+
+    These targets modify the source tree and are not run by default.
+    The results of generating documentation are checked into the source tree.
+ */
+
+Bit.load({
+
+    targets: {
+        doc: {
+            depends: ['package', 'man'],
+            action: "
+                rm(['html', 'xml'])
+                let dox = Path('${LIB}/mpr.dox')
+                let data = Path('mpr.dox').readString().
+                    replace(/^INPUT .*=.*$/m, 'INPUT = ${PKG}/mpr-${settings.version}/src/deps/mpr/mpr.h')
+                Path(dox).write(data)
+                trace('Generate', 'doxygen ' + dox)
+                run('doxygen ' + dox)
+                trace('Process', 'Parse doxygen XML doc')
+                run('ejs ${SRC}/.bit/bin/gendoc.es ' + 
+                    '--title \"MPR - Multithreaded Portable Runtime Native API\" --out api/mpr.html ' + 
+                    (['xml/mpr_8h.xml'] + ls('xml/group*') + ls('xml/struct_*.xml')).join(' '))
+                run('ejs ${SRC}/.bit/bin/gendoc.es --bare ' + 
+                    '--title \"MPR - Multithreaded Portable Runtime Native API\" --out api/mprBare.html ' + 
+                    (['xml/mpr_8h.xml'] + ls('xml/group*') + ls('xml/struct_*.xml')).join(' '))
+                rm(['html', 'xml'])
+            ",
+        },
+
+        man: {
+            depends: ['package'],
+            action: "
+                for each (name in ['manager', 'makerom']) {
+                    trace('Generate', 'Documentation for ' + name)
+                    let man = run('man man/' + name + '.1', {})
+                    Path('man/' + name + '.txt').write(man.response.replace(/.\b/g, ''))
+                    let cmd = run('man2html -u', {detach: true})
+                    cmd.write(run('man man/' + name + '.1', {}).response)
+                    cmd.finalize()
+                    Path('man/' + name + '.html').write(cmd.response)
+                }
+            ",
+        },
+
+        cleanDoc: {
+            type: 'clean',
+            action: "
+                rmdir(['html', 'xml'])
+            "
+        },
+    
+        patch: {
+            depends: ['doc'],
+            enable: false,
+            action: "
+                if (bit.packs.dsi.path) {
+                    trace('Patch', 'HTML doc')
+                    for each (file in ls('**.html')) {
+                        vtrace('Patch', file)
+                        run([bit.packs.dsi.path, file])
+                    }
+                } else {
+                    trace('Skip', 'patch bacause ' + bit.packs.dsi.diagnostic)
+                }
+            ",
+        },
+
+        tidy: {
+            depends: ['doc', 'patch'],
+            enable: false,
+            action: "
+                if (bit.packs.dsi.path) {
+                    trace('Tidy', 'HTML doc')
+                    run(bit.packs.tidy.path + ' -q -config tidy.conf mpr.html')
+                    for each (file in ls('**html')) 
+                        trace('Tidy', file)
+                        run(bit.packs.tidy.path + ' -q -config tidy.conf ' + file)
+                    }
+                } else {
+                    trace('Skip', 'tidy bacause ' + bit.packs.dsi.diagnostic)
+                }
+            "
+        },
+	},
+})

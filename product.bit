@@ -4,9 +4,13 @@
 
 Bit.load({
     blend: [
-        "src/test/test.bit",
-        ".bit/embedthis.bit",
+        'src/test/test.bit',
+//      'doc/doc.bit',
+        '.bit/embedthis.bit',
     ],
+
+    '+modules': [ ],
+
     settings: {
         /* Default settings overridden by build.bit */
 		product: 'mpr',
@@ -33,7 +37,7 @@ Bit.load({
         } },
     },
 
-    '+optional': [ 'doxygen', 'ejs', 'http', 'openssl', 'matrixssl' ],
+    '+optional': [ 'doxygen', 'dsi', 'ejs', 'http', 'man', 'man2html', 'openssl', 'matrixssl' ],
 
     defaults: {
         '+includes': [ 'src' ]
@@ -42,7 +46,7 @@ Bit.load({
     targets: {
         libmpr: {
             type: 'lib',
-            sources: [ 'src/*.c', 'src/deps/dtoa.c' ],
+            sources: [ 'src/*.c' ],
             exclude: [ /manager.c|\/ssl\/|\/utils\// ],
         },
 
@@ -51,6 +55,7 @@ Bit.load({
             type: 'lib',
             depends: [ 'libmpr', 'openssl', 'matrixssl' ],
             sources: [ 'src/ssl/*.c' ],
+            //MACOSX MAKE_IFLAGS += -Wno-deprecated-declarations
         },
 
         manager: {
@@ -74,12 +79,8 @@ Bit.load({
             platforms: [ 'local' ],
         },
 
-        doc: {
-            build: "
-            ",
-        },
-
         package: {
+            depends: ['build'],
             action: "
                 let d = bit.dir.pkg.join('${settings.product}-${settings.version}')
                 safeRemove(bit.dir.pkg)
@@ -102,6 +103,15 @@ Bit.load({
                     title: bit.settings.title + ' SSL Source',
                 })
                 package(['combo', 'flat'])
+            ",
+        },
+
+        gendh: {
+            action: "
+                let cmd = run('openssl dhparam -out dh512.pem -C -2 512', {})
+                Path('dh.new').write(cmd.response)
+                cmd = run('openssl dhparam -out dh1024.pem -C -2 1024', {})
+                Path('dh.new').append(cmd.response)
             ",
         },
 	},
