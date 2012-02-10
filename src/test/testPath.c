@@ -331,8 +331,8 @@ static void testSame(MprTestGroup *gp)
 static void testSearch(MprTestGroup *gp)
 {
 #if !DEBUG_IDE
-    assert(mprSearchPath("Makefile", 0, "../.." MPR_SEARCH_SEP ".", NULL) != 0);
-    assert(mprSearchPath("Makefile", 0, "../..", ".", NULL) != 0);
+    assert(mprSearchPath("test.bit", 0, "../.." MPR_SEARCH_SEP ".", NULL) != 0);
+    assert(mprSearchPath("test.bit", 0, "../..", ".", NULL) != 0);
 #endif
     assert(!mprSearchPath("Unfounded", 0, "../..", ".", "/", NULL) != 0);
 }
