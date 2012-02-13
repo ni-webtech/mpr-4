@@ -251,7 +251,7 @@ int mprListenOnSocket(MprSocket *sp, cchar *ip, int port, int flags)
 static int listenSocket(MprSocket *sp, cchar *ip, int port, int initialFlags)
 {
     struct sockaddr     *addr;
-    socklen_t           addrlen;
+    MprSocklen          addrlen;
     int                 datagram, family, protocol, rc;
 
     lock(sp);
@@ -394,7 +394,7 @@ int mprConnectSocket(MprSocket *sp, cchar *ip, int port, int flags)
 static int connectSocket(MprSocket *sp, cchar *ip, int port, int initialFlags)
 {
     struct sockaddr     *addr;
-    socklen_t           addrlen;
+    MprSocklen          addrlen;
     int                 broadcast, datagram, family, protocol, rc;
 
     lock(sp);
@@ -806,7 +806,7 @@ ssize mprWriteSocket(MprSocket *sp, cvoid *buf, ssize bufsize)
 static ssize writeSocket(MprSocket *sp, cvoid *buf, ssize bufsize)
 {
     struct sockaddr     *addr;
-    socklen_t           addrlen;
+    MprSocklen          addrlen;
     ssize               len, written, sofar;
     int                 family, protocol, errCode;
 
@@ -1310,7 +1310,7 @@ int mprGetSocketInfo(cchar *ip, int port, int *family, int *protocol, struct soc
 }
 #else
 
-int mprGetSocketInfo(cchar *ip, int port, int *family, int *protocol, struct sockaddr **addr, socklen_t *addrlen)
+int mprGetSocketInfo(cchar *ip, int port, int *family, int *protocol, struct sockaddr **addr, MprSocklen *addrlen)
 {
     MprSocketService    *ss;
     struct sockaddr_in  *sa;
