@@ -311,7 +311,7 @@
             /**
                 Boolean data type.
              */
-            typedef int bool;
+            typedef char bool;
         #endif
     #endif
 #endif
@@ -7533,20 +7533,45 @@ extern int mprAvailableWorkers();
 extern int mprRandom();
 
 /**
-    Deocde buffer using base-46 encoding.
+    Deocde a null terminated string using base-46 encoding.
+    Decoding will terminate at the first null or '='.
     @param str String to decode
-    @returns Buffer containing the decoded string.
+    @returns Buffer containing the encoded data
     @ingroup Mpr
  */
 extern char *mprDecode64(cchar *str);
 
 /**
-    Encode buffer using base-46 encoding.
+    Decode base 64 blocks up to a NULL or equals
+ */
+#define MPR_DECODE_TOKEQ 1
+
+/**
+    Deocde buffer using base-46 encoding.
+    @param buf String to decode
+    @param len Length of buffer to decode
+    @param flags Set to MPR_DECODE_TOKEQ to stop at the first '='
+    @returns Buffer containing the encoded data.
+    @ingroup Mpr
+  */
+extern char *mprDecode64Block(cchar *buf, ssize len, int flags);
+
+/**
+    Encode a string using base-46 encoding.
     @param str String to encode
     @returns Buffer containing the encoded string.
     @ingroup Mpr
  */
 extern char *mprEncode64(cchar *str);
+
+/**
+    Encode buffer using base-46 encoding.
+    @param buf Buffer to encode
+    @param len Length of the buffer to encode
+    @returns Buffer containing the encoded string.
+    @ingroup Mpr
+ */
+extern char *mprEncode64Block(cchar *str, ssize len);
 
 /**
     Get an MD5 checksum

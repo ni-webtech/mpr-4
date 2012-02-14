@@ -151,21 +151,29 @@ int mprRandom()
 
 char *mprDecode64(cchar *s)
 {
+    return mprDecode64Block(s, slen(s), MPR_DECODE_TOKEQ);
+}
+
+
+char *mprDecode64Block(cchar *s, ssize len, int flags)
+{
     uint    bitBuf;
     char    *buffer, *bp;
-    ssize   len;
+    cchar   *end;
+    ssize   size;
     int     c, i, j, shift;
 
-    len = slen(s);
-    if ((buffer = mprAlloc(len + 1)) == 0) {
+    size = len;
+    if ((buffer = mprAlloc(size + 1)) == 0) {
         return NULL;
     }
     bp = buffer;
     *bp = '\0';
-    while (*s && *s != '=') {
+    end = &s[len];
+    while (s < end && (*s != '=' || !(flags & MPR_DECODE_TOKEQ))) {
         bitBuf = 0;
         shift = 18;
-        for (i = 0; i < 4 && *s && *s != '='; i++, s++) {
+        for (i = 0; i < 4 && (s < end && (*s != '=' || !(flags & MPR_DECODE_TOKEQ))); i++, s++) {
             c = decodeMap[*s & 0xff];
             if (c == -1) {
                 return NULL;
@@ -174,7 +182,7 @@ char *mprDecode64(cchar *s)
             shift -= 6;
         }
         --i;
-        mprAssert((bp + i) < &buffer[len]);
+        mprAssert((bp + i) < &buffer[size]);
         for (j = 0; j < i; j++) {
             *bp++ = (char) ((bitBuf >> (8 * (2 - j))) & 0xff);
         }
@@ -186,24 +194,32 @@ char *mprDecode64(cchar *s)
 
 char *mprEncode64(cchar *s)
 {
+    return mprEncode64Block(s, slen(s));
+}
+
+
+char *mprEncode64Block(cchar *s, ssize len)
+{
     uint    shiftbuf;
     char    *buffer, *bp;
-    ssize   len;
+    cchar   *end;
+    ssize   size;
     int     i, j, shift;
 
-    len = slen(s) * 2;
-    if ((buffer = mprAlloc(len + 1)) == 0) {
+    size = len * 2;
+    if ((buffer = mprAlloc(size + 1)) == 0) {
         return NULL;
     }
     bp = buffer;
     *bp = '\0';
-    while (*s) {
+    end = &s[len];
+    while (s < end) {
         shiftbuf = 0;
         for (j = 2; j >= 0 && *s; j--, s++) {
             shiftbuf |= ((*s & 0xff) << (j * 8));
         }
         shift = 18;
-        for (i = ++j; i < 4 && bp < &buffer[len] ; i++) {
+        for (i = ++j; i < 4 && bp < &buffer[size] ; i++) {
             *bp++ = encodeMap[(shiftbuf >> shift) & 0x3f];
             shift -= 6;
         }
