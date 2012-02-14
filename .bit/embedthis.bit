@@ -135,7 +135,7 @@ Bit.load({
         }
 
         version: {
-            action: "print('bit.settings.version')",
+            action: "print(bit.settings.version + '-' + bit.settings.buildNumber)",
         },
 
         /*

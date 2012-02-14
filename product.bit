@@ -5,7 +5,6 @@
 Bit.load({
     blend: [
         'src/test/test.bit',
-//      'doc/doc.bit',
         '.bit/embedthis.bit',
     ],
 
