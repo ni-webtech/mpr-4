@@ -45,6 +45,16 @@ Bit.load({
             ",
         },
 
+        projects: {
+            action: "
+                run('bit -without ssl configure generate', bit.target.runopt)
+                run('bit -emulate linux-i686 -without ssl configure -gen sh,make', bit.target.runopt)
+                run('bit -emulate macosx-i686 -without ssl configure -gen sh,make', bit.target.runopt)
+                run('bit -emulate solaris-i686 -without ssl configure -gen sh,make', bit.target.runopt)
+                run('bit -emulate win-i686 -without ssl configure -gen sh,make,vs', bit.target.runopt)
+            ",
+        },
+
         _install: {
             action: "
                 let parts = bit.settings.package || 'binary dev'

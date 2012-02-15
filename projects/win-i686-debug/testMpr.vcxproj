@@ -1,0 +1,96 @@
+<?xml version="1.0" encoding="utf-8"?>
+<Project DefaultTargets="Build" ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ImportGroup Label="PropertySheets" />
+  <PropertyGroup Label="UserMacros" />
+  <PropertyGroup />
+  <ItemDefinitionGroup>
+    <ClCompile>
+      <WarningLevel>Level3</WarningLevel>
+      <PreprocessorDefinitions>WIN32;_DEBUG;_WINDOWS;-DDEBUG_IDE;_REENTRANT;_MT;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <AdditionalIncludeDirectories>..\..\win-i686-debug\inc;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+    
+      <Optimization>Disabled</Optimization>
+      <BasicRuntimeChecks>EnableFastChecks</BasicRuntimeChecks>
+      <RuntimeLibrary>MultiThreadedDebugDLL</RuntimeLibrary>
+    </ClCompile>
+    <Link>
+      <AdditionalDependencies>ws2_32.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalLibraryDirectories>$(OutDir);%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
+      <SubSystem>Console</SubSystem>
+      <GenerateDebugInformation>true</GenerateDebugInformation>
+</Link>
+  </ItemDefinitionGroup>
+  <ItemGroup />
+
+<ItemGroup Label="ProjectConfigurations">
+  <ProjectConfiguration Include="Debug|Win32">
+    <Configuration>Debug</Configuration>
+    <Platform>Win32</Platform>
+  </ProjectConfiguration>
+</ItemGroup>
+
+<PropertyGroup Label="Globals">
+  <ProjectGuid>{cc9c239a-2c54-49ac-8599-aba47800d310}</ProjectGuid>
+  <RootNamespace />
+  <Keyword>Win32Proj</Keyword>
+</PropertyGroup>
+
+<Import Project="$(VCTargetsPath)Microsoft.Cpp.Default.props" />
+
+<PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'" Label="Configuration">
+  <ConfigurationType>Application</ConfigurationType>
+  <CharacterSet>NotSet</CharacterSet>
+</PropertyGroup>
+
+<Import Project="$(VCTargetsPath)Microsoft.Cpp.props" />
+
+<ImportGroup Label="ExtensionSettings">
+</ImportGroup>
+
+<PropertyGroup Label="UserMacros" />
+
+<PropertyGroup>
+  <_ProjectFileVersion>10</_ProjectFileVersion>
+  <OutDir Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">..\..\win-i686-debug\bin\</OutDir>
+  <IntDir Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">..\..\win-i686-debug\obj\testMpr\</IntDir>
+</PropertyGroup>
+    
+<ItemGroup>
+  <ClCompile Include="..\..\src\test\testArgv.c" />
+  <ClCompile Include="..\..\src\test\testBuf.c" />
+  <ClCompile Include="..\..\src\test\testCmd.c" />
+  <ClCompile Include="..\..\src\test\testCond.c" />
+  <ClCompile Include="..\..\src\test\testEvent.c" />
+  <ClCompile Include="..\..\src\test\testFile.c" />
+  <ClCompile Include="..\..\src\test\testHash.c" />
+  <ClCompile Include="..\..\src\test\testList.c" />
+  <ClCompile Include="..\..\src\test\testLock.c" />
+  <ClCompile Include="..\..\src\test\testMem.c" />
+  <ClCompile Include="..\..\src\test\testMpr.c" />
+  <ClCompile Include="..\..\src\test\testPath.c" />
+  <ClCompile Include="..\..\src\test\testSocket.c" />
+  <ClCompile Include="..\..\src\test\testSprintf.c" />
+  <ClCompile Include="..\..\src\test\testThread.c" />
+  <ClCompile Include="..\..\src\test\testTime.c" />
+  <ClCompile Include="..\..\src\test\testUnicode.c" />
+</ItemGroup>
+
+<ItemGroup>
+  <ProjectReference Include="libmpr.vcxproj">
+  <Project>3ce42d19-3dca-4424-9feb-b789af6da32b</Project>
+  <ReferenceOutputAssembly>false</ReferenceOutputAssembly>
+  </ProjectReference>
+</ItemGroup>
+
+<ItemGroup>
+  <ProjectReference Include="runProgram.vcxproj">
+  <Project>44dc30ad-15f1-4649-b242-5ba2c47941fc</Project>
+  <ReferenceOutputAssembly>false</ReferenceOutputAssembly>
+  </ProjectReference>
+</ItemGroup>
+
+<Import Project="$(VCTargetsPath)Microsoft.Cpp.targets" />
+<ImportGroup Label="ExtensionTargets">
+</ImportGroup>
+
+</Project>

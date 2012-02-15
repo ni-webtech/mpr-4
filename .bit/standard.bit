@@ -37,5 +37,13 @@ Bit.load({
         compile: {
             depends: ['build'],
         },
+
+        configure: {
+            type: 'configure',
+        },
+
+        generate: {
+            type: 'generate',
+        },
     },
 })

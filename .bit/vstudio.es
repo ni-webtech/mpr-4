@@ -50,7 +50,6 @@ function vsbuild(base: Path, target) {
 
 function vsheader(base, target) {
     bit.INCDIR = wpath(bit.dir.inc.relativeTo(base))
-print("INCIDR", bit.INCDIR)
     output('<?xml version="1.0" encoding="utf-8"?>
 <Project DefaultTargets="Build" ToolsVersion="${TOOLS_VERSION}" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <ImportGroup Label="PropertySheets" />
@@ -63,7 +62,6 @@ print("INCIDR", bit.INCDIR)
       <AdditionalIncludeDirectories>${INCDIR};%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
     ')
 
-dump(bit.settings)
     if (bit.settings.profile == 'debug') {
         output('      <Optimization>Disabled</Optimization>
       <BasicRuntimeChecks>EnableFastChecks</BasicRuntimeChecks>
@@ -160,7 +158,6 @@ function vssources(base, target) {
     for each (file in target.files) {
         let obj = bit.targets[file]
         for each (src in obj.files) {
-print("FILE", file, "SRC", src)
             let path = src.relativeTo(base)
             output('  <ClCompile Include="' + wpath(path) + '" />')
         }
@@ -206,6 +203,9 @@ function vsdependencies(base, target) {
     for each (dname in target.depends) {
         let dep = bit.targets[dname]
         if (!dep) {
+            if (bit.packs[dname]) {
+                continue
+            }
             throw 'Missing dependency ' + dname + ' for target ' + target.name
         }
         //  MOB - should do something with objects, headers
