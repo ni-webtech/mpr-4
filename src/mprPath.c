@@ -185,9 +185,11 @@ int mprDeletePath(cchar *path)
         return MPR_ERR_CANT_ACCESS;
     }
     fs = mprLookupFileSystem(path);
+#if UNUSED
     if (!mprPathExists(path, F_OK)) {
         return 0;
     }
+#endif
     return fs->deletePath(fs, path);
 }
 
