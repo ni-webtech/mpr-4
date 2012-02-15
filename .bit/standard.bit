@@ -28,8 +28,9 @@ Bit.load({
         clobber: {
             depends: ['clean'],
             action: "
-                rm('${TOP}/local.bit')
+                rmdir('${TOP}/' + bit.platform.name + '-' + bit.settings.profile)
                 rmdir(['${TOP}/releases', '${TOP}/*-debug', '${TOP}/*-release'])
+                rm('${TOP}/' + bit.platform.name + '.bit')
             "
         },
 

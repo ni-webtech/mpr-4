@@ -30,7 +30,7 @@ function vsbuild(base: Path, target) {
     }
     for each (dname in target.depends) {
         let dep = bit.targets[dname]
-        if (dep.enable && !dep.built) {
+        if (dep && dep.enable && !dep.built) {
             vsbuild(base, dep)
         }
     }
@@ -38,21 +38,61 @@ function vsbuild(base: Path, target) {
     trace('Generate', path)
     //  MOB - this must put the file into text mode and add '\r' to line endings
     out = TextStream(File(path, 'wt'))
-    vsheader(target)
-    vsconfiguration(target)
-    vslinkoptions(target)
-    vsresources(target)
-    vsdependencies(target)
-    vstrailer(target)
+    vsheader(base, target)
+    vsconfiguration(base, target)
+    vssources(base, target)
+    vslinkoptions(base, target)
+    vsdependencies(base, target)
+    vstrailer(base, target)
     out.close()
+    target.built = true
 }
 
-function vsheader() {
-    output('<?xml version="1.0" encoding="utf-8"?>')
-    output('<Project DefaultTargets="Build" ToolsVersion="${TOOLS_VERSION}" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">')
+function vsheader(base, target) {
+    bit.INCDIR = wpath(bit.dir.inc.relativeTo(base))
+print("INCIDR", bit.INCDIR)
+    output('<?xml version="1.0" encoding="utf-8"?>
+<Project DefaultTargets="Build" ToolsVersion="${TOOLS_VERSION}" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ImportGroup Label="PropertySheets" />
+  <PropertyGroup Label="UserMacros" />
+  <PropertyGroup />
+  <ItemDefinitionGroup>
+    <ClCompile>
+      <WarningLevel>Level3</WarningLevel>
+      <PreprocessorDefinitions>WIN32;_DEBUG;_WINDOWS;-DDEBUG_IDE;_REENTRANT;_MT;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <AdditionalIncludeDirectories>${INCDIR};%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+    ')
+
+dump(bit.settings)
+    if (bit.settings.profile == 'debug') {
+        output('      <Optimization>Disabled</Optimization>
+      <BasicRuntimeChecks>EnableFastChecks</BasicRuntimeChecks>
+      <RuntimeLibrary>MultiThreadedDebugDLL</RuntimeLibrary>')
+    } else {
+        output('      <FavorSizeOrSpeed>Size</FavorSizeOrSpeed>
+      <RuntimeLibrary>MultiThreadedDLL</RuntimeLibrary>
+      <Optimization>MinSpace</Optimization>
+      <IntrinsicFunctions>true</IntrinsicFunctions>
+      <FunctionLevelLinking>true</FunctionLevelLinking>')
+    }
+
+    output('    </ClCompile>
+    <Link>
+      <AdditionalDependencies>ws2_32.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalLibraryDirectories>$(OutDir);%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
+      <SubSystem>Console</SubSystem>')
+
+    if (bit.settings.profile == 'debug') {
+      output('      <GenerateDebugInformation>true</GenerateDebugInformation>')
+    } else {
+      output('      <GenerateDebugInformation>false</GenerateDebugInformation>')
+    }
+    output('</Link>
+  </ItemDefinitionGroup>
+  <ItemGroup />')
 }
 
-function vsconfiguration(target) {
+function vsconfiguration(base, target) {
     let subsystem = (target.rule == 'gui') ? 'Windows' : 'Console'
     bit.PTYPE = (target.type == 'exe') ? 'Application' : 'DynamicLibrary'
     bit.VTYPE = 'Win32'
@@ -64,10 +104,11 @@ function vsconfiguration(target) {
     bit.UTOK = '$(UserRootDir)'
     bit.VTOK = '$(VCTargetsPath)'
     bit.NAME = target.name
-    bit.OUTDIR = wpath(bit.dir.obj.join(target.name))
+    bit.OUTDIR = wpath(bit.dir.cfg.relativeTo(base))
+
+    // <Import Project="product.props" />
 
     output('
-<Import Project="product.props" />
 <ItemGroup Label="ProjectConfigurations">
   <ProjectConfiguration Include="Debug|${VTYPE}">
     <Configuration>Debug</Configuration>
@@ -104,34 +145,39 @@ function vsconfiguration(target) {
 }
 
 //  MOB - should emit headers for all source that depends on headers
-function vsheaders(target) {
+function vsheaders(base, target) {
     /*
     if (target.type == 'header') {
     output('<ItemGroup>')
         output('  <ClInclude Include="' + wpath(target.path) + '" />')
     }
-    output('<ItemGroup>')
+    output('</ItemGroup>')
     */
 }
 
-function vssources(target) {
+function vssources(base, target) {
     output('<ItemGroup>')
     for each (file in target.files) {
-        output('  <ClCompile Include="' + wpath(file) + '" />')
+        let obj = bit.targets[file]
+        for each (src in obj.files) {
+print("FILE", file, "SRC", src)
+            let path = src.relativeTo(base)
+            output('  <ClCompile Include="' + wpath(path) + '" />')
+        }
     }
-    output('<ItemGroup>')
+    output('</ItemGroup>')
 }
 
 //  MOB - TODO
-function vsresources(target) {
+function vsresources(base, target) {
     output('<ItemGroup>')
     for each (file in target.files) {
         output('  <ClCompile Include="' + wpath(file) + '" />')
     }
-    output('<ItemGroup>')
+    output('</ItemGroup>')
 }
 
-function vslinkoptions(target) {
+function vslinkoptions(base, target) {
     let def = Path(target.path.toString().replace(/dll$/, 'def'))
     if (def.exists) {
         bit.DEF = def
@@ -156,7 +202,7 @@ function vslinkoptions(target) {
     }
 }
 
-function vsdependencies(target) {
+function vsdependencies(base, target) {
     for each (dname in target.depends) {
         let dep = bit.targets[dname]
         if (!dep) {
@@ -184,7 +230,7 @@ function vsdependencies(target) {
     }
 }
 
-function vstrailer() {
+function vstrailer(base, target) {
     output('\n<Import Project="${VTOK}\Microsoft.Cpp.targets" />')
     output('<ImportGroup Label="ExtensionTargets">\n</ImportGroup>\n\n</Project>')
 }
