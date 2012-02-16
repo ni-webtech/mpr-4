@@ -462,6 +462,35 @@ char *mprGetPathBase(cchar *path)
 
 
 /*
+    Return the last portion of a pathname. The separators are not mapped and the path is not cleaned.
+    This returns a reference into the original string
+ */
+cchar *mprGetPathBaseRef(cchar *path)
+{
+    MprFileSystem   *fs;
+    char            *cp;
+
+    if (path == 0) {
+        return sclone("");
+    }
+    fs = mprLookupFileSystem(path);
+    if ((cp = (char*) lastSep(fs, path)) == 0) {
+        return path;
+    } 
+    if (cp == path) {
+        if (cp[1] == '\0') {
+            return path;
+        }
+    } else {
+        if (cp[1] == '\0') {
+            return sclone("");
+        }
+    }
+    return &cp[1];
+}
+
+
+/*
     Return the directory portion of a pathname.
  */
 char *mprGetPathDir(cchar *path)
@@ -566,15 +595,13 @@ static MprList *getDirFiles(cchar *dir, int flags)
 #if UNUSED
         if (!(findData.dwFileAttributes & FILE_ATTRIBUTE_DIRECTORY) || !(flags & MPR_PATH_NODIRS)) {
 #endif
-            dp = mprAlloc(sizeof(MprDirEntry));
-            if (dp == 0) {
+            if ((dp = mprAlloc(sizeof(MprDirEntry))) == 0) {
                 return 0;
             }
             dp->name = sclone(findData.cFileName);
             if (dp->name == 0) {
                 return 0;
             }
-
             /* dp->lastModified = (uint) findData.ftLastWriteTime.dwLowDateTime; */
 
             if (mprSprintf(pbuf, sizeof(pbuf), "%s%c%s", dir, seps[0], dp->name) < 0) {
