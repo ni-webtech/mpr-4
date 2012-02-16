@@ -34,7 +34,8 @@ function solBuild(projects, base: Path) {
 
     for each (target in projects) {
         target.guid = target.guid.toUpper()
-        output('Project("' + XID + '") = "' + target.name + '", "' + base.basename.join(target.name).joinExt('vcxproj') + 
+        output('Project("' + XID + '") = "' + target.name + '", "' + 
+            wpath(base.basename.join(target.name).joinExt('vcxproj')) + 
             '", "{' + target.guid + '}"')
         for each (dname in target.depends) {
             let dep = bit.targets[dname]
@@ -96,7 +97,7 @@ function projBuild(projects: Array, base: Path, target) {
 
 function projHeader(base, target) {
     bit.SUBSYSTEM = (target.rule == 'gui') ? 'Windows' : 'Console'
-    bit.INC = target.includes.map(function(path) path.relativeTo(base)).join(';')
+    bit.INC = target.includes.map(function(path) wpath(path.relativeTo(base))).join(';')
     output('<?xml version="1.0" encoding="utf-8"?>
 <Project DefaultTargets="Build" ToolsVersion="${TOOLS_VERSION}" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <ImportGroup Label="PropertySheets" />
@@ -223,14 +224,13 @@ function vsresources(base, target) {
 
 function projLink(base, target) {
     if (target.type == 'lib') {
-        let def = Path(target.path.toString().replace(/dll$/, 'def'))
-        if (def.exists) {
-            let projdef = base.join(def.basename)
-            cp(def, projdef)
-            def = projdef
+        let def = base.join(target.path.basename.toString().replace(/dll$/, 'def'))
+        let newdef = Path(target.path.toString().replace(/dll$/, 'def'))
+        if (newdef.exists) {
+            cp(newdef, def)
         }
         if (def.exists) {
-            bit.DEF = def
+            bit.DEF = wpath(def)
             output('
     <ItemDefinitionGroup>
     <Link>

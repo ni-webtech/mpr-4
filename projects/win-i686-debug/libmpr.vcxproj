@@ -30,7 +30,7 @@
 </ItemGroup>
 
 <PropertyGroup Label="Globals">
-  <ProjectGuid>{207f30c5-6ddd-4c46-b6f2-9956b6cc573f}</ProjectGuid>
+  <ProjectGuid>{949dbe0f-32b5-4f31-b398-b36b0d3d8b21}</ProjectGuid>
   <RootNamespace />
   <Keyword>Win32Proj</Keyword>
 </PropertyGroup>
@@ -104,7 +104,7 @@
 
     <ItemDefinitionGroup>
     <Link>
-      <ModuleDefinitionFile>C:\cygwin\home\mob\mpr\projects\win-i686-debug\libmpr.def</ModuleDefinitionFile>
+      <ModuleDefinitionFile>projects\win-i686-debug\libmpr.def</ModuleDefinitionFile>
     </Link>
     </ItemDefinitionGroup>
 <ItemDefinitionGroup>

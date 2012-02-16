@@ -32,7 +32,6 @@ projects/MACOSX/*/build
 *.dll
 *.exp
 *.lib
-bin/*.def
 releases
 bin/i386*
 lib/i386*
@@ -69,8 +68,6 @@ projects/WIN/mpr-dynamic/ipch
 doc/api/mpr/html
 doc/ap/mpr/xml
 doc/api/mpr/xml
-*.guid
-local.bit
 /*-*.bit
 /*-*-debug/
 /*-*-release/
