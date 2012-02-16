@@ -230,7 +230,7 @@ function projLink(base, target) {
             cp(newdef, def)
         }
         if (def.exists) {
-            bit.DEF = wpath(def)
+            bit.DEF = wpath(def.relativeTo(base))
             output('
     <ItemDefinitionGroup>
     <Link>
