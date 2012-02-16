@@ -71,7 +71,6 @@ doc/ap/mpr/xml
 doc/api/mpr/xml
 *.guid
 local.bit
-*-*.bit
-
-./win-i686-debug
-win-i686-debug
+/*-*.bit
+/*-*-debug/
+/*-*-release/
