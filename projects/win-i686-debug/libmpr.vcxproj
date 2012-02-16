@@ -6,19 +6,19 @@
   <ItemDefinitionGroup>
     <ClCompile>
       <WarningLevel>Level3</WarningLevel>
-      <PreprocessorDefinitions>WIN32;_DEBUG;_WINDOWS;-DDEBUG_IDE;_REENTRANT;_MT;%(PreprocessorDefinitions)</PreprocessorDefinitions>
-      <AdditionalIncludeDirectories>..\..\win-i686-debug\inc;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>..\..\src;..\..\win-i686-debug\inc;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
     
-      <Optimization>Disabled</Optimization>
-      <BasicRuntimeChecks>EnableFastChecks</BasicRuntimeChecks>
-      <RuntimeLibrary>MultiThreadedDebugDLL</RuntimeLibrary>
+  <PreprocessorDefinitions>WIN32;_DEBUG;_WINDOWS;DEBUG_IDE;_REENTRANT;_MT;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+    <Optimization>Disabled</Optimization>
+    <BasicRuntimeChecks>EnableFastChecks</BasicRuntimeChecks>
+    <RuntimeLibrary>MultiThreadedDebugDLL</RuntimeLibrary>
     </ClCompile>
     <Link>
       <AdditionalDependencies>ws2_32.lib;%(AdditionalDependencies)</AdditionalDependencies>
       <AdditionalLibraryDirectories>$(OutDir);%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
       <SubSystem>Console</SubSystem>
       <GenerateDebugInformation>true</GenerateDebugInformation>
-</Link>
+    </Link>
   </ItemDefinitionGroup>
   <ItemGroup />
 
@@ -30,7 +30,7 @@
 </ItemGroup>
 
 <PropertyGroup Label="Globals">
-  <ProjectGuid>{67b1dbd0-6464-4271-bcff-723727d5d3d0}</ProjectGuid>
+  <ProjectGuid>{ffd5c666-aa01-4c1d-b18e-c034f0def3fa}</ProjectGuid>
   <RootNamespace />
   <Keyword>Win32Proj</Keyword>
 </PropertyGroup>
@@ -101,6 +101,17 @@
   <ClCompile Include="..\..\src\mprWince.c" />
   <ClCompile Include="..\..\src\mprXml.c" />
 </ItemGroup>
+
+    <ItemDefinitionGroup>
+    <Link>
+      <ModuleDefinitionFile>C:\cygwin\home\mob\mpr\win-i686-debug\bin\libmpr.def</ModuleDefinitionFile>
+    </Link>
+    </ItemDefinitionGroup>
+<ItemDefinitionGroup>
+<Link>
+  <AdditionalDependencies>;%(AdditionalDependencies)</AdditionalDependencies>
+</Link>
+</ItemDefinitionGroup>
 
 <Import Project="$(VCTargetsPath)Microsoft.Cpp.targets" />
 <ImportGroup Label="ExtensionTargets">

@@ -6,19 +6,19 @@
   <ItemDefinitionGroup>
     <ClCompile>
       <WarningLevel>Level3</WarningLevel>
-      <PreprocessorDefinitions>WIN32;_DEBUG;_WINDOWS;-DDEBUG_IDE;_REENTRANT;_MT;%(PreprocessorDefinitions)</PreprocessorDefinitions>
-      <AdditionalIncludeDirectories>..\..\win-i686-debug\inc;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>..\..\src;..\..\win-i686-debug\inc;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
     
-      <Optimization>Disabled</Optimization>
-      <BasicRuntimeChecks>EnableFastChecks</BasicRuntimeChecks>
-      <RuntimeLibrary>MultiThreadedDebugDLL</RuntimeLibrary>
+  <PreprocessorDefinitions>WIN32;_DEBUG;_WINDOWS;DEBUG_IDE;_REENTRANT;_MT;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+    <Optimization>Disabled</Optimization>
+    <BasicRuntimeChecks>EnableFastChecks</BasicRuntimeChecks>
+    <RuntimeLibrary>MultiThreadedDebugDLL</RuntimeLibrary>
     </ClCompile>
     <Link>
       <AdditionalDependencies>ws2_32.lib;%(AdditionalDependencies)</AdditionalDependencies>
       <AdditionalLibraryDirectories>$(OutDir);%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
       <SubSystem>Console</SubSystem>
       <GenerateDebugInformation>true</GenerateDebugInformation>
-</Link>
+    </Link>
   </ItemDefinitionGroup>
   <ItemGroup />
 
@@ -30,7 +30,7 @@
 </ItemGroup>
 
 <PropertyGroup Label="Globals">
-  <ProjectGuid>{d779f941-ac1b-4b65-aee1-d1481cd19112}</ProjectGuid>
+  <ProjectGuid>{dcbadd34-8c90-470a-878a-f3516bbc21f8}</ProjectGuid>
   <RootNamespace />
   <Keyword>Win32Proj</Keyword>
 </PropertyGroup>
@@ -58,10 +58,15 @@
 <ItemGroup>
   <ClCompile Include="..\..\src\utils\makerom.c" />
 </ItemGroup>
+<ItemDefinitionGroup>
+<Link>
+  <AdditionalDependencies>libmpr.lib;%(AdditionalDependencies)</AdditionalDependencies>
+</Link>
+</ItemDefinitionGroup>
 
 <ItemGroup>
   <ProjectReference Include="libmpr.vcxproj">
-  <Project>67b1dbd0-6464-4271-bcff-723727d5d3d0</Project>
+  <Project>ffd5c666-aa01-4c1d-b18e-c034f0def3fa</Project>
   <ReferenceOutputAssembly>false</ReferenceOutputAssembly>
   </ProjectReference>
 </ItemGroup>

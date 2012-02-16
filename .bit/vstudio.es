@@ -16,7 +16,6 @@ const SOL_VERSION = '11.00'
 const XID = '{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}'
 
 public function vstudio(base: Path) {
-    print("HERE", base)
     bit.TOOLS_VERSION = TOOLS_VERSION
     bit.PROJECT_FILE_VERSION = PROJECT_FILE_VERSION
     let projects = []
@@ -34,13 +33,15 @@ function solBuild(projects, base: Path) {
     output('# Visual Studio 2010')
 
     for each (target in projects) {
-        output('Project("' + XID + '")' + '= "' + target.name + '" "' + base.basename.join(target.name).joinExt('vcxproj') + 
-            '" "{' + target.guid + '}"')
+        target.guid = target.guid.toUpper()
+        output('Project("' + XID + '") = "' + target.name + '", "' + base.basename.join(target.name).joinExt('vcxproj') + 
+            '", "{' + target.guid + '}"')
         for each (dname in target.depends) {
             let dep = bit.targets[dname]
             if (!dep.guid) continue
+            dep.guid = dep.guid.toUpper()
             output('\tProjectSection(ProjectDependencies) = postProject')
-            output('\t\t' + dep.guid + ' = ' + dep.guid)
+            output('\t\t{' + dep.guid + '} = {' + dep.guid + '}')
             output('\tEndProjectSection')
         }
         output('EndProject')
@@ -94,7 +95,8 @@ function projBuild(projects: Array, base: Path, target) {
 }
 
 function projHeader(base, target) {
-    bit.INCDIR = wpath(bit.dir.inc.relativeTo(base))
+    bit.SUBSYSTEM = (target.rule == 'gui') ? 'Windows' : 'Console'
+    bit.INC = target.includes.map(function(path) path.relativeTo(base)).join(';')
     output('<?xml version="1.0" encoding="utf-8"?>
 <Project DefaultTargets="Build" ToolsVersion="${TOOLS_VERSION}" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <ImportGroup Label="PropertySheets" />
@@ -103,40 +105,40 @@ function projHeader(base, target) {
   <ItemDefinitionGroup>
     <ClCompile>
       <WarningLevel>Level3</WarningLevel>
-      <PreprocessorDefinitions>WIN32;_DEBUG;_WINDOWS;-DDEBUG_IDE;_REENTRANT;_MT;%(PreprocessorDefinitions)</PreprocessorDefinitions>
-      <AdditionalIncludeDirectories>${INCDIR};%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>${INC};%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
     ')
 
     if (bit.settings.profile == 'debug') {
-        output('      <Optimization>Disabled</Optimization>
-      <BasicRuntimeChecks>EnableFastChecks</BasicRuntimeChecks>
-      <RuntimeLibrary>MultiThreadedDebugDLL</RuntimeLibrary>')
+        output('  <PreprocessorDefinitions>WIN32;_DEBUG;_WINDOWS;DEBUG_IDE;_REENTRANT;_MT;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+    <Optimization>Disabled</Optimization>
+    <BasicRuntimeChecks>EnableFastChecks</BasicRuntimeChecks>
+    <RuntimeLibrary>MultiThreadedDebugDLL</RuntimeLibrary>')
     } else {
-        output('      <FavorSizeOrSpeed>Size</FavorSizeOrSpeed>
-      <RuntimeLibrary>MultiThreadedDLL</RuntimeLibrary>
-      <Optimization>MinSpace</Optimization>
-      <IntrinsicFunctions>true</IntrinsicFunctions>
-      <FunctionLevelLinking>true</FunctionLevelLinking>')
+        output('  <PreprocessorDefinitions>WIN32;_WINDOWS;_REENTRANT;_MT;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+    <FavorSizeOrSpeed>Size</FavorSizeOrSpeed>
+    <RuntimeLibrary>MultiThreadedDLL</RuntimeLibrary>
+    <Optimization>MinSpace</Optimization>
+    <IntrinsicFunctions>true</IntrinsicFunctions>
+    <FunctionLevelLinking>true</FunctionLevelLinking>')
     }
 
     output('    </ClCompile>
     <Link>
       <AdditionalDependencies>ws2_32.lib;%(AdditionalDependencies)</AdditionalDependencies>
       <AdditionalLibraryDirectories>$(OutDir);%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
-      <SubSystem>Console</SubSystem>')
+      <SubSystem>${SUBSYSTEM}</SubSystem>')
 
     if (bit.settings.profile == 'debug') {
       output('      <GenerateDebugInformation>true</GenerateDebugInformation>')
     } else {
       output('      <GenerateDebugInformation>false</GenerateDebugInformation>')
     }
-    output('</Link>
+    output('    </Link>
   </ItemDefinitionGroup>
   <ItemGroup />')
 }
 
 function projConfig(base, target) {
-    let subsystem = (target.rule == 'gui') ? 'Windows' : 'Console'
     bit.PTYPE = (target.type == 'exe') ? 'Application' : 'DynamicLibrary'
     bit.VTYPE = 'Win32'
     bit.GUID = target.guid = Cmd('uuidgen').response.toLower().trim()
@@ -220,28 +222,24 @@ function vsresources(base, target) {
 }
 
 function projLink(base, target) {
-    let def = Path(target.path.toString().replace(/dll$/, 'def'))
-    if (def.exists) {
-        bit.DEF = def
-        bit.LIBS = target.libraries.join(';')
-        output('
-<ItemDefinitionGroup>
-<Link>
-  <ModuleDefinitionFile>${DEF}</ModuleDefinitionFile>
-</Link>
-</ItemDefinitionGroup>
-<ItemDefinitionGroup>
-<Link>
-  <AdditionalDependencies>$LIBS;%(AdditionalDependencies)</AdditionalDependencies>
-</Link>
-</ItemDefinitionGroup>
-<ItemDefinitionGroup>
-<Link>                                                                                                 
-  <SubSystem>Windows</SubSystem>                                                                       
-</Link>                                                                                                
-</ItemDefinitionGroup> 
-        ')
+    if (target.type == 'lib') {
+        let def = Path(target.path.toString().replace(/dll$/, 'def'))
+        if (def.exists) {
+            bit.DEF = def
+            output('
+    <ItemDefinitionGroup>
+    <Link>
+      <ModuleDefinitionFile>${DEF}</ModuleDefinitionFile>
+    </Link>
+    </ItemDefinitionGroup>')
+        }
     }
+    bit.LIBS = (target.libraries - bit.defaults.libraries).map(function(l) 'lib'+l+'.lib').join(';')
+    output('<ItemDefinitionGroup>
+<Link>
+  <AdditionalDependencies>${LIBS};%(AdditionalDependencies)</AdditionalDependencies>
+</Link>
+</ItemDefinitionGroup>')
 }
 
 function projDeps(base, target) {

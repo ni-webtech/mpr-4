@@ -6,19 +6,19 @@
   <ItemDefinitionGroup>
     <ClCompile>
       <WarningLevel>Level3</WarningLevel>
-      <PreprocessorDefinitions>WIN32;_DEBUG;_WINDOWS;-DDEBUG_IDE;_REENTRANT;_MT;%(PreprocessorDefinitions)</PreprocessorDefinitions>
-      <AdditionalIncludeDirectories>..\..\win-i686-debug\inc;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>..\..\src;..\..\win-i686-debug\inc;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
     
-      <Optimization>Disabled</Optimization>
-      <BasicRuntimeChecks>EnableFastChecks</BasicRuntimeChecks>
-      <RuntimeLibrary>MultiThreadedDebugDLL</RuntimeLibrary>
+  <PreprocessorDefinitions>WIN32;_DEBUG;_WINDOWS;DEBUG_IDE;_REENTRANT;_MT;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+    <Optimization>Disabled</Optimization>
+    <BasicRuntimeChecks>EnableFastChecks</BasicRuntimeChecks>
+    <RuntimeLibrary>MultiThreadedDebugDLL</RuntimeLibrary>
     </ClCompile>
     <Link>
       <AdditionalDependencies>ws2_32.lib;%(AdditionalDependencies)</AdditionalDependencies>
       <AdditionalLibraryDirectories>$(OutDir);%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
       <SubSystem>Console</SubSystem>
       <GenerateDebugInformation>true</GenerateDebugInformation>
-</Link>
+    </Link>
   </ItemDefinitionGroup>
   <ItemGroup />
 
@@ -30,7 +30,7 @@
 </ItemGroup>
 
 <PropertyGroup Label="Globals">
-  <ProjectGuid>{34861b60-7319-4841-a269-ba6dd6d5e359}</ProjectGuid>
+  <ProjectGuid>{8f5a903a-e636-468b-b6ef-e0f654ed8669}</ProjectGuid>
   <RootNamespace />
   <Keyword>Win32Proj</Keyword>
 </PropertyGroup>
@@ -58,6 +58,11 @@
 <ItemGroup>
   <ClCompile Include="..\..\src\test\runProgram.c" />
 </ItemGroup>
+<ItemDefinitionGroup>
+<Link>
+  <AdditionalDependencies>;%(AdditionalDependencies)</AdditionalDependencies>
+</Link>
+</ItemDefinitionGroup>
 
 <Import Project="$(VCTargetsPath)Microsoft.Cpp.targets" />
 <ImportGroup Label="ExtensionTargets">

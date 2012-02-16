@@ -6,19 +6,19 @@
   <ItemDefinitionGroup>
     <ClCompile>
       <WarningLevel>Level3</WarningLevel>
-      <PreprocessorDefinitions>WIN32;_DEBUG;_WINDOWS;-DDEBUG_IDE;_REENTRANT;_MT;%(PreprocessorDefinitions)</PreprocessorDefinitions>
-      <AdditionalIncludeDirectories>..\..\win-i686-debug\inc;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>..\..\src;..\..\win-i686-debug\inc;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
     
-      <Optimization>Disabled</Optimization>
-      <BasicRuntimeChecks>EnableFastChecks</BasicRuntimeChecks>
-      <RuntimeLibrary>MultiThreadedDebugDLL</RuntimeLibrary>
+  <PreprocessorDefinitions>WIN32;_DEBUG;_WINDOWS;DEBUG_IDE;_REENTRANT;_MT;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+    <Optimization>Disabled</Optimization>
+    <BasicRuntimeChecks>EnableFastChecks</BasicRuntimeChecks>
+    <RuntimeLibrary>MultiThreadedDebugDLL</RuntimeLibrary>
     </ClCompile>
     <Link>
       <AdditionalDependencies>ws2_32.lib;%(AdditionalDependencies)</AdditionalDependencies>
       <AdditionalLibraryDirectories>$(OutDir);%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
       <SubSystem>Console</SubSystem>
       <GenerateDebugInformation>true</GenerateDebugInformation>
-</Link>
+    </Link>
   </ItemDefinitionGroup>
   <ItemGroup />
 
@@ -30,7 +30,7 @@
 </ItemGroup>
 
 <PropertyGroup Label="Globals">
-  <ProjectGuid>{0223c640-0425-49f3-9c3c-d94fd0fca703}</ProjectGuid>
+  <ProjectGuid>{93b079ed-a8e9-4a79-ae48-668d8f5459e0}</ProjectGuid>
   <RootNamespace />
   <Keyword>Win32Proj</Keyword>
 </PropertyGroup>
@@ -74,17 +74,22 @@
   <ClCompile Include="..\..\src\test\testTime.c" />
   <ClCompile Include="..\..\src\test\testUnicode.c" />
 </ItemGroup>
+<ItemDefinitionGroup>
+<Link>
+  <AdditionalDependencies>libmpr.lib;%(AdditionalDependencies)</AdditionalDependencies>
+</Link>
+</ItemDefinitionGroup>
 
 <ItemGroup>
   <ProjectReference Include="libmpr.vcxproj">
-  <Project>67b1dbd0-6464-4271-bcff-723727d5d3d0</Project>
+  <Project>ffd5c666-aa01-4c1d-b18e-c034f0def3fa</Project>
   <ReferenceOutputAssembly>false</ReferenceOutputAssembly>
   </ProjectReference>
 </ItemGroup>
 
 <ItemGroup>
   <ProjectReference Include="runProgram.vcxproj">
-  <Project>34861b60-7319-4841-a269-ba6dd6d5e359</Project>
+  <Project>8f5a903a-e636-468b-b6ef-e0f654ed8669</Project>
   <ReferenceOutputAssembly>false</ReferenceOutputAssembly>
   </ProjectReference>
 </ItemGroup>
