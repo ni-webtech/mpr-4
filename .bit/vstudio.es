@@ -12,16 +12,60 @@ var out: Stream
 
 const TOOLS_VERSION = '4.0'
 const PROJECT_FILE_VERSION = 10.0.30319.1
+const SOL_VERSION = '11.00'
+const XID = '{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}'
 
 public function vstudio(base: Path) {
+    print("HERE", base)
     bit.TOOLS_VERSION = TOOLS_VERSION
     bit.PROJECT_FILE_VERSION = PROJECT_FILE_VERSION
+    let projects = []
     for each (target in bit.targets) {
-        vsbuild(base, target)
+        projBuild(projects, base, target)
     }
+    solBuild(projects, base)
 }
 
-function vsbuild(base: Path, target) {
+function solBuild(projects, base: Path) {
+    let path = base.joinExt('sln').relative
+    trace('Generate', path)
+    out = TextStream(File(path, 'wt'))
+    output('Microsoft Visual Studio Solution File, Format Version ' + SOL_VERSION)
+    output('# Visual Studio 2010')
+
+    for each (target in projects) {
+        output('Project("' + XID + '")' + '= "' + target.name + '" "' + base.basename.join(target.name).joinExt('vcxproj') + 
+            '" "{' + target.guid + '}"')
+        for each (dname in target.depends) {
+            let dep = bit.targets[dname]
+            if (!dep.guid) continue
+            output('\tProjectSection(ProjectDependencies) = postProject')
+            output('\t\t' + dep.guid + ' = ' + dep.guid)
+            output('\tEndProjectSection')
+        }
+        output('EndProject')
+    }
+    output('
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Win32 = Debug|Win32
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution')
+
+    for each (target in projects) {
+		output('{' + target.guid + '}.Debug|Win32.ActiveCfg = Debug|Win32')
+		output('{' + target.guid + '}.Debug|Win32.Build.0 = Debug|Win32')
+    }
+	output('EndGlobalSection
+
+  GlobalSection(SolutionProperties) = preSolution
+    HideSolutionNode = FALSE
+  EndGlobalSection
+EndGlobal')
+    out.close()
+}
+
+function projBuild(projects: Array, base: Path, target) {
     if (target.built || !target.enable) {
         return
     }
@@ -31,24 +75,25 @@ function vsbuild(base: Path, target) {
     for each (dname in target.depends) {
         let dep = bit.targets[dname]
         if (dep && dep.enable && !dep.built) {
-            vsbuild(base, dep)
+            projBuild(projects, base, dep)
         }
     }
     let path = base.join(target.name).joinExt('vcxproj').relative
+    target.project = path
+    projects.push(target)
     trace('Generate', path)
-    //  MOB - this must put the file into text mode and add '\r' to line endings
     out = TextStream(File(path, 'wt'))
-    vsheader(base, target)
-    vsconfiguration(base, target)
-    vssources(base, target)
-    vslinkoptions(base, target)
-    vsdependencies(base, target)
-    vstrailer(base, target)
+    projHeader(base, target)
+    projConfig(base, target)
+    projSources(base, target)
+    projLink(base, target)
+    projDeps(base, target)
+    projFooter(base, target)
     out.close()
     target.built = true
 }
 
-function vsheader(base, target) {
+function projHeader(base, target) {
     bit.INCDIR = wpath(bit.dir.inc.relativeTo(base))
     output('<?xml version="1.0" encoding="utf-8"?>
 <Project DefaultTargets="Build" ToolsVersion="${TOOLS_VERSION}" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
@@ -90,7 +135,7 @@ function vsheader(base, target) {
   <ItemGroup />')
 }
 
-function vsconfiguration(base, target) {
+function projConfig(base, target) {
     let subsystem = (target.rule == 'gui') ? 'Windows' : 'Console'
     bit.PTYPE = (target.type == 'exe') ? 'Application' : 'DynamicLibrary'
     bit.VTYPE = 'Win32'
@@ -143,7 +188,7 @@ function vsconfiguration(base, target) {
 }
 
 //  MOB - should emit headers for all source that depends on headers
-function vsheaders(base, target) {
+function projSourceHeaders(base, target) {
     /*
     if (target.type == 'header') {
     output('<ItemGroup>')
@@ -153,7 +198,7 @@ function vsheaders(base, target) {
     */
 }
 
-function vssources(base, target) {
+function projSources(base, target) {
     output('<ItemGroup>')
     for each (file in target.files) {
         let obj = bit.targets[file]
@@ -174,7 +219,7 @@ function vsresources(base, target) {
     output('</ItemGroup>')
 }
 
-function vslinkoptions(base, target) {
+function projLink(base, target) {
     let def = Path(target.path.toString().replace(/dll$/, 'def'))
     if (def.exists) {
         bit.DEF = def
@@ -199,7 +244,7 @@ function vslinkoptions(base, target) {
     }
 }
 
-function vsdependencies(base, target) {
+function projDeps(base, target) {
     for each (dname in target.depends) {
         let dep = bit.targets[dname]
         if (!dep) {
@@ -230,7 +275,7 @@ function vsdependencies(base, target) {
     }
 }
 
-function vstrailer(base, target) {
+function projFooter(base, target) {
     output('\n<Import Project="${VTOK}\Microsoft.Cpp.targets" />')
     output('<ImportGroup Label="ExtensionTargets">\n</ImportGroup>\n\n</Project>')
 }

@@ -452,10 +452,8 @@ char *mprGetPathBase(cchar *path)
         if (cp[1] == '\0') {
             return sclone(path);
         }
-    } else {
-        if (cp[1] == '\0') {
-            return sclone("");
-        }
+    } else if (cp[1] == '\0') {
+        return sclone("");
     }
     return sclone(&cp[1]);
 }
@@ -481,10 +479,8 @@ cchar *mprGetPathBaseRef(cchar *path)
         if (cp[1] == '\0') {
             return path;
         }
-    } else {
-        if (cp[1] == '\0') {
-            return sclone("");
-        }
+    } else if (cp[1] == '\0') {
+        return "";
     }
     return &cp[1];
 }
