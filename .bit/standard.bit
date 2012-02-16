@@ -12,8 +12,8 @@ Bit.load({
 		obj:    	'${dir.cfg}/obj',
         packs:      '../packages-${platform.name}',
         pkg:        '${dir.cfg}/pkg',
-		projects: 	'projects',
-        rel:        'releases',
+		projects: 	'${dir.top}/projects',
+        rel:        '${dir.top}/releases',
 	},
 
     targets: {

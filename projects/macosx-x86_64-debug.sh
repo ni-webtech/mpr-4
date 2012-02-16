@@ -107,14 +107,6 @@ ${CC} -c -o macosx-x86_64-debug/obj/runProgram.o -arch x86_64 ${CFLAGS} ${DFLAGS
 
 ${CC} -o macosx-x86_64-debug/bin/runProgram -arch x86_64 ${LDFLAGS} -Lmacosx-x86_64-debug/lib macosx-x86_64-debug/obj/runProgram.o ${LIBS}
 
-${CC} -c -o macosx-x86_64-debug/obj/mprMatrixssl.o -arch x86_64 ${CFLAGS} ${DFLAGS} -DPOSIX -DMATRIX_USE_FILE_SYSTEM -Isrc -Imacosx-x86_64-debug/inc -Iundefined -Iundefined -Iundefined src/ssl/mprMatrixssl.c
-
-${CC} -c -o macosx-x86_64-debug/obj/mprOpenssl.o -arch x86_64 ${CFLAGS} ${DFLAGS} -DPOSIX -DMATRIX_USE_FILE_SYSTEM -Isrc -Imacosx-x86_64-debug/inc -Iundefined -Iundefined -Iundefined src/ssl/mprOpenssl.c
-
-${CC} -c -o macosx-x86_64-debug/obj/mprSsl.o -arch x86_64 ${CFLAGS} ${DFLAGS} -DPOSIX -DMATRIX_USE_FILE_SYSTEM -Isrc -Imacosx-x86_64-debug/inc -Iundefined -Iundefined -Iundefined src/ssl/mprSsl.c
-
-${CC} -dynamiclib -o macosx-x86_64-debug/lib/libmprssl.dylib -arch x86_64 ${LDFLAGS} -L/Users/mob/git/packages-macosx-x86_64/openssl/openssl-1.0.0d -L/Users/mob/git/packages-macosx-x86_64/matrixssl/matrixssl-3-3-open -install_name @rpath/libmprssl.dylib macosx-x86_64-debug/obj/mprMatrixssl.o macosx-x86_64-debug/obj/mprOpenssl.o macosx-x86_64-debug/obj/mprSsl.o ${LIBS} -lmpr -lssl -lcrypto -lmatrixssl
-
 ${CC} -c -o macosx-x86_64-debug/obj/testArgv.o -arch x86_64 ${CFLAGS} ${DFLAGS} -Isrc -Imacosx-x86_64-debug/inc src/test/testArgv.c
 
 ${CC} -c -o macosx-x86_64-debug/obj/testBuf.o -arch x86_64 ${CFLAGS} ${DFLAGS} -Isrc -Imacosx-x86_64-debug/inc src/test/testBuf.c
@@ -149,7 +141,7 @@ ${CC} -c -o macosx-x86_64-debug/obj/testTime.o -arch x86_64 ${CFLAGS} ${DFLAGS} 
 
 ${CC} -c -o macosx-x86_64-debug/obj/testUnicode.o -arch x86_64 ${CFLAGS} ${DFLAGS} -Isrc -Imacosx-x86_64-debug/inc src/test/testUnicode.c
 
-${CC} -o macosx-x86_64-debug/bin/testMpr -arch x86_64 ${LDFLAGS} -L/Users/mob/git/packages-macosx-x86_64/openssl/openssl-1.0.0d -L/Users/mob/git/packages-macosx-x86_64/matrixssl/matrixssl-3-3-open -Lmacosx-x86_64-debug/lib macosx-x86_64-debug/obj/testArgv.o macosx-x86_64-debug/obj/testBuf.o macosx-x86_64-debug/obj/testCmd.o macosx-x86_64-debug/obj/testCond.o macosx-x86_64-debug/obj/testEvent.o macosx-x86_64-debug/obj/testFile.o macosx-x86_64-debug/obj/testHash.o macosx-x86_64-debug/obj/testList.o macosx-x86_64-debug/obj/testLock.o macosx-x86_64-debug/obj/testMem.o macosx-x86_64-debug/obj/testMpr.o macosx-x86_64-debug/obj/testPath.o macosx-x86_64-debug/obj/testSocket.o macosx-x86_64-debug/obj/testSprintf.o macosx-x86_64-debug/obj/testThread.o macosx-x86_64-debug/obj/testTime.o macosx-x86_64-debug/obj/testUnicode.o ${LIBS} -lmpr -lmprssl -lssl -lcrypto -lmatrixssl
+${CC} -o macosx-x86_64-debug/bin/testMpr -arch x86_64 ${LDFLAGS} -Lmacosx-x86_64-debug/lib macosx-x86_64-debug/obj/testArgv.o macosx-x86_64-debug/obj/testBuf.o macosx-x86_64-debug/obj/testCmd.o macosx-x86_64-debug/obj/testCond.o macosx-x86_64-debug/obj/testEvent.o macosx-x86_64-debug/obj/testFile.o macosx-x86_64-debug/obj/testHash.o macosx-x86_64-debug/obj/testList.o macosx-x86_64-debug/obj/testLock.o macosx-x86_64-debug/obj/testMem.o macosx-x86_64-debug/obj/testMpr.o macosx-x86_64-debug/obj/testPath.o macosx-x86_64-debug/obj/testSocket.o macosx-x86_64-debug/obj/testSprintf.o macosx-x86_64-debug/obj/testThread.o macosx-x86_64-debug/obj/testTime.o macosx-x86_64-debug/obj/testUnicode.o ${LIBS} -lmpr
 
 ${CC} -c -o macosx-x86_64-debug/obj/manager.o -arch x86_64 ${CFLAGS} ${DFLAGS} -Isrc -Imacosx-x86_64-debug/inc src/manager.c
 

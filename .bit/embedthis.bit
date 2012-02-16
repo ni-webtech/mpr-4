@@ -55,6 +55,14 @@ Bit.load({
             ",
         },
 
+        'projects-clobber': {
+            type: 'clobber',
+            action: "
+                rm(['${dir.projects}/*.mk', '${dir.projects}/*.sh'])
+                rmdir(['${dir.projects}/*-*-debug', '${dir.projects}/*-*-release'])
+            "
+        },
+
         _install: {
             action: "
                 let parts = bit.settings.package || 'binary dev'
