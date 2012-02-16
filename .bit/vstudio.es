@@ -225,6 +225,11 @@ function projLink(base, target) {
     if (target.type == 'lib') {
         let def = Path(target.path.toString().replace(/dll$/, 'def'))
         if (def.exists) {
+            let projdef = base.join(def.basename)
+            cp(def, projdef)
+            def = projdef
+        }
+        if (def.exists) {
             bit.DEF = def
             output('
     <ItemDefinitionGroup>
