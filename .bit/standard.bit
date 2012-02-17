@@ -25,6 +25,7 @@ Bit.load({
                 safeRemove('${FLAT}')
             ",
         },
+
         clobber: {
             depends: ['clean'],
             action: "
