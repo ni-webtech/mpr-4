@@ -4,7 +4,7 @@
 
 Bit.load({
     blend: [
-        'src/test/test.bit',
+        'test/test.bit',
         '.bit/embedthis.bit',
     ],
 
@@ -46,14 +46,14 @@ Bit.load({
         libmpr: {
             type: 'lib',
             sources: [ 'src/*.c' ],
-            exclude: [ /manager.c|\/ssl\/|\/utils\// ],
+            exclude: [ /manager.c|ssl|Ssl|\/utils\// ],
         },
 
         libmprssl: {
             enable: 'bit.packs.openssl.enable || bit.packs.matrixssl.enable',
             type: 'lib',
             depends: [ 'libmpr', 'openssl', 'matrixssl' ],
-            sources: [ 'src/ssl/*.c' ],
+            sources: [ 'src/mprMatrixssl.c', 'src/mprOpenssl.c', 'src/MprSsl.c' ],
             //MACOSX MAKE_IFLAGS += -Wno-deprecated-declarations
         },
 
