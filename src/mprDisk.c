@@ -223,7 +223,7 @@ static int makeDir(MprDiskFileSystem *fs, cchar *path, int perms, int owner, int
 #if BLD_UNIX_LIKE
     if ((owner != -1 || group != -1) && chown(path, owner, group) < 0) {
         rmdir(path);
-        return MPR_ERR_CANT_CREATE;
+        return MPR_ERR_CANT_COMPLETE;
     }
 #endif
     return 0;

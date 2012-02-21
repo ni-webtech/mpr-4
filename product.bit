@@ -93,11 +93,11 @@ Bit.load({
                 install(['src/mprMem.c', 'src/mpr.c', 'src/*.c', 'src/deps/*.c'], d.join('src/deps/mpr/mprLib.c'), {
                     cat: true,
                     filter: /^#inc.*mpr.*$/mg, 
-                    exclude: /manager|makerom/,
+                    exclude: /manager|makerom|Ssl|ssl/,
                     header: '#include \"mpr.h\"',
                     title: bit.settings.title + ' Library Source',
                 })
-                install(['src/ssl/mprMatrixssl.c', 'src/ssl/*.c'], d.join('src/deps/mpr/mprSsl.c'), {
+                install(['src/mprMatrixssl.c', 'src/mprOpenSsl.c', 'src/mprSsl.c'], d.join('src/deps/mpr/mprSsl.c'), {
                     cat: true,
                     title: bit.settings.title + ' SSL Source',
                 })
