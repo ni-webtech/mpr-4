@@ -922,21 +922,26 @@ void mprVirtFree(void *ptr, ssize size)
 
 static void *vmalloc(ssize size, int mode)
 {
+    void    *ptr;
+
 #if VALLOC
     #if BLD_UNIX_LIKE
-        void    *ptr;
         if ((ptr = mmap(0, size, mode, MAP_PRIVATE | MAP_ANON, -1, 0)) == (void*) -1) {
             return 0;
         }
-        return ptr;
     #elif BLD_WIN_LIKE
-        return VirtualAlloc(0, size, MEM_RESERVE | MEM_COMMIT, winPageModes(mode));
+        ptr = VirtualAlloc(0, size, MEM_RESERVE | MEM_COMMIT, winPageModes(mode));
     #else
-        return malloc(size);
+        if ((ptr = malloc(size)) != 0) {
+            memset(ptr, 0, size);
+        }
     #endif
 #else
-    return malloc(size);
+    if ((ptr = malloc(size)) != 0) {
+        memset(ptr, 0, size);
+    }
 #endif
+    return ptr;
 }
 
 
