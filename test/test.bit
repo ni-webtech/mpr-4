@@ -6,7 +6,6 @@ Bit.load({
     targets: {
         test: {
             action: "
-print('DIR', App.dir)
                 run('testMpr -v -i 2 --depth ${settings.depth}')
                 if (bit.settings.depth >= 3) {
                     trace('Test', 'Light load tests')
