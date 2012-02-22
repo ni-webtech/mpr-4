@@ -30,7 +30,7 @@
 </ItemGroup>
 
 <PropertyGroup Label="Globals">
-  <ProjectGuid>{ce32124a-1e4a-43ab-8620-1c66e8e1428c}</ProjectGuid>
+  <ProjectGuid>{eab5535e-220c-4062-97d3-9d18194a02d4}</ProjectGuid>
   <RootNamespace />
   <Keyword>Win32Proj</Keyword>
 </PropertyGroup>
@@ -60,13 +60,14 @@
 </ItemGroup>
 <ItemDefinitionGroup>
 <Link>
-  <AdditionalDependencies>libmpr.lib;%(AdditionalDependencies)</AdditionalDependencies>
+  <AdditionalDependencies>C:\cygwin\home\mob\mpr\win-i686-debug\bin\libmpr.lib;%(AdditionalDependencies)</AdditionalDependencies>
+  <AdditionalLibraryDirectories>$(OutDir);C:\cygwin\home\mob\mpr\win-i686-debug\bin;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
 </Link>
 </ItemDefinitionGroup>
 
 <ItemGroup>
   <ProjectReference Include="libmpr.vcxproj">
-  <Project>500afca5-0909-47eb-9d80-d576b95ff814</Project>
+  <Project>e6cba9d0-4bbc-43b6-af72-e41300cc380c</Project>
   <ReferenceOutputAssembly>false</ReferenceOutputAssembly>
   </ProjectReference>
 </ItemGroup>

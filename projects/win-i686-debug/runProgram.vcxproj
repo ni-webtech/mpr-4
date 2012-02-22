@@ -30,7 +30,7 @@
 </ItemGroup>
 
 <PropertyGroup Label="Globals">
-  <ProjectGuid>{767c94b1-bf5c-4165-bf5d-7ba480941786}</ProjectGuid>
+  <ProjectGuid>{68f68b2a-53c1-4004-804f-48fee97e0e87}</ProjectGuid>
   <RootNamespace />
   <Keyword>Win32Proj</Keyword>
 </PropertyGroup>
@@ -56,11 +56,12 @@
 </PropertyGroup>
     
 <ItemGroup>
-  <ClCompile Include="..\..\src\test\runProgram.c" />
+  <ClCompile Include="..\..\test\runProgram.c" />
 </ItemGroup>
 <ItemDefinitionGroup>
 <Link>
   <AdditionalDependencies>;%(AdditionalDependencies)</AdditionalDependencies>
+  <AdditionalLibraryDirectories>$(OutDir);C:\cygwin\home\mob\mpr\win-i686-debug\bin;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
 </Link>
 </ItemDefinitionGroup>
 

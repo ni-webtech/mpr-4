@@ -30,7 +30,7 @@
 </ItemGroup>
 
 <PropertyGroup Label="Globals">
-  <ProjectGuid>{54820876-60d2-474b-a7ac-d9af66ea844e}</ProjectGuid>
+  <ProjectGuid>{24cbbf8b-a439-46c9-bea7-3435ed90a8d1}</ProjectGuid>
   <RootNamespace />
   <Keyword>Win32Proj</Keyword>
 </PropertyGroup>
@@ -56,40 +56,41 @@
 </PropertyGroup>
     
 <ItemGroup>
-  <ClCompile Include="..\..\src\test\testArgv.c" />
-  <ClCompile Include="..\..\src\test\testBuf.c" />
-  <ClCompile Include="..\..\src\test\testCmd.c" />
-  <ClCompile Include="..\..\src\test\testCond.c" />
-  <ClCompile Include="..\..\src\test\testEvent.c" />
-  <ClCompile Include="..\..\src\test\testFile.c" />
-  <ClCompile Include="..\..\src\test\testHash.c" />
-  <ClCompile Include="..\..\src\test\testList.c" />
-  <ClCompile Include="..\..\src\test\testLock.c" />
-  <ClCompile Include="..\..\src\test\testMem.c" />
-  <ClCompile Include="..\..\src\test\testMpr.c" />
-  <ClCompile Include="..\..\src\test\testPath.c" />
-  <ClCompile Include="..\..\src\test\testSocket.c" />
-  <ClCompile Include="..\..\src\test\testSprintf.c" />
-  <ClCompile Include="..\..\src\test\testThread.c" />
-  <ClCompile Include="..\..\src\test\testTime.c" />
-  <ClCompile Include="..\..\src\test\testUnicode.c" />
+  <ClCompile Include="..\..\test\testArgv.c" />
+  <ClCompile Include="..\..\test\testBuf.c" />
+  <ClCompile Include="..\..\test\testCmd.c" />
+  <ClCompile Include="..\..\test\testCond.c" />
+  <ClCompile Include="..\..\test\testEvent.c" />
+  <ClCompile Include="..\..\test\testFile.c" />
+  <ClCompile Include="..\..\test\testHash.c" />
+  <ClCompile Include="..\..\test\testList.c" />
+  <ClCompile Include="..\..\test\testLock.c" />
+  <ClCompile Include="..\..\test\testMem.c" />
+  <ClCompile Include="..\..\test\testMpr.c" />
+  <ClCompile Include="..\..\test\testPath.c" />
+  <ClCompile Include="..\..\test\testSocket.c" />
+  <ClCompile Include="..\..\test\testSprintf.c" />
+  <ClCompile Include="..\..\test\testThread.c" />
+  <ClCompile Include="..\..\test\testTime.c" />
+  <ClCompile Include="..\..\test\testUnicode.c" />
 </ItemGroup>
 <ItemDefinitionGroup>
 <Link>
-  <AdditionalDependencies>libmpr.lib;%(AdditionalDependencies)</AdditionalDependencies>
+  <AdditionalDependencies>C:\cygwin\home\mob\mpr\win-i686-debug\bin\libmpr.lib;%(AdditionalDependencies)</AdditionalDependencies>
+  <AdditionalLibraryDirectories>$(OutDir);C:\cygwin\home\mob\mpr\win-i686-debug\bin;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
 </Link>
 </ItemDefinitionGroup>
 
 <ItemGroup>
   <ProjectReference Include="libmpr.vcxproj">
-  <Project>500afca5-0909-47eb-9d80-d576b95ff814</Project>
+  <Project>e6cba9d0-4bbc-43b6-af72-e41300cc380c</Project>
   <ReferenceOutputAssembly>false</ReferenceOutputAssembly>
   </ProjectReference>
 </ItemGroup>
 
 <ItemGroup>
   <ProjectReference Include="runProgram.vcxproj">
-  <Project>767c94b1-bf5c-4165-bf5d-7ba480941786</Project>
+  <Project>68f68b2a-53c1-4004-804f-48fee97e0e87</Project>
   <ReferenceOutputAssembly>false</ReferenceOutputAssembly>
   </ProjectReference>
 </ItemGroup>
