@@ -1,5 +1,5 @@
 /*
-    mprOpenSsl.c - Support for secure sockets via OpenSSL
+    mprOpenssl.c - Support for secure sockets via OpenSSL
 
     Copyright (c) All Rights Reserved. See details at the end of the file.
  */
@@ -36,10 +36,6 @@ typedef struct MprOpenSsl {
 
 typedef struct MprOpenSocket {
     MprSocket       *sock;
-#if UNUSED
-    MprSsl          *ssl;
-    MprOpenSsl      *ossl;
-#endif
     SSL             *handle;
     BIO             *bio;
 } MprOpenSocket;
@@ -236,8 +232,8 @@ static void manageOpenProvider(MprSocketProvider *provider, int flags)
 
 
 /*
-    Configure the SSL configuration. Called from connect or explicitly in server code
-    to setup various SSL contexts. Appweb uses this from location.c.
+    Initialize a server-side SSL configuration. An application can have multiple different SSL configurations
+    for different routes.
  */
 static int configureOss(MprSsl *ssl)
 {
@@ -245,6 +241,8 @@ static int configureOss(MprSsl *ssl)
     MprOpenSsl          *ossl, *src;
     SSL_CTX             *context;
     uchar               resume[16];
+
+    mprAssert(ssl);
 
     if ((context = SSL_CTX_new(SSLv23_method())) == 0) {
         mprError("OpenSSL: Unable to create SSL context"); 
@@ -311,7 +309,6 @@ static int configureOss(MprSsl *ssl)
                 }
             }
         }
-
         mprLog(4, "OpenSSL: enable verification of client connections");
 
         if (ssl->caFile) {
@@ -355,7 +352,6 @@ static int configureOss(MprSsl *ssl)
         SSL_CTX_set_options(context, SSL_OP_NO_TLSv1);
         mprLog(4, "OpenSSL: Disabling TLSv1");
     }
-
     /* 
         Ensure we generate a new private key for each connection
      */
@@ -364,6 +360,8 @@ static int configureOss(MprSsl *ssl)
     if ((defaultSsl = getDefaultSslSettings()) == 0) {
         return MPR_ERR_MEMORY;
     }
+    //  MOB - always true
+    mprAssert(ssl != defaultSsl);
     if (ssl != defaultSsl) {
         if (!ssl->extendedSsl && (ssl->extendedSsl = mprAllocObj(MprOpenSsl, manageOpenSsl)) == 0) {
             return 0;
@@ -484,9 +482,6 @@ static MprSocket *createOss(MprSsl *ssl)
     osp->sock = sp;
     sp->sslSocket = osp;
     sp->ssl = ssl;
-#if UNUSED
-    osp->ossl = ssl->extendedSsl;
-#endif
     unlock(sp);
     return sp;
 }
@@ -499,9 +494,6 @@ static void manageOpenSocket(MprOpenSocket *osp, int flags)
 {
     if (flags & MPR_MANAGE_MARK) {
         mprMark(osp->sock);
-#if MOB
-        mprMark(osp->ossl);
-#endif
 
     } else if (flags & MPR_MANAGE_FREE) {
         if (osp->handle) {
@@ -605,16 +597,12 @@ static int connectOss(MprSocket *sp, cchar *host, int port, int flags)
         ssl = ss->secureProvider->defaultSsl;
     }
     sp->ssl = ssl;
-#if UNUSED
-    osp->ossl = ssl->extendedSsl;
-#endif
     ossl = ssl->extendedSsl;
 
     if (ossl->context == 0 && configureOss(ssl) < 0) {
         unlock(sp);
         return MPR_ERR_CANT_INITIALIZE;
     }
-
     /*
         Create and configure the SSL struct
      */
@@ -834,7 +822,6 @@ static int verifyX509Certificate(int ok, X509_STORE_CTX *xContext)
     if (X509_NAME_oneline(X509_get_subject_name(cert), subject, sizeof(subject) - 1) < 0) {
         ok = 0;
     }
-
     /*
         TODO -- should compare subject name and host name. Need smart compare.
      */
@@ -842,7 +829,7 @@ static int verifyX509Certificate(int ok, X509_STORE_CTX *xContext)
         ok = 0;
     }
     if (X509_NAME_get_text_by_NID(X509_get_subject_name(xContext->current_cert), NID_commonName, peer, 
-                sizeof(peer) - 1) < 0) {
+            sizeof(peer) - 1) < 0) {
         ok = 0;
     }
 
@@ -878,7 +865,6 @@ static int verifyX509Certificate(int ok, X509_STORE_CTX *xContext)
         break;
     }
 #endif
-
     if (!ok) {
         mprLog(0, "OpenSSL: Certification failed: subject %s", subject);
         mprLog(4, "OpenSSL: Issuer: %s", issuer);
