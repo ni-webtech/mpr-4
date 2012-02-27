@@ -73,7 +73,7 @@ static void manageSsl(MprSsl *ssl, int flags)
 
 
 /*
-    Create a new Ssl context object
+    Create a new SSL context object
  */
 MprSsl *mprCreateSsl()
 {
@@ -83,8 +83,10 @@ MprSsl *mprCreateSsl()
         return 0;
     }
     ssl->ciphers = sclone(MPR_DEFAULT_CIPHER_SUITE);
-    ssl->protocols = MPR_PROTO_SSLV3 | MPR_PROTO_TLSV1;
+    ssl->protocols = MPR_PROTO_TLSV1 | MPR_PROTO_TLSV11;
     ssl->verifyDepth = 6;
+    ssl->verifyClient = 0;
+    ssl->verifyServer = 1;
     return ssl;
 }
 
@@ -152,19 +154,21 @@ void mprSetSslProtocols(MprSsl *ssl, int protocols)
 }
 
 
-#if UNUSED
 void mprSetSocketSslConfig(MprSocket *sp, MprSsl *ssl)
 {
-    if (sp->sslSocket) {
-        sp->sslSocket->ssl = ssl;
-    }
+    sp->ssl = ssl;
 }
-#endif
 
 
 void mprVerifySslClients(MprSsl *ssl, bool on)
 {
     ssl->verifyClient = on;
+}
+
+
+void mprVerifySslServers(MprSsl *ssl, bool on)
+{
+    ssl->verifyServer = on;
 }
 
 
@@ -190,50 +194,16 @@ MprSsl *mprCreateSsl()
 }
 
 
-void mprConfigureSsl(MprSsl *ssl)
-{
-}
-
-
-void mprSetSslCiphers(MprSsl *ssl, cchar *ciphers)
-{
-}
-
-
-void mprSetSslKeyFile(MprSsl *ssl, cchar *keyFile)
-{
-}
-
-
-void mprSetSslCertFile(MprSsl *ssl, cchar *certFile)
-{
-}
-
-
-void mprSetSslCaFile(MprSsl *ssl, cchar *caFile)
-{
-}
-
-
-void mprSetSslCaPath(MprSsl *ssl, cchar *caPath)
-{
-}
-
-
-void mprSetSslProtocols(MprSsl *ssl, int protocols)
-{
-}
-
-
-void mprSetSocketSslConfig(MprSocket *sp, MprSsl *ssl)
-{
-}
-
-
-void mprVerifySslClients(MprSsl *ssl, bool on)
-{
-}
-
+void mprConfigureSsl(MprSsl *ssl) { }
+void mprSetSslCiphers(MprSsl *ssl, cchar *ciphers) { }
+void mprSetSslKeyFile(MprSsl *ssl, cchar *keyFile) { }
+void mprSetSslCertFile(MprSsl *ssl, cchar *certFile) { }
+void mprSetSslCaFile(MprSsl *ssl, cchar *caFile) { }
+void mprSetSslCaPath(MprSsl *ssl, cchar *caPath) { }
+void mprSetSslProtocols(MprSsl *ssl, int protocols) { }
+void mprSetSocketSslConfig(MprSocket *sp, MprSsl *ssl) { }
+void mprVerifySslClients(MprSsl *ssl, bool on) { }
+void mprVerifySslServers(MprSsl *ssl, bool on) { }
 
 #endif /* SSL */
 

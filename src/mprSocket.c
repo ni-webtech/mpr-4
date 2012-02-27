@@ -47,8 +47,7 @@ MprSocketService *mprCreateSocketService()
     MprSocketService    *ss;
     char                hostName[MPR_MAX_IP_NAME], serverName[MPR_MAX_IP_NAME], domainName[MPR_MAX_IP_NAME], *dp;
 
-    ss = mprAllocObj(MprSocketService, manageSocketService);
-    if (ss == 0) {
+    if ((ss = mprAllocObj(MprSocketService, manageSocketService)) == 0) {
         return 0;
     }
     ss->maxAccept = MAXINT;
@@ -61,7 +60,6 @@ MprSocketService *mprCreateSocketService()
     if ((ss->mutex = mprCreateLock()) == 0) {
         return 0;
     }
-
     serverName[0] = '\0';
     domainName[0] = '\0';
     hostName[0] = '\0';

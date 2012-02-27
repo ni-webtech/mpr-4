@@ -179,14 +179,13 @@ static MprSsl *getDefaultSslSettings()
     if ((ssl = mprCreateSsl()) == 0) {
         return 0;
     }
-    ss->secureProvider->defaultSsl = ssl;
-
     /*
         Pre-generate keys that are slow to compute.
      */
     if ((ssl->extendedSsl = mprAllocObj(MprOpenSsl, manageOpenSsl)) == 0) {
         return 0;
     }
+    ss->secureProvider->defaultSsl = ssl;
     ossl = ssl->extendedSsl;
     ossl->rsaKey512 = RSA_generate_key(512, RSA_F4, 0, 0);
     ossl->rsaKey1024 = RSA_generate_key(1024, RSA_F4, 0, 0);
@@ -588,13 +587,13 @@ static int connectOss(MprSocket *sp, cchar *host, int port, int flags)
     osp = sp->sslSocket;
     mprAssert(osp);
 
-    if (ss->secureProvider->defaultSsl == 0) {
-        if ((ssl = getDefaultSslSettings()) == 0) {
-            unlock(sp);
-            return MPR_ERR_CANT_INITIALIZE;
+    if (!sp->ssl) {
+        if ((ssl = ss->secureProvider->defaultSsl) == 0) {
+            if ((ssl = getDefaultSslSettings()) == 0) {
+                unlock(sp);
+                return MPR_ERR_CANT_INITIALIZE;
+            }
         }
-    } else {
-        ssl = ss->secureProvider->defaultSsl;
     }
     sp->ssl = ssl;
     ossl = ssl->extendedSsl;

@@ -202,7 +202,7 @@ void mprSetModuleSearchPath(char *searchPath)
 
     ms = MPR->moduleService;
     if (searchPath == 0) {
-        libdir = mprJoinPath(mprGetPathParent(mprGetAppDir()), mprGetPathBase(BLD_LIB_NAME));
+        libdir = mprJoinPath(mprGetPathParent(mprGetAppDir()), BLD_LIB_NAME);
         ms->searchPath = sjoin(mprGetAppDir(), MPR_SEARCH_SEP, libdir, MPR_SEARCH_SEP, BLD_LIB_PREFIX, NULL);
     } else {
         ms->searchPath = sclone(searchPath);

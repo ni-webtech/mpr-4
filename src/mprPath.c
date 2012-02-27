@@ -931,7 +931,7 @@ char *mprGetTempPath(cchar *tempDir)
     int             i, now;
     static int      tempSeed = 0;
 
-    if (tempDir == 0) {
+    if (tempDir == 0 || *tempDir == '\0') {
 #if WINCE
         dir = sclone("/Temp");
 #elif BLD_WIN_LIKE

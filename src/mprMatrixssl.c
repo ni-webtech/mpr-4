@@ -42,11 +42,68 @@ typedef struct MprMatrixSsl {
 typedef struct MprMatrixSocket {
     MprSocket       *sock;
     ssl_t           *handle;            /* MatrixSSL ssl_t structure */
-    char            *outbuf;            /* */
-    ssize           outlen;             /* */
-    ssize           written;            /* */
+    char            *outbuf;            /* Pending output data */
+    ssize           outlen;             /* Length of outlen */
+    ssize           written;            /* Number of unencoded bytes written */
     int             more;               /* MatrixSSL stack has buffered data */
 } MprMatrixSocket;
+
+/*
+    Empty CA cert.
+ */
+unsigned char CAcertSrvBuf[] = { 
+    48, 130, 2, 144, 48, 130, 1, 249, 160, 3, 2, 1, 2,
+    2, 1, 31, 48, 13, 6, 9, 42, 134, 72, 134, 247, 13,
+    1, 1, 5, 5, 0, 48, 129, 129, 49, 35, 48, 33, 6,
+    3, 85, 4, 3, 12, 26, 77, 97, 116, 114, 105, 120, 83,
+    83, 76, 32, 83, 97, 109, 112, 108, 101, 32, 83, 101, 114,
+    118, 101, 114, 32, 67, 65, 49, 11, 48, 9, 6, 3, 85,
+    4, 6, 12, 2, 85, 83, 49, 11, 48, 9, 6, 3, 85,
+    4, 8, 12, 2, 87, 65, 49, 16, 48, 14, 6, 3, 85,
+    4, 7, 12, 7, 83, 101, 97, 116, 116, 108, 101, 49, 31,
+    48, 29, 6, 3, 85, 4, 10, 12, 22, 80, 101, 101, 114, 
+    83, 101, 99, 32, 78, 101, 116, 119, 111, 114, 107, 115, 44,
+    32, 73, 110, 99, 46, 49, 13, 48, 11, 6, 3, 85, 4,
+    11, 12, 4, 84, 101, 115, 116, 48, 30, 23, 13, 49, 48,
+    48, 51, 48, 50, 49, 55, 49, 57, 48, 55, 90, 23, 13, 
+    49, 51, 48, 51, 48, 49, 49, 55, 49, 57, 48, 55, 90,
+    48, 129, 129, 49, 35, 48, 33, 6, 3, 85, 4, 3, 12,
+    26, 77, 97, 116, 114, 105, 120, 83, 83, 76, 32, 83, 97,
+    109, 112, 108, 101, 32, 83, 101, 114, 118, 101, 114, 32, 67,
+    65, 49, 11, 48, 9, 6, 3, 85, 4, 6, 12, 2, 85,
+    83, 49, 11, 48, 9, 6, 3, 85, 4, 8, 12, 2, 87,
+    65, 49, 16, 48, 14, 6, 3, 85, 4, 7, 12, 7, 83,
+    101, 97, 116, 116, 108, 101, 49, 31, 48, 29, 6, 3, 85, 
+    4, 10, 12, 22, 80, 101, 101, 114, 83, 101, 99, 32, 78,
+    101, 116, 119, 111, 114, 107, 115, 44, 32, 73, 110, 99, 46, 
+    49, 13, 48, 11, 6, 3, 85, 4, 11, 12, 4, 84, 101,
+    115, 116, 48, 129, 159, 48, 13, 6, 9, 42, 134, 72, 134,
+    247, 13, 1, 1, 1, 5, 0, 3, 129, 141, 0, 48, 129,
+    137, 2, 129, 129, 0, 161, 37, 100, 65, 3, 153, 4, 51,
+    190, 127, 211, 25, 110, 88, 126, 201, 223, 171, 11, 203, 100,
+    10, 206, 214, 152, 173, 187, 96, 24, 202, 103, 225, 54, 18,
+    236, 171, 140, 125, 209, 68, 184, 212, 195, 191, 210, 98, 123,
+    237, 205, 213, 23, 209, 245, 108, 70, 236, 20, 25, 140, 68,
+    255, 68, 53, 29, 23, 231, 200, 206, 199, 45, 74, 46, 86, 
+    10, 229, 243, 126, 72, 33, 184, 21, 16, 76, 55, 28, 97, 
+    3, 79, 192, 236, 241, 47, 12, 220, 59, 158, 29, 243, 133,
+    125, 83, 30, 232, 243, 131, 16, 217, 8, 2, 185, 80, 197,
+    139, 49, 11, 191, 233, 160, 55, 73, 239, 43, 151, 12, 31,
+    151, 232, 145, 2, 3, 1, 0, 1, 163, 22, 48, 20, 48,
+    18, 6, 3, 85, 29, 19, 1, 1, 1, 4, 8, 48, 6,
+    1, 1, 1, 2, 1, 1, 48, 13, 6, 9, 42, 134, 72,
+    134, 247, 13, 1, 1, 5, 5, 0, 3, 129, 129, 0, 11,
+    36, 231, 0, 168, 211, 179, 52, 55, 21, 63, 125, 230, 86,
+    116, 204, 101, 189, 20, 132, 242, 238, 119, 80, 44, 174, 74,
+    125, 81, 98, 111, 223, 242, 96, 20, 192, 210, 7, 248, 91,
+    101, 37, 85, 46, 0, 132, 72, 12, 21, 100, 132, 5, 122,
+    170, 109, 207, 114, 159, 182, 95, 106, 103, 135, 80, 158, 99, 
+    44, 126, 86, 191, 79, 126, 249, 99, 3, 18, 40, 128, 21,
+    127, 185, 53, 51, 128, 20, 24, 249, 23, 90, 5, 171, 46,
+    164, 3, 39, 94, 98, 103, 213, 169, 59, 10, 10, 74, 205,
+    201, 16, 116, 204, 66, 111, 187, 36, 87, 144, 81, 194, 26,
+    184, 76, 67, 209, 132, 6, 150, 183, 119, 59
+};
 
 /***************************** Forward Declarations ***************************/
 
@@ -66,7 +123,7 @@ static int      listenMss(MprSocket *sp, cchar *host, int port, int flags);
 static void     manageMatrixSocket(MprMatrixSocket *msp, int flags);
 static void     manageMatrixProvider(MprSocketProvider *provider, int flags);
 static void     manageMatrixSsl(MprMatrixSsl *mssl, int flags);
-static ssize    process(MprSocket *sp, char *buf, ssize size, ssize nbytes, int *readMore);
+static ssize    processMssData(MprSocket *sp, char *buf, ssize size, ssize nbytes, int *readMore);
 static ssize    readMss(MprSocket *sp, void *buf, ssize len);
 static ssize    writeMss(MprSocket *sp, cvoid *buf, ssize len);
 
@@ -94,7 +151,8 @@ int mprCreateMatrixSslModule(bool lazy)
 
 
 /*
-    Create the default MatrixSSL configuration state structure
+    Create the default MatrixSSL configuration state structure.
+    This is used for client connections and for server connections in the absense of a per-route configuration.
  */
 static MprSsl *getDefaultMatrixSsl()
 {
@@ -108,10 +166,10 @@ static MprSsl *getDefaultMatrixSsl()
     if ((ssl = mprCreateSsl()) == 0) {
         return 0;
     }
-    ss->secureProvider->defaultSsl = ssl;
     if (!createMatrixSsl(ssl)) {
         return 0;
     }
+    ss->secureProvider->defaultSsl = ssl;
     return ssl;
 }
 
@@ -170,31 +228,9 @@ static void manageMatrixProvider(MprSocketProvider *provider, int flags)
 static int configureMss(MprSsl *ssl)
 {
     MprMatrixSsl    *mssl;
-    MprSsl          *defaultSsl;
     char            *password;
 
     mprAssert(ssl);
-
-#if UNUSED
-    if ((defaultSsl = getDefaultMatrixSsl()) == 0) {
-        return MPR_ERR_MEMORY;
-    }
-    if (ssl != defaultSsl) {
-        /* 
-            If not using the default SSL configuration, allocate a new MatrixSSL configuration.
-         */
-        if ((mssl = createMatrixSsl(ssl)) == 0) {
-            return 0;
-        }
-#if UNUSED
-        src = defaultSsl->extendedSsl;
-        mssl->keys = src->keys;
-        mssl->session = src->session;
-#endif
-    } else {
-        mssl = ssl->extendedSsl;
-    }
-#endif
 
     if ((mssl = createMatrixSsl(ssl)) == 0) {
         return 0;
@@ -261,22 +297,22 @@ static MprSocket *createMss(MprSsl *ssl)
     if ((sp = ss->standardProvider->createSocket(ssl)) == 0) {
         return 0;
     }
-    lock(sp);
     sp->provider = ss->secureProvider;
-
     if ((msp = (MprMatrixSocket*) mprAllocObj(MprMatrixSocket, manageMatrixSocket)) == 0) {
         return 0;
     }
     msp->sock = sp;
     sp->sslSocket = msp;
     sp->ssl = ssl;
-    unlock(sp);
+    mprAddItem(ss->secureSockets, sp);
     return sp;
 }
 
 
 static void manageMatrixSocket(MprMatrixSocket *msp, int flags)
 {
+    MprSocketService    *ss;
+
     if (flags & MPR_MANAGE_MARK) {
         mprMark(msp->sock);
 
@@ -284,12 +320,14 @@ static void manageMatrixSocket(MprMatrixSocket *msp, int flags)
         if (msp->handle) {
             matrixSslDeleteSession(msp->handle);
         }
+        ss = MPR->socketService;
+        mprRemoveItem(ss->secureSockets, msp->sock);
     }
 }
 
 
 /*
-    Close a slock
+    Close the socket
  */
 static void closeMss(MprSocket *sp, bool gracefully)
 {
@@ -340,14 +378,13 @@ static MprSocket *acceptMss(MprSocket *listen)
     if ((sp = listen->service->standardProvider->acceptSocket(listen)) == 0) {
         return 0;
     }
+    /* 
+        Associate a new ssl session with this socket. The session represents the state of the ssl protocol 
+        over this socket. Session caching is handled automatically by this api.
+     */
     lock(sp);
     msp = sp->sslSocket;
     mprAssert(msp);
-
-    /* 
-        Associate a new ssl session with this socket.  The session represents the state of the ssl protocol 
-        over this socket. Session caching is handled automatically by this api.
-     */
     mssl = sp->ssl->extendedSsl;
     if (matrixSslNewServerSession(&msp->handle, mssl->keys, NULL) < 0) {
         unlock(sp);
@@ -359,32 +396,99 @@ static MprSocket *acceptMss(MprSocket *listen)
 
 
 /*
-    Validate the certificate
+    Validate the server certificate
+    UGLY: really need a MprMatrixSsl handle here
  */
-static int certValidator(ssl_t *ssl, psX509Cert_t *cert, int32 alert)
+static int verifyServer(ssl_t *ssl, psX509Cert_t *cert, int32 alert)
 {
-    //  See client.c - example
-    return alert;
+    MprSocketService    *ss;
+    MprSocket           *sp;
+    struct tm           t;
+    char                *c;
+    int                 next, y, m, d;
 
-#if UNUSED
-    psX509Cert_t   *next;
-    
-    /*
-          Make sure we are checking the last cert in the chain
-     */
-    next = cert;
-    while (next->next != NULL) {
-        next = next->next;
+    ss = sp->service;
+    lock(ss);
+    for (ITERATE_ITEMS(ss->secureSockets, sp, next)) {
+        if (sp->ssl && ((MprMatrixSocket*) sp->sslSocket)->handle == ssl) {
+            break;
+        }
     }
-    /*
-        Flag a non-authenticated server correctly. Call matrixSslGetAnonStatus later to 
-        see the status of this connection.
-     */
-    if (next->verified != 1) {
+    unlock(ss);
+    if (!sp) {
+        /* Should not get here */
+        mprAssert(sp);
         return SSL_ALLOW_ANON_CONNECTION;
     }
-    return next->verified;
-#endif
+    if (alert > 0) {
+        if (!sp->ssl->verifyServer) {
+            return SSL_ALLOW_ANON_CONNECTION;
+        }
+        return alert;
+    }
+    mprDecodeLocalTime(&t, mprGetTime());
+
+	/* 
+        Validate the 'not before' date 
+     */
+	if ((c = cert->notBefore) != NULL) {
+		if (strlen(c) < 8) {
+			return PS_FAILURE;
+		}
+		/* 
+            UTCTIME, defined in 1982, has just a 2 digit year 
+         */
+		if (cert->timeType == ASN_UTCTIME) {
+			y =  2000 + 10 * (c[0] - '0') + (c[1] - '0'); 
+            c += 2;
+		} else {
+			y = 1000 * (c[0] - '0') + 100 * (c[1] - '0') + 10 * (c[2] - '0') + (c[3] - '0'); 
+            c += 4;
+		}
+		m = 10 * (c[0] - '0') + (c[1] - '0'); 
+        c += 2;
+		d = 10 * (c[0] - '0') + (c[1] - '0'); 
+        y -= 1900;
+        m -= 1;
+		if (t.tm_year < y) {
+            return PS_FAILURE; 
+        }
+		if (t.tm_year == y) {
+			if (t.tm_mon < m || (t.tm_mon == m && t.tm_mday < d)) {
+                mprError("Certificate not yet valid");
+                return PS_FAILURE;
+            }
+		}
+	}
+	/* 
+        Validate the 'not after' date 
+     */
+	if ((c = cert->notAfter) != NULL) {
+		if (strlen(c) < 8) {
+			return PS_FAILURE;
+		}
+		if (cert->timeType == ASN_UTCTIME) {
+			y =  2000 + 10 * (c[0] - '0') + (c[1] - '0'); 
+            c += 2;
+		} else {
+			y = 1000 * (c[0] - '0') + 100 * (c[1] - '0') + 10 * (c[2] - '0') + (c[3] - '0'); 
+            c += 4;
+		}
+		m = 10 * (c[0] - '0') + (c[1] - '0'); 
+        c += 2;
+		d = 10 * (c[0] - '0') + (c[1] - '0'); 
+        y -= 1900;
+        m -= 1;
+		if (t.tm_year > y) {
+            return PS_FAILURE; 
+        } else if (t.tm_year == y) {
+			if (t.tm_mon > m || (t.tm_mon == m && t.tm_mday > d)) {
+                mprError("Certificate has expired");
+                return PS_FAILURE;
+            }
+		}
+	}
+	return PS_SUCCESS;
 }
 
 
@@ -408,31 +512,30 @@ static int connectMss(MprSocket *sp, cchar *host, int port, int flags)
     msp = sp->sslSocket;
     mprAssert(msp);
 
-    if (ss->secureProvider->defaultSsl == 0) {
-        if ((ssl = getDefaultMatrixSsl()) == 0) {
-            unlock(sp);
-            return MPR_ERR_CANT_INITIALIZE;
+    if (!sp->ssl) {
+        if ((ssl = ss->secureProvider->defaultSsl) == 0) {
+            if ((ssl = getDefaultMatrixSsl()) == 0) {
+                unlock(sp);
+                return MPR_ERR_CANT_INITIALIZE;
+            }
         }
-    } else {
-        ssl = ss->secureProvider->defaultSsl;
     }
     sp->ssl = ssl;
     mssl = ssl->extendedSsl;
 
-    cipherSuite = 0;
-    if (matrixSslNewClientSession(&msp->handle, mssl->keys, NULL, cipherSuite, certValidator, NULL, NULL) < 0) {
+    if (matrixSslLoadRsaKeysMem(mssl->keys, NULL, 0, NULL, 0, CAcertSrvBuf, sizeof(CAcertSrvBuf)) < 0) {
+        mprError("MatrixSSL: Could not read or decode certificate or key file."); 
         unlock(sp);
-        return -1;
+        return MPR_ERR_CANT_INITIALIZE;
     }
-#if UNUSED
-    /*
-        Configure the certificate validator and do the SSL handshake
-     */
-    matrixSslSetCertValidator(msp->handle, certValidator, NULL);
-#endif
+    cipherSuite = 0;
+    if (matrixSslNewClientSession(&msp->handle, mssl->keys, NULL, cipherSuite, verifyServer, NULL, NULL) < 0) {
+        unlock(sp);
+        return MPR_ERR_CANT_CONNECT;
+    }
     if (doHandshake(sp, 0) < 0) {
         unlock(sp);
-        return -1;
+        return MPR_ERR_CANT_CONNECT;
     }
     unlock(sp);
     return 0;
@@ -460,8 +563,6 @@ static ssize blockingWrite(MprSocket *sp, cchar *buf, ssize len)
         if ((bytes = standard->writeSocket(sp, buf, len)) < 0) {
             mprSetSocketBlockingMode(sp, mode);
             return bytes;
-        } else if (bytes == 0) {
-            mprNap(10);
         }
         buf += bytes;
         len -= bytes;
@@ -475,6 +576,7 @@ static ssize blockingWrite(MprSocket *sp, cchar *buf, ssize len)
 /*
     Construct the initial HELLO message to send to the server and initiate
     the SSL handshake. Can be used in the re-handshake scenario as well.
+    This is a blocking routine.
  */
 static int doHandshake(MprSocket *sp, short cipherSuite)
 {
@@ -482,6 +584,7 @@ static int doHandshake(MprSocket *sp, short cipherSuite)
     MprSocketProvider   *standard;
     ssize               rc, written, toWrite;
     char                *obuf, buf[MPR_SSL_BUFSIZE];
+    int                 mode;
 
     msp = sp->sslSocket;
     standard = sp->service->standardProvider;
@@ -492,14 +595,15 @@ static int doHandshake(MprSocket *sp, short cipherSuite)
         return MPR_ERR_CANT_INITIALIZE;
     }
     matrixSslSentData(msp->handle, (int) written);
+    mode = mprSetSocketBlockingMode(sp, 1);
 
-    //  MOB - is this blocking? or does it spin?
     while (1) {
         /*
             Reading handshake records should always return 0 bytes, we aren't expecting any data yet.
          */
         if ((rc = innerRead(sp, buf, sizeof(buf))) == 0) {
             if (mprIsSocketEof(sp)) {
+                mprSetSocketBlockingMode(sp, mode);
                 return MPR_ERR_CANT_INITIALIZE;
             }
             if (matrixSslHandshakeIsComplete(msp->handle)) {
@@ -507,18 +611,19 @@ static int doHandshake(MprSocket *sp, short cipherSuite)
             }
         } else {
             mprError("MatrixSSL: sslRead error in sslDoHandhake, rc %d", rc);
+            mprSetSocketBlockingMode(sp, mode);
             return MPR_ERR_CANT_INITIALIZE;
         }
     }
+    mprSetSocketBlockingMode(sp, mode);
     return 0;
 }
 
 
 /*
-    Process 
-    MOB - rename
+    Process incoming data. Some is app data, some is SSL control data.
  */
-static ssize process(MprSocket *sp, char *buf, ssize size, ssize nbytes, int *readMore)
+static ssize processMssData(MprSocket *sp, char *buf, ssize size, ssize nbytes, int *readMore)
 {
     MprMatrixSocket     *msp;
     MprSocketProvider   *standard;
@@ -611,7 +716,6 @@ static ssize innerRead(MprSocket *sp, char *buf, ssize size)
 
     msp = (MprMatrixSocket*) sp->sslSocket;
     standard = sp->service->standardProvider;
-    readMore = 0;
     do {
         /*
             Get the MatrixSSL read buffer to read data into
@@ -619,8 +723,9 @@ static ssize innerRead(MprSocket *sp, char *buf, ssize size)
         if ((msize = matrixSslGetReadbuf(msp->handle, &mbuf)) < 0) {
             return MPR_ERR_BAD_STATE;
         }
+        readMore = 0;
         if ((nbytes = standard->readSocket(sp, mbuf, msize)) > 0) {
-            if ((nbytes = process(sp, buf, size, nbytes, &readMore)) > 0) {
+            if ((nbytes = processMssData(sp, buf, size, nbytes, &readMore)) > 0) {
                 return nbytes;
             }
         }
@@ -641,11 +746,11 @@ static ssize readMss(MprSocket *sp, void *buf, ssize len)
         return -1;
     }
     lock(sp);
-    bytes = innerRead(sp, buf, len);
     /*
-        If there is more data buffered locally here, then ensure the select handler will recall us again even 
+        If there is more data buffered by MatrixSSL, then ensure the select handler will recall us again even 
         if there is no more IO events
      */
+    bytes = innerRead(sp, buf, len);
     msp = (MprMatrixSocket*) sp->sslSocket;
     if (msp->more) {
         sp->flags |= MPR_SOCKET_PENDING;
