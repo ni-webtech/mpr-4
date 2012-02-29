@@ -6,7 +6,7 @@ CC        := /usr/bin/cc
 CFLAGS    := -fPIC -Wall -g -Wshorten-64-to-32
 DFLAGS    := -DPIC -DCPU=X86_64
 IFLAGS    := -Isrc -Imacosx-x86_64-debug/inc
-LDFLAGS   := -Lmacosx-x86_64-debug/lib -Wl,-rpath,@executable_path/../lib -Wl,-rpath,@executable_path/ -Wl,-rpath,@loader_path/ -g -ldl
+LDFLAGS   := -Wl,-rpath,@executable_path/../lib -Wl,-rpath,@executable_path/ -Wl,-rpath,@loader_path/ -L/Users/mob/git/mpr/macosx-x86_64-debug/lib -g -ldl
 LIBS      := -lpthread -lm
 
 all: \
@@ -408,10 +408,10 @@ macosx-x86_64-debug/lib/libmpr.dylib:  \
 	$(CC) -dynamiclib -o macosx-x86_64-debug/lib/libmpr.dylib -arch x86_64 $(LDFLAGS) -install_name @rpath/libmpr.dylib macosx-x86_64-debug/obj/dtoa.o macosx-x86_64-debug/obj/mpr.o macosx-x86_64-debug/obj/mprAsync.o macosx-x86_64-debug/obj/mprAtomic.o macosx-x86_64-debug/obj/mprBuf.o macosx-x86_64-debug/obj/mprCache.o macosx-x86_64-debug/obj/mprCmd.o macosx-x86_64-debug/obj/mprCond.o macosx-x86_64-debug/obj/mprCrypt.o macosx-x86_64-debug/obj/mprDisk.o macosx-x86_64-debug/obj/mprDispatcher.o macosx-x86_64-debug/obj/mprEncode.o macosx-x86_64-debug/obj/mprEpoll.o macosx-x86_64-debug/obj/mprEvent.o macosx-x86_64-debug/obj/mprFile.o macosx-x86_64-debug/obj/mprFileSystem.o macosx-x86_64-debug/obj/mprHash.o macosx-x86_64-debug/obj/mprJSON.o macosx-x86_64-debug/obj/mprKqueue.o macosx-x86_64-debug/obj/mprList.o macosx-x86_64-debug/obj/mprLock.o macosx-x86_64-debug/obj/mprLog.o macosx-x86_64-debug/obj/mprMem.o macosx-x86_64-debug/obj/mprMime.o macosx-x86_64-debug/obj/mprMixed.o macosx-x86_64-debug/obj/mprModule.o macosx-x86_64-debug/obj/mprPath.o macosx-x86_64-debug/obj/mprPoll.o macosx-x86_64-debug/obj/mprPrintf.o macosx-x86_64-debug/obj/mprRomFile.o macosx-x86_64-debug/obj/mprSelect.o macosx-x86_64-debug/obj/mprSignal.o macosx-x86_64-debug/obj/mprSocket.o macosx-x86_64-debug/obj/mprString.o macosx-x86_64-debug/obj/mprTest.o macosx-x86_64-debug/obj/mprThread.o macosx-x86_64-debug/obj/mprTime.o macosx-x86_64-debug/obj/mprUnix.o macosx-x86_64-debug/obj/mprVxworks.o macosx-x86_64-debug/obj/mprWait.o macosx-x86_64-debug/obj/mprWide.o macosx-x86_64-debug/obj/mprWin.o macosx-x86_64-debug/obj/mprWince.o macosx-x86_64-debug/obj/mprXml.o $(LIBS)
 
 macosx-x86_64-debug/obj/benchMpr.o: \
-        src/test/benchMpr.c \
+        test/benchMpr.c \
         macosx-x86_64-debug/inc/bit.h \
         src/mpr.h
-	$(CC) -c -o macosx-x86_64-debug/obj/benchMpr.o -arch x86_64 $(CFLAGS) $(DFLAGS) -Isrc -Imacosx-x86_64-debug/inc src/test/benchMpr.c
+	$(CC) -c -o macosx-x86_64-debug/obj/benchMpr.o -arch x86_64 $(CFLAGS) $(DFLAGS) -Isrc -Imacosx-x86_64-debug/inc test/benchMpr.c
 
 macosx-x86_64-debug/bin/benchMpr:  \
         macosx-x86_64-debug/lib/libmpr.dylib \
@@ -419,116 +419,116 @@ macosx-x86_64-debug/bin/benchMpr:  \
 	$(CC) -o macosx-x86_64-debug/bin/benchMpr -arch x86_64 $(LDFLAGS) -Lmacosx-x86_64-debug/lib macosx-x86_64-debug/obj/benchMpr.o $(LIBS) -lmpr
 
 macosx-x86_64-debug/obj/runProgram.o: \
-        src/test/runProgram.c \
+        test/runProgram.c \
         macosx-x86_64-debug/inc/bit.h \
         macosx-x86_64-debug/inc/buildConfig.h
-	$(CC) -c -o macosx-x86_64-debug/obj/runProgram.o -arch x86_64 $(CFLAGS) $(DFLAGS) -Isrc -Imacosx-x86_64-debug/inc src/test/runProgram.c
+	$(CC) -c -o macosx-x86_64-debug/obj/runProgram.o -arch x86_64 $(CFLAGS) $(DFLAGS) -Isrc -Imacosx-x86_64-debug/inc test/runProgram.c
 
 macosx-x86_64-debug/bin/runProgram:  \
         macosx-x86_64-debug/obj/runProgram.o
 	$(CC) -o macosx-x86_64-debug/bin/runProgram -arch x86_64 $(LDFLAGS) -Lmacosx-x86_64-debug/lib macosx-x86_64-debug/obj/runProgram.o $(LIBS)
 
 macosx-x86_64-debug/obj/testArgv.o: \
-        src/test/testArgv.c \
+        test/testArgv.c \
         macosx-x86_64-debug/inc/bit.h \
         src/mpr.h
-	$(CC) -c -o macosx-x86_64-debug/obj/testArgv.o -arch x86_64 $(CFLAGS) $(DFLAGS) -Isrc -Imacosx-x86_64-debug/inc src/test/testArgv.c
+	$(CC) -c -o macosx-x86_64-debug/obj/testArgv.o -arch x86_64 $(CFLAGS) $(DFLAGS) -Isrc -Imacosx-x86_64-debug/inc test/testArgv.c
 
 macosx-x86_64-debug/obj/testBuf.o: \
-        src/test/testBuf.c \
+        test/testBuf.c \
         macosx-x86_64-debug/inc/bit.h \
         src/mpr.h
-	$(CC) -c -o macosx-x86_64-debug/obj/testBuf.o -arch x86_64 $(CFLAGS) $(DFLAGS) -Isrc -Imacosx-x86_64-debug/inc src/test/testBuf.c
+	$(CC) -c -o macosx-x86_64-debug/obj/testBuf.o -arch x86_64 $(CFLAGS) $(DFLAGS) -Isrc -Imacosx-x86_64-debug/inc test/testBuf.c
 
 macosx-x86_64-debug/obj/testCmd.o: \
-        src/test/testCmd.c \
+        test/testCmd.c \
         macosx-x86_64-debug/inc/bit.h \
         src/mpr.h
-	$(CC) -c -o macosx-x86_64-debug/obj/testCmd.o -arch x86_64 $(CFLAGS) $(DFLAGS) -Isrc -Imacosx-x86_64-debug/inc src/test/testCmd.c
+	$(CC) -c -o macosx-x86_64-debug/obj/testCmd.o -arch x86_64 $(CFLAGS) $(DFLAGS) -Isrc -Imacosx-x86_64-debug/inc test/testCmd.c
 
 macosx-x86_64-debug/obj/testCond.o: \
-        src/test/testCond.c \
+        test/testCond.c \
         macosx-x86_64-debug/inc/bit.h \
         src/mpr.h
-	$(CC) -c -o macosx-x86_64-debug/obj/testCond.o -arch x86_64 $(CFLAGS) $(DFLAGS) -Isrc -Imacosx-x86_64-debug/inc src/test/testCond.c
+	$(CC) -c -o macosx-x86_64-debug/obj/testCond.o -arch x86_64 $(CFLAGS) $(DFLAGS) -Isrc -Imacosx-x86_64-debug/inc test/testCond.c
 
 macosx-x86_64-debug/obj/testEvent.o: \
-        src/test/testEvent.c \
+        test/testEvent.c \
         macosx-x86_64-debug/inc/bit.h \
         src/mpr.h
-	$(CC) -c -o macosx-x86_64-debug/obj/testEvent.o -arch x86_64 $(CFLAGS) $(DFLAGS) -Isrc -Imacosx-x86_64-debug/inc src/test/testEvent.c
+	$(CC) -c -o macosx-x86_64-debug/obj/testEvent.o -arch x86_64 $(CFLAGS) $(DFLAGS) -Isrc -Imacosx-x86_64-debug/inc test/testEvent.c
 
 macosx-x86_64-debug/obj/testFile.o: \
-        src/test/testFile.c \
+        test/testFile.c \
         macosx-x86_64-debug/inc/bit.h \
         src/mpr.h
-	$(CC) -c -o macosx-x86_64-debug/obj/testFile.o -arch x86_64 $(CFLAGS) $(DFLAGS) -Isrc -Imacosx-x86_64-debug/inc src/test/testFile.c
+	$(CC) -c -o macosx-x86_64-debug/obj/testFile.o -arch x86_64 $(CFLAGS) $(DFLAGS) -Isrc -Imacosx-x86_64-debug/inc test/testFile.c
 
 macosx-x86_64-debug/obj/testHash.o: \
-        src/test/testHash.c \
+        test/testHash.c \
         macosx-x86_64-debug/inc/bit.h \
         src/mpr.h
-	$(CC) -c -o macosx-x86_64-debug/obj/testHash.o -arch x86_64 $(CFLAGS) $(DFLAGS) -Isrc -Imacosx-x86_64-debug/inc src/test/testHash.c
+	$(CC) -c -o macosx-x86_64-debug/obj/testHash.o -arch x86_64 $(CFLAGS) $(DFLAGS) -Isrc -Imacosx-x86_64-debug/inc test/testHash.c
 
 macosx-x86_64-debug/obj/testList.o: \
-        src/test/testList.c \
+        test/testList.c \
         macosx-x86_64-debug/inc/bit.h \
         src/mpr.h
-	$(CC) -c -o macosx-x86_64-debug/obj/testList.o -arch x86_64 $(CFLAGS) $(DFLAGS) -Isrc -Imacosx-x86_64-debug/inc src/test/testList.c
+	$(CC) -c -o macosx-x86_64-debug/obj/testList.o -arch x86_64 $(CFLAGS) $(DFLAGS) -Isrc -Imacosx-x86_64-debug/inc test/testList.c
 
 macosx-x86_64-debug/obj/testLock.o: \
-        src/test/testLock.c \
+        test/testLock.c \
         macosx-x86_64-debug/inc/bit.h \
         src/mpr.h
-	$(CC) -c -o macosx-x86_64-debug/obj/testLock.o -arch x86_64 $(CFLAGS) $(DFLAGS) -Isrc -Imacosx-x86_64-debug/inc src/test/testLock.c
+	$(CC) -c -o macosx-x86_64-debug/obj/testLock.o -arch x86_64 $(CFLAGS) $(DFLAGS) -Isrc -Imacosx-x86_64-debug/inc test/testLock.c
 
 macosx-x86_64-debug/obj/testMem.o: \
-        src/test/testMem.c \
+        test/testMem.c \
         macosx-x86_64-debug/inc/bit.h \
         src/mpr.h
-	$(CC) -c -o macosx-x86_64-debug/obj/testMem.o -arch x86_64 $(CFLAGS) $(DFLAGS) -Isrc -Imacosx-x86_64-debug/inc src/test/testMem.c
+	$(CC) -c -o macosx-x86_64-debug/obj/testMem.o -arch x86_64 $(CFLAGS) $(DFLAGS) -Isrc -Imacosx-x86_64-debug/inc test/testMem.c
 
 macosx-x86_64-debug/obj/testMpr.o: \
-        src/test/testMpr.c \
+        test/testMpr.c \
         macosx-x86_64-debug/inc/bit.h \
         src/mpr.h
-	$(CC) -c -o macosx-x86_64-debug/obj/testMpr.o -arch x86_64 $(CFLAGS) $(DFLAGS) -Isrc -Imacosx-x86_64-debug/inc src/test/testMpr.c
+	$(CC) -c -o macosx-x86_64-debug/obj/testMpr.o -arch x86_64 $(CFLAGS) $(DFLAGS) -Isrc -Imacosx-x86_64-debug/inc test/testMpr.c
 
 macosx-x86_64-debug/obj/testPath.o: \
-        src/test/testPath.c \
+        test/testPath.c \
         macosx-x86_64-debug/inc/bit.h \
         src/mpr.h
-	$(CC) -c -o macosx-x86_64-debug/obj/testPath.o -arch x86_64 $(CFLAGS) $(DFLAGS) -Isrc -Imacosx-x86_64-debug/inc src/test/testPath.c
+	$(CC) -c -o macosx-x86_64-debug/obj/testPath.o -arch x86_64 $(CFLAGS) $(DFLAGS) -Isrc -Imacosx-x86_64-debug/inc test/testPath.c
 
 macosx-x86_64-debug/obj/testSocket.o: \
-        src/test/testSocket.c \
+        test/testSocket.c \
         macosx-x86_64-debug/inc/bit.h \
         src/mpr.h
-	$(CC) -c -o macosx-x86_64-debug/obj/testSocket.o -arch x86_64 $(CFLAGS) $(DFLAGS) -Isrc -Imacosx-x86_64-debug/inc src/test/testSocket.c
+	$(CC) -c -o macosx-x86_64-debug/obj/testSocket.o -arch x86_64 $(CFLAGS) $(DFLAGS) -Isrc -Imacosx-x86_64-debug/inc test/testSocket.c
 
 macosx-x86_64-debug/obj/testSprintf.o: \
-        src/test/testSprintf.c \
+        test/testSprintf.c \
         macosx-x86_64-debug/inc/bit.h \
         src/mpr.h
-	$(CC) -c -o macosx-x86_64-debug/obj/testSprintf.o -arch x86_64 $(CFLAGS) $(DFLAGS) -Isrc -Imacosx-x86_64-debug/inc src/test/testSprintf.c
+	$(CC) -c -o macosx-x86_64-debug/obj/testSprintf.o -arch x86_64 $(CFLAGS) $(DFLAGS) -Isrc -Imacosx-x86_64-debug/inc test/testSprintf.c
 
 macosx-x86_64-debug/obj/testThread.o: \
-        src/test/testThread.c \
+        test/testThread.c \
         macosx-x86_64-debug/inc/bit.h \
         src/mpr.h
-	$(CC) -c -o macosx-x86_64-debug/obj/testThread.o -arch x86_64 $(CFLAGS) $(DFLAGS) -Isrc -Imacosx-x86_64-debug/inc src/test/testThread.c
+	$(CC) -c -o macosx-x86_64-debug/obj/testThread.o -arch x86_64 $(CFLAGS) $(DFLAGS) -Isrc -Imacosx-x86_64-debug/inc test/testThread.c
 
 macosx-x86_64-debug/obj/testTime.o: \
-        src/test/testTime.c \
+        test/testTime.c \
         macosx-x86_64-debug/inc/bit.h \
         src/mpr.h
-	$(CC) -c -o macosx-x86_64-debug/obj/testTime.o -arch x86_64 $(CFLAGS) $(DFLAGS) -Isrc -Imacosx-x86_64-debug/inc src/test/testTime.c
+	$(CC) -c -o macosx-x86_64-debug/obj/testTime.o -arch x86_64 $(CFLAGS) $(DFLAGS) -Isrc -Imacosx-x86_64-debug/inc test/testTime.c
 
 macosx-x86_64-debug/obj/testUnicode.o: \
-        src/test/testUnicode.c \
+        test/testUnicode.c \
         macosx-x86_64-debug/inc/bit.h \
         src/mpr.h
-	$(CC) -c -o macosx-x86_64-debug/obj/testUnicode.o -arch x86_64 $(CFLAGS) $(DFLAGS) -Isrc -Imacosx-x86_64-debug/inc src/test/testUnicode.c
+	$(CC) -c -o macosx-x86_64-debug/obj/testUnicode.o -arch x86_64 $(CFLAGS) $(DFLAGS) -Isrc -Imacosx-x86_64-debug/inc test/testUnicode.c
 
 macosx-x86_64-debug/bin/testMpr:  \
         macosx-x86_64-debug/lib/libmpr.dylib \
