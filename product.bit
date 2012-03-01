@@ -4,8 +4,8 @@
 
 Bit.load({
     blend: [
-        'test/test.bit',
         '${BITS}/embedthis.bit',
+        'test/test.bit',
     ],
 
     '+modules': [ ],
