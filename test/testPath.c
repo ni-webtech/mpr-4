@@ -328,16 +328,6 @@ static void testSame(MprTestGroup *gp)
 }
 
 
-static void testSearch(MprTestGroup *gp)
-{
-#if !DEBUG_IDE
-    assert(mprSearchPath("test.bit", 0, "../.." MPR_SEARCH_SEP ".", NULL) != 0);
-    assert(mprSearchPath("test.bit", 0, "../..", ".", NULL) != 0);
-#endif
-    assert(!mprSearchPath("Unfounded", 0, "../..", ".", "/", NULL) != 0);
-}
-
-
 static void testTemp(MprTestGroup *gp)
 {
     char    *path;
@@ -417,7 +407,6 @@ MprTestDef testPath = {
         MPR_TEST(0, testRelPath),
         MPR_TEST(0, testResolvePath),
         MPR_TEST(0, testSame),
-        MPR_TEST(0, testSearch),
         MPR_TEST(0, testTransform),
         MPR_TEST(0, testTemp),
         MPR_TEST(0, 0),
