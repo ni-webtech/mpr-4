@@ -1,0 +1,69 @@
+/*
+    buildConfig.h -- Build It Configuration Header for macosx-x86_64
+
+    This minimal build configuration is for building without Bit.
+ */
+
+#undef BLD_LIB_PREFIX
+#define BLD_PRODUCT "mpr"
+#define BLD_NAME "Multithreaded Portable Runtime"
+#define BLD_COMPANY "Embedthis"
+#define BLD_MPRPRODUCT 1
+#define BLD_VERSION "4.0.0"
+#define BLD_NUMBER "B0"
+#define BLD_DEBUG 1
+#define BLD_MAJOR_VERSION 4
+#define BLD_MINOR_VERSION 0
+#define BLD_PATCH_VERSION 0
+#define BLD_VNUM 400000000
+#define MACOSX 1
+#define BLD_UNIX_LIKE 1
+#define BLD_TYPE "debug"
+#define BLD_CPU "x86_64"
+#define BIT_CPU_ARCH MPR_CPU_IX64
+#define BLD_OS "MACOSX"
+#define BLD_CONFIG_CMD "/usr/lib/ejs/2.0.0/bin/bit.es configure"
+#define BLD_LIB_NAME "lib"
+#define BLD_CFG_PREFIX "/etc/mpr"
+#define BLD_BIN_PREFIX "/usr/lib/mpr/4.0.0/bin"
+#define BLD_DOC_PREFIX "/usr/lib/mpr/doc"
+#define BLD_INC_PREFIX "/usr/include/mpr"
+#define BLD_JEM_PREFIX "/usr/lib/mpr/jems"
+#define BLD_LIB_PREFIX "/usr/lib/mpr/4.0.0/lib"
+#define BLD_LOG_PREFIX "/var/log/mpr"
+#define BLD_MAN_PREFIX "/usr/lib/mpr/man"
+#define BLD_PRD_PREFIX "/usr/lib/mpr"
+#define BLD_SAM_PREFIX "/usr/lib/mpr/samples"
+#define BLD_SPL_PREFIX "/var/spool/mpr"
+#define BLD_SRC_PREFIX "/usr/src/mpr-4.0.0"
+#define BLD_VER_PREFIX "/usr/lib/mpr/4.0.0"
+#define BLD_WEB_PREFIX "/var/www/mpr-default"
+#define BLD_EXE ""
+#define BLD_SHLIB ".dylib"
+#define BLD_SHOBJ ".dylib"
+#define BLD_LIB ".a"
+#define BLD_OBJ ".o"
+#define BLD_CC_DOUBLE_BRACES 1
+#define BLD_CC_DYN_LOAD 1
+#define BLD_CC_EDITLINE 1
+#define BLD_CC_MMU 1
+#define BLD_CC_MTUNE 1
+#define BLD_CC_PAM 0
+#define BLD_CC_STACK_PROTECTOR 1
+#define BLD_CC_SYNC 1
+#define BLD_CC_SYNC_CAS 1
+#define BLD_CC_UNNAMED_UNIONS 1
+#define BLD_CC_WARN_64TO32 1
+#define BLD_CC_WARN_UNUSED 0
+#define BLD_FEATURE_CC 1
+#define BLD_CC "/usr/bin/cc"
+#define BLD_FEATURE_DOXYGEN 0
+#define BLD_FEATURE_DSI 0
+#define BLD_FEATURE_EJS 0
+#define BLD_FEATURE_HTTP 0
+#define BLD_FEATURE_MAN 1
+#define BLD_MAN "/usr/bin/man"
+#define BLD_FEATURE_MAN2HTML 0
+#define BLD_FEATURE_MD5 0
+#define BLD_FEATURE_OPENSSL 0
+#define BLD_FEATURE_MATRIXSSL 0
