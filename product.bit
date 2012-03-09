@@ -38,13 +38,10 @@ Bit.load({
 
     '+optional': [ 'doxygen', 'dsi', 'ejs', 'http', 'man', 'man2html', 'md5', 'openssl', 'matrixssl' ],
 
-    defaults: {
-        '+includes': [ 'src' ]
-    },
-
     targets: {
         libmpr: {
             type: 'lib',
+            headers: [ 'src/*.h' ],
             sources: [ 'src/*.c' ],
             exclude: [ /manager.c|ssl|Ssl|\/utils\// ],
         },
