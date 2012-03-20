@@ -90,7 +90,6 @@ void mprManageSelect(MprWaitService *ws, int flags)
 
 static int growFds(MprWaitService *ws)
 {
-    growFds(ws);
     ws->handlerMax *= 2;
     if ((ws->handlerMap = mprRealloc(ws->handlerMap, sizeof(MprWaitHandler*) * ws->handlerMax)) == 0) {
         mprAssert(!MPR_ERR_MEMORY);

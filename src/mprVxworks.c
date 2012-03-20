@@ -74,9 +74,8 @@ int mprLoadNativeModule(MprModule *mp)
             mprError("Can't open module \"%s\"", mp->path);
             return MPR_ERR_CANT_OPEN;
         }
-        errno = 0;
         handle = loadModule(fd, LOAD_GLOBAL_SYMBOLS);
-        if (handle == 0 || errno != 0) {
+        if (handle == 0) {
             close(fd);
             if (handle) {
                 unldByModuleId(handle, 0);

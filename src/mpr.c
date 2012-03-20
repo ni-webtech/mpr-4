@@ -73,6 +73,8 @@ Mpr *mprCreate(int argc, char **argv, int flags)
         mpr->name = mprTrimPathExt(mprGetPathBase(mpr->argv[0]));
     } else {
         mpr->name = sclone(BLD_PRODUCT);
+        mpr->argv = mprAllocZeroed(sizeof(void*));
+        mpr->argc = 0;
     }
     mpr->signalService = mprCreateSignalService();
     mpr->threadService = mprCreateThreadService();
