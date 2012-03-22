@@ -17,6 +17,7 @@ Bit.load({
         company: 'Embedthis',
 		version: '4.0.0',
 		buildNumber: 'B0',
+        manager: 'manager',
         sync: [],
     },
 
@@ -98,7 +99,7 @@ Bit.load({
                     cat: true,
                     title: bit.settings.title + ' SSL Source',
                 })
-                package(['combo', 'flat'])
+                package(bit.dir.pkg, ['combo', 'flat'])
             ",
         },
 
