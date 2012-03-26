@@ -1,5 +1,5 @@
 #
-#	Makefile - Top level Makefile when using "make" to build the MPR
+#	Makefile - Top level Makefile when using "make" to build.
 #			   Alternatively, use bit directly.
 #	
 
@@ -24,7 +24,7 @@ all clean compile:
 	make -f projects/$(OS)-$(ARCH)-$(PROFILE).mk $@
 
 build configure generate test package:
-	@bit $@
+	bit $@
 
 version:
 	@bit -q version
