@@ -266,6 +266,7 @@ static int getPathInfo(MprDiskFileSystem *fs, cchar *path, MprPath *info)
     info->atime = s.st_atime;
     info->ctime = s.st_ctime;
     info->mtime = s.st_mtime;
+    info->perms = s.st_mode;
     info->inode = s.st_ino;
     info->isDir = (s.st_mode & S_IFDIR) != 0;
     info->isReg = (s.st_mode & S_IFREG) != 0;
@@ -305,6 +306,7 @@ static int getPathInfo(MprDiskFileSystem *fs, cchar *path, MprPath *info)
     info->atime = s.st_atime;
     info->ctime = s.st_ctime;
     info->mtime = s.st_mtime;
+    info->perms = s.st_mode;
     info->inode = s.st_ino;
     info->isDir = (s.st_mode & S_IFDIR) != 0;
     info->isReg = (s.st_mode & S_IFREG) != 0;
