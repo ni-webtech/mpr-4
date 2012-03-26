@@ -82,7 +82,6 @@ Bit.load({
                 let d = bit.dir.pkg.join('${settings.product}-${settings.version}')
                 safeRemove(bit.dir.pkg)
                 install('package/mpr.bit', d.join('src/deps/mpr/mpr.bit'), {hidden: true})
-                install('package/Makefile', d.join('src/deps/mpr/Makefile'), {hidden: true})
                 install(['src/utils/makerom.c', 'src/manager.c'], d.join('src/deps/mpr'))
                 install(['doc/api/mpr.html', 'doc/api/mprBare.html', 'doc/api/mpr*.tags', 'doc/api/mpr.dtags'], 
                     d.join('doc/api'))
