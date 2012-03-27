@@ -109,6 +109,10 @@ clean:
 clobber: clean
 	rm -fr ./$(PLATFORM)
 
+$(PLATFORM)/inc/mpr.h: 
+	rm -fr macosx-x86_64-debug/inc/mpr.h
+	cp -r src/mpr.h macosx-x86_64-debug/inc/mpr.h
+
 $(PLATFORM)/obj/dtoa.o: \
         src/dtoa.c \
         $(PLATFORM)/inc/buildConfig.h
@@ -373,6 +377,7 @@ $(PLATFORM)/obj/mprXml.o: \
 	$(CC) -c -o $(PLATFORM)/obj/mprXml.o -arch x86_64 $(CFLAGS) $(DFLAGS) -I$(PLATFORM)/inc src/mprXml.c
 
 $(PLATFORM)/lib/libmpr.dylib:  \
+        $(PLATFORM)/inc/mpr.h \
         $(PLATFORM)/obj/dtoa.o \
         $(PLATFORM)/obj/mpr.o \
         $(PLATFORM)/obj/mprAsync.o \

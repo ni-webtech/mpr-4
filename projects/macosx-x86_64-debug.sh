@@ -13,6 +13,9 @@ LIBS="-lpthread -lm"
 [ ! -x ${PLATFORM}/inc ] && mkdir -p ${PLATFORM}/inc ${PLATFORM}/obj ${PLATFORM}/lib ${PLATFORM}/bin
 [ ! -f ${PLATFORM}/inc/buildConfig.h ] && cp projects/buildConfig.${PLATFORM} ${PLATFORM}/inc/buildConfig.h
 
+rm -rf macosx-x86_64-debug/inc/mpr.h
+cp -r src/mpr.h macosx-x86_64-debug/inc/mpr.h
+
 ${CC} -c -o ${PLATFORM}/obj/dtoa.o -arch x86_64 ${CFLAGS} ${DFLAGS} -I${PLATFORM}/inc src/dtoa.c
 
 ${CC} -c -o ${PLATFORM}/obj/mpr.o -arch x86_64 ${CFLAGS} ${DFLAGS} -I${PLATFORM}/inc src/mpr.c
