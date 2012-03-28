@@ -1,15 +1,15 @@
 #
-#   build.mk -- Build It Makefile to build Multithreaded Portable Runtime for macosx on x86_64
+#   macosx-x86_64-debug.mk -- Build It Makefile to build Multithreaded Portable Runtime for macosx on x86_64
 #
 
-PLATFORM  := macosx-x86_64-debug
-CC        := cc
-CFLAGS    := -fPIC -Wall -g
-DFLAGS    := -DPIC -DCPU=X86_64
-IFLAGS    := -I$(PLATFORM)/inc
-LDFLAGS   := -Wl,-rpath,@executable_path/../lib -Wl,-rpath,@executable_path/ -Wl,-rpath,@loader_path/ -L$(PLATFORM)/lib -g -ldl
-LIBS      := -lpthread -lm
-
+PLATFORM       := macosx-x86_64-debug
+CC             := cc
+LD             := /usr/bin/ld
+CFLAGS         := -fPIC -Wall -g
+DFLAGS         := -DPIC -DCPU=X86_64
+IFLAGS         := -I$(PLATFORM)/inc
+LDFLAGS        := -Wl,-rpath,@executable_path/../lib -Wl,-rpath,@executable_path/ -Wl,-rpath,@loader_path/ -L$(PLATFORM)/lib -g -ldl
+LIBS           := -lpthread -lm
 
 all: prep \
         $(PLATFORM)/bin/benchMpr \

@@ -1,9 +1,10 @@
 #
-#   build.sh -- Build It Shell Script to build Multithreaded Portable Runtime
+#   macosx-x86_64-debug.sh -- Build It Shell Script to build Multithreaded Portable Runtime
 #
 
 PLATFORM="macosx-x86_64-debug"
 CC="cc"
+LD="/usr/bin/ld"
 CFLAGS="-fPIC -Wall -g"
 DFLAGS="-DPIC -DCPU=X86_64"
 IFLAGS="-Imacosx-x86_64-debug/inc"

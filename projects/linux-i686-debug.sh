@@ -1,9 +1,10 @@
 #
-#   build.sh -- Build It Shell Script to build Multithreaded Portable Runtime
+#   linux-i686-debug.sh -- Build It Shell Script to build Multithreaded Portable Runtime
 #
 
 PLATFORM="linux-i686-debug"
 CC="cc"
+LD="/usr/bin/ld"
 CFLAGS="-Wall -fPIC -g -Wno-unused-result -mtune=i686"
 DFLAGS="-D_REENTRANT -DCPU=i686 -DPIC"
 IFLAGS="-Ilinux-i686-debug/inc"

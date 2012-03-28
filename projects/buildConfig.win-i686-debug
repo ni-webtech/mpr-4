@@ -60,9 +60,9 @@
 #define BLD_CC_WARN_UNUSED 0
 #define BLD_FEATURE_ALL 0
 #define BLD_FEATURE_WINSDK 1
-#define BLD_WINSDK "%WINSDK%"
+#define BLD_WINSDK "$(SDK)"
 #define BLD_FEATURE_CC 1
-#define BLD_CC "cl"
+#define BLD_CC "cl.exe"
 #define BLD_FEATURE_LINK 1
 #define BLD_LINK "undefined"
 #define BLD_FEATURE_DUMPBIN 1
@@ -75,7 +75,7 @@
 #define BLD_FEATURE_EJS 1
 #define BLD_EJS "../ejs/macosx-x86_64-debug/bin/ejs"
 #define BLD_FEATURE_HTTP 1
-#define BLD_HTTP "../appweb/macosx-x86_64-debug/bin/http"
+#define BLD_HTTP "../ejs/macosx-x86_64-debug/bin/http"
 #define BLD_FEATURE_MAN 1
 #define BLD_MAN "../../../../usr/bin/man"
 #define BLD_FEATURE_MAN2HTML 1

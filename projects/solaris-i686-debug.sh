@@ -1,9 +1,10 @@
 #
-#   build.sh -- Build It Shell Script to build Multithreaded Portable Runtime
+#   solaris-i686-debug.sh -- Build It Shell Script to build Multithreaded Portable Runtime
 #
 
 PLATFORM="solaris-i686-debug"
 CC="cc"
+LD="/usr/bin/ld"
 CFLAGS="-Wall -fPIC -g -mcpu=i686"
 DFLAGS="-D_REENTRANT -DCPU=i686 -DPIC"
 IFLAGS="-Isolaris-i686-debug/inc"

@@ -87,7 +87,7 @@ Bit.load({
                     d.join('doc/api'))
                 install('doc/man/*.1', d.join('doc/man'))
                 install('src/mpr.h', d.join('src/deps/mpr/mpr.h'))
-                install(['src/mprMem.c', 'src/mpr.c', 'src/*.c', 'src/deps/*.c'], d.join('src/deps/mpr/mprLib.c'), {
+                install(['src/mprMem.c', 'src/mpr.c', 'src/*.c'], d.join('src/deps/mpr/mprLib.c'), {
                     cat: true,
                     filter: /^#inc.*mpr.*$/mg, 
                     exclude: /manager|makerom|Ssl|ssl/,
