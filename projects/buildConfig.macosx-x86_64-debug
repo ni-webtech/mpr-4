@@ -62,7 +62,7 @@
 #define BLD_FEATURE_CC 1
 #define BLD_CC "cc"
 #define BLD_FEATURE_LINK 1
-#define BLD_LINK "../../../../usr/bin/ld"
+#define BLD_LINK "undefined"
 #define BLD_FEATURE_DOXYGEN 1
 #define BLD_DOXYGEN "../../../../usr/local/bin/doxygen"
 #define BLD_FEATURE_DSI 1

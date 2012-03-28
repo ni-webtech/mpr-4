@@ -969,7 +969,7 @@ char *mprGetTempPath(cchar *tempDir)
 
 
 /*
-    Return an absolute (normalized) path.
+    Return a windows path.
     On CYGWIN, this is a cygwin path without drive specs.
  */
 char *mprGetWinPath(cchar *path)
