@@ -4,9 +4,9 @@
 
 export VS="$(PROGRAMFILES)\Microsoft Visual Studio 10.0"
 export SDK="$(PROGRAMFILES)\Microsoft SDKs\Windows\v7.0A"
-export PATH="$(SDK)\Bin:$(VS)\VC\Bin:$(VS)\Common7\IDE:$(VS)\Common7\Tools:$(VS)\SDK\v3.5\bin:$(VS)\VC\VCPackages"
-export INCLUDE="$(SDK)\INCLUDE:$(VS)\VC\INCLUDE"
-export LIB="$(SDK)\lib:$(VS)\VC\lib"
+export PATH="$(SDK)/Bin:$(VS)/VC/Bin:$(VS)/Common7/IDE:$(VS)/Common7/Tools:$(VS)/SDK/v3.5/bin:$(VS)/VC/VCPackages;$(PATH)"
+export INCLUDE="$(INCLUDE);$(SDK)/INCLUDE:$(VS)/VC/INCLUDE"
+export LIB="$(LIB);$(SDK)/lib:$(VS)/VC/lib"
 
 PLATFORM="win-i686-debug"
 CC="cl.exe"
@@ -14,8 +14,9 @@ LD="link.exe"
 CFLAGS="-nologo -GR- -W3 -Zi -Od -MDd"
 DFLAGS="-D_REENTRANT -D_MT"
 IFLAGS="-Iwin-i686-debug/inc"
-LDFLAGS="-nologo -nodefaultlib -incremental:no -libpath:${PLATFORM}/bin -debug -machine:x86"
-LIBS="ws2_32.lib advapi32.lib user32.lib kernel32.lib oldnames.lib msvcrt.lib"
+LDFLAGS="-nologo -nodefaultlib -incremental:no -debug -machine:x86"
+LIBPATHS="-libpath:${PLATFORM}/bin"
+LIBS="ws2_32.lib advapi32.lib user32.lib kernel32.lib oldnames.lib msvcrt.lib shell32.lib"
 
 [ ! -x ${PLATFORM}/inc ] && mkdir -p ${PLATFORM}/inc ${PLATFORM}/obj ${PLATFORM}/lib ${PLATFORM}/bin
 [ ! -f ${PLATFORM}/inc/buildConfig.h ] && cp projects/buildConfig.${PLATFORM} ${PLATFORM}/inc/buildConfig.h
@@ -111,15 +112,15 @@ cp -r src/mpr.h win-i686-debug/inc/mpr.h
 
 "${CC}" -c -Fo${PLATFORM}/obj/mprXml.obj -Fd${PLATFORM}/obj ${CFLAGS} ${DFLAGS} -I${PLATFORM}/inc src/mprXml.c
 
-"${LD}" -dll -out:${PLATFORM}/bin/libmpr.dll -entry:_DllMainCRTStartup@12 -def:${PLATFORM}/bin/libmpr.def ${LDFLAGS} ${PLATFORM}/obj/dtoa.obj ${PLATFORM}/obj/mpr.obj ${PLATFORM}/obj/mprAsync.obj ${PLATFORM}/obj/mprAtomic.obj ${PLATFORM}/obj/mprBuf.obj ${PLATFORM}/obj/mprCache.obj ${PLATFORM}/obj/mprCmd.obj ${PLATFORM}/obj/mprCond.obj ${PLATFORM}/obj/mprCrypt.obj ${PLATFORM}/obj/mprDisk.obj ${PLATFORM}/obj/mprDispatcher.obj ${PLATFORM}/obj/mprEncode.obj ${PLATFORM}/obj/mprEpoll.obj ${PLATFORM}/obj/mprEvent.obj ${PLATFORM}/obj/mprFile.obj ${PLATFORM}/obj/mprFileSystem.obj ${PLATFORM}/obj/mprHash.obj ${PLATFORM}/obj/mprJSON.obj ${PLATFORM}/obj/mprKqueue.obj ${PLATFORM}/obj/mprList.obj ${PLATFORM}/obj/mprLock.obj ${PLATFORM}/obj/mprLog.obj ${PLATFORM}/obj/mprMem.obj ${PLATFORM}/obj/mprMime.obj ${PLATFORM}/obj/mprMixed.obj ${PLATFORM}/obj/mprModule.obj ${PLATFORM}/obj/mprPath.obj ${PLATFORM}/obj/mprPoll.obj ${PLATFORM}/obj/mprPrintf.obj ${PLATFORM}/obj/mprRomFile.obj ${PLATFORM}/obj/mprSelect.obj ${PLATFORM}/obj/mprSignal.obj ${PLATFORM}/obj/mprSocket.obj ${PLATFORM}/obj/mprString.obj ${PLATFORM}/obj/mprTest.obj ${PLATFORM}/obj/mprThread.obj ${PLATFORM}/obj/mprTime.obj ${PLATFORM}/obj/mprUnix.obj ${PLATFORM}/obj/mprVxworks.obj ${PLATFORM}/obj/mprWait.obj ${PLATFORM}/obj/mprWide.obj ${PLATFORM}/obj/mprWin.obj ${PLATFORM}/obj/mprWince.obj ${PLATFORM}/obj/mprXml.obj ${LIBS}
+"${LD}" -dll -out:${PLATFORM}/bin/libmpr.dll -entry:_DllMainCRTStartup@12 -def:${PLATFORM}/bin/libmpr.def ${LDFLAGS} ${LIBPATHS} ${PLATFORM}/obj/dtoa.obj ${PLATFORM}/obj/mpr.obj ${PLATFORM}/obj/mprAsync.obj ${PLATFORM}/obj/mprAtomic.obj ${PLATFORM}/obj/mprBuf.obj ${PLATFORM}/obj/mprCache.obj ${PLATFORM}/obj/mprCmd.obj ${PLATFORM}/obj/mprCond.obj ${PLATFORM}/obj/mprCrypt.obj ${PLATFORM}/obj/mprDisk.obj ${PLATFORM}/obj/mprDispatcher.obj ${PLATFORM}/obj/mprEncode.obj ${PLATFORM}/obj/mprEpoll.obj ${PLATFORM}/obj/mprEvent.obj ${PLATFORM}/obj/mprFile.obj ${PLATFORM}/obj/mprFileSystem.obj ${PLATFORM}/obj/mprHash.obj ${PLATFORM}/obj/mprJSON.obj ${PLATFORM}/obj/mprKqueue.obj ${PLATFORM}/obj/mprList.obj ${PLATFORM}/obj/mprLock.obj ${PLATFORM}/obj/mprLog.obj ${PLATFORM}/obj/mprMem.obj ${PLATFORM}/obj/mprMime.obj ${PLATFORM}/obj/mprMixed.obj ${PLATFORM}/obj/mprModule.obj ${PLATFORM}/obj/mprPath.obj ${PLATFORM}/obj/mprPoll.obj ${PLATFORM}/obj/mprPrintf.obj ${PLATFORM}/obj/mprRomFile.obj ${PLATFORM}/obj/mprSelect.obj ${PLATFORM}/obj/mprSignal.obj ${PLATFORM}/obj/mprSocket.obj ${PLATFORM}/obj/mprString.obj ${PLATFORM}/obj/mprTest.obj ${PLATFORM}/obj/mprThread.obj ${PLATFORM}/obj/mprTime.obj ${PLATFORM}/obj/mprUnix.obj ${PLATFORM}/obj/mprVxworks.obj ${PLATFORM}/obj/mprWait.obj ${PLATFORM}/obj/mprWide.obj ${PLATFORM}/obj/mprWin.obj ${PLATFORM}/obj/mprWince.obj ${PLATFORM}/obj/mprXml.obj ${LIBS}
 
 "${CC}" -c -Fo${PLATFORM}/obj/benchMpr.obj -Fd${PLATFORM}/obj ${CFLAGS} ${DFLAGS} -I${PLATFORM}/inc test/benchMpr.c
 
-"${LD}" -out:${PLATFORM}/bin/benchMpr.exe -entry:mainCRTStartup -subsystem:console ${LDFLAGS} ${PLATFORM}/obj/benchMpr.obj ${LIBS} mpr.lib
+"${LD}" -out:${PLATFORM}/bin/benchMpr.exe -entry:mainCRTStartup -subsystem:console ${LDFLAGS} ${LIBPATHS} ${PLATFORM}/obj/benchMpr.obj ${LIBS} libmpr.lib
 
 "${CC}" -c -Fo${PLATFORM}/obj/runProgram.obj -Fd${PLATFORM}/obj ${CFLAGS} ${DFLAGS} -I${PLATFORM}/inc test/runProgram.c
 
-"${LD}" -out:${PLATFORM}/bin/runProgram.exe -entry:mainCRTStartup -subsystem:console ${LDFLAGS} ${PLATFORM}/obj/runProgram.obj ${LIBS}
+"${LD}" -out:${PLATFORM}/bin/runProgram.exe -entry:mainCRTStartup -subsystem:console ${LDFLAGS} ${LIBPATHS} ${PLATFORM}/obj/runProgram.obj ${LIBS}
 
 "${CC}" -c -Fo${PLATFORM}/obj/testArgv.obj -Fd${PLATFORM}/obj ${CFLAGS} ${DFLAGS} -I${PLATFORM}/inc test/testArgv.c
 
@@ -155,17 +156,17 @@ cp -r src/mpr.h win-i686-debug/inc/mpr.h
 
 "${CC}" -c -Fo${PLATFORM}/obj/testUnicode.obj -Fd${PLATFORM}/obj ${CFLAGS} ${DFLAGS} -I${PLATFORM}/inc test/testUnicode.c
 
-"${LD}" -out:${PLATFORM}/bin/testMpr.exe -entry:mainCRTStartup -subsystem:console ${LDFLAGS} ${PLATFORM}/obj/testArgv.obj ${PLATFORM}/obj/testBuf.obj ${PLATFORM}/obj/testCmd.obj ${PLATFORM}/obj/testCond.obj ${PLATFORM}/obj/testEvent.obj ${PLATFORM}/obj/testFile.obj ${PLATFORM}/obj/testHash.obj ${PLATFORM}/obj/testList.obj ${PLATFORM}/obj/testLock.obj ${PLATFORM}/obj/testMem.obj ${PLATFORM}/obj/testMpr.obj ${PLATFORM}/obj/testPath.obj ${PLATFORM}/obj/testSocket.obj ${PLATFORM}/obj/testSprintf.obj ${PLATFORM}/obj/testThread.obj ${PLATFORM}/obj/testTime.obj ${PLATFORM}/obj/testUnicode.obj ${LIBS} mpr.lib
+"${LD}" -out:${PLATFORM}/bin/testMpr.exe -entry:mainCRTStartup -subsystem:console ${LDFLAGS} ${LIBPATHS} ${PLATFORM}/obj/testArgv.obj ${PLATFORM}/obj/testBuf.obj ${PLATFORM}/obj/testCmd.obj ${PLATFORM}/obj/testCond.obj ${PLATFORM}/obj/testEvent.obj ${PLATFORM}/obj/testFile.obj ${PLATFORM}/obj/testHash.obj ${PLATFORM}/obj/testList.obj ${PLATFORM}/obj/testLock.obj ${PLATFORM}/obj/testMem.obj ${PLATFORM}/obj/testMpr.obj ${PLATFORM}/obj/testPath.obj ${PLATFORM}/obj/testSocket.obj ${PLATFORM}/obj/testSprintf.obj ${PLATFORM}/obj/testThread.obj ${PLATFORM}/obj/testTime.obj ${PLATFORM}/obj/testUnicode.obj ${LIBS} libmpr.lib
 
 "${CC}" -c -Fo${PLATFORM}/obj/manager.obj -Fd${PLATFORM}/obj ${CFLAGS} ${DFLAGS} -I${PLATFORM}/inc src/manager.c
 
-"${LD}" -out:${PLATFORM}/bin/manager.exe -entry:WinMainCRTStartup -subsystem:Windows ${LDFLAGS} ${PLATFORM}/obj/manager.obj ${LIBS} mpr.lib shell32.lib
+"${LD}" -out:${PLATFORM}/bin/manager.exe -entry:WinMainCRTStartup -subsystem:Windows ${LDFLAGS} ${LIBPATHS} ${PLATFORM}/obj/manager.obj ${LIBS} libmpr.lib
 
 "${CC}" -c -Fo${PLATFORM}/obj/makerom.obj -Fd${PLATFORM}/obj ${CFLAGS} ${DFLAGS} -I${PLATFORM}/inc src/utils/makerom.c
 
-"${LD}" -out:${PLATFORM}/bin/makerom.exe -entry:mainCRTStartup -subsystem:console ${LDFLAGS} ${PLATFORM}/obj/makerom.obj ${LIBS} mpr.lib
+"${LD}" -out:${PLATFORM}/bin/makerom.exe -entry:mainCRTStartup -subsystem:console ${LDFLAGS} ${LIBPATHS} ${PLATFORM}/obj/makerom.obj ${LIBS} libmpr.lib
 
 "${CC}" -c -Fo${PLATFORM}/obj/charGen.obj -Fd${PLATFORM}/obj ${CFLAGS} ${DFLAGS} -I${PLATFORM}/inc src/utils/charGen.c
 
-"${LD}" -out:${PLATFORM}/bin/chargen.exe -entry:mainCRTStartup -subsystem:console ${LDFLAGS} ${PLATFORM}/obj/charGen.obj ${LIBS} mpr.lib
+"${LD}" -out:${PLATFORM}/bin/chargen.exe -entry:mainCRTStartup -subsystem:console ${LDFLAGS} ${LIBPATHS} ${PLATFORM}/obj/charGen.obj ${LIBS} libmpr.lib
 

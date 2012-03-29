@@ -8,8 +8,9 @@ LD="ld"
 CFLAGS="-Wall -fPIC -g -Wno-unused-result -mtune=i686"
 DFLAGS="-D_REENTRANT -DCPU=i686 -DPIC"
 IFLAGS="-Ilinux-i686-debug/inc"
-LDFLAGS="-Wl,--enable-new-dtags '-Wl,-rpath,$$ORIGIN/' '-Wl,-rpath,$$ORIGIN/../lib' -L${PLATFORM}/lib -g -ldl"
-LIBS="-lpthread -lm"
+LDFLAGS="-Wl,--enable-new-dtags -Wl,-rpath,\$ORIGIN/ -Wl,-rpath,\$ORIGIN/../lib -g"
+LIBPATHS="-L${PLATFORM}/lib"
+LIBS="-lpthread -lm -ldl"
 
 [ ! -x ${PLATFORM}/inc ] && mkdir -p ${PLATFORM}/inc ${PLATFORM}/obj ${PLATFORM}/lib ${PLATFORM}/bin
 [ ! -f ${PLATFORM}/inc/buildConfig.h ] && cp projects/buildConfig.${PLATFORM} ${PLATFORM}/inc/buildConfig.h
@@ -105,15 +106,15 @@ ${CC} -c -o ${PLATFORM}/obj/mprWince.o ${CFLAGS} ${DFLAGS} -I${PLATFORM}/inc src
 
 ${CC} -c -o ${PLATFORM}/obj/mprXml.o ${CFLAGS} ${DFLAGS} -I${PLATFORM}/inc src/mprXml.c
 
-${CC} -shared -o ${PLATFORM}/lib/libmpr.so ${LDFLAGS} ${PLATFORM}/obj/dtoa.o ${PLATFORM}/obj/mpr.o ${PLATFORM}/obj/mprAsync.o ${PLATFORM}/obj/mprAtomic.o ${PLATFORM}/obj/mprBuf.o ${PLATFORM}/obj/mprCache.o ${PLATFORM}/obj/mprCmd.o ${PLATFORM}/obj/mprCond.o ${PLATFORM}/obj/mprCrypt.o ${PLATFORM}/obj/mprDisk.o ${PLATFORM}/obj/mprDispatcher.o ${PLATFORM}/obj/mprEncode.o ${PLATFORM}/obj/mprEpoll.o ${PLATFORM}/obj/mprEvent.o ${PLATFORM}/obj/mprFile.o ${PLATFORM}/obj/mprFileSystem.o ${PLATFORM}/obj/mprHash.o ${PLATFORM}/obj/mprJSON.o ${PLATFORM}/obj/mprKqueue.o ${PLATFORM}/obj/mprList.o ${PLATFORM}/obj/mprLock.o ${PLATFORM}/obj/mprLog.o ${PLATFORM}/obj/mprMem.o ${PLATFORM}/obj/mprMime.o ${PLATFORM}/obj/mprMixed.o ${PLATFORM}/obj/mprModule.o ${PLATFORM}/obj/mprPath.o ${PLATFORM}/obj/mprPoll.o ${PLATFORM}/obj/mprPrintf.o ${PLATFORM}/obj/mprRomFile.o ${PLATFORM}/obj/mprSelect.o ${PLATFORM}/obj/mprSignal.o ${PLATFORM}/obj/mprSocket.o ${PLATFORM}/obj/mprString.o ${PLATFORM}/obj/mprTest.o ${PLATFORM}/obj/mprThread.o ${PLATFORM}/obj/mprTime.o ${PLATFORM}/obj/mprUnix.o ${PLATFORM}/obj/mprVxworks.o ${PLATFORM}/obj/mprWait.o ${PLATFORM}/obj/mprWide.o ${PLATFORM}/obj/mprWin.o ${PLATFORM}/obj/mprWince.o ${PLATFORM}/obj/mprXml.o ${LIBS}
+${CC} -shared -o ${PLATFORM}/lib/libmpr.so ${LDFLAGS} ${LIBPATHS} ${PLATFORM}/obj/dtoa.o ${PLATFORM}/obj/mpr.o ${PLATFORM}/obj/mprAsync.o ${PLATFORM}/obj/mprAtomic.o ${PLATFORM}/obj/mprBuf.o ${PLATFORM}/obj/mprCache.o ${PLATFORM}/obj/mprCmd.o ${PLATFORM}/obj/mprCond.o ${PLATFORM}/obj/mprCrypt.o ${PLATFORM}/obj/mprDisk.o ${PLATFORM}/obj/mprDispatcher.o ${PLATFORM}/obj/mprEncode.o ${PLATFORM}/obj/mprEpoll.o ${PLATFORM}/obj/mprEvent.o ${PLATFORM}/obj/mprFile.o ${PLATFORM}/obj/mprFileSystem.o ${PLATFORM}/obj/mprHash.o ${PLATFORM}/obj/mprJSON.o ${PLATFORM}/obj/mprKqueue.o ${PLATFORM}/obj/mprList.o ${PLATFORM}/obj/mprLock.o ${PLATFORM}/obj/mprLog.o ${PLATFORM}/obj/mprMem.o ${PLATFORM}/obj/mprMime.o ${PLATFORM}/obj/mprMixed.o ${PLATFORM}/obj/mprModule.o ${PLATFORM}/obj/mprPath.o ${PLATFORM}/obj/mprPoll.o ${PLATFORM}/obj/mprPrintf.o ${PLATFORM}/obj/mprRomFile.o ${PLATFORM}/obj/mprSelect.o ${PLATFORM}/obj/mprSignal.o ${PLATFORM}/obj/mprSocket.o ${PLATFORM}/obj/mprString.o ${PLATFORM}/obj/mprTest.o ${PLATFORM}/obj/mprThread.o ${PLATFORM}/obj/mprTime.o ${PLATFORM}/obj/mprUnix.o ${PLATFORM}/obj/mprVxworks.o ${PLATFORM}/obj/mprWait.o ${PLATFORM}/obj/mprWide.o ${PLATFORM}/obj/mprWin.o ${PLATFORM}/obj/mprWince.o ${PLATFORM}/obj/mprXml.o ${LIBS}
 
 ${CC} -c -o ${PLATFORM}/obj/benchMpr.o ${CFLAGS} ${DFLAGS} -I${PLATFORM}/inc test/benchMpr.c
 
-${CC} -o ${PLATFORM}/bin/benchMpr ${LDFLAGS} -L${PLATFORM}/lib ${PLATFORM}/obj/benchMpr.o ${LIBS} -lmpr ${LDFLAGS}
+${CC} -o ${PLATFORM}/bin/benchMpr ${LDFLAGS} ${LIBPATHS} ${PLATFORM}/obj/benchMpr.o ${LIBS} -lmpr ${LDFLAGS}
 
 ${CC} -c -o ${PLATFORM}/obj/runProgram.o ${CFLAGS} ${DFLAGS} -I${PLATFORM}/inc test/runProgram.c
 
-${CC} -o ${PLATFORM}/bin/runProgram ${LDFLAGS} -L${PLATFORM}/lib ${PLATFORM}/obj/runProgram.o ${LIBS} ${LDFLAGS}
+${CC} -o ${PLATFORM}/bin/runProgram ${LDFLAGS} ${LIBPATHS} ${PLATFORM}/obj/runProgram.o ${LIBS} ${LDFLAGS}
 
 ${CC} -c -o ${PLATFORM}/obj/testArgv.o ${CFLAGS} ${DFLAGS} -I${PLATFORM}/inc test/testArgv.c
 
@@ -149,17 +150,17 @@ ${CC} -c -o ${PLATFORM}/obj/testTime.o ${CFLAGS} ${DFLAGS} -I${PLATFORM}/inc tes
 
 ${CC} -c -o ${PLATFORM}/obj/testUnicode.o ${CFLAGS} ${DFLAGS} -I${PLATFORM}/inc test/testUnicode.c
 
-${CC} -o ${PLATFORM}/bin/testMpr ${LDFLAGS} -L${PLATFORM}/lib ${PLATFORM}/obj/testArgv.o ${PLATFORM}/obj/testBuf.o ${PLATFORM}/obj/testCmd.o ${PLATFORM}/obj/testCond.o ${PLATFORM}/obj/testEvent.o ${PLATFORM}/obj/testFile.o ${PLATFORM}/obj/testHash.o ${PLATFORM}/obj/testList.o ${PLATFORM}/obj/testLock.o ${PLATFORM}/obj/testMem.o ${PLATFORM}/obj/testMpr.o ${PLATFORM}/obj/testPath.o ${PLATFORM}/obj/testSocket.o ${PLATFORM}/obj/testSprintf.o ${PLATFORM}/obj/testThread.o ${PLATFORM}/obj/testTime.o ${PLATFORM}/obj/testUnicode.o ${LIBS} -lmpr ${LDFLAGS}
+${CC} -o ${PLATFORM}/bin/testMpr ${LDFLAGS} ${LIBPATHS} ${PLATFORM}/obj/testArgv.o ${PLATFORM}/obj/testBuf.o ${PLATFORM}/obj/testCmd.o ${PLATFORM}/obj/testCond.o ${PLATFORM}/obj/testEvent.o ${PLATFORM}/obj/testFile.o ${PLATFORM}/obj/testHash.o ${PLATFORM}/obj/testList.o ${PLATFORM}/obj/testLock.o ${PLATFORM}/obj/testMem.o ${PLATFORM}/obj/testMpr.o ${PLATFORM}/obj/testPath.o ${PLATFORM}/obj/testSocket.o ${PLATFORM}/obj/testSprintf.o ${PLATFORM}/obj/testThread.o ${PLATFORM}/obj/testTime.o ${PLATFORM}/obj/testUnicode.o ${LIBS} -lmpr ${LDFLAGS}
 
 ${CC} -c -o ${PLATFORM}/obj/manager.o ${CFLAGS} ${DFLAGS} -I${PLATFORM}/inc src/manager.c
 
-${CC} -o ${PLATFORM}/bin/manager ${LDFLAGS} -L${PLATFORM}/lib ${PLATFORM}/obj/manager.o ${LIBS} -lmpr ${LDFLAGS}
+${CC} -o ${PLATFORM}/bin/manager ${LDFLAGS} ${LIBPATHS} ${PLATFORM}/obj/manager.o ${LIBS} -lmpr ${LDFLAGS}
 
 ${CC} -c -o ${PLATFORM}/obj/makerom.o ${CFLAGS} ${DFLAGS} -I${PLATFORM}/inc src/utils/makerom.c
 
-${CC} -o ${PLATFORM}/bin/makerom ${LDFLAGS} -L${PLATFORM}/lib ${PLATFORM}/obj/makerom.o ${LIBS} -lmpr ${LDFLAGS}
+${CC} -o ${PLATFORM}/bin/makerom ${LDFLAGS} ${LIBPATHS} ${PLATFORM}/obj/makerom.o ${LIBS} -lmpr ${LDFLAGS}
 
 ${CC} -c -o ${PLATFORM}/obj/charGen.o ${CFLAGS} ${DFLAGS} -I${PLATFORM}/inc src/utils/charGen.c
 
-${CC} -o ${PLATFORM}/bin/chargen ${LDFLAGS} -L${PLATFORM}/lib ${PLATFORM}/obj/charGen.o ${LIBS} -lmpr ${LDFLAGS}
+${CC} -o ${PLATFORM}/bin/chargen ${LDFLAGS} ${LIBPATHS} ${PLATFORM}/obj/charGen.o ${LIBS} -lmpr ${LDFLAGS}
 

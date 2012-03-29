@@ -8,8 +8,9 @@ LD             := ld
 CFLAGS         := -Wall -fPIC -g -Wno-unused-result -mtune=i686
 DFLAGS         := -D_REENTRANT -DCPU=i686 -DPIC
 IFLAGS         := -I$(PLATFORM)/inc
-LDFLAGS        := -Wl,--enable-new-dtags '-Wl,-rpath,$$ORIGIN/' '-Wl,-rpath,$$ORIGIN/../lib' -L$(PLATFORM)/lib -g -ldl
-LIBS           := -lpthread -lm
+LDFLAGS        := '-Wl,--enable-new-dtags' '-Wl,-rpath,$$ORIGIN/' '-Wl,-rpath,$$ORIGIN/../lib' '-g'
+LIBPATHS       := -L$(PLATFORM)/lib
+LIBS           := -lpthread -lm -ldl
 
 all: prep \
         $(PLATFORM)/bin/benchMpr \
@@ -378,7 +379,7 @@ $(PLATFORM)/lib/libmpr.so:  \
         $(PLATFORM)/obj/mprWin.o \
         $(PLATFORM)/obj/mprWince.o \
         $(PLATFORM)/obj/mprXml.o
-	$(CC) -shared -o $(PLATFORM)/lib/libmpr.so $(LDFLAGS) $(PLATFORM)/obj/dtoa.o $(PLATFORM)/obj/mpr.o $(PLATFORM)/obj/mprAsync.o $(PLATFORM)/obj/mprAtomic.o $(PLATFORM)/obj/mprBuf.o $(PLATFORM)/obj/mprCache.o $(PLATFORM)/obj/mprCmd.o $(PLATFORM)/obj/mprCond.o $(PLATFORM)/obj/mprCrypt.o $(PLATFORM)/obj/mprDisk.o $(PLATFORM)/obj/mprDispatcher.o $(PLATFORM)/obj/mprEncode.o $(PLATFORM)/obj/mprEpoll.o $(PLATFORM)/obj/mprEvent.o $(PLATFORM)/obj/mprFile.o $(PLATFORM)/obj/mprFileSystem.o $(PLATFORM)/obj/mprHash.o $(PLATFORM)/obj/mprJSON.o $(PLATFORM)/obj/mprKqueue.o $(PLATFORM)/obj/mprList.o $(PLATFORM)/obj/mprLock.o $(PLATFORM)/obj/mprLog.o $(PLATFORM)/obj/mprMem.o $(PLATFORM)/obj/mprMime.o $(PLATFORM)/obj/mprMixed.o $(PLATFORM)/obj/mprModule.o $(PLATFORM)/obj/mprPath.o $(PLATFORM)/obj/mprPoll.o $(PLATFORM)/obj/mprPrintf.o $(PLATFORM)/obj/mprRomFile.o $(PLATFORM)/obj/mprSelect.o $(PLATFORM)/obj/mprSignal.o $(PLATFORM)/obj/mprSocket.o $(PLATFORM)/obj/mprString.o $(PLATFORM)/obj/mprTest.o $(PLATFORM)/obj/mprThread.o $(PLATFORM)/obj/mprTime.o $(PLATFORM)/obj/mprUnix.o $(PLATFORM)/obj/mprVxworks.o $(PLATFORM)/obj/mprWait.o $(PLATFORM)/obj/mprWide.o $(PLATFORM)/obj/mprWin.o $(PLATFORM)/obj/mprWince.o $(PLATFORM)/obj/mprXml.o $(LIBS)
+	$(CC) -shared -o $(PLATFORM)/lib/libmpr.so $(LDFLAGS) $(LIBPATHS) $(PLATFORM)/obj/dtoa.o $(PLATFORM)/obj/mpr.o $(PLATFORM)/obj/mprAsync.o $(PLATFORM)/obj/mprAtomic.o $(PLATFORM)/obj/mprBuf.o $(PLATFORM)/obj/mprCache.o $(PLATFORM)/obj/mprCmd.o $(PLATFORM)/obj/mprCond.o $(PLATFORM)/obj/mprCrypt.o $(PLATFORM)/obj/mprDisk.o $(PLATFORM)/obj/mprDispatcher.o $(PLATFORM)/obj/mprEncode.o $(PLATFORM)/obj/mprEpoll.o $(PLATFORM)/obj/mprEvent.o $(PLATFORM)/obj/mprFile.o $(PLATFORM)/obj/mprFileSystem.o $(PLATFORM)/obj/mprHash.o $(PLATFORM)/obj/mprJSON.o $(PLATFORM)/obj/mprKqueue.o $(PLATFORM)/obj/mprList.o $(PLATFORM)/obj/mprLock.o $(PLATFORM)/obj/mprLog.o $(PLATFORM)/obj/mprMem.o $(PLATFORM)/obj/mprMime.o $(PLATFORM)/obj/mprMixed.o $(PLATFORM)/obj/mprModule.o $(PLATFORM)/obj/mprPath.o $(PLATFORM)/obj/mprPoll.o $(PLATFORM)/obj/mprPrintf.o $(PLATFORM)/obj/mprRomFile.o $(PLATFORM)/obj/mprSelect.o $(PLATFORM)/obj/mprSignal.o $(PLATFORM)/obj/mprSocket.o $(PLATFORM)/obj/mprString.o $(PLATFORM)/obj/mprTest.o $(PLATFORM)/obj/mprThread.o $(PLATFORM)/obj/mprTime.o $(PLATFORM)/obj/mprUnix.o $(PLATFORM)/obj/mprVxworks.o $(PLATFORM)/obj/mprWait.o $(PLATFORM)/obj/mprWide.o $(PLATFORM)/obj/mprWin.o $(PLATFORM)/obj/mprWince.o $(PLATFORM)/obj/mprXml.o $(LIBS)
 
 $(PLATFORM)/obj/benchMpr.o: \
         test/benchMpr.c \
@@ -388,7 +389,7 @@ $(PLATFORM)/obj/benchMpr.o: \
 $(PLATFORM)/bin/benchMpr:  \
         $(PLATFORM)/lib/libmpr.so \
         $(PLATFORM)/obj/benchMpr.o
-	$(CC) -o $(PLATFORM)/bin/benchMpr $(LDFLAGS) -L$(PLATFORM)/lib $(PLATFORM)/obj/benchMpr.o $(LIBS) -lmpr $(LDFLAGS)
+	$(CC) -o $(PLATFORM)/bin/benchMpr $(LDFLAGS) $(LIBPATHS) $(PLATFORM)/obj/benchMpr.o $(LIBS) -lmpr $(LDFLAGS)
 
 $(PLATFORM)/obj/runProgram.o: \
         test/runProgram.c \
@@ -397,7 +398,7 @@ $(PLATFORM)/obj/runProgram.o: \
 
 $(PLATFORM)/bin/runProgram:  \
         $(PLATFORM)/obj/runProgram.o
-	$(CC) -o $(PLATFORM)/bin/runProgram $(LDFLAGS) -L$(PLATFORM)/lib $(PLATFORM)/obj/runProgram.o $(LIBS) $(LDFLAGS)
+	$(CC) -o $(PLATFORM)/bin/runProgram $(LDFLAGS) $(LIBPATHS) $(PLATFORM)/obj/runProgram.o $(LIBS) $(LDFLAGS)
 
 $(PLATFORM)/obj/testArgv.o: \
         test/testArgv.c \
@@ -504,7 +505,7 @@ $(PLATFORM)/bin/testMpr:  \
         $(PLATFORM)/obj/testThread.o \
         $(PLATFORM)/obj/testTime.o \
         $(PLATFORM)/obj/testUnicode.o
-	$(CC) -o $(PLATFORM)/bin/testMpr $(LDFLAGS) -L$(PLATFORM)/lib $(PLATFORM)/obj/testArgv.o $(PLATFORM)/obj/testBuf.o $(PLATFORM)/obj/testCmd.o $(PLATFORM)/obj/testCond.o $(PLATFORM)/obj/testEvent.o $(PLATFORM)/obj/testFile.o $(PLATFORM)/obj/testHash.o $(PLATFORM)/obj/testList.o $(PLATFORM)/obj/testLock.o $(PLATFORM)/obj/testMem.o $(PLATFORM)/obj/testMpr.o $(PLATFORM)/obj/testPath.o $(PLATFORM)/obj/testSocket.o $(PLATFORM)/obj/testSprintf.o $(PLATFORM)/obj/testThread.o $(PLATFORM)/obj/testTime.o $(PLATFORM)/obj/testUnicode.o $(LIBS) -lmpr $(LDFLAGS)
+	$(CC) -o $(PLATFORM)/bin/testMpr $(LDFLAGS) $(LIBPATHS) $(PLATFORM)/obj/testArgv.o $(PLATFORM)/obj/testBuf.o $(PLATFORM)/obj/testCmd.o $(PLATFORM)/obj/testCond.o $(PLATFORM)/obj/testEvent.o $(PLATFORM)/obj/testFile.o $(PLATFORM)/obj/testHash.o $(PLATFORM)/obj/testList.o $(PLATFORM)/obj/testLock.o $(PLATFORM)/obj/testMem.o $(PLATFORM)/obj/testMpr.o $(PLATFORM)/obj/testPath.o $(PLATFORM)/obj/testSocket.o $(PLATFORM)/obj/testSprintf.o $(PLATFORM)/obj/testThread.o $(PLATFORM)/obj/testTime.o $(PLATFORM)/obj/testUnicode.o $(LIBS) -lmpr $(LDFLAGS)
 
 $(PLATFORM)/obj/manager.o: \
         src/manager.c \
@@ -514,7 +515,7 @@ $(PLATFORM)/obj/manager.o: \
 $(PLATFORM)/bin/manager:  \
         $(PLATFORM)/lib/libmpr.so \
         $(PLATFORM)/obj/manager.o
-	$(CC) -o $(PLATFORM)/bin/manager $(LDFLAGS) -L$(PLATFORM)/lib $(PLATFORM)/obj/manager.o $(LIBS) -lmpr $(LDFLAGS)
+	$(CC) -o $(PLATFORM)/bin/manager $(LDFLAGS) $(LIBPATHS) $(PLATFORM)/obj/manager.o $(LIBS) -lmpr $(LDFLAGS)
 
 $(PLATFORM)/obj/makerom.o: \
         src/utils/makerom.c \
@@ -524,7 +525,7 @@ $(PLATFORM)/obj/makerom.o: \
 $(PLATFORM)/bin/makerom:  \
         $(PLATFORM)/lib/libmpr.so \
         $(PLATFORM)/obj/makerom.o
-	$(CC) -o $(PLATFORM)/bin/makerom $(LDFLAGS) -L$(PLATFORM)/lib $(PLATFORM)/obj/makerom.o $(LIBS) -lmpr $(LDFLAGS)
+	$(CC) -o $(PLATFORM)/bin/makerom $(LDFLAGS) $(LIBPATHS) $(PLATFORM)/obj/makerom.o $(LIBS) -lmpr $(LDFLAGS)
 
 $(PLATFORM)/obj/charGen.o: \
         src/utils/charGen.c \
@@ -534,5 +535,5 @@ $(PLATFORM)/obj/charGen.o: \
 $(PLATFORM)/bin/chargen:  \
         $(PLATFORM)/lib/libmpr.so \
         $(PLATFORM)/obj/charGen.o
-	$(CC) -o $(PLATFORM)/bin/chargen $(LDFLAGS) -L$(PLATFORM)/lib $(PLATFORM)/obj/charGen.o $(LIBS) -lmpr $(LDFLAGS)
+	$(CC) -o $(PLATFORM)/bin/chargen $(LDFLAGS) $(LIBPATHS) $(PLATFORM)/obj/charGen.o $(LIBS) -lmpr $(LDFLAGS)
 

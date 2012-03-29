@@ -8,7 +8,8 @@ LD="ld"
 CFLAGS="-fPIC -Wall -g"
 DFLAGS="-DPIC -DCPU=X86_64"
 IFLAGS="-Imacosx-x86_64-debug/inc"
-LDFLAGS="-Wl,-rpath,@executable_path/../lib -Wl,-rpath,@executable_path/ -Wl,-rpath,@loader_path/ -L${PLATFORM}/lib -g -ldl"
+LDFLAGS="-Wl,-rpath,@executable_path/../lib -Wl,-rpath,@executable_path/ -Wl,-rpath,@loader_path/ -g -ldl"
+LIBPATHS="-L${PLATFORM}/lib"
 LIBS="-lpthread -lm"
 
 [ ! -x ${PLATFORM}/inc ] && mkdir -p ${PLATFORM}/inc ${PLATFORM}/obj ${PLATFORM}/lib ${PLATFORM}/bin
@@ -105,15 +106,15 @@ ${CC} -c -o ${PLATFORM}/obj/mprWince.o -arch x86_64 ${CFLAGS} ${DFLAGS} -I${PLAT
 
 ${CC} -c -o ${PLATFORM}/obj/mprXml.o -arch x86_64 ${CFLAGS} ${DFLAGS} -I${PLATFORM}/inc src/mprXml.c
 
-${CC} -dynamiclib -o ${PLATFORM}/lib/libmpr.dylib -arch x86_64 ${LDFLAGS} -install_name @rpath/libmpr.dylib ${PLATFORM}/obj/dtoa.o ${PLATFORM}/obj/mpr.o ${PLATFORM}/obj/mprAsync.o ${PLATFORM}/obj/mprAtomic.o ${PLATFORM}/obj/mprBuf.o ${PLATFORM}/obj/mprCache.o ${PLATFORM}/obj/mprCmd.o ${PLATFORM}/obj/mprCond.o ${PLATFORM}/obj/mprCrypt.o ${PLATFORM}/obj/mprDisk.o ${PLATFORM}/obj/mprDispatcher.o ${PLATFORM}/obj/mprEncode.o ${PLATFORM}/obj/mprEpoll.o ${PLATFORM}/obj/mprEvent.o ${PLATFORM}/obj/mprFile.o ${PLATFORM}/obj/mprFileSystem.o ${PLATFORM}/obj/mprHash.o ${PLATFORM}/obj/mprJSON.o ${PLATFORM}/obj/mprKqueue.o ${PLATFORM}/obj/mprList.o ${PLATFORM}/obj/mprLock.o ${PLATFORM}/obj/mprLog.o ${PLATFORM}/obj/mprMem.o ${PLATFORM}/obj/mprMime.o ${PLATFORM}/obj/mprMixed.o ${PLATFORM}/obj/mprModule.o ${PLATFORM}/obj/mprPath.o ${PLATFORM}/obj/mprPoll.o ${PLATFORM}/obj/mprPrintf.o ${PLATFORM}/obj/mprRomFile.o ${PLATFORM}/obj/mprSelect.o ${PLATFORM}/obj/mprSignal.o ${PLATFORM}/obj/mprSocket.o ${PLATFORM}/obj/mprString.o ${PLATFORM}/obj/mprTest.o ${PLATFORM}/obj/mprThread.o ${PLATFORM}/obj/mprTime.o ${PLATFORM}/obj/mprUnix.o ${PLATFORM}/obj/mprVxworks.o ${PLATFORM}/obj/mprWait.o ${PLATFORM}/obj/mprWide.o ${PLATFORM}/obj/mprWin.o ${PLATFORM}/obj/mprWince.o ${PLATFORM}/obj/mprXml.o ${LIBS}
+${CC} -dynamiclib -o ${PLATFORM}/lib/libmpr.dylib -arch x86_64 ${LDFLAGS} ${LIBPATHS} -install_name @rpath/libmpr.dylib ${PLATFORM}/obj/dtoa.o ${PLATFORM}/obj/mpr.o ${PLATFORM}/obj/mprAsync.o ${PLATFORM}/obj/mprAtomic.o ${PLATFORM}/obj/mprBuf.o ${PLATFORM}/obj/mprCache.o ${PLATFORM}/obj/mprCmd.o ${PLATFORM}/obj/mprCond.o ${PLATFORM}/obj/mprCrypt.o ${PLATFORM}/obj/mprDisk.o ${PLATFORM}/obj/mprDispatcher.o ${PLATFORM}/obj/mprEncode.o ${PLATFORM}/obj/mprEpoll.o ${PLATFORM}/obj/mprEvent.o ${PLATFORM}/obj/mprFile.o ${PLATFORM}/obj/mprFileSystem.o ${PLATFORM}/obj/mprHash.o ${PLATFORM}/obj/mprJSON.o ${PLATFORM}/obj/mprKqueue.o ${PLATFORM}/obj/mprList.o ${PLATFORM}/obj/mprLock.o ${PLATFORM}/obj/mprLog.o ${PLATFORM}/obj/mprMem.o ${PLATFORM}/obj/mprMime.o ${PLATFORM}/obj/mprMixed.o ${PLATFORM}/obj/mprModule.o ${PLATFORM}/obj/mprPath.o ${PLATFORM}/obj/mprPoll.o ${PLATFORM}/obj/mprPrintf.o ${PLATFORM}/obj/mprRomFile.o ${PLATFORM}/obj/mprSelect.o ${PLATFORM}/obj/mprSignal.o ${PLATFORM}/obj/mprSocket.o ${PLATFORM}/obj/mprString.o ${PLATFORM}/obj/mprTest.o ${PLATFORM}/obj/mprThread.o ${PLATFORM}/obj/mprTime.o ${PLATFORM}/obj/mprUnix.o ${PLATFORM}/obj/mprVxworks.o ${PLATFORM}/obj/mprWait.o ${PLATFORM}/obj/mprWide.o ${PLATFORM}/obj/mprWin.o ${PLATFORM}/obj/mprWince.o ${PLATFORM}/obj/mprXml.o ${LIBS}
 
 ${CC} -c -o ${PLATFORM}/obj/benchMpr.o -arch x86_64 ${CFLAGS} ${DFLAGS} -I${PLATFORM}/inc test/benchMpr.c
 
-${CC} -o ${PLATFORM}/bin/benchMpr -arch x86_64 ${LDFLAGS} -L${PLATFORM}/lib ${PLATFORM}/obj/benchMpr.o ${LIBS} -lmpr
+${CC} -o ${PLATFORM}/bin/benchMpr -arch x86_64 ${LDFLAGS} ${LIBPATHS} ${PLATFORM}/obj/benchMpr.o ${LIBS} -lmpr
 
 ${CC} -c -o ${PLATFORM}/obj/runProgram.o -arch x86_64 ${CFLAGS} ${DFLAGS} -I${PLATFORM}/inc test/runProgram.c
 
-${CC} -o ${PLATFORM}/bin/runProgram -arch x86_64 ${LDFLAGS} -L${PLATFORM}/lib ${PLATFORM}/obj/runProgram.o ${LIBS}
+${CC} -o ${PLATFORM}/bin/runProgram -arch x86_64 ${LDFLAGS} ${LIBPATHS} ${PLATFORM}/obj/runProgram.o ${LIBS}
 
 ${CC} -c -o ${PLATFORM}/obj/mprMatrixssl.o -arch x86_64 ${CFLAGS} ${DFLAGS} -DPOSIX -DMATRIX_USE_FILE_SYSTEM -I${PLATFORM}/inc -I../packages-macosx-x86_64/openssl/openssl-1.0.0d/include -I../packages-macosx-x86_64/matrixssl/matrixssl-3-3-open/matrixssl -I../packages-macosx-x86_64/matrixssl/matrixssl-3-3-open src/mprMatrixssl.c
 
@@ -121,7 +122,7 @@ ${CC} -c -o ${PLATFORM}/obj/mprOpenssl.o -arch x86_64 ${CFLAGS} ${DFLAGS} -DPOSI
 
 ${CC} -c -o ${PLATFORM}/obj/mprSsl.o -arch x86_64 ${CFLAGS} ${DFLAGS} -DPOSIX -DMATRIX_USE_FILE_SYSTEM -I${PLATFORM}/inc -I../packages-macosx-x86_64/openssl/openssl-1.0.0d/include -I../packages-macosx-x86_64/matrixssl/matrixssl-3-3-open/matrixssl -I../packages-macosx-x86_64/matrixssl/matrixssl-3-3-open src/mprSsl.c
 
-${CC} -dynamiclib -o ${PLATFORM}/lib/libmprssl.dylib -arch x86_64 ${LDFLAGS} -L/Users/mob/git/packages-macosx-x86_64/openssl/openssl-1.0.0d -L/Users/mob/git/packages-macosx-x86_64/matrixssl/matrixssl-3-3-open -install_name @rpath/libmprssl.dylib ${PLATFORM}/obj/mprMatrixssl.o ${PLATFORM}/obj/mprOpenssl.o ${PLATFORM}/obj/mprSsl.o ${LIBS} -lmpr -lssl -lcrypto -lmatrixssl
+${CC} -dynamiclib -o ${PLATFORM}/lib/libmprssl.dylib -arch x86_64 ${LDFLAGS} -L/Users/mob/git/packages-macosx-x86_64/openssl/openssl-1.0.0d -L/Users/mob/git/packages-macosx-x86_64/matrixssl/matrixssl-3-3-open ${LIBPATHS} -install_name @rpath/libmprssl.dylib ${PLATFORM}/obj/mprMatrixssl.o ${PLATFORM}/obj/mprOpenssl.o ${PLATFORM}/obj/mprSsl.o ${LIBS} -lmpr -lssl -lcrypto -lmatrixssl
 
 ${CC} -c -o ${PLATFORM}/obj/testArgv.o -arch x86_64 ${CFLAGS} ${DFLAGS} -I${PLATFORM}/inc test/testArgv.c
 
@@ -157,17 +158,17 @@ ${CC} -c -o ${PLATFORM}/obj/testTime.o -arch x86_64 ${CFLAGS} ${DFLAGS} -I${PLAT
 
 ${CC} -c -o ${PLATFORM}/obj/testUnicode.o -arch x86_64 ${CFLAGS} ${DFLAGS} -I${PLATFORM}/inc test/testUnicode.c
 
-${CC} -o ${PLATFORM}/bin/testMpr -arch x86_64 ${LDFLAGS} -L/Users/mob/git/packages-macosx-x86_64/openssl/openssl-1.0.0d -L/Users/mob/git/packages-macosx-x86_64/matrixssl/matrixssl-3-3-open -L${PLATFORM}/lib ${PLATFORM}/obj/testArgv.o ${PLATFORM}/obj/testBuf.o ${PLATFORM}/obj/testCmd.o ${PLATFORM}/obj/testCond.o ${PLATFORM}/obj/testEvent.o ${PLATFORM}/obj/testFile.o ${PLATFORM}/obj/testHash.o ${PLATFORM}/obj/testList.o ${PLATFORM}/obj/testLock.o ${PLATFORM}/obj/testMem.o ${PLATFORM}/obj/testMpr.o ${PLATFORM}/obj/testPath.o ${PLATFORM}/obj/testSocket.o ${PLATFORM}/obj/testSprintf.o ${PLATFORM}/obj/testThread.o ${PLATFORM}/obj/testTime.o ${PLATFORM}/obj/testUnicode.o ${LIBS} -lmpr -lmprssl -lssl -lcrypto -lmatrixssl
+${CC} -o ${PLATFORM}/bin/testMpr -arch x86_64 ${LDFLAGS} -L/Users/mob/git/packages-macosx-x86_64/openssl/openssl-1.0.0d -L/Users/mob/git/packages-macosx-x86_64/matrixssl/matrixssl-3-3-open ${LIBPATHS} ${PLATFORM}/obj/testArgv.o ${PLATFORM}/obj/testBuf.o ${PLATFORM}/obj/testCmd.o ${PLATFORM}/obj/testCond.o ${PLATFORM}/obj/testEvent.o ${PLATFORM}/obj/testFile.o ${PLATFORM}/obj/testHash.o ${PLATFORM}/obj/testList.o ${PLATFORM}/obj/testLock.o ${PLATFORM}/obj/testMem.o ${PLATFORM}/obj/testMpr.o ${PLATFORM}/obj/testPath.o ${PLATFORM}/obj/testSocket.o ${PLATFORM}/obj/testSprintf.o ${PLATFORM}/obj/testThread.o ${PLATFORM}/obj/testTime.o ${PLATFORM}/obj/testUnicode.o ${LIBS} -lmpr -lmprssl -lssl -lcrypto -lmatrixssl
 
 ${CC} -c -o ${PLATFORM}/obj/manager.o -arch x86_64 ${CFLAGS} ${DFLAGS} -I${PLATFORM}/inc src/manager.c
 
-${CC} -o ${PLATFORM}/bin/manager -arch x86_64 ${LDFLAGS} -L${PLATFORM}/lib ${PLATFORM}/obj/manager.o ${LIBS} -lmpr
+${CC} -o ${PLATFORM}/bin/manager -arch x86_64 ${LDFLAGS} ${LIBPATHS} ${PLATFORM}/obj/manager.o ${LIBS} -lmpr
 
 ${CC} -c -o ${PLATFORM}/obj/makerom.o -arch x86_64 ${CFLAGS} ${DFLAGS} -I${PLATFORM}/inc src/utils/makerom.c
 
-${CC} -o ${PLATFORM}/bin/makerom -arch x86_64 ${LDFLAGS} -L${PLATFORM}/lib ${PLATFORM}/obj/makerom.o ${LIBS} -lmpr
+${CC} -o ${PLATFORM}/bin/makerom -arch x86_64 ${LDFLAGS} ${LIBPATHS} ${PLATFORM}/obj/makerom.o ${LIBS} -lmpr
 
 ${CC} -c -o ${PLATFORM}/obj/charGen.o -arch x86_64 ${CFLAGS} ${DFLAGS} -I${PLATFORM}/inc src/utils/charGen.c
 
-${CC} -o ${PLATFORM}/bin/chargen -arch x86_64 ${LDFLAGS} -L${PLATFORM}/lib ${PLATFORM}/obj/charGen.o ${LIBS} -lmpr
+${CC} -o ${PLATFORM}/bin/chargen -arch x86_64 ${LDFLAGS} ${LIBPATHS} ${PLATFORM}/obj/charGen.o ${LIBS} -lmpr
 

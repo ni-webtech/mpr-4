@@ -24,7 +24,7 @@
 #define BLD_CPU "i686"
 #define BIT_CPU_ARCH MPR_CPU_IX86
 #define BLD_OS "WIN"
-#define BLD_CONFIG_CMD "bit -emulate win-i686 -without all configure -gen sh,nmake,make,vs"
+#define BLD_CONFIG_CMD "bit -emulate win-i686 -without all configure -gen sh,make,nmake,vs"
 #define BLD_LIB_NAME "bin"
 #define BLD_CFG_PREFIX "C:/Program Files/Multithreaded Portable Runtime"
 #define BLD_BIN_PREFIX "C:/Program Files/Multithreaded Portable Runtime/bin"
@@ -75,7 +75,7 @@
 #define BLD_FEATURE_EJS 1
 #define BLD_EJS "../ejs/macosx-x86_64-debug/bin/ejs"
 #define BLD_FEATURE_HTTP 1
-#define BLD_HTTP "../ejs/macosx-x86_64-debug/bin/http"
+#define BLD_HTTP "../appweb/macosx-x86_64-debug/bin/http"
 #define BLD_FEATURE_MAN 1
 #define BLD_MAN "../../../../usr/bin/man"
 #define BLD_FEATURE_MAN2HTML 1
