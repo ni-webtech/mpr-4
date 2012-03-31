@@ -87,7 +87,7 @@ int mprLoadNativeModule(MprModule *mp)
     handle = 0;
 #endif
 #endif
-    if (!mp->entry || handle == 0 || !dlsym(handle, mp->entry)) {
+    if (!mp->entry || !dlsym(handle, mp->entry)) {
         if ((at = mprSearchForModule(mp->path)) == 0) {
             mprError("Can't find module \"%s\", cwd: \"%s\", search path \"%s\"", mp->path, mprGetCurrentPath(),
                 mprGetModuleSearchPath());
