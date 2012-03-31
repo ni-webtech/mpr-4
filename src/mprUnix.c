@@ -78,16 +78,15 @@ int mprLoadNativeModule(MprModule *mp)
     /*
         Search the image incase the module has been statically linked
      */
-#ifdef RTLD_MAIN_ONLY
-    handle = RTLD_MAIN_ONLY;
-#else
 #ifdef RTLD_DEFAULT
     handle = RTLD_DEFAULT;
+#else
+#ifdef RTLD_MAIN_ONLY
+    handle = RTLD_MAIN_ONLY;
 #else
     handle = 0;
 #endif
 #endif
-
     if (!mp->entry || handle == 0 || !dlsym(handle, mp->entry)) {
         if ((at = mprSearchForModule(mp->path)) == 0) {
             mprError("Can't find module \"%s\", cwd: \"%s\", search path \"%s\"", mp->path, mprGetCurrentPath(),
