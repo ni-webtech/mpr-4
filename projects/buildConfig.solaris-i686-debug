@@ -10,7 +10,7 @@
 #define BLD_PRODUCT "mpr"
 #define BLD_NAME "Multithreaded Portable Runtime"
 #define BLD_COMPANY "Embedthis"
-#define BLD_MPRPRODUCT 1
+#define BLD_MPR_PRODUCT 1
 #define BLD_VERSION "4.0.0"
 #define BLD_NUMBER "B0"
 #define BLD_DEBUG 1

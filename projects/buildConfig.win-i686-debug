@@ -10,7 +10,7 @@
 #define BLD_PRODUCT "mpr"
 #define BLD_NAME "Multithreaded Portable Runtime"
 #define BLD_COMPANY "Embedthis"
-#define BLD_MPRPRODUCT 1
+#define BLD_MPR_PRODUCT 1
 #define BLD_VERSION "4.0.0"
 #define BLD_NUMBER "B0"
 #define BLD_DEBUG 1
@@ -24,7 +24,7 @@
 #define BLD_CPU "i686"
 #define BIT_CPU_ARCH MPR_CPU_IX86
 #define BLD_OS "WIN"
-#define BLD_CONFIG_CMD "bit -emulate win-i686 -without all configure -gen sh,make,nmake,vs"
+#define BLD_CONFIG_CMD "bit -emulate win-i686 -without all configure -gen vs"
 #define BLD_LIB_NAME "bin"
 #define BLD_CFG_PREFIX "C:/Program Files/Multithreaded Portable Runtime"
 #define BLD_BIN_PREFIX "C:/Program Files/Multithreaded Portable Runtime/bin"
