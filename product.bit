@@ -76,9 +76,15 @@ Bit.load({
             platforms: [ 'local' ],
         },
 
+
         package: {
+            depends: ['packageSource'],
+        },
+
+        packageSource: {
             depends: ['build'],
             action: "
+                /* This is a combo/flat distribution only */
                 let d = bit.dir.pkg.join('${settings.product}-${settings.version}')
                 safeRemove(bit.dir.pkg)
                 install('package/mpr.bit', d.join('src/deps/mpr/mpr.bit'), {hidden: true})

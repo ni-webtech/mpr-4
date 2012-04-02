@@ -185,7 +185,7 @@
  */
 
 #if EMBEDTHIS || 1
-     #include    "buildConfig.h"
+ #include    "buildConfig.h"
 #endif
 #ifndef BLD_FEATURE_FLOAT
     #define BLD_FEATURE_FLOAT 1
@@ -193,10 +193,10 @@
 #if BLD_FEATURE_FLOAT
 
 #if EMBEDTHIS || 1
+#include    "mpr.h"
     #define MULTIPLE_THREADS 1
     extern void mprLockDtoa(int n);
     extern void mprUnlockDtoa(int n);
-    #include    "mpr.h"
     #if WIN || WINCE
         typedef int int32_t;
         typedef unsigned int uint32_t;
