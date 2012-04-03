@@ -78,10 +78,12 @@ Bit.load({
 
 
         package: {
-            depends: ['packageSource'],
+            depends: ['packageCombo'],
         },
 
-        packageSource: {
+        packageSource: { },
+
+        packageCombo: {
             depends: ['build'],
             action: "
                 /* This is a combo/flat distribution only */
