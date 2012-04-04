@@ -118,5 +118,12 @@ Bit.load({
                 Path('dh.new').append(cmd.response)
             ",
         },
+
+        api: {
+            action: "
+                apidoc('${SRC}/doc/api/mpr.dox', '${SRC}/src/mpr.h', 'MPR API')
+                apiwrap('${SRC}/doc/api/mpr.html')
+            ",
+        },
 	},
 })
