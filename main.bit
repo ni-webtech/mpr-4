@@ -1,43 +1,28 @@
 /*
-    product.bit -- Product Bit File for the Multithreaded Portable Runtime (MPR)
+    main.bit -- Main Bit File for the Multithreaded Portable Runtime (MPR)
  */
 
 Bit.load({
     blend: [
+        '${PLATFORM}.bit',
         '${BITS}/embedthis.bit',
         'test/test.bit',
     ],
 
-    '+modules': [ ],
-
     settings: {
-        /* Default settings overridden by build.bit */
 		product: 'mpr',
 		title: 'Multithreaded Portable Runtime',
         company: 'Embedthis',
 		version: '4.0.0',
 		buildNumber: 'B0',
         manager: 'manager',
-        sync: [],
+        '+optional': [ 'doxygen', 'dsi', 'ejs', 'http', 'man', 'man2html', 'md5', 'openssl', 'matrixssl' ],
     },
 
     usage: {
         debug: 'Enable a debug build',
         assert: 'Enable program assertions',
     },
-
-    profiles: {
-        debug: { settings: { 
-            debug: true, 
-            assert: true,
-        }, },
-        release: { settings: { 
-            debug: false, 
-            assert: false,
-        } },
-    },
-
-    '+optional': [ 'doxygen', 'dsi', 'ejs', 'http', 'man', 'man2html', 'md5', 'openssl', 'matrixssl' ],
 
     targets: {
         libmpr: {
