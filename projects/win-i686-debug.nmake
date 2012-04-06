@@ -18,538 +18,538 @@ PATH      = $(SDK)\Bin:$(VS)\VC\Bin:$(VS)\Common7\IDE:$(VS)\Common7\Tools:$(VS)\
 INCLUDE   = $(INCLUDE);$(SDK)\INCLUDE:$(VS)\VC\INCLUDE
 LIB       = $(LIB);$(SDK)\lib:$(VS)\VC\lib
 
-PLATFORM  = win-i686-debug
-CC        = cl
-LD        = link
-CFLAGS    = -nologo -GR- -W3 -Zi -Od -MDd
-DFLAGS    = -D_REENTRANT -D_MT
-IFLAGS    = -I$(PLATFORM)\inc
-LDFLAGS   = -nologo -nodefaultlib -incremental:no -debug -machine:x86
-LIBPATHS  = -libpath:$(PLATFORM)\bin
-LIBS      = ws2_32.lib advapi32.lib user32.lib kernel32.lib oldnames.lib msvcrt.lib shell32.lib
+CONFIG   = win-i686-debug
+CC       = cl
+LD       = link
+CFLAGS   = -nologo -GR- -W3 -Zi -Od -MDd -Zi -Od -MDd
+DFLAGS   = -D_REENTRANT -D_MT
+IFLAGS   = -I$(CONFIG)\inc -I$(CONFIG)\inc
+LDFLAGS  = -nologo -nodefaultlib -incremental:no -machine:x86 -machine:x86
+LIBPATHS = -libpath:$(CONFIG)\bin -libpath:$(CONFIG)\bin
+LIBS     = ws2_32.lib advapi32.lib user32.lib kernel32.lib oldnames.lib msvcrt.lib shell32.lib
 
 all: prep \
-        $(PLATFORM)\bin\benchMpr.exe \
-        $(PLATFORM)\bin\runProgram.exe \
-        $(PLATFORM)\bin\testMpr.exe \
-        $(PLATFORM)\bin\libmpr.dll \
-        $(PLATFORM)\bin\manager.exe \
-        $(PLATFORM)\bin\makerom.exe \
-        $(PLATFORM)\bin\chargen.exe
+        $(CONFIG)\bin\benchMpr.exe \
+        $(CONFIG)\bin\runProgram.exe \
+        $(CONFIG)\bin\testMpr.exe \
+        $(CONFIG)\bin\libmpr.dll \
+        $(CONFIG)\bin\manager.exe \
+        $(CONFIG)\bin\makerom.exe \
+        $(CONFIG)\bin\chargen.exe
 
 .PHONY: prep
 
 prep:
-	@if not exist $(PLATFORM)\inc md $(PLATFORM)\inc
-	@if not exist $(PLATFORM)\obj md $(PLATFORM)\obj
-	@if not exist $(PLATFORM)\bin md $(PLATFORM)\bin
-	@if not exist $(PLATFORM)\inc\buildConfig.h copy projects\buildConfig.$(PLATFORM) $(PLATFORM)\inc\buildConfig.h
-	@if not exist $(PLATFORM)\bin\libmpr.def xcopy /Y /S projects\$(PLATFORM)\*.def $(PLATFORM)\bin
+	@if not exist $(CONFIG)\inc md $(CONFIG)\inc
+	@if not exist $(CONFIG)\obj md $(CONFIG)\obj
+	@if not exist $(CONFIG)\bin md $(CONFIG)\bin
+	@if not exist $(CONFIG)\inc\buildConfig.h copy projects\buildConfig.$(CONFIG) $(CONFIG)\inc\buildConfig.h
+	@if not exist $(CONFIG)\bin\libmpr.def xcopy /Y /S projects\$(CONFIG)\*.def $(CONFIG)\bin
 
 clean:
-	-if exist $(PLATFORM)\bin\benchMpr.exe del /Q $(PLATFORM)\bin\benchMpr.exe
-	-if exist $(PLATFORM)\bin\runProgram.exe del /Q $(PLATFORM)\bin\runProgram.exe
-	-if exist $(PLATFORM)\bin\testMpr.exe del /Q $(PLATFORM)\bin\testMpr.exe
-	-if exist $(PLATFORM)\bin\libmpr.dll del /Q $(PLATFORM)\bin\libmpr.dll
-	-if exist $(PLATFORM)\bin\libmprssl.dll del /Q $(PLATFORM)\bin\libmprssl.dll
-	-if exist $(PLATFORM)\bin\manager.exe del /Q $(PLATFORM)\bin\manager.exe
-	-if exist $(PLATFORM)\bin\makerom.exe del /Q $(PLATFORM)\bin\makerom.exe
-	-if exist $(PLATFORM)\bin\chargen.exe del /Q $(PLATFORM)\bin\chargen.exe
-	-if exist $(PLATFORM)\obj\benchMpr.obj del /Q $(PLATFORM)\obj\benchMpr.obj
-	-if exist $(PLATFORM)\obj\runProgram.obj del /Q $(PLATFORM)\obj\runProgram.obj
-	-if exist $(PLATFORM)\obj\testArgv.obj del /Q $(PLATFORM)\obj\testArgv.obj
-	-if exist $(PLATFORM)\obj\testBuf.obj del /Q $(PLATFORM)\obj\testBuf.obj
-	-if exist $(PLATFORM)\obj\testCmd.obj del /Q $(PLATFORM)\obj\testCmd.obj
-	-if exist $(PLATFORM)\obj\testCond.obj del /Q $(PLATFORM)\obj\testCond.obj
-	-if exist $(PLATFORM)\obj\testEvent.obj del /Q $(PLATFORM)\obj\testEvent.obj
-	-if exist $(PLATFORM)\obj\testFile.obj del /Q $(PLATFORM)\obj\testFile.obj
-	-if exist $(PLATFORM)\obj\testHash.obj del /Q $(PLATFORM)\obj\testHash.obj
-	-if exist $(PLATFORM)\obj\testList.obj del /Q $(PLATFORM)\obj\testList.obj
-	-if exist $(PLATFORM)\obj\testLock.obj del /Q $(PLATFORM)\obj\testLock.obj
-	-if exist $(PLATFORM)\obj\testMem.obj del /Q $(PLATFORM)\obj\testMem.obj
-	-if exist $(PLATFORM)\obj\testMpr.obj del /Q $(PLATFORM)\obj\testMpr.obj
-	-if exist $(PLATFORM)\obj\testPath.obj del /Q $(PLATFORM)\obj\testPath.obj
-	-if exist $(PLATFORM)\obj\testSocket.obj del /Q $(PLATFORM)\obj\testSocket.obj
-	-if exist $(PLATFORM)\obj\testSprintf.obj del /Q $(PLATFORM)\obj\testSprintf.obj
-	-if exist $(PLATFORM)\obj\testThread.obj del /Q $(PLATFORM)\obj\testThread.obj
-	-if exist $(PLATFORM)\obj\testTime.obj del /Q $(PLATFORM)\obj\testTime.obj
-	-if exist $(PLATFORM)\obj\testUnicode.obj del /Q $(PLATFORM)\obj\testUnicode.obj
-	-if exist $(PLATFORM)\obj\dtoa.obj del /Q $(PLATFORM)\obj\dtoa.obj
-	-if exist $(PLATFORM)\obj\mpr.obj del /Q $(PLATFORM)\obj\mpr.obj
-	-if exist $(PLATFORM)\obj\mprAsync.obj del /Q $(PLATFORM)\obj\mprAsync.obj
-	-if exist $(PLATFORM)\obj\mprAtomic.obj del /Q $(PLATFORM)\obj\mprAtomic.obj
-	-if exist $(PLATFORM)\obj\mprBuf.obj del /Q $(PLATFORM)\obj\mprBuf.obj
-	-if exist $(PLATFORM)\obj\mprCache.obj del /Q $(PLATFORM)\obj\mprCache.obj
-	-if exist $(PLATFORM)\obj\mprCmd.obj del /Q $(PLATFORM)\obj\mprCmd.obj
-	-if exist $(PLATFORM)\obj\mprCond.obj del /Q $(PLATFORM)\obj\mprCond.obj
-	-if exist $(PLATFORM)\obj\mprCrypt.obj del /Q $(PLATFORM)\obj\mprCrypt.obj
-	-if exist $(PLATFORM)\obj\mprDisk.obj del /Q $(PLATFORM)\obj\mprDisk.obj
-	-if exist $(PLATFORM)\obj\mprDispatcher.obj del /Q $(PLATFORM)\obj\mprDispatcher.obj
-	-if exist $(PLATFORM)\obj\mprEncode.obj del /Q $(PLATFORM)\obj\mprEncode.obj
-	-if exist $(PLATFORM)\obj\mprEpoll.obj del /Q $(PLATFORM)\obj\mprEpoll.obj
-	-if exist $(PLATFORM)\obj\mprEvent.obj del /Q $(PLATFORM)\obj\mprEvent.obj
-	-if exist $(PLATFORM)\obj\mprFile.obj del /Q $(PLATFORM)\obj\mprFile.obj
-	-if exist $(PLATFORM)\obj\mprFileSystem.obj del /Q $(PLATFORM)\obj\mprFileSystem.obj
-	-if exist $(PLATFORM)\obj\mprHash.obj del /Q $(PLATFORM)\obj\mprHash.obj
-	-if exist $(PLATFORM)\obj\mprJSON.obj del /Q $(PLATFORM)\obj\mprJSON.obj
-	-if exist $(PLATFORM)\obj\mprKqueue.obj del /Q $(PLATFORM)\obj\mprKqueue.obj
-	-if exist $(PLATFORM)\obj\mprList.obj del /Q $(PLATFORM)\obj\mprList.obj
-	-if exist $(PLATFORM)\obj\mprLock.obj del /Q $(PLATFORM)\obj\mprLock.obj
-	-if exist $(PLATFORM)\obj\mprLog.obj del /Q $(PLATFORM)\obj\mprLog.obj
-	-if exist $(PLATFORM)\obj\mprMem.obj del /Q $(PLATFORM)\obj\mprMem.obj
-	-if exist $(PLATFORM)\obj\mprMime.obj del /Q $(PLATFORM)\obj\mprMime.obj
-	-if exist $(PLATFORM)\obj\mprMixed.obj del /Q $(PLATFORM)\obj\mprMixed.obj
-	-if exist $(PLATFORM)\obj\mprModule.obj del /Q $(PLATFORM)\obj\mprModule.obj
-	-if exist $(PLATFORM)\obj\mprPath.obj del /Q $(PLATFORM)\obj\mprPath.obj
-	-if exist $(PLATFORM)\obj\mprPoll.obj del /Q $(PLATFORM)\obj\mprPoll.obj
-	-if exist $(PLATFORM)\obj\mprPrintf.obj del /Q $(PLATFORM)\obj\mprPrintf.obj
-	-if exist $(PLATFORM)\obj\mprRomFile.obj del /Q $(PLATFORM)\obj\mprRomFile.obj
-	-if exist $(PLATFORM)\obj\mprSelect.obj del /Q $(PLATFORM)\obj\mprSelect.obj
-	-if exist $(PLATFORM)\obj\mprSignal.obj del /Q $(PLATFORM)\obj\mprSignal.obj
-	-if exist $(PLATFORM)\obj\mprSocket.obj del /Q $(PLATFORM)\obj\mprSocket.obj
-	-if exist $(PLATFORM)\obj\mprString.obj del /Q $(PLATFORM)\obj\mprString.obj
-	-if exist $(PLATFORM)\obj\mprTest.obj del /Q $(PLATFORM)\obj\mprTest.obj
-	-if exist $(PLATFORM)\obj\mprThread.obj del /Q $(PLATFORM)\obj\mprThread.obj
-	-if exist $(PLATFORM)\obj\mprTime.obj del /Q $(PLATFORM)\obj\mprTime.obj
-	-if exist $(PLATFORM)\obj\mprUnix.obj del /Q $(PLATFORM)\obj\mprUnix.obj
-	-if exist $(PLATFORM)\obj\mprVxworks.obj del /Q $(PLATFORM)\obj\mprVxworks.obj
-	-if exist $(PLATFORM)\obj\mprWait.obj del /Q $(PLATFORM)\obj\mprWait.obj
-	-if exist $(PLATFORM)\obj\mprWide.obj del /Q $(PLATFORM)\obj\mprWide.obj
-	-if exist $(PLATFORM)\obj\mprWin.obj del /Q $(PLATFORM)\obj\mprWin.obj
-	-if exist $(PLATFORM)\obj\mprWince.obj del /Q $(PLATFORM)\obj\mprWince.obj
-	-if exist $(PLATFORM)\obj\mprXml.obj del /Q $(PLATFORM)\obj\mprXml.obj
-	-if exist $(PLATFORM)\obj\mprMatrixssl.obj del /Q $(PLATFORM)\obj\mprMatrixssl.obj
-	-if exist $(PLATFORM)\obj\mprOpenssl.obj del /Q $(PLATFORM)\obj\mprOpenssl.obj
-	-if exist $(PLATFORM)\obj\mprSsl.obj del /Q $(PLATFORM)\obj\mprSsl.obj
-	-if exist $(PLATFORM)\obj\manager.obj del /Q $(PLATFORM)\obj\manager.obj
-	-if exist $(PLATFORM)\obj\makerom.obj del /Q $(PLATFORM)\obj\makerom.obj
-	-if exist $(PLATFORM)\obj\charGen.obj del /Q $(PLATFORM)\obj\charGen.obj
+	-if exist $(CONFIG)\bin\benchMpr.exe del /Q $(CONFIG)\bin\benchMpr.exe
+	-if exist $(CONFIG)\bin\runProgram.exe del /Q $(CONFIG)\bin\runProgram.exe
+	-if exist $(CONFIG)\bin\testMpr.exe del /Q $(CONFIG)\bin\testMpr.exe
+	-if exist $(CONFIG)\bin\libmpr.dll del /Q $(CONFIG)\bin\libmpr.dll
+	-if exist $(CONFIG)\bin\libmprssl.dll del /Q $(CONFIG)\bin\libmprssl.dll
+	-if exist $(CONFIG)\bin\manager.exe del /Q $(CONFIG)\bin\manager.exe
+	-if exist $(CONFIG)\bin\makerom.exe del /Q $(CONFIG)\bin\makerom.exe
+	-if exist $(CONFIG)\bin\chargen.exe del /Q $(CONFIG)\bin\chargen.exe
+	-if exist $(CONFIG)\obj\benchMpr.obj del /Q $(CONFIG)\obj\benchMpr.obj
+	-if exist $(CONFIG)\obj\runProgram.obj del /Q $(CONFIG)\obj\runProgram.obj
+	-if exist $(CONFIG)\obj\testArgv.obj del /Q $(CONFIG)\obj\testArgv.obj
+	-if exist $(CONFIG)\obj\testBuf.obj del /Q $(CONFIG)\obj\testBuf.obj
+	-if exist $(CONFIG)\obj\testCmd.obj del /Q $(CONFIG)\obj\testCmd.obj
+	-if exist $(CONFIG)\obj\testCond.obj del /Q $(CONFIG)\obj\testCond.obj
+	-if exist $(CONFIG)\obj\testEvent.obj del /Q $(CONFIG)\obj\testEvent.obj
+	-if exist $(CONFIG)\obj\testFile.obj del /Q $(CONFIG)\obj\testFile.obj
+	-if exist $(CONFIG)\obj\testHash.obj del /Q $(CONFIG)\obj\testHash.obj
+	-if exist $(CONFIG)\obj\testList.obj del /Q $(CONFIG)\obj\testList.obj
+	-if exist $(CONFIG)\obj\testLock.obj del /Q $(CONFIG)\obj\testLock.obj
+	-if exist $(CONFIG)\obj\testMem.obj del /Q $(CONFIG)\obj\testMem.obj
+	-if exist $(CONFIG)\obj\testMpr.obj del /Q $(CONFIG)\obj\testMpr.obj
+	-if exist $(CONFIG)\obj\testPath.obj del /Q $(CONFIG)\obj\testPath.obj
+	-if exist $(CONFIG)\obj\testSocket.obj del /Q $(CONFIG)\obj\testSocket.obj
+	-if exist $(CONFIG)\obj\testSprintf.obj del /Q $(CONFIG)\obj\testSprintf.obj
+	-if exist $(CONFIG)\obj\testThread.obj del /Q $(CONFIG)\obj\testThread.obj
+	-if exist $(CONFIG)\obj\testTime.obj del /Q $(CONFIG)\obj\testTime.obj
+	-if exist $(CONFIG)\obj\testUnicode.obj del /Q $(CONFIG)\obj\testUnicode.obj
+	-if exist $(CONFIG)\obj\dtoa.obj del /Q $(CONFIG)\obj\dtoa.obj
+	-if exist $(CONFIG)\obj\mpr.obj del /Q $(CONFIG)\obj\mpr.obj
+	-if exist $(CONFIG)\obj\mprAsync.obj del /Q $(CONFIG)\obj\mprAsync.obj
+	-if exist $(CONFIG)\obj\mprAtomic.obj del /Q $(CONFIG)\obj\mprAtomic.obj
+	-if exist $(CONFIG)\obj\mprBuf.obj del /Q $(CONFIG)\obj\mprBuf.obj
+	-if exist $(CONFIG)\obj\mprCache.obj del /Q $(CONFIG)\obj\mprCache.obj
+	-if exist $(CONFIG)\obj\mprCmd.obj del /Q $(CONFIG)\obj\mprCmd.obj
+	-if exist $(CONFIG)\obj\mprCond.obj del /Q $(CONFIG)\obj\mprCond.obj
+	-if exist $(CONFIG)\obj\mprCrypt.obj del /Q $(CONFIG)\obj\mprCrypt.obj
+	-if exist $(CONFIG)\obj\mprDisk.obj del /Q $(CONFIG)\obj\mprDisk.obj
+	-if exist $(CONFIG)\obj\mprDispatcher.obj del /Q $(CONFIG)\obj\mprDispatcher.obj
+	-if exist $(CONFIG)\obj\mprEncode.obj del /Q $(CONFIG)\obj\mprEncode.obj
+	-if exist $(CONFIG)\obj\mprEpoll.obj del /Q $(CONFIG)\obj\mprEpoll.obj
+	-if exist $(CONFIG)\obj\mprEvent.obj del /Q $(CONFIG)\obj\mprEvent.obj
+	-if exist $(CONFIG)\obj\mprFile.obj del /Q $(CONFIG)\obj\mprFile.obj
+	-if exist $(CONFIG)\obj\mprFileSystem.obj del /Q $(CONFIG)\obj\mprFileSystem.obj
+	-if exist $(CONFIG)\obj\mprHash.obj del /Q $(CONFIG)\obj\mprHash.obj
+	-if exist $(CONFIG)\obj\mprJSON.obj del /Q $(CONFIG)\obj\mprJSON.obj
+	-if exist $(CONFIG)\obj\mprKqueue.obj del /Q $(CONFIG)\obj\mprKqueue.obj
+	-if exist $(CONFIG)\obj\mprList.obj del /Q $(CONFIG)\obj\mprList.obj
+	-if exist $(CONFIG)\obj\mprLock.obj del /Q $(CONFIG)\obj\mprLock.obj
+	-if exist $(CONFIG)\obj\mprLog.obj del /Q $(CONFIG)\obj\mprLog.obj
+	-if exist $(CONFIG)\obj\mprMem.obj del /Q $(CONFIG)\obj\mprMem.obj
+	-if exist $(CONFIG)\obj\mprMime.obj del /Q $(CONFIG)\obj\mprMime.obj
+	-if exist $(CONFIG)\obj\mprMixed.obj del /Q $(CONFIG)\obj\mprMixed.obj
+	-if exist $(CONFIG)\obj\mprModule.obj del /Q $(CONFIG)\obj\mprModule.obj
+	-if exist $(CONFIG)\obj\mprPath.obj del /Q $(CONFIG)\obj\mprPath.obj
+	-if exist $(CONFIG)\obj\mprPoll.obj del /Q $(CONFIG)\obj\mprPoll.obj
+	-if exist $(CONFIG)\obj\mprPrintf.obj del /Q $(CONFIG)\obj\mprPrintf.obj
+	-if exist $(CONFIG)\obj\mprRomFile.obj del /Q $(CONFIG)\obj\mprRomFile.obj
+	-if exist $(CONFIG)\obj\mprSelect.obj del /Q $(CONFIG)\obj\mprSelect.obj
+	-if exist $(CONFIG)\obj\mprSignal.obj del /Q $(CONFIG)\obj\mprSignal.obj
+	-if exist $(CONFIG)\obj\mprSocket.obj del /Q $(CONFIG)\obj\mprSocket.obj
+	-if exist $(CONFIG)\obj\mprString.obj del /Q $(CONFIG)\obj\mprString.obj
+	-if exist $(CONFIG)\obj\mprTest.obj del /Q $(CONFIG)\obj\mprTest.obj
+	-if exist $(CONFIG)\obj\mprThread.obj del /Q $(CONFIG)\obj\mprThread.obj
+	-if exist $(CONFIG)\obj\mprTime.obj del /Q $(CONFIG)\obj\mprTime.obj
+	-if exist $(CONFIG)\obj\mprUnix.obj del /Q $(CONFIG)\obj\mprUnix.obj
+	-if exist $(CONFIG)\obj\mprVxworks.obj del /Q $(CONFIG)\obj\mprVxworks.obj
+	-if exist $(CONFIG)\obj\mprWait.obj del /Q $(CONFIG)\obj\mprWait.obj
+	-if exist $(CONFIG)\obj\mprWide.obj del /Q $(CONFIG)\obj\mprWide.obj
+	-if exist $(CONFIG)\obj\mprWin.obj del /Q $(CONFIG)\obj\mprWin.obj
+	-if exist $(CONFIG)\obj\mprWince.obj del /Q $(CONFIG)\obj\mprWince.obj
+	-if exist $(CONFIG)\obj\mprXml.obj del /Q $(CONFIG)\obj\mprXml.obj
+	-if exist $(CONFIG)\obj\mprMatrixssl.obj del /Q $(CONFIG)\obj\mprMatrixssl.obj
+	-if exist $(CONFIG)\obj\mprOpenssl.obj del /Q $(CONFIG)\obj\mprOpenssl.obj
+	-if exist $(CONFIG)\obj\mprSsl.obj del /Q $(CONFIG)\obj\mprSsl.obj
+	-if exist $(CONFIG)\obj\manager.obj del /Q $(CONFIG)\obj\manager.obj
+	-if exist $(CONFIG)\obj\makerom.obj del /Q $(CONFIG)\obj\makerom.obj
+	-if exist $(CONFIG)\obj\charGen.obj del /Q $(CONFIG)\obj\charGen.obj
 
-$(PLATFORM)\inc\mpr.h: 
+$(CONFIG)\inc\mpr.h: 
 	-if exist win-i686-debug\inc\mpr.h del /Q win-i686-debug\inc\mpr.h
 	copy /Y src\mpr.h win-i686-debug\inc\mpr.h
 
-$(PLATFORM)\obj\dtoa.obj: \
+$(CONFIG)\obj\dtoa.obj: \
         src\dtoa.c \
-        $(PLATFORM)\inc\buildConfig.h
-	"$(CC)" -c -Fo$(PLATFORM)\obj\dtoa.obj -Fd$(PLATFORM)\obj $(CFLAGS) $(DFLAGS) -I$(PLATFORM)\inc src\dtoa.c
+        $(CONFIG)\inc\buildConfig.h
+	"$(CC)" -c -Fo$(CONFIG)\obj\dtoa.obj -Fd$(CONFIG)\obj $(CFLAGS) $(DFLAGS) -I$(CONFIG)\inc -I$(CONFIG)\inc src\dtoa.c
 
-$(PLATFORM)\obj\mpr.obj: \
+$(CONFIG)\obj\mpr.obj: \
         src\mpr.c \
-        $(PLATFORM)\inc\buildConfig.h
-	"$(CC)" -c -Fo$(PLATFORM)\obj\mpr.obj -Fd$(PLATFORM)\obj $(CFLAGS) $(DFLAGS) -I$(PLATFORM)\inc src\mpr.c
+        $(CONFIG)\inc\buildConfig.h
+	"$(CC)" -c -Fo$(CONFIG)\obj\mpr.obj -Fd$(CONFIG)\obj $(CFLAGS) $(DFLAGS) -I$(CONFIG)\inc -I$(CONFIG)\inc src\mpr.c
 
-$(PLATFORM)\obj\mprAsync.obj: \
+$(CONFIG)\obj\mprAsync.obj: \
         src\mprAsync.c \
-        $(PLATFORM)\inc\buildConfig.h
-	"$(CC)" -c -Fo$(PLATFORM)\obj\mprAsync.obj -Fd$(PLATFORM)\obj $(CFLAGS) $(DFLAGS) -I$(PLATFORM)\inc src\mprAsync.c
+        $(CONFIG)\inc\buildConfig.h
+	"$(CC)" -c -Fo$(CONFIG)\obj\mprAsync.obj -Fd$(CONFIG)\obj $(CFLAGS) $(DFLAGS) -I$(CONFIG)\inc -I$(CONFIG)\inc src\mprAsync.c
 
-$(PLATFORM)\obj\mprAtomic.obj: \
+$(CONFIG)\obj\mprAtomic.obj: \
         src\mprAtomic.c \
-        $(PLATFORM)\inc\buildConfig.h
-	"$(CC)" -c -Fo$(PLATFORM)\obj\mprAtomic.obj -Fd$(PLATFORM)\obj $(CFLAGS) $(DFLAGS) -I$(PLATFORM)\inc src\mprAtomic.c
+        $(CONFIG)\inc\buildConfig.h
+	"$(CC)" -c -Fo$(CONFIG)\obj\mprAtomic.obj -Fd$(CONFIG)\obj $(CFLAGS) $(DFLAGS) -I$(CONFIG)\inc -I$(CONFIG)\inc src\mprAtomic.c
 
-$(PLATFORM)\obj\mprBuf.obj: \
+$(CONFIG)\obj\mprBuf.obj: \
         src\mprBuf.c \
-        $(PLATFORM)\inc\buildConfig.h
-	"$(CC)" -c -Fo$(PLATFORM)\obj\mprBuf.obj -Fd$(PLATFORM)\obj $(CFLAGS) $(DFLAGS) -I$(PLATFORM)\inc src\mprBuf.c
+        $(CONFIG)\inc\buildConfig.h
+	"$(CC)" -c -Fo$(CONFIG)\obj\mprBuf.obj -Fd$(CONFIG)\obj $(CFLAGS) $(DFLAGS) -I$(CONFIG)\inc -I$(CONFIG)\inc src\mprBuf.c
 
-$(PLATFORM)\obj\mprCache.obj: \
+$(CONFIG)\obj\mprCache.obj: \
         src\mprCache.c \
-        $(PLATFORM)\inc\buildConfig.h
-	"$(CC)" -c -Fo$(PLATFORM)\obj\mprCache.obj -Fd$(PLATFORM)\obj $(CFLAGS) $(DFLAGS) -I$(PLATFORM)\inc src\mprCache.c
+        $(CONFIG)\inc\buildConfig.h
+	"$(CC)" -c -Fo$(CONFIG)\obj\mprCache.obj -Fd$(CONFIG)\obj $(CFLAGS) $(DFLAGS) -I$(CONFIG)\inc -I$(CONFIG)\inc src\mprCache.c
 
-$(PLATFORM)\obj\mprCmd.obj: \
+$(CONFIG)\obj\mprCmd.obj: \
         src\mprCmd.c \
-        $(PLATFORM)\inc\buildConfig.h
-	"$(CC)" -c -Fo$(PLATFORM)\obj\mprCmd.obj -Fd$(PLATFORM)\obj $(CFLAGS) $(DFLAGS) -I$(PLATFORM)\inc src\mprCmd.c
+        $(CONFIG)\inc\buildConfig.h
+	"$(CC)" -c -Fo$(CONFIG)\obj\mprCmd.obj -Fd$(CONFIG)\obj $(CFLAGS) $(DFLAGS) -I$(CONFIG)\inc -I$(CONFIG)\inc src\mprCmd.c
 
-$(PLATFORM)\obj\mprCond.obj: \
+$(CONFIG)\obj\mprCond.obj: \
         src\mprCond.c \
-        $(PLATFORM)\inc\buildConfig.h
-	"$(CC)" -c -Fo$(PLATFORM)\obj\mprCond.obj -Fd$(PLATFORM)\obj $(CFLAGS) $(DFLAGS) -I$(PLATFORM)\inc src\mprCond.c
+        $(CONFIG)\inc\buildConfig.h
+	"$(CC)" -c -Fo$(CONFIG)\obj\mprCond.obj -Fd$(CONFIG)\obj $(CFLAGS) $(DFLAGS) -I$(CONFIG)\inc -I$(CONFIG)\inc src\mprCond.c
 
-$(PLATFORM)\obj\mprCrypt.obj: \
+$(CONFIG)\obj\mprCrypt.obj: \
         src\mprCrypt.c \
-        $(PLATFORM)\inc\buildConfig.h
-	"$(CC)" -c -Fo$(PLATFORM)\obj\mprCrypt.obj -Fd$(PLATFORM)\obj $(CFLAGS) $(DFLAGS) -I$(PLATFORM)\inc src\mprCrypt.c
+        $(CONFIG)\inc\buildConfig.h
+	"$(CC)" -c -Fo$(CONFIG)\obj\mprCrypt.obj -Fd$(CONFIG)\obj $(CFLAGS) $(DFLAGS) -I$(CONFIG)\inc -I$(CONFIG)\inc src\mprCrypt.c
 
-$(PLATFORM)\obj\mprDisk.obj: \
+$(CONFIG)\obj\mprDisk.obj: \
         src\mprDisk.c \
-        $(PLATFORM)\inc\buildConfig.h
-	"$(CC)" -c -Fo$(PLATFORM)\obj\mprDisk.obj -Fd$(PLATFORM)\obj $(CFLAGS) $(DFLAGS) -I$(PLATFORM)\inc src\mprDisk.c
+        $(CONFIG)\inc\buildConfig.h
+	"$(CC)" -c -Fo$(CONFIG)\obj\mprDisk.obj -Fd$(CONFIG)\obj $(CFLAGS) $(DFLAGS) -I$(CONFIG)\inc -I$(CONFIG)\inc src\mprDisk.c
 
-$(PLATFORM)\obj\mprDispatcher.obj: \
+$(CONFIG)\obj\mprDispatcher.obj: \
         src\mprDispatcher.c \
-        $(PLATFORM)\inc\buildConfig.h
-	"$(CC)" -c -Fo$(PLATFORM)\obj\mprDispatcher.obj -Fd$(PLATFORM)\obj $(CFLAGS) $(DFLAGS) -I$(PLATFORM)\inc src\mprDispatcher.c
+        $(CONFIG)\inc\buildConfig.h
+	"$(CC)" -c -Fo$(CONFIG)\obj\mprDispatcher.obj -Fd$(CONFIG)\obj $(CFLAGS) $(DFLAGS) -I$(CONFIG)\inc -I$(CONFIG)\inc src\mprDispatcher.c
 
-$(PLATFORM)\obj\mprEncode.obj: \
+$(CONFIG)\obj\mprEncode.obj: \
         src\mprEncode.c \
-        $(PLATFORM)\inc\buildConfig.h
-	"$(CC)" -c -Fo$(PLATFORM)\obj\mprEncode.obj -Fd$(PLATFORM)\obj $(CFLAGS) $(DFLAGS) -I$(PLATFORM)\inc src\mprEncode.c
+        $(CONFIG)\inc\buildConfig.h
+	"$(CC)" -c -Fo$(CONFIG)\obj\mprEncode.obj -Fd$(CONFIG)\obj $(CFLAGS) $(DFLAGS) -I$(CONFIG)\inc -I$(CONFIG)\inc src\mprEncode.c
 
-$(PLATFORM)\obj\mprEpoll.obj: \
+$(CONFIG)\obj\mprEpoll.obj: \
         src\mprEpoll.c \
-        $(PLATFORM)\inc\buildConfig.h
-	"$(CC)" -c -Fo$(PLATFORM)\obj\mprEpoll.obj -Fd$(PLATFORM)\obj $(CFLAGS) $(DFLAGS) -I$(PLATFORM)\inc src\mprEpoll.c
+        $(CONFIG)\inc\buildConfig.h
+	"$(CC)" -c -Fo$(CONFIG)\obj\mprEpoll.obj -Fd$(CONFIG)\obj $(CFLAGS) $(DFLAGS) -I$(CONFIG)\inc -I$(CONFIG)\inc src\mprEpoll.c
 
-$(PLATFORM)\obj\mprEvent.obj: \
+$(CONFIG)\obj\mprEvent.obj: \
         src\mprEvent.c \
-        $(PLATFORM)\inc\buildConfig.h
-	"$(CC)" -c -Fo$(PLATFORM)\obj\mprEvent.obj -Fd$(PLATFORM)\obj $(CFLAGS) $(DFLAGS) -I$(PLATFORM)\inc src\mprEvent.c
+        $(CONFIG)\inc\buildConfig.h
+	"$(CC)" -c -Fo$(CONFIG)\obj\mprEvent.obj -Fd$(CONFIG)\obj $(CFLAGS) $(DFLAGS) -I$(CONFIG)\inc -I$(CONFIG)\inc src\mprEvent.c
 
-$(PLATFORM)\obj\mprFile.obj: \
+$(CONFIG)\obj\mprFile.obj: \
         src\mprFile.c \
-        $(PLATFORM)\inc\buildConfig.h
-	"$(CC)" -c -Fo$(PLATFORM)\obj\mprFile.obj -Fd$(PLATFORM)\obj $(CFLAGS) $(DFLAGS) -I$(PLATFORM)\inc src\mprFile.c
+        $(CONFIG)\inc\buildConfig.h
+	"$(CC)" -c -Fo$(CONFIG)\obj\mprFile.obj -Fd$(CONFIG)\obj $(CFLAGS) $(DFLAGS) -I$(CONFIG)\inc -I$(CONFIG)\inc src\mprFile.c
 
-$(PLATFORM)\obj\mprFileSystem.obj: \
+$(CONFIG)\obj\mprFileSystem.obj: \
         src\mprFileSystem.c \
-        $(PLATFORM)\inc\buildConfig.h
-	"$(CC)" -c -Fo$(PLATFORM)\obj\mprFileSystem.obj -Fd$(PLATFORM)\obj $(CFLAGS) $(DFLAGS) -I$(PLATFORM)\inc src\mprFileSystem.c
+        $(CONFIG)\inc\buildConfig.h
+	"$(CC)" -c -Fo$(CONFIG)\obj\mprFileSystem.obj -Fd$(CONFIG)\obj $(CFLAGS) $(DFLAGS) -I$(CONFIG)\inc -I$(CONFIG)\inc src\mprFileSystem.c
 
-$(PLATFORM)\obj\mprHash.obj: \
+$(CONFIG)\obj\mprHash.obj: \
         src\mprHash.c \
-        $(PLATFORM)\inc\buildConfig.h
-	"$(CC)" -c -Fo$(PLATFORM)\obj\mprHash.obj -Fd$(PLATFORM)\obj $(CFLAGS) $(DFLAGS) -I$(PLATFORM)\inc src\mprHash.c
+        $(CONFIG)\inc\buildConfig.h
+	"$(CC)" -c -Fo$(CONFIG)\obj\mprHash.obj -Fd$(CONFIG)\obj $(CFLAGS) $(DFLAGS) -I$(CONFIG)\inc -I$(CONFIG)\inc src\mprHash.c
 
-$(PLATFORM)\obj\mprJSON.obj: \
+$(CONFIG)\obj\mprJSON.obj: \
         src\mprJSON.c \
-        $(PLATFORM)\inc\buildConfig.h
-	"$(CC)" -c -Fo$(PLATFORM)\obj\mprJSON.obj -Fd$(PLATFORM)\obj $(CFLAGS) $(DFLAGS) -I$(PLATFORM)\inc src\mprJSON.c
+        $(CONFIG)\inc\buildConfig.h
+	"$(CC)" -c -Fo$(CONFIG)\obj\mprJSON.obj -Fd$(CONFIG)\obj $(CFLAGS) $(DFLAGS) -I$(CONFIG)\inc -I$(CONFIG)\inc src\mprJSON.c
 
-$(PLATFORM)\obj\mprKqueue.obj: \
+$(CONFIG)\obj\mprKqueue.obj: \
         src\mprKqueue.c \
-        $(PLATFORM)\inc\buildConfig.h
-	"$(CC)" -c -Fo$(PLATFORM)\obj\mprKqueue.obj -Fd$(PLATFORM)\obj $(CFLAGS) $(DFLAGS) -I$(PLATFORM)\inc src\mprKqueue.c
+        $(CONFIG)\inc\buildConfig.h
+	"$(CC)" -c -Fo$(CONFIG)\obj\mprKqueue.obj -Fd$(CONFIG)\obj $(CFLAGS) $(DFLAGS) -I$(CONFIG)\inc -I$(CONFIG)\inc src\mprKqueue.c
 
-$(PLATFORM)\obj\mprList.obj: \
+$(CONFIG)\obj\mprList.obj: \
         src\mprList.c \
-        $(PLATFORM)\inc\buildConfig.h
-	"$(CC)" -c -Fo$(PLATFORM)\obj\mprList.obj -Fd$(PLATFORM)\obj $(CFLAGS) $(DFLAGS) -I$(PLATFORM)\inc src\mprList.c
+        $(CONFIG)\inc\buildConfig.h
+	"$(CC)" -c -Fo$(CONFIG)\obj\mprList.obj -Fd$(CONFIG)\obj $(CFLAGS) $(DFLAGS) -I$(CONFIG)\inc -I$(CONFIG)\inc src\mprList.c
 
-$(PLATFORM)\obj\mprLock.obj: \
+$(CONFIG)\obj\mprLock.obj: \
         src\mprLock.c \
-        $(PLATFORM)\inc\buildConfig.h
-	"$(CC)" -c -Fo$(PLATFORM)\obj\mprLock.obj -Fd$(PLATFORM)\obj $(CFLAGS) $(DFLAGS) -I$(PLATFORM)\inc src\mprLock.c
+        $(CONFIG)\inc\buildConfig.h
+	"$(CC)" -c -Fo$(CONFIG)\obj\mprLock.obj -Fd$(CONFIG)\obj $(CFLAGS) $(DFLAGS) -I$(CONFIG)\inc -I$(CONFIG)\inc src\mprLock.c
 
-$(PLATFORM)\obj\mprLog.obj: \
+$(CONFIG)\obj\mprLog.obj: \
         src\mprLog.c \
-        $(PLATFORM)\inc\buildConfig.h
-	"$(CC)" -c -Fo$(PLATFORM)\obj\mprLog.obj -Fd$(PLATFORM)\obj $(CFLAGS) $(DFLAGS) -I$(PLATFORM)\inc src\mprLog.c
+        $(CONFIG)\inc\buildConfig.h
+	"$(CC)" -c -Fo$(CONFIG)\obj\mprLog.obj -Fd$(CONFIG)\obj $(CFLAGS) $(DFLAGS) -I$(CONFIG)\inc -I$(CONFIG)\inc src\mprLog.c
 
-$(PLATFORM)\obj\mprMem.obj: \
+$(CONFIG)\obj\mprMem.obj: \
         src\mprMem.c \
-        $(PLATFORM)\inc\buildConfig.h
-	"$(CC)" -c -Fo$(PLATFORM)\obj\mprMem.obj -Fd$(PLATFORM)\obj $(CFLAGS) $(DFLAGS) -I$(PLATFORM)\inc src\mprMem.c
+        $(CONFIG)\inc\buildConfig.h
+	"$(CC)" -c -Fo$(CONFIG)\obj\mprMem.obj -Fd$(CONFIG)\obj $(CFLAGS) $(DFLAGS) -I$(CONFIG)\inc -I$(CONFIG)\inc src\mprMem.c
 
-$(PLATFORM)\obj\mprMime.obj: \
+$(CONFIG)\obj\mprMime.obj: \
         src\mprMime.c \
-        $(PLATFORM)\inc\buildConfig.h
-	"$(CC)" -c -Fo$(PLATFORM)\obj\mprMime.obj -Fd$(PLATFORM)\obj $(CFLAGS) $(DFLAGS) -I$(PLATFORM)\inc src\mprMime.c
+        $(CONFIG)\inc\buildConfig.h
+	"$(CC)" -c -Fo$(CONFIG)\obj\mprMime.obj -Fd$(CONFIG)\obj $(CFLAGS) $(DFLAGS) -I$(CONFIG)\inc -I$(CONFIG)\inc src\mprMime.c
 
-$(PLATFORM)\obj\mprMixed.obj: \
+$(CONFIG)\obj\mprMixed.obj: \
         src\mprMixed.c \
-        $(PLATFORM)\inc\buildConfig.h
-	"$(CC)" -c -Fo$(PLATFORM)\obj\mprMixed.obj -Fd$(PLATFORM)\obj $(CFLAGS) $(DFLAGS) -I$(PLATFORM)\inc src\mprMixed.c
+        $(CONFIG)\inc\buildConfig.h
+	"$(CC)" -c -Fo$(CONFIG)\obj\mprMixed.obj -Fd$(CONFIG)\obj $(CFLAGS) $(DFLAGS) -I$(CONFIG)\inc -I$(CONFIG)\inc src\mprMixed.c
 
-$(PLATFORM)\obj\mprModule.obj: \
+$(CONFIG)\obj\mprModule.obj: \
         src\mprModule.c \
-        $(PLATFORM)\inc\buildConfig.h
-	"$(CC)" -c -Fo$(PLATFORM)\obj\mprModule.obj -Fd$(PLATFORM)\obj $(CFLAGS) $(DFLAGS) -I$(PLATFORM)\inc src\mprModule.c
+        $(CONFIG)\inc\buildConfig.h
+	"$(CC)" -c -Fo$(CONFIG)\obj\mprModule.obj -Fd$(CONFIG)\obj $(CFLAGS) $(DFLAGS) -I$(CONFIG)\inc -I$(CONFIG)\inc src\mprModule.c
 
-$(PLATFORM)\obj\mprPath.obj: \
+$(CONFIG)\obj\mprPath.obj: \
         src\mprPath.c \
-        $(PLATFORM)\inc\buildConfig.h
-	"$(CC)" -c -Fo$(PLATFORM)\obj\mprPath.obj -Fd$(PLATFORM)\obj $(CFLAGS) $(DFLAGS) -I$(PLATFORM)\inc src\mprPath.c
+        $(CONFIG)\inc\buildConfig.h
+	"$(CC)" -c -Fo$(CONFIG)\obj\mprPath.obj -Fd$(CONFIG)\obj $(CFLAGS) $(DFLAGS) -I$(CONFIG)\inc -I$(CONFIG)\inc src\mprPath.c
 
-$(PLATFORM)\obj\mprPoll.obj: \
+$(CONFIG)\obj\mprPoll.obj: \
         src\mprPoll.c \
-        $(PLATFORM)\inc\buildConfig.h
-	"$(CC)" -c -Fo$(PLATFORM)\obj\mprPoll.obj -Fd$(PLATFORM)\obj $(CFLAGS) $(DFLAGS) -I$(PLATFORM)\inc src\mprPoll.c
+        $(CONFIG)\inc\buildConfig.h
+	"$(CC)" -c -Fo$(CONFIG)\obj\mprPoll.obj -Fd$(CONFIG)\obj $(CFLAGS) $(DFLAGS) -I$(CONFIG)\inc -I$(CONFIG)\inc src\mprPoll.c
 
-$(PLATFORM)\obj\mprPrintf.obj: \
+$(CONFIG)\obj\mprPrintf.obj: \
         src\mprPrintf.c \
-        $(PLATFORM)\inc\buildConfig.h
-	"$(CC)" -c -Fo$(PLATFORM)\obj\mprPrintf.obj -Fd$(PLATFORM)\obj $(CFLAGS) $(DFLAGS) -I$(PLATFORM)\inc src\mprPrintf.c
+        $(CONFIG)\inc\buildConfig.h
+	"$(CC)" -c -Fo$(CONFIG)\obj\mprPrintf.obj -Fd$(CONFIG)\obj $(CFLAGS) $(DFLAGS) -I$(CONFIG)\inc -I$(CONFIG)\inc src\mprPrintf.c
 
-$(PLATFORM)\obj\mprRomFile.obj: \
+$(CONFIG)\obj\mprRomFile.obj: \
         src\mprRomFile.c \
-        $(PLATFORM)\inc\buildConfig.h
-	"$(CC)" -c -Fo$(PLATFORM)\obj\mprRomFile.obj -Fd$(PLATFORM)\obj $(CFLAGS) $(DFLAGS) -I$(PLATFORM)\inc src\mprRomFile.c
+        $(CONFIG)\inc\buildConfig.h
+	"$(CC)" -c -Fo$(CONFIG)\obj\mprRomFile.obj -Fd$(CONFIG)\obj $(CFLAGS) $(DFLAGS) -I$(CONFIG)\inc -I$(CONFIG)\inc src\mprRomFile.c
 
-$(PLATFORM)\obj\mprSelect.obj: \
+$(CONFIG)\obj\mprSelect.obj: \
         src\mprSelect.c \
-        $(PLATFORM)\inc\buildConfig.h
-	"$(CC)" -c -Fo$(PLATFORM)\obj\mprSelect.obj -Fd$(PLATFORM)\obj $(CFLAGS) $(DFLAGS) -I$(PLATFORM)\inc src\mprSelect.c
+        $(CONFIG)\inc\buildConfig.h
+	"$(CC)" -c -Fo$(CONFIG)\obj\mprSelect.obj -Fd$(CONFIG)\obj $(CFLAGS) $(DFLAGS) -I$(CONFIG)\inc -I$(CONFIG)\inc src\mprSelect.c
 
-$(PLATFORM)\obj\mprSignal.obj: \
+$(CONFIG)\obj\mprSignal.obj: \
         src\mprSignal.c \
-        $(PLATFORM)\inc\buildConfig.h
-	"$(CC)" -c -Fo$(PLATFORM)\obj\mprSignal.obj -Fd$(PLATFORM)\obj $(CFLAGS) $(DFLAGS) -I$(PLATFORM)\inc src\mprSignal.c
+        $(CONFIG)\inc\buildConfig.h
+	"$(CC)" -c -Fo$(CONFIG)\obj\mprSignal.obj -Fd$(CONFIG)\obj $(CFLAGS) $(DFLAGS) -I$(CONFIG)\inc -I$(CONFIG)\inc src\mprSignal.c
 
-$(PLATFORM)\obj\mprSocket.obj: \
+$(CONFIG)\obj\mprSocket.obj: \
         src\mprSocket.c \
-        $(PLATFORM)\inc\buildConfig.h
-	"$(CC)" -c -Fo$(PLATFORM)\obj\mprSocket.obj -Fd$(PLATFORM)\obj $(CFLAGS) $(DFLAGS) -I$(PLATFORM)\inc src\mprSocket.c
+        $(CONFIG)\inc\buildConfig.h
+	"$(CC)" -c -Fo$(CONFIG)\obj\mprSocket.obj -Fd$(CONFIG)\obj $(CFLAGS) $(DFLAGS) -I$(CONFIG)\inc -I$(CONFIG)\inc src\mprSocket.c
 
-$(PLATFORM)\obj\mprString.obj: \
+$(CONFIG)\obj\mprString.obj: \
         src\mprString.c \
-        $(PLATFORM)\inc\buildConfig.h
-	"$(CC)" -c -Fo$(PLATFORM)\obj\mprString.obj -Fd$(PLATFORM)\obj $(CFLAGS) $(DFLAGS) -I$(PLATFORM)\inc src\mprString.c
+        $(CONFIG)\inc\buildConfig.h
+	"$(CC)" -c -Fo$(CONFIG)\obj\mprString.obj -Fd$(CONFIG)\obj $(CFLAGS) $(DFLAGS) -I$(CONFIG)\inc -I$(CONFIG)\inc src\mprString.c
 
-$(PLATFORM)\obj\mprTest.obj: \
+$(CONFIG)\obj\mprTest.obj: \
         src\mprTest.c \
-        $(PLATFORM)\inc\buildConfig.h
-	"$(CC)" -c -Fo$(PLATFORM)\obj\mprTest.obj -Fd$(PLATFORM)\obj $(CFLAGS) $(DFLAGS) -I$(PLATFORM)\inc src\mprTest.c
+        $(CONFIG)\inc\buildConfig.h
+	"$(CC)" -c -Fo$(CONFIG)\obj\mprTest.obj -Fd$(CONFIG)\obj $(CFLAGS) $(DFLAGS) -I$(CONFIG)\inc -I$(CONFIG)\inc src\mprTest.c
 
-$(PLATFORM)\obj\mprThread.obj: \
+$(CONFIG)\obj\mprThread.obj: \
         src\mprThread.c \
-        $(PLATFORM)\inc\buildConfig.h
-	"$(CC)" -c -Fo$(PLATFORM)\obj\mprThread.obj -Fd$(PLATFORM)\obj $(CFLAGS) $(DFLAGS) -I$(PLATFORM)\inc src\mprThread.c
+        $(CONFIG)\inc\buildConfig.h
+	"$(CC)" -c -Fo$(CONFIG)\obj\mprThread.obj -Fd$(CONFIG)\obj $(CFLAGS) $(DFLAGS) -I$(CONFIG)\inc -I$(CONFIG)\inc src\mprThread.c
 
-$(PLATFORM)\obj\mprTime.obj: \
+$(CONFIG)\obj\mprTime.obj: \
         src\mprTime.c \
-        $(PLATFORM)\inc\buildConfig.h
-	"$(CC)" -c -Fo$(PLATFORM)\obj\mprTime.obj -Fd$(PLATFORM)\obj $(CFLAGS) $(DFLAGS) -I$(PLATFORM)\inc src\mprTime.c
+        $(CONFIG)\inc\buildConfig.h
+	"$(CC)" -c -Fo$(CONFIG)\obj\mprTime.obj -Fd$(CONFIG)\obj $(CFLAGS) $(DFLAGS) -I$(CONFIG)\inc -I$(CONFIG)\inc src\mprTime.c
 
-$(PLATFORM)\obj\mprUnix.obj: \
+$(CONFIG)\obj\mprUnix.obj: \
         src\mprUnix.c \
-        $(PLATFORM)\inc\buildConfig.h
-	"$(CC)" -c -Fo$(PLATFORM)\obj\mprUnix.obj -Fd$(PLATFORM)\obj $(CFLAGS) $(DFLAGS) -I$(PLATFORM)\inc src\mprUnix.c
+        $(CONFIG)\inc\buildConfig.h
+	"$(CC)" -c -Fo$(CONFIG)\obj\mprUnix.obj -Fd$(CONFIG)\obj $(CFLAGS) $(DFLAGS) -I$(CONFIG)\inc -I$(CONFIG)\inc src\mprUnix.c
 
-$(PLATFORM)\obj\mprVxworks.obj: \
+$(CONFIG)\obj\mprVxworks.obj: \
         src\mprVxworks.c \
-        $(PLATFORM)\inc\buildConfig.h
-	"$(CC)" -c -Fo$(PLATFORM)\obj\mprVxworks.obj -Fd$(PLATFORM)\obj $(CFLAGS) $(DFLAGS) -I$(PLATFORM)\inc src\mprVxworks.c
+        $(CONFIG)\inc\buildConfig.h
+	"$(CC)" -c -Fo$(CONFIG)\obj\mprVxworks.obj -Fd$(CONFIG)\obj $(CFLAGS) $(DFLAGS) -I$(CONFIG)\inc -I$(CONFIG)\inc src\mprVxworks.c
 
-$(PLATFORM)\obj\mprWait.obj: \
+$(CONFIG)\obj\mprWait.obj: \
         src\mprWait.c \
-        $(PLATFORM)\inc\buildConfig.h
-	"$(CC)" -c -Fo$(PLATFORM)\obj\mprWait.obj -Fd$(PLATFORM)\obj $(CFLAGS) $(DFLAGS) -I$(PLATFORM)\inc src\mprWait.c
+        $(CONFIG)\inc\buildConfig.h
+	"$(CC)" -c -Fo$(CONFIG)\obj\mprWait.obj -Fd$(CONFIG)\obj $(CFLAGS) $(DFLAGS) -I$(CONFIG)\inc -I$(CONFIG)\inc src\mprWait.c
 
-$(PLATFORM)\obj\mprWide.obj: \
+$(CONFIG)\obj\mprWide.obj: \
         src\mprWide.c \
-        $(PLATFORM)\inc\buildConfig.h
-	"$(CC)" -c -Fo$(PLATFORM)\obj\mprWide.obj -Fd$(PLATFORM)\obj $(CFLAGS) $(DFLAGS) -I$(PLATFORM)\inc src\mprWide.c
+        $(CONFIG)\inc\buildConfig.h
+	"$(CC)" -c -Fo$(CONFIG)\obj\mprWide.obj -Fd$(CONFIG)\obj $(CFLAGS) $(DFLAGS) -I$(CONFIG)\inc -I$(CONFIG)\inc src\mprWide.c
 
-$(PLATFORM)\obj\mprWin.obj: \
+$(CONFIG)\obj\mprWin.obj: \
         src\mprWin.c \
-        $(PLATFORM)\inc\buildConfig.h
-	"$(CC)" -c -Fo$(PLATFORM)\obj\mprWin.obj -Fd$(PLATFORM)\obj $(CFLAGS) $(DFLAGS) -I$(PLATFORM)\inc src\mprWin.c
+        $(CONFIG)\inc\buildConfig.h
+	"$(CC)" -c -Fo$(CONFIG)\obj\mprWin.obj -Fd$(CONFIG)\obj $(CFLAGS) $(DFLAGS) -I$(CONFIG)\inc -I$(CONFIG)\inc src\mprWin.c
 
-$(PLATFORM)\obj\mprWince.obj: \
+$(CONFIG)\obj\mprWince.obj: \
         src\mprWince.c \
-        $(PLATFORM)\inc\buildConfig.h
-	"$(CC)" -c -Fo$(PLATFORM)\obj\mprWince.obj -Fd$(PLATFORM)\obj $(CFLAGS) $(DFLAGS) -I$(PLATFORM)\inc src\mprWince.c
+        $(CONFIG)\inc\buildConfig.h
+	"$(CC)" -c -Fo$(CONFIG)\obj\mprWince.obj -Fd$(CONFIG)\obj $(CFLAGS) $(DFLAGS) -I$(CONFIG)\inc -I$(CONFIG)\inc src\mprWince.c
 
-$(PLATFORM)\obj\mprXml.obj: \
+$(CONFIG)\obj\mprXml.obj: \
         src\mprXml.c \
-        $(PLATFORM)\inc\buildConfig.h
-	"$(CC)" -c -Fo$(PLATFORM)\obj\mprXml.obj -Fd$(PLATFORM)\obj $(CFLAGS) $(DFLAGS) -I$(PLATFORM)\inc src\mprXml.c
+        $(CONFIG)\inc\buildConfig.h
+	"$(CC)" -c -Fo$(CONFIG)\obj\mprXml.obj -Fd$(CONFIG)\obj $(CFLAGS) $(DFLAGS) -I$(CONFIG)\inc -I$(CONFIG)\inc src\mprXml.c
 
-$(PLATFORM)\bin\libmpr.dll:  \
-        $(PLATFORM)\inc\mpr.h \
-        $(PLATFORM)\obj\dtoa.obj \
-        $(PLATFORM)\obj\mpr.obj \
-        $(PLATFORM)\obj\mprAsync.obj \
-        $(PLATFORM)\obj\mprAtomic.obj \
-        $(PLATFORM)\obj\mprBuf.obj \
-        $(PLATFORM)\obj\mprCache.obj \
-        $(PLATFORM)\obj\mprCmd.obj \
-        $(PLATFORM)\obj\mprCond.obj \
-        $(PLATFORM)\obj\mprCrypt.obj \
-        $(PLATFORM)\obj\mprDisk.obj \
-        $(PLATFORM)\obj\mprDispatcher.obj \
-        $(PLATFORM)\obj\mprEncode.obj \
-        $(PLATFORM)\obj\mprEpoll.obj \
-        $(PLATFORM)\obj\mprEvent.obj \
-        $(PLATFORM)\obj\mprFile.obj \
-        $(PLATFORM)\obj\mprFileSystem.obj \
-        $(PLATFORM)\obj\mprHash.obj \
-        $(PLATFORM)\obj\mprJSON.obj \
-        $(PLATFORM)\obj\mprKqueue.obj \
-        $(PLATFORM)\obj\mprList.obj \
-        $(PLATFORM)\obj\mprLock.obj \
-        $(PLATFORM)\obj\mprLog.obj \
-        $(PLATFORM)\obj\mprMem.obj \
-        $(PLATFORM)\obj\mprMime.obj \
-        $(PLATFORM)\obj\mprMixed.obj \
-        $(PLATFORM)\obj\mprModule.obj \
-        $(PLATFORM)\obj\mprPath.obj \
-        $(PLATFORM)\obj\mprPoll.obj \
-        $(PLATFORM)\obj\mprPrintf.obj \
-        $(PLATFORM)\obj\mprRomFile.obj \
-        $(PLATFORM)\obj\mprSelect.obj \
-        $(PLATFORM)\obj\mprSignal.obj \
-        $(PLATFORM)\obj\mprSocket.obj \
-        $(PLATFORM)\obj\mprString.obj \
-        $(PLATFORM)\obj\mprTest.obj \
-        $(PLATFORM)\obj\mprThread.obj \
-        $(PLATFORM)\obj\mprTime.obj \
-        $(PLATFORM)\obj\mprUnix.obj \
-        $(PLATFORM)\obj\mprVxworks.obj \
-        $(PLATFORM)\obj\mprWait.obj \
-        $(PLATFORM)\obj\mprWide.obj \
-        $(PLATFORM)\obj\mprWin.obj \
-        $(PLATFORM)\obj\mprWince.obj \
-        $(PLATFORM)\obj\mprXml.obj
-	"$(LD)" -dll -out:$(PLATFORM)\bin\libmpr.dll -entry:_DllMainCRTStartup@12 -def:$(PLATFORM)\bin\libmpr.def $(LDFLAGS) $(LIBPATHS) $(PLATFORM)\obj\dtoa.obj $(PLATFORM)\obj\mpr.obj $(PLATFORM)\obj\mprAsync.obj $(PLATFORM)\obj\mprAtomic.obj $(PLATFORM)\obj\mprBuf.obj $(PLATFORM)\obj\mprCache.obj $(PLATFORM)\obj\mprCmd.obj $(PLATFORM)\obj\mprCond.obj $(PLATFORM)\obj\mprCrypt.obj $(PLATFORM)\obj\mprDisk.obj $(PLATFORM)\obj\mprDispatcher.obj $(PLATFORM)\obj\mprEncode.obj $(PLATFORM)\obj\mprEpoll.obj $(PLATFORM)\obj\mprEvent.obj $(PLATFORM)\obj\mprFile.obj $(PLATFORM)\obj\mprFileSystem.obj $(PLATFORM)\obj\mprHash.obj $(PLATFORM)\obj\mprJSON.obj $(PLATFORM)\obj\mprKqueue.obj $(PLATFORM)\obj\mprList.obj $(PLATFORM)\obj\mprLock.obj $(PLATFORM)\obj\mprLog.obj $(PLATFORM)\obj\mprMem.obj $(PLATFORM)\obj\mprMime.obj $(PLATFORM)\obj\mprMixed.obj $(PLATFORM)\obj\mprModule.obj $(PLATFORM)\obj\mprPath.obj $(PLATFORM)\obj\mprPoll.obj $(PLATFORM)\obj\mprPrintf.obj $(PLATFORM)\obj\mprRomFile.obj $(PLATFORM)\obj\mprSelect.obj $(PLATFORM)\obj\mprSignal.obj $(PLATFORM)\obj\mprSocket.obj $(PLATFORM)\obj\mprString.obj $(PLATFORM)\obj\mprTest.obj $(PLATFORM)\obj\mprThread.obj $(PLATFORM)\obj\mprTime.obj $(PLATFORM)\obj\mprUnix.obj $(PLATFORM)\obj\mprVxworks.obj $(PLATFORM)\obj\mprWait.obj $(PLATFORM)\obj\mprWide.obj $(PLATFORM)\obj\mprWin.obj $(PLATFORM)\obj\mprWince.obj $(PLATFORM)\obj\mprXml.obj $(LIBS)
+$(CONFIG)\bin\libmpr.dll:  \
+        $(CONFIG)\inc\mpr.h \
+        $(CONFIG)\obj\dtoa.obj \
+        $(CONFIG)\obj\mpr.obj \
+        $(CONFIG)\obj\mprAsync.obj \
+        $(CONFIG)\obj\mprAtomic.obj \
+        $(CONFIG)\obj\mprBuf.obj \
+        $(CONFIG)\obj\mprCache.obj \
+        $(CONFIG)\obj\mprCmd.obj \
+        $(CONFIG)\obj\mprCond.obj \
+        $(CONFIG)\obj\mprCrypt.obj \
+        $(CONFIG)\obj\mprDisk.obj \
+        $(CONFIG)\obj\mprDispatcher.obj \
+        $(CONFIG)\obj\mprEncode.obj \
+        $(CONFIG)\obj\mprEpoll.obj \
+        $(CONFIG)\obj\mprEvent.obj \
+        $(CONFIG)\obj\mprFile.obj \
+        $(CONFIG)\obj\mprFileSystem.obj \
+        $(CONFIG)\obj\mprHash.obj \
+        $(CONFIG)\obj\mprJSON.obj \
+        $(CONFIG)\obj\mprKqueue.obj \
+        $(CONFIG)\obj\mprList.obj \
+        $(CONFIG)\obj\mprLock.obj \
+        $(CONFIG)\obj\mprLog.obj \
+        $(CONFIG)\obj\mprMem.obj \
+        $(CONFIG)\obj\mprMime.obj \
+        $(CONFIG)\obj\mprMixed.obj \
+        $(CONFIG)\obj\mprModule.obj \
+        $(CONFIG)\obj\mprPath.obj \
+        $(CONFIG)\obj\mprPoll.obj \
+        $(CONFIG)\obj\mprPrintf.obj \
+        $(CONFIG)\obj\mprRomFile.obj \
+        $(CONFIG)\obj\mprSelect.obj \
+        $(CONFIG)\obj\mprSignal.obj \
+        $(CONFIG)\obj\mprSocket.obj \
+        $(CONFIG)\obj\mprString.obj \
+        $(CONFIG)\obj\mprTest.obj \
+        $(CONFIG)\obj\mprThread.obj \
+        $(CONFIG)\obj\mprTime.obj \
+        $(CONFIG)\obj\mprUnix.obj \
+        $(CONFIG)\obj\mprVxworks.obj \
+        $(CONFIG)\obj\mprWait.obj \
+        $(CONFIG)\obj\mprWide.obj \
+        $(CONFIG)\obj\mprWin.obj \
+        $(CONFIG)\obj\mprWince.obj \
+        $(CONFIG)\obj\mprXml.obj
+	"$(LD)" -dll -out:$(CONFIG)\bin\libmpr.dll -entry:_DllMainCRTStartup@12 -def:$(CONFIG)\bin\libmpr.def $(LDFLAGS) $(LIBPATHS) $(CONFIG)\obj\dtoa.obj $(CONFIG)\obj\mpr.obj $(CONFIG)\obj\mprAsync.obj $(CONFIG)\obj\mprAtomic.obj $(CONFIG)\obj\mprBuf.obj $(CONFIG)\obj\mprCache.obj $(CONFIG)\obj\mprCmd.obj $(CONFIG)\obj\mprCond.obj $(CONFIG)\obj\mprCrypt.obj $(CONFIG)\obj\mprDisk.obj $(CONFIG)\obj\mprDispatcher.obj $(CONFIG)\obj\mprEncode.obj $(CONFIG)\obj\mprEpoll.obj $(CONFIG)\obj\mprEvent.obj $(CONFIG)\obj\mprFile.obj $(CONFIG)\obj\mprFileSystem.obj $(CONFIG)\obj\mprHash.obj $(CONFIG)\obj\mprJSON.obj $(CONFIG)\obj\mprKqueue.obj $(CONFIG)\obj\mprList.obj $(CONFIG)\obj\mprLock.obj $(CONFIG)\obj\mprLog.obj $(CONFIG)\obj\mprMem.obj $(CONFIG)\obj\mprMime.obj $(CONFIG)\obj\mprMixed.obj $(CONFIG)\obj\mprModule.obj $(CONFIG)\obj\mprPath.obj $(CONFIG)\obj\mprPoll.obj $(CONFIG)\obj\mprPrintf.obj $(CONFIG)\obj\mprRomFile.obj $(CONFIG)\obj\mprSelect.obj $(CONFIG)\obj\mprSignal.obj $(CONFIG)\obj\mprSocket.obj $(CONFIG)\obj\mprString.obj $(CONFIG)\obj\mprTest.obj $(CONFIG)\obj\mprThread.obj $(CONFIG)\obj\mprTime.obj $(CONFIG)\obj\mprUnix.obj $(CONFIG)\obj\mprVxworks.obj $(CONFIG)\obj\mprWait.obj $(CONFIG)\obj\mprWide.obj $(CONFIG)\obj\mprWin.obj $(CONFIG)\obj\mprWince.obj $(CONFIG)\obj\mprXml.obj $(LIBS)
 
-$(PLATFORM)\obj\benchMpr.obj: \
+$(CONFIG)\obj\benchMpr.obj: \
         test\benchMpr.c \
-        $(PLATFORM)\inc\buildConfig.h
-	"$(CC)" -c -Fo$(PLATFORM)\obj\benchMpr.obj -Fd$(PLATFORM)\obj $(CFLAGS) $(DFLAGS) -I$(PLATFORM)\inc test\benchMpr.c
+        $(CONFIG)\inc\buildConfig.h
+	"$(CC)" -c -Fo$(CONFIG)\obj\benchMpr.obj -Fd$(CONFIG)\obj $(CFLAGS) $(DFLAGS) -I$(CONFIG)\inc -I$(CONFIG)\inc test\benchMpr.c
 
-$(PLATFORM)\bin\benchMpr.exe:  \
-        $(PLATFORM)\bin\libmpr.dll \
-        $(PLATFORM)\obj\benchMpr.obj
-	"$(LD)" -out:$(PLATFORM)\bin\benchMpr.exe -entry:mainCRTStartup -subsystem:console $(LDFLAGS) $(LIBPATHS) $(PLATFORM)\obj\benchMpr.obj $(LIBS) libmpr.lib
+$(CONFIG)\bin\benchMpr.exe:  \
+        $(CONFIG)\bin\libmpr.dll \
+        $(CONFIG)\obj\benchMpr.obj
+	"$(LD)" -out:$(CONFIG)\bin\benchMpr.exe -entry:mainCRTStartup -subsystem:console $(LDFLAGS) $(LIBPATHS) $(CONFIG)\obj\benchMpr.obj $(LIBS) libmpr.lib
 
-$(PLATFORM)\obj\runProgram.obj: \
+$(CONFIG)\obj\runProgram.obj: \
         test\runProgram.c \
-        $(PLATFORM)\inc\buildConfig.h
-	"$(CC)" -c -Fo$(PLATFORM)\obj\runProgram.obj -Fd$(PLATFORM)\obj $(CFLAGS) $(DFLAGS) -I$(PLATFORM)\inc test\runProgram.c
+        $(CONFIG)\inc\buildConfig.h
+	"$(CC)" -c -Fo$(CONFIG)\obj\runProgram.obj -Fd$(CONFIG)\obj $(CFLAGS) $(DFLAGS) -I$(CONFIG)\inc -I$(CONFIG)\inc test\runProgram.c
 
-$(PLATFORM)\bin\runProgram.exe:  \
-        $(PLATFORM)\obj\runProgram.obj
-	"$(LD)" -out:$(PLATFORM)\bin\runProgram.exe -entry:mainCRTStartup -subsystem:console $(LDFLAGS) $(LIBPATHS) $(PLATFORM)\obj\runProgram.obj $(LIBS)
+$(CONFIG)\bin\runProgram.exe:  \
+        $(CONFIG)\obj\runProgram.obj
+	"$(LD)" -out:$(CONFIG)\bin\runProgram.exe -entry:mainCRTStartup -subsystem:console $(LDFLAGS) $(LIBPATHS) $(CONFIG)\obj\runProgram.obj $(LIBS)
 
-$(PLATFORM)\obj\testArgv.obj: \
+$(CONFIG)\obj\testArgv.obj: \
         test\testArgv.c \
-        $(PLATFORM)\inc\buildConfig.h
-	"$(CC)" -c -Fo$(PLATFORM)\obj\testArgv.obj -Fd$(PLATFORM)\obj $(CFLAGS) $(DFLAGS) -I$(PLATFORM)\inc test\testArgv.c
+        $(CONFIG)\inc\buildConfig.h
+	"$(CC)" -c -Fo$(CONFIG)\obj\testArgv.obj -Fd$(CONFIG)\obj $(CFLAGS) $(DFLAGS) -I$(CONFIG)\inc -I$(CONFIG)\inc test\testArgv.c
 
-$(PLATFORM)\obj\testBuf.obj: \
+$(CONFIG)\obj\testBuf.obj: \
         test\testBuf.c \
-        $(PLATFORM)\inc\buildConfig.h
-	"$(CC)" -c -Fo$(PLATFORM)\obj\testBuf.obj -Fd$(PLATFORM)\obj $(CFLAGS) $(DFLAGS) -I$(PLATFORM)\inc test\testBuf.c
+        $(CONFIG)\inc\buildConfig.h
+	"$(CC)" -c -Fo$(CONFIG)\obj\testBuf.obj -Fd$(CONFIG)\obj $(CFLAGS) $(DFLAGS) -I$(CONFIG)\inc -I$(CONFIG)\inc test\testBuf.c
 
-$(PLATFORM)\obj\testCmd.obj: \
+$(CONFIG)\obj\testCmd.obj: \
         test\testCmd.c \
-        $(PLATFORM)\inc\buildConfig.h
-	"$(CC)" -c -Fo$(PLATFORM)\obj\testCmd.obj -Fd$(PLATFORM)\obj $(CFLAGS) $(DFLAGS) -I$(PLATFORM)\inc test\testCmd.c
+        $(CONFIG)\inc\buildConfig.h
+	"$(CC)" -c -Fo$(CONFIG)\obj\testCmd.obj -Fd$(CONFIG)\obj $(CFLAGS) $(DFLAGS) -I$(CONFIG)\inc -I$(CONFIG)\inc test\testCmd.c
 
-$(PLATFORM)\obj\testCond.obj: \
+$(CONFIG)\obj\testCond.obj: \
         test\testCond.c \
-        $(PLATFORM)\inc\buildConfig.h
-	"$(CC)" -c -Fo$(PLATFORM)\obj\testCond.obj -Fd$(PLATFORM)\obj $(CFLAGS) $(DFLAGS) -I$(PLATFORM)\inc test\testCond.c
+        $(CONFIG)\inc\buildConfig.h
+	"$(CC)" -c -Fo$(CONFIG)\obj\testCond.obj -Fd$(CONFIG)\obj $(CFLAGS) $(DFLAGS) -I$(CONFIG)\inc -I$(CONFIG)\inc test\testCond.c
 
-$(PLATFORM)\obj\testEvent.obj: \
+$(CONFIG)\obj\testEvent.obj: \
         test\testEvent.c \
-        $(PLATFORM)\inc\buildConfig.h
-	"$(CC)" -c -Fo$(PLATFORM)\obj\testEvent.obj -Fd$(PLATFORM)\obj $(CFLAGS) $(DFLAGS) -I$(PLATFORM)\inc test\testEvent.c
+        $(CONFIG)\inc\buildConfig.h
+	"$(CC)" -c -Fo$(CONFIG)\obj\testEvent.obj -Fd$(CONFIG)\obj $(CFLAGS) $(DFLAGS) -I$(CONFIG)\inc -I$(CONFIG)\inc test\testEvent.c
 
-$(PLATFORM)\obj\testFile.obj: \
+$(CONFIG)\obj\testFile.obj: \
         test\testFile.c \
-        $(PLATFORM)\inc\buildConfig.h
-	"$(CC)" -c -Fo$(PLATFORM)\obj\testFile.obj -Fd$(PLATFORM)\obj $(CFLAGS) $(DFLAGS) -I$(PLATFORM)\inc test\testFile.c
+        $(CONFIG)\inc\buildConfig.h
+	"$(CC)" -c -Fo$(CONFIG)\obj\testFile.obj -Fd$(CONFIG)\obj $(CFLAGS) $(DFLAGS) -I$(CONFIG)\inc -I$(CONFIG)\inc test\testFile.c
 
-$(PLATFORM)\obj\testHash.obj: \
+$(CONFIG)\obj\testHash.obj: \
         test\testHash.c \
-        $(PLATFORM)\inc\buildConfig.h
-	"$(CC)" -c -Fo$(PLATFORM)\obj\testHash.obj -Fd$(PLATFORM)\obj $(CFLAGS) $(DFLAGS) -I$(PLATFORM)\inc test\testHash.c
+        $(CONFIG)\inc\buildConfig.h
+	"$(CC)" -c -Fo$(CONFIG)\obj\testHash.obj -Fd$(CONFIG)\obj $(CFLAGS) $(DFLAGS) -I$(CONFIG)\inc -I$(CONFIG)\inc test\testHash.c
 
-$(PLATFORM)\obj\testList.obj: \
+$(CONFIG)\obj\testList.obj: \
         test\testList.c \
-        $(PLATFORM)\inc\buildConfig.h
-	"$(CC)" -c -Fo$(PLATFORM)\obj\testList.obj -Fd$(PLATFORM)\obj $(CFLAGS) $(DFLAGS) -I$(PLATFORM)\inc test\testList.c
+        $(CONFIG)\inc\buildConfig.h
+	"$(CC)" -c -Fo$(CONFIG)\obj\testList.obj -Fd$(CONFIG)\obj $(CFLAGS) $(DFLAGS) -I$(CONFIG)\inc -I$(CONFIG)\inc test\testList.c
 
-$(PLATFORM)\obj\testLock.obj: \
+$(CONFIG)\obj\testLock.obj: \
         test\testLock.c \
-        $(PLATFORM)\inc\buildConfig.h
-	"$(CC)" -c -Fo$(PLATFORM)\obj\testLock.obj -Fd$(PLATFORM)\obj $(CFLAGS) $(DFLAGS) -I$(PLATFORM)\inc test\testLock.c
+        $(CONFIG)\inc\buildConfig.h
+	"$(CC)" -c -Fo$(CONFIG)\obj\testLock.obj -Fd$(CONFIG)\obj $(CFLAGS) $(DFLAGS) -I$(CONFIG)\inc -I$(CONFIG)\inc test\testLock.c
 
-$(PLATFORM)\obj\testMem.obj: \
+$(CONFIG)\obj\testMem.obj: \
         test\testMem.c \
-        $(PLATFORM)\inc\buildConfig.h
-	"$(CC)" -c -Fo$(PLATFORM)\obj\testMem.obj -Fd$(PLATFORM)\obj $(CFLAGS) $(DFLAGS) -I$(PLATFORM)\inc test\testMem.c
+        $(CONFIG)\inc\buildConfig.h
+	"$(CC)" -c -Fo$(CONFIG)\obj\testMem.obj -Fd$(CONFIG)\obj $(CFLAGS) $(DFLAGS) -I$(CONFIG)\inc -I$(CONFIG)\inc test\testMem.c
 
-$(PLATFORM)\obj\testMpr.obj: \
+$(CONFIG)\obj\testMpr.obj: \
         test\testMpr.c \
-        $(PLATFORM)\inc\buildConfig.h
-	"$(CC)" -c -Fo$(PLATFORM)\obj\testMpr.obj -Fd$(PLATFORM)\obj $(CFLAGS) $(DFLAGS) -I$(PLATFORM)\inc test\testMpr.c
+        $(CONFIG)\inc\buildConfig.h
+	"$(CC)" -c -Fo$(CONFIG)\obj\testMpr.obj -Fd$(CONFIG)\obj $(CFLAGS) $(DFLAGS) -I$(CONFIG)\inc -I$(CONFIG)\inc test\testMpr.c
 
-$(PLATFORM)\obj\testPath.obj: \
+$(CONFIG)\obj\testPath.obj: \
         test\testPath.c \
-        $(PLATFORM)\inc\buildConfig.h
-	"$(CC)" -c -Fo$(PLATFORM)\obj\testPath.obj -Fd$(PLATFORM)\obj $(CFLAGS) $(DFLAGS) -I$(PLATFORM)\inc test\testPath.c
+        $(CONFIG)\inc\buildConfig.h
+	"$(CC)" -c -Fo$(CONFIG)\obj\testPath.obj -Fd$(CONFIG)\obj $(CFLAGS) $(DFLAGS) -I$(CONFIG)\inc -I$(CONFIG)\inc test\testPath.c
 
-$(PLATFORM)\obj\testSocket.obj: \
+$(CONFIG)\obj\testSocket.obj: \
         test\testSocket.c \
-        $(PLATFORM)\inc\buildConfig.h
-	"$(CC)" -c -Fo$(PLATFORM)\obj\testSocket.obj -Fd$(PLATFORM)\obj $(CFLAGS) $(DFLAGS) -I$(PLATFORM)\inc test\testSocket.c
+        $(CONFIG)\inc\buildConfig.h
+	"$(CC)" -c -Fo$(CONFIG)\obj\testSocket.obj -Fd$(CONFIG)\obj $(CFLAGS) $(DFLAGS) -I$(CONFIG)\inc -I$(CONFIG)\inc test\testSocket.c
 
-$(PLATFORM)\obj\testSprintf.obj: \
+$(CONFIG)\obj\testSprintf.obj: \
         test\testSprintf.c \
-        $(PLATFORM)\inc\buildConfig.h
-	"$(CC)" -c -Fo$(PLATFORM)\obj\testSprintf.obj -Fd$(PLATFORM)\obj $(CFLAGS) $(DFLAGS) -I$(PLATFORM)\inc test\testSprintf.c
+        $(CONFIG)\inc\buildConfig.h
+	"$(CC)" -c -Fo$(CONFIG)\obj\testSprintf.obj -Fd$(CONFIG)\obj $(CFLAGS) $(DFLAGS) -I$(CONFIG)\inc -I$(CONFIG)\inc test\testSprintf.c
 
-$(PLATFORM)\obj\testThread.obj: \
+$(CONFIG)\obj\testThread.obj: \
         test\testThread.c \
-        $(PLATFORM)\inc\buildConfig.h
-	"$(CC)" -c -Fo$(PLATFORM)\obj\testThread.obj -Fd$(PLATFORM)\obj $(CFLAGS) $(DFLAGS) -I$(PLATFORM)\inc test\testThread.c
+        $(CONFIG)\inc\buildConfig.h
+	"$(CC)" -c -Fo$(CONFIG)\obj\testThread.obj -Fd$(CONFIG)\obj $(CFLAGS) $(DFLAGS) -I$(CONFIG)\inc -I$(CONFIG)\inc test\testThread.c
 
-$(PLATFORM)\obj\testTime.obj: \
+$(CONFIG)\obj\testTime.obj: \
         test\testTime.c \
-        $(PLATFORM)\inc\buildConfig.h
-	"$(CC)" -c -Fo$(PLATFORM)\obj\testTime.obj -Fd$(PLATFORM)\obj $(CFLAGS) $(DFLAGS) -I$(PLATFORM)\inc test\testTime.c
+        $(CONFIG)\inc\buildConfig.h
+	"$(CC)" -c -Fo$(CONFIG)\obj\testTime.obj -Fd$(CONFIG)\obj $(CFLAGS) $(DFLAGS) -I$(CONFIG)\inc -I$(CONFIG)\inc test\testTime.c
 
-$(PLATFORM)\obj\testUnicode.obj: \
+$(CONFIG)\obj\testUnicode.obj: \
         test\testUnicode.c \
-        $(PLATFORM)\inc\buildConfig.h
-	"$(CC)" -c -Fo$(PLATFORM)\obj\testUnicode.obj -Fd$(PLATFORM)\obj $(CFLAGS) $(DFLAGS) -I$(PLATFORM)\inc test\testUnicode.c
+        $(CONFIG)\inc\buildConfig.h
+	"$(CC)" -c -Fo$(CONFIG)\obj\testUnicode.obj -Fd$(CONFIG)\obj $(CFLAGS) $(DFLAGS) -I$(CONFIG)\inc -I$(CONFIG)\inc test\testUnicode.c
 
-$(PLATFORM)\bin\testMpr.exe:  \
-        $(PLATFORM)\bin\libmpr.dll \
-        $(PLATFORM)\bin\runProgram.exe \
-        $(PLATFORM)\obj\testArgv.obj \
-        $(PLATFORM)\obj\testBuf.obj \
-        $(PLATFORM)\obj\testCmd.obj \
-        $(PLATFORM)\obj\testCond.obj \
-        $(PLATFORM)\obj\testEvent.obj \
-        $(PLATFORM)\obj\testFile.obj \
-        $(PLATFORM)\obj\testHash.obj \
-        $(PLATFORM)\obj\testList.obj \
-        $(PLATFORM)\obj\testLock.obj \
-        $(PLATFORM)\obj\testMem.obj \
-        $(PLATFORM)\obj\testMpr.obj \
-        $(PLATFORM)\obj\testPath.obj \
-        $(PLATFORM)\obj\testSocket.obj \
-        $(PLATFORM)\obj\testSprintf.obj \
-        $(PLATFORM)\obj\testThread.obj \
-        $(PLATFORM)\obj\testTime.obj \
-        $(PLATFORM)\obj\testUnicode.obj
-	"$(LD)" -out:$(PLATFORM)\bin\testMpr.exe -entry:mainCRTStartup -subsystem:console $(LDFLAGS) $(LIBPATHS) $(PLATFORM)\obj\testArgv.obj $(PLATFORM)\obj\testBuf.obj $(PLATFORM)\obj\testCmd.obj $(PLATFORM)\obj\testCond.obj $(PLATFORM)\obj\testEvent.obj $(PLATFORM)\obj\testFile.obj $(PLATFORM)\obj\testHash.obj $(PLATFORM)\obj\testList.obj $(PLATFORM)\obj\testLock.obj $(PLATFORM)\obj\testMem.obj $(PLATFORM)\obj\testMpr.obj $(PLATFORM)\obj\testPath.obj $(PLATFORM)\obj\testSocket.obj $(PLATFORM)\obj\testSprintf.obj $(PLATFORM)\obj\testThread.obj $(PLATFORM)\obj\testTime.obj $(PLATFORM)\obj\testUnicode.obj $(LIBS) libmpr.lib
+$(CONFIG)\bin\testMpr.exe:  \
+        $(CONFIG)\bin\libmpr.dll \
+        $(CONFIG)\bin\runProgram.exe \
+        $(CONFIG)\obj\testArgv.obj \
+        $(CONFIG)\obj\testBuf.obj \
+        $(CONFIG)\obj\testCmd.obj \
+        $(CONFIG)\obj\testCond.obj \
+        $(CONFIG)\obj\testEvent.obj \
+        $(CONFIG)\obj\testFile.obj \
+        $(CONFIG)\obj\testHash.obj \
+        $(CONFIG)\obj\testList.obj \
+        $(CONFIG)\obj\testLock.obj \
+        $(CONFIG)\obj\testMem.obj \
+        $(CONFIG)\obj\testMpr.obj \
+        $(CONFIG)\obj\testPath.obj \
+        $(CONFIG)\obj\testSocket.obj \
+        $(CONFIG)\obj\testSprintf.obj \
+        $(CONFIG)\obj\testThread.obj \
+        $(CONFIG)\obj\testTime.obj \
+        $(CONFIG)\obj\testUnicode.obj
+	"$(LD)" -out:$(CONFIG)\bin\testMpr.exe -entry:mainCRTStartup -subsystem:console $(LDFLAGS) $(LIBPATHS) $(CONFIG)\obj\testArgv.obj $(CONFIG)\obj\testBuf.obj $(CONFIG)\obj\testCmd.obj $(CONFIG)\obj\testCond.obj $(CONFIG)\obj\testEvent.obj $(CONFIG)\obj\testFile.obj $(CONFIG)\obj\testHash.obj $(CONFIG)\obj\testList.obj $(CONFIG)\obj\testLock.obj $(CONFIG)\obj\testMem.obj $(CONFIG)\obj\testMpr.obj $(CONFIG)\obj\testPath.obj $(CONFIG)\obj\testSocket.obj $(CONFIG)\obj\testSprintf.obj $(CONFIG)\obj\testThread.obj $(CONFIG)\obj\testTime.obj $(CONFIG)\obj\testUnicode.obj $(LIBS) libmpr.lib
 
-$(PLATFORM)\obj\manager.obj: \
+$(CONFIG)\obj\manager.obj: \
         src\manager.c \
-        $(PLATFORM)\inc\buildConfig.h
-	"$(CC)" -c -Fo$(PLATFORM)\obj\manager.obj -Fd$(PLATFORM)\obj $(CFLAGS) $(DFLAGS) -I$(PLATFORM)\inc src\manager.c
+        $(CONFIG)\inc\buildConfig.h
+	"$(CC)" -c -Fo$(CONFIG)\obj\manager.obj -Fd$(CONFIG)\obj $(CFLAGS) $(DFLAGS) -I$(CONFIG)\inc -I$(CONFIG)\inc src\manager.c
 
-$(PLATFORM)\bin\manager.exe:  \
-        $(PLATFORM)\bin\libmpr.dll \
-        $(PLATFORM)\obj\manager.obj
-	"$(LD)" -out:$(PLATFORM)\bin\manager.exe -entry:WinMainCRTStartup -subsystem:Windows $(LDFLAGS) $(LIBPATHS) $(PLATFORM)\obj\manager.obj $(LIBS) libmpr.lib
+$(CONFIG)\bin\manager.exe:  \
+        $(CONFIG)\bin\libmpr.dll \
+        $(CONFIG)\obj\manager.obj
+	"$(LD)" -out:$(CONFIG)\bin\manager.exe -entry:WinMainCRTStartup -subsystem:Windows $(LDFLAGS) $(LIBPATHS) $(CONFIG)\obj\manager.obj $(LIBS) libmpr.lib
 
-$(PLATFORM)\obj\makerom.obj: \
+$(CONFIG)\obj\makerom.obj: \
         src\utils\makerom.c \
-        $(PLATFORM)\inc\buildConfig.h
-	"$(CC)" -c -Fo$(PLATFORM)\obj\makerom.obj -Fd$(PLATFORM)\obj $(CFLAGS) $(DFLAGS) -I$(PLATFORM)\inc src\utils\makerom.c
+        $(CONFIG)\inc\buildConfig.h
+	"$(CC)" -c -Fo$(CONFIG)\obj\makerom.obj -Fd$(CONFIG)\obj $(CFLAGS) $(DFLAGS) -I$(CONFIG)\inc -I$(CONFIG)\inc src\utils\makerom.c
 
-$(PLATFORM)\bin\makerom.exe:  \
-        $(PLATFORM)\bin\libmpr.dll \
-        $(PLATFORM)\obj\makerom.obj
-	"$(LD)" -out:$(PLATFORM)\bin\makerom.exe -entry:mainCRTStartup -subsystem:console $(LDFLAGS) $(LIBPATHS) $(PLATFORM)\obj\makerom.obj $(LIBS) libmpr.lib
+$(CONFIG)\bin\makerom.exe:  \
+        $(CONFIG)\bin\libmpr.dll \
+        $(CONFIG)\obj\makerom.obj
+	"$(LD)" -out:$(CONFIG)\bin\makerom.exe -entry:mainCRTStartup -subsystem:console $(LDFLAGS) $(LIBPATHS) $(CONFIG)\obj\makerom.obj $(LIBS) libmpr.lib
 
-$(PLATFORM)\obj\charGen.obj: \
+$(CONFIG)\obj\charGen.obj: \
         src\utils\charGen.c \
-        $(PLATFORM)\inc\buildConfig.h
-	"$(CC)" -c -Fo$(PLATFORM)\obj\charGen.obj -Fd$(PLATFORM)\obj $(CFLAGS) $(DFLAGS) -I$(PLATFORM)\inc src\utils\charGen.c
+        $(CONFIG)\inc\buildConfig.h
+	"$(CC)" -c -Fo$(CONFIG)\obj\charGen.obj -Fd$(CONFIG)\obj $(CFLAGS) $(DFLAGS) -I$(CONFIG)\inc -I$(CONFIG)\inc src\utils\charGen.c
 
-$(PLATFORM)\bin\chargen.exe:  \
-        $(PLATFORM)\bin\libmpr.dll \
-        $(PLATFORM)\obj\charGen.obj
-	"$(LD)" -out:$(PLATFORM)\bin\chargen.exe -entry:mainCRTStartup -subsystem:console $(LDFLAGS) $(LIBPATHS) $(PLATFORM)\obj\charGen.obj $(LIBS) libmpr.lib
+$(CONFIG)\bin\chargen.exe:  \
+        $(CONFIG)\bin\libmpr.dll \
+        $(CONFIG)\obj\charGen.obj
+	"$(LD)" -out:$(CONFIG)\bin\chargen.exe -entry:mainCRTStartup -subsystem:console $(LDFLAGS) $(LIBPATHS) $(CONFIG)\obj\charGen.obj $(LIBS) libmpr.lib
 

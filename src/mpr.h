@@ -49,11 +49,6 @@
 #ifndef BLD_TUNE
     #define BLD_TUNE MPR_TUNE_SIZE
 #endif
-#if BLD_FEATURE_MATRIXSSL || BLD_FEATURE_OPENSSL
-    #define BLD_FEATURE_SSL 1
-#else
-    #define BLD_FEATURE_SSL 0
-#endif
 
 /********************************* CPU Families *******************************/
 /*

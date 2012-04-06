@@ -77,7 +77,8 @@
 #define BLD_MAN2HTML "../../../../usr/local/bin/man2html"
 #define BLD_FEATURE_MD5 1
 #define BLD_MD5 "../../../../sbin/md5"
-#define BLD_FEATURE_OPENSSL 1
-#define BLD_OPENSSL "../packages-macosx-x86_64/openssl/openssl-1.0.0d/libcrypto.dylib"
 #define BLD_FEATURE_MATRIXSSL 1
 #define BLD_MATRIXSSL "../packages-macosx-x86_64/matrixssl/matrixssl-3-3-open/libmatrixssl.dylib"
+#define BLD_FEATURE_OPENSSL 1
+#define BLD_OPENSSL "../packages-macosx-x86_64/openssl/openssl-1.0.0d/libcrypto.dylib"
+#define BLD_FEATURE_SSL 1

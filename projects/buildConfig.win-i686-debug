@@ -84,5 +84,6 @@
 #define BLD_MAN2HTML "../../../../usr/local/bin/man2html"
 #define BLD_FEATURE_MD5 1
 #define BLD_MD5 "../../../../sbin/md5"
-#define BLD_FEATURE_OPENSSL 0
 #define BLD_FEATURE_MATRIXSSL 0
+#define BLD_FEATURE_OPENSSL 0
+#define BLD_FEATURE_SSL 0

@@ -16,7 +16,7 @@ Bit.load({
 		version: '4.0.0',
 		buildNumber: 'B0',
         manager: 'manager',
-        '+optional': [ 'doxygen', 'dsi', 'ejs', 'http', 'man', 'man2html', 'md5', 'openssl', 'matrixssl' ],
+        '+optional': [ 'doxygen', 'dsi', 'ejs', 'http', 'man', 'man2html', 'md5', 'matrixssl', 'openssl', 'ssl' ],
     },
 
     usage: {
@@ -33,7 +33,7 @@ Bit.load({
         },
 
         libmprssl: {
-            enable: 'bit.packs.openssl.enable || bit.packs.matrixssl.enable',
+            enable: 'bit.packs.ssl.enable',
             type: 'lib',
             depends: [ 'libmpr', 'openssl', 'matrixssl' ],
             sources: [ 'src/mprMatrixssl.c', 'src/mprOpenssl.c', 'src/MprSsl.c' ],
