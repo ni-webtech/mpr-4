@@ -569,9 +569,11 @@ typedef int64 MprTime;
 #if BLD_WIN_LIKE
     #define INT64(x)    (x##i64)
     #define UINT64(x)   (x##Ui64)
+    #define MPR_EXPORT  __declspec(dllexport)
 #else
     #define INT64(x)    (x##LL)
     #define UINT64(x)   (x##ULL)
+    #define MPR_EXPORT 
 #endif
 
 #ifndef max
