@@ -126,13 +126,13 @@ cp -r src\mpr.h win-i686-debug/inc/mpr.h
 
 "${LD}" -out:${CONFIG}/bin/runProgram.exe -entry:mainCRTStartup -subsystem:console ${LDFLAGS} ${LIBPATHS} ${CONFIG}/obj/runProgram.obj ${LIBS}
 
-"${CC}" -c -Fo${CONFIG}/obj/mprMatrixssl.obj -Fd${CONFIG}/obj/mprMatrixssl.pdb ${CFLAGS} ${DFLAGS} -I${CONFIG}/inc -I../packages-win-i686/openssl/openssl-1.0.0d/inc32 src\mprMatrixssl.c
+"${CC}" -c -Fo${CONFIG}/obj/mprMatrixssl.obj -Fd${CONFIG}/obj/mprMatrixssl.pdb ${CFLAGS} ${DFLAGS} -I${CONFIG}/inc src\mprMatrixssl.c
 
-"${CC}" -c -Fo${CONFIG}/obj/mprOpenssl.obj -Fd${CONFIG}/obj/mprOpenssl.pdb ${CFLAGS} ${DFLAGS} -I${CONFIG}/inc -I../packages-win-i686/openssl/openssl-1.0.0d/inc32 src\mprOpenssl.c
+"${CC}" -c -Fo${CONFIG}/obj/mprOpenssl.obj -Fd${CONFIG}/obj/mprOpenssl.pdb ${CFLAGS} ${DFLAGS} -I${CONFIG}/inc src\mprOpenssl.c
 
-"${CC}" -c -Fo${CONFIG}/obj/mprSsl.obj -Fd${CONFIG}/obj/mprSsl.pdb ${CFLAGS} ${DFLAGS} -I${CONFIG}/inc -I../packages-win-i686/openssl/openssl-1.0.0d/inc32 src\mprSsl.c
+"${CC}" -c -Fo${CONFIG}/obj/mprSsl.obj -Fd${CONFIG}/obj/mprSsl.pdb ${CFLAGS} ${DFLAGS} -I${CONFIG}/inc src\mprSsl.c
 
-"${LD}" -dll -out:${CONFIG}/bin/libmprssl.dll -entry:_DllMainCRTStartup@12 -def:${CONFIG}/bin/libmprssl.def ${LDFLAGS} ${LIBPATHS} -libpath:C:/cygwin/home/mob/packages-win-i686/openssl/openssl-1.0.0d/out32dll ${CONFIG}/obj/mprMatrixssl.obj ${CONFIG}/obj/mprOpenssl.obj ${CONFIG}/obj/mprSsl.obj ${LIBS} libmpr.lib libeay32.lib ssleay32.lib
+"${LD}" -dll -out:${CONFIG}/bin/libmprssl.dll -entry:_DllMainCRTStartup@12 -def:${CONFIG}/bin/libmprssl.def ${LDFLAGS} ${LIBPATHS} ${CONFIG}/obj/mprMatrixssl.obj ${CONFIG}/obj/mprOpenssl.obj ${CONFIG}/obj/mprSsl.obj ${LIBS} libmpr.lib
 
 "${CC}" -c -Fo${CONFIG}/obj/testArgv.obj -Fd${CONFIG}/obj/testArgv.pdb ${CFLAGS} ${DFLAGS} -I${CONFIG}/inc test\testArgv.c
 
@@ -168,7 +168,7 @@ cp -r src\mpr.h win-i686-debug/inc/mpr.h
 
 "${CC}" -c -Fo${CONFIG}/obj/testUnicode.obj -Fd${CONFIG}/obj/testUnicode.pdb ${CFLAGS} ${DFLAGS} -I${CONFIG}/inc test\testUnicode.c
 
-"${LD}" -out:${CONFIG}/bin/testMpr.exe -entry:mainCRTStartup -subsystem:console ${LDFLAGS} ${LIBPATHS} -libpath:C:/cygwin/home/mob/packages-win-i686/openssl/openssl-1.0.0d/out32dll ${CONFIG}/obj/testArgv.obj ${CONFIG}/obj/testBuf.obj ${CONFIG}/obj/testCmd.obj ${CONFIG}/obj/testCond.obj ${CONFIG}/obj/testEvent.obj ${CONFIG}/obj/testFile.obj ${CONFIG}/obj/testHash.obj ${CONFIG}/obj/testList.obj ${CONFIG}/obj/testLock.obj ${CONFIG}/obj/testMem.obj ${CONFIG}/obj/testMpr.obj ${CONFIG}/obj/testPath.obj ${CONFIG}/obj/testSocket.obj ${CONFIG}/obj/testSprintf.obj ${CONFIG}/obj/testThread.obj ${CONFIG}/obj/testTime.obj ${CONFIG}/obj/testUnicode.obj ${LIBS} libmpr.lib libmprssl.lib libeay32.lib ssleay32.lib
+"${LD}" -out:${CONFIG}/bin/testMpr.exe -entry:mainCRTStartup -subsystem:console ${LDFLAGS} ${LIBPATHS} ${CONFIG}/obj/testArgv.obj ${CONFIG}/obj/testBuf.obj ${CONFIG}/obj/testCmd.obj ${CONFIG}/obj/testCond.obj ${CONFIG}/obj/testEvent.obj ${CONFIG}/obj/testFile.obj ${CONFIG}/obj/testHash.obj ${CONFIG}/obj/testList.obj ${CONFIG}/obj/testLock.obj ${CONFIG}/obj/testMem.obj ${CONFIG}/obj/testMpr.obj ${CONFIG}/obj/testPath.obj ${CONFIG}/obj/testSocket.obj ${CONFIG}/obj/testSprintf.obj ${CONFIG}/obj/testThread.obj ${CONFIG}/obj/testTime.obj ${CONFIG}/obj/testUnicode.obj ${LIBS} libmpr.lib libmprssl.lib
 
 "${CC}" -c -Fo${CONFIG}/obj/manager.obj -Fd${CONFIG}/obj/manager.pdb ${CFLAGS} ${DFLAGS} -I${CONFIG}/inc src\manager.c
 

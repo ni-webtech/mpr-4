@@ -8,7 +8,9 @@ SDK            := $(WindowsSDKDir)
 SDK            ?= $(PROGRAMFILES)\Microsoft SDKs\Windows\v7.1
 
 export         SDK VS
-export PATH    := $(SDK)/Bin;$(VS)/VC/Bin;$(VS)/Common7/IDE;$(VS)/Common7/Tools;$(VS)/SDK/v3.5/bin;$(VS)/VC/VCPackages;$(PATH)
+export XPATH   := $(SDK)Bin;$(VS)\VC\Bin;$(VS)\Common7\IDE;$(VS)\Common7\Tools;$(VS)\SDK\v3.5\bin;$(VS)\VC\VCPackages;MOB
+
+# export PATH    := $(SDK)/Bin;$(VS)/VC/Bin;$(VS)/Common7/IDE;$(VS)/Common7/Tools;$(VS)/SDK/v3.5/bin;$(VS)/VC/VCPackages;$(PATH)
 export INCLUDE := $(INCLUDE);$(SDK)/INCLUDE;$(VS)/VC/INCLUDE
 export LIB     := $(LIB);$(SDK)/lib;$(VS)/VC/lib
 
@@ -43,6 +45,9 @@ prep:
 	fi; true
 
 clean:
+	echo PF $(PROGRAMFILES) AFTER
+	echo XPATH $(XPATH) AFTER
+	type rm
 	rm -rf $(CONFIG)/bin/benchMpr.exe
 	rm -rf $(CONFIG)/bin/runProgram.exe
 	rm -rf $(CONFIG)/bin/testMpr.exe
@@ -464,26 +469,26 @@ $(CONFIG)/obj/mprMatrixssl.obj: \
         src\mprMatrixssl.c \
         $(CONFIG)/inc/buildConfig.h \
         $(CONFIG)/inc/mpr.h
-	"$(CC)" -c -Fo$(CONFIG)/obj/mprMatrixssl.obj -Fd$(CONFIG)/obj/mprMatrixssl.pdb $(CFLAGS) $(DFLAGS) -I$(CONFIG)/inc -I../packages-win-i686/openssl/openssl-1.0.0d/inc32 src\mprMatrixssl.c
+	"$(CC)" -c -Fo$(CONFIG)/obj/mprMatrixssl.obj -Fd$(CONFIG)/obj/mprMatrixssl.pdb $(CFLAGS) $(DFLAGS) -I$(CONFIG)/inc src\mprMatrixssl.c
 
 $(CONFIG)/obj/mprOpenssl.obj: \
         src\mprOpenssl.c \
         $(CONFIG)/inc/buildConfig.h \
         $(CONFIG)/inc/mpr.h
-	"$(CC)" -c -Fo$(CONFIG)/obj/mprOpenssl.obj -Fd$(CONFIG)/obj/mprOpenssl.pdb $(CFLAGS) $(DFLAGS) -I$(CONFIG)/inc -I../packages-win-i686/openssl/openssl-1.0.0d/inc32 src\mprOpenssl.c
+	"$(CC)" -c -Fo$(CONFIG)/obj/mprOpenssl.obj -Fd$(CONFIG)/obj/mprOpenssl.pdb $(CFLAGS) $(DFLAGS) -I$(CONFIG)/inc src\mprOpenssl.c
 
 $(CONFIG)/obj/mprSsl.obj: \
         src\mprSsl.c \
         $(CONFIG)/inc/buildConfig.h \
         $(CONFIG)/inc/mpr.h
-	"$(CC)" -c -Fo$(CONFIG)/obj/mprSsl.obj -Fd$(CONFIG)/obj/mprSsl.pdb $(CFLAGS) $(DFLAGS) -I$(CONFIG)/inc -I../packages-win-i686/openssl/openssl-1.0.0d/inc32 src\mprSsl.c
+	"$(CC)" -c -Fo$(CONFIG)/obj/mprSsl.obj -Fd$(CONFIG)/obj/mprSsl.pdb $(CFLAGS) $(DFLAGS) -I$(CONFIG)/inc src\mprSsl.c
 
 $(CONFIG)/bin/libmprssl.dll:  \
         $(CONFIG)/bin/libmpr.dll \
         $(CONFIG)/obj/mprMatrixssl.obj \
         $(CONFIG)/obj/mprOpenssl.obj \
         $(CONFIG)/obj/mprSsl.obj
-	"$(LD)" -dll -out:$(CONFIG)/bin/libmprssl.dll -entry:_DllMainCRTStartup@12 -def:$(CONFIG)/bin/libmprssl.def $(LDFLAGS) $(LIBPATHS) -libpath:C:/cygwin/home/mob/packages-win-i686/openssl/openssl-1.0.0d/out32dll $(CONFIG)/obj/mprMatrixssl.obj $(CONFIG)/obj/mprOpenssl.obj $(CONFIG)/obj/mprSsl.obj $(LIBS) libmpr.lib libeay32.lib ssleay32.lib
+	"$(LD)" -dll -out:$(CONFIG)/bin/libmprssl.dll -entry:_DllMainCRTStartup@12 -def:$(CONFIG)/bin/libmprssl.def $(LDFLAGS) $(LIBPATHS) $(CONFIG)/obj/mprMatrixssl.obj $(CONFIG)/obj/mprOpenssl.obj $(CONFIG)/obj/mprSsl.obj $(LIBS) libmpr.lib
 
 $(CONFIG)/obj/testArgv.obj: \
         test\testArgv.c \
@@ -608,7 +613,7 @@ $(CONFIG)/bin/testMpr.exe:  \
         $(CONFIG)/obj/testThread.obj \
         $(CONFIG)/obj/testTime.obj \
         $(CONFIG)/obj/testUnicode.obj
-	"$(LD)" -out:$(CONFIG)/bin/testMpr.exe -entry:mainCRTStartup -subsystem:console $(LDFLAGS) $(LIBPATHS) -libpath:C:/cygwin/home/mob/packages-win-i686/openssl/openssl-1.0.0d/out32dll $(CONFIG)/obj/testArgv.obj $(CONFIG)/obj/testBuf.obj $(CONFIG)/obj/testCmd.obj $(CONFIG)/obj/testCond.obj $(CONFIG)/obj/testEvent.obj $(CONFIG)/obj/testFile.obj $(CONFIG)/obj/testHash.obj $(CONFIG)/obj/testList.obj $(CONFIG)/obj/testLock.obj $(CONFIG)/obj/testMem.obj $(CONFIG)/obj/testMpr.obj $(CONFIG)/obj/testPath.obj $(CONFIG)/obj/testSocket.obj $(CONFIG)/obj/testSprintf.obj $(CONFIG)/obj/testThread.obj $(CONFIG)/obj/testTime.obj $(CONFIG)/obj/testUnicode.obj $(LIBS) libmpr.lib libmprssl.lib libeay32.lib ssleay32.lib
+	"$(LD)" -out:$(CONFIG)/bin/testMpr.exe -entry:mainCRTStartup -subsystem:console $(LDFLAGS) $(LIBPATHS) $(CONFIG)/obj/testArgv.obj $(CONFIG)/obj/testBuf.obj $(CONFIG)/obj/testCmd.obj $(CONFIG)/obj/testCond.obj $(CONFIG)/obj/testEvent.obj $(CONFIG)/obj/testFile.obj $(CONFIG)/obj/testHash.obj $(CONFIG)/obj/testList.obj $(CONFIG)/obj/testLock.obj $(CONFIG)/obj/testMem.obj $(CONFIG)/obj/testMpr.obj $(CONFIG)/obj/testPath.obj $(CONFIG)/obj/testSocket.obj $(CONFIG)/obj/testSprintf.obj $(CONFIG)/obj/testThread.obj $(CONFIG)/obj/testTime.obj $(CONFIG)/obj/testUnicode.obj $(LIBS) libmpr.lib libmprssl.lib
 
 $(CONFIG)/obj/manager.obj: \
         src\manager.c \

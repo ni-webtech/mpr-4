@@ -24,7 +24,7 @@
 #define BLD_CPU "i686"
 #define BIT_CPU_ARCH MPR_CPU_IX86
 #define BLD_OS "WIN"
-#define BLD_CONFIG_CMD "bit -emulate win-i686 -without all configure -gen sh,make,nmake,vs"
+#define BLD_CONFIG_CMD "bit -without ssl configure generate"
 #define BLD_LIB_NAME "bin"
 #define BLD_CFG_PREFIX "C:/Program Files/Multithreaded Portable Runtime"
 #define BLD_BIN_PREFIX "C:/Program Files/Multithreaded Portable Runtime/bin"
@@ -58,32 +58,31 @@
 #define BLD_CC_UNNAMED_UNIONS 1
 #define BLD_CC_WARN_64TO32 0
 #define BLD_CC_WARN_UNUSED 0
-#define BLD_FEATURE_ALL 0
+#define BLD_FEATURE_SSL 0
 #define BLD_FEATURE_WINSDK 1
-#define BLD_WINSDK "$(SDK)"
+#define BLD_WINSDK "../../../../Program Files/Microsoft SDKs/Windows/v7.1"
 #define BLD_FEATURE_CC 1
-#define BLD_CC "cl.exe"
+#define BLD_CC "../../../../Program Files/Microsoft Visual Studio 10.0/VC/bin/cl.exe"
 #define BLD_FEATURE_LINK 1
-#define BLD_LINK "link.exe"
+#define BLD_LINK "../../../../Program Files/Microsoft Visual Studio 10.0/VC/bin/link.exe"
 #define BLD_FEATURE_DUMPBIN 1
-#define BLD_DUMPBIN "dumpbin"
+#define BLD_DUMPBIN "../../../../Program Files/Microsoft Visual Studio 10.0/VC/bin/dumpbin.exe"
 #define BLD_FEATURE_RC 1
-#define BLD_RC "rc"
-#define BLD_FEATURE_INNO 0
+#define BLD_RC "../../../../Program Files/Microsoft SDKs/Windows/v7.1/Bin/rc.exe"
+#define BLD_FEATURE_INNO 1
+#define BLD_INNO "../../../../Program Files/Inno Setup 5/iscc.exe"
 #define BLD_FEATURE_DOXYGEN 1
-#define BLD_DOXYGEN "../../../../usr/local/bin/doxygen"
-#define BLD_FEATURE_DSI 1
-#define BLD_DSI "../../../../usr/local/bin/dsi"
+#define BLD_DOXYGEN "../../../bin/doxygen.exe"
+#define BLD_FEATURE_DSI 0
 #define BLD_FEATURE_EJS 1
-#define BLD_EJS "../ejs/macosx-x86_64-debug/bin/ejs"
+#define BLD_EJS "../ejs/win-i686-debug/bin/ejs.exe"
 #define BLD_FEATURE_HTTP 1
-#define BLD_HTTP "../appweb/macosx-x86_64-debug/bin/http"
+#define BLD_HTTP "../ejs/win-i686-debug/bin/http.exe"
 #define BLD_FEATURE_MAN 1
-#define BLD_MAN "../../../../usr/bin/man"
+#define BLD_MAN "../../../bin/man.exe"
 #define BLD_FEATURE_MAN2HTML 1
-#define BLD_MAN2HTML "../../../../usr/local/bin/man2html"
+#define BLD_MAN2HTML "../../../bin/man2html.exe"
 #define BLD_FEATURE_MD5 1
-#define BLD_MD5 "../../../../sbin/md5"
+#define BLD_MD5 "../../../bin/md5sum.exe"
 #define BLD_FEATURE_MATRIXSSL 0
 #define BLD_FEATURE_OPENSSL 0
-#define BLD_FEATURE_SSL 0
