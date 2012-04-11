@@ -1118,7 +1118,8 @@ static void run()
 
 #if USEFUL_FOR_DEBUG
     /* 
-        This is useful to debug manager as a windows service.
+        This is useful to debug manager as a windows service. Enable this and then Watson will prompt to attach
+        when the service is run. Must have run prior "manager install enable"
      */
     DebugBreak();
 #endif
@@ -1532,9 +1533,9 @@ static int tellSCM(long state, long exitCode, long wait)
 static void setAppDefaults()
 {
     app->appName = mprGetAppName();
-    app->serviceProgram = sjoin(mprGetAppDir(), "/", BLD_PRODUCT, ".exe", NULL);
+    app->serviceProgram = sjoin(mprGetAppDir(), "\\", BLD_PRODUCT, ".exe", NULL);
     app->serviceName = sclone(BLD_COMPANY "-" BLD_PRODUCT);
-    app->serviceHome = mprGetNativePath(SERVICE_HOME);
+    app->serviceHome = NULL;
     app->serviceTitle = sclone(BLD_NAME);
     app->serviceStopped = 0;
 }
