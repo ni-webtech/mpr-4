@@ -1331,9 +1331,14 @@ static bool installService()
     /*
         Write a service description
      */
-    mprSprintf(key, sizeof(key), "HKEY_LOCAL_MACHINE\\SYSTEM\\CurrentControlSet\\" "Services\\%s", app->serviceName);
-
+    mprSprintf(key, sizeof(key), "HKEY_LOCAL_MACHINE\\SYSTEM\\CurrentControlSet\\Services");
+    if (mprWriteRegistry(key, NULL, app->serviceName) < 0) {
+        mprError("Can't write %s key to registry");
+        return 0;
+    }
+    mprSprintf(key, sizeof(key), "HKEY_LOCAL_MACHINE\\SYSTEM\\CurrentControlSet\\Services\\%s", app->serviceName);
     if (mprWriteRegistry(key, "Description", SERVICE_DESCRIPTION) < 0) {
+        mprError("Can't write service Description key to registry");
         return 0;
     }
 
@@ -1344,6 +1349,7 @@ static bool installService()
         app->serviceHome = mprGetPathParent(mprGetAppDir());
     }
     if (mprWriteRegistry(key, "HomeDir", app->serviceHome) < 0) {
+        mprError("Can't write HomeDir key to registry");
         return 0;
     }
 
@@ -1352,6 +1358,7 @@ static bool installService()
      */
     if (app->serviceArgs && *app->serviceArgs) {
         if (mprWriteRegistry(key, "Args", app->serviceArgs) < 0) {
+            mprError("Can't write Args key to registry");
             return 0;
         }
     }
