@@ -33,11 +33,9 @@ Bit.load({
         },
 
         libmprssl: {
-            enable: 'bit.packs.ssl.enable',
             type: 'lib',
             depends: [ 'libmpr', 'openssl', 'matrixssl' ],
             sources: [ 'src/mprMatrixssl.c', 'src/mprOpenssl.c', 'src/MprSsl.c' ],
-            //MACOSX MAKE_IFLAGS += -Wno-deprecated-declarations
         },
 
         manager: {

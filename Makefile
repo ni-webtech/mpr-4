@@ -5,6 +5,8 @@
 
 ARCH 	:= $(shell uname -m)
 PROFILE	:= debug
+MAKE	:= make
+EXT		:= mk
 UNAME 	:= $(shell uname)
 
 ifeq ($(UNAME),Darwin)
@@ -16,12 +18,14 @@ endif
 ifeq ($(UNAME),Solaris)
 	OS	:=	SOLARIS
 endif
-ifeq ($(UNAME),Cygwin)
-	OS	:=	win
+ifeq ($(UNAME),CYGWIN_NT-5.1)
+	OS	:= win
+	MAKE:= nmake
+	EXT := nmake
 endif
 
 all clean clobber compile:
-	make -f projects/$(OS)-$(ARCH)-$(PROFILE).mk $@
+	$(MAKE) -f projects/$(OS)-$(ARCH)-$(PROFILE).$(EXT) $@
 
 build configure generate test package:
 	bit $@
