@@ -6,7 +6,7 @@
 
 /********************************** Includes **********************************/
 
-#include    "buildConfig.h"
+#include    "bit.h"
 
 #if BLD_FEATURE_MATRIXSSL
  #include    "matrixsslApi.h"
@@ -407,7 +407,7 @@ static int verifyServer(ssl_t *ssl, psX509Cert_t *cert, int32 alert)
     char                *c;
     int                 next, y, m, d;
 
-    ss = sp->service;
+    ss = MPR->socketService;
     lock(ss);
     for (ITERATE_ITEMS(ss->secureSockets, sp, next)) {
         if (sp->ssl && ((MprMatrixSocket*) sp->sslSocket)->handle == ssl) {

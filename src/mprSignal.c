@@ -306,7 +306,7 @@ void mprAddStandardSignals()
 #if SIGXFSZ
     mprAddItem(ssp->standard, mprAddSignalHandler(SIGXFSZ, standardSignalHandler, 0, 0, MPR_SIGNAL_AFTER));
 #endif
-#if MACOSX && BLD_DEBUG && 1
+#if MACOSX && BLD_DEBUG
     mprAddItem(ssp->standard, mprAddSignalHandler(SIGBUS, standardSignalHandler, 0, 0, MPR_SIGNAL_AFTER));
     mprAddItem(ssp->standard, mprAddSignalHandler(SIGSEGV, standardSignalHandler, 0, 0, MPR_SIGNAL_AFTER));
 #endif
@@ -334,8 +334,9 @@ static void standardSignalHandler(void *ignored, MprSignal *sp)
     } else if (sp->signo == SIGPIPE || sp->signo == SIGXFSZ) {
         /* Ignore */
 
-#if MACOSX && BLD_DEBUG && 1
+#if MACOSX && BLD_DEBUG
     } else if (sp->signo == SIGSEGV || sp->signo == SIGBUS) {
+        //  MOB - Review
         printf("PAUSED for watson to debug\n");
         sleep(86400 * 7);
 #endif

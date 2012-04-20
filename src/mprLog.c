@@ -91,7 +91,7 @@ void mprLogHeader()
     mprLog(MPR_CONFIG, "Configuration for %s", mprGetAppTitle());
     mprLog(MPR_CONFIG, "---------------------------------------------");
     mprLog(MPR_CONFIG, "Version:            %s-%s", BLD_VERSION, BLD_NUMBER);
-    mprLog(MPR_CONFIG, "BuildType:          %s", BLD_TYPE);
+    mprLog(MPR_CONFIG, "BuildType:          %s", BLD_DEBUG ? "Debug" : "Release");
     mprLog(MPR_CONFIG, "CPU:                %s", BLD_CPU);
     mprLog(MPR_CONFIG, "OS:                 %s", BLD_OS);
     mprLog(MPR_CONFIG, "Host:               %s", mprGetHostName());

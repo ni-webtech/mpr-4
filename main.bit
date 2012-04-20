@@ -17,6 +17,7 @@ Bit.load({
 		buildNumber: 'B0',
         manager: 'manager',
         '+optional': [ 'doxygen', 'dsi', 'ejs', 'http', 'man', 'man2html', 'md5', 'matrixssl', 'openssl', 'ssl' ],
+        'without-all': ['doxygen', 'dsi', 'man', 'man2html', 'pmaker', 'ssl'],
     },
 
     usage: {
@@ -58,7 +59,6 @@ Bit.load({
             sources: [ 'src/utils/charGen.c' ],
             platforms: [ 'local' ],
         },
-
 
         package: {
             depends: ['packageCombo'],

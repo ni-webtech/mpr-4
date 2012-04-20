@@ -185,7 +185,7 @@
  */
 
 #if EMBEDTHIS || 1
- #include    "buildConfig.h"
+ #include    "bit.h"
 #endif
 #ifndef BLD_FEATURE_FLOAT
     #define BLD_FEATURE_FLOAT 1

@@ -8,7 +8,7 @@
 
 #define _CRT_SECURE_NO_WARNINGS
 
-#include "buildConfig.h"
+#include "bit.h"
 
 #if VXWORKS
     #ifndef _VSB_CONFIG_FILE

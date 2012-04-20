@@ -686,7 +686,7 @@ static ssize readOss(MprSocket *sp, void *buf, ssize len)
         break;
     }
 
-#if DEBUG
+#if DEBUG && UNUSED
     if (rc > 0 && !connTraced) {
         X509_NAME   *xSubject;
         X509        *cert;
