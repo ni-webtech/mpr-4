@@ -10,15 +10,15 @@ CFLAGS   := -Wall -fPIC -g -Wno-unused-result -mtune=i686
 DFLAGS   := -D_REENTRANT -DPIC -DBLD_DEBUG
 IFLAGS   := -I$(CONFIG)/inc
 LDFLAGS  := '-Wl,--enable-new-dtags' '-Wl,-rpath,$$ORIGIN/' '-Wl,-rpath,$$ORIGIN/../lib' '-rdynamic' '-g'
-LIBPATHS := -L$(CONFIG)/lib
+LIBPATHS := -L$(CONFIG)/bin
 LIBS     := -lpthread -lm -ldl
 
 all: prep \
         $(CONFIG)/bin/benchMpr \
         $(CONFIG)/bin/runProgram \
         $(CONFIG)/bin/testMpr \
-        $(CONFIG)/lib/libmpr.so \
-        $(CONFIG)/lib/libmprssl.so \
+        $(CONFIG)/bin/libmpr.so \
+        $(CONFIG)/bin/libmprssl.so \
         $(CONFIG)/bin/manager \
         $(CONFIG)/bin/makerom \
         $(CONFIG)/bin/chargen
@@ -37,8 +37,8 @@ clean:
 	rm -rf $(CONFIG)/bin/benchMpr
 	rm -rf $(CONFIG)/bin/runProgram
 	rm -rf $(CONFIG)/bin/testMpr
-	rm -rf $(CONFIG)/lib/libmpr.so
-	rm -rf $(CONFIG)/lib/libmprssl.so
+	rm -rf $(CONFIG)/bin/libmpr.so
+	rm -rf $(CONFIG)/bin/libmprssl.so
 	rm -rf $(CONFIG)/bin/manager
 	rm -rf $(CONFIG)/bin/makerom
 	rm -rf $(CONFIG)/bin/chargen
@@ -339,7 +339,7 @@ $(CONFIG)/obj/mprXml.o: \
         $(CONFIG)/inc/bit.h
 	$(CC) -c -o $(CONFIG)/obj/mprXml.o $(CFLAGS) -I$(CONFIG)/inc src/mprXml.c
 
-$(CONFIG)/lib/libmpr.so:  \
+$(CONFIG)/bin/libmpr.so:  \
         $(CONFIG)/inc/mpr.h \
         $(CONFIG)/obj/dtoa.o \
         $(CONFIG)/obj/mpr.o \
@@ -385,7 +385,7 @@ $(CONFIG)/lib/libmpr.so:  \
         $(CONFIG)/obj/mprWin.o \
         $(CONFIG)/obj/mprWince.o \
         $(CONFIG)/obj/mprXml.o
-	$(CC) -shared -o $(CONFIG)/lib/libmpr.so $(LIBPATHS) $(CONFIG)/obj/dtoa.o $(CONFIG)/obj/mpr.o $(CONFIG)/obj/mprAsync.o $(CONFIG)/obj/mprAtomic.o $(CONFIG)/obj/mprBuf.o $(CONFIG)/obj/mprCache.o $(CONFIG)/obj/mprCmd.o $(CONFIG)/obj/mprCond.o $(CONFIG)/obj/mprCrypt.o $(CONFIG)/obj/mprDisk.o $(CONFIG)/obj/mprDispatcher.o $(CONFIG)/obj/mprEncode.o $(CONFIG)/obj/mprEpoll.o $(CONFIG)/obj/mprEvent.o $(CONFIG)/obj/mprFile.o $(CONFIG)/obj/mprFileSystem.o $(CONFIG)/obj/mprHash.o $(CONFIG)/obj/mprJSON.o $(CONFIG)/obj/mprKqueue.o $(CONFIG)/obj/mprList.o $(CONFIG)/obj/mprLock.o $(CONFIG)/obj/mprLog.o $(CONFIG)/obj/mprMem.o $(CONFIG)/obj/mprMime.o $(CONFIG)/obj/mprMixed.o $(CONFIG)/obj/mprModule.o $(CONFIG)/obj/mprPath.o $(CONFIG)/obj/mprPoll.o $(CONFIG)/obj/mprPrintf.o $(CONFIG)/obj/mprRomFile.o $(CONFIG)/obj/mprSelect.o $(CONFIG)/obj/mprSignal.o $(CONFIG)/obj/mprSocket.o $(CONFIG)/obj/mprString.o $(CONFIG)/obj/mprTest.o $(CONFIG)/obj/mprThread.o $(CONFIG)/obj/mprTime.o $(CONFIG)/obj/mprUnix.o $(CONFIG)/obj/mprVxworks.o $(CONFIG)/obj/mprWait.o $(CONFIG)/obj/mprWide.o $(CONFIG)/obj/mprWin.o $(CONFIG)/obj/mprWince.o $(CONFIG)/obj/mprXml.o $(LIBS)
+	$(CC) -shared -o $(CONFIG)/bin/libmpr.so $(LIBPATHS) $(CONFIG)/obj/dtoa.o $(CONFIG)/obj/mpr.o $(CONFIG)/obj/mprAsync.o $(CONFIG)/obj/mprAtomic.o $(CONFIG)/obj/mprBuf.o $(CONFIG)/obj/mprCache.o $(CONFIG)/obj/mprCmd.o $(CONFIG)/obj/mprCond.o $(CONFIG)/obj/mprCrypt.o $(CONFIG)/obj/mprDisk.o $(CONFIG)/obj/mprDispatcher.o $(CONFIG)/obj/mprEncode.o $(CONFIG)/obj/mprEpoll.o $(CONFIG)/obj/mprEvent.o $(CONFIG)/obj/mprFile.o $(CONFIG)/obj/mprFileSystem.o $(CONFIG)/obj/mprHash.o $(CONFIG)/obj/mprJSON.o $(CONFIG)/obj/mprKqueue.o $(CONFIG)/obj/mprList.o $(CONFIG)/obj/mprLock.o $(CONFIG)/obj/mprLog.o $(CONFIG)/obj/mprMem.o $(CONFIG)/obj/mprMime.o $(CONFIG)/obj/mprMixed.o $(CONFIG)/obj/mprModule.o $(CONFIG)/obj/mprPath.o $(CONFIG)/obj/mprPoll.o $(CONFIG)/obj/mprPrintf.o $(CONFIG)/obj/mprRomFile.o $(CONFIG)/obj/mprSelect.o $(CONFIG)/obj/mprSignal.o $(CONFIG)/obj/mprSocket.o $(CONFIG)/obj/mprString.o $(CONFIG)/obj/mprTest.o $(CONFIG)/obj/mprThread.o $(CONFIG)/obj/mprTime.o $(CONFIG)/obj/mprUnix.o $(CONFIG)/obj/mprVxworks.o $(CONFIG)/obj/mprWait.o $(CONFIG)/obj/mprWide.o $(CONFIG)/obj/mprWin.o $(CONFIG)/obj/mprWince.o $(CONFIG)/obj/mprXml.o $(LIBS)
 
 $(CONFIG)/obj/benchMpr.o: \
         test/benchMpr.c \
@@ -393,7 +393,7 @@ $(CONFIG)/obj/benchMpr.o: \
 	$(CC) -c -o $(CONFIG)/obj/benchMpr.o $(CFLAGS) -I$(CONFIG)/inc test/benchMpr.c
 
 $(CONFIG)/bin/benchMpr:  \
-        $(CONFIG)/lib/libmpr.so \
+        $(CONFIG)/bin/libmpr.so \
         $(CONFIG)/obj/benchMpr.o
 	$(CC) -o $(CONFIG)/bin/benchMpr $(LIBPATHS) $(CONFIG)/obj/benchMpr.o $(LIBS) -lmpr 
 
@@ -421,12 +421,12 @@ $(CONFIG)/obj/mprSsl.o: \
         $(CONFIG)/inc/bit.h
 	$(CC) -c -o $(CONFIG)/obj/mprSsl.o $(CFLAGS) -I$(CONFIG)/inc src/mprSsl.c
 
-$(CONFIG)/lib/libmprssl.so:  \
-        $(CONFIG)/lib/libmpr.so \
+$(CONFIG)/bin/libmprssl.so:  \
+        $(CONFIG)/bin/libmpr.so \
         $(CONFIG)/obj/mprMatrixssl.o \
         $(CONFIG)/obj/mprOpenssl.o \
         $(CONFIG)/obj/mprSsl.o
-	$(CC) -shared -o $(CONFIG)/lib/libmprssl.so $(LIBPATHS) $(CONFIG)/obj/mprMatrixssl.o $(CONFIG)/obj/mprOpenssl.o $(CONFIG)/obj/mprSsl.o $(LIBS) -lmpr
+	$(CC) -shared -o $(CONFIG)/bin/libmprssl.so $(LIBPATHS) $(CONFIG)/obj/mprMatrixssl.o $(CONFIG)/obj/mprOpenssl.o $(CONFIG)/obj/mprSsl.o $(LIBS) -lmpr
 
 $(CONFIG)/obj/testArgv.o: \
         test/testArgv.c \
@@ -514,8 +514,8 @@ $(CONFIG)/obj/testUnicode.o: \
 	$(CC) -c -o $(CONFIG)/obj/testUnicode.o $(CFLAGS) -I$(CONFIG)/inc test/testUnicode.c
 
 $(CONFIG)/bin/testMpr:  \
-        $(CONFIG)/lib/libmpr.so \
-        $(CONFIG)/lib/libmprssl.so \
+        $(CONFIG)/bin/libmpr.so \
+        $(CONFIG)/bin/libmprssl.so \
         $(CONFIG)/bin/runProgram \
         $(CONFIG)/obj/testArgv.o \
         $(CONFIG)/obj/testBuf.o \
@@ -542,7 +542,7 @@ $(CONFIG)/obj/manager.o: \
 	$(CC) -c -o $(CONFIG)/obj/manager.o $(CFLAGS) -I$(CONFIG)/inc src/manager.c
 
 $(CONFIG)/bin/manager:  \
-        $(CONFIG)/lib/libmpr.so \
+        $(CONFIG)/bin/libmpr.so \
         $(CONFIG)/obj/manager.o
 	$(CC) -o $(CONFIG)/bin/manager $(LIBPATHS) $(CONFIG)/obj/manager.o $(LIBS) -lmpr 
 
@@ -552,7 +552,7 @@ $(CONFIG)/obj/makerom.o: \
 	$(CC) -c -o $(CONFIG)/obj/makerom.o $(CFLAGS) -I$(CONFIG)/inc src/utils/makerom.c
 
 $(CONFIG)/bin/makerom:  \
-        $(CONFIG)/lib/libmpr.so \
+        $(CONFIG)/bin/libmpr.so \
         $(CONFIG)/obj/makerom.o
 	$(CC) -o $(CONFIG)/bin/makerom $(LIBPATHS) $(CONFIG)/obj/makerom.o $(LIBS) -lmpr 
 
@@ -562,7 +562,7 @@ $(CONFIG)/obj/charGen.o: \
 	$(CC) -c -o $(CONFIG)/obj/charGen.o $(CFLAGS) -I$(CONFIG)/inc src/utils/charGen.c
 
 $(CONFIG)/bin/chargen:  \
-        $(CONFIG)/lib/libmpr.so \
+        $(CONFIG)/bin/libmpr.so \
         $(CONFIG)/obj/charGen.o
 	$(CC) -o $(CONFIG)/bin/chargen $(LIBPATHS) $(CONFIG)/obj/charGen.o $(LIBS) -lmpr 
 

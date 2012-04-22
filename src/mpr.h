@@ -1246,12 +1246,6 @@ struct  MprXml;
 #define MPR_DEFAULT_BREAK_PORT  9473
 #define MPR_FD_MIN              32
 
-#if BLD_WIN_LIKE
-    #define BLD_LIB_NAME        "bin"
-#else
-    #define BLD_LIB_NAME        "lib"
-#endif
-
 /* 
     Longest IPv6 is XXXX:XXXX:XXXX:XXXX:XXXX:XXXX:XXXX:XXXX (40 bytes with null) 
  */ 

@@ -10,15 +10,15 @@ CFLAGS   := -Wall -g -Wno-unused-result -Wshorten-64-to-32
 DFLAGS   := -DBLD_DEBUG
 IFLAGS   := -I$(CONFIG)/inc
 LDFLAGS  := '-Wl,-rpath,@executable_path/../lib' '-Wl,-rpath,@executable_path/' '-Wl,-rpath,@loader_path/' '-g'
-LIBPATHS := -L$(CONFIG)/lib
+LIBPATHS := -L$(CONFIG)/bin
 LIBS     := -lpthread -lm -ldl
 
 all: prep \
         $(CONFIG)/bin/benchMpr \
         $(CONFIG)/bin/runProgram \
         $(CONFIG)/bin/testMpr \
-        $(CONFIG)/lib/libmpr.dylib \
-        $(CONFIG)/lib/libmprssl.dylib \
+        $(CONFIG)/bin/libmpr.dylib \
+        $(CONFIG)/bin/libmprssl.dylib \
         $(CONFIG)/bin/manager \
         $(CONFIG)/bin/makerom \
         $(CONFIG)/bin/chargen
@@ -37,8 +37,8 @@ clean:
 	rm -rf $(CONFIG)/bin/benchMpr
 	rm -rf $(CONFIG)/bin/runProgram
 	rm -rf $(CONFIG)/bin/testMpr
-	rm -rf $(CONFIG)/lib/libmpr.dylib
-	rm -rf $(CONFIG)/lib/libmprssl.dylib
+	rm -rf $(CONFIG)/bin/libmpr.dylib
+	rm -rf $(CONFIG)/bin/libmprssl.dylib
 	rm -rf $(CONFIG)/bin/manager
 	rm -rf $(CONFIG)/bin/makerom
 	rm -rf $(CONFIG)/bin/chargen
@@ -383,7 +383,7 @@ $(CONFIG)/obj/mprXml.o: \
         $(CONFIG)/inc/mpr.h
 	$(CC) -c -o $(CONFIG)/obj/mprXml.o -arch x86_64 $(CFLAGS) $(DFLAGS) -I$(CONFIG)/inc src/mprXml.c
 
-$(CONFIG)/lib/libmpr.dylib:  \
+$(CONFIG)/bin/libmpr.dylib:  \
         $(CONFIG)/inc/mpr.h \
         $(CONFIG)/obj/dtoa.o \
         $(CONFIG)/obj/mpr.o \
@@ -429,7 +429,7 @@ $(CONFIG)/lib/libmpr.dylib:  \
         $(CONFIG)/obj/mprWin.o \
         $(CONFIG)/obj/mprWince.o \
         $(CONFIG)/obj/mprXml.o
-	$(CC) -dynamiclib -o $(CONFIG)/lib/libmpr.dylib -arch x86_64 $(LDFLAGS) $(LIBPATHS) -install_name @rpath/libmpr.dylib $(CONFIG)/obj/dtoa.o $(CONFIG)/obj/mpr.o $(CONFIG)/obj/mprAsync.o $(CONFIG)/obj/mprAtomic.o $(CONFIG)/obj/mprBuf.o $(CONFIG)/obj/mprCache.o $(CONFIG)/obj/mprCmd.o $(CONFIG)/obj/mprCond.o $(CONFIG)/obj/mprCrypt.o $(CONFIG)/obj/mprDisk.o $(CONFIG)/obj/mprDispatcher.o $(CONFIG)/obj/mprEncode.o $(CONFIG)/obj/mprEpoll.o $(CONFIG)/obj/mprEvent.o $(CONFIG)/obj/mprFile.o $(CONFIG)/obj/mprFileSystem.o $(CONFIG)/obj/mprHash.o $(CONFIG)/obj/mprJSON.o $(CONFIG)/obj/mprKqueue.o $(CONFIG)/obj/mprList.o $(CONFIG)/obj/mprLock.o $(CONFIG)/obj/mprLog.o $(CONFIG)/obj/mprMem.o $(CONFIG)/obj/mprMime.o $(CONFIG)/obj/mprMixed.o $(CONFIG)/obj/mprModule.o $(CONFIG)/obj/mprPath.o $(CONFIG)/obj/mprPoll.o $(CONFIG)/obj/mprPrintf.o $(CONFIG)/obj/mprRomFile.o $(CONFIG)/obj/mprSelect.o $(CONFIG)/obj/mprSignal.o $(CONFIG)/obj/mprSocket.o $(CONFIG)/obj/mprString.o $(CONFIG)/obj/mprTest.o $(CONFIG)/obj/mprThread.o $(CONFIG)/obj/mprTime.o $(CONFIG)/obj/mprUnix.o $(CONFIG)/obj/mprVxworks.o $(CONFIG)/obj/mprWait.o $(CONFIG)/obj/mprWide.o $(CONFIG)/obj/mprWin.o $(CONFIG)/obj/mprWince.o $(CONFIG)/obj/mprXml.o $(LIBS)
+	$(CC) -dynamiclib -o $(CONFIG)/bin/libmpr.dylib -arch x86_64 $(LDFLAGS) -compatibility_version 4.0.0 -current_version 4.0.0 -compatibility_version 4.0.0 -current_version 4.0.0 $(LIBPATHS) -install_name @rpath/libmpr.dylib $(CONFIG)/obj/dtoa.o $(CONFIG)/obj/mpr.o $(CONFIG)/obj/mprAsync.o $(CONFIG)/obj/mprAtomic.o $(CONFIG)/obj/mprBuf.o $(CONFIG)/obj/mprCache.o $(CONFIG)/obj/mprCmd.o $(CONFIG)/obj/mprCond.o $(CONFIG)/obj/mprCrypt.o $(CONFIG)/obj/mprDisk.o $(CONFIG)/obj/mprDispatcher.o $(CONFIG)/obj/mprEncode.o $(CONFIG)/obj/mprEpoll.o $(CONFIG)/obj/mprEvent.o $(CONFIG)/obj/mprFile.o $(CONFIG)/obj/mprFileSystem.o $(CONFIG)/obj/mprHash.o $(CONFIG)/obj/mprJSON.o $(CONFIG)/obj/mprKqueue.o $(CONFIG)/obj/mprList.o $(CONFIG)/obj/mprLock.o $(CONFIG)/obj/mprLog.o $(CONFIG)/obj/mprMem.o $(CONFIG)/obj/mprMime.o $(CONFIG)/obj/mprMixed.o $(CONFIG)/obj/mprModule.o $(CONFIG)/obj/mprPath.o $(CONFIG)/obj/mprPoll.o $(CONFIG)/obj/mprPrintf.o $(CONFIG)/obj/mprRomFile.o $(CONFIG)/obj/mprSelect.o $(CONFIG)/obj/mprSignal.o $(CONFIG)/obj/mprSocket.o $(CONFIG)/obj/mprString.o $(CONFIG)/obj/mprTest.o $(CONFIG)/obj/mprThread.o $(CONFIG)/obj/mprTime.o $(CONFIG)/obj/mprUnix.o $(CONFIG)/obj/mprVxworks.o $(CONFIG)/obj/mprWait.o $(CONFIG)/obj/mprWide.o $(CONFIG)/obj/mprWin.o $(CONFIG)/obj/mprWince.o $(CONFIG)/obj/mprXml.o $(LIBS)
 
 $(CONFIG)/obj/benchMpr.o: \
         test/benchMpr.c \
@@ -438,7 +438,7 @@ $(CONFIG)/obj/benchMpr.o: \
 	$(CC) -c -o $(CONFIG)/obj/benchMpr.o -arch x86_64 $(CFLAGS) $(DFLAGS) -I$(CONFIG)/inc test/benchMpr.c
 
 $(CONFIG)/bin/benchMpr:  \
-        $(CONFIG)/lib/libmpr.dylib \
+        $(CONFIG)/bin/libmpr.dylib \
         $(CONFIG)/obj/benchMpr.o
 	$(CC) -o $(CONFIG)/bin/benchMpr -arch x86_64 $(LDFLAGS) $(LIBPATHS) $(CONFIG)/obj/benchMpr.o $(LIBS) -lmpr
 
@@ -469,12 +469,12 @@ $(CONFIG)/obj/mprSsl.o: \
         $(CONFIG)/inc/mpr.h
 	$(CC) -c -o $(CONFIG)/obj/mprSsl.o -arch x86_64 $(CFLAGS) $(DFLAGS) -I$(CONFIG)/inc src/mprSsl.c
 
-$(CONFIG)/lib/libmprssl.dylib:  \
-        $(CONFIG)/lib/libmpr.dylib \
+$(CONFIG)/bin/libmprssl.dylib:  \
+        $(CONFIG)/bin/libmpr.dylib \
         $(CONFIG)/obj/mprMatrixssl.o \
         $(CONFIG)/obj/mprOpenssl.o \
         $(CONFIG)/obj/mprSsl.o
-	$(CC) -dynamiclib -o $(CONFIG)/lib/libmprssl.dylib -arch x86_64 $(LDFLAGS) $(LIBPATHS) -install_name @rpath/libmprssl.dylib $(CONFIG)/obj/mprMatrixssl.o $(CONFIG)/obj/mprOpenssl.o $(CONFIG)/obj/mprSsl.o $(LIBS) -lmpr
+	$(CC) -dynamiclib -o $(CONFIG)/bin/libmprssl.dylib -arch x86_64 $(LDFLAGS) -compatibility_version 4.0.0 -current_version 4.0.0 -compatibility_version 4.0.0 -current_version 4.0.0 $(LIBPATHS) -install_name @rpath/libmprssl.dylib $(CONFIG)/obj/mprMatrixssl.o $(CONFIG)/obj/mprOpenssl.o $(CONFIG)/obj/mprSsl.o $(LIBS) -lmpr
 
 $(CONFIG)/obj/testArgv.o: \
         test/testArgv.c \
@@ -579,8 +579,8 @@ $(CONFIG)/obj/testUnicode.o: \
 	$(CC) -c -o $(CONFIG)/obj/testUnicode.o -arch x86_64 $(CFLAGS) $(DFLAGS) -I$(CONFIG)/inc test/testUnicode.c
 
 $(CONFIG)/bin/testMpr:  \
-        $(CONFIG)/lib/libmpr.dylib \
-        $(CONFIG)/lib/libmprssl.dylib \
+        $(CONFIG)/bin/libmpr.dylib \
+        $(CONFIG)/bin/libmprssl.dylib \
         $(CONFIG)/bin/runProgram \
         $(CONFIG)/obj/testArgv.o \
         $(CONFIG)/obj/testBuf.o \
@@ -608,7 +608,7 @@ $(CONFIG)/obj/manager.o: \
 	$(CC) -c -o $(CONFIG)/obj/manager.o -arch x86_64 $(CFLAGS) $(DFLAGS) -I$(CONFIG)/inc src/manager.c
 
 $(CONFIG)/bin/manager:  \
-        $(CONFIG)/lib/libmpr.dylib \
+        $(CONFIG)/bin/libmpr.dylib \
         $(CONFIG)/obj/manager.o
 	$(CC) -o $(CONFIG)/bin/manager -arch x86_64 $(LDFLAGS) $(LIBPATHS) $(CONFIG)/obj/manager.o $(LIBS) -lmpr
 
@@ -619,7 +619,7 @@ $(CONFIG)/obj/makerom.o: \
 	$(CC) -c -o $(CONFIG)/obj/makerom.o -arch x86_64 $(CFLAGS) $(DFLAGS) -I$(CONFIG)/inc src/utils/makerom.c
 
 $(CONFIG)/bin/makerom:  \
-        $(CONFIG)/lib/libmpr.dylib \
+        $(CONFIG)/bin/libmpr.dylib \
         $(CONFIG)/obj/makerom.o
 	$(CC) -o $(CONFIG)/bin/makerom -arch x86_64 $(LDFLAGS) $(LIBPATHS) $(CONFIG)/obj/makerom.o $(LIBS) -lmpr
 
@@ -630,7 +630,7 @@ $(CONFIG)/obj/charGen.o: \
 	$(CC) -c -o $(CONFIG)/obj/charGen.o -arch x86_64 $(CFLAGS) $(DFLAGS) -I$(CONFIG)/inc src/utils/charGen.c
 
 $(CONFIG)/bin/chargen:  \
-        $(CONFIG)/lib/libmpr.dylib \
+        $(CONFIG)/bin/libmpr.dylib \
         $(CONFIG)/obj/charGen.o
 	$(CC) -o $(CONFIG)/bin/chargen -arch x86_64 $(LDFLAGS) $(LIBPATHS) $(CONFIG)/obj/charGen.o $(LIBS) -lmpr
 

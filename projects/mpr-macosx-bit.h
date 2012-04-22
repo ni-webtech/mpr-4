@@ -17,13 +17,13 @@
 #define BLD_PATCH_VERSION 0
 #define BLD_VNUM 400000000
 #define BLD_CONFIG_CMD "bit -without all configure -gen sh,make,xcode"
-#define BLD_LIB_NAME "lib"
+#define BLD_LIB_NAME "bin"
 #define BLD_CFG_PREFIX "/etc/mpr"
 #define BLD_BIN_PREFIX "/usr/lib/mpr/4.0.0/bin"
 #define BLD_DOC_PREFIX "/usr/lib/mpr/doc"
 #define BLD_INC_PREFIX "/usr/lib/mpr/4.0.0/inc"
 #define BLD_JEM_PREFIX "/usr/lib/mpr/jems"
-#define BLD_LIB_PREFIX "/usr/lib/mpr/4.0.0/lib"
+#define BLD_LIB_PREFIX "/usr/lib/mpr/4.0.0/bin"
 #define BLD_LOG_PREFIX "/var/log/mpr"
 #define BLD_MAN_PREFIX "/usr/lib/mpr/man"
 #define BLD_PRD_PREFIX "/usr/lib/mpr"
@@ -63,7 +63,7 @@
 #define BLD_FEATURE_EJS 1
 #define BLD_EJS "/Users/mob/git/ejs/macosx-x86_64-debug/bin/ejs"
 #define BLD_FEATURE_HTTP 1
-#define BLD_HTTP "/Users/mob/git/appweb/macosx-x86_64-debug/bin/http"
+#define BLD_HTTP "/Users/mob/git/ejs/macosx-x86_64-debug/bin/http"
 #define BLD_FEATURE_MD5 1
 #define BLD_MD5 "/sbin/md5"
 #define BLD_FEATURE_MATRIXSSL 0
