@@ -365,7 +365,6 @@
     #include    <ioLib.h>
     #include    <pipeDrv.h>
     #include    <hostLib.h>
-    #include    <symSync.h>
     #include    <sysSymTbl.h>
     #include    <sys/fcntlcom.h>
     #include    <tickLib.h>
