@@ -429,7 +429,7 @@ $(CONFIG)/bin/libmpr.dylib:  \
         $(CONFIG)/obj/mprWin.o \
         $(CONFIG)/obj/mprWince.o \
         $(CONFIG)/obj/mprXml.o
-	$(CC) -dynamiclib -o $(CONFIG)/bin/libmpr.dylib -arch x86_64 $(LDFLAGS) -compatibility_version 4.0.0 -current_version 4.0.0 $(LIBPATHS) -install_name @rpath/libmpr.dylib $(CONFIG)/obj/dtoa.o $(CONFIG)/obj/mpr.o $(CONFIG)/obj/mprAsync.o $(CONFIG)/obj/mprAtomic.o $(CONFIG)/obj/mprBuf.o $(CONFIG)/obj/mprCache.o $(CONFIG)/obj/mprCmd.o $(CONFIG)/obj/mprCond.o $(CONFIG)/obj/mprCrypt.o $(CONFIG)/obj/mprDisk.o $(CONFIG)/obj/mprDispatcher.o $(CONFIG)/obj/mprEncode.o $(CONFIG)/obj/mprEpoll.o $(CONFIG)/obj/mprEvent.o $(CONFIG)/obj/mprFile.o $(CONFIG)/obj/mprFileSystem.o $(CONFIG)/obj/mprHash.o $(CONFIG)/obj/mprJSON.o $(CONFIG)/obj/mprKqueue.o $(CONFIG)/obj/mprList.o $(CONFIG)/obj/mprLock.o $(CONFIG)/obj/mprLog.o $(CONFIG)/obj/mprMem.o $(CONFIG)/obj/mprMime.o $(CONFIG)/obj/mprMixed.o $(CONFIG)/obj/mprModule.o $(CONFIG)/obj/mprPath.o $(CONFIG)/obj/mprPoll.o $(CONFIG)/obj/mprPrintf.o $(CONFIG)/obj/mprRomFile.o $(CONFIG)/obj/mprSelect.o $(CONFIG)/obj/mprSignal.o $(CONFIG)/obj/mprSocket.o $(CONFIG)/obj/mprString.o $(CONFIG)/obj/mprTest.o $(CONFIG)/obj/mprThread.o $(CONFIG)/obj/mprTime.o $(CONFIG)/obj/mprUnix.o $(CONFIG)/obj/mprVxworks.o $(CONFIG)/obj/mprWait.o $(CONFIG)/obj/mprWide.o $(CONFIG)/obj/mprWin.o $(CONFIG)/obj/mprWince.o $(CONFIG)/obj/mprXml.o $(LIBS)
+	$(CC) -dynamiclib -o $(CONFIG)/bin/libmpr.dylib -arch x86_64 $(LDFLAGS) -compatibility_version 4.0.0 -current_version 4.0.0 -compatibility_version 4.0.0 -current_version 4.0.0 $(LIBPATHS) -install_name @rpath/libmpr.dylib $(CONFIG)/obj/dtoa.o $(CONFIG)/obj/mpr.o $(CONFIG)/obj/mprAsync.o $(CONFIG)/obj/mprAtomic.o $(CONFIG)/obj/mprBuf.o $(CONFIG)/obj/mprCache.o $(CONFIG)/obj/mprCmd.o $(CONFIG)/obj/mprCond.o $(CONFIG)/obj/mprCrypt.o $(CONFIG)/obj/mprDisk.o $(CONFIG)/obj/mprDispatcher.o $(CONFIG)/obj/mprEncode.o $(CONFIG)/obj/mprEpoll.o $(CONFIG)/obj/mprEvent.o $(CONFIG)/obj/mprFile.o $(CONFIG)/obj/mprFileSystem.o $(CONFIG)/obj/mprHash.o $(CONFIG)/obj/mprJSON.o $(CONFIG)/obj/mprKqueue.o $(CONFIG)/obj/mprList.o $(CONFIG)/obj/mprLock.o $(CONFIG)/obj/mprLog.o $(CONFIG)/obj/mprMem.o $(CONFIG)/obj/mprMime.o $(CONFIG)/obj/mprMixed.o $(CONFIG)/obj/mprModule.o $(CONFIG)/obj/mprPath.o $(CONFIG)/obj/mprPoll.o $(CONFIG)/obj/mprPrintf.o $(CONFIG)/obj/mprRomFile.o $(CONFIG)/obj/mprSelect.o $(CONFIG)/obj/mprSignal.o $(CONFIG)/obj/mprSocket.o $(CONFIG)/obj/mprString.o $(CONFIG)/obj/mprTest.o $(CONFIG)/obj/mprThread.o $(CONFIG)/obj/mprTime.o $(CONFIG)/obj/mprUnix.o $(CONFIG)/obj/mprVxworks.o $(CONFIG)/obj/mprWait.o $(CONFIG)/obj/mprWide.o $(CONFIG)/obj/mprWin.o $(CONFIG)/obj/mprWince.o $(CONFIG)/obj/mprXml.o $(LIBS)
 
 $(CONFIG)/obj/benchMpr.o: \
         test/benchMpr.c \
@@ -455,26 +455,26 @@ $(CONFIG)/obj/mprMatrixssl.o: \
         src/mprMatrixssl.c \
         $(CONFIG)/inc/bit.h \
         $(CONFIG)/inc/mpr.h
-	$(CC) -c -o $(CONFIG)/obj/mprMatrixssl.o -arch x86_64 $(CFLAGS) $(DFLAGS) -DPOSIX -DMATRIX_USE_FILE_SYSTEM -I$(CONFIG)/inc -I../packages-macosx-x86_64/openssl/openssl-1.0.0d/include -I../packages-macosx-x86_64/matrixssl/matrixssl-3-3-open/matrixssl -I../packages-macosx-x86_64/matrixssl/matrixssl-3-3-open src/mprMatrixssl.c
+	$(CC) -c -o $(CONFIG)/obj/mprMatrixssl.o -arch x86_64 $(CFLAGS) $(DFLAGS) -I$(CONFIG)/inc src/mprMatrixssl.c
 
 $(CONFIG)/obj/mprOpenssl.o: \
         src/mprOpenssl.c \
         $(CONFIG)/inc/bit.h \
         $(CONFIG)/inc/mpr.h
-	$(CC) -c -o $(CONFIG)/obj/mprOpenssl.o -arch x86_64 $(CFLAGS) $(DFLAGS) -DPOSIX -DMATRIX_USE_FILE_SYSTEM -I$(CONFIG)/inc -I../packages-macosx-x86_64/openssl/openssl-1.0.0d/include -I../packages-macosx-x86_64/matrixssl/matrixssl-3-3-open/matrixssl -I../packages-macosx-x86_64/matrixssl/matrixssl-3-3-open src/mprOpenssl.c
+	$(CC) -c -o $(CONFIG)/obj/mprOpenssl.o -arch x86_64 $(CFLAGS) $(DFLAGS) -I$(CONFIG)/inc src/mprOpenssl.c
 
 $(CONFIG)/obj/mprSsl.o: \
         src/mprSsl.c \
         $(CONFIG)/inc/bit.h \
         $(CONFIG)/inc/mpr.h
-	$(CC) -c -o $(CONFIG)/obj/mprSsl.o -arch x86_64 $(CFLAGS) $(DFLAGS) -DPOSIX -DMATRIX_USE_FILE_SYSTEM -I$(CONFIG)/inc -I../packages-macosx-x86_64/openssl/openssl-1.0.0d/include -I../packages-macosx-x86_64/matrixssl/matrixssl-3-3-open/matrixssl -I../packages-macosx-x86_64/matrixssl/matrixssl-3-3-open src/mprSsl.c
+	$(CC) -c -o $(CONFIG)/obj/mprSsl.o -arch x86_64 $(CFLAGS) $(DFLAGS) -I$(CONFIG)/inc src/mprSsl.c
 
 $(CONFIG)/bin/libmprssl.dylib:  \
         $(CONFIG)/bin/libmpr.dylib \
         $(CONFIG)/obj/mprMatrixssl.o \
         $(CONFIG)/obj/mprOpenssl.o \
         $(CONFIG)/obj/mprSsl.o
-	$(CC) -dynamiclib -o $(CONFIG)/bin/libmprssl.dylib -arch x86_64 $(LDFLAGS) -compatibility_version 4.0.0 -current_version 4.0.0 $(LIBPATHS) -L../packages-macosx-x86_64/openssl/openssl-1.0.0d -L../packages-macosx-x86_64/matrixssl/matrixssl-3-3-open -install_name @rpath/libmprssl.dylib $(CONFIG)/obj/mprMatrixssl.o $(CONFIG)/obj/mprOpenssl.o $(CONFIG)/obj/mprSsl.o $(LIBS) -lmpr -lssl -lcrypto -lmatrixssl
+	$(CC) -dynamiclib -o $(CONFIG)/bin/libmprssl.dylib -arch x86_64 $(LDFLAGS) -compatibility_version 4.0.0 -current_version 4.0.0 -compatibility_version 4.0.0 -current_version 4.0.0 $(LIBPATHS) -install_name @rpath/libmprssl.dylib $(CONFIG)/obj/mprMatrixssl.o $(CONFIG)/obj/mprOpenssl.o $(CONFIG)/obj/mprSsl.o $(LIBS) -lmpr
 
 $(CONFIG)/obj/testArgv.o: \
         test/testArgv.c \
@@ -599,7 +599,7 @@ $(CONFIG)/bin/testMpr:  \
         $(CONFIG)/obj/testThread.o \
         $(CONFIG)/obj/testTime.o \
         $(CONFIG)/obj/testUnicode.o
-	$(CC) -o $(CONFIG)/bin/testMpr -arch x86_64 $(LDFLAGS) $(LIBPATHS) -L../packages-macosx-x86_64/openssl/openssl-1.0.0d -L../packages-macosx-x86_64/matrixssl/matrixssl-3-3-open $(CONFIG)/obj/testArgv.o $(CONFIG)/obj/testBuf.o $(CONFIG)/obj/testCmd.o $(CONFIG)/obj/testCond.o $(CONFIG)/obj/testEvent.o $(CONFIG)/obj/testFile.o $(CONFIG)/obj/testHash.o $(CONFIG)/obj/testList.o $(CONFIG)/obj/testLock.o $(CONFIG)/obj/testMem.o $(CONFIG)/obj/testMpr.o $(CONFIG)/obj/testPath.o $(CONFIG)/obj/testSocket.o $(CONFIG)/obj/testSprintf.o $(CONFIG)/obj/testThread.o $(CONFIG)/obj/testTime.o $(CONFIG)/obj/testUnicode.o $(LIBS) -lmpr -lmprssl -lssl -lcrypto -lmatrixssl
+	$(CC) -o $(CONFIG)/bin/testMpr -arch x86_64 $(LDFLAGS) $(LIBPATHS) $(CONFIG)/obj/testArgv.o $(CONFIG)/obj/testBuf.o $(CONFIG)/obj/testCmd.o $(CONFIG)/obj/testCond.o $(CONFIG)/obj/testEvent.o $(CONFIG)/obj/testFile.o $(CONFIG)/obj/testHash.o $(CONFIG)/obj/testList.o $(CONFIG)/obj/testLock.o $(CONFIG)/obj/testMem.o $(CONFIG)/obj/testMpr.o $(CONFIG)/obj/testPath.o $(CONFIG)/obj/testSocket.o $(CONFIG)/obj/testSprintf.o $(CONFIG)/obj/testThread.o $(CONFIG)/obj/testTime.o $(CONFIG)/obj/testUnicode.o $(LIBS) -lmpr -lmprssl
 
 $(CONFIG)/obj/manager.o: \
         src/manager.c \
