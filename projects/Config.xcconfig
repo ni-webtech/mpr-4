@@ -1,8 +1,0 @@
-//
-//  Config.xcconfig
-//  mpr-macosx-x86_64
-//
-//  Created by Michael O'Brien on 4/18/12.
-//  Copyright (c) 2012 Embedthis. All rights reserved.
-//
-GCC_PREPROCESSOR_DEFINITIONS = XXXX=1
