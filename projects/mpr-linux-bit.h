@@ -16,7 +16,7 @@
 #define BLD_MINOR_VERSION 0
 #define BLD_PATCH_VERSION 0
 #define BLD_VNUM 400000000
-#define BLD_CONFIG_CMD "bit -emulate linux-x86 -without all configure -gen sh,make"
+#define BLD_CONFIG_CMD "bit -emulate linux-x86 -d -without all configure -gen sh,make"
 #define BLD_LIB_NAME "bin"
 #define BLD_CFG_PREFIX "/etc/mpr"
 #define BLD_BIN_PREFIX "/usr/lib/mpr/4.0.0/bin"
@@ -68,3 +68,5 @@
 #define BLD_MD5 "/sbin/md5"
 #define BLD_FEATURE_MATRIXSSL 0
 #define BLD_FEATURE_OPENSSL 0
+#define BLD_FEATURE_UTEST 1
+#define BLD_UTEST "/Users/mob/git/ejs/macosx-x86_64-debug/bin/utest"

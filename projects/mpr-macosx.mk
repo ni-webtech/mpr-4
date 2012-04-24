@@ -4,7 +4,8 @@
 
 ARCH     := x86_64
 OS       := macosx
-CONFIG   := $(OS)-$(ARCH)-debug
+PROFILE  := debug
+CONFIG   := $(OS)-$(ARCH)-$(PROFILE)
 CC       := /usr/bin/clang
 LD       := /usr/bin/ld
 CFLAGS   := -Wall -g -Wno-unused-result -Wshorten-64-to-32

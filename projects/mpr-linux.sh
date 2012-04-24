@@ -2,8 +2,10 @@
 #   linux-x86-debug.sh -- Build It Shell Script to build Multithreaded Portable Runtime
 #
 
+ARCH="x86"
 OS="linux"
-CONFIG="${OS}-x86-debug"
+PROFILE="debug"
+CONFIG="${OS}-${ARCH}-${PROFILE}"
 CC="gcc"
 LD="ld"
 CFLAGS="-Wall -fPIC -g -Wno-unused-result -mtune=generic"

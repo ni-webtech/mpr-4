@@ -12,8 +12,10 @@ export PATH="$(SDK)/Bin:$(VS)/VC/Bin:$(VS)/Common7/IDE:$(VS)/Common7/Tools:$(VS)
 export INCLUDE="$(INCLUDE);$(SDK)/INCLUDE:$(VS)/VC/INCLUDE"
 export LIB="$(LIB);$(SDK)/lib:$(VS)/VC/lib"
 
+ARCH="x86"
 OS="win"
-CONFIG="${OS}-x86-debug"
+PROFILE="debug"
+CONFIG="${OS}-${ARCH}-${PROFILE}"
 CC="cl.exe"
 LD="link.exe"
 CFLAGS="-nologo -GR- -W3 -Zi -Od -MDd"

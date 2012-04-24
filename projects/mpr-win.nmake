@@ -20,7 +20,8 @@ LIB       = $(LIB);$(SDK)\lib:$(VS)\VC\lib
 
 ARCH     = x86
 OS       = win
-CONFIG   = $(OS)-$(ARCH)-debug
+PROFILE  = debug
+CONFIG   = $(OS)-$(ARCH)-$(PROFILE)
 CC       = cl
 LD       = link
 CFLAGS   = -nologo -GR- -W3 -Zi -Od -MDd
