@@ -121,13 +121,13 @@ ${CC} -c -o ${CONFIG}/obj/runProgram.o -arch x86_64 ${CFLAGS} ${DFLAGS} -I${CONF
 
 ${CC} -o ${CONFIG}/bin/runProgram -arch x86_64 ${LDFLAGS} ${LIBPATHS} ${CONFIG}/obj/runProgram.o ${LIBS}
 
-${CC} -c -o ${CONFIG}/obj/mprMatrixssl.o -arch x86_64 ${CFLAGS} ${DFLAGS} -I${CONFIG}/inc src/mprMatrixssl.c
+${CC} -c -o ${CONFIG}/obj/mprMatrixssl.o -arch x86_64 ${CFLAGS} ${DFLAGS} -DPOSIX -DMATRIX_USE_FILE_SYSTEM -I${CONFIG}/inc -I../packages-macosx-x86_64/openssl/openssl-1.0.0d/include -I../packages-macosx-x86_64/matrixssl/matrixssl-3-3-open/matrixssl -I../packages-macosx-x86_64/matrixssl/matrixssl-3-3-open src/mprMatrixssl.c
 
-${CC} -c -o ${CONFIG}/obj/mprOpenssl.o -arch x86_64 ${CFLAGS} ${DFLAGS} -I${CONFIG}/inc src/mprOpenssl.c
+${CC} -c -o ${CONFIG}/obj/mprOpenssl.o -arch x86_64 ${CFLAGS} ${DFLAGS} -DPOSIX -DMATRIX_USE_FILE_SYSTEM -I${CONFIG}/inc -I../packages-macosx-x86_64/openssl/openssl-1.0.0d/include -I../packages-macosx-x86_64/matrixssl/matrixssl-3-3-open/matrixssl -I../packages-macosx-x86_64/matrixssl/matrixssl-3-3-open src/mprOpenssl.c
 
-${CC} -c -o ${CONFIG}/obj/mprSsl.o -arch x86_64 ${CFLAGS} ${DFLAGS} -I${CONFIG}/inc src/mprSsl.c
+${CC} -c -o ${CONFIG}/obj/mprSsl.o -arch x86_64 ${CFLAGS} ${DFLAGS} -DPOSIX -DMATRIX_USE_FILE_SYSTEM -I${CONFIG}/inc -I../packages-macosx-x86_64/openssl/openssl-1.0.0d/include -I../packages-macosx-x86_64/matrixssl/matrixssl-3-3-open/matrixssl -I../packages-macosx-x86_64/matrixssl/matrixssl-3-3-open src/mprSsl.c
 
-${CC} -dynamiclib -o ${CONFIG}/bin/libmprssl.dylib -arch x86_64 ${LDFLAGS} -compatibility_version 4.0.0 -current_version 4.0.0 ${LIBPATHS} -install_name @rpath/libmprssl.dylib ${CONFIG}/obj/mprMatrixssl.o ${CONFIG}/obj/mprOpenssl.o ${CONFIG}/obj/mprSsl.o ${LIBS} -lmpr
+${CC} -dynamiclib -o ${CONFIG}/bin/libmprssl.dylib -arch x86_64 ${LDFLAGS} -compatibility_version 4.0.0 -current_version 4.0.0 ${LIBPATHS} -L../packages-macosx-x86_64/openssl/openssl-1.0.0d -L../packages-macosx-x86_64/matrixssl/matrixssl-3-3-open -install_name @rpath/libmprssl.dylib ${CONFIG}/obj/mprMatrixssl.o ${CONFIG}/obj/mprOpenssl.o ${CONFIG}/obj/mprSsl.o ${LIBS} -lmpr -lssl -lcrypto -lmatrixssl
 
 ${CC} -c -o ${CONFIG}/obj/testArgv.o -arch x86_64 ${CFLAGS} ${DFLAGS} -I${CONFIG}/inc test/testArgv.c
 
@@ -163,7 +163,7 @@ ${CC} -c -o ${CONFIG}/obj/testTime.o -arch x86_64 ${CFLAGS} ${DFLAGS} -I${CONFIG
 
 ${CC} -c -o ${CONFIG}/obj/testUnicode.o -arch x86_64 ${CFLAGS} ${DFLAGS} -I${CONFIG}/inc test/testUnicode.c
 
-${CC} -o ${CONFIG}/bin/testMpr -arch x86_64 ${LDFLAGS} ${LIBPATHS} ${CONFIG}/obj/testArgv.o ${CONFIG}/obj/testBuf.o ${CONFIG}/obj/testCmd.o ${CONFIG}/obj/testCond.o ${CONFIG}/obj/testEvent.o ${CONFIG}/obj/testFile.o ${CONFIG}/obj/testHash.o ${CONFIG}/obj/testList.o ${CONFIG}/obj/testLock.o ${CONFIG}/obj/testMem.o ${CONFIG}/obj/testMpr.o ${CONFIG}/obj/testPath.o ${CONFIG}/obj/testSocket.o ${CONFIG}/obj/testSprintf.o ${CONFIG}/obj/testThread.o ${CONFIG}/obj/testTime.o ${CONFIG}/obj/testUnicode.o ${LIBS} -lmpr -lmprssl
+${CC} -o ${CONFIG}/bin/testMpr -arch x86_64 ${LDFLAGS} ${LIBPATHS} -L../packages-macosx-x86_64/openssl/openssl-1.0.0d -L../packages-macosx-x86_64/matrixssl/matrixssl-3-3-open ${CONFIG}/obj/testArgv.o ${CONFIG}/obj/testBuf.o ${CONFIG}/obj/testCmd.o ${CONFIG}/obj/testCond.o ${CONFIG}/obj/testEvent.o ${CONFIG}/obj/testFile.o ${CONFIG}/obj/testHash.o ${CONFIG}/obj/testList.o ${CONFIG}/obj/testLock.o ${CONFIG}/obj/testMem.o ${CONFIG}/obj/testMpr.o ${CONFIG}/obj/testPath.o ${CONFIG}/obj/testSocket.o ${CONFIG}/obj/testSprintf.o ${CONFIG}/obj/testThread.o ${CONFIG}/obj/testTime.o ${CONFIG}/obj/testUnicode.o ${LIBS} -lmpr -lmprssl -lssl -lcrypto -lmatrixssl
 
 ${CC} -c -o ${CONFIG}/obj/manager.o -arch x86_64 ${CFLAGS} ${DFLAGS} -I${CONFIG}/inc src/manager.c
 
