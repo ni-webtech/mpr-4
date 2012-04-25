@@ -291,6 +291,7 @@ void mprRemoveSignalHandler(MprSignal *sp)
         SIGPIPE - ignore
         SIGXFZ - ignore
         SIGUSR1 - restart
+        SIGUSR2 - toggle trace level (Appweb only)
         All others - default exit
  */
 void mprAddStandardSignals()

@@ -1091,6 +1091,7 @@ static void mark()
     if (!syncThreads()) {
         LOG(6, "DEBUG: GC synchronization timed out, some threads did not yield.");
         LOG(6, "This is most often caused by a thread doing a long running operation and not first calling mprYield.");
+        LOG(6, "If debugging, run the process with -D to enable debug mode.");
         return;
     }
     nextGen();

@@ -145,6 +145,11 @@
     #define VMS 1
     #define BLD_UNIX_LIKE 0
     #define BLD_WIN_LIKE 0
+#elif defined(VXWORKS)
+    /* VxWorks does not have a pre-defined symbol */
+    #define BLD_OS "VXWORKS"
+    #define BLD_UNIX_LIKE 0
+    #define BLD_WIN_LIKE 0
 #endif
 
 /********************************* O/S Includes *******************************/

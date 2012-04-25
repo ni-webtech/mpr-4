@@ -408,6 +408,7 @@ bool mprServicesAreIdle()
 
     /*
         Only test top level services. Dispatchers may have timers scheduled, but that is okay.
+        If not, users can install their own idleCallback.
      */
     idle = mprGetListLength(MPR->workerService->busyThreads) == 0 && mprGetListLength(MPR->cmdService->cmds) == 0;
     if (!idle) {
