@@ -24,7 +24,7 @@ static void queueEvent(MprEvent *prior, MprEvent *event);
     Create and queue a new event for service. Period is used as the delay before running the event and as the period between 
     events for continuous events.
  */
-MprEvent *mprCreateEventQueue(cchar *name)
+MprEvent *mprCreateEventQueue()
 {
     MprEvent    *queue;
 
