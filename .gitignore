@@ -72,3 +72,4 @@ doc/api/mpr/xml
 /*-*-debug/
 /*-*-release/
 .*.guid
+*.dmp
