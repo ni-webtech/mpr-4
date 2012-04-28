@@ -63,7 +63,7 @@
 #define BLD_FEATURE_EJS 1
 #define BLD_EJS "/Users/mob/git/ejs/macosx-x86_64-debug/bin/ejs"
 #define BLD_FEATURE_HTTP 1
-#define BLD_HTTP "/Users/mob/git/appweb/macosx-x86_64-debug/bin/http"
+#define BLD_HTTP "/Users/mob/git/ejs/macosx-x86_64-debug/bin/http"
 #define BLD_FEATURE_MD5 1
 #define BLD_MD5 "/sbin/md5"
 #define BLD_FEATURE_MATRIXSSL 0
