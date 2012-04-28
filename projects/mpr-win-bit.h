@@ -16,7 +16,7 @@
 #define BLD_MINOR_VERSION 0
 #define BLD_PATCH_VERSION 0
 #define BLD_VNUM 400000000
-#define BLD_CONFIG_CMD "bit -emulate win-x86 -d -without all configure -gen sh,nmake,vs"
+#define BLD_CONFIG_CMD "bit -emulate win-x86 -q -d -without all configure -gen sh,nmake,vs"
 #define BLD_LIB_NAME "bin"
 #define BLD_CFG_PREFIX "/Users/mob/git/mpr/C:/Program Files/Multithreaded Portable Runtime"
 #define BLD_BIN_PREFIX "/Users/mob/git/mpr/C:/Program Files/Multithreaded Portable Runtime/bin"
@@ -70,7 +70,7 @@
 #define BLD_FEATURE_EJS 1
 #define BLD_EJS "/Users/mob/git/ejs/macosx-x86_64-debug/bin/ejs"
 #define BLD_FEATURE_HTTP 1
-#define BLD_HTTP "/Users/mob/git/ejs/macosx-x86_64-debug/bin/http"
+#define BLD_HTTP "/Users/mob/git/appweb/macosx-x86_64-debug/bin/http"
 #define BLD_FEATURE_MD5 1
 #define BLD_MD5 "/sbin/md5"
 #define BLD_FEATURE_MATRIXSSL 0

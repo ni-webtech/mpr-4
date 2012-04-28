@@ -1,5 +1,5 @@
 #
-#   win-x86-debug.sh -- Build It Shell Script to build Multithreaded Portable Runtime
+#   mpr-win.sh -- Build It Shell Script to build Multithreaded Portable Runtime
 #
 
 VS="${VSINSTALLDIR}"
@@ -13,6 +13,7 @@ export INCLUDE="$(INCLUDE);$(SDK)/INCLUDE:$(VS)/VC/INCLUDE"
 export LIB="$(LIB);$(SDK)/lib:$(VS)/VC/lib"
 
 ARCH="x86"
+ARCH="$(shell uname -m | sed 's/i.86/x86/')"
 OS="win"
 PROFILE="debug"
 CONFIG="${OS}-${ARCH}-${PROFILE}"

@@ -1,5 +1,5 @@
 #
-#   win-x86-debug.nmake -- Build It Makefile to build Multithreaded Portable Runtime for win on x86
+#   mpr-win.nmake -- Build It Makefile to build Multithreaded Portable Runtime for win
 #
 
 !IFDEF VSINSTALLDIR
@@ -18,7 +18,10 @@ PATH      = $(SDK)\Bin:$(VS)\VC\Bin:$(VS)\Common7\IDE:$(VS)\Common7\Tools:$(VS)\
 INCLUDE   = $(INCLUDE);$(SDK)\INCLUDE:$(VS)\VC\INCLUDE
 LIB       = $(LIB);$(SDK)\lib:$(VS)\VC\lib
 
-ARCH     = x86
+ARCH     = $(PROCESSOR_ARCHITECTURE)
+!IF "$(ARCH)" == "AMD64"
+ARCH     = x86_64
+!ENDIF
 OS       = win
 PROFILE  = debug
 CONFIG   = $(OS)-$(ARCH)-$(PROFILE)
@@ -48,7 +51,7 @@ prep:
 	@if not exist $(CONFIG)\obj md $(CONFIG)\obj
 	@if not exist $(CONFIG)\bin md $(CONFIG)\bin
 	@if not exist $(CONFIG)\inc\bit.h copy projects\mpr-$(OS)-bit.h $(CONFIG)\inc\bit.h
-	@if not exist $(CONFIG)\bin\libmpr.def xcopy /Y /S projects\mpr-win-$(ARCH)\*.def $(CONFIG)\bin
+	@if not exist $(CONFIG)\bin\libmpr.def xcopy /Y /S projects\mpr-win\*.def $(CONFIG)\bin
 
 clean:
 	-if exist $(CONFIG)\bin\benchMpr.exe del /Q $(CONFIG)\bin\benchMpr.exe
@@ -130,8 +133,8 @@ clean:
 	-if exist $(CONFIG)\obj\charGen.obj del /Q $(CONFIG)\obj\charGen.obj
 
 $(CONFIG)\inc\mpr.h: 
-	-if exist win-x86-debug\inc\mpr.h del /Q win-x86-debug\inc\mpr.h
-	copy /Y src\mpr.h win-x86-debug\inc\mpr.h
+	-if exist $(CONFIG)\inc\mpr.h del /Q $(CONFIG)\inc\mpr.h
+	copy /Y src\mpr.h $(CONFIG)\inc\mpr.h
 
 $(CONFIG)\obj\dtoa.obj: \
         src\dtoa.c \
