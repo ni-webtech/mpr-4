@@ -2,26 +2,16 @@
 #   mpr-win.nmake -- Build It Makefile to build Multithreaded Portable Runtime for win
 #
 
-!IFDEF VSINSTALLDIR
-VS        = $(VSINSTALLDIR)
-!ELSE
-VS        = \Users\mob\git\mpr\$(VS)
-!ENDIF
-
-!IFDEF WindowsSDKDir
-SDK       = $(WindowsSDKDir)
-!ELSE
-SDK       = $(SDK)
-!ENDIF
-
-PATH      = $(SDK)\Bin:$(VS)\VC\Bin:$(VS)\Common7\IDE:$(VS)\Common7\Tools:$(VS)\SDK\v3.5\bin:$(VS)\VC\VCPackages;$(PATH)
-INCLUDE   = $(INCLUDE);$(SDK)\INCLUDE:$(VS)\VC\INCLUDE
-LIB       = $(LIB);$(SDK)\lib:$(VS)\VC\lib
-
 ARCH     = $(PROCESSOR_ARCHITECTURE)
 !IF "$(ARCH)" == "AMD64"
 ARCH     = x86_64
+MACHINE  = x64
+ENTRY    = _DllMainCRTStartup
+!ELSE
+MACHINE  = x86
+ENTRY    = _DllMainCRTStartup@12
 !ENDIF
+
 OS       = win
 PROFILE  = debug
 CONFIG   = $(OS)-$(ARCH)-$(PROFILE)
@@ -30,7 +20,7 @@ LD       = link
 CFLAGS   = -nologo -GR- -W3 -Zi -Od -MDd
 DFLAGS   = -D_REENTRANT -D_MT -DBLD_DEBUG
 IFLAGS   = -I$(CONFIG)\inc
-LDFLAGS  = -nologo -nodefaultlib -incremental:no -debug -machine:x86
+LDFLAGS  = -nologo -nodefaultlib -incremental:no -debug -machine:$(MACHINE)
 LIBPATHS = -libpath:$(CONFIG)\bin
 LIBS     = ws2_32.lib advapi32.lib user32.lib kernel32.lib oldnames.lib msvcrt.lib shell32.lib
 
@@ -47,6 +37,10 @@ all: prep \
 .PHONY: prep
 
 prep:
+!IF "$(VSINSTALLDIR)" == ""
+	echo "Visual Studio vars not set. Run vcvars.bat."
+	exit 255
+!ENDIF
 	@if not exist $(CONFIG)\inc md $(CONFIG)\inc
 	@if not exist $(CONFIG)\obj md $(CONFIG)\obj
 	@if not exist $(CONFIG)\bin md $(CONFIG)\bin
@@ -402,7 +396,7 @@ $(CONFIG)\bin\libmpr.dll:  \
         $(CONFIG)\obj\mprWin.obj \
         $(CONFIG)\obj\mprWince.obj \
         $(CONFIG)\obj\mprXml.obj
-	"$(LD)" -dll -out:$(CONFIG)\bin\libmpr.dll -entry:_DllMainCRTStartup@12 -def:$(CONFIG)\bin\libmpr.def $(LDFLAGS) $(LIBPATHS) $(CONFIG)\obj\dtoa.obj $(CONFIG)\obj\mpr.obj $(CONFIG)\obj\mprAsync.obj $(CONFIG)\obj\mprAtomic.obj $(CONFIG)\obj\mprBuf.obj $(CONFIG)\obj\mprCache.obj $(CONFIG)\obj\mprCmd.obj $(CONFIG)\obj\mprCond.obj $(CONFIG)\obj\mprCrypt.obj $(CONFIG)\obj\mprDisk.obj $(CONFIG)\obj\mprDispatcher.obj $(CONFIG)\obj\mprEncode.obj $(CONFIG)\obj\mprEpoll.obj $(CONFIG)\obj\mprEvent.obj $(CONFIG)\obj\mprFile.obj $(CONFIG)\obj\mprFileSystem.obj $(CONFIG)\obj\mprHash.obj $(CONFIG)\obj\mprJSON.obj $(CONFIG)\obj\mprKqueue.obj $(CONFIG)\obj\mprList.obj $(CONFIG)\obj\mprLock.obj $(CONFIG)\obj\mprLog.obj $(CONFIG)\obj\mprMem.obj $(CONFIG)\obj\mprMime.obj $(CONFIG)\obj\mprMixed.obj $(CONFIG)\obj\mprModule.obj $(CONFIG)\obj\mprPath.obj $(CONFIG)\obj\mprPoll.obj $(CONFIG)\obj\mprPrintf.obj $(CONFIG)\obj\mprRomFile.obj $(CONFIG)\obj\mprSelect.obj $(CONFIG)\obj\mprSignal.obj $(CONFIG)\obj\mprSocket.obj $(CONFIG)\obj\mprString.obj $(CONFIG)\obj\mprTest.obj $(CONFIG)\obj\mprThread.obj $(CONFIG)\obj\mprTime.obj $(CONFIG)\obj\mprUnix.obj $(CONFIG)\obj\mprVxworks.obj $(CONFIG)\obj\mprWait.obj $(CONFIG)\obj\mprWide.obj $(CONFIG)\obj\mprWin.obj $(CONFIG)\obj\mprWince.obj $(CONFIG)\obj\mprXml.obj $(LIBS)
+	"$(LD)" -dll -out:$(CONFIG)\bin\libmpr.dll -entry:$(ENTRY) -def:$(CONFIG)\bin\libmpr.def $(LDFLAGS) $(LIBPATHS) $(CONFIG)\obj\dtoa.obj $(CONFIG)\obj\mpr.obj $(CONFIG)\obj\mprAsync.obj $(CONFIG)\obj\mprAtomic.obj $(CONFIG)\obj\mprBuf.obj $(CONFIG)\obj\mprCache.obj $(CONFIG)\obj\mprCmd.obj $(CONFIG)\obj\mprCond.obj $(CONFIG)\obj\mprCrypt.obj $(CONFIG)\obj\mprDisk.obj $(CONFIG)\obj\mprDispatcher.obj $(CONFIG)\obj\mprEncode.obj $(CONFIG)\obj\mprEpoll.obj $(CONFIG)\obj\mprEvent.obj $(CONFIG)\obj\mprFile.obj $(CONFIG)\obj\mprFileSystem.obj $(CONFIG)\obj\mprHash.obj $(CONFIG)\obj\mprJSON.obj $(CONFIG)\obj\mprKqueue.obj $(CONFIG)\obj\mprList.obj $(CONFIG)\obj\mprLock.obj $(CONFIG)\obj\mprLog.obj $(CONFIG)\obj\mprMem.obj $(CONFIG)\obj\mprMime.obj $(CONFIG)\obj\mprMixed.obj $(CONFIG)\obj\mprModule.obj $(CONFIG)\obj\mprPath.obj $(CONFIG)\obj\mprPoll.obj $(CONFIG)\obj\mprPrintf.obj $(CONFIG)\obj\mprRomFile.obj $(CONFIG)\obj\mprSelect.obj $(CONFIG)\obj\mprSignal.obj $(CONFIG)\obj\mprSocket.obj $(CONFIG)\obj\mprString.obj $(CONFIG)\obj\mprTest.obj $(CONFIG)\obj\mprThread.obj $(CONFIG)\obj\mprTime.obj $(CONFIG)\obj\mprUnix.obj $(CONFIG)\obj\mprVxworks.obj $(CONFIG)\obj\mprWait.obj $(CONFIG)\obj\mprWide.obj $(CONFIG)\obj\mprWin.obj $(CONFIG)\obj\mprWince.obj $(CONFIG)\obj\mprXml.obj $(LIBS)
 
 $(CONFIG)\obj\benchMpr.obj: \
         test\benchMpr.c \
@@ -443,7 +437,7 @@ $(CONFIG)\bin\libmprssl.dll:  \
         $(CONFIG)\obj\mprMatrixssl.obj \
         $(CONFIG)\obj\mprOpenssl.obj \
         $(CONFIG)\obj\mprSsl.obj
-	"$(LD)" -dll -out:$(CONFIG)\bin\libmprssl.dll -entry:_DllMainCRTStartup@12 -def:$(CONFIG)\bin\libmprssl.def $(LDFLAGS) $(LIBPATHS) $(CONFIG)\obj\mprMatrixssl.obj $(CONFIG)\obj\mprOpenssl.obj $(CONFIG)\obj\mprSsl.obj $(LIBS) libmpr.lib
+	"$(LD)" -dll -out:$(CONFIG)\bin\libmprssl.dll -entry:$(ENTRY) -def:$(CONFIG)\bin\libmprssl.def $(LDFLAGS) $(LIBPATHS) $(CONFIG)\obj\mprMatrixssl.obj $(CONFIG)\obj\mprOpenssl.obj $(CONFIG)\obj\mprSsl.obj $(LIBS) libmpr.lib
 
 $(CONFIG)\obj\testArgv.obj: \
         test\testArgv.c \

@@ -2,12 +2,6 @@
 #   mpr-win.sh -- Build It Shell Script to build Multithreaded Portable Runtime
 #
 
-VS="${VSINSTALLDIR}"
-: ${VS:="\Users\mob\git\mpr\$(VS)"}
-SDK="${WindowsSDKDir}"
-: ${SDK:="$(SDK)"}
-
-export SDK VS
 export PATH="$(SDK)/Bin:$(VS)/VC/Bin:$(VS)/Common7/IDE:$(VS)/Common7/Tools:$(VS)/SDK/v3.5/bin:$(VS)/VC/VCPackages;$(PATH)"
 export INCLUDE="$(INCLUDE);$(SDK)/INCLUDE:$(VS)/VC/INCLUDE"
 export LIB="$(LIB);$(SDK)/lib:$(VS)/VC/lib"
