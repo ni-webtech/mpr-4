@@ -73,7 +73,7 @@
     #define BLD_CPU "ARM"
     #define BLD_CPU_ARCH MPR_CPU_ARM
 #elif defined(__x86_64__) || defined(_M_AMD64)
-    #define BLD_CPU "x86_64"
+    #define BLD_CPU "x64"
     #define BLD_CPU_ARCH MPR_CPU_IX64
 #elif defined(__i386__) || defined(__i486__) || defined(__i585__) || defined(__i686__) || defined(_M_IX86)
     #define BLD_CPU "x86"

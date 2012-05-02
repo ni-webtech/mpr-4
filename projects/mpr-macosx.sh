@@ -2,14 +2,14 @@
 #   mpr-macosx.sh -- Build It Shell Script to build Multithreaded Portable Runtime
 #
 
-ARCH="x86_64"
+ARCH="x64"
 ARCH="$(shell uname -m | sed 's/i.86/x86/')"
 OS="macosx"
 PROFILE="debug"
 CONFIG="${OS}-${ARCH}-${PROFILE}"
 CC="/usr/bin/clang"
 LD="/usr/bin/ld"
-CFLAGS="-Wall -g -Wno-unused-result -Wshorten-64-to-32"
+CFLAGS="-Wall -Wno-deprecated-declarations -g -Wno-unused-result -Wshorten-64-to-32"
 DFLAGS="-DBLD_DEBUG"
 IFLAGS="-I${CONFIG}/inc"
 LDFLAGS="-Wl,-rpath,@executable_path/../lib -Wl,-rpath,@executable_path/ -Wl,-rpath,@loader_path/ -g"
