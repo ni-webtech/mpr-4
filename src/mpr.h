@@ -194,6 +194,11 @@
     #define     HAS_USHORT 1
 #endif
 
+#if MACSOX
+    #define     HAS_USHORT 1
+    #define     HAS_UINT 1
+#endif
+
 #if BLD_WIN_LIKE
     #include    <winsock2.h>
     #include    <windows.h>
@@ -1451,13 +1456,13 @@ struct  MprXml;
     #define BLD_CHAR_LEN 1
 #endif
 #if BLD_CHAR_LEN == 4
-    typedef int MprChar;
+    typedef uint MprChar;
     #define T(s) L ## s
 #elif BLD_CHAR_LEN == 2
-    typedef short MprChar;
+    typedef ushort MprChar;
     #define T(s) L ## s
 #else
-    typedef char MprChar;
+    typedef uchar MprChar;
     #define T(s) s
 #endif
 

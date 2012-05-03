@@ -51,7 +51,7 @@ int mprStartLogging(cchar *logSpec, int showConfig)
     }
     if (*logSpec && strcmp(logSpec, "none") != 0) {
         MPR->logPath = path = sclone(logSpec);
-        if ((levelSpec = strrchr(path, ':')) != 0 && isdigit((int) levelSpec[1])) {
+        if ((levelSpec = strrchr(path, ':')) != 0 && isdigit((uchar) levelSpec[1])) {
             *levelSpec++ = '\0';
             level = atoi(levelSpec);
         }

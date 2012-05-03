@@ -340,7 +340,7 @@ cchar *mprSerialize(MprObj *obj, int flags)
 
 static char advanceToken(MprJson *jp)
 {
-    while (isspace((int) *jp->tok)) {
+    while (isspace((uchar) *jp->tok)) {
         if (*jp->tok == '\n') {
             jp->lineNumber++;
         }

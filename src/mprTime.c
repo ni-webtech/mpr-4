@@ -1439,7 +1439,7 @@ int mprParseTime(MprTime *time, cchar *dateString, int zoneFlags, struct tm *def
                 }
             }
 
-        } else if ((cp = strchr(token, timeSep)) != 0 && isdigit((int) token[0])) {
+        } else if ((cp = strchr(token, timeSep)) != 0 && isdigit((uchar) token[0])) {
             /*
                 Time:  10:52[:23]
                 Must not parse GMT-07:30

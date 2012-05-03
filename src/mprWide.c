@@ -375,7 +375,7 @@ MprChar *wlower(MprChar *str)
         s = wclone(str);
         for (cp = s; *cp; cp++) {
             if (isupper((int) *cp)) {
-                *cp = (MprChar) tolower((int) *cp);
+                *cp = (MprChar) tolower(*cp);
             }
         }
         str = s;
@@ -398,7 +398,7 @@ int wncasecmp(MprChar *s1, MprChar *s2, ssize n)
         return 1;
     }
     for (rc = 0; n > 0 && *s1 && rc == 0; s1++, s2++, n--) {
-        rc = tolower((int) *s1) - tolower((int) *s2);
+        rc = tolower(*s1) - tolower(*s2);
     }
     if (rc) {
         return (rc > 0) ? 1 : -1;
@@ -697,8 +697,8 @@ char *wupper(MprChar *str)
     if (str) {
         s = wclone(str);
         for (cp = s; *cp; cp++) {
-            if (islower((int) *cp)) {
-                *cp = (char) toupper((int) *cp);
+            if (islower(*cp)) {
+                *cp = (MprChar) toupper(*cp);
             }
         }
         str = s;
@@ -1060,16 +1060,16 @@ MprChar *amtow(cchar *src, ssize *len)
     if (len) {
         *len = slen(src);
     }
-    return sclone(src);
+    return (MprChar*) sclone(src);
 }
 
 
 char *awtom(MprChar *src, ssize *len)
 {
     if (len) {
-        *len = slen(src);
+        *len = slen((char*) src);
     }
-    return sclone(src);
+    return sclone((char*) src);
 }
 
 

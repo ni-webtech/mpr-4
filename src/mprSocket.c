@@ -1513,7 +1513,7 @@ int mprParseSocketAddress(cchar *ipAddrPort, char **pip, int *pport, int default
             }
 
         } else {
-            if (isdigit((int) *ip)) {
+            if (isdigit((uchar) *ip)) {
                 *pport = atoi(ip);
                 ip = 0;
             } else {

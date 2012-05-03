@@ -882,7 +882,7 @@ char *mprGetRelPath(cchar *destArg, cchar *originArg)
             if (*op != *cp) {
                 break;
             }
-        } else if (*op != *cp && tolower((int) *op) != tolower((int) *cp)) {
+        } else if (*op != *cp && tolower((uchar) *op) != tolower((uchar) *cp)) {
             break;
         }
     }
@@ -1467,7 +1467,7 @@ int mprSamePath(cchar *path1, cchar *path2)
         }
     } else {
         for (p1 = path1, p2 = path2; *p1 && *p2; p1++, p2++) {
-            if (tolower((int) *p1) != tolower((int) *p2) && !(isSep(fs, *p1) && isSep(fs, *p2))) {
+            if (tolower((uchar) *p1) != tolower((uchar) *p2) && !(isSep(fs, *p1) && isSep(fs, *p2))) {
                 break;
             }
         }
@@ -1504,7 +1504,7 @@ int mprSamePathCount(cchar *path1, cchar *path2, ssize len)
         }
     } else {
         for (p1 = path1, p2 = path2; *p1 && *p2 && len > 0; p1++, p2++, len--) {
-            if (tolower((int) *p1) != tolower((int) *p2) && !(isSep(fs, *p1) && isSep(fs, *p2))) {
+            if (tolower((uchar) *p1) != tolower((uchar) *p2) && !(isSep(fs, *p1) && isSep(fs, *p2))) {
                 break;
             }
         }
