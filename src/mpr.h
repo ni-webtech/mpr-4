@@ -1456,13 +1456,13 @@ struct  MprXml;
     #define BLD_CHAR_LEN 1
 #endif
 #if BLD_CHAR_LEN == 4
-    typedef uint MprChar;
+    typedef int MprChar;
     #define T(s) L ## s
 #elif BLD_CHAR_LEN == 2
-    typedef ushort MprChar;
+    typedef short MprChar;
     #define T(s) L ## s
 #else
-    typedef uchar MprChar;
+    typedef char MprChar;
     #define T(s) s
 #endif
 
