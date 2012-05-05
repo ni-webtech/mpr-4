@@ -416,7 +416,7 @@ static char *sprintfCore(char *buf, ssize maxsize, cchar *spec, va_list args)
                     fmt.flags |= SPRINTF_LEFT;
                 }
             } else {
-                while (isdigit((int) c)) {
+                while (isdigit((uchar) c)) {
                     fmt.width = fmt.width * 10 + (c - '0');
                     c = *spec++;
                 }
@@ -432,7 +432,7 @@ static char *sprintfCore(char *buf, ssize maxsize, cchar *spec, va_list args)
             if (c == '*') {
                 fmt.precision = va_arg(args, int);
             } else {
-                while (isdigit((int) c)) {
+                while (isdigit((uchar) c)) {
                     fmt.precision = fmt.precision * 10 + (c - '0');
                     c = *spec++;
                 }
@@ -476,15 +476,15 @@ static char *sprintfCore(char *buf, ssize maxsize, cchar *spec, va_list args)
                 qname = va_arg(args, MprEjsName);
                 if (qname.name) {
 #if BLD_CHAR_LEN == 1
-                    outString(&fmt, qname.space->value, qname.space->length);
+                    outString(&fmt, (char*) qname.space->value, qname.space->length);
                     BPUT(&fmt, ':');
                     BPUT(&fmt, ':');
-                    outString(&fmt, qname.name->value, qname.name->length);
+                    outString(&fmt, (char*) qname.name->value, qname.name->length);
 #else
-                    outWideString(&fmt, qname.space->value, qname.space->length);
+                    outWideString(&fmt, (MprChar*) qname.space->value, qname.space->length);
                     BPUT(&fmt, ':');
                     BPUT(&fmt, ':');
-                    outWideString(&fmt, qname.name->value, qname.name->length);
+                    outWideString(&fmt, (MprChar*) qname.name->value, qname.name->length);
 #endif
                 } else {
                     outString(&fmt, NULL, 0);
@@ -495,12 +495,13 @@ static char *sprintfCore(char *buf, ssize maxsize, cchar *spec, va_list args)
                 /* Safe string */
 #if BLD_CHAR_LEN > 1
                 if (fmt.flags & SPRINTF_LONG) {
+                    //  MOB - not right MprChar
                     safe = mprEscapeHtml(va_arg(args, MprChar*));
                     outWideString(&fmt, safe, -1);
                 } else
 #endif
                 {
-                    safe = mprEscapeHtml(va_arg(args, MprChar*));
+                    safe = mprEscapeHtml(va_arg(args, char*));
                     outString(&fmt, safe, -1);
                 }
                 break;
@@ -510,7 +511,7 @@ static char *sprintfCore(char *buf, ssize maxsize, cchar *spec, va_list args)
                 es = va_arg(args, MprEjsString*);
                 if (es) {
 #if BLD_CHAR_LEN == 1
-                    outString(&fmt, es->value, es->length);
+                    outString(&fmt, (char*) es->value, es->length);
 #else
                     outWideString(&fmt, es->value, es->length);
 #endif

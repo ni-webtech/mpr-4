@@ -1105,16 +1105,6 @@ fi";
                 DSTROOT = "/tmp/mpr.dst";
                 OBJROOT = "$(OBJ_DIR)";
                 SYMROOT = "$(BIN_DIR)";
-				GCC_WARN_64_TO_32_BIT_CONVERSION = YES;
-				GCC_WARN_64_TO_32_BIT_CONVERSION = YES;
-				GCC_WARN_UNUSED_VARIABLE = NO;
-				GCC_WARN_UNUSED_FUNCTION = NO;
-				GCC_WARN_UNUSED_LABEL = NO;
-				GCC_WARN_64_TO_32_BIT_CONVERSION = YES;
-				GCC_WARN_64_TO_32_BIT_CONVERSION = YES;
-				GCC_WARN_UNUSED_VARIABLE = NO;
-				GCC_WARN_UNUSED_FUNCTION = NO;
-				GCC_WARN_UNUSED_LABEL = NO;
 
                 /* Debug Settings */
 				COPY_PHASE_STRIP = NO;
@@ -1176,22 +1166,12 @@ fi";
                 DSTROOT = "/tmp/mpr.dst";
                 OBJROOT = "$(OBJ_DIR)";
                 SYMROOT = "$(BIN_DIR)";
-				GCC_WARN_64_TO_32_BIT_CONVERSION = YES;
-				GCC_WARN_64_TO_32_BIT_CONVERSION = YES;
-				GCC_WARN_UNUSED_VARIABLE = NO;
-				GCC_WARN_UNUSED_FUNCTION = NO;
-				GCC_WARN_UNUSED_LABEL = NO;
-				GCC_WARN_64_TO_32_BIT_CONVERSION = YES;
-				GCC_WARN_64_TO_32_BIT_CONVERSION = YES;
-				GCC_WARN_UNUSED_VARIABLE = NO;
-				GCC_WARN_UNUSED_FUNCTION = NO;
-				GCC_WARN_UNUSED_LABEL = NO;
 
                 /* Release Settings */
 				COPY_PHASE_STRIP = YES;
 				DEBUG_INFORMATION_FORMAT = "dwarf-with-dsym";
 				GCC_OPTIMIZATION_LEVEL = s;
-                GCC_WARN_UNINITIALIZED_AUTOS = NO;
+                GCC_WARN_UNINITIALIZED_AUTOS = null;
 				HEADER_SEARCH_PATHS = (
 					"../macosx-x64-debug/inc",
 					"$(inherited)"

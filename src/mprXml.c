@@ -388,7 +388,7 @@ static MprXmlToken getXmlToken(MprXml *xp, int state)
             If all white space, then zero the token buffer
          */
         for (cp = tokBuf->start; *cp; cp++) {
-            if (!isspace((int) *cp & 0x7f)) {
+            if (!isspace((uchar) *cp & 0x7f)) {
                 return MPR_XMLTOK_TEXT;
             }
         }
@@ -455,7 +455,7 @@ static MprXmlToken getXmlToken(MprXml *xp, int state)
                 xp->quoteChar = 0;
 
             } else {
-                while (!isspace(c) && c != '>' && c != '/' && c != '=') {
+                while (!isspace((uchar) c) && c != '>' && c != '/' && c != '=') {
                     if (mprPutCharToBuf(tokBuf, c) < 0) {
                         return MPR_XMLTOK_TOO_BIG;
                     }

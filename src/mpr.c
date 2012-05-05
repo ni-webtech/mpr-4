@@ -440,7 +440,7 @@ int mprParseArgs(char *args, char **argv, int maxArgc)
         Becomes:    ["showColors", "red", "light blue", "yellow white", "Can't \"render\""]
      */
     for (argc = 0, src = args; src && *src != '\0' && argc < maxArgc; argc++) {
-        while (isspace((int) *src)) {
+        while (isspace((uchar) *src)) {
             src++;
         }
         if (*src == '\0')  {

@@ -16,7 +16,7 @@
 #define BLD_MINOR_VERSION 0
 #define BLD_PATCH_VERSION 0
 #define BLD_VNUM 400000000
-#define BLD_CONFIG_CMD "bit -q -d -without all configure -gen sh,make,xcode"
+#define BLD_CONFIG_CMD "bit -emulate macosx-x64 -q -d -without all configure -gen sh,make,xcode"
 #define BLD_LIB_NAME "bin"
 #define BLD_CFG_PREFIX "/etc/mpr"
 #define BLD_BIN_PREFIX "/usr/lib/mpr/4.0.0/bin"
@@ -40,16 +40,16 @@
 #define BLD_MANAGER "manager"
 #define BLD_CC_DOUBLE_BRACES 1
 #define BLD_CC_DYN_LOAD 1
-#define BLD_CC_EDITLINE 1
+#define BLD_CC_EDITLINE 0
 #define BLD_CC_MMU 1
 #define BLD_CC_MTUNE 1
 #define BLD_CC_PAM 0
 #define BLD_CC_STACK_PROTECTOR 1
 #define BLD_CC_SYNC 1
-#define BLD_CC_SYNC_CAS 0
+#define BLD_CC_SYNC_CAS 1
 #define BLD_CC_UNNAMED_UNIONS 1
-#define BLD_CC_WARN_64TO32 1
-#define BLD_CC_WARN_UNUSED 1
+#define BLD_CC_WARN_64TO32 0
+#define BLD_CC_WARN_UNUSED 0
 #define BLD_FEATURE_DOXYGEN 0
 #define BLD_FEATURE_DSI 0
 #define BLD_FEATURE_MAN 0

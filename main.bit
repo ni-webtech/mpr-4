@@ -8,6 +8,11 @@ Bit.load({
         'test/test.bit',
     ],
 
+    customize: [
+        /* Optionally load this if present. Feel free to create and customize */
+        'custom.bit',
+    ],
+
     settings: {
 		product: 'mpr',
 		title: 'Multithreaded Portable Runtime',

@@ -89,7 +89,7 @@ MprHash *mprCreateMimeTypes(cchar *path)
         line = 0;
         while ((buf = mprReadLine(file, 0, NULL)) != 0) {
             line++;
-            if (buf[0] == '#' || isspace((int) buf[0])) {
+            if (buf[0] == '#' || isspace((uchar) buf[0])) {
                 continue;
             }
             type = stok(buf, " \t\n\r", &tok);

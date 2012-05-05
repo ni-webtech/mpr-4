@@ -2113,7 +2113,7 @@ MprMemStats *mprGetMemStats()
         if ((len = read(fd, buf, sizeof(buf) - 1)) > 0) {
             buf[len] = '\0';
             if ((cp = strstr(buf, "MemTotal:")) != 0) {
-                for (; *cp && !isdigit((int) *cp); cp++) {}
+                for (; *cp && !isdigit((uchar) *cp); cp++) {}
                 heap->stats.ram = ((ssize) atoi(cp) * 1024);
             }
         }
@@ -2168,7 +2168,7 @@ ssize mprGetMem()
         if (nbytes > 0) {
             buf[nbytes] = '\0';
             if ((tok = strstr(buf, "VmRSS:")) != 0) {
-                for (tok += 6; tok && isspace((int) *tok); tok++) {}
+                for (tok += 6; tok && isspace((uchar) *tok); tok++) {}
                 size = stoi(tok) * 1024;
             }
         }

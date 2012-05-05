@@ -194,6 +194,11 @@
     #define     HAS_USHORT 1
 #endif
 
+#if MACSOX
+    #define     HAS_USHORT 1
+    #define     HAS_UINT 1
+#endif
+
 #if BLD_WIN_LIKE
     #include    <winsock2.h>
     #include    <windows.h>
