@@ -44,7 +44,6 @@ bin/*.sln
 bin/*.suo
 bin/.kdbgrc.*
 out
-*.vcxproj
 *.sdf
 *.suo
 *.filters
