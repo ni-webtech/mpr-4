@@ -79,6 +79,9 @@ MprSocketService *mprCreateSocketService()
     mprSetServerName(serverName);
     mprSetDomainName(domainName);
     mprSetHostName(hostName);
+#if BLD_FEATURE_SSL
+    ss->secureSockets = mprCreateList(0, 0);
+#endif
     return ss;
 }
 
@@ -89,6 +92,9 @@ static void manageSocketService(MprSocketService *ss, int flags)
         mprMark(ss->standardProvider);
         mprMark(ss->secureProvider);
         mprMark(ss->mutex);
+#if BLD_FEATURE_SSL
+        mprMark(ss->secureSockets);
+#endif
     }
 }
 
