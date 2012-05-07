@@ -2481,13 +2481,13 @@ static void monitorStack()
 }
 #endif
 
-#if BLD_MEMORY_DEBUG
-#undef mprSetName
-#undef mprCopyName
-#undef mprSetAllocName
+#if !BLD_MEMORY_DEBUG
 void mprCheckBlock(MprMem *mp) {}
+#undef mprSetName
 void *mprSetName(void *ptr, cchar *name) { return 0; }
+#undef mprCopyName
 void *mprCopyName(void *dest, void *src) { return 0; }
+#undef mprSetAllocName
 void *mprSetAllocName(void *ptr, cchar *name) { return 0; }
 #endif
 
