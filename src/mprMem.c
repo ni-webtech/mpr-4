@@ -1936,17 +1936,8 @@ void *mprCopyName(void *dest, void *src)
 {
     return mprSetName(dest, mprGetName(src));
 }
-
-
-#else
-#undef mprSetName
-#undef mprCopyName
-#undef mprSetAllocName
-void mprCheckBlock(MprMem *mp) {}
-void *mprSetName(void *ptr, cchar *name) { return 0; }
-void *mprCopyName(void *dest, void *src) { return 0; }
-void *mprSetAllocName(void *ptr, cchar *name) { return 0; }
 #endif
+
 
 /********************************************* Misc ***************************************************/
 
@@ -2488,6 +2479,16 @@ static void monitorStack()
         }
     }
 }
+#endif
+
+#if BLD_MEMORY_DEBUG
+#undef mprSetName
+#undef mprCopyName
+#undef mprSetAllocName
+void mprCheckBlock(MprMem *mp) {}
+void *mprSetName(void *ptr, cchar *name) { return 0; }
+void *mprCopyName(void *dest, void *src) { return 0; }
+void *mprSetAllocName(void *ptr, cchar *name) { return 0; }
 #endif
 
 /*
