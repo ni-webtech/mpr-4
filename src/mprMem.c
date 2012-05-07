@@ -2482,13 +2482,25 @@ static void monitorStack()
 #endif
 
 #if !BLD_MEMORY_DEBUG
-void mprCheckBlock(MprMem *mp) {}
 #undef mprSetName
-void *mprSetName(void *ptr, cchar *name) { return 0; }
 #undef mprCopyName
-void *mprCopyName(void *dest, void *src) { return 0; }
 #undef mprSetAllocName
+
+/*
+    Define stubs so windows can use same *.def for debug or release
+ */
+void mprCheckBlock(MprMem *mp) {}
+void *mprSetName(void *ptr, cchar *name) { return 0; }
+void *mprCopyName(void *dest, void *src) { return 0; }
 void *mprSetAllocName(void *ptr, cchar *name) { return 0; }
+
+/*
+    Re-instate defines for combo releases, where source will be appended below here
+ */
+#define mprCopyName(dest, src)
+#define mprGetName(ptr) ""
+#define mprSetAllocName(ptr, name) ptr
+#define mprSetName(ptr, name)
 #endif
 
 /*
