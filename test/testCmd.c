@@ -67,7 +67,7 @@ static void testRunCmd(MprTestGroup *gp)
         runProgram reads from the input, so it requires stdin to be connected
      */
     mprSprintf(command, sizeof(command), "%s 0", tc->program);
-    status = mprRunCmd(tc->cmd, command, &result, NULL, -1, MPR_CMD_IN);
+    status = mprRunCmd(tc->cmd, command, NULL, &result, NULL, -1, MPR_CMD_IN);
     assert(result != NULL);
     assert(status == 0);
 
@@ -184,7 +184,7 @@ static void testWithData(MprTestGroup *gp)
     mprSetCmdCallback(tc->cmd, withDataCallback, gp);
     
     // mprLog(0, "START");
-    rc = mprStartCmd(tc->cmd, argc, argv, env, MPR_CMD_IN | MPR_CMD_OUT | MPR_CMD_ERR);
+    rc = mprStartCmd(tc->cmd, argc, (cchar**) argv, (cchar**) env, MPR_CMD_IN | MPR_CMD_OUT | MPR_CMD_ERR);
     assert(rc == 0);
 
     /*
@@ -251,7 +251,7 @@ static void testExitCode(MprTestGroup *gp)
 
     for (i = 0; i < 1; i++) {
         mprSprintf(command, sizeof(command), "%s %d", tc->program, i);
-        status = mprRunCmd(tc->cmd, command, &result, NULL, -1, MPR_CMD_IN);
+        status = mprRunCmd(tc->cmd, command, NULL, &result, NULL, -1, MPR_CMD_IN);
         assert(result != NULL);
         assert(status == i);
         if (status != i) {
@@ -277,7 +277,7 @@ static void testNoCapture(MprTestGroup *gp)
     assert(tc->cmd != 0);
 
     mprSprintf(command, sizeof(command), "%s 99", tc->program);
-    status = mprRunCmd(tc->cmd, command, NULL, NULL, -1, MPR_CMD_IN);
+    status = mprRunCmd(tc->cmd, command, NULL, NULL, NULL, -1, MPR_CMD_IN);
     assert(status == 99);
 
     status = mprGetCmdExitStatus(tc->cmd);
@@ -304,7 +304,7 @@ static void testMultiple(MprTestGroup *gp)
     }
     for (i = 0; i < CMD_COUNT; i++) {
         mprSprintf(command, sizeof(command), "%s 99", tc->program);
-        status = mprRunCmd(cmds[i], command, NULL, NULL, -1, MPR_CMD_IN);
+        status = mprRunCmd(cmds[i], command, NULL, NULL, NULL, -1, MPR_CMD_IN);
         assert(status == 99);
         status = mprGetCmdExitStatus(cmds[i]);
         assert(status == 99);

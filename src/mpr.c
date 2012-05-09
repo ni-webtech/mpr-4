@@ -66,7 +66,7 @@ Mpr *mprCreate(int argc, char **argv, int flags)
         }
 #endif
         mpr->argc = argc;
-        mpr->argv = argv;
+        mpr->argv = (cchar**) argv;
         if (!mprIsPathAbs(mpr->argv[0])) {
             mpr->argv[0] = mprGetAppPath();
         }
@@ -291,7 +291,7 @@ void mprRestart()
     for (i = 3; i < MPR_MAX_FILE; i++) {
         close(i);
     }
-    execv(MPR->argv[0], MPR->argv);
+    execv(MPR->argv[0], (char*const*) MPR->argv);
 
     /*
         Last-ditch trace. Can only use stdout. Logging may be closed.
@@ -490,7 +490,7 @@ int mprParseArgs(char *args, char **argv, int maxArgc)
     Set MPR_ARGV_ARGS_ONLY if not passing in a program name. 
     Always returns and argv[0] reserved for the program name or empty string.  First arg starts at argv[1].
  */
-int mprMakeArgv(cchar *command, char ***argvp, int flags)
+int mprMakeArgv(cchar *command, cchar ***argvp, int flags)
 {
     char    **argv, *vector, *args;
     ssize   len;
@@ -521,7 +521,7 @@ int mprMakeArgv(cchar *command, char ***argvp, int flags)
         mprParseArgs(args, argv, argc);
     }
     argv[argc] = 0;
-    *argvp = argv;
+    *argvp = (cchar**) argv;
     return argc;
 }
 

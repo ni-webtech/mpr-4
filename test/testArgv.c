@@ -13,7 +13,7 @@
 static void testMakeArgv(MprTestGroup *gp)
 {
     int     argc;
-    char    **argv;
+    cchar   **argv;
 
     //  Simple arg parsing
     argc = mprMakeArgv("app a b", &argv, 0);
@@ -72,7 +72,7 @@ static void testMakeArgv(MprTestGroup *gp)
 static void testArgvRegressions(MprTestGroup *gp)
 {
     int     argc;
-    char    **argv;
+    cchar   **argv;
 
     //  "\bin\sh" "-c" "c:/home/mob/ejs/out/bin/ejs.exe ./args \"a b\" c"
     argc = mprMakeArgv("\"\\bin\\sh\" \"-c\" \"c:/home/mob/ejs/out/bin/ejs.exe ./args \\\"a b\\\" c\"", &argv, 0);

@@ -22,10 +22,12 @@ void mprAtomicBarrier()
         #ifdef VX_MEM_BARRIER_RW
             VX_MEM_BARRIER_RW();
         #else
-            mprGlobalLock(); mprGlobalUnlock();
+            /* A system call should act as a fence */
+            getpid();
         #endif
     #else
-        mprGlobalLock(); mprGlobalUnlock();
+        /* A system call should act as a fence */
+        getpid();
     #endif
 
 #if FUTURE && KEEP

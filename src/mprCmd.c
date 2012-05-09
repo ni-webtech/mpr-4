@@ -18,7 +18,7 @@ static void manageCmdService(MprCmdService *cmd, int flags);
 static void manageCmd(MprCmd *cmd, int flags);
 static void reapCmd(MprCmd *cmd, MprSignal *sp);
 static void resetCmd(MprCmd *cmd);
-static int sanitizeArgs(MprCmd *cmd, int argc, char **argv, char **env);
+static int sanitizeArgs(MprCmd *cmd, int argc, cchar **argv, cchar **env);
 static int startProcess(MprCmd *cmd);
 static void stdinCallback(MprCmd *cmd, MprEvent *event);
 static void stdoutCallback(MprCmd *cmd, MprEvent *event);
@@ -26,7 +26,7 @@ static void stderrCallback(MprCmd *cmd, MprEvent *event);
 static void vxCmdManager(MprCmd *cmd);
 
 #if BLD_UNIX_LIKE
-static char **fixenv(MprCmd *cmd);
+static cchar **fixenv(MprCmd *cmd);
 #endif
 
 #if VXWORKS
@@ -298,9 +298,9 @@ int mprIsCmdComplete(MprCmd *cmd)
 /*
     Run a simple blocking command. See arg usage below in mprRunCmdV.
  */
-int mprRunCmd(MprCmd *cmd, cchar *command, char **out, char **err, MprTime timeout, int flags)
+int mprRunCmd(MprCmd *cmd, cchar *command, cchar **envp, char **out, char **err, MprTime timeout, int flags)
 {
-    char    **argv;
+    cchar   **argv;
     int     argc;
 
     mprAssert(cmd);
@@ -308,7 +308,7 @@ int mprRunCmd(MprCmd *cmd, cchar *command, char **out, char **err, MprTime timeo
         return 0;
     }
     cmd->makeArgv = argv;
-    return mprRunCmdV(cmd, argc, argv, out, err, timeout, flags);
+    return mprRunCmdV(cmd, argc, argv, envp, out, err, timeout, flags);
 }
 
 
@@ -337,7 +337,7 @@ void mprSetCmdSearchPath(MprCmd *cmd, cchar *search)
         MPR_CMD_SHOW            Show the commands window on Windows
         MPR_CMD_IN              Connect to stdin
  */
-int mprRunCmdV(MprCmd *cmd, int argc, char **argv, char **out, char **err, MprTime timeout, int flags)
+int mprRunCmdV(MprCmd *cmd, int argc, cchar **argv, cchar **envp, char **out, char **err, MprTime timeout, int flags)
 {
     int     rc, status;
 
@@ -361,7 +361,7 @@ int mprRunCmdV(MprCmd *cmd, int argc, char **argv, char **out, char **err, MprTi
         cmd->stderrBuf = mprCreateBuf(MPR_BUFSIZE, -1);
     }
     mprSetCmdCallback(cmd, cmdCallback, NULL);
-    rc = mprStartCmd(cmd, argc, argv, 0, flags);
+    rc = mprStartCmd(cmd, argc, argv, envp, flags);
 
     /*
         Close the pipe connected to the client's stdin
@@ -425,10 +425,10 @@ static void addCmdHandlers(MprCmd *cmd)
     run a command. The caller needs to do code like mprRunCmd() themselves to wait for completion and to send/receive data.
     The routine does not wait. Callers must call mprWaitForCmd to wait for the command to complete.
  */
-int mprStartCmd(MprCmd *cmd, int argc, char **argv, char **envp, int flags)
+int mprStartCmd(MprCmd *cmd, int argc, cchar **argv, cchar **envp, int flags)
 {
     MprPath     info;
-    char        *program, *search;
+    cchar       *program, *search;
     int         rc;
 
     mprAssert(cmd);
@@ -444,7 +444,7 @@ int mprStartCmd(MprCmd *cmd, int argc, char **argv, char **envp, int flags)
     cmd->flags = flags;
 
     if (envp == 0) {
-        envp = (char**) cmd->defaultEnv;
+        envp = cmd->defaultEnv;
     }
     if (sanitizeArgs(cmd, argc, argv, envp) < 0) {
         mprAssert(!MPR_ERR_MEMORY);
@@ -975,10 +975,10 @@ void mprSetCmdDir(MprCmd *cmd, cchar *dir)
 /*
     Sanitize args. Convert "/" to "\" and converting '\r' and '\n' to spaces, quote all args and put the program as argv[0].
  */
-static int sanitizeArgs(MprCmd *cmd, int argc, char **argv, char **env)
+static int sanitizeArgs(MprCmd *cmd, int argc, cchar **argv, cchar **env)
 {
 #if BLD_UNIX_LIKE || VXWORKS
-    char    **envp;
+    cchar   **envp;
     int     ecount, index, i, hasPath, hasLibPath;
 
     cmd->argv = argv;
@@ -1457,9 +1457,9 @@ static int startProcess(MprCmd *cmd)
         }
         cmd->forkCallback(cmd->forkData);
         if (cmd->env) {
-            rc = execve(cmd->program, cmd->argv, fixenv(cmd));
+            rc = execve(cmd->program, (char**) cmd->argv, (char**) fixenv(cmd));
         } else {
-            rc = execv(cmd->program, cmd->argv);
+            rc = execv(cmd->program, (char**) cmd->argv);
         }
         err = errno;
         printf("Can't exec %s, rc %d, err %d\n", cmd->program, rc, err);
@@ -1647,9 +1647,9 @@ static void closeFiles(MprCmd *cmd)
 /*
     CYGWIN requires a PATH or else execve hangs in cygwin 1.7
  */
-static char **fixenv(MprCmd *cmd)
+static cchar **fixenv(MprCmd *cmd)
 {
-    char    **env;
+    cchar   **env;
 
     env = cmd->env;
 #if CYGWIN
