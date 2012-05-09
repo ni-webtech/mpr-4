@@ -12,29 +12,24 @@
 
 void mprAtomicBarrier()
 {
-    #if MACOSX
+    #ifdef VX_MEM_BARRIER_RW
+        VX_MEM_BARRIER_RW();
+    #elif MACOSX
         OSMemoryBarrier();
     #elif BLD_WIN_LIKE
         MemoryBarrier();
     #elif BLD_CC_SYNC
         __sync_synchronize();
-    #elif VXWORKS
-        #ifdef VX_MEM_BARRIER_RW
-            VX_MEM_BARRIER_RW();
-        #else
-            /* A system call should act as a fence */
-            getpid();
-        #endif
+    #elif __GNUC__ && (BLD_CPU_ARCH == MPR_CPU_IX86 || BLD_CPU_ARCH == MPR_CPU_IX64)
+        asm volatile ("mfence" : : : "memory");
+    #elif __GNUC__ && (BLD_CPU_ARCH == MPR_CPU_PPC)
+        asm volatile ("sync" : : : "memory");
     #else
-        /* A system call should act as a fence */
         getpid();
     #endif
 
 #if FUTURE && KEEP
-        __asm volatile ("nop" ::: "memory")
-        asm volatile ("sync" : : : "memory");
-        asm volatile ("mfence" : : : "memory");
-        asm volatile ("lock; add %eax,0");
+    asm volatile ("lock; add %eax,0");
 #endif
 }
 

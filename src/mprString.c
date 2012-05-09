@@ -142,6 +142,7 @@ char *schr(cchar *s, int c)
 }
 
 
+//  MOB - this should have no limit and then provide sncontains
 char *scontains(cchar *str, cchar *pattern, ssize limit)
 {
     cchar   *cp, *s1, *s2;
