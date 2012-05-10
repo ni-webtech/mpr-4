@@ -203,9 +203,9 @@ void mprDestroy(int how)
     wgc(gmode);
 
     if (how & MPR_EXIT_RESTART) {
-        mprLog(2, "Restarting\n\n");
+        mprLog(3, "Restarting\n\n");
     } else {
-        mprLog(2, "Exiting");
+        mprLog(3, "Exiting");
     }
     MPR->state = MPR_FINISHED;
     mprStopGCService();
