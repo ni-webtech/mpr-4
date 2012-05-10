@@ -127,7 +127,7 @@ int stopSeqno = -1;
  */
 #if LINUX
     #define NEED_FLSL 1
-    #if BLD_CPU_ARCH == MPR_CPU_IX86 || BLD_CPU_ARCH == MPR_CPU_IX64
+    #if BLD_CPU_ARCH == MPR_CPU_X86 || BLD_CPU_ARCH == MPR_CPU_X64
         #define USE_FLSL_ASM_X86 1
     #endif
     static MPR_INLINE int flsl(ulong word);
