@@ -18,7 +18,7 @@ static void manageCmdService(MprCmdService *cmd, int flags);
 static void manageCmd(MprCmd *cmd, int flags);
 static void reapCmd(MprCmd *cmd, MprSignal *sp);
 static void resetCmd(MprCmd *cmd);
-static int sanitizeArgs(MprCmd *cmd, int argc, cchar **argv, cchar **env);
+static int sanitizeArgs(MprCmd *cmd, int argc, cchar **argv, cchar **env, int flags);
 static int startProcess(MprCmd *cmd);
 static void stdinCallback(MprCmd *cmd, MprEvent *event);
 static void stdoutCallback(MprCmd *cmd, MprEvent *event);
@@ -88,8 +88,10 @@ MprCmd *mprCreateCmd(MprDispatcher *dispatcher)
     if ((cmd = mprAllocObj(MprCmd, manageCmd)) == 0) {
         return 0;
     }
+#if UNUSED && KEEP
     cmd->timeoutPeriod = MPR_TIMEOUT_CMD;
     cmd->timestamp = mprGetTime();
+#endif
     cmd->forkCallback = (MprForkCallback) closeFiles;
     cmd->dispatcher = dispatcher ? dispatcher : MPR->dispatcher;
     cmd->status = -1;
@@ -446,7 +448,7 @@ int mprStartCmd(MprCmd *cmd, int argc, cchar **argv, cchar **envp, int flags)
     if (envp == 0) {
         envp = cmd->defaultEnv;
     }
-    if (sanitizeArgs(cmd, argc, argv, envp) < 0) {
+    if (sanitizeArgs(cmd, argc, argv, envp, flags) < 0) {
         mprAssert(!MPR_ERR_MEMORY);
         return MPR_ERR_MEMORY;
     }
@@ -944,7 +946,10 @@ bool mprIsCmdRunning(MprCmd *cmd)
 
 void mprSetCmdTimeout(MprCmd *cmd, MprTime timeout)
 {
+    mprAssert(0);
+#if UNUSED
     cmd->timeoutPeriod = timeout;
+#endif
 }
 
 
@@ -975,7 +980,7 @@ void mprSetCmdDir(MprCmd *cmd, cchar *dir)
 /*
     Sanitize args. Convert "/" to "\" and converting '\r' and '\n' to spaces, quote all args and put the program as argv[0].
  */
-static int sanitizeArgs(MprCmd *cmd, int argc, cchar **argv, cchar **env)
+static int sanitizeArgs(MprCmd *cmd, int argc, cchar **argv, cchar **env, int flags)
 {
 #if BLD_UNIX_LIKE || VXWORKS
     cchar   **envp;

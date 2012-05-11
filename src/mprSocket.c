@@ -463,7 +463,7 @@ static int connectSocket(MprSocket *sp, cchar *ip, int port, int initialFlags)
                     struct pollfd pfd;
                     pfd.fd = sp->fd;
                     pfd.events = POLLOUT;
-                    rc = poll(&pfd, 1, MPR_TIMEOUT_SOCKETS);
+                    rc = poll(&pfd, 1, 1000);
                 } while (rc < 0 && errno == EINTR);
 #endif
                 if (rc > 0) {
