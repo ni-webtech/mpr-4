@@ -5,6 +5,7 @@ EXPORTS
   mprCreateOpenSslModule
   mprCreateSsl
   mprLoadSsl
+  mprSetSocketSslConfig
   mprSetSslCaFile
   mprSetSslCaPath
   mprSetSslCertFile
@@ -13,3 +14,4 @@ EXPORTS
   mprSetSslProtocols
   mprSslInit
   mprVerifySslClients
+  mprVerifySslServers

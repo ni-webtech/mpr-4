@@ -30,6 +30,7 @@ Mpr *mprCreate(int argc, char **argv, int flags)
     }
     mpr->exitStrategy = MPR_EXIT_NORMAL;
     mpr->emptyString = sclone("");
+    mpr->gracefulTimeout = MPR_TIMEOUT_STOP;
     mpr->title = sclone(BLD_NAME);
     mpr->version = sclone(BLD_VERSION);
     mpr->idleCallback = mprServicesAreIdle;
@@ -187,7 +188,7 @@ void mprDestroy(int how)
     mprRequestGC(gmode);
 
     if (how & MPR_EXIT_GRACEFUL) {
-        mprWaitTillIdle(MPR_TIMEOUT_STOP);
+        mprWaitTillIdle(MPR->gracefulTimeout);
     }
     MPR->state = MPR_STOPPING_CORE;
     MPR->exitStrategy &= MPR_EXIT_GRACEFUL;
@@ -722,6 +723,12 @@ void mprSetEnv(cchar *key, cchar *value)
     if (scasematch(key, "PATH")) {
         MPR->pathEnv = sclone(value);
     }
+}
+
+
+void mprSetGracefulTimeout(MprTime timeout)
+{
+    MPR->gracefulTimeout = timeout;
 }
 
 

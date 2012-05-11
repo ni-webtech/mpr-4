@@ -1280,18 +1280,22 @@ struct  MprXml;
 /* 
     Timeouts
  */
+#if UNUSED
 #define MPR_TIMEOUT_CMD         60000       /**< Command Request timeout (60 sec) */
-#define MPR_TIMEOUT_SOCKETS     10000       /**< General sockets timeout */
+#define MPR_TIMEOUT_SOCKETS     10000       /**< Socket connection socket timeout */
 #define MPR_TIMEOUT_LOG_STAMP   3600000     /**< Time between log time stamps (1 hr) */
+#define MPR_TIMEOUT_STOP_THREAD 10000       /**< Time to stop running threads */
+#define MPR_TIMEOUT_HANDLER     10000       /**< Wait period when removing a wait handler */
+#endif
+
 #define MPR_TIMEOUT_PRUNER      600000      /**< Time between worker thread pruner runs (10 min) */
 #define MPR_TIMEOUT_WORKER      300000      /**< Prune worker that has been idle for 5 minutes */
 #define MPR_TIMEOUT_START_TASK  10000       /**< Time to start tasks running */
-#define MPR_TIMEOUT_STOP        30000       /**< Wait when stopping resources (30 sec) */
-#define MPR_TIMEOUT_STOP_TASK   10000       /**< Time to stop or reap tasks */
-#define MPR_TIMEOUT_STOP_THREAD 10000       /**< Time to stop running threads */
+#define MPR_TIMEOUT_STOP        30000       /**< Default wait when stopping resources (30 sec) */
+#define MPR_TIMEOUT_STOP_TASK   10000       /**< Time to stop or reap tasks (vxworks) */
 #define MPR_TIMEOUT_LINGER      2000        /**< Close socket linger timeout */
-#define MPR_TIMEOUT_HANDLER     10000       /**< Wait period when removing a wait handler */
 #define MPR_TIMEOUT_GC_SYNC     10000       /**< Wait period for threads to synchronize */
+#define MPR_TIMEOUT_NO_BUSY     1000        /**< Wait period to minimize CPU drain */
 #define MPR_TIMEOUT_NAP         20          /**< Short pause */
 
 #define MPR_TICKS_PER_SEC       1000        /**< Time ticks per second */
@@ -7939,8 +7943,10 @@ typedef struct MprCmd {
     cchar           **defaultEnv;       /**< Environment to use if no env passed to mprStartCmd */
     char            *searchPath;        /**< Search path to use to locate the command */
     int             argc;               /**< Count of args in argv */
+#if UNUSED
     MprTime         timestamp;          /**< Timeout timestamp for last I/O  */
     MprTime         timeoutPeriod;      /**< Timeout value */
+#endif
     int             timedout;           /**< Request has timedout */
     MprCmdFile      files[MPR_CMD_MAX_PIPE]; /**< Stdin, stdout for the command */
     MprWaitHandler  *handlers[MPR_CMD_MAX_PIPE];
@@ -8462,6 +8468,7 @@ typedef struct Mpr {
     MprFile         *stdError;              /**< Standard error file */
     MprFile         *stdInput;              /**< Standard input file */
     MprFile         *stdOutput;             /**< Standard output file */
+    MprTime         gracefulTimeout;        /**< Timeout for graceful shutdowns */
     char            *pathEnv;               /**< Cached PATH env var. Used by MprCmd */
     char            *name;                  /**< Product name */
     char            *title;                 /**< Product title */
@@ -8890,8 +8897,16 @@ extern void mprSetEnv(cchar *key, cchar *value);
     @param strategy Set strategy to MPR_EXIT_IMMEDIATE for the application to exit immediately when terminated.
         Set to MPR_EXIT_GRACEFUL for the application to exit gracefully after allowing all current requests to complete
         before terminating.
+    @ingroup Mpr
   */
 extern void mprSetExitStrategy(int strategy);
+
+/**
+    Set the timeout for a graceful shutdown. A graceful shutdown waits for existing requests to complete before exiting.
+    @param timeout Time in milliseconds to wait when terminating the MPR
+    @ingroup Mpr
+ */
+void mprSetGracefulTimeout(MprTime timeout);
 
 /**
     Set the application host name string. This is internal to the application and does not affect the O/S host name.
