@@ -2450,7 +2450,7 @@ extern void mprSetMemPolicy(int policy);
     @return Returns the original object
     @ingroup MprMem
  */
-extern void *mprSetManager(void *ptr, void *manager);
+extern void *mprSetManager(void *ptr, MprManager manager);
 
 /**
     Validate a memory block and issue asserts if the memory block is not valid.

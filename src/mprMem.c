@@ -2383,7 +2383,7 @@ static void dummyManager(void *ptr, int flags)
 }
 
 
-void *mprSetManager(void *ptr, void *manager)
+void *mprSetManager(void *ptr, MprManager manager)
 {
     MprMem      *mp;
 
