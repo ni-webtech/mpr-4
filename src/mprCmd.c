@@ -1000,25 +1000,58 @@ static int sortEnv(char **str1, char **str2)
 #endif
 
 
+/*
+    Match two environment keys up to the '='
+ */
+static bool matchEnvKey(cchar *s1, cchar *s2) 
+{
+    for (; *s1 && *s2; s1++, s2++) {
+        if (*s1 != *s2) {
+            break;
+        } else if (*s1 == '=') {
+            return 1;
+        }
+    }
+    return 0;
+}
+
+
 static int blendEnv(MprCmd *cmd, cchar **env, int flags)
 {
-    cchar       **ep;
-    int         index, i;
+    cchar       **ep, *prior;
+    int         next;
 
     cmd->env = 0;
 
     if ((cmd->env = mprCreateList(128, 0)) == 0) {
         return MPR_ERR_MEMORY;
     }
+    /*
+        Add prior environment to the list
+     */
     if (!(flags & MPR_CMD_EXACT_ENV)) {
         for (ep = (cchar**) environ; ep && *ep; ep++) {
             mprAddItem(cmd->env, *ep);
         }
     }
+    /*
+        Add new env keys. Detect and overwrite duplicates
+     */
     for (ep = env; ep && *ep; ep++) {
-        mprAddItem(cmd->env, *ep);
+        for (ITERATE_ITEMS(cmd->env, prior, next)) {
+            if (matchEnvKey(*ep, prior)) {
+                mprSetItem(cmd->env, next - 1, *ep);
+                break;
+            }
+        }
+        if (prior == 0) {
+            mprAddItem(cmd->env, *ep);
+        }
     }
 #if BLD_WIN_LIKE
+    /*
+        Windows requires a caseless sort with two trailing nulls
+     */
     mprSortList(cmd->env, sortEnv);
     /* Windows requires two nulls at the end */
     mprAddItem(cmd->env, NULL);
