@@ -1026,7 +1026,7 @@ static int blendEnv(MprCmd *cmd, cchar **env, int flags)
 
     cmd->env = 0;
 
-    if ((cmd->env = mprCreateList(128, 0)) == 0) {
+    if ((cmd->env = mprCreateList(128, MPR_LIST_STATIC_VALUES)) == 0) {
         return MPR_ERR_MEMORY;
     }
     /*
