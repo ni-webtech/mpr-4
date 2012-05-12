@@ -35,7 +35,7 @@
 
 int main(int argc, char* argv[])
 {
-    char    buf[256], *ep;
+    char    buf[256], *cp, **ep;
     int     i, len, exitCode, sofar;
 
 #if BLD_UNIX_LIKE
@@ -68,11 +68,17 @@ int main(int argc, char* argv[])
             }
         }
         printf("\n");
-
+#if UNUSED && KEEP
+        for (i = 0, ep = (char**) environ; ep && *ep; ep++) {
+            printf("ENV[%d] = %s\n", i, ep);
+        }
+#endif
         /* Echo the CMD_ENV environment variable value */
-        ep = getenv("CMD_ENV");
-        if (ep) {
-            printf("CMD_ENV=%s\n", ep);
+        cp = getenv("CMD_ENV");
+        if (cp) {
+            printf("CMD_ENV=%s\n", cp);
+        } else {
+            printf("NOT FOUND CMD_ENV\n");
         }
         fflush(stderr);
         fflush(stdout);
