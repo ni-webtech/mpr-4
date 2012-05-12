@@ -180,6 +180,7 @@ static void testWithData(MprTestGroup *gp)
 
     i = 0;
     env[i++] = "CMD_ENV=xyz";
+    env[i++] = "USERDOMAIN=localhost";
     env[i++] = NULL;
     mprSetCmdCallback(tc->cmd, withDataCallback, gp);
     
