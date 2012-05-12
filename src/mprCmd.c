@@ -4,7 +4,7 @@
     Copyright (c) All Rights Reserved. See details at the end of the file.
  */
 
-/********************************** Includes **********************************/d
+/********************************** Includes **********************************/
 
 #include    "mpr.h"
 
@@ -35,11 +35,11 @@ static void cmdTaskEntry(char *program, MprCmdTaskFn entry, int cmdArg);
     Cygwin process creation is not thread-safe (1.7)
  */
 #if CYGWIN
-#define slock(cmd) mprLock(MPR->cmdService->mutex)
-#define sunlock(cmd) mprUnlock(MPR->cmdService->mutex)
+    #define slock(cmd) mprLock(MPR->cmdService->mutex)
+    #define sunlock(cmd) mprUnlock(MPR->cmdService->mutex)
 #else
-#define slock(cmd) 
-#define sunlock(cmd) 
+    #define slock(cmd) 
+    #define sunlock(cmd) 
 #endif
 
 /************************************* Code ***********************************/
