@@ -10,6 +10,7 @@
 
 /******************************* Forward Declarations *************************/
 
+static int blendEnv(MprCmd *cmd, cchar **env, int flags);
 static void closeFiles(MprCmd *cmd);
 static ssize cmdCallback(MprCmd *cmd, int channel, void *data);
 static int makeChannel(MprCmd *cmd, int index);
@@ -24,10 +25,6 @@ static void stdinCallback(MprCmd *cmd, MprEvent *event);
 static void stdoutCallback(MprCmd *cmd, MprEvent *event);
 static void stderrCallback(MprCmd *cmd, MprEvent *event);
 static void vxCmdManager(MprCmd *cmd);
-
-#if BLD_UNIX_LIKE
-static cchar **fixenv(MprCmd *cmd);
-#endif
 
 #if VXWORKS
 typedef int (*MprCmdTaskFn)(int argc, char **argv, char **envp);
@@ -120,13 +117,6 @@ static void manageCmd(MprCmd *cmd, int flags)
         mprMark(cmd->makeArgv);
         mprMark(cmd->defaultEnv);
         mprMark(cmd->env);
-#if BLD_UNIX_LIKE
-        if (cmd->env) {
-            for (i = 0; cmd->env[i]; i++) {
-                mprMark(cmd->env);
-            }
-        }
-#endif
         mprMark(cmd->dir);
         for (i = 0; i < MPR_CMD_MAX_PIPE; i++) {
             mprMark(cmd->files[i].name);
@@ -430,8 +420,8 @@ static void addCmdHandlers(MprCmd *cmd)
 int mprStartCmd(MprCmd *cmd, int argc, cchar **argv, cchar **envp, int flags)
 {
     MprPath     info;
-    cchar       *program, *search;
-    int         rc;
+    cchar       *program, *search, *pair;
+    int         rc, next, i;
 
     mprAssert(cmd);
     mprAssert(argv);
@@ -445,11 +435,13 @@ int mprStartCmd(MprCmd *cmd, int argc, cchar **argv, cchar **envp, int flags)
     cmd->program = sclone(program);
     cmd->flags = flags;
 
+    if (sanitizeArgs(cmd, argc, argv, envp, flags) < 0) {
+        return MPR_ERR_MEMORY;
+    }
     if (envp == 0) {
         envp = cmd->defaultEnv;
     }
-    if (sanitizeArgs(cmd, argc, argv, envp, flags) < 0) {
-        mprAssert(!MPR_ERR_MEMORY);
+    if (blendEnv(cmd, envp, flags) < 0) {
         return MPR_ERR_MEMORY;
     }
     search = cmd->searchPath ? cmd->searchPath : MPR->pathEnv;
@@ -463,7 +455,13 @@ int mprStartCmd(MprCmd *cmd, int argc, cchar **argv, cchar **envp, int flags)
         mprLog(1, "cmd: program \"%s\", is a directory", program);
         return MPR_ERR_CANT_ACCESS;
     }
-
+    mprLog(4, "mprStartCmd %s", cmd->program);
+    for (i = 0; i < cmd->argc; i++) {
+        mprLog(4, "    arg[%d]: %s", i, cmd->argv[i]);
+    }
+    for (ITERATE_ITEMS(cmd->env, pair, next)) {
+        mprLog(4, "    env[%d]: %s", i, pair);
+    }
     slock(cmd);
     if (makeCmdIO(cmd) < 0) {
         sunlock(cmd);
@@ -977,6 +975,59 @@ void mprSetCmdDir(MprCmd *cmd, cchar *dir)
 }
 
 
+#if BLD_WIN_LIKE
+static int sortEnv(char **str1, char **str2)
+{
+    cchar    *s1, *s2, *cp;
+    int     c1, c2;
+
+    for (s1 = *str1, s2 = *str2; *s1 && *s2; s1++, s2++) {
+        c1 = tolower((uchar) *s1);
+        c2 = tolower((uchar) *s2);
+        if (c1 < c2) {
+            return -1;
+        } else if (c1 > c2) {
+            return 1;
+        }
+    }
+    if (*s2) {
+        return -1;
+    } else if (*s1) {
+        return 1;
+    }
+    return 0;
+}
+#endif
+
+
+static int blendEnv(MprCmd *cmd, cchar **env, int flags)
+{
+    cchar       **ep;
+    int         index, i;
+
+    cmd->env = 0;
+
+    if ((cmd->env = mprCreateList(128, 0)) == 0) {
+        return MPR_ERR_MEMORY;
+    }
+    if (!(flags & MPR_CMD_EXACT_ENV)) {
+        for (ep = (cchar**) environ; ep && *ep; ep++) {
+            mprAddItem(cmd->env, *ep);
+        }
+    }
+    for (ep = env; ep && *ep; ep++) {
+        mprAddItem(cmd->env, *ep);
+    }
+#if BLD_WIN_LIKE
+    mprSortList(cmd->env, sortEnv);
+    /* Windows requires two nulls at the end */
+    mprAddItem(cmd->env, NULL);
+#endif
+    mprAddItem(cmd->env, NULL);
+    return 0;
+}
+
+
 /*
     Sanitize args. Convert "/" to "\" and converting '\r' and '\n' to spaces, quote all args and put the program as argv[0].
  */
@@ -988,48 +1039,6 @@ static int sanitizeArgs(MprCmd *cmd, int argc, cchar **argv, cchar **env, int fl
 
     cmd->argv = argv;
     cmd->argc = argc;
-    cmd->env = 0;
-
-    if (env) {
-        for (ecount = 0; env && env[ecount]; ecount++) ;
-        if ((envp = mprAlloc((ecount + 3) * sizeof(char*))) == NULL) {
-            return MPR_ERR_MEMORY;
-        }
-        cmd->env = envp;
-        hasPath = hasLibPath = 0;
-
-        for (index = i = 0; env && env[i]; i++) {
-            mprLog(6, "cmd: env[%d]: %s", i, env[i]);
-            if (strncmp(env[i], "PATH=", 5) == 0) {
-                hasPath++;
-            } else if  (strncmp(env[i], LD_LIBRARY_PATH "=", 16) == 0) {
-                hasLibPath++;
-            }
-            envp[index++] = sclone(env[i]);
-        }
-#if BLD_UNIX_LIKE
-{
-        /*
-            Pass PATH and LD_LIBRARY_PATH through
-         */
-        char *cp;
-        if (!hasPath && (cp = getenv("PATH")) != 0) {
-            envp[index++] = sfmt("PATH=%s", cp);
-        }
-        if (!hasLibPath && (cp = getenv(LD_LIBRARY_PATH)) != 0) {
-            envp[index++] = sfmt("%s=%s", LD_LIBRARY_PATH, cp);
-        }
-}
-#endif
-        envp[index++] = '\0';
-        mprLog(4, "mprStartCmd %s", cmd->program);
-        for (i = 0; i < argc; i++) {
-            mprLog(4, "    arg[%d]: %s", i, argv[i]);
-        }
-        for (i = 0; envp[i]; i++) {
-            mprLog(4, "    env[%d]: %s", i, envp[i]);
-        }
-    }
 #endif
 
 #if BLD_WIN_LIKE
@@ -1112,58 +1121,7 @@ static int sanitizeArgs(MprCmd *cmd, int argc, cchar **argv, cchar **env, int fl
         }
     }
     *dp = '\0';
-
     argv[0] = saveArg0;
-
-    mprLog(4, "mprStartCmd %s", cmd->command);
-    for (i = 0; i < argc; i++) {
-        mprLog(5, "    arg[%d]: %s", i, argv[i]);
-    }
-
-    /*
-        Now work on the environment. Windows has a block of null separated strings with a trailing null.
-     */
-    cmd->env = 0;
-    if (env) {
-        len = 0;
-        for (hasSystemRoot = hasPath = 0, ep = env; ep && *ep; ep++) {
-            len += slen(*ep) + 1;
-            if (strncmp(*ep, "PATH=", 5) == 0) {
-                hasPath++;
-            } else if (strncmp(*ep, "SYSTEMROOT=", 11) == 0) {
-                hasSystemRoot++;
-            }
-        }
-        if (!hasSystemRoot && (SYSTEMROOT = getenv("SYSTEMROOT")) != 0) {
-            len += 11 + slen(SYSTEMROOT) + 1;
-        }
-        if (!hasPath && (PATH = getenv("PATH")) != 0) {
-            len += 5 + slen(PATH) + 1;
-        }
-        len += 2;       /* Windows requires 2 nulls for the block end */
-
-        if ((dp = (char*) mprAlloc(len)) == 0) {
-            return 0;
-        }
-        endp = &dp[len];
-        cmd->env = (char**) dp;
-        for (ep = env, i = 0; ep && *ep; ep++, i++) {
-            mprLog(4, "    env[%d]: %s", i, *ep);
-            strcpy(dp, *ep);
-            dp += slen(*ep) + 1;
-        }
-        if (!hasSystemRoot) {
-            mprSprintf(dp, (endp - dp - 1), "SYSTEMROOT=%s", SYSTEMROOT);
-            dp += 12 + slen(SYSTEMROOT);
-        }
-        if (!hasPath) {
-            mprSprintf(dp, (endp - dp - 1), "PATH=%s", PATH);
-            dp += 6 + slen(PATH);
-        }
-        *dp++ = '\0';
-        *dp++ = '\0';                        /* Windows requires two nulls */
-        mprAssert(dp <= endp);
-    }
     mprLog(5, "Windows command line: %s", cmd->command);
 #endif /* BLD_WIN_LIKE */
     return 0;
@@ -1463,7 +1421,7 @@ static int startProcess(MprCmd *cmd)
         }
         cmd->forkCallback(cmd->forkData);
         if (cmd->env) {
-            rc = execve(cmd->program, (char**) cmd->argv, (char**) fixenv(cmd));
+            rc = execve(cmd->program, (char**) cmd->argv, (char**) &cmd->env->items[0]);
         } else {
             rc = execv(cmd->program, (char**) cmd->argv);
         }
@@ -1648,39 +1606,6 @@ static void closeFiles(MprCmd *cmd)
     }
 }
 
-
-#if BLD_UNIX_LIKE
-/*
-    CYGWIN requires a PATH or else execve hangs in cygwin 1.7
- */
-static cchar **fixenv(MprCmd *cmd)
-{
-    cchar   **env;
-
-    env = cmd->env;
-#if CYGWIN
-    if (env) {
-        int     i, envc;
-
-        for (envc = 0; cmd->env[envc]; envc++) {
-            if (strstr(cmd->env[envc], "PATH=") != 0) {
-                return cmd->env;
-            }
-        }
-        if ((env = mprAlloc(sizeof(void*) * (envc + 2))) == NULL) {
-            return NULL;
-        }
-        i = 0;
-        env[i++] = sjoin("PATH=", getenv("PATH"), NULL);
-        for (envc = 0; cmd->env[envc]; envc++) {
-            env[i++] = cmd->env[envc];
-        }
-        env[i++] = 0;
-    }
-#endif /* CYGWIN */
-    return env;
-}
-#endif
 
 /*
     @copy   default

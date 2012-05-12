@@ -7901,6 +7901,7 @@ typedef ssize (*MprCmdProc)(struct MprCmd *cmd, int channel, void *data);
 #define MPR_CMD_NEW_SESSION     0x1     /**< mprRunCmd flag to create a new session on unix */
 #define MPR_CMD_SHOW            0x2     /**< mprRunCmd flag to show the window of the created process on windows */
 #define MPR_CMD_DETACH          0x4     /**< mprRunCmd flag to detach the child process and don't wait */
+#define MPR_CMD_EXACT_ENV       0x8     /**< mprRunCmd flag to use the exact environment (no inherit from parent) */
 #define MPR_CMD_IN              0x1000  /**< mprRunCmd flag to connect to stdin */
 #define MPR_CMD_OUT             0x2000  /**< mprRunCmd flag to capture stdout */
 #define MPR_CMD_ERR             0x4000  /**< mprRunCmd flag to capture stdout */
@@ -7938,7 +7939,7 @@ typedef struct MprCmd {
     int             stopped;            /**< Command stopped */
     cchar           **makeArgv;         /**< Allocated argv */ 
     cchar           **argv;             /**< List of args. Null terminated */
-    cchar           **env;              /**< List of environment variables. Null terminated */
+    MprList         *env;               /**< List of environment variables. Null terminated. */
     char            *dir;               /**< Current working dir for the process */
     cchar           **defaultEnv;       /**< Environment to use if no env passed to mprStartCmd */
     char            *searchPath;        /**< Search path to use to locate the command */
@@ -8114,6 +8115,7 @@ extern int mprReapCmd(MprCmd *cmd, MprTime timeout);
         MPR_CMD_NEW_SESSION     Create a new session on Unix
         MPR_CMD_SHOW            Show the commands window on Windows
         MPR_CMD_IN              Connect to stdin
+        MPR_CMD_EXACT_ENV       Use the exact environment supplied. Don't inherit and blend with existing environment.
     @return Zero if successful. Otherwise a negative MPR error code.
     @ingroup MprCmd
  */
