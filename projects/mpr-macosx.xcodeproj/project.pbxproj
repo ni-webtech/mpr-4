@@ -786,6 +786,9 @@
 [ ! -f ${INC_DIR}/bit.h ] && cp mpr-macosx-bit.h ${INC_DIR}/bit.h
 if ! diff ${INC_DIR}/bit.h mpr-macosx-bit.h >/dev/null ; then
 cp mpr-macosx-bit.h ${INC_DIR}/bit.h
+fi
+if [ ../src/mpr.h -nt ${CFG_DIR}/inc/mpr.h ] ; then
+cp ../src/mpr.h ${CFG_DIR}/inc/mpr.h
 fi";
 		};
 /* End PBXShellScriptBuildPhase section */
