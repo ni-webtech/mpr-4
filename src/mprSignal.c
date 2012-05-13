@@ -290,8 +290,8 @@ void mprRemoveSignalHandler(MprSignal *sp)
         SIGTERM - graceful shutdown
         SIGPIPE - ignore
         SIGXFZ - ignore
-        SIGUSR1 - restart
-        SIGUSR2 - toggle trace level (Appweb only)
+        SIGUSR1 - graceful shutdown, then restart
+        SIGUSR2 - toggle trace level (Appweb)
         All others - default exit
  */
 void mprAddStandardSignals()
