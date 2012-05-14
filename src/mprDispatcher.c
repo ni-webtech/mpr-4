@@ -542,10 +542,8 @@ static bool serviceDispatcher(MprDispatcher *dispatcher)
     } else if (dispatcher->requiredWorker) {
         mprActivateWorker(dispatcher->requiredWorker, (MprWorkerProc) serviceDispatcherMain, dispatcher);
 
-    } else {
-        if (mprStartWorker((MprWorkerProc) serviceDispatcherMain, dispatcher) < 0) {
-            return 0;
-        } 
+    } else if (mprStartWorker((MprWorkerProc) serviceDispatcherMain, dispatcher) < 0) {
+        return 0;
     }
     return 1;
 }
