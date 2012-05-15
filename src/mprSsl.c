@@ -8,7 +8,7 @@
 
 #include    "mpr.h"
 
-#if BLD_FEATURE_SSL
+#if BIT_FEATURE_SSL
 /************************************ Code ************************************/
 /*
     Load the ssl provider
@@ -20,7 +20,7 @@ static MprModule *loadSsl(bool lazy)
     if (MPR->flags & MPR_SSL_PROVIDER_LOADED) {
         return mprLookupModule("sslModule");
     }
-#if BLD_FEATURE_OPENSSL
+#if BIT_FEATURE_OPENSSL
     /*
         NOTE: preference given to open ssl if both are enabled
      */
@@ -28,7 +28,7 @@ static MprModule *loadSsl(bool lazy)
     if (mprCreateOpenSslModule(lazy) < 0) {
         return 0;
     }
-#elif BLD_FEATURE_MATRIXSSL
+#elif BIT_FEATURE_MATRIXSSL
     mprLog(4, "Loading MatrixSSL module");
     if (mprCreateMatrixSslModule(lazy) < 0) {
         return 0;

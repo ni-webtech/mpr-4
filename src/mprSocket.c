@@ -16,7 +16,7 @@
 /*
     On MAC OS X, getaddrinfo is not thread-safe and crashes when called by a 2nd thread at any time. ie. locking wont help.
  */
-#define BLD_HAS_GETADDRINFO 1
+#define BIT_HAS_GETADDRINFO 1
 #endif
 
 /******************************* Forward Declarations *************************/
@@ -79,7 +79,7 @@ MprSocketService *mprCreateSocketService()
     mprSetServerName(serverName);
     mprSetDomainName(domainName);
     mprSetHostName(hostName);
-#if BLD_FEATURE_SSL
+#if BIT_FEATURE_SSL
     ss->secureSockets = mprCreateList(0, 0);
 #endif
     return ss;
@@ -92,7 +92,7 @@ static void manageSocketService(MprSocketService *ss, int flags)
         mprMark(ss->standardProvider);
         mprMark(ss->secureProvider);
         mprMark(ss->mutex);
-#if BLD_FEATURE_SSL
+#if BIT_FEATURE_SSL
         mprMark(ss->secureSockets);
 #endif
     }
@@ -203,7 +203,7 @@ MprSocket *mprCreateSocket(struct MprSsl *ssl)
     ss = MPR->socketService;
 
     if (ssl) {
-#if !BLD_FEATURE_SSL
+#if !BIT_FEATURE_SSL
         return 0;
 #endif
         if (ss->secureProvider == NULL || ss->secureProvider->createSocket == NULL) {
@@ -284,14 +284,14 @@ static int listenSocket(MprSocket *sp, cchar *ip, int port, int initialFlags)
         return MPR_ERR_CANT_OPEN;
     }
 
-#if !BLD_WIN_LIKE && !VXWORKS
+#if !BIT_WIN_LIKE && !VXWORKS
     /*
         Children won't inherit this fd
      */
     fcntl(sp->fd, F_SETFD, FD_CLOEXEC);
 #endif
 
-#if BLD_UNIX_LIKE
+#if BIT_UNIX_LIKE
     if (!(sp->flags & MPR_SOCKET_NOREUSE)) {
         rc = 1;
         setsockopt(sp->fd, SOL_SOCKET, SO_REUSEADDR, (char*) &rc, sizeof(rc));
@@ -329,7 +329,7 @@ static int listenSocket(MprSocket *sp, cchar *ip, int port, int initialFlags)
         }
     }
 
-#if BLD_WIN_LIKE
+#if BIT_WIN_LIKE
     /*
         Delay setting reuse until now so that we can be assured that we have exclusive use of the port.
      */
@@ -432,7 +432,7 @@ static int connectSocket(MprSocket *sp, cchar *ip, int port, int initialFlags)
         return MPR_ERR_CANT_OPEN;
     }
 
-#if !BLD_WIN_LIKE && !VXWORKS
+#if !BIT_WIN_LIKE && !VXWORKS
 
     /*  
         Children should not inherit this fd
@@ -458,7 +458,7 @@ static int connectSocket(MprSocket *sp, cchar *ip, int port, int initialFlags)
         if (rc < 0) {
             /* MAC/BSD returns EADDRINUSE */
             if (errno == EINPROGRESS || errno == EALREADY || errno == EADDRINUSE) {
-#if BLD_UNIX_LIKE
+#if BIT_UNIX_LIKE
                 do {
                     struct pollfd pfd;
                     pfd.fd = sp->fd;
@@ -658,7 +658,7 @@ static MprSocket *acceptSocket(MprSocket *listen)
     }
     mprUnlock(ss->mutex);
 
-#if !BLD_WIN_LIKE && !VXWORKS
+#if !BIT_WIN_LIKE && !VXWORKS
     /* Prevent children inheriting this socket */
     fcntl(fd, F_SETFD, FD_CLOEXEC);         
 #endif
@@ -850,7 +850,7 @@ static ssize writeSocket(MprSocket *sp, cvoid *buf, ssize bufsize)
                 if (errCode == EINTR) {
                     continue;
                 } else if (errCode == EAGAIN || errCode == EWOULDBLOCK) {
-#if BLD_WIN_LIKE
+#if BIT_WIN_LIKE
                     /*
                         Windows sockets don't support blocking I/O. So we simulate here
                      */
@@ -889,7 +889,7 @@ ssize mprWriteSocketVector(MprSocket *sp, MprIOVec *iovec, int count)
     ssize       total, len, written;
     int         i;
 
-#if BLD_UNIX_LIKE
+#if BIT_UNIX_LIKE
     if (sp->sslSocket == 0) {
         return writev(sp->fd, (const struct iovec*) iovec, (int) count);
     } else
@@ -924,7 +924,7 @@ ssize mprWriteSocketVector(MprSocket *sp, MprIOVec *iovec, int count)
 }
 
 
-#if !BLD_FEATURE_ROMFS
+#if !BIT_FEATURE_ROMFS
 #if !LINUX || __UCLIBC__
 static ssize localSendfile(MprSocket *sp, MprFile *file, MprOff offset, ssize len)
 {
@@ -1049,7 +1049,7 @@ MprOff mprSendFileToSocket(MprSocket *sock, MprFile *file, MprOff offset, MprOff
     }
     return written;
 }
-#endif /* !BLD_FEATURE_ROMFS */
+#endif /* !BIT_FEATURE_ROMFS */
 
 
 static ssize flushSocket(MprSocket *sp)
@@ -1139,7 +1139,7 @@ int mprSetSocketBlockingMode(MprSocket *sp, bool on)
     if (on) {
         sp->flags |= MPR_SOCKET_BLOCK;
     }
-#if BLD_WIN_LIKE
+#if BIT_WIN_LIKE
 {
     int flag = (sp->flags & MPR_SOCKET_BLOCK) ? 0 : 1;
     ioctlsocket(sp->fd, FIONBIO, (ulong*) &flag);
@@ -1176,7 +1176,7 @@ int mprSetSocketNoDelay(MprSocket *sp, bool on)
     } else {
         sp->flags &= ~(MPR_SOCKET_NODELAY);
     }
-#if BLD_WIN_LIKE
+#if BIT_WIN_LIKE
     {
         BOOL    noDelay;
         noDelay = on ? 1 : 0;
@@ -1188,7 +1188,7 @@ int mprSetSocketNoDelay(MprSocket *sp, bool on)
         noDelay = on ? 1 : 0;
         setsockopt(sp->fd, IPPROTO_TCP, TCP_NODELAY, (char*) &noDelay, sizeof(int));
     }
-#endif /* BLD_WIN_LIKE */
+#endif /* BIT_WIN_LIKE */
     unlock(sp);
     return oldDelay;
 }
@@ -1208,7 +1208,7 @@ int mprGetSocketPort(MprSocket *sp)
  */
 int mprGetSocketError(MprSocket *sp)
 {
-#if BLD_WIN_LIKE
+#if BIT_WIN_LIKE
     int     rc;
     switch (rc = WSAGetLastError()) {
     case WSAEINTR:
@@ -1241,7 +1241,7 @@ int mprGetSocketError(MprSocket *sp)
 }
 
 
-#if BLD_HAS_GETADDRINFO
+#if BIT_HAS_GETADDRINFO
 /*  
     Get a socket address from a host/port combination. If a host provides both IPv4 and IPv6 addresses, 
     prefer the IPv4 address.
@@ -1378,7 +1378,7 @@ int mprGetSocketInfo(cchar *ip, int port, int *family, int *protocol, struct soc
  */
 static int getSocketIpAddr(struct sockaddr *addr, int addrlen, char *ip, int ipLen, int *port)
 {
-#if (BLD_UNIX_LIKE || WIN)
+#if (BIT_UNIX_LIKE || WIN)
     char    service[NI_MAXSERV];
 
 #ifdef IN6_IS_ADDR_V4MAPPED

@@ -9,7 +9,7 @@
 #include    "mpr.h"
 
 /*********************************** Forwards *********************************/
-#if BLD_UNIX_LIKE
+#if BIT_UNIX_LIKE
 
 static void manageSignal(MprSignal *sp, int flags);
 static void manageSignalService(MprSignalService *ssp, int flags);
@@ -307,7 +307,7 @@ void mprAddStandardSignals()
 #if SIGXFSZ
     mprAddItem(ssp->standard, mprAddSignalHandler(SIGXFSZ, standardSignalHandler, 0, 0, MPR_SIGNAL_AFTER));
 #endif
-#if MACOSX && BLD_DEBUG
+#if MACOSX && BIT_DEBUG
     mprAddItem(ssp->standard, mprAddSignalHandler(SIGBUS, standardSignalHandler, 0, 0, MPR_SIGNAL_AFTER));
     mprAddItem(ssp->standard, mprAddSignalHandler(SIGSEGV, standardSignalHandler, 0, 0, MPR_SIGNAL_AFTER));
 #endif
@@ -321,7 +321,7 @@ static void standardSignalHandler(void *ignored, MprSignal *sp)
         mprTerminate(MPR_EXIT_GRACEFUL, -1);
 
     } else if (sp->signo == SIGINT) {
-#if BLD_UNIX_LIKE
+#if BIT_UNIX_LIKE
         /*  Ensure shell input goes to a new line */
         if (isatty(1)) {
             if (write(1, "\n", 1) < 0) {}
@@ -335,7 +335,7 @@ static void standardSignalHandler(void *ignored, MprSignal *sp)
     } else if (sp->signo == SIGPIPE || sp->signo == SIGXFSZ) {
         /* Ignore */
 
-#if MACOSX && BLD_DEBUG
+#if MACOSX && BIT_DEBUG
     } else if (sp->signo == SIGSEGV || sp->signo == SIGBUS) {
         //  MOB - Review
         printf("PAUSED for watson to debug\n");
@@ -348,13 +348,13 @@ static void standardSignalHandler(void *ignored, MprSignal *sp)
 }
 
 
-#else /* BLD_UNIX_LIKE */
+#else /* BIT_UNIX_LIKE */
     void mprAddStandardSignals() {}
     MprSignalService *mprCreateSignalService() { return mprAlloc(0); }
     void mprStopSignalService() {};
     void mprRemoveSignalHandler(MprSignal *sp) { }
     void mprServiceSignals() {}
-#endif /* BLD_UNIX_LIKE */
+#endif /* BIT_UNIX_LIKE */
 
 /*
     @copy   default

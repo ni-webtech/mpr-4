@@ -88,7 +88,7 @@ static void testBasicIO(MprTestGroup *gp)
     rc = mprGetPathInfo(ts->name, &info);
     assert(rc == 0);
 
-#if BLD_WIN_LIKE
+#if BIT_WIN_LIKE
     /*
         On windows, the size reflects the size on disk and is not updated until actually save to disk.
      */

@@ -31,8 +31,8 @@ Mpr *mprCreate(int argc, char **argv, int flags)
     mpr->exitStrategy = MPR_EXIT_NORMAL;
     mpr->emptyString = sclone("");
     mpr->exitTimeout = MPR_TIMEOUT_STOP;
-    mpr->title = sclone(BLD_NAME);
-    mpr->version = sclone(BLD_VERSION);
+    mpr->title = sclone(BIT_NAME);
+    mpr->version = sclone(BIT_VERSION);
     mpr->idleCallback = mprServicesAreIdle;
     mpr->mimeTypes = mprCreateMimeTypes(NULL);
     mpr->terminators = mprCreateList(0, MPR_LIST_STATIC_VALUES);
@@ -49,7 +49,7 @@ Mpr *mprCreate(int argc, char **argv, int flags)
     mprCreateLogService();
     
     if (argv) {
-#if BLD_WIN_LIKE
+#if BIT_WIN_LIKE
         if (argc >= 2 && strstr(argv[1], "--cygroot") != 0) {
             /*
                 Cygwin shebang is broken. It will catenate args into argv[1]
@@ -73,7 +73,7 @@ Mpr *mprCreate(int argc, char **argv, int flags)
         }
         mpr->name = mprTrimPathExt(mprGetPathBase(mpr->argv[0]));
     } else {
-        mpr->name = sclone(BLD_PRODUCT);
+        mpr->name = sclone(BIT_PRODUCT);
         mpr->argv = mprAllocZeroed(sizeof(void*));
         mpr->argc = 0;
     }
@@ -287,7 +287,7 @@ void mprAddTerminator(MprTerminator terminator)
 
 void mprRestart()
 {
-#if BLD_UNIX_LIKE
+#if BIT_UNIX_LIKE
     int     i;
     for (i = 3; i < MPR_MAX_FILE; i++) {
         close(i);
@@ -713,7 +713,7 @@ void mprUnlockDtoa(int n)
 void mprSetEnv(cchar *key, cchar *value)
 {
 #if !WINCE
-#if BLD_UNIX_LIKE
+#if BIT_UNIX_LIKE
     setenv(key, value, 1);
 #else
     char *cmd = sjoin(key, "=", value, NULL);

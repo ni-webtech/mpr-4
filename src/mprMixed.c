@@ -8,7 +8,7 @@
 
 #include    "mpr.h"
 
-#if BLD_CHAR_LEN > 1
+#if BIT_CHAR_LEN > 1
 /********************************** Forwards **********************************/
 
 int mcasecmp(MprChar *str1, cchar *str2)
@@ -408,7 +408,7 @@ MprChar *mtrim(MprChar *str, cchar *set, int where)
 
 #else
 void dummyWide() {}
-#endif /* BLD_CHAR_LEN > 1 */
+#endif /* BIT_CHAR_LEN > 1 */
 
 /*
     @copy   default

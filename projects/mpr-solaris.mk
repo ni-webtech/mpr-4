@@ -9,7 +9,7 @@ CONFIG   := $(OS)-$(ARCH)-$(PROFILE)
 CC       := gcc
 LD       := ld
 CFLAGS   := -fPIC -g -mcpu=generic -w
-DFLAGS   := -D_REENTRANT -DPIC -DBLD_DEBUG
+DFLAGS   := -D_REENTRANT -DPIC -DBIT_DEBUG
 IFLAGS   := -I$(CONFIG)/inc
 LDFLAGS  := '-g'
 LIBPATHS := -L$(CONFIG)/bin

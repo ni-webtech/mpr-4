@@ -10,10 +10,10 @@
 
 #include    "mpr.h"
 
-#if !BLD_FEATURE_ROMFS
+#if !BIT_FEATURE_ROMFS
 /*********************************** Defines **********************************/
 
-#if WIN
+#if WINDOWS
 /*
     Open/Delete retries to circumvent windows pending delete problems
  */
@@ -36,7 +36,7 @@ static int cygOpen(MprFileSystem *fs, cchar *path, int omode, int perms)
     int     fd;
 
     fd = open(path, omode, perms);
-#if WIN
+#if WINDOWS
     if (fd < 0) {
         if (*path == '/') {
             path = sjoin(fs->cygwin, path, NULL);
@@ -60,7 +60,7 @@ static MprFile *openFile(MprFileSystem *fs, cchar *path, int omode, int perms)
     file->path = sclone(path);
     file->fd = open(path, omode, perms);
     if (file->fd < 0) {
-#if WIN
+#if WINDOWS
         /*
             Windows opens can fail of immediately following a delete. Windows uses pending deletes which prevent opens.
          */
@@ -93,7 +93,7 @@ static void manageDiskFile(MprFile *file, int flags)
         mprMark(file->path);
         mprMark(file->fileSystem);
         mprMark(file->buf);
-#if BLD_FEATURE_ROMFS
+#if BIT_FEATURE_ROMFS
         mprMark(file->inode);
 #endif
 
@@ -153,7 +153,7 @@ static MprOff seekFile(MprFile *file, int seekType, MprOff distance)
     if (file == 0) {
         return MPR_ERR_BAD_HANDLE;
     }
-#if BLD_WIN_LIKE
+#if BIT_WIN_LIKE
     return (MprOff) _lseeki64(file->fd, (int64) distance, seekType);
 #elif HAS_OFF64
     return (MprOff) lseek64(file->fd, (off64_t) distance, seekType);
@@ -165,7 +165,7 @@ static MprOff seekFile(MprFile *file, int seekType, MprOff distance)
 
 static bool accessPath(MprDiskFileSystem *fs, cchar *path, int omode)
 {
-#if BLD_WIN && FUTURE
+#if BIT_WIN && FUTURE
     if (access(path, omode) < 0) {
         if (*path == '/') {
             path = sjoin(fs->cygwin, path, NULL);
@@ -183,7 +183,7 @@ static int deletePath(MprDiskFileSystem *fs, cchar *path)
     if (getPathInfo(fs, path, &info) == 0 && info.isDir) {
         return rmdir((char*) path);
     }
-#if WIN
+#if WINDOWS
 {
     /*
         NOTE: Windows delete makes a file pending delete which prevents immediate recreation. Rename and then delete.
@@ -219,7 +219,7 @@ static int makeDir(MprDiskFileSystem *fs, cchar *path, int perms, int owner, int
     if (rc < 0) {
         return MPR_ERR_CANT_CREATE;
     }
-#if BLD_UNIX_LIKE
+#if BIT_UNIX_LIKE
     if ((owner != -1 || group != -1) && chown(path, owner, group) < 0) {
         rmdir(path);
         return MPR_ERR_CANT_COMPLETE;
@@ -231,7 +231,7 @@ static int makeDir(MprDiskFileSystem *fs, cchar *path, int perms, int owner, int
 
 static int makeLink(MprDiskFileSystem *fs, cchar *path, cchar *target, int hard)
 {
-#if BLD_UNIX_LIKE
+#if BIT_UNIX_LIKE
     if (hard) {
         return link(target, path);
     } else {
@@ -277,7 +277,7 @@ static int getPathInfo(MprDiskFileSystem *fs, cchar *path, MprPath *info)
         info->isLink = 1;
     }
 
-#elif BLD_WIN_LIKE
+#elif BIT_WIN_LIKE
     struct __stat64     s;
     cchar               *ext;
 
@@ -288,7 +288,7 @@ static int getPathInfo(MprDiskFileSystem *fs, cchar *path, MprPath *info)
     info->isReg = 0;
     info->isDir = 0;
     if (_stat64(path, &s) < 0) {
-#if BLD_WIN && FUTURE
+#if BIT_WIN && FUTURE
         /*
             Try under /cygwin
          */
@@ -414,7 +414,7 @@ static int getPathInfo(MprDiskFileSystem *fs, cchar *path, MprPath *info)
  
 static char *getPathLink(MprDiskFileSystem *fs, cchar *path)
 {
-#if BLD_UNIX_LIKE
+#if BIT_UNIX_LIKE
     char    pbuf[MPR_MAX_PATH];
     ssize   len;
 
@@ -432,7 +432,7 @@ static char *getPathLink(MprDiskFileSystem *fs, cchar *path)
 static int truncateFile(MprDiskFileSystem *fs, cchar *path, MprOff size)
 {
     if (!mprPathExists(path, F_OK)) {
-#if BLD_WIN_LIKE && FUTURE
+#if BIT_WIN_LIKE && FUTURE
         /*
             Try under /cygwin
          */
@@ -443,7 +443,7 @@ static int truncateFile(MprDiskFileSystem *fs, cchar *path, MprOff size)
 #endif
         return MPR_ERR_CANT_ACCESS;
     }
-#if BLD_WIN_LIKE
+#if BIT_WIN_LIKE
 {
     HANDLE  h;
 
@@ -484,7 +484,7 @@ static void manageDiskFileSystem(MprDiskFileSystem *dfs, int flags)
         mprMark(dfs->separators);
         mprMark(dfs->newline);
         mprMark(dfs->root);
-#if BLD_WIN_LIKE || CYGWIN
+#if BIT_WIN_LIKE || CYGWIN
         mprMark(dfs->cygdrive);
         mprMark(dfs->cygwin);
 #endif
@@ -546,7 +546,7 @@ MprDiskFileSystem *mprCreateDiskFileSystem(cchar *path)
 #endif
     return dfs;
 }
-#endif /* !BLD_FEATURE_ROMFS */
+#endif /* !BIT_FEATURE_ROMFS */
 
 
 /*

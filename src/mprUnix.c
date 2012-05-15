@@ -8,7 +8,7 @@
 
 #include    "mpr.h"
 
-#if BLD_UNIX_LIKE
+#if BIT_UNIX_LIKE
 /*********************************** Code *************************************/
 
 int mprCreateOsService()
@@ -65,7 +65,7 @@ int mprGetRandomBytes(char *buf, ssize length, bool block)
 }
 
 
-#if BLD_CC_DYN_LOAD
+#if BIT_CC_DYN_LOAD
 int mprLoadNativeModule(MprModule *mp)
 {
     MprModuleEntry  fn;
@@ -191,7 +191,7 @@ int mprInitWindow()
 
 #else
 void stubMprUnix() {}
-#endif /* BLD_UNIX_LIKE */
+#endif /* BIT_UNIX_LIKE */
 
 /*
     @copy   default

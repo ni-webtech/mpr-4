@@ -141,7 +141,7 @@ static void update(MD5CONTEXT *context, uchar *input, uint inputLen);
 
 int mprRandom()
 {
-#if WIN || VXWORKS
+#if WINDOWS || VXWORKS
     return rand();
 #else
     return (int) random();

@@ -8,7 +8,7 @@
 
 #include    "mpr.h"
 
-#if BLD_FEATURE_OPENSSL
+#if BIT_FEATURE_OPENSSL
 
 /* Clashes with WinCrypt.h */
 #undef OCSP_RESPONSE
@@ -111,7 +111,7 @@ int mprCreateOpenSslModule(bool lazy)
     randBuf.pid = getpid();
     RAND_seed((void*) &randBuf, sizeof(randBuf));
 
-#if BLD_UNIX_LIKE
+#if BIT_UNIX_LIKE
     mprLog(6, "OpenSsl: Before calling RAND_load_file");
     RAND_load_file("/dev/urandom", 256);
     mprLog(6, "OpenSsl: After calling RAND_load_file");
@@ -132,7 +132,7 @@ int mprCreateOpenSslModule(bool lazy)
     CRYPTO_set_dynlock_destroy_callback(sslDestroyDynLock);
     CRYPTO_set_dynlock_lock_callback(sslDynLock);
 
-#if !BLD_WIN_LIKE
+#if !BIT_WIN_LIKE
     OpenSSL_add_all_algorithms();
 #endif
 
@@ -1067,7 +1067,7 @@ static DH *get_dh1024()
 
 #else
 int mprCreateOpenSslModule(bool lazy) { return -1; }
-#endif /* BLD_FEATURE_OPENSSL */
+#endif /* BIT_FEATURE_OPENSSL */
 
 /*
     @copy   default

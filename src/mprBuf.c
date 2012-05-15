@@ -516,7 +516,7 @@ void mprResetBufIfEmpty(MprBuf *bp)
 }
 
 
-#if BLD_CHAR_LEN > 1
+#if BIT_CHAR_LEN > 1
 void mprAddNullToWideBuf(MprBuf *bp)
 {
     ssize      space;
@@ -592,7 +592,7 @@ int mprPutStringToWideBuf(MprBuf *bp, cchar *str)
     return 0;
 }
 
-#endif /* BLD_CHAR_LEN > 1 */
+#endif /* BIT_CHAR_LEN > 1 */
 
 /*
     @copy   default

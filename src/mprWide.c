@@ -8,7 +8,7 @@
 
 #include    "mpr.h"
 
-#if BLD_CHAR_LEN > 1
+#if BIT_CHAR_LEN > 1
 /************************************ Code ************************************/
 /*
     Format a number as a string. Support radix 10 and 16.
@@ -728,13 +728,13 @@ ssize wtom(char *dest, ssize destCount, MprChar *src, ssize len)
     }
     size = min(destCount, len + 1);
     if (size > 0) {
-#if BLD_CHAR_LEN == 1
+#if BIT_CHAR_LEN == 1
         if (dest) {
             scopy(dest, size, src);
         } else {
             len = min(slen(src), size - 1);
         }
-#elif BLD_WIN_LIKE
+#elif BIT_WIN_LIKE
         //  TODO -- use destCount
         len = WideCharToMultiByte(CP_ACP, 0, src, -1, dest, (DWORD) size, NULL, NULL);
 #else
@@ -769,13 +769,13 @@ ssize mtow(MprChar *dest, ssize destCount, cchar *src, ssize len)
     }
     size = min(destCount, len + 1);
     if (size > 0) {
-#if BLD_CHAR_LEN == 1
+#if BIT_CHAR_LEN == 1
         if (dest) {
             scopy(dest, size, src);
         } else {
             len = min(slen(src), size - 1);
         }
-#elif BLD_WIN_LIKE
+#elif BIT_WIN_LIKE
         len = MultiByteToWideChar(CP_ACP, 0, src, -1, dest, size);
 #else
         len = mbstowcs(dest, src, size);
@@ -1053,7 +1053,7 @@ ssize xwtom(char *dest, ssize destMax, MprChar *src, ssize len)
 
 #endif /* FUTURE */
 
-#else /* BLD_CHAR_LEN == 1 */
+#else /* BIT_CHAR_LEN == 1 */
 
 MprChar *amtow(cchar *src, ssize *len)
 {
@@ -1073,7 +1073,7 @@ char *awtom(MprChar *src, ssize *len)
 }
 
 
-#endif /* BLD_CHAR_LEN > 1 */
+#endif /* BIT_CHAR_LEN > 1 */
 
 /*
     @copy   default

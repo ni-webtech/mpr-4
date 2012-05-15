@@ -18,20 +18,20 @@ static void manageSpinLock(MprSpin *lock, int flags);
 MprMutex *mprCreateLock()
 {
     MprMutex    *lock;
-#if BLD_UNIX_LIKE
+#if BIT_UNIX_LIKE
     pthread_mutexattr_t attr;
 #endif
     if ((lock = mprAllocObj(MprMutex, manageLock)) == 0) {
         return 0;
     }
-#if BLD_UNIX_LIKE
+#if BIT_UNIX_LIKE
     pthread_mutexattr_init(&attr);
     pthread_mutexattr_settype(&attr, PTHREAD_MUTEX_RECURSIVE_NP);
     pthread_mutex_init(&lock->cs, &attr);
     pthread_mutexattr_destroy(&attr);
 #elif WINCE
     InitializeCriticalSection(&lock->cs);
-#elif BLD_WIN_LIKE
+#elif BIT_WIN_LIKE
     InitializeCriticalSectionAndSpinCount(&lock->cs, 5000);
 #elif VXWORKS
     /* Removed SEM_INVERSION_SAFE */
@@ -49,9 +49,9 @@ static void manageLock(MprMutex *lock, int flags)
 {
     if (flags & MPR_MANAGE_FREE) {
         mprAssert(lock);
-#if BLD_UNIX_LIKE
+#if BIT_UNIX_LIKE
         pthread_mutex_destroy(&lock->cs);
-#elif BLD_WIN_LIKE
+#elif BIT_WIN_LIKE
         DeleteCriticalSection(&lock->cs);
         lock->cs.SpinCount = 0;
 #elif VXWORKS
@@ -63,7 +63,7 @@ static void manageLock(MprMutex *lock, int flags)
 
 MprMutex *mprInitLock(MprMutex *lock)
 {
-#if BLD_UNIX_LIKE
+#if BIT_UNIX_LIKE
     pthread_mutexattr_t attr;
     pthread_mutexattr_init(&attr);
     pthread_mutexattr_settype(&attr, PTHREAD_MUTEX_RECURSIVE_NP);
@@ -73,7 +73,7 @@ MprMutex *mprInitLock(MprMutex *lock)
 #elif WINCE
     InitializeCriticalSection(&lock->cs);
 
-#elif BLD_WIN_LIKE
+#elif BIT_WIN_LIKE
     InitializeCriticalSectionAndSpinCount(&lock->cs, 5000);
 
 #elif VXWORKS
@@ -97,9 +97,9 @@ bool mprTryLock(MprMutex *lock)
 
     if (lock == 0) return 0;
 
-#if BLD_UNIX_LIKE
+#if BIT_UNIX_LIKE
     rc = pthread_mutex_trylock(&lock->cs) != 0;
-#elif BLD_WIN_LIKE
+#elif BIT_WIN_LIKE
     /* Rely on SpinCount being non-zero */
     if (lock->cs.SpinCount) {
         rc = TryEnterCriticalSection(&lock->cs) == 0;
@@ -109,7 +109,7 @@ bool mprTryLock(MprMutex *lock)
 #elif VXWORKS
     rc = semTake(lock->cs, NO_WAIT) != OK;
 #endif
-#if BLD_DEBUG
+#if BIT_DEBUG
     lock->owner = mprGetCurrentOsThread();
 #endif
     return (rc) ? 0 : 1;
@@ -133,11 +133,11 @@ static void manageSpinLock(MprSpin *lock, int flags)
         mprAssert(lock);
 #if USE_MPR_LOCK || MACOSX
         ;
-#elif BLD_UNIX_LIKE && BLD_HAS_SPINLOCK
+#elif BIT_UNIX_LIKE && BIT_HAS_SPINLOCK
         pthread_spin_destroy(&lock->cs);
-#elif BLD_UNIX_LIKE
+#elif BIT_UNIX_LIKE
         pthread_mutex_destroy(&lock->cs);
-#elif BLD_WIN_LIKE
+#elif BIT_WIN_LIKE
         DeleteCriticalSection(&lock->cs);
         lock->cs.SpinCount = 0;
 #elif VXWORKS
@@ -152,7 +152,7 @@ static void manageSpinLock(MprSpin *lock, int flags)
  */
 MprSpin *mprInitSpinLock(MprSpin *lock)
 {
-#if BLD_UNIX_LIKE && !BLD_HAS_SPINLOCK && !MACOSX
+#if BIT_UNIX_LIKE && !BIT_HAS_SPINLOCK && !MACOSX
     pthread_mutexattr_t attr;
 #endif
 
@@ -160,16 +160,16 @@ MprSpin *mprInitSpinLock(MprSpin *lock)
     mprInitLock(&lock->cs);
 #elif MACOSX
     lock->cs = OS_SPINLOCK_INIT;
-#elif BLD_UNIX_LIKE && BLD_HAS_SPINLOCK
+#elif BIT_UNIX_LIKE && BIT_HAS_SPINLOCK
     pthread_spin_init(&lock->cs, 0);
-#elif BLD_UNIX_LIKE
+#elif BIT_UNIX_LIKE
     pthread_mutexattr_init(&attr);
     pthread_mutexattr_settype(&attr, PTHREAD_MUTEX_RECURSIVE_NP);
     pthread_mutex_init(&lock->cs, &attr);
     pthread_mutexattr_destroy(&attr);
 #elif WINCE
     InitializeCriticalSection(&lock->cs);
-#elif BLD_WIN_LIKE
+#elif BIT_WIN_LIKE
     InitializeCriticalSectionAndSpinCount(&lock->cs, 5000);
 #elif VXWORKS
     #if FUTURE
@@ -183,7 +183,7 @@ MprSpin *mprInitSpinLock(MprSpin *lock)
         }
     #endif
 #endif /* VXWORKS */
-#if BLD_DEBUG
+#if BIT_DEBUG
     lock->owner = 0;
 #endif
     return lock;
@@ -203,11 +203,11 @@ bool mprTrySpinLock(MprSpin *lock)
     mprTryLock(&lock->cs);
 #elif MACOSX
     rc = !OSSpinLockTry(&lock->cs);
-#elif BLD_UNIX_LIKE && BLD_HAS_SPINLOCK
+#elif BIT_UNIX_LIKE && BIT_HAS_SPINLOCK
     rc = pthread_spin_trylock(&lock->cs) != 0;
-#elif BLD_UNIX_LIKE
+#elif BIT_UNIX_LIKE
     rc = pthread_mutex_trylock(&lock->cs) != 0;
-#elif BLD_WIN_LIKE
+#elif BIT_WIN_LIKE
     /* Rely on SpinCount being non-zero */
     if (lock->cs.SpinCount) {
         rc = TryEnterCriticalSection(&lock->cs) == 0;
@@ -217,7 +217,7 @@ bool mprTrySpinLock(MprSpin *lock)
 #elif VXWORKS
     rc = semTake(lock->cs, NO_WAIT) != OK;
 #endif
-#if BLD_DEBUG
+#if BIT_DEBUG
     if (rc == 0) {
         mprAssert(lock->owner != mprGetCurrentOsThread());
         lock->owner = mprGetCurrentOsThread();
@@ -246,7 +246,7 @@ void mprGlobalUnlock()
 }
 
 
-#if BLD_USE_LOCK_MACROS
+#if BIT_USE_LOCK_MACROS
 /*
     Still define these even if using macros to make linking with *.def export files easier
  */
@@ -262,9 +262,9 @@ void mprGlobalUnlock()
 void mprLock(MprMutex *lock)
 {
     if (lock == 0) return;
-#if BLD_UNIX_LIKE
+#if BIT_UNIX_LIKE
     pthread_mutex_lock(&lock->cs);
-#elif BLD_WIN_LIKE
+#elif BIT_WIN_LIKE
     /* Rely on SpinCount being non-zero */
     if (lock->cs.SpinCount) {
         EnterCriticalSection(&lock->cs);
@@ -272,7 +272,7 @@ void mprLock(MprMutex *lock)
 #elif VXWORKS
     semTake(lock->cs, WAIT_FOREVER);
 #endif
-#if BLD_DEBUG
+#if BIT_DEBUG
     /* Store last locker only */ 
     lock->owner = mprGetCurrentOsThread();
 #endif
@@ -282,9 +282,9 @@ void mprLock(MprMutex *lock)
 void mprUnlock(MprMutex *lock)
 {
     if (lock == 0) return;
-#if BLD_UNIX_LIKE
+#if BIT_UNIX_LIKE
     pthread_mutex_unlock(&lock->cs);
-#elif BLD_WIN_LIKE
+#elif BIT_WIN_LIKE
     LeaveCriticalSection(&lock->cs);
 #elif VXWORKS
     semGive(lock->cs);
@@ -302,7 +302,7 @@ void mprSpinLock(MprSpin *lock)
 {
     if (lock == 0) return;
 
-#if BLD_DEBUG
+#if BIT_DEBUG
     /*
         Spin locks don't support recursive locking on all operating systems.
      */
@@ -313,18 +313,18 @@ void mprSpinLock(MprSpin *lock)
     mprLock(&lock->cs);
 #elif MACOSX
     OSSpinLockLock(&lock->cs);
-#elif BLD_UNIX_LIKE && BLD_HAS_SPINLOCK
+#elif BIT_UNIX_LIKE && BIT_HAS_SPINLOCK
     pthread_spin_lock(&lock->cs);
-#elif BLD_UNIX_LIKE
+#elif BIT_UNIX_LIKE
     pthread_mutex_lock(&lock->cs);
-#elif BLD_WIN_LIKE
+#elif BIT_WIN_LIKE
     if (lock->cs.SpinCount) {
         EnterCriticalSection(&lock->cs);
     }
 #elif VXWORKS
     semTake(lock->cs, WAIT_FOREVER);
 #endif
-#if BLD_DEBUG
+#if BIT_DEBUG
     mprAssert(lock->owner != mprGetCurrentOsThread());
     lock->owner = mprGetCurrentOsThread();
 #endif
@@ -335,7 +335,7 @@ void mprSpinUnlock(MprSpin *lock)
 {
     if (lock == 0) return;
 
-#if BLD_DEBUG
+#if BIT_DEBUG
     lock->owner = 0;
 #endif
 
@@ -343,11 +343,11 @@ void mprSpinUnlock(MprSpin *lock)
     mprUnlock(&lock->cs);
 #elif MACOSX
     OSSpinLockUnlock(&lock->cs);
-#elif BLD_UNIX_LIKE && BLD_HAS_SPINLOCK
+#elif BIT_UNIX_LIKE && BIT_HAS_SPINLOCK
     pthread_spin_unlock(&lock->cs);
-#elif BLD_UNIX_LIKE
+#elif BIT_UNIX_LIKE
     pthread_mutex_unlock(&lock->cs);
-#elif BLD_WIN_LIKE
+#elif BIT_WIN_LIKE
     LeaveCriticalSection(&lock->cs);
 #elif VXWORKS
     semGive(lock->cs);

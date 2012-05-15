@@ -406,7 +406,7 @@ int mprDispatchersAreIdle()
  */
 void mprRelayEvent(MprDispatcher *dispatcher, void *proc, void *data, MprEvent *event)
 {
-#if BLD_DEBUG
+#if BIT_DEBUG
     MprThread   *tp = mprGetCurrentThread();
     mprNop(tp);
 #endif

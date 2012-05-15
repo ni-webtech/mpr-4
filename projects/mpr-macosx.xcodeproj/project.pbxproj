@@ -1129,7 +1129,7 @@ fi";
 				);
 
 				GCC_PREPROCESSOR_DEFINITIONS = (
-					"BLD_DEBUG",
+					"BIT_DEBUG",
 						"$(inherited)"
 				);
 				LIBRARY_SEARCH_PATHS = (
@@ -1201,7 +1201,7 @@ fi";
 				);
 
 				GCC_PREPROCESSOR_DEFINITIONS = (
-					"BLD_DEBUG",
+					"BIT_DEBUG",
 						"$(inherited)"
 				);
 				LIBRARY_SEARCH_PATHS = (

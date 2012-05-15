@@ -23,7 +23,7 @@ int main(int argc, char *argv[])
         flags = 0;
         if (c % 16 == 0)
             mprPrintf("\n\t");
-#if BLD_WIN_LIKE
+#if BIT_WIN_LIKE
         if (strchr("&;`'\"|*?~<>^()[]{}$\\\n\r%", c)) {
             flags |= MPR_ENCODE_SHELL;
         }

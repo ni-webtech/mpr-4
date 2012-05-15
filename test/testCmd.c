@@ -25,7 +25,7 @@ static int initCmd(MprTestGroup *gp)
     TestCmd     *tc;
 
     gp->data = tc = mprAllocObj(TestCmd, manageTestCmd);
-    tc->program = mprJoinPath(mprGetAppDir(gp), "runProgram" BLD_EXE);
+    tc->program = mprJoinPath(mprGetAppDir(gp), "runProgram" BIT_EXE);
     return 0;
 }
 

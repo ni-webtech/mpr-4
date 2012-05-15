@@ -12,7 +12,7 @@
 
 #include    "mpr.h"
 
-#if BLD_FEATURE_ROMFS 
+#if BIT_FEATURE_ROMFS 
 /****************************** Forward Declarations **************************/
 
 static void manageRomFile(MprFile *file, int flags);
@@ -236,7 +236,7 @@ void manageRomFileSystem(MprRomFileSystem *rfs, int flags)
         mprMark(fs->separators);
         mprMark(fs->newline);
         mprMark(fs->root);
-#if BLD_WIN_LIKE || CYGWIN
+#if BIT_WIN_LIKE || CYGWIN
         mprMark(fs->cygdrive);
         mprMark(fs->cygwin);
 #endif
@@ -297,9 +297,9 @@ MprRomFileSystem *mprCreateRomFileSystem(cchar *path)
 }
 
 
-#else /* BLD_FEATURE_ROMFS */
+#else /* BIT_FEATURE_ROMFS */
 void stubRomfs() {}
-#endif /* BLD_FEATURE_ROMFS */
+#endif /* BIT_FEATURE_ROMFS */
 
 /*
     @copy   default

@@ -40,7 +40,7 @@ int mprCreateNotifierService(MprWaitService *ws)
         if (breakSock < 0) {
             mprLog(MPR_WARN, "Can't open port %d to use for select. Retrying.\n");
         }
-#if BLD_UNIX_LIKE
+#if BIT_UNIX_LIKE
         fcntl(breakSock, F_SETFD, FD_CLOEXEC);
 #endif
         ws->breakAddress.sin_family = AF_INET;
@@ -200,7 +200,7 @@ void mprWaitForIO(MprWaitService *ws, MprTime timeout)
     if (timeout < 0 || timeout > MAXINT) {
         timeout = MAXINT;
     }
-#if BLD_DEBUG
+#if BIT_DEBUG
     if (mprGetDebugMode() && timeout > 30000) {
         timeout = 30000;
     }

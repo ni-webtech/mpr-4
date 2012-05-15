@@ -19,7 +19,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 
-#if BLD_UNIX_LIKE
+#if BIT_UNIX_LIKE
 #include <signal.h>
 #endif
 
@@ -38,7 +38,7 @@ int main(int argc, char* argv[])
     char    buf[256], *cp, **ep;
     int     i, len, exitCode, sofar;
 
-#if BLD_UNIX_LIKE
+#if BIT_UNIX_LIKE
     signal(SIGPIPE, SIG_IGN);
 #endif
 #if TRACE_PROGRESS

@@ -8,7 +8,7 @@
 
 #include    "bit.h"
 
-#if BLD_FEATURE_MATRIXSSL
+#if BIT_FEATURE_MATRIXSSL
 #if WIN32
  #include   <winsock2.h>
  #include   <windows.h>
@@ -845,7 +845,7 @@ static ssize flushMss(MprSocket *sp)
 #else
 
 int mprCreateMatrixSslModule() { return -1; }
-#endif /* BLD_FEATURE_MATRIXSSL */
+#endif /* BIT_FEATURE_MATRIXSSL */
 
 /*
     @copy   default

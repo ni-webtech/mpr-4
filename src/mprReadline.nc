@@ -8,13 +8,13 @@
 
 #include    "mpr.h"
 
-#if BLD_CC_EDITLINE
+#if BIT_CC_EDITLINE
     #include <histedit.h>
 #endif
 
 /*********************************** Locals ***********************************/
 
-#if BLD_CC_EDITLINE
+#if BIT_CC_EDITLINE
 static History *cmdHistory;
 static EditLine *eh; 
 static cchar *prompt;
@@ -24,7 +24,7 @@ static cchar *prompt;
 
 /************************************* Code ***********************************/
 
-#if BLD_CC_EDITLINE
+#if BIT_CC_EDITLINE
 
 
 EditLine *mprReadlineOpen(MprCtx ctx)
@@ -72,7 +72,7 @@ char *mprReadline(MprCtx ctx, cchar *msg)
     return NULL; 
 } 
 
-#else /* BLD_CC_EDITLINE */
+#else /* BIT_CC_EDITLINE */
 
 char *mprReadline(MprCtx ctx, cchar *msg)
 {
@@ -84,7 +84,7 @@ char *mprReadline(MprCtx ctx, cchar *msg)
     }
     return strdup(buf);
 }
-#endif /* BLD_CC_EDITLINE */
+#endif /* BIT_CC_EDITLINE */
 
 /*
     @copy   default

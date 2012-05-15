@@ -59,7 +59,7 @@ int mprStartModuleService()
             return MPR_ERR_CANT_INITIALIZE;
         }
     }
-#if VXWORKS && BLD_DEBUG && SYM_SYNC_INCLUDED
+#if VXWORKS && BIT_DEBUG && SYM_SYNC_INCLUDED
     symSyncLibInit();
 #endif
     return 0;
@@ -202,8 +202,8 @@ void mprSetModuleSearchPath(char *searchPath)
 
     ms = MPR->moduleService;
     if (searchPath == 0) {
-        libdir = mprJoinPath(mprGetPathParent(mprGetAppDir()), BLD_LIB_NAME);
-        ms->searchPath = sjoin(mprGetAppDir(), MPR_SEARCH_SEP, libdir, MPR_SEARCH_SEP, BLD_LIB_PREFIX, NULL);
+        libdir = mprJoinPath(mprGetPathParent(mprGetAppDir()), BIT_LIB_NAME);
+        ms->searchPath = sjoin(mprGetAppDir(), MPR_SEARCH_SEP, libdir, MPR_SEARCH_SEP, BIT_LIB_PREFIX, NULL);
     } else {
         ms->searchPath = sclone(searchPath);
     }
@@ -221,7 +221,7 @@ cchar *mprGetModuleSearchPath()
  */
 int mprLoadModule(MprModule *mp)
 {
-#if BLD_CC_DYN_LOAD
+#if BIT_CC_DYN_LOAD
     mprAssert(mp);
 
     if (mprLoadNativeModule(mp) < 0) {
@@ -242,7 +242,7 @@ int mprUnloadModule(MprModule *mp)
     if (mprStopModule(mp) < 0) {
         return MPR_ERR_NOT_READY;
     }
-#if BLD_CC_DYN_LOAD
+#if BIT_CC_DYN_LOAD
     if (mp->handle) {
         if (mprUnloadNativeModule(mp) != 0) {
             mprError("Can't unload module %s", mp->name);
@@ -255,7 +255,7 @@ int mprUnloadModule(MprModule *mp)
 }
 
 
-#if BLD_CC_DYN_LOAD
+#if BIT_CC_DYN_LOAD
 /*
     Return true if the shared library in "file" can be found. Return the actual path in *path. The filename
     may not have a shared library extension which is typical so calling code can be cross platform.
@@ -271,8 +271,8 @@ static char *probe(cchar *filename)
         return sclone(filename);
     }
 
-    if (strstr(filename, BLD_SHOBJ) == 0) {
-        path = sjoin(filename, BLD_SHOBJ, NULL);
+    if (strstr(filename, BIT_SHOBJ) == 0) {
+        path = sjoin(filename, BIT_SHOBJ, NULL);
         mprLog(7, "Probe for native module %s", path);
         if (mprPathExists(path, R_OK)) {
             return path;
@@ -288,7 +288,7 @@ static char *probe(cchar *filename)
  */
 char *mprSearchForModule(cchar *filename)
 {
-#if BLD_CC_DYN_LOAD
+#if BIT_CC_DYN_LOAD
     char    *path, *f, *searchPath, *dir, *tok;
 
     filename = mprNormalizePath(filename);
@@ -315,7 +315,7 @@ char *mprSearchForModule(cchar *filename)
         }
         dir = stok(0, MPR_SEARCH_SEP, &tok);
     }
-#endif /* BLD_CC_DYN_LOAD */
+#endif /* BIT_CC_DYN_LOAD */
     return 0;
 }
 

@@ -137,7 +137,7 @@ typedef struct Format {
  */
 typedef struct MprEjsString {
     void            *xtype;
-#if BLD_DEBUG
+#if BIT_DEBUG
     char            *kind;
     void            *type;
     MprMem          *mem;
@@ -160,10 +160,10 @@ static int  growBuf(Format *fmt);
 static char *sprintfCore(char *buf, ssize maxsize, cchar *fmt, va_list arg);
 static void outNum(Format *fmt, cchar *prefix, uint64 val);
 static void outString(Format *fmt, cchar *str, ssize len);
-#if BLD_CHAR_LEN > 1
+#if BIT_CHAR_LEN > 1
 static void outWideString(Format *fmt, MprChar *str, ssize len);
 #endif
-#if BLD_FEATURE_FLOAT
+#if BIT_FEATURE_FLOAT
 static void outFloat(Format *fmt, char specChar, double value);
 #endif
 
@@ -459,13 +459,13 @@ static char *sprintfCore(char *buf, ssize maxsize, cchar *spec, va_list args)
         case STATE_TYPE:
             switch (c) {
             case 'e':
-#if BLD_FEATURE_FLOAT
+#if BIT_FEATURE_FLOAT
             case 'g':
             case 'f':
                 fmt.radix = 10;
                 outFloat(&fmt, c, (double) va_arg(args, double));
                 break;
-#endif /* BLD_FEATURE_FLOAT */
+#endif /* BIT_FEATURE_FLOAT */
 
             case 'c':
                 BPUT(&fmt, (char) va_arg(args, int));
@@ -475,7 +475,7 @@ static char *sprintfCore(char *buf, ssize maxsize, cchar *spec, va_list args)
                 /* Name */
                 qname = va_arg(args, MprEjsName);
                 if (qname.name) {
-#if BLD_CHAR_LEN == 1
+#if BIT_CHAR_LEN == 1
                     outString(&fmt, (char*) qname.space->value, qname.space->length);
                     BPUT(&fmt, ':');
                     BPUT(&fmt, ':');
@@ -493,7 +493,7 @@ static char *sprintfCore(char *buf, ssize maxsize, cchar *spec, va_list args)
 
             case 'S':
                 /* Safe string */
-#if BLD_CHAR_LEN > 1
+#if BIT_CHAR_LEN > 1
                 if (fmt.flags & SPRINTF_LONG) {
                     //  MOB - not right MprChar
                     safe = mprEscapeHtml(va_arg(args, MprChar*));
@@ -510,7 +510,7 @@ static char *sprintfCore(char *buf, ssize maxsize, cchar *spec, va_list args)
                 /* MprEjsString */
                 es = va_arg(args, MprEjsString*);
                 if (es) {
-#if BLD_CHAR_LEN == 1
+#if BIT_CHAR_LEN == 1
                     outString(&fmt, (char*) es->value, es->length);
 #else
                     outWideString(&fmt, es->value, es->length);
@@ -522,7 +522,7 @@ static char *sprintfCore(char *buf, ssize maxsize, cchar *spec, va_list args)
 
             case 'w':
                 /* Wide string of MprChar characters (Same as %ls"). Null terminated. */
-#if BLD_CHAR_LEN > 1
+#if BIT_CHAR_LEN > 1
                 outWideString(&fmt, va_arg(args, MprChar*), -1);
                 break;
 #else
@@ -531,7 +531,7 @@ static char *sprintfCore(char *buf, ssize maxsize, cchar *spec, va_list args)
 
             case 's':
                 /* Standard string */
-#if BLD_CHAR_LEN > 1
+#if BIT_CHAR_LEN > 1
                 if (fmt.flags & SPRINTF_LONG) {
                     outWideString(&fmt, va_arg(args, MprChar*), -1);
                 } else
@@ -680,7 +680,7 @@ static void outString(Format *fmt, cchar *str, ssize len)
 }
 
 
-#if BLD_CHAR_LEN > 1
+#if BIT_CHAR_LEN > 1
 static void outWideString(Format *fmt, MprChar *str, ssize len)
 {
     MprChar     *cp;
@@ -803,7 +803,7 @@ static void outNum(Format *fmt, cchar *prefix, uint64 value)
 }
 
 
-#if BLD_FEATURE_FLOAT
+#if BIT_FEATURE_FLOAT
 static void outFloat(Format *fmt, char specChar, double value)
 {
     char    result[MPR_MAX_STRING], *cp;
@@ -861,7 +861,7 @@ static void outFloat(Format *fmt, char specChar, double value)
 }
 
 int mprIsNan(double value) {
-#if WIN
+#if WINDOWS
     return _fpclass(value) & (_FPCLASS_SNAN | _FPCLASS_QNAN);
 #elif VXWORKS
     return value == (0.0 / 0.0);
@@ -872,7 +872,7 @@ int mprIsNan(double value) {
 
 
 int mprIsInfinite(double value) {
-#if WIN
+#if WINDOWS
     return _fpclass(value) & (_FPCLASS_PINF | _FPCLASS_NINF);
 #elif VXWORKS
     return value == (1.0 / 0.0) || value == (-1.0 / 0.0);
@@ -882,7 +882,7 @@ int mprIsInfinite(double value) {
 }
 
 int mprIsZero(double value) {
-#if WIN
+#if WINDOWS
     return _fpclass(value) & (_FPCLASS_NZ | _FPCLASS_PZ);
 #elif VXWORKS
     return value == 0.0 || value == -0.0;
@@ -1029,7 +1029,7 @@ char *mprDtoa(double value, int ndigits, int mode, int flags)
     }
     return sclone(mprGetBufStart(buf));
 }
-#endif /* BLD_FEATURE_FLOAT */
+#endif /* BIT_FEATURE_FLOAT */
 
 
 /*

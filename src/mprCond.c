@@ -25,7 +25,7 @@ MprCond *mprCreateCond()
     cp->triggered = 0;
     cp->mutex = mprCreateLock();
 
-#if BLD_WIN_LIKE
+#if BIT_WIN_LIKE
     cp->cv = CreateEvent(NULL, FALSE, FALSE, NULL);
 #elif VXWORKS
     cp->cv = semCCreate(SEM_Q_PRIORITY, SEM_EMPTY);
@@ -45,7 +45,7 @@ static void manageCond(MprCond *cp, int flags)
 
     } else if (flags & MPR_MANAGE_FREE) {
         mprAssert(cp->mutex);
-#if BLD_WIN_LIKE
+#if BIT_WIN_LIKE
         CloseHandle(cp->cv);
 #elif VXWORKS
         semDelete(cp->cv);
@@ -65,7 +65,7 @@ int mprWaitForCond(MprCond *cp, MprTime timeout)
 {
     MprTime             now, expire;
     int                 rc;
-#if BLD_UNIX_LIKE
+#if BIT_UNIX_LIKE
     struct timespec     waitTill;
     struct timeval      current;
     int                 usec;
@@ -78,7 +78,7 @@ int mprWaitForCond(MprCond *cp, MprTime timeout)
     now = mprGetTime();
     expire = now + timeout;
 
-#if BLD_UNIX_LIKE
+#if BIT_UNIX_LIKE
     gettimeofday(&current, NULL);
     usec = current.tv_usec + ((int) (timeout % 1000)) * 1000;
     waitTill.tv_sec = current.tv_sec + ((int) (timeout / 1000)) + (usec / 1000000);
@@ -90,7 +90,7 @@ int mprWaitForCond(MprCond *cp, MprTime timeout)
             WARNING: Can get spurious wakeups on some platforms (Unix + pthreads). 
          */
         do {
-#if BLD_WIN_LIKE
+#if BIT_WIN_LIKE
             mprUnlock(cp->mutex);
             rc = WaitForSingleObject(cp->cv, (int) (expire - now));
             mprLock(cp->mutex);
@@ -114,7 +114,7 @@ int mprWaitForCond(MprCond *cp, MprTime timeout)
                 }
             }
             
-#elif BLD_UNIX_LIKE
+#elif BIT_UNIX_LIKE
             /*
                 NOTE: pthread_cond_timedwait can return 0 (MAC OS X and Linux). The pthread_cond_wait routines will 
                 atomically unlock the mutex before sleeping and will relock on awakening.  
@@ -151,7 +151,7 @@ void mprSignalCond(MprCond *cp)
     mprLock(cp->mutex);
     if (!cp->triggered) {
         cp->triggered = 1;
-#if BLD_WIN_LIKE
+#if BIT_WIN_LIKE
         SetEvent(cp->cv);
 #elif VXWORKS
         semGive(cp->cv);
@@ -167,7 +167,7 @@ void mprResetCond(MprCond *cp)
 {
     mprLock(cp->mutex);
     cp->triggered = 0;
-#if BLD_WIN_LIKE
+#if BIT_WIN_LIKE
     ResetEvent(cp->cv);
 #elif VXWORKS
     semDelete(cp->cv);
@@ -190,7 +190,7 @@ void mprResetCond(MprCond *cp)
 int mprWaitForMultiCond(MprCond *cp, MprTime timeout)
 {
     int         rc;
-#if BLD_UNIX_LIKE
+#if BIT_UNIX_LIKE
     struct timespec     waitTill;
     struct timeval      current;
     int                 usec;
@@ -202,7 +202,7 @@ int mprWaitForMultiCond(MprCond *cp, MprTime timeout)
         timeout = MAXINT;
     }
 
-#if BLD_UNIX_LIKE
+#if BIT_UNIX_LIKE
     gettimeofday(&current, NULL);
     usec = current.tv_usec + ((int) (timeout % 1000)) * 1000;
     waitTill.tv_sec = current.tv_sec + ((int) (timeout / 1000)) + (usec / 1000000);
@@ -212,7 +212,7 @@ int mprWaitForMultiCond(MprCond *cp, MprTime timeout)
     expire = now + timeout;
 #endif
 
-#if BLD_WIN_LIKE
+#if BIT_WIN_LIKE
     rc = WaitForSingleObject(cp->cv, (int) (expire - now));
     if (rc == WAIT_OBJECT_0) {
         rc = 0;
@@ -230,7 +230,7 @@ int mprWaitForMultiCond(MprCond *cp, MprTime timeout)
             rc = MPR_ERR;
         }
     }
-#elif BLD_UNIX_LIKE
+#elif BIT_UNIX_LIKE
     mprLock(cp->mutex);
     rc = pthread_cond_timedwait(&cp->cv, &cp->mutex->cs,  &waitTill);
     if (rc == ETIMEDOUT) {
@@ -251,7 +251,7 @@ int mprWaitForMultiCond(MprCond *cp, MprTime timeout)
 void mprSignalMultiCond(MprCond *cp)
 {
     mprLock(cp->mutex);
-#if BLD_WIN_LIKE
+#if BIT_WIN_LIKE
     /* Pulse event */
     SetEvent(cp->cv);
     ResetEvent(cp->cv);

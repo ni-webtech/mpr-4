@@ -140,7 +140,7 @@ static int timeSep = ':';
 /*
     Formats for mprFormatTime
  */
-#if WIN
+#if WINDOWS
     #define VALID_FMT "AaBbCcDdEeFHhIjklMmnOPpRrSsTtUuvWwXxYyZz+%"
 #elif MACOSX
     #define VALID_FMT "AaBbCcDdEeFGgHhIjklMmnOPpRrSsTtUuVvWwXxYyZz+%"
@@ -392,7 +392,7 @@ MprTime mprMakeUniversalTime(struct tm *tp)
 
 static int localTime(struct tm *timep, MprTime time)
 {
-#if BLD_UNIX_LIKE || WINCE
+#if BIT_UNIX_LIKE || WINCE
     time_t when = (time_t) (time / MS_PER_SEC);
     if (localtime_r(&when, timep) == 0) {
         return MPR_ERR;
@@ -411,7 +411,7 @@ static int localTime(struct tm *timep, MprTime time)
 
 struct tm *universalTime(struct tm *timep, MprTime time)
 {
-#if BLD_UNIX_LIKE || WINCE
+#if BIT_UNIX_LIKE || WINCE
     time_t when = (time_t) (time / MS_PER_SEC);
     return gmtime_r(&when, timep);
 #else
@@ -433,7 +433,7 @@ struct tm *universalTime(struct tm *timep, MprTime time)
  */
 static int getTimeZoneOffsetFromTm(struct tm *tp)
 {
-#if BLD_WIN_LIKE
+#if BIT_WIN_LIKE
     int                     offset;
     TIME_ZONE_INFORMATION   tinfo;
     GetTimeZoneInformation(&tinfo);
@@ -458,7 +458,7 @@ static int getTimeZoneOffsetFromTm(struct tm *tp)
         }
     }
     return offset;
-#elif BLD_UNIX_LIKE && !CYGWIN
+#elif BIT_UNIX_LIKE && !CYGWIN
     return (int) tp->tm_gmtoff * MS_PER_SEC;
 #else
     struct timezone     tz;
@@ -591,7 +591,7 @@ static void decodeTime(struct tm *tp, MprTime when, bool local)
             offset = getTimeZoneOffsetFromTm(&t);
             dst = t.tm_isdst;
         }
-#if BLD_UNIX_LIKE && !CYGWIN
+#if BIT_UNIX_LIKE && !CYGWIN
         zoneName = (char*) t.tm_zone;
 #endif
         when += offset;
@@ -606,7 +606,7 @@ static void decodeTime(struct tm *tp, MprTime when, bool local)
     tp->tm_yday     = (int) (floorDiv(when, MS_PER_DAY) - daysSinceEpoch(year));
     tp->tm_mon      = getMonth(year, tp->tm_yday);
     tp->tm_isdst    = dst != 0;
-#if BLD_UNIX_LIKE && !CYGWIN
+#if BIT_UNIX_LIKE && !CYGWIN
     tp->tm_gmtoff   = offset / MS_PER_SEC;
     tp->tm_zone     = zoneName;
 #endif
@@ -948,7 +948,7 @@ static void digits(MprBuf *buf, int count, int fill, int value)
 
 static char *getTimeZoneName(struct tm *tp)
 {
-#if BLD_WIN_LIKE
+#if BIT_WIN_LIKE
     TIME_ZONE_INFORMATION   tz;
     WCHAR                   *wzone;
     GetTimeZoneInformation(&tz);
@@ -1346,7 +1346,7 @@ int mprParseTime(MprTime *time, cchar *dateString, int zoneFlags, struct tm *def
     tm.tm_year = -MAXINT;
     tm.tm_mon = tm.tm_mday = tm.tm_hour = tm.tm_sec = tm.tm_min = tm.tm_wday = -1;
     tm.tm_min = tm.tm_sec = tm.tm_yday = -1;
-#if BLD_UNIX_LIKE && !CYGWIN
+#if BIT_UNIX_LIKE && !CYGWIN
     tm.tm_gmtoff = 0;
     tm.tm_zone = 0;
 #endif
@@ -1624,10 +1624,10 @@ static void validateTime(struct tm *tp, struct tm *defaults)
 /*
     Compatibility for windows and VxWorks
  */
-#if BLD_WIN_LIKE || VXWORKS
+#if BIT_WIN_LIKE || VXWORKS
 int gettimeofday(struct timeval *tv, struct timezone *tz)
 {
-    #if BLD_WIN_LIKE
+    #if BIT_WIN_LIKE
         FILETIME        fileTime;
         MprTime         now;
         static int      tzOnce;
@@ -1679,20 +1679,20 @@ int gettimeofday(struct timeval *tv, struct timezone *tz)
         return rc;
     #endif
 }
-#endif /* BLD_WIN_LIKE || VXWORKS */
+#endif /* BIT_WIN_LIKE || VXWORKS */
 
 /********************************* Measurement **********************************/
 /*
     High resolution timer
  */
 #if MPR_HIGH_RES_TIMER
-    #if BLD_UNIX_LIKE
+    #if BIT_UNIX_LIKE
         uint64 mprGetTicks() {
             uint64  now;
             __asm__ __volatile__ ("rdtsc" : "=A" (now));
             return now;
         }
-    #elif BLD_WIN_LIKE
+    #elif BIT_WIN_LIKE
         uint64 mprGetTicks() {
             LARGE_INTEGER  now;
             QueryPerformanceCounter(&now);

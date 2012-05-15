@@ -14,7 +14,7 @@
 /*
     Find the first separator in the path
  */
-#if BLD_UNIX_LIKE
+#if BIT_UNIX_LIKE
     #define firstSep(fs, path)  strchr(path, fs->separators[0])
 #else
     #define firstSep(fs, path)  strpbrk(path, fs->separators)
@@ -100,7 +100,7 @@ static MPR_INLINE bool isFullPath(MprFileSystem *fs, cchar *path)
     mprAssert(fs);
     mprAssert(path);
 
-#if (BLD_WIN_LIKE || VXWORKS) && !WINCE
+#if (BIT_WIN_LIKE || VXWORKS) && !WINCE
 {
     char    *cp, *endDrive;
 
@@ -202,7 +202,7 @@ char *mprGetAbsPath(cchar *path)
     if (path == 0 || *path == '\0') {
         path = ".";
     }
-#if BLD_FEATURE_ROMFS
+#if BIT_FEATURE_ROMFS
     return mprNormalizePath(path);
 #elif CYGWIN
     {
@@ -234,7 +234,7 @@ char *mprGetAbsPath(cchar *path)
         return mprNormalizePath(path);
     }
 
-#if BLD_WIN_LIKE && !WINCE
+#if BIT_WIN_LIKE && !WINCE
 {
     char    buf[MPR_MAX_PATH];
     GetFullPathName(path, sizeof(buf) - 1, buf, NULL);
@@ -323,7 +323,7 @@ char *mprGetAppPath()
      pbuf[len] = '\0';
      MPR->appPath = mprGetAbsPath(pbuf);
 }
-#elif BLD_UNIX_LIKE 
+#elif BIT_UNIX_LIKE 
 {
     char    pbuf[MPR_MAX_STRING], *path;
     int     len;
@@ -339,7 +339,7 @@ char *mprGetAppPath()
     pbuf[len] = '\0';
     MPR->appPath = mprGetAbsPath(pbuf);
 }
-#elif BLD_WIN_LIKE
+#elif BIT_WIN_LIKE
 {
     char    pbuf[MPR_MAX_PATH];
 
@@ -386,7 +386,7 @@ char *mprGetCurrentPath()
         return sjoin(dir, sep, NULL);
     }
 }
-#elif BLD_WIN_LIKE || CYGWIN
+#elif BIT_WIN_LIKE || CYGWIN
 {
     MprFileSystem   *fs;
     fs = mprLookupFileSystem(dir);
@@ -550,7 +550,7 @@ char *mprGetPathExt(cchar *path)
 /*
     This returns a list of MprDirEntry objects
  */
-#if BLD_WIN_LIKE
+#if BIT_WIN_LIKE
 static MprList *getDirFiles(cchar *dir, int flags)
 {
     HANDLE          h;
@@ -628,7 +628,7 @@ static void manageDirEntry(MprDirEntry *dp, int flags)
 }
 
 
-#if BLD_UNIX_LIKE || VXWORKS || CYGWIN
+#if BIT_UNIX_LIKE || VXWORKS || CYGWIN
 static MprList *getDirFiles(cchar *path, int flags)
 {
     DIR             *dir;
@@ -935,7 +935,7 @@ char *mprGetTempPath(cchar *tempDir)
     if (tempDir == 0 || *tempDir == '\0') {
 #if WINCE
         dir = sclone("/Temp");
-#elif BLD_WIN_LIKE
+#elif BIT_WIN_LIKE
 {
         MprFileSystem   *fs;
         fs = mprLookupFileSystem(tempDir ? tempDir : (cchar*) "/");
@@ -980,7 +980,7 @@ char *mprGetWinPath(cchar *path)
     if (path == 0 || *path == '\0') {
         path = ".";
     }
-#if BLD_FEATURE_ROMFS
+#if BIT_FEATURE_ROMFS
     result = mprNormalizePath(path);
 #elif CYGWIN
 {
@@ -1284,7 +1284,7 @@ char *mprNormalizePath(cchar *pathArg)
             addSep++;
         }
     }
-#if BLD_WIN_LIKE
+#if BIT_WIN_LIKE
     if (strcmp(segments[segmentCount - 1], " ") == 0) {
         segmentCount--;
     }
@@ -1555,8 +1555,8 @@ char *mprSearchPath(cchar *file, int flags, cchar *search, ...)
     if ((result = checkPath(file, flags)) != 0) {
         return result;
     }
-    if ((flags & MPR_SEARCH_EXE) && *BLD_EXE) {
-        if ((result = checkPath(mprJoinPathExt(file, BLD_EXE), flags)) != 0) {
+    if ((flags & MPR_SEARCH_EXE) && *BIT_EXE) {
+        if ((result = checkPath(mprJoinPathExt(file, BIT_EXE), flags)) != 0) {
             return result;
         }
     }
@@ -1570,8 +1570,8 @@ char *mprSearchPath(cchar *file, int flags, cchar *search, ...)
             if ((result = checkPath(path, flags)) != 0) {
                 return mprNormalizePath(result);
             }
-            if ((flags & MPR_SEARCH_EXE) && *BLD_EXE) {
-                if ((result = checkPath(mprJoinPathExt(path, BLD_EXE), flags)) != 0) {
+            if ((flags & MPR_SEARCH_EXE) && *BIT_EXE) {
+                if ((result = checkPath(mprJoinPathExt(path, BIT_EXE), flags)) != 0) {
                     return mprNormalizePath(result);
                 }
             }
@@ -1610,7 +1610,7 @@ char *mprTransformPath(cchar *path, int flags)
         result = mprNormalizePath(path);
     }
     if (flags & MPR_PATH_NATIVE_SEP) {
-#if BLD_WIN_LIKE
+#if BIT_WIN_LIKE
         mprMapSeparators(result, '\\');
 #elif CYGWIN
         mprMapSeparators(result, '/');

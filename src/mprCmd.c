@@ -25,7 +25,7 @@ static void stdinCallback(MprCmd *cmd, MprEvent *event);
 static void stdoutCallback(MprCmd *cmd, MprEvent *event);
 static void stderrCallback(MprCmd *cmd, MprEvent *event);
 static void vxCmdManager(MprCmd *cmd);
-#if BLD_WIN_LIKE
+#if BIT_WIN_LIKE
 static cchar *makeWinEnvBlock(MprCmd *cmd);
 #endif
 
@@ -136,7 +136,7 @@ static void manageCmd(MprCmd *cmd, int flags)
         mprMark(cmd->userData);
         mprMark(cmd->mutex);
         mprMark(cmd->searchPath);
-#if BLD_WIN_LIKE
+#if BIT_WIN_LIKE
         mprMark(cmd->command);
         mprMark(cmd->arg0);
 #endif
@@ -257,7 +257,7 @@ void mprCloseCmdFd(MprCmd *cmd, int channel)
     if (cmd->files[channel].fd != -1) {
         close(cmd->files[channel].fd);
         cmd->files[channel].fd = -1;
-#if BLD_WIN_LIKE
+#if BIT_WIN_LIKE
         cmd->files[channel].handle = 0;
 #endif
         if (channel != MPR_CMD_STDIN) {
@@ -517,7 +517,7 @@ int mprStopCmd(MprCmd *cmd, int signal)
     }
     cmd->stopped = 1;
     if (cmd->pid) {
-#if BLD_WIN_LIKE
+#if BIT_WIN_LIKE
         return TerminateProcess(cmd->process, 2) == 0;
 #elif VXWORKS
         return taskDelete(cmd->pid);
@@ -534,7 +534,7 @@ int mprStopCmd(MprCmd *cmd, int signal)
  */
 ssize mprReadCmd(MprCmd *cmd, int channel, char *buf, ssize bufsize)
 {
-#if BLD_WIN_LIKE
+#if BIT_WIN_LIKE
     int     rc, count;
     /*
         Need to detect EOF in windows. Pipe always in blocking mode, but reads block even with no one on the other end.
@@ -585,7 +585,7 @@ ssize mprReadCmd(MprCmd *cmd, int channel, char *buf, ssize bufsize)
  */
 ssize mprWriteCmd(MprCmd *cmd, int channel, char *buf, ssize bufsize)
 {
-#if BLD_WIN_LIKE
+#if BIT_WIN_LIKE
     /*
         No waiting. Use this just to check if the process has exited and thus EOF on the pipe.
      */
@@ -614,7 +614,7 @@ void mprDisableCmdEvents(MprCmd *cmd, int channel)
 }
 
 
-#if BLD_WIN_LIKE && !WINCE
+#if BIT_WIN_LIKE && !WINCE
 /*
     Windows only routine to wait for I/O on the channels to the gateway and the child process.
     NamedPipes can't use WaitForMultipleEvents (can use overlapped I/O)
@@ -701,7 +701,7 @@ int mprWaitForCmd(MprCmd *cmd, MprTime timeout)
         if (mprShouldAbortRequests()) {
             break;
         }
-#if BLD_WIN_LIKE
+#if BIT_WIN_LIKE
         waitForWinEvent(cmd, remaining);
 #else
         mprWaitForEvent(cmd->dispatcher, remaining);
@@ -733,7 +733,7 @@ static void reapCmd(MprCmd *cmd, MprSignal *sp)
     if (cmd->pid == 0) {
         return;
     }
-#if BLD_UNIX_LIKE
+#if BIT_UNIX_LIKE
     if ((rc = waitpid(cmd->pid, &status, WNOHANG | __WALL)) < 0) {
         mprLog(6, "waitpid failed for pid %d, errno %d", cmd->pid, errno);
 
@@ -774,7 +774,7 @@ static void reapCmd(MprCmd *cmd, MprSignal *sp)
     cmd->pid = 0;
     rc = 0;
 #endif
-#if BLD_WIN_LIKE
+#if BIT_WIN_LIKE
     if (GetExitCodeProcess(cmd->process, (ulong*) &status) == 0) {
         mprLog(3, "cmd: GetExitProcess error");
         return;
@@ -978,7 +978,7 @@ void mprSetCmdDir(MprCmd *cmd, cchar *dir)
 }
 
 
-#if BLD_WIN_LIKE
+#if BIT_WIN_LIKE
 static int sortEnv(char **str1, char **str2)
 {
     cchar    *s1, *s2;
@@ -1053,7 +1053,7 @@ static int blendEnv(MprCmd *cmd, cchar **env, int flags)
             mprAddItem(cmd->env, *ep);
         }
     }
-#if BLD_WIN_LIKE
+#if BIT_WIN_LIKE
     /*
         Windows requires a caseless sort with two trailing nulls
      */
@@ -1064,7 +1064,7 @@ static int blendEnv(MprCmd *cmd, cchar **env, int flags)
 }
 
 
-#if BLD_WIN_LIKE
+#if BIT_WIN_LIKE
 static cchar *makeWinEnvBlock(MprCmd *cmd)
 {
     char    *item, *dp, *ep, *env;
@@ -1097,12 +1097,12 @@ static cchar *makeWinEnvBlock(MprCmd *cmd)
  */
 static int sanitizeArgs(MprCmd *cmd, int argc, cchar **argv, cchar **env, int flags)
 {
-#if BLD_UNIX_LIKE || VXWORKS
+#if BIT_UNIX_LIKE || VXWORKS
     cmd->argv = argv;
     cmd->argc = argc;
 #endif
 
-#if BLD_WIN_LIKE
+#if BIT_WIN_LIKE
     /*
         WARNING: If starting a program compiled with Cygwin, there is a bug in Cygwin's parsing of the command
         string where embedded quotes are parsed incorrectly by the Cygwin CRT runtime. If an arg starts with a 
@@ -1184,12 +1184,12 @@ static int sanitizeArgs(MprCmd *cmd, int argc, cchar **argv, cchar **env, int fl
     *dp = '\0';
     argv[0] = saveArg0;
     mprLog(5, "Windows command line: %s", cmd->command);
-#endif /* BLD_WIN_LIKE */
+#endif /* BIT_WIN_LIKE */
     return 0;
 }
 
 
-#if BLD_WIN_LIKE
+#if BIT_WIN_LIKE
 static int startProcess(MprCmd *cmd)
 {
     PROCESS_INFORMATION procInfo;
@@ -1367,7 +1367,7 @@ static int makeChannel(MprCmd *cmd, int index)
 #endif /* WINCE */
 
 
-#elif BLD_UNIX_LIKE
+#elif BIT_UNIX_LIKE
 static int makeChannel(MprCmd *cmd, int index)
 {
     MprCmdFile      *file;
@@ -1399,7 +1399,7 @@ static int makeChannel(MprCmd *cmd, int index)
     static int      tempSeed = 0;
 
     file = &cmd->files[index];
-    file->name = sfmt("/pipe/%s_%d_%d", BLD_PRODUCT, taskIdSelf(), tempSeed++);
+    file->name = sfmt("/pipe/%s_%d_%d", BIT_PRODUCT, taskIdSelf(), tempSeed++);
 
     if (pipeDevCreate(file->name, 5, MPR_BUFSIZE) < 0) {
         mprError("Can't create pipes to run %s", cmd->program);
@@ -1424,7 +1424,7 @@ static int makeChannel(MprCmd *cmd, int index)
 #endif
 
 
-#if BLD_UNIX_LIKE
+#if BIT_UNIX_LIKE
 static int startProcess(MprCmd *cmd)
 {
     MprCmdFile      *files;

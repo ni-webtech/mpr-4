@@ -10,7 +10,7 @@
 
 /******************************* Local Defines ********************************/
 
-#if BLD_CC_MMU 
+#if BIT_CC_MMU 
     #define VALLOC 1                /* Use virtual memory allocations */
 #else
     #define VALLOC 0
@@ -74,7 +74,7 @@ int stopSeqno = -1;
 /*
     Memory checking and breakpoints
  */
-#if BLD_MEMORY_DEBUG
+#if BIT_MEMORY_DEBUG
 #define BREAKPOINT(mp)          breakpoint(mp)
 #define CHECK(mp)               mprCheckBlock((MprMem*) mp)
 #define CHECK_FREE_MEMORY(mp)   checkFreeMem(mp)
@@ -103,7 +103,7 @@ int stopSeqno = -1;
 #define VALID_BLK(mp)           1
 #endif
 
-#if BLD_MEMORY_STATS
+#if BIT_MEMORY_STATS
     #define INC(field)          if (1) { heap->stats.field++; } else 
 #else
     #define INC(field)
@@ -127,12 +127,12 @@ int stopSeqno = -1;
  */
 #if LINUX
     #define NEED_FLSL 1
-    #if BLD_CPU_ARCH == MPR_CPU_X86 || BLD_CPU_ARCH == MPR_CPU_X64
+    #if BIT_CPU_ARCH == MPR_CPU_X86 || BIT_CPU_ARCH == MPR_CPU_X64
         #define USE_FLSL_ASM_X86 1
     #endif
     static MPR_INLINE int flsl(ulong word);
 
-#elif BLD_WIN_LIKE
+#elif BIT_WIN_LIKE
     #define NEED_FFSL 1
     #define NEED_FLSL 1
     static MPR_INLINE int ffsl(ulong word);
@@ -172,15 +172,15 @@ static void synchronize();
 static int syncThreads();
 static void triggerGC(int flags);
 
-#if BLD_WIN_LIKE
+#if BIT_WIN_LIKE
     static int winPageModes(int flags);
 #endif
-#if BLD_MEMORY_DEBUG
+#if BIT_MEMORY_DEBUG
     static void breakpoint(MprMem *mp);
     static int validBlk(MprMem *mp);
     static void checkFreeMem(MprMem *mp);
 #endif
-#if BLD_MEMORY_STATS
+#if BIT_MEMORY_STATS
 #if FUTURE
     static void showMem(MprMem *mp);
 #endif
@@ -188,7 +188,7 @@ static void triggerGC(int flags);
     static void printQueueStats();
     static void printGCStats();
 #endif
-#if BLD_MEMORY_STACK
+#if BIT_MEMORY_STACK
 static void monitorStack();
 #endif
 
@@ -201,7 +201,7 @@ static void linkBlock(MprMem *mp);
 static void unlinkBlock(MprFreeMem *fp);
 static void *vmalloc(ssize size, int mode);
 static void vmfree(void *ptr, ssize size);
-#if BLD_MEMORY_STATS
+#if BIT_MEMORY_STATS
     static MprFreeMem *getQueue(ssize size);
 #endif
 
@@ -459,14 +459,14 @@ ssize mprMemcpy(void *dest, ssize destMax, cvoid *src, ssize nbytes)
 static int initFree() 
 {
     MprFreeMem  *freeq;
-#if BLD_MEMORY_STATS
+#if BIT_MEMORY_STATS
     ssize       bit, size, groupBits, bucketBits;
     int         index, group, bucket;
 #endif
     
     heap->freeEnd = &heap->freeq[MPR_ALLOC_NUM_GROUPS * MPR_ALLOC_NUM_BUCKETS];
     for (freeq = heap->freeq; freeq != heap->freeEnd; freeq++) {
-#if BLD_MEMORY_STATS
+#if BIT_MEMORY_STATS
         /*
             NOTE: skip the buckets with MSB == 0 (round up)
          */
@@ -495,7 +495,7 @@ static MprMem *allocMem(ssize required, int flags)
     ulong       groupMap, bucketMap;
     int         bucket, baseGroup, group, index;
     
-#if BLD_MEMORY_STACK
+#if BIT_MEMORY_STACK
     monitorStack();
 #endif
 
@@ -762,7 +762,7 @@ static int getQueueIndex(ssize size, int roundup)
     index = (group * MPR_ALLOC_NUM_BUCKETS) + bucket;
     mprAssert(index < (heap->freeEnd - heap->freeq));
     
-#if BLD_MEMORY_STATS
+#if BIT_MEMORY_STATS
     mprAssert(heap->freeq[index].info.stats.minSize <= (int) usize && 
         (int) usize < heap->freeq[index + 1].info.stats.minSize);
 #endif
@@ -828,7 +828,7 @@ static void linkBlock(MprMem *mp)
     mprAssert(fp != fp->prev);
 
     heap->stats.bytesFree += size;
-#if BLD_MEMORY_STATS
+#if BIT_MEMORY_STATS
     freeq->info.stats.count++;
 #endif
 }
@@ -845,7 +845,7 @@ static void unlinkBlock(MprFreeMem *fp)
     CHECK(fp);
     fp->prev->next = fp->next;
     fp->next->prev = fp->prev;
-#if BLD_MEMORY_DEBUG
+#if BIT_MEMORY_DEBUG
     fp->next = fp->prev = NULL;
 #endif
 
@@ -855,7 +855,7 @@ static void unlinkBlock(MprFreeMem *fp)
     mprAssert(IS_FREE(mp));
     SET_FREE(mp, 0);
     mprAtomicBarrier();
-#if BLD_MEMORY_STATS
+#if BIT_MEMORY_STATS
 {
     MprFreeMem *freeq = getQueue(size);
     freeq->info.stats.count--;
@@ -865,7 +865,7 @@ static void unlinkBlock(MprFreeMem *fp)
 }
 
 
-#if BLD_MEMORY_STATS
+#if BIT_MEMORY_STATS
 static MprFreeMem *getQueue(ssize size)
 {   
     MprFreeMem  *freeq;
@@ -924,11 +924,11 @@ static void *vmalloc(ssize size, int mode)
     void    *ptr;
 
 #if VALLOC
-    #if BLD_UNIX_LIKE
+    #if BIT_UNIX_LIKE
         if ((ptr = mmap(0, size, mode, MAP_PRIVATE | MAP_ANON, -1, 0)) == (void*) -1) {
             return 0;
         }
-    #elif BLD_WIN_LIKE
+    #elif BIT_WIN_LIKE
         ptr = VirtualAlloc(0, size, MEM_RESERVE | MEM_COMMIT, winPageModes(mode));
     #else
         if ((ptr = malloc(size)) != 0) {
@@ -947,11 +947,11 @@ static void *vmalloc(ssize size, int mode)
 static void vmfree(void *ptr, ssize size)
 {
 #if VALLOC
-    #if BLD_UNIX_LIKE
+    #if BIT_UNIX_LIKE
         if (munmap(ptr, size) != 0) {
             mprAssert(0);
         }
-    #elif BLD_WIN_LIKE
+    #elif BIT_WIN_LIKE
         VirtualFree(ptr, 0, MEM_RELEASE);
     #else
         if (heap->scribble) {
@@ -1047,7 +1047,7 @@ void mprRequestGC(int flags)
  */
 static void synchronize()
 {
-#if BLD_MEMORY_STATS
+#if BIT_MEMORY_STATS
     LOG(7, "GC: MARKED %,d/%,d, SWEPT %,d/%,d, freed %,d, bytesFree %,d (prior %,d), newCount %,d/%,d, " 
             "blocks %,d bytes %,d",
             heap->stats.marked, heap->stats.markVisited, heap->stats.swept, heap->stats.sweepVisited, 
@@ -1178,7 +1178,7 @@ static void sweep()
                 CHECK(mp);
                 BREAKPOINT(mp);
                 INC(swept);
-#if BLD_DEBUG && BLD_MEMORY_STATS
+#if BIT_DEBUG && BIT_MEMORY_STATS
                 if (heap->track) {
                     freeLocation(mp->name, GET_SIZE(mp));
                 }
@@ -1237,7 +1237,7 @@ void mprMarkBlock(cvoid *ptr)
 {
     MprMem      *mp;
     int         gen;
-#if BLD_DEBUG
+#if BIT_DEBUG
     static int  depth = 0;
 #endif
 
@@ -1245,7 +1245,7 @@ void mprMarkBlock(cvoid *ptr)
         return;
     }
     mp = MPR_GET_MEM(ptr);
-#if BLD_DEBUG
+#if BIT_DEBUG
     if (!mprIsValid(ptr)) {
         mprError("Memory block is either not dynamically allocated, or is corrupted");
         return;
@@ -1274,14 +1274,14 @@ void mprMarkBlock(cvoid *ptr)
         /* Lock-free update */
         SET_FIELD2(mp, GET_SIZE(mp), gen, heap->active, 0);
         if (HAS_MANAGER(mp)) {
-#if BLD_DEBUG
+#if BIT_DEBUG
             if (++depth > 400) {
                 fprintf(stderr, "WARNING: Possibly too much recursion. Marking depth exceeds 400\n");
                 mprBreakpoint();
             }
 #endif
             (GET_MANAGER(mp))((void*) ptr, MPR_MANAGE_MARK);
-#if BLD_DEBUG
+#if BIT_DEBUG
             --depth;
 #endif
         }
@@ -1427,7 +1427,7 @@ static int syncThreads()
     MprTime             mark;
     int                 i, allYielded, timeout;
 
-#if BLD_DEBUG
+#if BIT_DEBUG
     uint64  ticks = mprGetTicks();
 #endif
 
@@ -1470,7 +1470,7 @@ static int syncThreads()
 
     } while (!allYielded && mprGetElapsedTime(mark) < timeout);
 
-#if BLD_DEBUG
+#if BIT_DEBUG
     LOG(7, "TIME: syncThreads elapsed %,d msec, %,d ticks", mprGetElapsedTime(mark), mprGetTicks() - ticks);
 #endif
     if (allYielded) {
@@ -1508,7 +1508,7 @@ void mprResumeThreads()
 
 void mprVerifyMem()
 {
-#if BLD_MEMORY_DEBUG
+#if BIT_MEMORY_DEBUG
     MprRegion   *region;
     MprMem      *mp;
     MprFreeMem  *freeq, *fp;
@@ -1667,7 +1667,7 @@ static void *getNextRoot()
 
 /****************************************************** Debug *************************************************************/
 
-#if BLD_MEMORY_STATS
+#if BIT_MEMORY_STATS
 static void printQueueStats() 
 {
     MprFreeMem  *freeq;
@@ -1768,12 +1768,12 @@ static void printGCStats()
     printf("  Dead generation has    %9d blocks, %12d bytes\n", counts[heap->dead], (int) bytes[heap->dead]);
     printf("  Free generation has    %9d blocks, %12d bytes\n", counts[free], (int) bytes[free]);
 }
-#endif /* BLD_MEMORY_STATS */
+#endif /* BIT_MEMORY_STATS */
 
 
 void mprPrintMem(cchar *msg, int detail)
 {
-#if BLD_MEMORY_STATS
+#if BIT_MEMORY_STATS
     MprMemStats   *ap;
 
     ap = mprGetMemStats();
@@ -1803,11 +1803,11 @@ void mprPrintMem(cchar *msg, int detail)
             printTracking();
         }
     }
-#endif /* BLD_MEMORY_STATS */
+#endif /* BIT_MEMORY_STATS */
 }
 
 
-#if BLD_MEMORY_DEBUG
+#if BIT_MEMORY_DEBUG
 static int validBlk(MprMem *mp)
 {
     ssize   size;
@@ -1870,7 +1870,7 @@ void *mprSetAllocName(void *ptr, cchar *name)
 {
     MPR_GET_MEM(ptr)->name = name;
 
-#if BLD_MEMORY_STATS
+#if BIT_MEMORY_STATS
     if (heap->track) {
         MprLocationStats    *lp;
         cchar               **np;
@@ -1898,7 +1898,7 @@ void *mprSetAllocName(void *ptr, cchar *name)
 
 static void freeLocation(cchar *name, ssize size)
 {
-#if BLD_MEMORY_STATS
+#if BIT_MEMORY_STATS
     MprLocationStats    *lp;
     int                 index, i;
 
@@ -1919,7 +1919,7 @@ static void freeLocation(cchar *name, ssize size)
 
 void *mprSetName(void *ptr, cchar *name) 
 {
-#if BLD_MEMORY_STATS
+#if BIT_MEMORY_STATS
     MprMem  *mp = GET_MEM(ptr);
     if (mp->name) {
         freeLocation(mp->name, GET_SIZE(mp));
@@ -2018,7 +2018,7 @@ static void getSystemInfo()
     }
     alloc.pageSize = sysconf(_SC_PAGESIZE);
 }
-#elif BLD_WIN_LIKE
+#elif BIT_WIN_LIKE
 {
     SYSTEM_INFO     info;
 
@@ -2082,7 +2082,7 @@ static void getSystemInfo()
 }
 
 
-#if BLD_WIN_LIKE
+#if BIT_WIN_LIKE
 static int winPageModes(int flags)
 {
     if (flags & MPR_MAP_EXECUTE) {
@@ -2278,7 +2278,7 @@ static MPR_INLINE int flsl(ulong word)
 #endif /* NEED_FFSL */
 
 
-#if BLD_WIN_LIKE
+#if BIT_WIN_LIKE
 Mpr *mprGetMpr()
 {
     return MPR;
@@ -2357,7 +2357,7 @@ int mprIsValid(cvoid *ptr)
     MprMem      *mp;
 
     mp = GET_MEM(ptr);
-#if BLD_WIN
+#if BIT_WIN
     if (isBadWritePtr(mp, sizeof(MprMem))) {
         return 0;
     }
@@ -2369,7 +2369,7 @@ int mprIsValid(cvoid *ptr)
     }
     return 0;
 #else
-#if BLD_DEBUG
+#if BIT_DEBUG
     return ptr && mp->magic == MPR_ALLOC_MAGIC && GET_SIZE(mp) > 0;
 #else
     return ptr && GET_SIZE(mp) > 0;
@@ -2399,7 +2399,7 @@ void *mprSetManager(void *ptr, MprManager manager)
 }
 
 
-#if BLD_MEMORY_STATS && FUTURE
+#if BIT_MEMORY_STATS && FUTURE
 static void showMem(MprMem *mp)
 {
     char    *gen, *mark, buf[MPR_MAX_STRING];
@@ -2431,7 +2431,7 @@ static void showMem(MprMem *mp)
     }
     sprintf(buf, "Mem 0x%p, size %d, free %d, mgr %d, last %d, prior 0x%p, gen \"%s\", mark \"%s\"\n",
         mp, (int) GET_SIZE(mp), (int) IS_FREE(mp), (int) HAS_MANAGER(mp), (int) IS_LAST(mp), GET_PRIOR(mp), gen, mark);
-#if BLD_WIN
+#if BIT_WIN
     OutputDebugString(buf);
 #else
     print(buf);
@@ -2442,7 +2442,7 @@ static void showMem(MprMem *mp)
 
 static void checkYielded()
 {
-#if BLD_DEBUG
+#if BIT_DEBUG
     MprThreadService    *ts;
     MprThread           *tp;
     int                 i;
@@ -2458,7 +2458,7 @@ static void checkYielded()
 }
 
 
-#if BLD_MEMORY_STACK
+#if BIT_MEMORY_STACK
 static void monitorStack()
 {
     MprThread   *tp;
@@ -2481,7 +2481,7 @@ static void monitorStack()
 }
 #endif
 
-#if !BLD_MEMORY_DEBUG
+#if !BIT_MEMORY_DEBUG
 #undef mprSetName
 #undef mprCopyName
 #undef mprSetAllocName

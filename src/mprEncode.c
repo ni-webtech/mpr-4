@@ -150,7 +150,7 @@ char *mprEscapeCmd(cchar *cmd, int escChar)
     }
     op = result;
     while ((c = (uchar) *cmd++) != 0) {
-#if BLD_WIN_LIKE
+#if BIT_WIN_LIKE
         //  TODO - should use fs->newline
         if ((c == '\r' || c == '\n') && *cmd != '\0') {
             c = ' ';

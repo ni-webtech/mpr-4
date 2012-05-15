@@ -187,23 +187,23 @@
 #if EMBEDTHIS || 1
  #include    "bit.h"
 #endif
-#ifndef BLD_FEATURE_FLOAT
-    #define BLD_FEATURE_FLOAT 1
+#ifndef BIT_FEATURE_FLOAT
+    #define BIT_FEATURE_FLOAT 1
 #endif
-#if BLD_FEATURE_FLOAT
+#if BIT_FEATURE_FLOAT
 
 #if EMBEDTHIS || 1
 #include    "mpr.h"
     #define MULTIPLE_THREADS 1
     extern void mprLockDtoa(int n);
     extern void mprUnlockDtoa(int n);
-    #if WIN || WINCE
+    #if WINDOWS || WINCE
         typedef int int32_t;
         typedef unsigned int uint32_t;
     #endif
     #define Long int32_t
     #define ULong uint32_t
-#if BLD_CPU_ARCH == MPR_CPU_PPC
+#if BIT_CPU_ARCH == MPR_CPU_PPC
     #define IEEE_MC68k 1
 #else
     #define IEEE_8087 1
@@ -4284,4 +4284,4 @@ dtoa
 }
 #endif
 /* EMBEDTHIS */
-#endif /* BLD_FEATURE_FLOAT */
+#endif /* BIT_FEATURE_FLOAT */

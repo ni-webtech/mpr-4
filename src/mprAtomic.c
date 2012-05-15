@@ -16,13 +16,13 @@ void mprAtomicBarrier()
         VX_MEM_BARRIER_RW();
     #elif MACOSX
         OSMemoryBarrier();
-    #elif BLD_WIN_LIKE
+    #elif BIT_WIN_LIKE
         MemoryBarrier();
-    #elif BLD_CC_SYNC
+    #elif BIT_CC_SYNC
         __sync_synchronize();
-    #elif __GNUC__ && (BLD_CPU_ARCH == MPR_CPU_X86 || BLD_CPU_ARCH == MPR_CPU_X64)
+    #elif __GNUC__ && (BIT_CPU_ARCH == MPR_CPU_X86 || BIT_CPU_ARCH == MPR_CPU_X64)
         asm volatile ("mfence" : : : "memory");
-    #elif __GNUC__ && (BLD_CPU_ARCH == MPR_CPU_PPC)
+    #elif __GNUC__ && (BIT_CPU_ARCH == MPR_CPU_PPC)
         asm volatile ("sync" : : : "memory");
     #else
         getpid();
@@ -41,18 +41,18 @@ int mprAtomicCas(void * volatile *addr, void *expected, cvoid *value)
 {
     #if MACOSX
         return OSAtomicCompareAndSwapPtrBarrier(expected, (void*) value, (void*) addr);
-    #elif BLD_WIN_LIKE
+    #elif BIT_WIN_LIKE
         {
             void *prev;
             prev = InterlockedCompareExchangePointer(addr, (void*) value, expected);
             return expected == prev;
         }
-    #elif BLD_CC_SYNC_CAS
+    #elif BIT_CC_SYNC_CAS
         return __sync_bool_compare_and_swap(addr, expected, value);
     #elif VXWORKS && _VX_ATOMIC_INIT && !MPR_64BIT
         /* vxCas operates with integer values */
         return vxCas((atomic_t*) addr, (atomicVal_t) expected, (atomicVal_t) value);
-    #elif BLD_CPU_ARCH == MPR_CPU_X86
+    #elif BIT_CPU_ARCH == MPR_CPU_X86
         {
             void *prev;
             asm volatile ("lock; cmpxchgl %2, %1"
@@ -60,7 +60,7 @@ int mprAtomicCas(void * volatile *addr, void *expected, cvoid *value)
                 : "r" (value), "m" (*addr), "0" (expected));
             return expected == prev;
         }
-    #elif BLD_CPU_ARCH == MPR_CPU_X64
+    #elif BIT_CPU_ARCH == MPR_CPU_X64
         {
             void *prev;
             asm volatile ("lock; cmpxchgq %q2, %1"
@@ -89,11 +89,11 @@ void mprAtomicAdd(volatile int *ptr, int value)
 {
     #if MACOSX
         OSAtomicAdd32(value, ptr);
-    #elif BLD_WIN_LIKE
+    #elif BIT_WIN_LIKE
         InterlockedExchangeAdd(ptr, value);
     #elif VXWORKS && _VX_ATOMIC_INIT
         vxAtomicAdd(ptr, value);
-    #elif (BLD_CPU_ARCH == MPR_CPU_X86 || BLD_CPU_ARCH == MPR_CPU_X64) && FUTURE
+    #elif (BIT_CPU_ARCH == MPR_CPU_X86 || BIT_CPU_ARCH == MPR_CPU_X64) && FUTURE
         asm volatile ("lock; xaddl %0,%1"
             : "=r" (value), "=m" (*ptr)
             : "0" (value), "m" (*ptr)
@@ -113,9 +113,9 @@ void mprAtomicAdd64(volatile int64 *ptr, int value)
 {
 #if MACOSX
     OSAtomicAdd64(value, ptr);
-#elif BLD_WIN_LIKE && MPR_64_BIT
+#elif BIT_WIN_LIKE && MPR_64_BIT
     InterlockedExchangeAdd64(ptr, value);
-#elif BLD_UNIX_LIKE && FUTURE
+#elif BIT_UNIX_LIKE && FUTURE
     asm volatile ("lock; xaddl %0,%1"
         : "=r" (value), "=m" (*ptr)
         : "0" (value), "m" (*ptr)
@@ -132,9 +132,9 @@ void *mprAtomicExchange(void * volatile *addr, cvoid *value)
 {
 #if MACOSX && 0
     return OSAtomicCompareAndSwapPtrBarrier(expected, value, addr);
-#elif BLD_WIN_LIKE
+#elif BIT_WIN_LIKE
     return (void*) InterlockedExchange((volatile LONG*) addr, (LONG) value);
-#elif BLD_UNIX_LIKE && FUTURE
+#elif BIT_UNIX_LIKE && FUTURE
     return __sync_lock_test_and_set(addr, value);
 #else
     {

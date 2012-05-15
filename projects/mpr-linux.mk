@@ -9,7 +9,7 @@ CONFIG   := $(OS)-$(ARCH)-$(PROFILE)
 CC       := gcc
 LD       := ld
 CFLAGS   := -fPIC -g -mtune=generic -w
-DFLAGS   := -D_REENTRANT -DPIC -DBLD_DEBUG
+DFLAGS   := -D_REENTRANT -DPIC -DBIT_DEBUG
 IFLAGS   := -I$(CONFIG)/inc
 LDFLAGS  := '-Wl,--enable-new-dtags' '-Wl,-rpath,$$ORIGIN/' '-Wl,-rpath,$$ORIGIN/../bin' '-rdynamic' '-g'
 LIBPATHS := -L$(CONFIG)/bin

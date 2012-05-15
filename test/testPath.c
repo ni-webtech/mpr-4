@@ -125,10 +125,10 @@ static void testAbsPath(MprTestGroup *gp)
     path = mprGetAbsPath("Makefile");
     assert(path && *path);
     assert(mprIsPathAbs(path));
-#if BLD_WIN_LIKE
+#if BIT_WIN_LIKE
     assert(isalpha(path[0]));
     assert(path[1] == ':' && path[2] == '\\');
-#elif BLD_UNIX_LIKE
+#elif BIT_UNIX_LIKE
     assert(path[0] == '/' && path[1] != '/');
 #endif
     assert(strcmp(mprGetPathBase(path), "Makefile") == 0);
@@ -137,7 +137,7 @@ static void testAbsPath(MprTestGroup *gp)
 
 static void testJoinPath(MprTestGroup *gp)
 {
-#if BLD_WIN_LIKE
+#if BIT_WIN_LIKE
     assert(strcmp(mprJoinPath("\\tmp", "Makefile"), "\\tmp\\Makefile") == 0);
     assert(strcmp(mprJoinPath("\\tmp", "\\Makefile"), "\\Makefile") == 0);
     assert(strcmp(mprJoinPath("\\tmp", NULL), "\\tmp") == 0);
@@ -226,7 +226,7 @@ static void testNormalize(MprTestGroup *gp)
     path = mprNormalizePath("//a//b//./././c/d/e/f/../../g");
     assert(strcmp(path, "/a/b/c/d/g") == 0);
 
-#if VXWORKS || BLD_WIN_LIKE
+#if VXWORKS || BIT_WIN_LIKE
     path = mprNormalizePath("\\\\a\\\\b\\\\.\\.\\.\\c\\d\\e\\f\\..\\..\\g");
     mprAssert(strcmp(path, "\\a\\b\\c\\d\\g") == 0);
     assert(strcmp(mprNormalizePath("host:"), "host:.") == 0);
@@ -357,7 +357,7 @@ static void testTransform(MprTestGroup *gp)
     path = mprTransformPath("/", MPR_PATH_ABS);
     mprAssert(mprIsPathAbs(path));
 
-#if BLD_WIN_LIKE || CYGWIN
+#if BIT_WIN_LIKE || CYGWIN
     /* Test MapSeparators */
     path = sclone("\\a\\b\\c\\d");
     mprMapSeparators(path, '/');

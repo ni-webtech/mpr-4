@@ -160,7 +160,7 @@ MprThread *mprCreateThread(cchar *name, void *entry, void *data, ssize stackSize
     } else {
         tp->stackSize = stackSize;
     }
-#if BLD_WIN_LIKE
+#if BIT_WIN_LIKE
     tp->threadHandle = 0;
 #endif
     mprAssert(ts);
@@ -188,7 +188,7 @@ static void manageThread(MprThread *tp, int flags)
         if (ts->threads) {
             mprRemoveItem(ts->threads, tp);
         }
-#if BLD_WIN_LIKE
+#if BIT_WIN_LIKE
         if (tp->threadHandle) {
             CloseHandle(tp->threadHandle);
         }
@@ -200,7 +200,7 @@ static void manageThread(MprThread *tp, int flags)
 /*
     Entry thread function
  */ 
-#if BLD_WIN_LIKE
+#if BIT_WIN_LIKE
 static uint __stdcall threadProcWrapper(void *data) 
 {
     threadProc((MprThread*) data);
@@ -251,7 +251,7 @@ int mprStartThread(MprThread *tp)
     //  TODO - lock not needed
     lock(tp);
 
-#if BLD_WIN_LIKE
+#if BIT_WIN_LIKE
 {
     HANDLE          h;
     uint            threadId;
@@ -303,9 +303,9 @@ int mprStartThread(MprThread *tp)
 
 MprOsThread mprGetCurrentOsThread()
 {
-#if BLD_UNIX_LIKE
+#if BIT_UNIX_LIKE
     return (MprOsThread) pthread_self();
-#elif BLD_WIN_LIKE
+#elif BIT_WIN_LIKE
     return (MprOsThread) GetCurrentThreadId();
 #elif VXWORKS
     return (MprOsThread) taskIdSelf();
@@ -320,7 +320,7 @@ void mprSetThreadPriority(MprThread *tp, int newPriority)
     lock(tp);
     osPri = mprMapMprPriorityToOs(newPriority);
 
-#if BLD_WIN_LIKE
+#if BIT_WIN_LIKE
     SetThreadPriority(tp->threadHandle, osPri);
 #elif VXWORKS
     taskPrioritySet(tp->osThread, osPri);
@@ -335,15 +335,15 @@ void mprSetThreadPriority(MprThread *tp, int newPriority)
 static void manageThreadLocal(MprThreadLocal *tls, int flags)
 {
     if (flags & MPR_MANAGE_MARK) {
-#if !BLD_UNIX_LIKE && !BLD_WIN_LIKE
+#if !BIT_UNIX_LIKE && !BIT_WIN_LIKE
         mprMark(tls->store);
 #endif
     } else if (flags & MPR_MANAGE_FREE) {
-#if BLD_UNIX_LIKE
+#if BIT_UNIX_LIKE
         if (tls->key) {
             pthread_key_delete(tls->key);
         }
-#elif BLD_WIN_LIKE
+#elif BIT_WIN_LIKE
         if (tls->key >= 0) {
             TlsFree(tls->key);
         }
@@ -359,12 +359,12 @@ MprThreadLocal *mprCreateThreadLocal()
     if ((tls = mprAllocObj(MprThreadLocal, manageThreadLocal)) == 0) {
         return 0;
     }
-#if BLD_UNIX_LIKE
+#if BIT_UNIX_LIKE
     if (pthread_key_create(&tls->key, NULL) != 0) {
         tls->key = 0;
         return 0;
     }
-#elif BLD_WIN_LIKE
+#elif BIT_WIN_LIKE
     if ((tls->key = TlsAlloc()) < 0) {
         return 0;
     }
@@ -381,9 +381,9 @@ int mprSetThreadData(MprThreadLocal *tls, void *value)
 {
     bool    err;
 
-#if BLD_UNIX_LIKE
+#if BIT_UNIX_LIKE
     err = pthread_setspecific(tls->key, value) != 0;
-#elif BLD_WIN_LIKE
+#elif BIT_WIN_LIKE
     err = TlsSetValue(tls->key, value) != 0;
 #else
     {
@@ -398,9 +398,9 @@ int mprSetThreadData(MprThreadLocal *tls, void *value)
 
 void *mprGetThreadData(MprThreadLocal *tls)
 {
-#if BLD_UNIX_LIKE
+#if BIT_UNIX_LIKE
     return pthread_getspecific(tls->key);
-#elif BLD_WIN_LIKE
+#elif BIT_WIN_LIKE
     return TlsGetValue(tls->key);
 #else
     {
@@ -412,7 +412,7 @@ void *mprGetThreadData(MprThreadLocal *tls)
 }
 
 
-#if BLD_WIN_LIKE
+#if BIT_WIN_LIKE
 /*
     Map Mpr priority to Windows native priority. Windows priorities range from -15 to +15 (zero is normal). 
     Warning: +15 will not yield the CPU, -15 may get starved. We should be very wary going above +11.

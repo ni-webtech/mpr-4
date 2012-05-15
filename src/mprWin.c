@@ -1,5 +1,5 @@
 /**
-    mprWin.c - Windows specific adaptions. Used by BLD_WIN_LIKE and CYGWIN
+    mprWin.c - Windows specific adaptions. Used by BIT_WIN_LIKE and CYGWIN
 
     Copyright (c) All Rights Reserved. See details at the end of the file.
  */
@@ -12,7 +12,7 @@
  #include "w32api/windows.h"
 #endif
 
-#if BLD_WIN_LIKE && !WINCE
+#if BIT_WIN_LIKE && !WINCE
 /*********************************** Code *************************************/
 /*
     Initialize the O/S platform layer
@@ -217,10 +217,10 @@ void mprWriteToOsLog(cchar *message, int flags, int level)
 }
 
 
-#endif /* BLD_WIN_LIKE */
+#endif /* BIT_WIN_LIKE */
 
 
-#if (BLD_WIN_LIKE && !WINCE) || CYGWIN
+#if (BIT_WIN_LIKE && !WINCE) || CYGWIN
 /*
     Determine the registry hive by the first portion of the path. Return 
     a pointer to the rest of key path after the hive portion.
@@ -347,7 +347,7 @@ int mprWriteRegistry(cchar *key, cchar *name, cchar *value)
 }
 
 
-#endif /* (BLD_WIN_LIKE && !WINCE) || CYGWIN */
+#endif /* (BIT_WIN_LIKE && !WINCE) || CYGWIN */
 
 /*
     @copy   default

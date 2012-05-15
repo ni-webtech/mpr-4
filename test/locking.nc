@@ -48,17 +48,17 @@ MprMutex *globalMutex;
 void lock(void *m)
 {
     if (lockStyle == SPIN) {
-        #if BLD_WIN_LIKE
+        #if BIT_WIN_LIKE
             mprLock((MprMutex*) m);
         #elif MACOSX
             OSSpinLockLock((OSSpinLock*) m);
-        #elif BLD_UNIX_LIKE
+        #elif BIT_UNIX_LIKE
             pthread_spin_lock((pthread_spinlock_t*) m);
         #endif
     } else if (lockStyle == MPR) {
         mprLock((MprMutex*) m);
 
-#if BLD_UNIX_LIKE
+#if BIT_UNIX_LIKE
     } else if (lockStyle == PTHREAD) {
         pthread_mutex_lock((pthread_mutex_t*) m);
 #endif
@@ -69,17 +69,17 @@ void lock(void *m)
 void unlock(void *m)
 {
     if (lockStyle == SPIN) {
-        #if BLD_WIN_LIKE
+        #if BIT_WIN_LIKE
             mprUnlock((MprMutex*) m);
         #elif MACOSX
             OSSpinLockUnlock((OSSpinLock*) m);
-        #elif BLD_UNIX_LIKE
+        #elif BIT_UNIX_LIKE
             pthread_spin_unlock((pthread_spinlock_t*) m);
         #endif
     } else if (lockStyle == MPR) {
         mprUnlock((MprMutex*) m);
 
-#if BLD_UNIX_LIKE
+#if BIT_UNIX_LIKE
     } else if (lockStyle == PTHREAD) {
         pthread_mutex_unlock((pthread_mutex_t*) m);
 #endif
@@ -175,7 +175,7 @@ int main(int argc, char **argv)
         for (i = 0; i < threadCount; i++) {
 #if MACOSX
             locks[i] = OS_SPINLOCK_INIT;
-#elif BLD_UNIX_LIKE
+#elif BIT_UNIX_LIKE
             pthread_spinlock_t     *spin;
             spin = locks[i] = mprAllocZeroed(mpr, sizeof(pthread_spinlock_t));
             pthread_spin_init(spin, 0);
@@ -187,7 +187,7 @@ int main(int argc, char **argv)
             locks[i] = mprCreateLock(mpr);
         }
 
-#if BLD_UNIX_LIKE
+#if BIT_UNIX_LIKE
     } else if (lockStyle == PTHREAD) {
         for (i = 0; i < threadCount; i++) {
             pthread_mutex_t     *mutex;
