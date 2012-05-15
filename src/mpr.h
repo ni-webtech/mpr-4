@@ -1354,7 +1354,7 @@ struct  MprXml;
     #define MPR_EVENT_KQUEUE    1
 #elif VXWORKS || WINCE || CYGWIN
     #define MPR_EVENT_SELECT    1
-#elif WIN
+#elif WINDOWS
     #define MPR_EVENT_ASYNC     1
 #else
     #define MPR_EVENT_POLL      1
