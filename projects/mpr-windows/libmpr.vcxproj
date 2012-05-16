@@ -1,0 +1,171 @@
+<?xml version="1.0" encoding="utf-8"?>
+<Project DefaultTargets="Build" ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+
+  <ItemDefinitionGroup>
+    <ClCompile>
+      <AdditionalIncludeDirectories>$(IncDir);%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+    </ClCompile>
+    <Link>
+      <AdditionalDependencies>ws2_32.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalLibraryDirectories>$(OutDir);%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
+      <SubSystem>Console</SubSystem>
+    </Link>
+  </ItemDefinitionGroup>
+
+  <PropertyGroup Label="Globals">
+    <ProjectGuid>{fd1e5b7f-6cf4-462e-80de-4ece9e6e081d}</ProjectGuid>
+    <RootNamespace />
+    <Keyword>Win32Proj</Keyword>
+  </PropertyGroup>
+
+  <ItemGroup Label="ProjectConfigurations">
+    <ProjectConfiguration Include="Debug|Win32">
+      <Configuration>Debug</Configuration>
+      <Platform>Win32</Platform>
+    </ProjectConfiguration>
+    <ProjectConfiguration Include="Release|Win32">
+      <Configuration>Release</Configuration>
+      <Platform>Win32</Platform>
+    </ProjectConfiguration>
+    <ProjectConfiguration Include="Debug|x64">
+      <Configuration>Debug</Configuration>
+      <Platform>x64</Platform>
+    </ProjectConfiguration>
+    <ProjectConfiguration Include="Release|x64">
+      <Configuration>Release</Configuration>
+      <Platform>x64</Platform>
+    </ProjectConfiguration>
+  </ItemGroup>
+
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'" Label="Configuration">
+    <ConfigurationType>DynamicLibrary</ConfigurationType>
+    <CharacterSet>NotSet</CharacterSet>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'" Label="Configuration">
+    <ConfigurationType>DynamicLibrary</ConfigurationType>
+    <CharacterSet>NotSet</CharacterSet>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'" Label="Configuration">
+    <ConfigurationType>DynamicLibrary</ConfigurationType>
+    <CharacterSet>NotSet</CharacterSet>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'" Label="Configuration">
+    <ConfigurationType>DynamicLibrary</ConfigurationType>
+    <CharacterSet>NotSet</CharacterSet>
+  </PropertyGroup>
+
+  <Import Project="$(VCTargetsPath)Microsoft.Cpp.Default.props" />
+  <Import Project="$(VCTargetsPath)Microsoft.Cpp.props" />
+
+  <ImportGroup Label="PropertySheets" />
+  <ImportGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'" Label="PropertySheets">
+    <Import Project="product.props" />
+    <Import Project="debug.props" />
+    <Import Project="x86.props" />
+  </ImportGroup>
+  <ImportGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'" Label="PropertySheets">
+    <Import Project="product.props" />
+    <Import Project="release.props" />
+    <Import Project="x86.props" />
+  </ImportGroup>
+  <ImportGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'" Label="PropertySheets">
+    <Import Project="product.props" />
+    <Import Project="debug.props" />
+    <Import Project="x64.props" />
+  </ImportGroup>
+  <ImportGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'" Label="PropertySheets">
+    <Import Project="product.props" />
+    <Import Project="release.props" />
+    <Import Project="x64.props" />
+  </ImportGroup>
+
+  <PropertyGroup>
+    <_ProjectFileVersion>10</_ProjectFileVersion>
+
+    <OutDir Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">$(BinDir)\</OutDir>
+    <IntDir Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">$(ObjDir)\libmpr\</IntDir>
+    <CustomBuildBeforeTargets Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">PreBuildEvent</CustomBuildBeforeTargets>
+
+    <OutDir Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">$(BinDir)\</OutDir>
+    <IntDir Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">$(ObjDir)\libmpr\</IntDir>
+    <CustomBuildBeforeTargets Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">PreBuildEvent</CustomBuildBeforeTargets>
+
+    <OutDir Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">$(BinDir)\</OutDir>
+    <IntDir Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">$(ObjDir)\libmpr\</IntDir>
+    <CustomBuildBeforeTargets Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">PreBuildEvent</CustomBuildBeforeTargets>
+
+    <OutDir Condition="'$(Configuration)|$(Platform)'=='Release|x64'">$(BinDir)\</OutDir>
+    <IntDir Condition="'$(Configuration)|$(Platform)'=='Release|x64'">$(ObjDir)\libmpr\</IntDir>
+    <CustomBuildBeforeTargets Condition="'$(Configuration)|$(Platform)'=='Release|x64'">PreBuildEvent</CustomBuildBeforeTargets>
+  </PropertyGroup>
+  
+  <ItemGroup>
+    <ClCompile Include="..\..\src\dtoa.c" />
+    <ClCompile Include="..\..\src\mpr.c" />
+    <ClCompile Include="..\..\src\mprAsync.c" />
+    <ClCompile Include="..\..\src\mprAtomic.c" />
+    <ClCompile Include="..\..\src\mprBuf.c" />
+    <ClCompile Include="..\..\src\mprCache.c" />
+    <ClCompile Include="..\..\src\mprCmd.c" />
+    <ClCompile Include="..\..\src\mprCond.c" />
+    <ClCompile Include="..\..\src\mprCrypt.c" />
+    <ClCompile Include="..\..\src\mprDisk.c" />
+    <ClCompile Include="..\..\src\mprDispatcher.c" />
+    <ClCompile Include="..\..\src\mprEncode.c" />
+    <ClCompile Include="..\..\src\mprEpoll.c" />
+    <ClCompile Include="..\..\src\mprEvent.c" />
+    <ClCompile Include="..\..\src\mprFile.c" />
+    <ClCompile Include="..\..\src\mprFileSystem.c" />
+    <ClCompile Include="..\..\src\mprHash.c" />
+    <ClCompile Include="..\..\src\mprJSON.c" />
+    <ClCompile Include="..\..\src\mprKqueue.c" />
+    <ClCompile Include="..\..\src\mprList.c" />
+    <ClCompile Include="..\..\src\mprLock.c" />
+    <ClCompile Include="..\..\src\mprLog.c" />
+    <ClCompile Include="..\..\src\mprMem.c" />
+    <ClCompile Include="..\..\src\mprMime.c" />
+    <ClCompile Include="..\..\src\mprMixed.c" />
+    <ClCompile Include="..\..\src\mprModule.c" />
+    <ClCompile Include="..\..\src\mprPath.c" />
+    <ClCompile Include="..\..\src\mprPoll.c" />
+    <ClCompile Include="..\..\src\mprPrintf.c" />
+    <ClCompile Include="..\..\src\mprRomFile.c" />
+    <ClCompile Include="..\..\src\mprSelect.c" />
+    <ClCompile Include="..\..\src\mprSignal.c" />
+    <ClCompile Include="..\..\src\mprSocket.c" />
+    <ClCompile Include="..\..\src\mprString.c" />
+    <ClCompile Include="..\..\src\mprTest.c" />
+    <ClCompile Include="..\..\src\mprThread.c" />
+    <ClCompile Include="..\..\src\mprTime.c" />
+    <ClCompile Include="..\..\src\mprUnix.c" />
+    <ClCompile Include="..\..\src\mprVxworks.c" />
+    <ClCompile Include="..\..\src\mprWait.c" />
+    <ClCompile Include="..\..\src\mprWide.c" />
+    <ClCompile Include="..\..\src\mprWin.c" />
+    <ClCompile Include="..\..\src\mprWince.c" />
+    <ClCompile Include="..\..\src\mprXml.c" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ClInclude Include="$(IncDir)\mpr.h" />
+  </ItemGroup>
+
+  <ItemDefinitionGroup>
+  <Link>
+    <AdditionalDependencies>;%(AdditionalDependencies)</AdditionalDependencies>
+    <AdditionalLibraryDirectories>$(OutDir);$(Cfg)\bin;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
+  </Link>
+
+  <CustomBuildStep>
+    <Command>cd ..\..
+xcopy /Y /S /D src\mpr.h $(IncDir)
+cd projects\mpr-windows</Command>
+    <Outputs>$(BinDir)\libmpr.dll</Outputs>
+  </CustomBuildStep>
+  </ItemDefinitionGroup>
+
+  <Import Project="$(VCTargetsPath)Microsoft.Cpp.targets" />
+  <ImportGroup Label="ExtensionTargets">
+  </ImportGroup>
+
+</Project>
