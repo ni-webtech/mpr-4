@@ -1143,6 +1143,7 @@ fi";
 					"-lpthread",
 					"-lm",
 					"-ldl",
+					"-lpam",
 					"$(inherited)"
 				);
 
@@ -1215,6 +1216,7 @@ fi";
 					"-lpthread",
 					"-lm",
 					"-ldl",
+					"-lpam",
 					"$(inherited)"
 				);
 
