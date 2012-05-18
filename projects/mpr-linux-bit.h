@@ -40,7 +40,7 @@
 #define BIT_CC_EDITLINE 1
 #define BIT_CC_MMU 1
 #define BIT_CC_MTUNE 1
-#define BIT_CC_PAM 1
+#define BIT_CC_PAM 0
 #define BIT_CC_STACK_PROTECTOR 1
 #define BIT_CC_SYNC 1
 #define BIT_CC_SYNC_CAS 1
