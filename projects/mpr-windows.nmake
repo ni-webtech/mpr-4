@@ -25,14 +25,11 @@ LIBPATHS = -libpath:$(CONFIG)\bin
 LIBS     = ws2_32.lib advapi32.lib user32.lib kernel32.lib oldnames.lib msvcrt.lib shell32.lib
 
 all: prep \
-        $(CONFIG)\bin\benchMpr.exe \
         $(CONFIG)\bin\runProgram.exe \
         $(CONFIG)\bin\testMpr.exe \
         $(CONFIG)\bin\libmpr.dll \
         $(CONFIG)\bin\libmprssl.dll \
-        $(CONFIG)\bin\manager.exe \
-        $(CONFIG)\bin\makerom.exe \
-        $(CONFIG)\bin\chargen.exe
+        $(CONFIG)\bin\manager.exe
 
 .PHONY: prep
 
@@ -48,14 +45,11 @@ prep:
 	@if not exist $(CONFIG)\bin\libmpr.def xcopy /Y /S projects\mpr-windows\*.def $(CONFIG)\bin
 
 clean:
-	-if exist $(CONFIG)\bin\benchMpr.exe del /Q $(CONFIG)\bin\benchMpr.exe
 	-if exist $(CONFIG)\bin\runProgram.exe del /Q $(CONFIG)\bin\runProgram.exe
 	-if exist $(CONFIG)\bin\testMpr.exe del /Q $(CONFIG)\bin\testMpr.exe
 	-if exist $(CONFIG)\bin\libmpr.dll del /Q $(CONFIG)\bin\libmpr.dll
 	-if exist $(CONFIG)\bin\libmprssl.dll del /Q $(CONFIG)\bin\libmprssl.dll
 	-if exist $(CONFIG)\bin\manager.exe del /Q $(CONFIG)\bin\manager.exe
-	-if exist $(CONFIG)\bin\makerom.exe del /Q $(CONFIG)\bin\makerom.exe
-	-if exist $(CONFIG)\bin\chargen.exe del /Q $(CONFIG)\bin\chargen.exe
 	-if exist $(CONFIG)\obj\benchMpr.obj del /Q $(CONFIG)\obj\benchMpr.obj
 	-if exist $(CONFIG)\obj\runProgram.obj del /Q $(CONFIG)\obj\runProgram.obj
 	-if exist $(CONFIG)\obj\testArgv.obj del /Q $(CONFIG)\obj\testArgv.obj
@@ -125,6 +119,15 @@ clean:
 	-if exist $(CONFIG)\obj\manager.obj del /Q $(CONFIG)\obj\manager.obj
 	-if exist $(CONFIG)\obj\makerom.obj del /Q $(CONFIG)\obj\makerom.obj
 	-if exist $(CONFIG)\obj\charGen.obj del /Q $(CONFIG)\obj\charGen.obj
+
+$(CONFIG)\obj\runProgram.obj: \
+        test\runProgram.c \
+        $(CONFIG)\inc\bit.h
+	"$(CC)" -c -Fo$(CONFIG)\obj\runProgram.obj -Fd$(CONFIG)\obj\runProgram.pdb $(CFLAGS) $(DFLAGS) -I$(CONFIG)\inc test\runProgram.c
+
+$(CONFIG)\bin\runProgram.exe:  \
+        $(CONFIG)\obj\runProgram.obj
+	"" -out:$(CONFIG)\bin\runProgram.exe -entry:mainCRTStartup -subsystem:console $(LDFLAGS) $(LIBPATHS) $(CONFIG)\obj\runProgram.obj $(LIBS)
 
 $(CONFIG)\inc\mpr.h: 
 	-if exist $(CONFIG)\inc\mpr.h del /Q $(CONFIG)\inc\mpr.h
@@ -396,26 +399,7 @@ $(CONFIG)\bin\libmpr.dll:  \
         $(CONFIG)\obj\mprWin.obj \
         $(CONFIG)\obj\mprWince.obj \
         $(CONFIG)\obj\mprXml.obj
-	"$(LD)" -dll -out:$(CONFIG)\bin\libmpr.dll -entry:$(ENTRY) -def:$(CONFIG)\bin\libmpr.def $(LDFLAGS) $(LIBPATHS) $(CONFIG)\obj\dtoa.obj $(CONFIG)\obj\mpr.obj $(CONFIG)\obj\mprAsync.obj $(CONFIG)\obj\mprAtomic.obj $(CONFIG)\obj\mprBuf.obj $(CONFIG)\obj\mprCache.obj $(CONFIG)\obj\mprCmd.obj $(CONFIG)\obj\mprCond.obj $(CONFIG)\obj\mprCrypt.obj $(CONFIG)\obj\mprDisk.obj $(CONFIG)\obj\mprDispatcher.obj $(CONFIG)\obj\mprEncode.obj $(CONFIG)\obj\mprEpoll.obj $(CONFIG)\obj\mprEvent.obj $(CONFIG)\obj\mprFile.obj $(CONFIG)\obj\mprFileSystem.obj $(CONFIG)\obj\mprHash.obj $(CONFIG)\obj\mprJSON.obj $(CONFIG)\obj\mprKqueue.obj $(CONFIG)\obj\mprList.obj $(CONFIG)\obj\mprLock.obj $(CONFIG)\obj\mprLog.obj $(CONFIG)\obj\mprMem.obj $(CONFIG)\obj\mprMime.obj $(CONFIG)\obj\mprMixed.obj $(CONFIG)\obj\mprModule.obj $(CONFIG)\obj\mprPath.obj $(CONFIG)\obj\mprPoll.obj $(CONFIG)\obj\mprPrintf.obj $(CONFIG)\obj\mprRomFile.obj $(CONFIG)\obj\mprSelect.obj $(CONFIG)\obj\mprSignal.obj $(CONFIG)\obj\mprSocket.obj $(CONFIG)\obj\mprString.obj $(CONFIG)\obj\mprTest.obj $(CONFIG)\obj\mprThread.obj $(CONFIG)\obj\mprTime.obj $(CONFIG)\obj\mprUnix.obj $(CONFIG)\obj\mprVxworks.obj $(CONFIG)\obj\mprWait.obj $(CONFIG)\obj\mprWide.obj $(CONFIG)\obj\mprWin.obj $(CONFIG)\obj\mprWince.obj $(CONFIG)\obj\mprXml.obj $(LIBS)
-
-$(CONFIG)\obj\benchMpr.obj: \
-        test\benchMpr.c \
-        $(CONFIG)\inc\bit.h
-	"$(CC)" -c -Fo$(CONFIG)\obj\benchMpr.obj -Fd$(CONFIG)\obj\benchMpr.pdb $(CFLAGS) $(DFLAGS) -I$(CONFIG)\inc test\benchMpr.c
-
-$(CONFIG)\bin\benchMpr.exe:  \
-        $(CONFIG)\bin\libmpr.dll \
-        $(CONFIG)\obj\benchMpr.obj
-	"$(LD)" -out:$(CONFIG)\bin\benchMpr.exe -entry:mainCRTStartup -subsystem:console $(LDFLAGS) $(LIBPATHS) $(CONFIG)\obj\benchMpr.obj $(LIBS) libmpr.lib
-
-$(CONFIG)\obj\runProgram.obj: \
-        test\runProgram.c \
-        $(CONFIG)\inc\bit.h
-	"$(CC)" -c -Fo$(CONFIG)\obj\runProgram.obj -Fd$(CONFIG)\obj\runProgram.pdb $(CFLAGS) $(DFLAGS) -I$(CONFIG)\inc test\runProgram.c
-
-$(CONFIG)\bin\runProgram.exe:  \
-        $(CONFIG)\obj\runProgram.obj
-	"$(LD)" -out:$(CONFIG)\bin\runProgram.exe -entry:mainCRTStartup -subsystem:console $(LDFLAGS) $(LIBPATHS) $(CONFIG)\obj\runProgram.obj $(LIBS)
+	"" -dll -out:$(CONFIG)\bin\libmpr.dll -entry:$(ENTRY) -def:$(CONFIG)\bin\libmpr.def $(LDFLAGS) $(LIBPATHS) $(CONFIG)\obj\dtoa.obj $(CONFIG)\obj\mpr.obj $(CONFIG)\obj\mprAsync.obj $(CONFIG)\obj\mprAtomic.obj $(CONFIG)\obj\mprBuf.obj $(CONFIG)\obj\mprCache.obj $(CONFIG)\obj\mprCmd.obj $(CONFIG)\obj\mprCond.obj $(CONFIG)\obj\mprCrypt.obj $(CONFIG)\obj\mprDisk.obj $(CONFIG)\obj\mprDispatcher.obj $(CONFIG)\obj\mprEncode.obj $(CONFIG)\obj\mprEpoll.obj $(CONFIG)\obj\mprEvent.obj $(CONFIG)\obj\mprFile.obj $(CONFIG)\obj\mprFileSystem.obj $(CONFIG)\obj\mprHash.obj $(CONFIG)\obj\mprJSON.obj $(CONFIG)\obj\mprKqueue.obj $(CONFIG)\obj\mprList.obj $(CONFIG)\obj\mprLock.obj $(CONFIG)\obj\mprLog.obj $(CONFIG)\obj\mprMem.obj $(CONFIG)\obj\mprMime.obj $(CONFIG)\obj\mprMixed.obj $(CONFIG)\obj\mprModule.obj $(CONFIG)\obj\mprPath.obj $(CONFIG)\obj\mprPoll.obj $(CONFIG)\obj\mprPrintf.obj $(CONFIG)\obj\mprRomFile.obj $(CONFIG)\obj\mprSelect.obj $(CONFIG)\obj\mprSignal.obj $(CONFIG)\obj\mprSocket.obj $(CONFIG)\obj\mprString.obj $(CONFIG)\obj\mprTest.obj $(CONFIG)\obj\mprThread.obj $(CONFIG)\obj\mprTime.obj $(CONFIG)\obj\mprUnix.obj $(CONFIG)\obj\mprVxworks.obj $(CONFIG)\obj\mprWait.obj $(CONFIG)\obj\mprWide.obj $(CONFIG)\obj\mprWin.obj $(CONFIG)\obj\mprWince.obj $(CONFIG)\obj\mprXml.obj $(LIBS)
 
 $(CONFIG)\obj\mprMatrixssl.obj: \
         src\mprMatrixssl.c \
@@ -437,7 +421,7 @@ $(CONFIG)\bin\libmprssl.dll:  \
         $(CONFIG)\obj\mprMatrixssl.obj \
         $(CONFIG)\obj\mprOpenssl.obj \
         $(CONFIG)\obj\mprSsl.obj
-	"$(LD)" -dll -out:$(CONFIG)\bin\libmprssl.dll -entry:$(ENTRY) -def:$(CONFIG)\bin\libmprssl.def $(LDFLAGS) $(LIBPATHS) $(CONFIG)\obj\mprMatrixssl.obj $(CONFIG)\obj\mprOpenssl.obj $(CONFIG)\obj\mprSsl.obj $(LIBS) libmpr.lib
+	"" -dll -out:$(CONFIG)\bin\libmprssl.dll -entry:$(ENTRY) -def:$(CONFIG)\bin\libmprssl.def $(LDFLAGS) $(LIBPATHS) $(CONFIG)\obj\mprMatrixssl.obj $(CONFIG)\obj\mprOpenssl.obj $(CONFIG)\obj\mprSsl.obj $(LIBS) libmpr.lib
 
 $(CONFIG)\obj\testArgv.obj: \
         test\testArgv.c \
@@ -545,7 +529,7 @@ $(CONFIG)\bin\testMpr.exe:  \
         $(CONFIG)\obj\testThread.obj \
         $(CONFIG)\obj\testTime.obj \
         $(CONFIG)\obj\testUnicode.obj
-	"$(LD)" -out:$(CONFIG)\bin\testMpr.exe -entry:mainCRTStartup -subsystem:console $(LDFLAGS) $(LIBPATHS) $(CONFIG)\obj\testArgv.obj $(CONFIG)\obj\testBuf.obj $(CONFIG)\obj\testCmd.obj $(CONFIG)\obj\testCond.obj $(CONFIG)\obj\testEvent.obj $(CONFIG)\obj\testFile.obj $(CONFIG)\obj\testHash.obj $(CONFIG)\obj\testList.obj $(CONFIG)\obj\testLock.obj $(CONFIG)\obj\testMem.obj $(CONFIG)\obj\testMpr.obj $(CONFIG)\obj\testPath.obj $(CONFIG)\obj\testSocket.obj $(CONFIG)\obj\testSprintf.obj $(CONFIG)\obj\testThread.obj $(CONFIG)\obj\testTime.obj $(CONFIG)\obj\testUnicode.obj $(LIBS) libmpr.lib libmprssl.lib
+	"" -out:$(CONFIG)\bin\testMpr.exe -entry:mainCRTStartup -subsystem:console $(LDFLAGS) $(LIBPATHS) $(CONFIG)\obj\testArgv.obj $(CONFIG)\obj\testBuf.obj $(CONFIG)\obj\testCmd.obj $(CONFIG)\obj\testCond.obj $(CONFIG)\obj\testEvent.obj $(CONFIG)\obj\testFile.obj $(CONFIG)\obj\testHash.obj $(CONFIG)\obj\testList.obj $(CONFIG)\obj\testLock.obj $(CONFIG)\obj\testMem.obj $(CONFIG)\obj\testMpr.obj $(CONFIG)\obj\testPath.obj $(CONFIG)\obj\testSocket.obj $(CONFIG)\obj\testSprintf.obj $(CONFIG)\obj\testThread.obj $(CONFIG)\obj\testTime.obj $(CONFIG)\obj\testUnicode.obj $(LIBS) libmpr.lib libmprssl.lib
 
 $(CONFIG)\obj\manager.obj: \
         src\manager.c \
@@ -555,25 +539,5 @@ $(CONFIG)\obj\manager.obj: \
 $(CONFIG)\bin\manager.exe:  \
         $(CONFIG)\bin\libmpr.dll \
         $(CONFIG)\obj\manager.obj
-	"$(LD)" -out:$(CONFIG)\bin\manager.exe -entry:WinMainCRTStartup -subsystem:Windows $(LDFLAGS) $(LIBPATHS) $(CONFIG)\obj\manager.obj $(LIBS) libmpr.lib
-
-$(CONFIG)\obj\makerom.obj: \
-        src\utils\makerom.c \
-        $(CONFIG)\inc\bit.h
-	"$(CC)" -c -Fo$(CONFIG)\obj\makerom.obj -Fd$(CONFIG)\obj\makerom.pdb $(CFLAGS) $(DFLAGS) -I$(CONFIG)\inc src\utils\makerom.c
-
-$(CONFIG)\bin\makerom.exe:  \
-        $(CONFIG)\bin\libmpr.dll \
-        $(CONFIG)\obj\makerom.obj
-	"$(LD)" -out:$(CONFIG)\bin\makerom.exe -entry:mainCRTStartup -subsystem:console $(LDFLAGS) $(LIBPATHS) $(CONFIG)\obj\makerom.obj $(LIBS) libmpr.lib
-
-$(CONFIG)\obj\charGen.obj: \
-        src\utils\charGen.c \
-        $(CONFIG)\inc\bit.h
-	"$(CC)" -c -Fo$(CONFIG)\obj\charGen.obj -Fd$(CONFIG)\obj\charGen.pdb $(CFLAGS) $(DFLAGS) -I$(CONFIG)\inc src\utils\charGen.c
-
-$(CONFIG)\bin\chargen.exe:  \
-        $(CONFIG)\bin\libmpr.dll \
-        $(CONFIG)\obj\charGen.obj
-	"$(LD)" -out:$(CONFIG)\bin\chargen.exe -entry:mainCRTStartup -subsystem:console $(LDFLAGS) $(LIBPATHS) $(CONFIG)\obj\charGen.obj $(LIBS) libmpr.lib
+	"" -out:$(CONFIG)\bin\manager.exe -entry:WinMainCRTStartup -subsystem:Windows $(LDFLAGS) $(LIBPATHS) $(CONFIG)\obj\manager.obj $(LIBS) libmpr.lib
 

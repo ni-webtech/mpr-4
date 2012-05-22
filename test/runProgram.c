@@ -35,7 +35,7 @@
 
 int main(int argc, char* argv[])
 {
-    char    buf[256], *cp, **ep;
+    char    buf[256], *cp;
     int     i, len, exitCode, sofar;
 
 #if BIT_UNIX_LIKE
