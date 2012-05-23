@@ -127,7 +127,7 @@ $(CONFIG)\obj\runProgram.obj: \
 
 $(CONFIG)\bin\runProgram.exe:  \
         $(CONFIG)\obj\runProgram.obj
-	"" -out:$(CONFIG)\bin\runProgram.exe -entry:mainCRTStartup -subsystem:console $(LDFLAGS) $(LIBPATHS) $(CONFIG)\obj\runProgram.obj $(LIBS)
+	"$(LD)" -out:$(CONFIG)\bin\runProgram.exe -entry:mainCRTStartup -subsystem:console $(LDFLAGS) $(LIBPATHS) $(CONFIG)\obj\runProgram.obj $(LIBS)
 
 $(CONFIG)\inc\mpr.h: 
 	-if exist $(CONFIG)\inc\mpr.h del /Q $(CONFIG)\inc\mpr.h
@@ -399,7 +399,7 @@ $(CONFIG)\bin\libmpr.dll:  \
         $(CONFIG)\obj\mprWin.obj \
         $(CONFIG)\obj\mprWince.obj \
         $(CONFIG)\obj\mprXml.obj
-	"" -dll -out:$(CONFIG)\bin\libmpr.dll -entry:$(ENTRY) -def:$(CONFIG)\bin\libmpr.def $(LDFLAGS) $(LIBPATHS) $(CONFIG)\obj\dtoa.obj $(CONFIG)\obj\mpr.obj $(CONFIG)\obj\mprAsync.obj $(CONFIG)\obj\mprAtomic.obj $(CONFIG)\obj\mprBuf.obj $(CONFIG)\obj\mprCache.obj $(CONFIG)\obj\mprCmd.obj $(CONFIG)\obj\mprCond.obj $(CONFIG)\obj\mprCrypt.obj $(CONFIG)\obj\mprDisk.obj $(CONFIG)\obj\mprDispatcher.obj $(CONFIG)\obj\mprEncode.obj $(CONFIG)\obj\mprEpoll.obj $(CONFIG)\obj\mprEvent.obj $(CONFIG)\obj\mprFile.obj $(CONFIG)\obj\mprFileSystem.obj $(CONFIG)\obj\mprHash.obj $(CONFIG)\obj\mprJSON.obj $(CONFIG)\obj\mprKqueue.obj $(CONFIG)\obj\mprList.obj $(CONFIG)\obj\mprLock.obj $(CONFIG)\obj\mprLog.obj $(CONFIG)\obj\mprMem.obj $(CONFIG)\obj\mprMime.obj $(CONFIG)\obj\mprMixed.obj $(CONFIG)\obj\mprModule.obj $(CONFIG)\obj\mprPath.obj $(CONFIG)\obj\mprPoll.obj $(CONFIG)\obj\mprPrintf.obj $(CONFIG)\obj\mprRomFile.obj $(CONFIG)\obj\mprSelect.obj $(CONFIG)\obj\mprSignal.obj $(CONFIG)\obj\mprSocket.obj $(CONFIG)\obj\mprString.obj $(CONFIG)\obj\mprTest.obj $(CONFIG)\obj\mprThread.obj $(CONFIG)\obj\mprTime.obj $(CONFIG)\obj\mprUnix.obj $(CONFIG)\obj\mprVxworks.obj $(CONFIG)\obj\mprWait.obj $(CONFIG)\obj\mprWide.obj $(CONFIG)\obj\mprWin.obj $(CONFIG)\obj\mprWince.obj $(CONFIG)\obj\mprXml.obj $(LIBS)
+	"$(LD)" -dll -out:$(CONFIG)\bin\libmpr.dll -entry:$(ENTRY) -def:$(CONFIG)\bin\libmpr.def $(LDFLAGS) $(LIBPATHS) $(CONFIG)\obj\dtoa.obj $(CONFIG)\obj\mpr.obj $(CONFIG)\obj\mprAsync.obj $(CONFIG)\obj\mprAtomic.obj $(CONFIG)\obj\mprBuf.obj $(CONFIG)\obj\mprCache.obj $(CONFIG)\obj\mprCmd.obj $(CONFIG)\obj\mprCond.obj $(CONFIG)\obj\mprCrypt.obj $(CONFIG)\obj\mprDisk.obj $(CONFIG)\obj\mprDispatcher.obj $(CONFIG)\obj\mprEncode.obj $(CONFIG)\obj\mprEpoll.obj $(CONFIG)\obj\mprEvent.obj $(CONFIG)\obj\mprFile.obj $(CONFIG)\obj\mprFileSystem.obj $(CONFIG)\obj\mprHash.obj $(CONFIG)\obj\mprJSON.obj $(CONFIG)\obj\mprKqueue.obj $(CONFIG)\obj\mprList.obj $(CONFIG)\obj\mprLock.obj $(CONFIG)\obj\mprLog.obj $(CONFIG)\obj\mprMem.obj $(CONFIG)\obj\mprMime.obj $(CONFIG)\obj\mprMixed.obj $(CONFIG)\obj\mprModule.obj $(CONFIG)\obj\mprPath.obj $(CONFIG)\obj\mprPoll.obj $(CONFIG)\obj\mprPrintf.obj $(CONFIG)\obj\mprRomFile.obj $(CONFIG)\obj\mprSelect.obj $(CONFIG)\obj\mprSignal.obj $(CONFIG)\obj\mprSocket.obj $(CONFIG)\obj\mprString.obj $(CONFIG)\obj\mprTest.obj $(CONFIG)\obj\mprThread.obj $(CONFIG)\obj\mprTime.obj $(CONFIG)\obj\mprUnix.obj $(CONFIG)\obj\mprVxworks.obj $(CONFIG)\obj\mprWait.obj $(CONFIG)\obj\mprWide.obj $(CONFIG)\obj\mprWin.obj $(CONFIG)\obj\mprWince.obj $(CONFIG)\obj\mprXml.obj $(LIBS)
 
 $(CONFIG)\obj\mprMatrixssl.obj: \
         src\mprMatrixssl.c \
@@ -421,7 +421,7 @@ $(CONFIG)\bin\libmprssl.dll:  \
         $(CONFIG)\obj\mprMatrixssl.obj \
         $(CONFIG)\obj\mprOpenssl.obj \
         $(CONFIG)\obj\mprSsl.obj
-	"" -dll -out:$(CONFIG)\bin\libmprssl.dll -entry:$(ENTRY) -def:$(CONFIG)\bin\libmprssl.def $(LDFLAGS) $(LIBPATHS) $(CONFIG)\obj\mprMatrixssl.obj $(CONFIG)\obj\mprOpenssl.obj $(CONFIG)\obj\mprSsl.obj $(LIBS) libmpr.lib
+	"$(LD)" -dll -out:$(CONFIG)\bin\libmprssl.dll -entry:$(ENTRY) -def:$(CONFIG)\bin\libmprssl.def $(LDFLAGS) $(LIBPATHS) $(CONFIG)\obj\mprMatrixssl.obj $(CONFIG)\obj\mprOpenssl.obj $(CONFIG)\obj\mprSsl.obj $(LIBS) libmpr.lib
 
 $(CONFIG)\obj\testArgv.obj: \
         test\testArgv.c \
@@ -529,7 +529,7 @@ $(CONFIG)\bin\testMpr.exe:  \
         $(CONFIG)\obj\testThread.obj \
         $(CONFIG)\obj\testTime.obj \
         $(CONFIG)\obj\testUnicode.obj
-	"" -out:$(CONFIG)\bin\testMpr.exe -entry:mainCRTStartup -subsystem:console $(LDFLAGS) $(LIBPATHS) $(CONFIG)\obj\testArgv.obj $(CONFIG)\obj\testBuf.obj $(CONFIG)\obj\testCmd.obj $(CONFIG)\obj\testCond.obj $(CONFIG)\obj\testEvent.obj $(CONFIG)\obj\testFile.obj $(CONFIG)\obj\testHash.obj $(CONFIG)\obj\testList.obj $(CONFIG)\obj\testLock.obj $(CONFIG)\obj\testMem.obj $(CONFIG)\obj\testMpr.obj $(CONFIG)\obj\testPath.obj $(CONFIG)\obj\testSocket.obj $(CONFIG)\obj\testSprintf.obj $(CONFIG)\obj\testThread.obj $(CONFIG)\obj\testTime.obj $(CONFIG)\obj\testUnicode.obj $(LIBS) libmpr.lib libmprssl.lib
+	"$(LD)" -out:$(CONFIG)\bin\testMpr.exe -entry:mainCRTStartup -subsystem:console $(LDFLAGS) $(LIBPATHS) $(CONFIG)\obj\testArgv.obj $(CONFIG)\obj\testBuf.obj $(CONFIG)\obj\testCmd.obj $(CONFIG)\obj\testCond.obj $(CONFIG)\obj\testEvent.obj $(CONFIG)\obj\testFile.obj $(CONFIG)\obj\testHash.obj $(CONFIG)\obj\testList.obj $(CONFIG)\obj\testLock.obj $(CONFIG)\obj\testMem.obj $(CONFIG)\obj\testMpr.obj $(CONFIG)\obj\testPath.obj $(CONFIG)\obj\testSocket.obj $(CONFIG)\obj\testSprintf.obj $(CONFIG)\obj\testThread.obj $(CONFIG)\obj\testTime.obj $(CONFIG)\obj\testUnicode.obj $(LIBS) libmpr.lib libmprssl.lib
 
 $(CONFIG)\obj\manager.obj: \
         src\manager.c \
@@ -539,5 +539,5 @@ $(CONFIG)\obj\manager.obj: \
 $(CONFIG)\bin\manager.exe:  \
         $(CONFIG)\bin\libmpr.dll \
         $(CONFIG)\obj\manager.obj
-	"" -out:$(CONFIG)\bin\manager.exe -entry:WinMainCRTStartup -subsystem:Windows $(LDFLAGS) $(LIBPATHS) $(CONFIG)\obj\manager.obj $(LIBS) libmpr.lib
+	"$(LD)" -out:$(CONFIG)\bin\manager.exe -entry:WinMainCRTStartup -subsystem:Windows $(LDFLAGS) $(LIBPATHS) $(CONFIG)\obj\manager.obj $(LIBS) libmpr.lib
 
