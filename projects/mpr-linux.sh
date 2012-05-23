@@ -9,7 +9,7 @@ PROFILE="debug"
 CONFIG="${OS}-${ARCH}-${PROFILE}"
 CC="/usr/bin/gcc"
 LD="/usr/bin/ld"
-CFLAGS="-Wall -fPIC -g -Wshorten-64-to-32 -mtune=generic"
+CFLAGS="-Wall -fPIC -g -Wno-unused-result -mtune=generic"
 DFLAGS="-D_REENTRANT -DPIC -DBIT_DEBUG"
 IFLAGS="-I${CONFIG}/inc"
 LDFLAGS="-Wl,--enable-new-dtags -Wl,-rpath,\$ORIGIN/ -Wl,-rpath,\$ORIGIN/../bin -rdynamic -g"
@@ -22,10 +22,6 @@ LIBS="-lpthread -lm -ldl"
 if ! diff ${CONFIG}/inc/bit.h projects/mpr-${OS}-bit.h >/dev/null ; then
 	cp projects/mpr-${OS}-bit.h ${CONFIG}/inc/bit.h
 fi
-
-${CC} -c -o ${CONFIG}/obj/runProgram.o ${CFLAGS} ${DFLAGS} -I${CONFIG}/inc test/runProgram.c
-
-${CC} -o ${CONFIG}/bin/runProgram ${LDFLAGS} ${LIBPATHS} ${CONFIG}/obj/runProgram.o ${LIBS} ${LDFLAGS}
 
 rm -rf ${CONFIG}/inc/mpr.h
 cp -r src/mpr.h ${CONFIG}/inc/mpr.h
@@ -120,6 +116,14 @@ ${CC} -c -o ${CONFIG}/obj/mprXml.o ${CFLAGS} ${DFLAGS} -I${CONFIG}/inc src/mprXm
 
 ${CC} -shared -o ${CONFIG}/bin/libmpr.so ${LDFLAGS} ${LIBPATHS} ${CONFIG}/obj/dtoa.o ${CONFIG}/obj/mpr.o ${CONFIG}/obj/mprAsync.o ${CONFIG}/obj/mprAtomic.o ${CONFIG}/obj/mprBuf.o ${CONFIG}/obj/mprCache.o ${CONFIG}/obj/mprCmd.o ${CONFIG}/obj/mprCond.o ${CONFIG}/obj/mprCrypt.o ${CONFIG}/obj/mprDisk.o ${CONFIG}/obj/mprDispatcher.o ${CONFIG}/obj/mprEncode.o ${CONFIG}/obj/mprEpoll.o ${CONFIG}/obj/mprEvent.o ${CONFIG}/obj/mprFile.o ${CONFIG}/obj/mprFileSystem.o ${CONFIG}/obj/mprHash.o ${CONFIG}/obj/mprJSON.o ${CONFIG}/obj/mprKqueue.o ${CONFIG}/obj/mprList.o ${CONFIG}/obj/mprLock.o ${CONFIG}/obj/mprLog.o ${CONFIG}/obj/mprMem.o ${CONFIG}/obj/mprMime.o ${CONFIG}/obj/mprMixed.o ${CONFIG}/obj/mprModule.o ${CONFIG}/obj/mprPath.o ${CONFIG}/obj/mprPoll.o ${CONFIG}/obj/mprPrintf.o ${CONFIG}/obj/mprRomFile.o ${CONFIG}/obj/mprSelect.o ${CONFIG}/obj/mprSignal.o ${CONFIG}/obj/mprSocket.o ${CONFIG}/obj/mprString.o ${CONFIG}/obj/mprTest.o ${CONFIG}/obj/mprThread.o ${CONFIG}/obj/mprTime.o ${CONFIG}/obj/mprUnix.o ${CONFIG}/obj/mprVxworks.o ${CONFIG}/obj/mprWait.o ${CONFIG}/obj/mprWide.o ${CONFIG}/obj/mprWin.o ${CONFIG}/obj/mprWince.o ${CONFIG}/obj/mprXml.o ${LIBS}
 
+${CC} -c -o ${CONFIG}/obj/benchMpr.o ${CFLAGS} ${DFLAGS} -I${CONFIG}/inc test/benchMpr.c
+
+${CC} -o ${CONFIG}/bin/benchMpr ${LDFLAGS} ${LIBPATHS} ${CONFIG}/obj/benchMpr.o ${LIBS} -lmpr ${LDFLAGS}
+
+${CC} -c -o ${CONFIG}/obj/runProgram.o ${CFLAGS} ${DFLAGS} -I${CONFIG}/inc test/runProgram.c
+
+${CC} -o ${CONFIG}/bin/runProgram ${LDFLAGS} ${LIBPATHS} ${CONFIG}/obj/runProgram.o ${LIBS} ${LDFLAGS}
+
 ${CC} -c -o ${CONFIG}/obj/mprMatrixssl.o ${CFLAGS} ${DFLAGS} -I${CONFIG}/inc src/mprMatrixssl.c
 
 ${CC} -c -o ${CONFIG}/obj/mprOpenssl.o ${CFLAGS} ${DFLAGS} -I${CONFIG}/inc src/mprOpenssl.c
@@ -167,4 +171,12 @@ ${CC} -o ${CONFIG}/bin/testMpr ${LDFLAGS} ${LIBPATHS} ${CONFIG}/obj/testArgv.o $
 ${CC} -c -o ${CONFIG}/obj/manager.o ${CFLAGS} ${DFLAGS} -I${CONFIG}/inc src/manager.c
 
 ${CC} -o ${CONFIG}/bin/manager ${LDFLAGS} ${LIBPATHS} ${CONFIG}/obj/manager.o ${LIBS} -lmpr ${LDFLAGS}
+
+${CC} -c -o ${CONFIG}/obj/makerom.o ${CFLAGS} ${DFLAGS} -I${CONFIG}/inc src/utils/makerom.c
+
+${CC} -o ${CONFIG}/bin/makerom ${LDFLAGS} ${LIBPATHS} ${CONFIG}/obj/makerom.o ${LIBS} -lmpr ${LDFLAGS}
+
+${CC} -c -o ${CONFIG}/obj/charGen.o ${CFLAGS} ${DFLAGS} -I${CONFIG}/inc src/utils/charGen.c
+
+${CC} -o ${CONFIG}/bin/chargen ${LDFLAGS} ${LIBPATHS} ${CONFIG}/obj/charGen.o ${LIBS} -lmpr ${LDFLAGS}
 
