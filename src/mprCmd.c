@@ -1520,7 +1520,7 @@ int startProcess(MprCmd *cmd)
     MprModule       *mp;
     SYM_TYPE        symType;
     char            *entryPoint, *program, *pair;
-    int             i, pri, next;
+    int             pri, next;
 
     mprLog(4, "cmd: start %s", cmd->program);
 
@@ -1580,8 +1580,8 @@ static void cmdTaskEntry(char *program, MprCmdTaskFn entry, int cmdArg)
     MprCmd          *cmd;
     MprCmdFile      *files;
     WIND_TCB        *tcb;
-    char            **ep;
-    int             inFd, outFd, errFd, id;
+    char            *item;
+    int             inFd, outFd, errFd, id, next;
 
     cmd = (MprCmd*) cmdArg;
 
@@ -1612,8 +1612,8 @@ static void cmdTaskEntry(char *program, MprCmdTaskFn entry, int cmdArg)
     if (envPrivateCreate(id, -1) < 0) {
         exit(254);
     }
-    for (ep = cmd->env; ep && *ep; ep++) {
-        putenv(*ep);
+    for (ITERATE_ITEMS(cmd->env, item, next)) {
+        putenv(item);
     }
 
 #if !VXWORKS
@@ -1641,7 +1641,7 @@ static void cmdTaskEntry(char *program, MprCmdTaskFn entry, int cmdArg)
     /*
         Call the user's entry point
      */
-    (entry)(cmd->argc, cmd->argv, cmd->env);
+    (entry)(cmd->argc, (char**) cmd->argv, (char**) cmd->env);
 
     tcb = taskTcb(id);
     cmd->status = tcb->exitCode;
