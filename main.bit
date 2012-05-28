@@ -6,6 +6,7 @@ Bit.load({
     blend: [
         '${BITS}/embedthis.bit',
         'test/test.bit',
+        'doc/doc.bit',
     ],
 
     customize: [
