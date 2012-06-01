@@ -11,7 +11,6 @@
 /***************************** Forward Declarations ***************************/
 
 static void manageLock(MprMutex *lock, int flags);
-static void manageSpinLock(MprSpin *lock, int flags);
 
 /************************************ Code ************************************/
 
@@ -120,14 +119,14 @@ MprSpin *mprCreateSpinLock()
 {
     MprSpin    *lock;
 
-    if ((lock = mprAllocObj(MprSpin, manageSpinLock)) == 0) {
+    if ((lock = mprAllocObj(MprSpin, mprManageSpinLock)) == 0) {
         return 0;
     }
     return mprInitSpinLock(lock);
 }
 
 
-static void manageSpinLock(MprSpin *lock, int flags)
+void mprManageSpinLock(MprSpin *lock, int flags)
 {
     if (flags & MPR_MANAGE_FREE) {
         mprAssert(lock);
