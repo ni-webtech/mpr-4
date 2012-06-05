@@ -1137,7 +1137,6 @@ fi";
 					"$(inherited)"
 				);
 				OTHER_LDFLAGS = (
-					"-Wl,-rpath,@executable_path/../lib",
 					"-Wl,-rpath,@executable_path/",
 					"-Wl,-rpath,@loader_path/",
 					"-lpthread",
@@ -1209,7 +1208,6 @@ fi";
 					"$(inherited)"
 				);
 				OTHER_LDFLAGS = (
-					"-Wl,-rpath,@executable_path/../lib",
 					"-Wl,-rpath,@executable_path/",
 					"-Wl,-rpath,@loader_path/",
 					"-lpthread",
