@@ -1077,7 +1077,7 @@ fi";
                 /* Common Settings */
 				ALWAYS_SEARCH_USER_PATHS = NO;
 				ARCHS = "$(ARCHS_STANDARD_64_BIT)";
-                CURRENT_PROJECT_VERSION = 4.0.0;
+                CURRENT_PROJECT_VERSION = 4.0.1;
                 DYLIB_COMPATIBILITY_VERSION = "$(CURRENT_PROJECT_VERSION)";
                 DYLIB_CURRENT_VERSION = "$(CURRENT_PROJECT_VERSION)";
 				GCC_C_LANGUAGE_STANDARD = gnu99;
@@ -1143,7 +1143,7 @@ fi";
                 /* Common Settings */
 				ALWAYS_SEARCH_USER_PATHS = NO;
 				ARCHS = "$(ARCHS_STANDARD_64_BIT)";
-                CURRENT_PROJECT_VERSION = 4.0.0;
+                CURRENT_PROJECT_VERSION = 4.0.1;
                 DYLIB_COMPATIBILITY_VERSION = "$(CURRENT_PROJECT_VERSION)";
                 DYLIB_CURRENT_VERSION = "$(CURRENT_PROJECT_VERSION)";
 				GCC_C_LANGUAGE_STANDARD = gnu99;
@@ -1244,17 +1244,6 @@ fi";
 			buildSettings = {
 				PRODUCT_NAME = testMpr;
 
-				LIBRARY_SEARCH_PATHS = (
-					"../../packages-macosx-x64/openssl/openssl-1.0.1b",
-					"../../packages-macosx-x64/matrixssl/matrixssl-3-3-open",
-					"$(inherited)"
-				);
-				OTHER_LDFLAGS = (
-					"-lssl",
-					"-lcrypto",
-					"-lmatrixssl",
-					"$(inherited)"
-				);
 
 			};
 			name = Debug;
@@ -1264,17 +1253,6 @@ fi";
 			buildSettings = {
 				PRODUCT_NAME = testMpr;
 
-				LIBRARY_SEARCH_PATHS = (
-					"../../packages-macosx-x64/openssl/openssl-1.0.1b",
-					"../../packages-macosx-x64/matrixssl/matrixssl-3-3-open",
-					"$(inherited)"
-				);
-				OTHER_LDFLAGS = (
-					"-lssl",
-					"-lcrypto",
-					"-lmatrixssl",
-					"$(inherited)"
-				);
 
 			};
 			name = Release;
@@ -1302,29 +1280,6 @@ fi";
 			buildSettings = {
 				PRODUCT_NAME = libmprssl;
 
-				HEADER_SEARCH_PATHS = (
-					"../../packages-macosx-x64/openssl/openssl-1.0.1b/include",
-					"../../packages-macosx-x64/matrixssl/matrixssl-3-3-open/matrixssl",
-					"../../packages-macosx-x64/matrixssl/matrixssl-3-3-open",
-					"$(inherited)"
-				);
-
-				GCC_PREPROCESSOR_DEFINITIONS = (
-					"POSIX",
-					"MATRIX_USE_FILE_SYSTEM",
-						"$(inherited)"
-				);
-				LIBRARY_SEARCH_PATHS = (
-					"../../packages-macosx-x64/openssl/openssl-1.0.1b",
-					"../../packages-macosx-x64/matrixssl/matrixssl-3-3-open",
-					"$(inherited)"
-				);
-				OTHER_LDFLAGS = (
-					"-lssl",
-					"-lcrypto",
-					"-lmatrixssl",
-					"$(inherited)"
-				);
 
 			};
 			name = Debug;
@@ -1334,29 +1289,6 @@ fi";
 			buildSettings = {
 				PRODUCT_NAME = libmprssl;
 
-				HEADER_SEARCH_PATHS = (
-					"../../packages-macosx-x64/openssl/openssl-1.0.1b/include",
-					"../../packages-macosx-x64/matrixssl/matrixssl-3-3-open/matrixssl",
-					"../../packages-macosx-x64/matrixssl/matrixssl-3-3-open",
-					"$(inherited)"
-				);
-
-				GCC_PREPROCESSOR_DEFINITIONS = (
-					"POSIX",
-					"MATRIX_USE_FILE_SYSTEM",
-						"$(inherited)"
-				);
-				LIBRARY_SEARCH_PATHS = (
-					"../../packages-macosx-x64/openssl/openssl-1.0.1b",
-					"../../packages-macosx-x64/matrixssl/matrixssl-3-3-open",
-					"$(inherited)"
-				);
-				OTHER_LDFLAGS = (
-					"-lssl",
-					"-lcrypto",
-					"-lmatrixssl",
-					"$(inherited)"
-				);
 
 			};
 			name = Release;

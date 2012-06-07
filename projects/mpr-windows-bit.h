@@ -10,12 +10,12 @@
 #define BIT_NAME "Multithreaded Portable Runtime"
 #define BIT_COMPANY "Embedthis"
 #define BIT_MPR_PRODUCT 1
-#define BIT_VERSION "4.0.0"
-#define BIT_NUMBER "B0"
+#define BIT_VERSION "4.0.1"
+#define BIT_NUMBER "repos"
 #define BIT_MAJOR_VERSION 4
 #define BIT_MINOR_VERSION 0
-#define BIT_PATCH_VERSION 0
-#define BIT_VNUM 400000000
+#define BIT_PATCH_VERSION 1
+#define BIT_VNUM 400000001
 #define BIT_CONFIG_CMD "bit -d -q -platform windows-x86 -without all -configure . -gen sh,nmake,vs"
 #define BIT_PROFILE "debug"
 #define BIT_CFG_PREFIX "C:/Program Files (x86)/Multithreaded Portable Runtime"
