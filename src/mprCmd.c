@@ -945,10 +945,12 @@ bool mprIsCmdRunning(MprCmd *cmd)
 }
 
 
+/* FUTURE - not yet supported */
+
 void mprSetCmdTimeout(MprCmd *cmd, MprTime timeout)
 {
     mprAssert(0);
-#if UNUSED
+#if UNUSED && KEEP
     cmd->timeoutPeriod = timeout;
 #endif
 }

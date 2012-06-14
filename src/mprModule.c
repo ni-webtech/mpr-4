@@ -201,9 +201,6 @@ void mprSetModuleSearchPath(char *searchPath)
 
     ms = MPR->moduleService;
     if (searchPath == 0) {
-#if UNUSED
-        dir = mprJoinPath(mprGetPathParent(mprGetAppDir()), BIT_LIB_NAME);
-#endif
         ms->searchPath = sjoin(mprGetAppDir(), MPR_SEARCH_SEP, mprGetAppDir(), MPR_SEARCH_SEP, BIT_BIN_PREFIX, NULL);
     } else {
         ms->searchPath = sclone(searchPath);
