@@ -5212,7 +5212,6 @@ typedef struct MprPath {
  */
 typedef struct MprDirEntry {
     char            *name;              /**< Name of the file */
-    //  MOB - rename modified
     MprTime         lastModified;       /**< Time the file was last modified */
     MprOff          size;               /**< Size of the file */
     bool            isDir;              /**< True if the file is a directory */
@@ -7376,7 +7375,7 @@ typedef struct MprSsl {
     int             verifyServer;       /* Set if the server cert should be verified */
     int             verifyClient;       /* Set if the client cert should be verified */
     int             verifyDepth;        /* Set if the server cert should be verified */
-    int             protocols;          /* MOB */
+    int             protocols;          /* SSL protocols */
     void            *extendedSsl;       /* Extended provider SSL configuration */
 } MprSsl;
 

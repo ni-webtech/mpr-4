@@ -649,7 +649,7 @@ static MprList *getDirFiles(cchar *path, int flags)
             continue;
         }
         fileName = mprJoinPath(path, dirent->d_name);
-        //  MOB - workaround for if target of symlink does not exist
+        /* workaround for if target of symlink does not exist */
         fileInfo.isLink = 0;
         fileInfo.isDir = 0;
         rc = mprGetPathInfo(fileName, &fileInfo);

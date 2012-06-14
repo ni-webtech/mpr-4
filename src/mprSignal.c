@@ -337,9 +337,8 @@ static void standardSignalHandler(void *ignored, MprSignal *sp)
 
 #if MACOSX && BIT_DEBUG
     } else if (sp->signo == SIGSEGV || sp->signo == SIGBUS) {
-        //  MOB - Review
         printf("PAUSED for watson to debug\n");
-        sleep(86400 * 7);
+        sleep(120);
 #endif
 
     } else {

@@ -495,7 +495,7 @@ static char *sprintfCore(char *buf, ssize maxsize, cchar *spec, va_list args)
                 /* Safe string */
 #if BIT_CHAR_LEN > 1
                 if (fmt.flags & SPRINTF_LONG) {
-                    //  MOB - not right MprChar
+                    //  UNICODE - not right MprChar
                     safe = mprEscapeHtml(va_arg(args, MprChar*));
                     outWideString(&fmt, safe, -1);
                 } else
