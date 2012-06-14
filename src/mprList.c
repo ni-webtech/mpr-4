@@ -621,9 +621,18 @@ static int growList(MprList *lp, int incr)
 }
 
 
+static int defaultSort(char **q1, char **q2)
+{
+    return scmp(*q1, *q2);
+}
+
+
 void mprSortList(MprList *lp, void *compare)
 {
     lock(lp);
+    if (!compare) {
+        compare = defaultSort;
+    }
     qsort(lp->items, lp->length, sizeof(void*), compare);
     unlock(lp);
 }
