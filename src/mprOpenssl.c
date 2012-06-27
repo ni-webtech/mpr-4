@@ -592,8 +592,9 @@ static int connectOss(MprSocket *sp, cchar *host, int port, int flags)
                 return MPR_ERR_CANT_INITIALIZE;
             }
         }
+        sp->ssl = ssl;
     }
-    sp->ssl = ssl;
+    ssl = sp->ssl;
     ossl = ssl->extendedSsl;
 
     if (ossl->context == 0 && configureOss(ssl) < 0) {

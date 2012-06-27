@@ -28,6 +28,7 @@ Mpr *mprCreate(int argc, char **argv, int flags)
         mprAssert(mpr);
         return 0;
     }
+    mpr->start = mprGetTime(); 
     mpr->exitStrategy = MPR_EXIT_NORMAL;
     mpr->emptyString = sclone("");
     mpr->exitTimeout = MPR_TIMEOUT_STOP;

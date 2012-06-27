@@ -1045,6 +1045,7 @@ static int blendEnv(MprCmd *cmd, cchar **env, int flags)
         Add new env keys. Detect and overwrite duplicates
      */
     for (ep = env; ep && *ep; ep++) {
+        prior = 0;
         for (ITERATE_ITEMS(cmd->env, prior, next)) {
             if (matchEnvKey(*ep, prior)) {
                 mprSetItem(cmd->env, next - 1, *ep);

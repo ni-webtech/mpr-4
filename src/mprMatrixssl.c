@@ -47,7 +47,7 @@ typedef struct MprMatrixSocket {
     MprSocket       *sock;
     ssl_t           *handle;            /* MatrixSSL ssl_t structure */
     char            *outbuf;            /* Pending output data */
-    ssize           outlen;             /* Length of outlen */
+    ssize           outlen;             /* Length of outbuf */
     ssize           written;            /* Number of unencoded bytes written */
     int             more;               /* MatrixSSL stack has buffered data */
 } MprMatrixSocket;
@@ -406,6 +406,7 @@ static int verifyServer(ssl_t *ssl, psX509Cert_t *cert, int32 alert)
 
     ss = MPR->socketService;
     lock(ss);
+    sp = 0;
     for (ITERATE_ITEMS(ss->secureSockets, sp, next)) {
         if (sp->ssl && ((MprMatrixSocket*) sp->sslSocket)->handle == ssl) {
             break;
@@ -516,8 +517,9 @@ static int connectMss(MprSocket *sp, cchar *host, int port, int flags)
                 return MPR_ERR_CANT_INITIALIZE;
             }
         }
+        sp->ssl = ssl;
     }
-    sp->ssl = ssl;
+    ssl = sp->ssl;
     mssl = ssl->extendedSsl;
 
     if (matrixSslLoadRsaKeysMem(mssl->keys, NULL, 0, NULL, 0, CAcertSrvBuf, sizeof(CAcertSrvBuf)) < 0) {
@@ -789,8 +791,8 @@ static ssize writeMss(MprSocket *sp, cvoid *buf, ssize len)
                 msp->outlen = len;
                 msp->written = 0;
                 len = 0;
-                nbytes = min(msp->outlen, SSL_MAX_PLAINTEXT_LEN);
             }
+            nbytes = min(msp->outlen, SSL_MAX_PLAINTEXT_LEN);
             if ((encoded = matrixSslEncodeToOutdata(msp->handle, (uchar*) buf, (int) nbytes)) < 0) {
                 return encoded;
             }
