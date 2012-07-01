@@ -249,7 +249,15 @@ static int setValue(MprJson *jp, MprObj *obj, int index, cchar *key, cchar *valu
 
 static MprObj *makeObj(MprJson *jp, bool list)
 {
-    return (MprObj*) mprCreateHash(0, 0);
+    MprHash     *hash;
+
+    if ((hash = mprCreateHash(0, 0)) == 0) {
+        return 0;
+    }
+    if (list) {
+        hash->flags |= MPR_HASH_LIST;
+    }
+    return hash;
 }
 
 
