@@ -31,7 +31,7 @@ MprList *mprCreateList(int size, int flags)
         return 0;
     }
     lp->maxSize = MAXINT;
-    lp->flags = flags;
+    lp->flags = flags | MPR_OBJ_LIST;
     lp->mutex = mprCreateLock();
     if (size != 0) {
         mprSetListLimits(lp, size, -1);
@@ -358,11 +358,6 @@ int mprRemoveItemAtPos(MprList *lp, int index)
     }
 #else
     memmove(&items[index], &items[index + 1], (lp->length - index - 1) * sizeof(void*));
-#if OLD
-    for (i = index; i < (lp->length - 1); i++) {
-        items[i] = items[i + 1];
-    }
-#endif
     lp->length--;
 #endif
     lp->items[lp->length] = 0;
@@ -410,6 +405,28 @@ int mprRemoveRangeOfItems(MprList *lp, int start, int end)
     }
     unlock(lp);
     return 0;
+}
+
+
+/*
+    Remove a string item from the list. Return the index where the item resided.
+ */
+int mprRemoveStringItem(MprList *lp, cchar *str)
+{
+    int     index;
+
+    mprAssert(lp);
+
+    lock(lp);
+    index = mprLookupStringItem(lp, str);
+    if (index < 0) {
+        unlock(lp);
+        return index;
+    }
+    index = mprRemoveItemAtPos(lp, index);
+    mprAssert(index >= 0);
+    unlock(lp);
+    return index;
 }
 
 
@@ -571,6 +588,24 @@ int mprLookupItem(MprList *lp, cvoid *item)
     lock(lp);
     for (i = 0; i < lp->length; i++) {
         if (lp->items[i] == item) {
+            unlock(lp);
+            return i;
+        }
+    }
+    unlock(lp);
+    return MPR_ERR_CANT_FIND;
+}
+
+
+int mprLookupStringItem(MprList *lp, cchar *str)
+{
+    int     i;
+
+    mprAssert(lp);
+    
+    lock(lp);
+    for (i = 0; i < lp->length; i++) {
+        if (smatch(lp->items[i], str)) {
             unlock(lp);
             return i;
         }

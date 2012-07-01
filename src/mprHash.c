@@ -39,7 +39,7 @@ MprHash *mprCreateHash(int hashSize, int flags)
         return NULL;
     }
     hash->size = hashSize;
-    hash->flags = flags;
+    hash->flags = flags | MPR_OBJ_HASH;
     hash->length = 0;
     hash->mutex = mprCreateLock();
 #if BIT_CHAR_LEN > 1
@@ -226,8 +226,7 @@ MprHash *mprCloneHash(MprHash *master)
     MprKey      *kp;
     MprHash     *hash;
 
-    hash = mprCreateHash(master->size, master->flags);
-    if (hash == 0) {
+    if ((hash = mprCreateHash(master->size, master->flags)) == 0) {
         return 0;
     }
     kp = mprGetFirstKey(master);
