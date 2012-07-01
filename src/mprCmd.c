@@ -428,10 +428,9 @@ int mprStartCmd(MprCmd *cmd, int argc, cchar **argv, cchar **envp, int flags)
 
     mprAssert(cmd);
     mprAssert(argv);
-    mprAssert(argc > 0);
 
     if (argc <= 0 || argv == NULL || argv[0] == NULL) {
-        return MPR_ERR_BAD_STATE;
+        return MPR_ERR_BAD_ARGS;
     }
     resetCmd(cmd);
     program = argv[0];
