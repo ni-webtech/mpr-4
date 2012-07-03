@@ -19,7 +19,7 @@ Bit.load({
         title: 'Multithreaded Portable Runtime',
         company: 'Embedthis',
         version: '4.0.1',
-        buildNumber: 'repos',
+        buildNumber: '0',
         manager: 'manager',
         '+optional': [ 'doxygen', 'dsi', 'ejs', 'http', 'man', 'man2html', 'md5', 'matrixssl', 'openssl', 'ssl', 'utest' ],
         'without-all': ['doxygen', 'dsi', 'man', 'man2html', 'pmaker', 'ssl'],
