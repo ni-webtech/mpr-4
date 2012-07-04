@@ -74,11 +74,6 @@ MAIN(testMain, int argc, char **argv, char **envp)
     if (mprAddTestGroup(ts, &master) == 0) {
         exit(4);
     }
-#if BIT_FEATURE_SSL && (BIT_FEATURE_MATRIXSSL || BIT_FEATURE_OPENSSL)
-    if (!mprLoadSsl(0)) {
-        exit(5);
-    }
-#endif
     if (mprStart(mpr)) {
         mprError("Can't start mpr services");
         exit(4);
