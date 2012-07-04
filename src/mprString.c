@@ -239,8 +239,9 @@ char *sfmt(cchar *fmt, ...)
     va_list     ap;
     char        *buf;
 
-    mprAssert(fmt);
-
+    if (fmt == 0) {
+        fmt = "%s";
+    }
     va_start(ap, fmt);
     buf = mprAsprintfv(fmt, ap);
     va_end(ap);
