@@ -33,7 +33,6 @@ typedef struct MprOpenSsl {
     DH              *dhKey1024;
 } MprOpenSsl;
 
-
 typedef struct MprOpenSocket {
     MprSocket       *sock;
     SSL             *handle;
@@ -60,14 +59,10 @@ typedef struct CRYPTO_dynlock_value DynLock;
 
 /***************************** Forward Declarations ***************************/
 
-static MprSocket *acceptOss(MprSocket *sp);
 static void     closeOss(MprSocket *sp, bool gracefully);
-static MprSsl   *getDefaultSslSettings();
 static int      configureCertificateFiles(MprSsl *ssl, SSL_CTX *ctx, char *key, char *cert);
-static int      configureOss(MprSsl *ssl);
-static int      connectOss(MprSocket *sp, cchar *host, int port, int flags);
+static MprOpenSsl *createOpenSslConfig(MprSsl *ssl);
 static MprSocketProvider *createOpenSslProvider();
-static MprSocket *createOss(MprSsl *ssl);
 static DH       *dhCallback(SSL *ssl, int isExport, int keyLength);
 static void     disconnectOss(MprSocket *sp);
 static ssize    flushOss(MprSocket *sp);
@@ -78,6 +73,7 @@ static void     manageOpenProvider(MprSocketProvider *provider, int flags);
 static void     manageOpenSocket(MprOpenSocket *ssp, int flags);
 static ssize    readOss(MprSocket *sp, void *buf, ssize len);
 static RSA      *rsaCallback(SSL *ssl, int isExport, int keyLength);
+static int      upgradeOss(MprSocket *sp, MprSsl *ssl, int server);
 static int      verifyX509Certificate(int ok, X509_STORE_CTX *ctx);
 static ssize    writeOss(MprSocket *sp, cvoid *buf, ssize len);
 
@@ -94,15 +90,16 @@ static DH       *get_dh1024();
 /*
     Create the Openssl module. This is called only once
  */
-int mprCreateOpenSslModule(bool lazy)
+int mprCreateOpenSslModule()
 {
     MprSocketProvider   *provider;
+    MprSocketService    *ss;
+    MprSsl              *ssl;
+    MprOpenSsl          *ossl;
     RandBuf             randBuf;
     int                 i;
 
-    if ((olocks = mprAllocObj(OpenSslLocks, manageOpenSslLocks)) == 0) {
-        return MPR_ERR_MEMORY;
-    }
+    ss = MPR->socketService;
     /*
         Get some random bytes
      */
@@ -116,33 +113,49 @@ int mprCreateOpenSslModule(bool lazy)
     mprLog(6, "OpenSsl: After calling RAND_load_file");
 #endif
     /*
-        Configure the global locks
+        Configure the SSL library. Use the crypto ID as a one-time test. This allows
+        users to configure the library and have their configuration used instead.
      */
-    numLocks = CRYPTO_num_locks();
-    olocks->locks = mprAlloc(numLocks * sizeof(MprMutex*));
-    for (i = 0; i < numLocks; i++) {
-        olocks->locks[i] = mprCreateLock();
-    }
-    CRYPTO_set_id_callback(sslThreadId);
-    CRYPTO_set_locking_callback(sslStaticLock);
+    if (CRYPTO_get_id_callback() == 0) {
+        numLocks = CRYPTO_num_locks();
+        if ((olocks = mprAllocObj(OpenSslLocks, manageOpenSslLocks)) == 0) {
+            return MPR_ERR_MEMORY;
+        }
+        olocks->locks = mprAlloc(numLocks * sizeof(MprMutex*));
+        for (i = 0; i < numLocks; i++) {
+            olocks->locks[i] = mprCreateLock();
+        }
+        CRYPTO_set_id_callback(sslThreadId);
+        CRYPTO_set_locking_callback(sslStaticLock);
 
-    CRYPTO_set_dynlock_create_callback(sslCreateDynLock);
-    CRYPTO_set_dynlock_destroy_callback(sslDestroyDynLock);
-    CRYPTO_set_dynlock_lock_callback(sslDynLock);
-
+        CRYPTO_set_dynlock_create_callback(sslCreateDynLock);
+        CRYPTO_set_dynlock_destroy_callback(sslDestroyDynLock);
+        CRYPTO_set_dynlock_lock_callback(sslDynLock);
 #if !BIT_WIN_LIKE
-    OpenSSL_add_all_algorithms();
+        /* OPT - Should be a configure option to specify desired ciphers */
+        OpenSSL_add_all_algorithms();
 #endif
-    SSL_library_init();
-
+        /*
+            WARNING: SSL_library_init() is not reentrant. Caller must ensure safety.
+         */
+        SSL_library_init();
+        SSL_load_error_strings();
+    }
     if ((provider = createOpenSslProvider()) == 0) {
         return MPR_ERR_MEMORY;
     }
-    provider->data = olocks;
     mprSetSecureProvider(provider);
-    if (!lazy) {
-        getDefaultSslSettings();
+    provider->data = olocks;
+
+    if ((ssl = mprCreateSsl()) == 0 || (ossl = createOpenSslConfig(ssl)) == 0) {
+        return MPR_ERR_CANT_INITIALIZE;
     }
+    ossl->rsaKey512 = RSA_generate_key(512, RSA_F4, 0, 0);
+    ossl->rsaKey1024 = RSA_generate_key(1024, RSA_F4, 0, 0);
+    ossl->dhKey512 = get_dh512();
+    ossl->dhKey1024 = get_dh1024();
+
+    provider->defaultSsl = ssl;
     return 0;
 }
 
@@ -162,36 +175,6 @@ static void manageOpenSslLocks(OpenSslLocks *olocks, int flags)
 }
 
 
-static MprSsl *getDefaultSslSettings()
-{
-    MprSocketService    *ss;
-    MprSsl              *ssl;
-    MprOpenSsl          *ossl;
-
-    ss = MPR->socketService;
-
-    if (ss->secureProvider->defaultSsl) {
-        return ss->secureProvider->defaultSsl;
-    }
-    if ((ssl = mprCreateSsl()) == 0) {
-        return 0;
-    }
-    /*
-        Pre-generate keys that are slow to compute.
-     */
-    if ((ssl->extendedSsl = mprAllocObj(MprOpenSsl, manageOpenSsl)) == 0) {
-        return 0;
-    }
-    ss->secureProvider->defaultSsl = ssl;
-    ossl = ssl->extendedSsl;
-    ossl->rsaKey512 = RSA_generate_key(512, RSA_F4, 0, 0);
-    ossl->rsaKey1024 = RSA_generate_key(1024, RSA_F4, 0, 0);
-    ossl->dhKey512 = get_dh512();
-    ossl->dhKey1024 = get_dh1024();
-    return ssl;
-}
-
-
 /*
     Initialize a provider structure for OpenSSL
  */
@@ -203,11 +186,8 @@ static MprSocketProvider *createOpenSslProvider()
         return 0;
     }
     provider->name = sclone("OpenSsl");
-    provider->acceptSocket = acceptOss;
+    provider->upgradeSocket = upgradeOss;
     provider->closeSocket = closeOss;
-    provider->configureSsl = configureOss;
-    provider->connectSocket = connectOss;
-    provider->createSocket = createOss;
     provider->disconnectSocket = disconnectOss;
     provider->flushSocket = flushOss;
     provider->listenSocket = listenOss;
@@ -228,29 +208,41 @@ static void manageOpenProvider(MprSocketProvider *provider, int flags)
 
 
 /*
-    Initialize a server-side SSL configuration. An application can have multiple different SSL configurations
-    for different routes.
+    Initialize the SSL configuration. An application can have multiple different SSL 
+    configurations for different routes. There is default SSL configuration that is used
+    when a route does not define a configuration and also for clients.
  */
-static int configureOss(MprSsl *ssl)
+static MprOpenSsl *createOpenSslConfig(MprSsl *ssl)
 {
-    MprSsl              *defaultSsl;
+    MprSocketService    *ss;
     MprOpenSsl          *ossl, *src;
     SSL_CTX             *context;
     uchar               resume[16];
 
     mprAssert(ssl);
+    ss = MPR->socketService;
+    if ((ssl->pconfig = mprAllocObj(MprOpenSsl, manageOpenSsl)) == 0) {
+        return 0;
+    }
+    ossl = ssl->pconfig;
+    if (ss->secureProvider->defaultSsl) {
+        src = ss->secureProvider->defaultSsl->pconfig;
+        ossl->rsaKey512 = src->rsaKey512;
+        ossl->rsaKey1024 = src->rsaKey1024;
+        ossl->dhKey512 = src->dhKey512;
+        ossl->dhKey1024 = src->dhKey1024;
+    }
+    ossl = ssl->pconfig;
+    mprAssert(ossl);
 
     if ((context = SSL_CTX_new(SSLv23_method())) == 0) {
         mprError("OpenSSL: Unable to create SSL context"); 
-        return MPR_ERR_CANT_CREATE;
+        return 0;
     }
+    ossl->context = context;
 
     SSL_CTX_set_app_data(context, (void*) ssl);
-#if UNUSED
-    SSL_CTX_set_quiet_shutdown(context, 1);
-#endif
     SSL_CTX_sess_set_cache_size(context, 512);
-
     RAND_bytes(resume, sizeof(resume));
     SSL_CTX_set_session_id_context(context, resume, sizeof(resume));
 
@@ -261,17 +253,16 @@ static int configureOss(MprSsl *ssl)
     if (ssl->key || ssl->cert) {
         if (configureCertificates(ssl, context, ssl->key, ssl->cert) != 0) {
             SSL_CTX_free(context);
-            return MPR_ERR_CANT_INITIALIZE;
+            return 0;
         }
     } else 
 #endif
     if (ssl->keyFile || ssl->certFile) {
         if (configureCertificateFiles(ssl, context, ssl->keyFile, ssl->certFile) != 0) {
             SSL_CTX_free(context);
-            return MPR_ERR_CANT_INITIALIZE;
+            return 0;
         }
     }
-
     mprLog(4, "OpenSSL: Using ciphers %s", ssl->ciphers);
     SSL_CTX_set_cipher_list(context, ssl->ciphers);
 
@@ -282,21 +273,19 @@ static int configureOss(MprSsl *ssl)
         if (ssl->caFile == 0 && ssl->caPath == 0) {
             mprError("OpenSSL: Must define CA certificates if using client verification");
             SSL_CTX_free(context);
-            return MPR_ERR_BAD_STATE;
+            return 0;
         }
         if (ssl->caFile || ssl->caPath) {
             if ((!SSL_CTX_load_verify_locations(context, ssl->caFile, ssl->caPath)) ||
                     (!SSL_CTX_set_default_verify_paths(context))) {
                 mprError("OpenSSL: Unable to set certificate locations"); 
                 SSL_CTX_free(context);
-                return MPR_ERR_CANT_ACCESS;
+                return 0;
             }
             if (ssl->caFile) {
                 STACK_OF(X509_NAME) *certNames;
                 certNames = SSL_load_client_CA_file(ssl->caFile);
-                if (certNames == 0) {
-                    ;
-                } else {
+                if (certNames) {
                     /*
                         Define the list of CA certificates to send to the client
                         before they send their client certificate for validation
@@ -319,7 +308,6 @@ static int configureOss(MprSsl *ssl)
     } else {
         SSL_CTX_set_verify(context, SSL_VERIFY_NONE, verifyX509Certificate);
     }
-
     /*
         Define callbacks
      */
@@ -352,26 +340,7 @@ static int configureOss(MprSsl *ssl)
         Ensure we generate a new private key for each connection
      */
     SSL_CTX_set_options(context, SSL_OP_SINGLE_DH_USE);
-
-    if ((defaultSsl = getDefaultSslSettings()) == 0) {
-        return MPR_ERR_MEMORY;
-    }
-    if (ssl != defaultSsl) {
-        if (!ssl->extendedSsl && (ssl->extendedSsl = mprAllocObj(MprOpenSsl, manageOpenSsl)) == 0) {
-            return 0;
-        }
-        ossl = ssl->extendedSsl;
-        src = defaultSsl->extendedSsl;
-        ossl->rsaKey512 = src->rsaKey512;
-        ossl->rsaKey1024 = src->rsaKey1024;
-        ossl->dhKey512 = src->dhKey512;
-        ossl->dhKey1024 = src->dhKey1024;
-    } else {
-        ossl = ssl->extendedSsl;
-    }
-    mprAssert(ossl);
-    ossl->context = context;
-    return 0;
+    return ossl;
 }
 
 
@@ -388,7 +357,7 @@ static void manageOpenSsl(MprOpenSsl *ossl, int flags)
             SSL_CTX_free(ossl->context);
             ossl->context = 0;
         }
-        if (ossl == MPR->socketService->secureProvider->defaultSsl->extendedSsl) {
+        if (ossl == MPR->socketService->secureProvider->defaultSsl->pconfig) {
             if (ossl->rsaKey512) {
                 RSA_free(ossl->rsaKey512);
                 ossl->rsaKey512 = 0;
@@ -446,42 +415,6 @@ static int configureCertificateFiles(MprSsl *ssl, SSL_CTX *ctx, char *key, char 
 
 
 /*
-    Create a new socket. If listen is set, this is a socket for an accepting connection.
- */
-static MprSocket *createOss(MprSsl *ssl)
-{
-    MprSocketService    *ss;
-    MprSocket           *sp;
-    MprOpenSocket       *osp;
-    
-    if (ssl == MPR_SECURE_CLIENT) {
-        ssl = 0;
-    }
-    /*
-        First get a standard socket
-     */
-    ss = MPR->socketService;
-    if ((sp = ss->standardProvider->createSocket(ssl)) == 0) {
-        return 0;
-    }
-    lock(sp);
-    sp->provider = ss->secureProvider;
-
-    /*
-        Create a SslSocket object for ssl state. This logically extends MprSocket.
-     */
-    if ((osp = (MprOpenSocket*) mprAllocObj(MprOpenSocket, manageOpenSocket)) == 0) {
-        return 0;
-    }
-    osp->sock = sp;
-    sp->sslSocket = osp;
-    sp->ssl = ssl;
-    unlock(sp);
-    return sp;
-}
-
-
-/*
     Destructor for an MprOpenSocket object
  */
 static void manageOpenSocket(MprOpenSocket *osp, int flags)
@@ -511,7 +444,7 @@ static void closeOss(MprSocket *sp, bool gracefully)
 
 
 /*
-    Initialize a new server-side connection. Called by listenOss and by acceptOss.
+    Initialize a new server-side connection
  */
 static int listenOss(MprSocket *sp, cchar *host, int port, int flags)
 {
@@ -520,122 +453,58 @@ static int listenOss(MprSocket *sp, cchar *host, int port, int flags)
 
 
 /*
-    Initialize a new server-side connection
+    Upgrade a standard socket to use SSL/TLS
  */
-static MprSocket *acceptOss(MprSocket *listen)
-{
-    MprSocket       *sp;
-    MprOpenSocket   *osp;
-    MprOpenSsl      *ossl;
-    BIO             *bioSock;
-    SSL             *handle;
-
-    if ((sp = listen->service->standardProvider->acceptSocket(listen)) == 0) {
-        return 0;
-    }
-    lock(sp);
-    osp = sp->sslSocket;
-    mprAssert(osp);
-
-    /*
-        Create and configure the SSL struct
-     */
-    ossl = sp->ssl->extendedSsl;
-    if ((handle = (SSL*) SSL_new(ossl->context)) == 0) {
-        unlock(sp);
-        return 0;
-    }
-    osp->handle = handle;
-    SSL_set_app_data(handle, (void*) osp);
-
-    /*
-        Create a socket bio
-     */
-    bioSock = BIO_new_socket(sp->fd, BIO_NOCLOSE);
-    mprAssert(bioSock);
-    SSL_set_bio(handle, bioSock, bioSock);
-    SSL_set_accept_state(handle);
-    osp->bio = bioSock;
-    unlock(sp);
-    return sp;
-}
-
-
-/*
-    Initialize a new client connection
- */
-static int connectOss(MprSocket *sp, cchar *host, int port, int flags)
+static int upgradeOss(MprSocket *sp, MprSsl *ssl, int server)
 {
     MprSocketService    *ss;
     MprOpenSocket       *osp;
     MprOpenSsl          *ossl;
-    MprSsl              *ssl;
-    BIO                 *bioSock;
-    int                 rc;
-    
-    lock(sp);
+
     ss = sp->service;
-    if (ss->standardProvider->connectSocket(sp, host, port, flags) < 0) {
+    if (ssl == 0) {
+        ssl = mprCreateSsl();
+    }
+    lock(sp);
+    if ((osp = (MprOpenSocket*) mprAllocObj(MprOpenSocket, manageOpenSocket)) == 0) {
         unlock(sp);
-        return MPR_ERR_CANT_CONNECT;
+        return MPR_ERR_MEMORY;
     }
-    osp = sp->sslSocket;
-    mprAssert(osp);
+    osp->sock = sp;
+    sp->provider = ss->secureProvider;
+    sp->sslSocket = osp;
+    sp->ssl = ssl;
 
-    if (!sp->ssl) {
-        if ((ssl = ss->secureProvider->defaultSsl) == 0) {
-            if ((ssl = getDefaultSslSettings()) == 0) {
-                unlock(sp);
-                return MPR_ERR_CANT_INITIALIZE;
-            }
-        }
-        sp->ssl = ssl;
-    }
-    ssl = sp->ssl;
-    ossl = ssl->extendedSsl;
-
-    if (ossl->context == 0 && configureOss(ssl) < 0) {
+    if (!ssl->pconfig && (ssl->pconfig = createOpenSslConfig(ssl)) == 0) {
         unlock(sp);
         return MPR_ERR_CANT_INITIALIZE;
     }
     /*
         Create and configure the SSL struct
      */
-    osp->handle = (SSL*) SSL_new(ossl->context);
-    mprAssert(osp->handle);
-    if (osp->handle == 0) {
+    ossl = sp->ssl->pconfig;
+    if ((osp->handle = (SSL*) SSL_new(ossl->context)) == 0) {
         unlock(sp);
-        return MPR_ERR_CANT_INITIALIZE;
+        return MPR_ERR_BAD_STATE;
     }
     SSL_set_app_data(osp->handle, (void*) osp);
 
     /*
         Create a socket bio
      */
-    bioSock = BIO_new_socket(sp->fd, BIO_NOCLOSE);
-    mprAssert(bioSock);
-    SSL_set_bio(osp->handle, bioSock, bioSock);
-
-    //  TODO - should be calling SSL_set_connect_state(osp->handle);
-    osp->bio = bioSock;
-
-    /*
-        Make the socket blocking while we connect
-     */
-    mprSetSocketBlockingMode(sp, 1);
-    
-    rc = SSL_connect(osp->handle);
-    if (rc < 1) {
-#if KEEP
-        rc = SSL_get_error(osp->handle, rc);
-        if (rc == SSL_ERROR_WANT_READ) {
-            rc = SSL_connect(osp->handle);
+    osp->bio = BIO_new_socket(sp->fd, BIO_NOCLOSE);
+    SSL_set_bio(osp->handle, osp->bio, osp->bio);
+    if (server) {
+        SSL_set_accept_state(osp->handle);
+    } else {
+        /* Block while connecting */
+        mprSetSocketBlockingMode(sp, 1);
+        if (SSL_connect(osp->handle) < 1) {
+            unlock(sp);
+            return MPR_ERR_CANT_CONNECT;
         }
-#endif
-        unlock(sp);
-        return MPR_ERR_CANT_CONNECT;
+        mprSetSocketBlockingMode(sp, 0);
     }
-    mprSetSocketBlockingMode(sp, 0);
     unlock(sp);
     return 0;
 }
@@ -645,7 +514,6 @@ static void disconnectOss(MprSocket *sp)
 {
     sp->service->standardProvider->disconnectSocket(sp);
 }
-
 
 
 /*
@@ -665,7 +533,6 @@ static ssize readOss(MprSocket *sp, void *buf, ssize len)
         unlock(sp);
         return -1;
     }
-
     /*  
         Limit retries on WANT_READ. If non-blocking and no data, then this can spin forever.
      */
@@ -709,7 +576,6 @@ static ssize readOss(MprSocket *sp, void *buf, ssize len)
         connTraced = 1;
     }
 #endif
-
     if (rc <= 0) {
         error = SSL_get_error(osp->handle, rc);
         if (error == SSL_ERROR_WANT_READ) {
@@ -765,7 +631,6 @@ static ssize writeOss(MprSocket *sp, cvoid *buf, ssize len)
             if (rc == SSL_ERROR_WANT_WRITE) {
                 mprNap(10);
                 continue;
-                
             } else if (rc == SSL_ERROR_WANT_READ) {
                 //  AUTO-RETRY should stop this
                 mprAssert(0);
@@ -952,7 +817,7 @@ static RSA *rsaCallback(SSL *handle, int isExport, int keyLength)
     sp = osp->sock;
     mprAssert(sp);
 
-    ossl = sp->ssl->extendedSsl;
+    ossl = sp->ssl->pconfig;
 
     key = 0;
     switch (keyLength) {
@@ -980,7 +845,7 @@ static DH *dhCallback(SSL *handle, int isExport, int keyLength)
 
     osp = (MprOpenSocket*) SSL_get_app_data(handle);
     sp = osp->sock;
-    ossl = sp->ssl->extendedSsl;
+    ossl = sp->ssl->pconfig;
 
     key = 0;
     switch (keyLength) {
@@ -1063,8 +928,6 @@ static DH *get_dh1024()
     return dh;
 }
 
-#else
-int mprCreateOpenSslModule(bool lazy) { return -1; }
 #endif /* BIT_FEATURE_OPENSSL */
 
 /*

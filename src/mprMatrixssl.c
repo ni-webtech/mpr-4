@@ -111,17 +111,12 @@ static uchar CAcertSrvBuf[] = {
 
 /***************************** Forward Declarations ***************************/
 
-static MprSocket *acceptMss(MprSocket *sp);
 static void     closeMss(MprSocket *sp, bool gracefully);
-static int      configureMss(MprSsl *ssl);
-static int      connectMss(MprSocket *sp, cchar *host, int port, int flags);
-static MprMatrixSsl *createMatrixSsl(MprSsl *ssl);
+static MprMatrixSsl *createMatrixSslConfig(MprSsl *ssl);
 static MprSocketProvider *createMatrixSslProvider();
-static MprSocket *createMss(MprSsl *ssl);
 static void     disconnectMss(MprSocket *sp);
 static int      doHandshake(MprSocket *sp, short cipherSuite);
 static ssize    flushMss(MprSocket *sp);
-static MprSsl   *getDefaultMatrixSsl();
 static ssize    innerRead(MprSocket *sp, char *userBuf, ssize len);
 static int      listenMss(MprSocket *sp, cchar *host, int port, int flags);
 static void     manageMatrixSocket(MprMatrixSocket *msp, int flags);
@@ -129,13 +124,18 @@ static void     manageMatrixProvider(MprSocketProvider *provider, int flags);
 static void     manageMatrixSsl(MprMatrixSsl *mssl, int flags);
 static ssize    processMssData(MprSocket *sp, char *buf, ssize size, ssize nbytes, int *readMore);
 static ssize    readMss(MprSocket *sp, void *buf, ssize len);
+static int      upgradeMss(MprSocket *sp, MprSsl *ssl, int server);
+static int      verifyServer(ssl_t *ssl, psX509Cert_t *cert, int32 alert);
 static ssize    writeMss(MprSocket *sp, cvoid *buf, ssize len);
 
 /************************************ Code ************************************/
 
-int mprCreateMatrixSslModule(bool lazy)
+int mprCreateMatrixSslModule()
 {
     MprSocketProvider   *provider;
+    MprSocketService    *ss;
+    MprSsl              *ssl;
+    MprMatrixSsl        *mssl;
 
     /*
         Install this module as the SSL provider (can only have one)
@@ -147,50 +147,53 @@ int mprCreateMatrixSslModule(bool lazy)
     if (matrixSslOpen() < 0) {
         return 0;
     }
-    if (!lazy) {
-        getDefaultMatrixSsl();
+    ss = MPR->socketService;
+    if ((ssl = mprCreateSsl()) == 0 || (mssl = createMatrixSslConfig(ssl)) == 0) {
+        return MPR_ERR_CANT_INITIALIZE;
     }
+    provider->defaultSsl = ssl;
     return 0;
 }
 
 
 /*
-    Create the default MatrixSSL configuration state structure.
-    This is used for client connections and for server connections in the absense of a per-route configuration.
+    Initialize the SSL configuration. An application can have multiple different SSL
+    configurations for different routes. There is default SSL configuration that is used
+    when a route does not define a configuration and also for clients.
  */
-static MprSsl *getDefaultMatrixSsl()
-{
-    MprSocketService    *ss;
-    MprSsl              *ssl;
-
-    ss = MPR->socketService;
-    if (ss->secureProvider->defaultSsl) {
-        return ss->secureProvider->defaultSsl;
-    }
-    if ((ssl = mprCreateSsl()) == 0) {
-        return 0;
-    }
-    if (!createMatrixSsl(ssl)) {
-        return 0;
-    }
-    ss->secureProvider->defaultSsl = ssl;
-    return ssl;
-}
-
-
-static MprMatrixSsl *createMatrixSsl(MprSsl *ssl)
+static MprMatrixSsl *createMatrixSslConfig(MprSsl *ssl)
 {
     MprMatrixSsl    *mssl;
+    char            *password;
 
-    if ((mssl = mprAllocObj(MprMatrixSsl, manageMatrixSsl)) == 0) {
+    if ((ssl->pconfig = mprAllocObj(MprMatrixSsl, manageMatrixSsl)) == 0) {
         return 0;
     }
-    ssl->extendedSsl = mssl;
+    mssl = ssl->pconfig;
     if (matrixSslNewKeys(&mssl->keys) < 0) {
+        return 0;
+    }
+    /*
+        Read the certificate and the key file for this server. FUTURE - If using encrypted private keys, 
+        we could prompt through a dialog box or on the console, for the user to enter the password
+        rather than using NULL as the password here.
+     */
+    password = NULL;
+    if (matrixSslLoadRsaKeys(mssl->keys, ssl->certFile, ssl->keyFile, password, NULL) < 0) {
+        mprError("MatrixSSL: Could not read or decode certificate or key file."); 
+        return 0;
+    }
+    /*
+        Select the required protocols. MatrixSSL supports only SSLv3.
+     */
+    if (ssl->protocols & MPR_PROTO_SSLV2) {
+        mprError("MatrixSSL: SSLv2 unsupported"); 
         return 0;
     }
     return mssl;
 }
+
+
 
 
 static MprSocketProvider *createMatrixSslProvider()
@@ -201,16 +204,13 @@ static MprSocketProvider *createMatrixSslProvider()
         return 0;
     }
     provider->name = sclone("MatrixSsl");
-    provider->acceptSocket = acceptMss;
     provider->closeSocket = closeMss;
-    provider->configureSsl = configureMss;
-    provider->connectSocket = connectMss;
-    provider->createSocket = createMss;
     provider->disconnectSocket = disconnectMss;
     provider->flushSocket = flushMss;
     provider->listenSocket = listenMss;
     provider->readSocket = readMss;
     provider->writeSocket = writeMss;
+    provider->upgradeSocket = upgradeMss;
     return provider;
 }
 
@@ -225,42 +225,6 @@ static void manageMatrixProvider(MprSocketProvider *provider, int flags)
 }
 
 
-/*
-    Initialize a server-side SSL configuration. An application can have multiple different SSL configurations
-    for different routes.
- */
-static int configureMss(MprSsl *ssl)
-{
-    MprMatrixSsl    *mssl;
-    char            *password;
-
-    mprAssert(ssl);
-
-    if ((mssl = createMatrixSsl(ssl)) == 0) {
-        return 0;
-    }
-    /*
-        Read the certificate and the key file for this server. FUTURE - If using encrypted private keys, 
-        we could prompt through a dialog box or on the console, for the user to enter the password
-        rather than using NULL as the password here.
-     */
-    password = NULL;
-    if (matrixSslLoadRsaKeys(mssl->keys, ssl->certFile, ssl->keyFile, password, NULL) < 0) {
-        mprError("MatrixSSL: Could not read or decode certificate or key file."); 
-        return MPR_ERR_CANT_INITIALIZE;
-    }
-
-    /*
-        Select the required protocols. MatrixSSL supports only SSLv3.
-     */
-    if (ssl->protocols & MPR_PROTO_SSLV2) {
-        mprError("MatrixSSL: SSLv2 unsupported"); 
-        return MPR_ERR_CANT_INITIALIZE;
-    }
-    return 0;
-}
-
-
 static void manageMatrixSsl(MprMatrixSsl *mssl, int flags)
 {
     if (flags & MPR_MANAGE_MARK) {
@@ -271,38 +235,6 @@ static void manageMatrixSsl(MprMatrixSsl *mssl, int flags)
             mssl->keys = 0;
         }
     }
-}
-
-
-/*
-    Create a new Matrix socket
- */
-static MprSocket *createMss(MprSsl *ssl)
-{
-    MprSocketService    *ss;
-    MprSocket           *sp;
-    MprMatrixSocket     *msp;
-    
-    if (ssl == MPR_SECURE_CLIENT) {
-        /* Use the default SSL provider and configuration */
-        ssl = 0;
-    }
-    /*
-        First get a standard socket
-     */
-    ss = MPR->socketService;
-    if ((sp = ss->standardProvider->createSocket(ssl)) == 0) {
-        return 0;
-    }
-    sp->provider = ss->secureProvider;
-    if ((msp = (MprMatrixSocket*) mprAllocObj(MprMatrixSocket, manageMatrixSocket)) == 0) {
-        return 0;
-    }
-    msp->sock = sp;
-    sp->sslSocket = msp;
-    sp->ssl = ssl;
-    mprAddItem(ss->secureSockets, sp);
-    return sp;
 }
 
 
@@ -360,35 +292,58 @@ static int listenMss(MprSocket *sp, cchar *host, int port, int flags)
 }
 
 
-/*
-    Called to accept an incoming connection request
- */
-static MprSocket *acceptMss(MprSocket *listen)
+static int upgradeMss(MprSocket *sp, MprSsl *ssl, int server)
 {
-    MprSocket           *sp;
+    MprSocketService    *ss;
     MprMatrixSocket     *msp;
     MprMatrixSsl        *mssl;
+    uint32              cipherSuite;
 
-    /*
-        Do the standard accept stuff
-     */
-    if ((sp = listen->service->standardProvider->acceptSocket(listen)) == 0) {
-        return 0;
+    ss = sp->service;
+    if ((msp = (MprMatrixSocket*) mprAllocObj(MprMatrixSocket, manageMatrixSocket)) == 0) {
+        return MPR_ERR_MEMORY;
     }
+    lock(sp);
+    msp->sock = sp;
+    sp->sslSocket = msp;
+    sp->provider = ss->secureProvider;
+    sp->ssl = ssl;
+
+    mprAddItem(ss->secureSockets, sp);
+
+    if (!ssl->pconfig && (ssl->pconfig = createMatrixSslConfig(ssl)) == 0) {
+        unlock(sp);
+        return MPR_ERR_CANT_INITIALIZE;
+    }
+    mssl = ssl->pconfig;
+
     /* 
         Associate a new ssl session with this socket. The session represents the state of the ssl protocol 
         over this socket. Session caching is handled automatically by this api.
      */
-    lock(sp);
-    msp = sp->sslSocket;
-    mprAssert(msp);
-    mssl = sp->ssl->extendedSsl;
-    if (matrixSslNewServerSession(&msp->handle, mssl->keys, NULL) < 0) {
-        unlock(sp);
-        return 0;
+    if (server) {
+        if (matrixSslNewServerSession(&msp->handle, mssl->keys, NULL) < 0) {
+            unlock(sp);
+            return MPR_ERR_CANT_CREATE;
+        }
+    } else {
+        if (matrixSslLoadRsaKeysMem(mssl->keys, NULL, 0, NULL, 0, CAcertSrvBuf, sizeof(CAcertSrvBuf)) < 0) {
+            mprError("MatrixSSL: Could not read or decode certificate or key file."); 
+            unlock(sp);
+            return MPR_ERR_CANT_INITIALIZE;
+        }
+        cipherSuite = 0;
+        if (matrixSslNewClientSession(&msp->handle, mssl->keys, NULL, cipherSuite, verifyServer, NULL, NULL) < 0) {
+            unlock(sp);
+            return MPR_ERR_CANT_CONNECT;
+        }
+        if (doHandshake(sp, 0) < 0) {
+            unlock(sp);
+            return MPR_ERR_CANT_CONNECT;
+        }
     }
     unlock(sp);
-    return sp;
+    return 0;
 }
 
 
@@ -487,57 +442,6 @@ static int verifyServer(ssl_t *ssl, psX509Cert_t *cert, int32 alert)
 		}
 	}
 	return PS_SUCCESS;
-}
-
-
-/*
-    Connect as a client
- */
-static int connectMss(MprSocket *sp, cchar *host, int port, int flags)
-{
-    MprSocketService    *ss;
-    MprMatrixSocket     *msp;
-    MprMatrixSsl        *mssl;
-    MprSsl              *ssl;
-    uint32              cipherSuite;
-    
-    lock(sp);
-    ss = sp->service;
-    if (sp->service->standardProvider->connectSocket(sp, host, port, flags) < 0) {
-        unlock(sp);
-        return MPR_ERR_CANT_CONNECT;
-    }
-    msp = sp->sslSocket;
-    mprAssert(msp);
-
-    if (!sp->ssl) {
-        if ((ssl = ss->secureProvider->defaultSsl) == 0) {
-            if ((ssl = getDefaultMatrixSsl()) == 0) {
-                unlock(sp);
-                return MPR_ERR_CANT_INITIALIZE;
-            }
-        }
-        sp->ssl = ssl;
-    }
-    ssl = sp->ssl;
-    mssl = ssl->extendedSsl;
-
-    if (matrixSslLoadRsaKeysMem(mssl->keys, NULL, 0, NULL, 0, CAcertSrvBuf, sizeof(CAcertSrvBuf)) < 0) {
-        mprError("MatrixSSL: Could not read or decode certificate or key file."); 
-        unlock(sp);
-        return MPR_ERR_CANT_INITIALIZE;
-    }
-    cipherSuite = 0;
-    if (matrixSslNewClientSession(&msp->handle, mssl->keys, NULL, cipherSuite, verifyServer, NULL, NULL) < 0) {
-        unlock(sp);
-        return MPR_ERR_CANT_CONNECT;
-    }
-    if (doHandshake(sp, 0) < 0) {
-        unlock(sp);
-        return MPR_ERR_CANT_CONNECT;
-    }
-    unlock(sp);
-    return 0;
 }
 
 
