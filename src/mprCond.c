@@ -71,19 +71,23 @@ int mprWaitForCond(MprCond *cp, MprTime timeout)
     int                 usec;
 #endif
 
+    /*
+        Avoid doing a mprGetTime() if timeout is < 0
+     */
     rc = 0;
-    if (timeout < 0) {
-        timeout = MAXINT;
-    }
-    now = mprGetTime();
-    expire = now + timeout;
-
+    if (timeout >= 0) {
+        now = mprGetTime();
+        expire = now + timeout;
 #if BIT_UNIX_LIKE
-    gettimeofday(&current, NULL);
-    usec = current.tv_usec + ((int) (timeout % 1000)) * 1000;
-    waitTill.tv_sec = current.tv_sec + ((int) (timeout / 1000)) + (usec / 1000000);
-    waitTill.tv_nsec = (usec % 1000000) * 1000;
+        gettimeofday(&current, NULL);
+        usec = current.tv_usec + ((int) (timeout % 1000)) * 1000;
+        waitTill.tv_sec = current.tv_sec + ((int) (timeout / 1000)) + (usec / 1000000);
+        waitTill.tv_nsec = (usec % 1000000) * 1000;
 #endif
+    } else {
+        expire = -1;
+        now = 0;
+    }
     mprLock(cp->mutex);
     if (!cp->triggered) {
         /*
@@ -119,7 +123,11 @@ int mprWaitForCond(MprCond *cp, MprTime timeout)
                 NOTE: pthread_cond_timedwait can return 0 (MAC OS X and Linux). The pthread_cond_wait routines will 
                 atomically unlock the mutex before sleeping and will relock on awakening.  
              */
-            rc = pthread_cond_timedwait(&cp->cv, &cp->mutex->cs,  &waitTill);
+            if (now) {
+                rc = pthread_cond_timedwait(&cp->cv, &cp->mutex->cs,  &waitTill);
+            } else {
+                rc = pthread_cond_wait(&cp->cv, &cp->mutex->cs);
+            }
             if (rc == ETIMEDOUT) {
                 rc = MPR_ERR_TIMEOUT;
             } else if (rc == EAGAIN) {
@@ -130,7 +138,7 @@ int mprWaitForCond(MprCond *cp, MprTime timeout)
                 rc = MPR_ERR;
             }
 #endif
-        } while (!cp->triggered && rc == 0 && (now = mprGetTime()) < expire);
+        } while (!cp->triggered && rc == 0 && (now && (now = mprGetTime()) < expire));
     }
     if (cp->triggered) {
         cp->triggered = 0;
