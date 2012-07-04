@@ -656,19 +656,19 @@ static int growList(MprList *lp, int incr)
 }
 
 
-static int defaultSort(char **q1, char **q2)
+static int defaultSort(char **q1, char **q2, void *ctx)
 {
     return scmp(*q1, *q2);
 }
 
 
-void mprSortList(MprList *lp, void *compare)
+void mprSortList(MprList *lp, MprSortProc compare, void *ctx)
 {
     lock(lp);
     if (!compare) {
-        compare = defaultSort;
+        compare = (MprSortProc) defaultSort;
     }
-    qsort(lp->items, lp->length, sizeof(void*), compare);
+    mprSort(lp->items, lp->length, sizeof(void*), compare, ctx);
     unlock(lp);
 }
 
@@ -694,6 +694,107 @@ MprKeyValue *mprCreateKeyPair(cchar *key, cchar *value)
     return pair;
 }
 
+
+static void swapElt(char *p1, char *p2, ssize size)
+{
+    char    t;
+
+    if (p1 == p2) {
+        return;
+    }
+    while (size--) {
+        t = *p1;
+        *p1++ = *p2;
+        *p2++ = t;
+    }
+}
+
+
+/*
+    Linear sort for small arrays
+ */
+static void linearSort(char *left, char *right, ssize size, MprSortProc compare, void *ctx)
+{
+    char *next, *bound;
+
+    for (; left <= right; right -= size) {
+        bound = left;
+        for (next = left + size; next <= right; next += size) {
+            if (compare(bound, next, ctx) <= 0) {
+                bound = next;
+            }
+        }
+        swapElt(bound, right, size);
+    }
+}
+
+
+/*
+    Like a traditional q-sort but with a context object argument
+ */
+void mprSort(void *array, ssize nelt, ssize esize, MprSortProc compare, void *ctx) 
+{
+    char    *l, *left, *pivot, *r, *right;
+    int     index;
+    struct  SortStack {
+        char    *left;
+        char    *right;
+    } sortStack[64];
+
+    if (nelt <= 1 || esize <= 0) {
+        return;
+    }
+    index = 0;
+    left = array;
+    right = (char*) array + esize * (nelt - 1);
+
+again:
+    if (nelt > 8) {
+        pivot = left + (nelt / 2) * esize;
+        swapElt(pivot, left, esize);
+
+        r = right + esize;
+        l = left;
+
+        while (1) {
+            for (l += esize; l <= right && compare(l, left, ctx) <= 0; l += esize) ;
+            for (r -= esize; r > left && compare(r, left, ctx) >= 0; r -= esize) ;
+            if (r < l) {
+                break;
+            }
+            swapElt(l, r, esize);
+        }
+        swapElt(left, r, esize);
+
+        mprAssert(index < 64);
+        if ((r - left - 1) >= (right - l)) {
+            if ((left + esize) < r) {
+                sortStack[index].left = left;
+                sortStack[index++].right = r - esize;
+            }
+            if (l < right) {
+                left = l;
+                goto again;
+            }
+        } else {
+            if (l < right) {
+                sortStack[index].left = l;
+                sortStack[index++].right = right;
+            }
+            if ((left + esize) < r) {
+                right = r - esize;
+                goto again;
+            }
+        }
+    } else {
+        linearSort(left, right, esize, compare, ctx);
+    }
+    if (--index >= 0) {
+        left = sortStack[index].left;
+        right = sortStack[index].right;
+        goto again;
+    }
+}
 
 /*
     @copy   default
