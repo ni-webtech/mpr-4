@@ -8,21 +8,17 @@ Bit.load({
         patch: {
             action: "
                 trace('Patch', 'Expand DSI')
-                for each (path in Path('.').glob('**.html', {exclude: /Bare.html|dsi/})) {
+                for each (path in Path('.').files('**.html', {exclude: /Bare.html|dsi/})) {
                     vtrace('Patch', path)
-                    run('dsi -v -I. ' + path)
+                    run('dsi -I. ' + path)
                 }
             "
         },
 
         api: {
             action: "
-                apidoc('api/appweb.dox', '${SRC}/src/appweb.h', 'Appweb API', 'api/*.tags')
-/*
-                apidoc('api/esp.dox', ['${SRC}/src/esp/edi.h', '${SRC}/src/esp/mdb.h', '${SRC}/src/esp/esp.h'], 
-                    'ESP API', ls('api/*.tags'))
-                apiwrap(['api/appweb.html', 'api/http.html', 'api/mpr.html', 'api/esp.html'])
-*/
+                apidoc('api/mpr.dox', '${SRC}/src/mpr.h', 'MPR API', 'api/*.tags')
+                apiwrap('api/mpr.html')
             ",
         }, 
 
