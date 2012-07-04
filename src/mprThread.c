@@ -29,12 +29,7 @@ MprThreadService *mprCreateThreadService()
 {
     MprThreadService    *ts;
 
-    ts = mprAllocObj(MprThreadService, manageThreadService);
-    if (ts == 0) {
-        return 0;
-    }
-    //  TODO - not used
-    if ((ts->mutex = mprCreateLock()) == 0) {
+    if ((ts = mprAllocObj(MprThreadService, manageThreadService)) == 0) {
         return 0;
     }
     if ((ts->cond = mprCreateCond()) == 0) {
@@ -68,7 +63,6 @@ static void manageThreadService(MprThreadService *ts, int flags)
     if (flags & MPR_MANAGE_MARK) {
         mprMark(ts->threads);
         mprMark(ts->mainThread);
-        mprMark(ts->mutex);
         mprMark(ts->cond);
 
     } else if (flags & MPR_MANAGE_FREE) {
