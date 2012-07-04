@@ -105,37 +105,45 @@ static MprObj *deserialize(MprJson *jp)
             /*
                 Value: String, "{" or "]"
              */
+            value = 0;
             if (index < 0) {
                 if ((name = parseName(jp)) == 0) {
                     return 0;
                 }
-                if (advanceToken(jp) != ':') {
-                    mprJsonParseError(jp, "Bad separator '%c'", *jp->tok);
-                    return 0;
+                if ((token = advanceToken(jp)) != ':') {
+                    if (token == ',' || token == '}' || token == ']') {
+                        valueType = MPR_JSON_STRING;
+                        value = name;
+                    } else {
+                        mprJsonParseError(jp, "Bad separator '%c'", *jp->tok);
+                        return 0;
+                    }
                 }
                 jp->tok++;
             } else {
                 name = 0;
             }
-            advanceToken(jp);
-            if (jp->callback.checkState && jp->callback.checkState(jp, name) < 0) {
-                return 0;
-            }
-            if (*jp->tok == '{') {
-                value = deserialize(jp);
-                valueType = MPR_JSON_OBJ;
+            if (!value) {
+                advanceToken(jp);
+                if (jp->callback.checkState && jp->callback.checkState(jp, name) < 0) {
+                    return 0;
+                }
+                if (*jp->tok == '{') {
+                    value = deserialize(jp);
+                    valueType = MPR_JSON_OBJ;
 
-            } else if (*jp->tok == '[') {
-                value = deserialize(jp);
-                valueType = MPR_JSON_ARRAY;
+                } else if (*jp->tok == '[') {
+                    value = deserialize(jp);
+                    valueType = MPR_JSON_ARRAY;
 
-            } else {
-                value = parseValue(jp);
-                valueType = MPR_JSON_STRING;
-            }
-            if (value == 0) {
-                /* Error already reported */
-                return 0;
+                } else {
+                    value = parseValue(jp);
+                    valueType = MPR_JSON_STRING;
+                }
+                if (!value) {
+                    /* Error already reported */
+                    return 0;
+                }
             }
             if ((rc = jp->callback.setValue(jp, obj, index, name, value, valueType)) < 0) {
                 return 0;
