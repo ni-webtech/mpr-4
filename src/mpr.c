@@ -152,7 +152,6 @@ static void manageMpr(Mpr *mpr, int flags)
         mprMark(mpr->dtoaSpin[1]);
         mprMark(mpr->cond);
         mprMark(mpr->emptyString);
-        mprMark(mpr->markerCond);
         mprMark(mpr->argBuf);
     }
 }
