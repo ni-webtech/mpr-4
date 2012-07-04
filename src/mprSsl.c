@@ -1,5 +1,5 @@
 /**
-    mprSsl.c -- Load and manage the SSL providers.
+    mprSsl.c -- Load the SSL provider.
 
     Copyright (c) All Rights Reserved. See details at the end of the file.
  */
@@ -11,202 +11,28 @@
 #if BIT_FEATURE_SSL
 /************************************ Code ************************************/
 /*
-    Load the ssl provider
+    Module initialization entry point
  */
-static MprModule *loadSsl(bool lazy)
+int mprSslInit(void *unused, MprModule *module)
 {
-    MprModule   *mp;
-
-    if (MPR->flags & MPR_SSL_PROVIDER_LOADED) {
-        return mprLookupModule("sslModule");
-    }
 #if BIT_FEATURE_OPENSSL
     /*
-        NOTE: preference given to open ssl if both are enabled
+        NOTE: preference given to OpenSSL if multiple providers are enabled
      */
     mprLog(4, "Loading OpenSSL module");
-    if (mprCreateOpenSslModule(lazy) < 0) {
-        return 0;
+    if (mprCreateOpenSslModule() < 0) {
+        return MPR_ERR_CANT_OPEN;
     }
 #elif BIT_FEATURE_MATRIXSSL
     mprLog(4, "Loading MatrixSSL module");
-    if (mprCreateMatrixSslModule(lazy) < 0) {
-        return 0;
+    if (mprCreateMatrixSslModule() < 0) {
+        return MPR_ERR_CANT_OPEN;
     }
 #endif
-    if ((mp = mprCreateModule("sslModule", NULL, NULL, NULL)) == 0) {
-        return 0;
-    }
-    MPR->flags |= MPR_SSL_PROVIDER_LOADED;
-    return mp;
-}
-
-
-MprModule *mprLoadSsl(bool lazy)
-{
-    return loadSsl(lazy);
-}
-
-
-/*
-    Loadable module interface. 
- */
-MprModule *mprSslInit(cchar *path)
-{
-    return loadSsl(1);
-}
-
-
-static void manageSsl(MprSsl *ssl, int flags) 
-{
-    if (flags & MPR_MANAGE_MARK) {
-        mprMark(ssl->key);
-        mprMark(ssl->cert);
-        mprMark(ssl->keyFile);
-        mprMark(ssl->certFile);
-        mprMark(ssl->caFile);
-        mprMark(ssl->caPath);
-        mprMark(ssl->ciphers);
-        mprMark(ssl->extendedSsl);
-    }
-}
-
-
-/*
-    Create a new SSL context object
- */
-MprSsl *mprCreateSsl()
-{
-    MprSsl      *ssl;
-
-    if ((ssl = mprAllocObj(MprSsl, manageSsl)) == 0) {
-        return 0;
-    }
-    ssl->ciphers = sclone(MPR_DEFAULT_CIPHER_SUITE);
-    ssl->protocols = MPR_PROTO_TLSV1 | MPR_PROTO_TLSV11;
-    ssl->verifyDepth = 6;
-    ssl->verifyClient = 0;
-    ssl->verifyServer = 1;
-    return ssl;
-}
-
-
-void mprConfigureSsl(MprSsl *ssl)
-{
-    MprSocketProvider   *provider;
-
-    if (ssl == 0 || ssl->configured) {
-        return;
-    }
-    provider = MPR->socketService->secureProvider;
-    if (provider) {
-        provider->configureSsl(ssl);
-        ssl->configured = 1;
-    } else {
-        mprError("Secure socket provider not loaded");
-    }
-}
-
-
-void mprSetSslCiphers(MprSsl *ssl, cchar *ciphers)
-{
-    mprAssert(ssl);
-    
-    ssl->ciphers = sclone(ciphers);
-}
-
-
-void mprSetSslKeyFile(MprSsl *ssl, cchar *keyFile)
-{
-    mprAssert(ssl);
-    
-    ssl->keyFile = sclone(keyFile);
-}
-
-
-void mprSetSslCertFile(MprSsl *ssl, cchar *certFile)
-{
-    mprAssert(ssl);
-    
-    ssl->certFile = sclone(certFile);
-}
-
-
-void mprSetSslCaFile(MprSsl *ssl, cchar *caFile)
-{
-    mprAssert(ssl);
-    
-    ssl->caFile = sclone(caFile);
-}
-
-
-void mprSetSslCaPath(MprSsl *ssl, cchar *caPath)
-{
-    mprAssert(ssl);
-    
-    ssl->caPath = sclone(caPath);
-}
-
-
-void mprSetSslProtocols(MprSsl *ssl, int protocols)
-{
-    ssl->protocols = protocols;
-}
-
-
-void mprSetSocketSslConfig(MprSocket *sp, MprSsl *ssl)
-{
-    sp->ssl = ssl;
-}
-
-
-void mprVerifySslClients(MprSsl *ssl, bool on)
-{
-    ssl->verifyClient = on;
-}
-
-
-void mprVerifySslServers(MprSsl *ssl, bool on)
-{
-    ssl->verifyServer = on;
-}
-
-
-#else /* SSL */
-
-/*
-    Stubs
- */
-MprModule *mprLoadSsl(bool lazy)
-{
     return 0;
 }
 
-MprModule *mprSslInit(cchar *path)
-{
-    return 0;
-}
-
-
-MprSsl *mprCreateSsl()
-{
-    return 0;
-}
-
-
-void mprConfigureSsl(MprSsl *ssl) { }
-void mprSetSslCiphers(MprSsl *ssl, cchar *ciphers) { }
-void mprSetSslKeyFile(MprSsl *ssl, cchar *keyFile) { }
-void mprSetSslCertFile(MprSsl *ssl, cchar *certFile) { }
-void mprSetSslCaFile(MprSsl *ssl, cchar *caFile) { }
-void mprSetSslCaPath(MprSsl *ssl, cchar *caPath) { }
-void mprSetSslProtocols(MprSsl *ssl, int protocols) { }
-void mprSetSocketSslConfig(MprSocket *sp, MprSsl *ssl) { }
-void mprVerifySslClients(MprSsl *ssl, bool on) { }
-void mprVerifySslServers(MprSsl *ssl, bool on) { }
-
-#endif /* SSL */
-
+#endif /* BLD_FEATURE_SSL */
 
 /*
     @copy   default
