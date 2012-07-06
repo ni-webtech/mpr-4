@@ -120,7 +120,6 @@ static ssize    flushMss(MprSocket *sp);
 static ssize    innerRead(MprSocket *sp, char *userBuf, ssize len);
 static int      listenMss(MprSocket *sp, cchar *host, int port, int flags);
 static void     manageMatrixSocket(MprMatrixSocket *msp, int flags);
-static void     manageMatrixProvider(MprSocketProvider *provider, int flags);
 static void     manageMatrixSsl(MprMatrixSsl *mssl, int flags);
 static ssize    processMssData(MprSocket *sp, char *buf, ssize size, ssize nbytes, int *readMore);
 static ssize    readMss(MprSocket *sp, void *buf, ssize len);
@@ -134,8 +133,6 @@ int mprCreateMatrixSslModule()
 {
     MprSocketProvider   *provider;
     MprSocketService    *ss;
-    MprSsl              *ssl;
-    MprMatrixSsl        *mssl;
 
     ss = MPR->socketService;
 
@@ -145,17 +142,9 @@ int mprCreateMatrixSslModule()
     if ((provider = createMatrixSslProvider()) == 0) {
         return 0;
     }
-    mprSetSecureProvider(provider);
     if (matrixSslOpen() < 0) {
         return 0;
     }
-    /*
-        Create a default SSL configuration for clients
-     */
-    if ((ssl = mprCreateSsl()) == 0 || (mssl = createMatrixSslConfig(ssl, 0)) == 0) {
-        return MPR_ERR_CANT_INITIALIZE;
-    }
-    provider->data = ssl;
     return 0;
 }
 
@@ -199,16 +188,13 @@ static MprMatrixSsl *createMatrixSslConfig(MprSsl *ssl, int server)
 }
 
 
-
-
 static MprSocketProvider *createMatrixSslProvider()
 {
     MprSocketProvider   *provider;
 
-    if ((provider = mprAllocObj(MprSocketProvider, manageMatrixProvider)) == NULL) {
+    if ((provider = mprAllocObj(MprSocketProvider, 0)) == NULL) {
         return 0;
     }
-    provider->name = sclone("MatrixSsl");
     provider->closeSocket = closeMss;
     provider->disconnectSocket = disconnectMss;
     provider->flushSocket = flushMss;
@@ -216,16 +202,8 @@ static MprSocketProvider *createMatrixSslProvider()
     provider->readSocket = readMss;
     provider->writeSocket = writeMss;
     provider->upgradeSocket = upgradeMss;
+    mprAddSocketProvider("matrixssl", provider);
     return provider;
-}
-
-
-static void manageMatrixProvider(MprSocketProvider *provider, int flags)
-{
-    if (flags & MPR_MANAGE_MARK) {
-        mprMark(provider->name);
-        mprMark(provider->data);
-    }
 }
 
 
@@ -313,7 +291,6 @@ static int upgradeMss(MprSocket *sp, MprSsl *ssl, int server)
     lock(sp);
     msp->sock = sp;
     sp->sslSocket = msp;
-    sp->provider = ss->secureProvider;
     sp->ssl = ssl;
 
     mprAddItem(ss->secureSockets, sp);
@@ -570,7 +547,7 @@ static ssize processMssData(MprSocket *sp, char *buf, ssize size, ssize nbytes, 
             return 0;
 
         case MATRIXSSL_HANDSHAKE_COMPLETE:
-            *readMore = 1;
+            *readMore = 0;
             return 0;
 
         case MATRIXSSL_RECEIVED_ALERT:

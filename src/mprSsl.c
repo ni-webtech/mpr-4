@@ -17,17 +17,17 @@ int mprSslInit(void *unused, MprModule *module)
 {
     mprAssert(module);
 
-#if BIT_FEATURE_OPENSSL
-    /*
-        NOTE: preference given to OpenSSL if multiple providers are enabled
-     */
-    if (mprCreateOpenSslModule() < 0) {
-        return MPR_ERR_CANT_OPEN;
-    }
-#elif BIT_FEATURE_MATRIXSSL
+#if BIT_FEATURE_MATRIXSSL
     if (mprCreateMatrixSslModule() < 0) {
         return MPR_ERR_CANT_OPEN;
     }
+    MPR->socketService->defaultProvider = sclone("matrixssl");
+#endif
+#if BIT_FEATURE_OPENSSL
+    if (mprCreateOpenSslModule() < 0) {
+        return MPR_ERR_CANT_OPEN;
+    }
+    MPR->socketService->defaultProvider = sclone("openssl");
 #endif
     return 0;
 }

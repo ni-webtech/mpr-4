@@ -1971,6 +1971,13 @@
     </member>
     <member kind="function">
       <type>void</type>
+      <name>mprAddSocketProvider</name>
+      <anchorfile>group___mpr_socket.html</anchorfile>
+      <anchor>ga48875519d20f48a69a66b233d411f62f</anchor>
+      <arglist>(cchar *name, MprSocketProvider *provider)</arglist>
+    </member>
+    <member kind="function">
+      <type>void</type>
       <name>mprAddStandardSignals</name>
       <anchorfile>mpr_8h.html</anchorfile>
       <anchor>a107d9cacb23e9cddb7fcd1e6244638b7</anchor>
@@ -4631,13 +4638,6 @@
     </member>
     <member kind="function">
       <type>void</type>
-      <name>mprSetSecureProvider</name>
-      <anchorfile>group___mpr_socket.html</anchorfile>
-      <anchor>ga06cb751d75f9435f1cf108efa5bad2ce</anchor>
-      <arglist>(MprSocketProvider *provider)</arglist>
-    </member>
-    <member kind="function">
-      <type>void</type>
       <name>mprSetServerName</name>
       <anchorfile>group___mpr.html</anchorfile>
       <anchor>ga4def6498567ad43a6da505d43bb119fc</anchor>
@@ -4705,6 +4705,13 @@
       <anchorfile>group___mpr_socket.html</anchorfile>
       <anchor>ga00cd731b20d96a0b0080637d59becd4a</anchor>
       <arglist>(struct MprSsl *ssl, int protocols)</arglist>
+    </member>
+    <member kind="function">
+      <type>void</type>
+      <name>mprSetSslProvider</name>
+      <anchorfile>group___mpr_socket.html</anchorfile>
+      <anchor>ga98e6c82c9ff89135aea961c2ff3d4de4</anchor>
+      <arglist>(MprSsl *ssl, cchar *provider)</arglist>
     </member>
     <member kind="function">
       <type>void</type>
@@ -7926,6 +7933,13 @@
     </member>
     <member kind="function">
       <type>void</type>
+      <name>mprAddSocketProvider</name>
+      <anchorfile>group___mpr_socket.html</anchorfile>
+      <anchor>ga48875519d20f48a69a66b233d411f62f</anchor>
+      <arglist>(cchar *name, MprSocketProvider *provider)</arglist>
+    </member>
+    <member kind="function">
+      <type>void</type>
       <name>mprCloseSocket</name>
       <anchorfile>group___mpr_socket.html</anchorfile>
       <anchor>ga5bd6e40cb8a29c92a8f5e1ce9529b726</anchor>
@@ -8072,13 +8086,6 @@
       <arglist>(int max)</arglist>
     </member>
     <member kind="function">
-      <type>void</type>
-      <name>mprSetSecureProvider</name>
-      <anchorfile>group___mpr_socket.html</anchorfile>
-      <anchor>ga06cb751d75f9435f1cf108efa5bad2ce</anchor>
-      <arglist>(MprSocketProvider *provider)</arglist>
-    </member>
-    <member kind="function">
       <type>int</type>
       <name>mprSetSocketBlockingMode</name>
       <anchorfile>group___mpr_socket.html</anchorfile>
@@ -8140,6 +8147,13 @@
       <anchorfile>group___mpr_socket.html</anchorfile>
       <anchor>ga00cd731b20d96a0b0080637d59becd4a</anchor>
       <arglist>(struct MprSsl *ssl, int protocols)</arglist>
+    </member>
+    <member kind="function">
+      <type>void</type>
+      <name>mprSetSslProvider</name>
+      <anchorfile>group___mpr_socket.html</anchorfile>
+      <anchor>ga98e6c82c9ff89135aea961c2ff3d4de4</anchor>
+      <arglist>(MprSsl *ssl, cchar *provider)</arglist>
     </member>
     <member kind="function">
       <type>bool</type>
@@ -9767,6 +9781,13 @@
     <name>MprSocketService</name>
     <filename>struct_mpr_socket_service.html</filename>
     <member kind="variable">
+      <type>char *</type>
+      <name>defaultSecureProvider</name>
+      <anchorfile>struct_mpr_socket_service.html</anchorfile>
+      <anchor>afb70c8d9d056a593cb72ef2073ad21fe</anchor>
+      <arglist></arglist>
+    </member>
+    <member kind="variable">
       <type>int</type>
       <name>maxAccept</name>
       <anchorfile>struct_mpr_socket_service.html</anchorfile>
@@ -9795,10 +9816,10 @@
       <arglist></arglist>
     </member>
     <member kind="variable">
-      <type>MprSocketProvider *</type>
-      <name>secureProvider</name>
+      <type>MprHash *</type>
+      <name>secureProviders</name>
       <anchorfile>struct_mpr_socket_service.html</anchorfile>
-      <anchor>a9d3b4f66f937783ea078537717abe21c</anchor>
+      <anchor>aa55922fe449df9bf16e1512b135620d3</anchor>
       <arglist></arglist>
     </member>
     <member kind="variable">
