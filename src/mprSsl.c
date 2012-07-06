@@ -1,5 +1,5 @@
 /**
-    mprSsl.c -- Load the SSL provider.
+    mprSsl.c -- Initialization for libmprssl. Load the SSL provider.
 
     Copyright (c) All Rights Reserved. See details at the end of the file.
  */
@@ -15,16 +15,16 @@
  */
 int mprSslInit(void *unused, MprModule *module)
 {
+    mprAssert(module);
+
 #if BIT_FEATURE_OPENSSL
     /*
         NOTE: preference given to OpenSSL if multiple providers are enabled
      */
-    mprLog(4, "Loading OpenSSL module");
     if (mprCreateOpenSslModule() < 0) {
         return MPR_ERR_CANT_OPEN;
     }
 #elif BIT_FEATURE_MATRIXSSL
-    mprLog(4, "Loading MatrixSSL module");
     if (mprCreateMatrixSslModule() < 0) {
         return MPR_ERR_CANT_OPEN;
     }

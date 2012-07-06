@@ -117,7 +117,11 @@ static void manageSocketProvider(MprSocketProvider *provider, int flags)
     if (flags & MPR_MANAGE_MARK) {
         mprMark(provider->name);
         mprMark(provider->data);
+#if UNUSED
+        /* MOB - can remove */
+        mprAssert(!provider->defaultSsl);
         mprMark(provider->defaultSsl);
+#endif
     }
 }
 
@@ -168,6 +172,7 @@ static void manageSocket(MprSocket *sp, int flags)
     if (flags & MPR_MANAGE_MARK) {
         mprMark(sp->service);
         mprMark(sp->dispatcher);
+        mprMark(sp->errorMsg);
         mprMark(sp->handler);
         mprMark(sp->acceptIp);
         mprMark(sp->ip);
@@ -1535,9 +1540,9 @@ MprSsl *mprCreateSsl()
     }
     ssl->ciphers = sclone(MPR_DEFAULT_CIPHER_SUITE);
     ssl->protocols = MPR_PROTO_TLSV1 | MPR_PROTO_TLSV11;
-    ssl->verifyDepth = 6;
-    ssl->verifyClient = 0;
-    ssl->verifyServer = 1;
+    ssl->verifyIssuer = 1;
+    ssl->verifyDepth = 1;
+    ssl->verifyPeer = -11;
     return ssl;
 }
 
@@ -1577,10 +1582,10 @@ int mprUpgradeSocket(MprSocket *sp, MprSsl *ssl, int server)
     MprSocketService    *ss;
 
     ss  = sp->service;
-    if (!ss->secureProvider) {
-        if (mprLoadSsl() < 0) {
-            return MPR_ERR_CANT_READ;
-        }
+    mprAssert(sp);
+
+    if (!ss->secureProvider && mprLoadSsl() < 0) {
+        return MPR_ERR_CANT_READ;
     }
     if (!ss->secureProvider) {
         mprError("Can't upgrade socket - missing SSL provider");
@@ -1593,7 +1598,6 @@ int mprUpgradeSocket(MprSocket *sp, MprSsl *ssl, int server)
 void mprSetSslCiphers(MprSsl *ssl, cchar *ciphers)
 {
     mprAssert(ssl);
-    
     ssl->ciphers = sclone(ciphers);
 }
 
@@ -1601,7 +1605,6 @@ void mprSetSslCiphers(MprSsl *ssl, cchar *ciphers)
 void mprSetSslKeyFile(MprSsl *ssl, cchar *keyFile)
 {
     mprAssert(ssl);
-    
     ssl->keyFile = sclone(keyFile);
 }
 
@@ -1609,7 +1612,6 @@ void mprSetSslKeyFile(MprSsl *ssl, cchar *keyFile)
 void mprSetSslCertFile(MprSsl *ssl, cchar *certFile)
 {
     mprAssert(ssl);
-    
     ssl->certFile = sclone(certFile);
 }
 
@@ -1617,7 +1619,6 @@ void mprSetSslCertFile(MprSsl *ssl, cchar *certFile)
 void mprSetSslCaFile(MprSsl *ssl, cchar *caFile)
 {
     mprAssert(ssl);
-    
     ssl->caFile = sclone(caFile);
 }
 
@@ -1625,7 +1626,6 @@ void mprSetSslCaFile(MprSsl *ssl, cchar *caFile)
 void mprSetSslCaPath(MprSsl *ssl, cchar *caPath)
 {
     mprAssert(ssl);
-    
     ssl->caPath = sclone(caPath);
 }
 
@@ -1636,15 +1636,21 @@ void mprSetSslProtocols(MprSsl *ssl, int protocols)
 }
 
 
-void mprVerifySslClients(MprSsl *ssl, bool on)
+void mprVerifySslPeer(MprSsl *ssl, bool on)
 {
-    ssl->verifyClient = on;
+    ssl->verifyPeer = on;
 }
 
 
-void mprVerifySslServers(MprSsl *ssl, bool on)
+void mprVerifySslIssuer(MprSsl *ssl, bool on)
 {
-    ssl->verifyServer = on;
+    ssl->verifyIssuer = on;
+}
+
+
+void mprVerifySslDepth(MprSsl *ssl, int depth)
+{
+    ssl->verifyDepth = depth;
 }
 
 

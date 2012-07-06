@@ -1257,6 +1257,13 @@
     </member>
     <member kind="define">
       <type>#define</type>
+      <name>MPR_SOCKET_TRACED</name>
+      <anchorfile>mpr_8h.html</anchorfile>
+      <anchor>a633271674902560bd61db456a76c783e</anchor>
+      <arglist></arglist>
+    </member>
+    <member kind="define">
+      <type>#define</type>
       <name>MPR_SSL_BUFSIZE</name>
       <anchorfile>mpr_8h.html</anchorfile>
       <anchor>ae2d5fc1b9d658c93d2833e75ed45eb99</anchor>
@@ -5044,16 +5051,23 @@
     </member>
     <member kind="function">
       <type>void</type>
-      <name>mprVerifySslClients</name>
+      <name>mprVerifySslDepth</name>
       <anchorfile>group___mpr_socket.html</anchorfile>
-      <anchor>gac388b7454d677ec235510b09de786589</anchor>
+      <anchor>ga541aec6f41d797ea79ca2df68836bc8b</anchor>
+      <arglist>(struct MprSsl *ssl, int depth)</arglist>
+    </member>
+    <member kind="function">
+      <type>void</type>
+      <name>mprVerifySslIssuer</name>
+      <anchorfile>group___mpr_socket.html</anchorfile>
+      <anchor>gaa94da504a06310268bed77f129201803</anchor>
       <arglist>(struct MprSsl *ssl, bool on)</arglist>
     </member>
     <member kind="function">
       <type>void</type>
-      <name>mprVerifySslServers</name>
+      <name>mprVerifySslPeer</name>
       <anchorfile>group___mpr_socket.html</anchorfile>
-      <anchor>ga4be0b8d2cff23e963531b92a819ba89c</anchor>
+      <anchor>ga4af0a4a1cfe174e1782027fc09faaeee</anchor>
       <arglist>(struct MprSsl *ssl, bool on)</arglist>
     </member>
     <member kind="function">
@@ -8143,16 +8157,23 @@
     </member>
     <member kind="function">
       <type>void</type>
-      <name>mprVerifySslClients</name>
+      <name>mprVerifySslDepth</name>
       <anchorfile>group___mpr_socket.html</anchorfile>
-      <anchor>gac388b7454d677ec235510b09de786589</anchor>
+      <anchor>ga541aec6f41d797ea79ca2df68836bc8b</anchor>
+      <arglist>(struct MprSsl *ssl, int depth)</arglist>
+    </member>
+    <member kind="function">
+      <type>void</type>
+      <name>mprVerifySslIssuer</name>
+      <anchorfile>group___mpr_socket.html</anchorfile>
+      <anchor>gaa94da504a06310268bed77f129201803</anchor>
       <arglist>(struct MprSsl *ssl, bool on)</arglist>
     </member>
     <member kind="function">
       <type>void</type>
-      <name>mprVerifySslServers</name>
+      <name>mprVerifySslPeer</name>
       <anchorfile>group___mpr_socket.html</anchorfile>
-      <anchor>ga4be0b8d2cff23e963531b92a819ba89c</anchor>
+      <anchor>ga4af0a4a1cfe174e1782027fc09faaeee</anchor>
       <arglist>(struct MprSsl *ssl, bool on)</arglist>
     </member>
     <member kind="function">

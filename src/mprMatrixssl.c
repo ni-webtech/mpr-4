@@ -112,7 +112,7 @@ static uchar CAcertSrvBuf[] = {
 /***************************** Forward Declarations ***************************/
 
 static void     closeMss(MprSocket *sp, bool gracefully);
-static MprMatrixSsl *createMatrixSslConfig(MprSsl *ssl);
+static MprMatrixSsl *createMatrixSslConfig(MprSsl *ssl, int server);
 static MprSocketProvider *createMatrixSslProvider();
 static void     disconnectMss(MprSocket *sp);
 static int      doHandshake(MprSocket *sp, short cipherSuite);
@@ -137,6 +137,8 @@ int mprCreateMatrixSslModule()
     MprSsl              *ssl;
     MprMatrixSsl        *mssl;
 
+    ss = MPR->socketService;
+
     /*
         Install this module as the SSL provider (can only have one)
      */
@@ -147,11 +149,13 @@ int mprCreateMatrixSslModule()
     if (matrixSslOpen() < 0) {
         return 0;
     }
-    ss = MPR->socketService;
-    if ((ssl = mprCreateSsl()) == 0 || (mssl = createMatrixSslConfig(ssl)) == 0) {
+    /*
+        Create a default SSL configuration for clients
+     */
+    if ((ssl = mprCreateSsl()) == 0 || (mssl = createMatrixSslConfig(ssl, 0)) == 0) {
         return MPR_ERR_CANT_INITIALIZE;
     }
-    provider->defaultSsl = ssl;
+    provider->data = ssl;
     return 0;
 }
 
@@ -161,16 +165,21 @@ int mprCreateMatrixSslModule()
     configurations for different routes. There is default SSL configuration that is used
     when a route does not define a configuration and also for clients.
  */
-static MprMatrixSsl *createMatrixSslConfig(MprSsl *ssl)
+static MprMatrixSsl *createMatrixSslConfig(MprSsl *ssl, int server)
 {
     MprMatrixSsl    *mssl;
     char            *password;
+
+    mprAssert(ssl);
 
     if ((ssl->pconfig = mprAllocObj(MprMatrixSsl, manageMatrixSsl)) == 0) {
         return 0;
     }
     mssl = ssl->pconfig;
+
+    //  OPT - does this need to be done for each MprSsl or just once?
     if (matrixSslNewKeys(&mssl->keys) < 0) {
+        mprError("MatrixSSL: Can't create new MatrixSSL keys");
         return 0;
     }
     /*
@@ -183,12 +192,8 @@ static MprMatrixSsl *createMatrixSslConfig(MprSsl *ssl)
         mprError("MatrixSSL: Could not read or decode certificate or key file."); 
         return 0;
     }
-    /*
-        Select the required protocols. MatrixSSL supports only SSLv3.
-     */
-    if (ssl->protocols & MPR_PROTO_SSLV2) {
-        mprError("MatrixSSL: SSLv2 unsupported"); 
-        return 0;
+    if (ssl->verifyPeer < 0) {
+        ssl->verifyPeer = !server;
     }
     return mssl;
 }
@@ -218,7 +223,6 @@ static MprSocketProvider *createMatrixSslProvider()
 static void manageMatrixProvider(MprSocketProvider *provider, int flags)
 {
     if (flags & MPR_MANAGE_MARK) {
-        mprMark(provider->defaultSsl);
         mprMark(provider->name);
         mprMark(provider->data);
     }
@@ -300,6 +304,9 @@ static int upgradeMss(MprSocket *sp, MprSsl *ssl, int server)
     uint32              cipherSuite;
 
     ss = sp->service;
+    mprAssert(ss);
+    mprAssert(sp);
+
     if ((msp = (MprMatrixSocket*) mprAllocObj(MprMatrixSocket, manageMatrixSocket)) == 0) {
         return MPR_ERR_MEMORY;
     }
@@ -311,7 +318,7 @@ static int upgradeMss(MprSocket *sp, MprSsl *ssl, int server)
 
     mprAddItem(ss->secureSockets, sp);
 
-    if (!ssl->pconfig && (ssl->pconfig = createMatrixSslConfig(ssl)) == 0) {
+    if (!ssl->pconfig && (ssl->pconfig = createMatrixSslConfig(ssl, server)) == 0) {
         unlock(sp);
         return MPR_ERR_CANT_INITIALIZE;
     }
@@ -374,7 +381,7 @@ static int verifyServer(ssl_t *ssl, psX509Cert_t *cert, int32 alert)
         return SSL_ALLOW_ANON_CONNECTION;
     }
     if (alert > 0) {
-        if (!sp->ssl->verifyServer) {
+        if (!sp->ssl->verifyPeer) {
             return SSL_ALLOW_ANON_CONNECTION;
         }
         return alert;
