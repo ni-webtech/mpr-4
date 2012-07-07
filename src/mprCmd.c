@@ -1059,7 +1059,7 @@ static int blendEnv(MprCmd *cmd, cchar **env, int flags)
     /*
         Windows requires a caseless sort with two trailing nulls
      */
-    mprSortList(cmd->env, sortEnv, 0);
+    mprSortList(cmd->env, (MprSortProc) sortEnv, 0);
 #endif
     mprAddItem(cmd->env, NULL);
     return 0;
