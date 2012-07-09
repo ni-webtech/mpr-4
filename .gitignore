@@ -72,5 +72,5 @@ doc/api/mpr/xml
 /*-*-release/
 .*.guid
 *.dmp
-start.bit
+/start.bit
 *-xcode
