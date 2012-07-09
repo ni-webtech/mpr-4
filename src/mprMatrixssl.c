@@ -132,9 +132,6 @@ static ssize    writeMss(MprSocket *sp, cvoid *buf, ssize len);
 int mprCreateMatrixSslModule()
 {
     MprSocketProvider   *provider;
-    MprSocketService    *ss;
-
-    ss = MPR->socketService;
 
     /*
         Install this module as the SSL provider (can only have one)
