@@ -74,3 +74,4 @@ doc/api/mpr/xml
 *.dmp
 /start.bit
 *-xcode
+*-vsdebug
