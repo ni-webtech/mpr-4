@@ -872,7 +872,6 @@ HINSTANCE WINAPI LoadLibraryA(LPCSTR path)
 
 void mprWriteToOsLog(cchar *message, int flags, int level)
 {
-    //  TODO
 }
 
 #else

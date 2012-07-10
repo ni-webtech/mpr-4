@@ -172,7 +172,7 @@ int mprInitWindow()
 }
 
 
-//  TODO - is this still needed?
+//  MOB - is this still needed?
 /*
     Create a routine to pull in the GCC support routines for double and int64 manipulations for some platforms. Do this
     incase modules reference these routines. Without this, the modules have to reference them. Which leads to multiple 

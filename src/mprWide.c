@@ -112,7 +112,7 @@ int wcmp(MprChar *s1, MprChar *s2)
 }
 
 
-MprChar *wcontains(MprChar *str, MprChar *pattern, ssize limit)
+MprChar *wncontains(MprChar *str, MprChar *pattern, ssize limit)
 {
     MprChar     *cp, *s1, *s2;
     ssize       lim;
@@ -140,6 +140,12 @@ MprChar *wcontains(MprChar *str, MprChar *pattern, ssize limit)
         }
     }
     return 0;
+}
+
+
+MprChar *wcontains(MprChar *str, MprChar *pattern)
+{
+    return wncontains(str, pattern, -1);
 }
 
 
@@ -735,7 +741,7 @@ ssize wtom(char *dest, ssize destCount, MprChar *src, ssize len)
             len = min(slen(src), size - 1);
         }
 #elif BIT_WIN_LIKE
-        //  TODO -- use destCount
+        //  MOB -- use destCount
         len = WideCharToMultiByte(CP_ACP, 0, src, -1, dest, (DWORD) size, NULL, NULL);
 #else
         len = wcstombs(dest, src, size);
@@ -905,7 +911,6 @@ static int isValidUtf8(cuchar *src, int len)
 }
 
 
-//  TODO - CLEAN
 static int offsets[6] = { 0x00000000UL, 0x00003080UL, 0x000E2080UL, 0x03C82080UL, 0xFA082080UL, 0x82082080UL };
 
 ssize xmtow(MprChar *dest, ssize destMax, cchar *src, ssize len) 
@@ -965,7 +970,6 @@ ssize xmtow(MprChar *dest, ssize destMax, cchar *src, ssize len)
     return count;
 }
 
-//  TODO - CLEAN
 static cuchar marks[7] = { 0x00, 0x00, 0xC0, 0xE0, 0xF0, 0xF8, 0xFC };
 
 /*

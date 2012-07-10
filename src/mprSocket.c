@@ -277,8 +277,8 @@ static int listenSocket(MprSocket *sp, cchar *ip, int port, int initialFlags)
         unlock(sp);
         return MPR_ERR_CANT_OPEN;
     }
-    /*  TODO NOTE: Datagrams have not been used in a long while. Probably broken */
 
+    /* NOTE: Datagrams have not been used in a long while. Maybe broken */
     if (!datagram) {
         sp->flags |= MPR_SOCKET_LISTENER;
         if (listen(sp->fd, SOMAXCONN) < 0) {
@@ -1095,7 +1095,6 @@ int mprSetSocketBlockingMode(MprSocket *sp, bool on)
     ioctl(sp->fd, FIONBIO, (int) &flag);
 }
 #else
-    //  TODO - check RC
     if (on) {
         fcntl(sp->fd, F_SETFL, fcntl(sp->fd, F_GETFL) & ~O_NONBLOCK);
     } else {

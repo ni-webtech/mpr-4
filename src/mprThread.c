@@ -242,7 +242,6 @@ static void threadProc(MprThread *tp)
  */
 int mprStartThread(MprThread *tp)
 {
-    //  TODO - lock not needed
     lock(tp);
 
 #if BIT_WIN_LIKE

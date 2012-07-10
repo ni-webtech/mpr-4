@@ -720,7 +720,7 @@ void mprSetEnv(cchar *key, cchar *value)
     putenv(cmd);
 #endif
 #endif
-    if (scasematch(key, "PATH")) {
+    if (scaselessmatch(key, "PATH")) {
         MPR->pathEnv = sclone(value);
     }
 }

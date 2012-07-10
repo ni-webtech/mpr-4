@@ -350,7 +350,7 @@ static MprKey *lookupHash(int *bucketIndex, MprKey **prevSp, MprHash *hash, cvoi
         } else 
 #endif
         if (hash->flags & MPR_HASH_CASELESS) {
-            rc = scasecmp(sp->key, key);
+            rc = scaselesscmp(sp->key, key);
         } else {
             rc = strcmp(sp->key, key);
         }

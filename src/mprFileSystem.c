@@ -20,7 +20,7 @@ MprFileSystem *mprCreateFileSystem(cchar *path)
     char            *cp;
 
     /*
-        TODO - evolve this to support multiple file systems in a single system
+        FUTURE: evolve this to support multiple file systems in a single system
      */
 #if BIT_FEATURE_ROMFS
     fs = (MprFileSystem*) mprCreateRomFileSystem(path);
@@ -68,7 +68,7 @@ void mprAddFileSystem(MprFileSystem *fs)
 {
     mprAssert(fs);
     
-    //  TODO - this does not currently add a file system. It merely replaces the existing.
+    /* NOTE: this does not currently add a file system. It merely replaces the existing file system. */
     MPR->fileSystem = fs;
 }
 

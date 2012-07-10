@@ -243,13 +243,13 @@ static cchar *getHive(cchar *keyPath, HKEY *hive)
     if (cp == 0 || *cp == '\0') {
         return 0;
     }
-    if (!scasecmp(key, "HKEY_LOCAL_MACHINE") || !scasecmp(key, "HKLM")) {
+    if (!scaselesscmp(key, "HKEY_LOCAL_MACHINE") || !scaselesscmp(key, "HKLM")) {
         *hive = HKEY_LOCAL_MACHINE;
-    } else if (!scasecmp(key, "HKEY_CURRENT_USER") || !scasecmp(key, "HKCU")) {
+    } else if (!scaselesscmp(key, "HKEY_CURRENT_USER") || !scaselesscmp(key, "HKCU")) {
         *hive = HKEY_CURRENT_USER;
-    } else if (!scasecmp(key, "HKEY_USERS")) {
+    } else if (!scaselesscmp(key, "HKEY_USERS")) {
         *hive = HKEY_USERS;
-    } else if (!scasecmp(key, "HKEY_CLASSES_ROOT")) {
+    } else if (!scaselesscmp(key, "HKEY_CLASSES_ROOT")) {
         *hive = HKEY_CLASSES_ROOT;
     } else {
         return 0;

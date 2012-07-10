@@ -505,7 +505,7 @@ static MprMem *allocMem(ssize required, int flags)
     INC(requests);
 
     /*
-        TODO OPT - could break this locked section up.
+        OPT - could break this locked section up.
         - Can update bit maps conservatively and lockfree
         - Put locks around freeq unqueue
         - use unlinkBlock or linkBlock only. Do locks internally in these routines

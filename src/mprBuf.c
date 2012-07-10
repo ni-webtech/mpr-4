@@ -270,8 +270,6 @@ char *mprGetBufEnd(MprBuf *bp)
 #endif
 
 
-//  TODO - rename mprPutbackCharToBuf as it really can't insert if the buffer is empty
-
 int mprInsertCharToBuf(MprBuf *bp, int c)
 {
     if (bp->start == bp->data) {

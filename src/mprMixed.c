@@ -23,7 +23,7 @@ int mcmp(MprChar *s1, cchar *s2)
 }
 
 
-MprChar *mcontains(MprChar *str, cchar *pattern, ssize limit)
+MprChar *mncontains(MprChar *str, cchar *pattern, ssize limit)
 {
     MprChar     *cp, *s1;
     cchar       *s2;
@@ -52,6 +52,12 @@ MprChar *mcontains(MprChar *str, cchar *pattern, ssize limit)
         }
     }
     return 0;
+}
+
+
+MprChar *mcontains(MprChar *str, cchar *pattern)
+{
+    return mncontains(str, pattern, -1);
 }
 
 

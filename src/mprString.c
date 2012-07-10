@@ -111,9 +111,8 @@ char *scamel(cchar *str)
 
 /*
     Case insensitive string comparison. Limited by length
-    MOB rename sacasecmp
  */
-int scasecmp(cchar *s1, cchar *s2)
+int scaselesscmp(cchar *s1, cchar *s2)
 {
     if (s1 == 0 || s2 == 0) {
         return -1;
@@ -122,14 +121,13 @@ int scasecmp(cchar *s1, cchar *s2)
     } else if (s2 == 0) {
         return 1;
     }
-    return sncasecmp(s1, s2, max(slen(s1), slen(s2)));
+    return sncaselesscmp(s1, s2, max(slen(s1), slen(s2)));
 }
 
 
-// MOB rename sacasematch
-bool scasematch(cchar *s1, cchar *s2)
+bool scaselessmatch(cchar *s1, cchar *s2)
 {
-    return scasecmp(s1, s2) == 0;
+    return scaselesscmp(s1, s2) == 0;
 }
 
 
@@ -142,8 +140,7 @@ char *schr(cchar *s, int c)
 }
 
 
-//  MOB - this should have no limit and then provide sncontains
-char *scontains(cchar *str, cchar *pattern, ssize limit)
+char *sncontains(cchar *str, cchar *pattern, ssize limit)
 {
     cchar   *cp, *s1, *s2;
     ssize   lim;
@@ -169,6 +166,12 @@ char *scontains(cchar *str, cchar *pattern, ssize limit)
         }
     }
     return 0;
+}
+
+
+char *scontains(cchar *str, cchar *pattern)
+{
+    return sncontains(str, pattern, -1);
 }
 
 
@@ -221,8 +224,7 @@ int scmp(cchar *s1, cchar *s2)
 }
 
 
-//  MOB should return bool
-int sends(cchar *str, cchar *suffix)
+bool sends(cchar *str, cchar *suffix)
 {
     if (str == 0 || suffix == 0) {
         return 0;
@@ -440,9 +442,7 @@ bool smatch(cchar *s1, cchar *s2)
 }
 
 
-// MOB rename snacasecmp
-
-int sncasecmp(cchar *s1, cchar *s2, ssize n)
+int sncaselesscmp(cchar *s1, cchar *s2, ssize n)
 {
     int     rc;
 

@@ -113,7 +113,6 @@ int mprParseTestArgs(MprTestService *sp, int argc, char *argv[], MprTestParser e
             sp->echoCmdLine = 1;
 
         } else if (strcmp(argp, "--filter") == 0 || strcmp(argp, "-f") == 0) {
-            //  TODO DEPRECATE
             if (nextArg >= argc) {
                 err++;
             } else {
@@ -718,7 +717,7 @@ static bool filterTestGroup(MprTestGroup *gp)
         pattern = mprGetNextItem(testFilter, &next);
         while (pattern) {
             len = min(slen(pattern), slen(gp->fullName));
-            if (sncasecmp(gp->fullName, pattern, len) == 0) {
+            if (sncaselesscmp(gp->fullName, pattern, len) == 0) {
                 break;
             }
             pattern = mprGetNextItem(testFilter, &next);
@@ -758,7 +757,7 @@ static bool filterTestCast(MprTestGroup *gp, MprTestCase *tc)
         pattern = mprGetNextItem(testFilter, &next);
         while (pattern) {
             len = min(slen(pattern), slen(fullName));
-            if (sncasecmp(fullName, pattern, len) == 0) {
+            if (sncaselesscmp(fullName, pattern, len) == 0) {
                 break;
             }
             pattern = mprGetNextItem(testFilter, &next);

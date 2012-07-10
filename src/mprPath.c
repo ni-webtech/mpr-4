@@ -1448,7 +1448,7 @@ int mprSamePath(cchar *path1, cchar *path2)
 
     /*
         Convert to absolute (normalized) paths to compare. 
-        TODO - resolve symlinks.
+        MOB - resolve symlinks.
      */
     if (!isFullPath(fs, path1)) {
         path1 = mprGetAbsPath(path1);
@@ -1489,7 +1489,7 @@ int mprSamePathCount(cchar *path1, cchar *path2, ssize len)
 
     /*
         Convert to absolute paths to compare. 
-        TODO - resolve symlinks.
+        MOB - resolve symlinks.
      */
     if (!isFullPath(fs, path1)) {
         path1 = mprGetAbsPath(path1);
