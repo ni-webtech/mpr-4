@@ -16,8 +16,8 @@
 #define BIT_MINOR_VERSION 0
 #define BIT_PATCH_VERSION 1
 #define BIT_VNUM 400000001
-#define BIT_CONFIG_CMD "bit -d -q -platform macosx-x64 -without all -profile xcode -configure . -gen xcode"
-#define BIT_PROFILE "xcode"
+#define BIT_CONFIG_CMD "bit -d -without all -configure ."
+#define BIT_PROFILE "debug"
 #define BIT_CFG_PREFIX "/etc/mpr"
 #define BIT_BIN_PREFIX "/usr/lib/mpr/4.0.1/bin"
 #define BIT_INC_PREFIX "/usr/lib/mpr/4.0.1/inc"
