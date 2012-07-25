@@ -1470,7 +1470,7 @@ static int pauseThreads()
          */
         lock(ts->threads);
         if (!heap->pauseGC) {
-            allYielded = (heap->pauseGC == 0);
+            allYielded = 1;
             for (i = 0; i < ts->threads->length; i++) {
                 tp = (MprThread*) mprGetItem(ts->threads, i);
                 if (!tp->yielded) {
@@ -1486,6 +1486,8 @@ static int pauseThreads()
                 unlock(ts->threads);
                 break;
             }
+        } else {
+            allYielded = 0;
         }
         unlock(ts->threads);
         LOG(7, "pauseThreads: waiting for threads to yield");
