@@ -340,7 +340,10 @@ void mprRemoveSocketHandler(MprSocket *sp)
 
 void mprEnableSocketEvents(MprSocket *sp, int mask)
 {
-    mprWaitOn(sp->handler, mask);
+    mprAssert(sp->handler);
+    if (sp->handler) {
+        mprWaitOn(sp->handler, mask);
+    }
 }
 
 
@@ -1657,7 +1660,7 @@ void mprSetSslProtocols(MprSsl *ssl, int protocols)
 
 void mprSetSslProvider(MprSsl *ssl, cchar *provider)
 {
-    ssl->providerName = sclone(provider);
+    ssl->providerName = (provider && *provider) ? sclone(provider) : 0;
 }
 
 
