@@ -8,7 +8,7 @@
 
 #include    "mpr.h"
 
-#if BIT_FEATURE_OPENSSL
+#if BIT_PACK_OPENSSL
 
 /* Clashes with WinCrypt.h */
 #undef OCSP_RESPONSE
@@ -897,7 +897,7 @@ static DH *get_dh1024()
     return dh;
 }
 
-#endif /* BIT_FEATURE_OPENSSL */
+#endif /* BIT_PACK_OPENSSL */
 
 /*
     @copy   default

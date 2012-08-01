@@ -187,10 +187,10 @@
 #if EMBEDTHIS || 1
  #include    "bit.h"
 #endif
-#ifndef BIT_FEATURE_FLOAT
-    #define BIT_FEATURE_FLOAT 1
+#ifndef BIT_FLOAT
+    #define BIT_FLOAT 1
 #endif
-#if BIT_FEATURE_FLOAT
+#if BIT_FLOAT
 
 #if EMBEDTHIS || 1
 #include    "mpr.h"
@@ -4284,4 +4284,4 @@ dtoa
 }
 #endif
 /* EMBEDTHIS */
-#endif /* BIT_FEATURE_FLOAT */
+#endif /* BIT_FLOAT */

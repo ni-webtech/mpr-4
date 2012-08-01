@@ -10,7 +10,7 @@
 
 /******************************* Local Defines ********************************/
 
-#if BIT_CC_MMU 
+#if BIT_HAS_MMU 
     #define VALLOC 1                /* Use virtual memory allocations */
 #else
     #define VALLOC 0

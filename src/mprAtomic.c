@@ -18,7 +18,7 @@ void mprAtomicBarrier()
         OSMemoryBarrier();
     #elif BIT_WIN_LIKE
         MemoryBarrier();
-    #elif BIT_CC_SYNC
+    #elif BIT_HAS_SYNC
         __sync_synchronize();
     #elif __GNUC__ && (BIT_CPU_ARCH == MPR_CPU_X86 || BIT_CPU_ARCH == MPR_CPU_X64)
         asm volatile ("mfence" : : : "memory");
@@ -47,9 +47,9 @@ int mprAtomicCas(void * volatile *addr, void *expected, cvoid *value)
             prev = InterlockedCompareExchangePointer(addr, (void*) value, expected);
             return expected == prev;
         }
-    #elif BIT_CC_SYNC_CAS
+    #elif BIT_HAS_SYNC_CAS
         return __sync_bool_compare_and_swap(addr, expected, value);
-    #elif VXWORKS && _VX_ATOMIC_INIT && !MPR_64BIT
+    #elif VXWORKS && _VX_ATOMIC_INIT && !BIT_64
         /* vxCas operates with integer values */
         return vxCas((atomic_t*) addr, (atomicVal_t) expected, (atomicVal_t) value);
     #elif BIT_CPU_ARCH == MPR_CPU_X86
@@ -113,7 +113,7 @@ void mprAtomicAdd64(volatile int64 *ptr, int value)
 {
 #if MACOSX
     OSAtomicAdd64(value, ptr);
-#elif BIT_WIN_LIKE && MPR_64_BIT
+#elif BIT_WIN_LIKE && BIT_64
     InterlockedExchangeAdd64(ptr, value);
 #elif BIT_UNIX_LIKE && FUTURE
     asm volatile ("lock; xaddl %0,%1"

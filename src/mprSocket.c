@@ -872,7 +872,7 @@ ssize mprWriteSocketVector(MprSocket *sp, MprIOVec *iovec, int count)
 }
 
 
-#if !BIT_FEATURE_ROMFS
+#if !BIT_ROM
 #if !LINUX || __UCLIBC__
 static ssize localSendfile(MprSocket *sp, MprFile *file, MprOff offset, ssize len)
 {
@@ -952,7 +952,7 @@ MprOff mprSendFileToSocket(MprSocket *sock, MprFile *file, MprOff offset, MprOff
         }
 
         if (!done && toWriteFile > 0 && file->fd >= 0) {
-#if LINUX && !__UCLIBC__ && !HAS_OFF64
+#if LINUX && !__UCLIBC__ && !BIT_HAS_OFF64
             off_t off = (off_t) offset;
 #endif
             while (!done && toWriteFile > 0) {
@@ -961,7 +961,7 @@ MprOff mprSendFileToSocket(MprSocket *sock, MprFile *file, MprOff offset, MprOff
                     mprYield(MPR_YIELD_STICKY);
                 }
 #if LINUX && !__UCLIBC__
-    #if HAS_OFF64
+    #if BIT_HAS_OFF64
                 rc = sendfile64(sock->fd, file->fd, &offset, nbytes);
     #else
                 rc = sendfile(sock->fd, file->fd, &off, nbytes);
@@ -997,7 +997,7 @@ MprOff mprSendFileToSocket(MprSocket *sock, MprFile *file, MprOff offset, MprOff
     }
     return written;
 }
-#endif /* !BIT_FEATURE_ROMFS */
+#endif /* !BIT_ROM */
 
 
 static ssize flushSocket(MprSocket *sp)
@@ -1544,7 +1544,7 @@ MprSsl *mprCreateSsl()
 
 int mprLoadSsl()
 {
-#if BIT_FEATURE_SSL
+#if BIT_PACK_SSL
     MprSocketService    *ss;
     MprModule           *mp;
     cchar               *path;

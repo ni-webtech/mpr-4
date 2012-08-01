@@ -219,7 +219,7 @@ cchar *mprGetModuleSearchPath()
  */
 int mprLoadModule(MprModule *mp)
 {
-#if BIT_CC_DYN_LOAD
+#if BIT_HAS_DYN_LOAD
     mprAssert(mp);
 
     if (mprLoadNativeModule(mp) < 0) {
@@ -240,7 +240,7 @@ int mprUnloadModule(MprModule *mp)
     if (mprStopModule(mp) < 0) {
         return MPR_ERR_NOT_READY;
     }
-#if BIT_CC_DYN_LOAD
+#if BIT_HAS_DYN_LOAD
     if (mp->handle) {
         if (mprUnloadNativeModule(mp) != 0) {
             mprError("Can't unload module %s", mp->name);
@@ -253,7 +253,7 @@ int mprUnloadModule(MprModule *mp)
 }
 
 
-#if BIT_CC_DYN_LOAD
+#if BIT_HAS_DYN_LOAD
 /*
     Return true if the shared library in "file" can be found. Return the actual path in *path. The filename
     may not have a shared library extension which is typical so calling code can be cross platform.
@@ -286,7 +286,7 @@ static char *probe(cchar *filename)
  */
 char *mprSearchForModule(cchar *filename)
 {
-#if BIT_CC_DYN_LOAD
+#if BIT_HAS_DYN_LOAD
     char    *path, *f, *searchPath, *dir, *tok;
 
     filename = mprNormalizePath(filename);
@@ -313,7 +313,7 @@ char *mprSearchForModule(cchar *filename)
         }
         dir = stok(0, MPR_SEARCH_SEP, &tok);
     }
-#endif /* BIT_CC_DYN_LOAD */
+#endif /* BIT_HAS_DYN_LOAD */
     return 0;
 }
 

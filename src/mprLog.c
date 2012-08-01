@@ -90,7 +90,7 @@ void mprLogHeader()
 {
     mprLog(MPR_CONFIG, "Configuration for %s", mprGetAppTitle());
     mprLog(MPR_CONFIG, "---------------------------------------------");
-    mprLog(MPR_CONFIG, "Version:            %s-%s", BIT_VERSION, BIT_NUMBER);
+    mprLog(MPR_CONFIG, "Version:            %s-%s", BIT_VERSION, BIT_BUILD_NUMBER);
     mprLog(MPR_CONFIG, "BuildType:          %s", BIT_DEBUG ? "Debug" : "Release");
     mprLog(MPR_CONFIG, "CPU:                %s", BIT_CPU);
     mprLog(MPR_CONFIG, "OS:                 %s", BIT_OS);
@@ -172,7 +172,6 @@ void mprError(cchar *fmt, ...)
     va_start(args, fmt);
     mprSprintfv(buf, sizeof(buf), fmt, args);
     va_end(args);
-    
     logOutput(MPR_ERROR_MSG | MPR_ERROR_SRC, 0, buf);
     mprBreakpoint();
 }
@@ -186,7 +185,6 @@ void mprWarn(cchar *fmt, ...)
     va_start(args, fmt);
     mprSprintfv(buf, sizeof(buf), fmt, args);
     va_end(args);
-    
     logOutput(MPR_ERROR_MSG | MPR_WARN_SRC, 0, buf);
     mprBreakpoint();
 }
@@ -216,7 +214,6 @@ void mprUserError(cchar *fmt, ...)
     va_start(args, fmt);
     mprSprintfv(buf, sizeof(buf), fmt, args);
     va_end(args);
-    
     logOutput(MPR_USER_MSG | MPR_ERROR_SRC, 0, buf);
 }
 
@@ -229,7 +226,6 @@ void mprFatalError(cchar *fmt, ...)
     va_start(args, fmt);
     mprSprintfv(buf, sizeof(buf), fmt, args);
     va_end(args);
-    
     logOutput(MPR_USER_MSG | MPR_FATAL_SRC, 0, buf);
     exit(2);
 }
@@ -258,7 +254,7 @@ void mprStaticError(cchar *fmt, ...)
 
 void mprAssertError(cchar *loc, cchar *msg)
 {
-#if BIT_FEATURE_ASSERT
+#if BIT_ASSERT
     char    buf[MPR_MAX_LOG];
 
     if (loc) {

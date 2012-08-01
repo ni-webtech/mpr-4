@@ -6,18 +6,33 @@
     time configuration is performed.
  */
 
-#define BIT_PRODUCT "mpr"
-#define BIT_NAME "Multithreaded Portable Runtime"
+/* Settings */
+#define BIT_ASSERT 1
+#define BIT_BUILD_NUMBER "0"
 #define BIT_COMPANY "Embedthis"
-#define BIT_MPR_PRODUCT 1
+#define BIT_DEPTH 1
+#define BIT_FLOAT 1
+#define BIT_HAS_DOUBLE_BRACES 1
+#define BIT_HAS_DYN_LOAD 1
+#define BIT_HAS_LIB_EDIT 0
+#define BIT_HAS_MMU 1
+#define BIT_HAS_MTUNE 1
+#define BIT_HAS_PAM 0
+#define BIT_HAS_STACK_PROTECTOR 1
+#define BIT_HAS_SYNC 0
+#define BIT_HAS_SYNC_CAS 0
+#define BIT_HAS_UNNAMED_UNIONS 1
+#define BIT_MANAGER "manager"
+#define BIT_OPTIONAL "doxygen,dsi,ejs,http,man,man2html,md5,matrixssl,openssl,ssl,utest"
+#define BIT_PRODUCT "mpr"
+#define BIT_REQUIRED "compiler,link"
+#define BIT_TITLE "Multithreaded Portable Runtime"
 #define BIT_VERSION "4.0.1"
-#define BIT_NUMBER "0"
-#define BIT_MAJOR_VERSION 4
-#define BIT_MINOR_VERSION 0
-#define BIT_PATCH_VERSION 1
-#define BIT_VNUM 400000001
-#define BIT_CONFIG_CMD "bit -d -q -platform solaris-x86 -without all -configure . -gen sh,make"
-#define BIT_PROFILE "debug"
+#define BIT_WARN64TO32 0
+#define BIT_WARN_UNUSED 0
+#define BIT_WITHOUT_ALL "doxygen,dsi,man,man2html,pmaker,ssl"
+
+/* Prefixes */
 #define BIT_CFG_PREFIX "/etc/mpr"
 #define BIT_BIN_PREFIX "/usr/lib/mpr/4.0.1/bin"
 #define BIT_INC_PREFIX "/usr/lib/mpr/4.0.1/inc"
@@ -27,35 +42,37 @@
 #define BIT_SRC_PREFIX "/usr/src/mpr-4.0.1"
 #define BIT_VER_PREFIX "/usr/lib/mpr/4.0.1"
 #define BIT_WEB_PREFIX "/var/www/mpr-default"
+
+/* Suffixes */
 #define BIT_EXE ""
 #define BIT_SHLIB ".so"
 #define BIT_SHOBJ ".so"
 #define BIT_LIB ".a"
 #define BIT_OBJ ".o"
-#define BIT_MANAGER "manager"
-#define BIT_CC_DOUBLE_BRACES 1
-#define BIT_CC_DYN_LOAD 1
-#define BIT_CC_EDITLINE 0
-#define BIT_CC_MMU 1
-#define BIT_CC_MTUNE 1
-#define BIT_CC_PAM 0
-#define BIT_CC_STACK_PROTECTOR 1
-#define BIT_CC_SYNC 0
-#define BIT_CC_SYNC_CAS 0
-#define BIT_CC_UNNAMED_UNIONS 1
-#define BIT_CC_WARN_64TO32 0
-#define BIT_CC_WARN_UNUSED 0
-#define BIT_FEATURE_DOXYGEN 0
-#define BIT_FEATURE_DSI 0
-#define BIT_FEATURE_MAN 0
-#define BIT_FEATURE_MAN2HTML 0
-#define BIT_FEATURE_PMAKER 0
-#define BIT_FEATURE_SSL 0
-#define BIT_FEATURE_CC 1
-#define BIT_FEATURE_LINK 1
-#define BIT_FEATURE_EJS 1
-#define BIT_FEATURE_HTTP 1
-#define BIT_FEATURE_MD5 1
-#define BIT_FEATURE_MATRIXSSL 0
-#define BIT_FEATURE_OPENSSL 0
-#define BIT_FEATURE_UTEST 1
+
+/* Profile */
+#define BIT_MPR_PRODUCT 1
+#define BIT_PROFILE "debug"
+#define BIT_CONFIG_CMD "bit -d -q -platform solaris-x86 -without all -configure . -gen sh,make"
+
+/* Miscellaneous */
+#define BIT_MAJOR_VERSION 4
+#define BIT_MINOR_VERSION 0
+#define BIT_PATCH_VERSION 1
+#define BIT_VNUM 400000001
+
+/* Packs */
+#define BIT_PACK_CC 1
+#define BIT_PACK_DOXYGEN 0
+#define BIT_PACK_DSI 0
+#define BIT_PACK_EJS 1
+#define BIT_PACK_HTTP 1
+#define BIT_PACK_LINK 1
+#define BIT_PACK_MAN 0
+#define BIT_PACK_MAN2HTML 0
+#define BIT_PACK_MATRIXSSL 0
+#define BIT_PACK_MD5 1
+#define BIT_PACK_OPENSSL 0
+#define BIT_PACK_PMAKER 0
+#define BIT_PACK_SSL 0
+#define BIT_PACK_UTEST 1

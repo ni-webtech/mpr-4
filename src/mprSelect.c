@@ -295,6 +295,7 @@ static void readPipe(MprWaitService *ws)
 {
     char        buf[128];
 
+    //  MOB - refactor
 #if VXWORKS
     int len = sizeof(ws->breakAddress);
     (void) recvfrom(ws->breakSock, buf, (int) sizeof(buf), 0, (struct sockaddr*) &ws->breakAddress, (int*) &len);

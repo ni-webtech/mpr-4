@@ -65,7 +65,7 @@ int mprGetRandomBytes(char *buf, ssize length, bool block)
 }
 
 
-#if BIT_CC_DYN_LOAD
+#if BIT_HAS_DYN_LOAD
 int mprLoadNativeModule(MprModule *mp)
 {
     MprModuleEntry  fn;
@@ -96,7 +96,7 @@ int mprLoadNativeModule(MprModule *mp)
         mp->path = at;
         mprGetPathInfo(mp->path, &info);
         mp->modified = info.mtime;
-        mprLog(2, "Loading native module %s", mp->path);
+        mprLog(2, "Loading native module %s", mprGetPathBase(mp->path));
         if ((handle = dlopen(mp->path, RTLD_LAZY | RTLD_GLOBAL)) == 0) {
             mprError("Can't load module %s\nReason: \"%s\"", mp->path, dlerror());
             return MPR_ERR_CANT_OPEN;

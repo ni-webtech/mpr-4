@@ -8,7 +8,7 @@
 
 #include    "mpr.h"
 
-#if BIT_FEATURE_SSL
+#if BIT_PACK_SSL
 /************************************ Code ************************************/
 /*
     Module initialization entry point
@@ -17,13 +17,13 @@ int mprSslInit(void *unused, MprModule *module)
 {
     mprAssert(module);
 
-#if BIT_FEATURE_MATRIXSSL
+#if BIT_PACK_MATRIXSSL
     if (mprCreateMatrixSslModule() < 0) {
         return MPR_ERR_CANT_OPEN;
     }
     MPR->socketService->defaultProvider = sclone("matrixssl");
 #endif
-#if BIT_FEATURE_OPENSSL
+#if BIT_PACK_OPENSSL
     if (mprCreateOpenSslModule() < 0) {
         return MPR_ERR_CANT_OPEN;
     }
@@ -32,7 +32,7 @@ int mprSslInit(void *unused, MprModule *module)
     return 0;
 }
 
-#endif /* BLD_FEATURE_SSL */
+#endif /* BLD_PACK_SSL */
 
 /*
     @copy   default

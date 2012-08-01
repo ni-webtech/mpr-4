@@ -12,7 +12,7 @@
 
 #include    "mpr.h"
 
-#if BIT_FEATURE_ROMFS 
+#if BIT_ROM 
 /****************************** Forward Declarations **************************/
 
 static void manageRomFile(MprFile *file, int flags);
@@ -316,9 +316,9 @@ MprRomFileSystem *mprCreateRomFileSystem(cchar *path)
 }
 
 
-#else /* BIT_FEATURE_ROMFS */
+#else /* BIT_ROM */
 void stubRomfs() {}
-#endif /* BIT_FEATURE_ROMFS */
+#endif /* BIT_ROM */
 
 /*
     @copy   default

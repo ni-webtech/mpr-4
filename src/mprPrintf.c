@@ -163,7 +163,7 @@ static void outString(Format *fmt, cchar *str, ssize len);
 #if BIT_CHAR_LEN > 1
 static void outWideString(Format *fmt, MprChar *str, ssize len);
 #endif
-#if BIT_FEATURE_FLOAT
+#if BIT_FLOAT
 static void outFloat(Format *fmt, char specChar, double value);
 #endif
 
@@ -459,13 +459,13 @@ static char *sprintfCore(char *buf, ssize maxsize, cchar *spec, va_list args)
         case STATE_TYPE:
             switch (c) {
             case 'e':
-#if BIT_FEATURE_FLOAT
+#if BIT_FLOAT
             case 'g':
             case 'f':
                 fmt.radix = 10;
                 outFloat(&fmt, c, (double) va_arg(args, double));
                 break;
-#endif /* BIT_FEATURE_FLOAT */
+#endif /* BIT_FLOAT */
 
             case 'c':
                 BPUT(&fmt, (char) va_arg(args, int));
@@ -568,7 +568,7 @@ static char *sprintfCore(char *buf, ssize maxsize, cchar *spec, va_list args)
 
             case 'X':
                 fmt.flags |= SPRINTF_UPPER_CASE;
-#if MPR_64_BIT
+#if BIT_64
                 fmt.flags &= ~(SPRINTF_SHORT|SPRINTF_LONG);
                 fmt.flags |= SPRINTF_INT64;
 #else
@@ -625,7 +625,7 @@ static char *sprintfCore(char *buf, ssize maxsize, cchar *spec, va_list args)
                 break;
 
             case 'p':       /* Pointer */
-#if MPR_64_BIT
+#if BIT_64
                 uValue = (uint64) va_arg(args, void*);
 #else
                 uValue = (uint) PTOI(va_arg(args, void*));
@@ -803,7 +803,7 @@ static void outNum(Format *fmt, cchar *prefix, uint64 value)
 }
 
 
-#if BIT_FEATURE_FLOAT
+#if BIT_FLOAT
 static void outFloat(Format *fmt, char specChar, double value)
 {
     char    result[MPR_MAX_STRING], *cp;
@@ -1029,7 +1029,7 @@ char *mprDtoa(double value, int ndigits, int mode, int flags)
     }
     return sclone(mprGetBufStart(buf));
 }
-#endif /* BIT_FEATURE_FLOAT */
+#endif /* BIT_FLOAT */
 
 
 /*

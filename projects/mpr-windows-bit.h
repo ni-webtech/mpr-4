@@ -6,59 +6,68 @@
     time configuration is performed.
  */
 
-#define BIT_PRODUCT "mpr"
-#define BIT_NAME "Multithreaded Portable Runtime"
+/* Settings */
+#define BIT_ASSERT 1
+#define BIT_BUILD_NUMBER "0"
 #define BIT_COMPANY "Embedthis"
-#define BIT_MPR_PRODUCT 1
+#define BIT_DEPTH 1
+#define BIT_FLOAT 1
+#define BIT_HAS_DYN_LOAD 1
+#define BIT_HAS_LIB_EDIT 0
+#define BIT_HAS_MMU 1
+#define BIT_HAS_UNNAMED_UNIONS 1
+#define BIT_MANAGER "manager"
+#define BIT_OPTIONAL "doxygen,dsi,ejs,http,man,man2html,md5,matrixssl,openssl,ssl,utest"
+#define BIT_PRODUCT "mpr"
+#define BIT_REQUIRED "winsdk,compiler,link,dumpbin,rc"
+#define BIT_TITLE "Multithreaded Portable Runtime"
 #define BIT_VERSION "4.0.1"
-#define BIT_NUMBER "0"
-#define BIT_MAJOR_VERSION 4
-#define BIT_MINOR_VERSION 0
-#define BIT_PATCH_VERSION 1
-#define BIT_VNUM 400000001
-#define BIT_CONFIG_CMD "bit -d -without all -configure ."
-#define BIT_PROFILE "debug"
-#define BIT_CFG_PREFIX "C:/Program Files/Multithreaded Portable Runtime"
-#define BIT_BIN_PREFIX "C:/Program Files/Multithreaded Portable Runtime/bin"
-#define BIT_INC_PREFIX "C:/Program Files/Multithreaded Portable Runtime/inc"
-#define BIT_LOG_PREFIX "C:/Program Files/Multithreaded Portable Runtime/logs"
-#define BIT_PRD_PREFIX "C:/Program Files/Multithreaded Portable Runtime"
-#define BIT_SPL_PREFIX "C:/Program Files/Multithreaded Portable Runtime/tmp"
-#define BIT_SRC_PREFIX "C:/Program Files/Multithreaded Portable Runtime/src"
-#define BIT_VER_PREFIX "C:/Program Files/Multithreaded Portable Runtime"
-#define BIT_WEB_PREFIX "C:/Program Files/Multithreaded Portable Runtime/web"
+#define BIT_WITHOUT_ALL "doxygen,dsi,man,man2html,pmaker,ssl"
+
+/* Prefixes */
+#define BIT_CFG_PREFIX "C:/Program Files (x86)/Multithreaded Portable Runtime"
+#define BIT_BIN_PREFIX "C:/Program Files (x86)/Multithreaded Portable Runtime/bin"
+#define BIT_INC_PREFIX "C:/Program Files (x86)/Multithreaded Portable Runtime/inc"
+#define BIT_LOG_PREFIX "C:/Program Files (x86)/Multithreaded Portable Runtime/logs"
+#define BIT_PRD_PREFIX "C:/Program Files (x86)/Multithreaded Portable Runtime"
+#define BIT_SPL_PREFIX "C:/Program Files (x86)/Multithreaded Portable Runtime/tmp"
+#define BIT_SRC_PREFIX "C:/Program Files (x86)/Multithreaded Portable Runtime/src"
+#define BIT_VER_PREFIX "C:/Program Files (x86)/Multithreaded Portable Runtime"
+#define BIT_WEB_PREFIX "C:/Program Files (x86)/Multithreaded Portable Runtime/web"
+
+/* Suffixes */
 #define BIT_EXE ".exe"
 #define BIT_SHLIB ".lib"
 #define BIT_SHOBJ ".dll"
 #define BIT_LIB ".a"
 #define BIT_OBJ ".obj"
-#define BIT_MANAGER "manager"
-#define BIT_CC_DOUBLE_BRACES 0
-#define BIT_CC_DYN_LOAD 1
-#define BIT_CC_EDITLINE 0
-#define BIT_CC_MMU 1
-#define BIT_CC_MTUNE 0
-#define BIT_CC_PAM 0
-#define BIT_CC_STACK_PROTECTOR 0
-#define BIT_CC_SYNC 0
-#define BIT_CC_SYNC_CAS 0
-#define BIT_CC_UNNAMED_UNIONS 1
-#define BIT_CC_WARN_64TO32 0
-#define BIT_CC_WARN_UNUSED 0
-#define BIT_FEATURE_DOXYGEN 0
-#define BIT_FEATURE_DSI 0
-#define BIT_FEATURE_MAN 0
-#define BIT_FEATURE_MAN2HTML 0
-#define BIT_FEATURE_PMAKER 0
-#define BIT_FEATURE_SSL 0
-#define BIT_FEATURE_WINSDK 1
-#define BIT_FEATURE_CC 1
-#define BIT_FEATURE_LINK 1
-#define BIT_FEATURE_DUMPBIN 1
-#define BIT_FEATURE_RC 1
-#define BIT_FEATURE_EJS 1
-#define BIT_FEATURE_HTTP 1
-#define BIT_FEATURE_MD5 0
-#define BIT_FEATURE_MATRIXSSL 0
-#define BIT_FEATURE_OPENSSL 0
-#define BIT_FEATURE_UTEST 1
+
+/* Profile */
+#define BIT_MPR_PRODUCT 1
+#define BIT_PROFILE "vs"
+#define BIT_CONFIG_CMD "bit -d -q -platform windows-x86 -without all -profile vs -configure . -gen vs"
+
+/* Miscellaneous */
+#define BIT_MAJOR_VERSION 4
+#define BIT_MINOR_VERSION 0
+#define BIT_PATCH_VERSION 1
+#define BIT_VNUM 400000001
+
+/* Packs */
+#define BIT_PACK_CC 1
+#define BIT_PACK_DOXYGEN 0
+#define BIT_PACK_DSI 0
+#define BIT_PACK_DUMPBIN 0
+#define BIT_PACK_EJS 1
+#define BIT_PACK_HTTP 1
+#define BIT_PACK_LINK 1
+#define BIT_PACK_MAN 0
+#define BIT_PACK_MAN2HTML 0
+#define BIT_PACK_MATRIXSSL 0
+#define BIT_PACK_MD5 1
+#define BIT_PACK_OPENSSL 0
+#define BIT_PACK_PMAKER 0
+#define BIT_PACK_RC 1
+#define BIT_PACK_SSL 0
+#define BIT_PACK_UTEST 1
+#define BIT_PACK_WINSDK 1

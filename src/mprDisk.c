@@ -10,7 +10,7 @@
 
 #include    "mpr.h"
 
-#if !BIT_FEATURE_ROMFS
+#if !BIT_ROM
 /*********************************** Defines **********************************/
 
 #if WINDOWS
@@ -93,7 +93,7 @@ static void manageDiskFile(MprFile *file, int flags)
         mprMark(file->path);
         mprMark(file->fileSystem);
         mprMark(file->buf);
-#if BIT_FEATURE_ROMFS
+#if BIT_ROM
         mprMark(file->inode);
 #endif
 
@@ -155,7 +155,7 @@ static MprOff seekFile(MprFile *file, int seekType, MprOff distance)
     }
 #if BIT_WIN_LIKE
     return (MprOff) _lseeki64(file->fd, (int64) distance, seekType);
-#elif HAS_OFF64
+#elif BIT_HAS_OFF64
     return (MprOff) lseek64(file->fd, (off64_t) distance, seekType);
 #else
     return (MprOff) lseek(file->fd, (off_t) distance, seekType);
@@ -546,7 +546,7 @@ MprDiskFileSystem *mprCreateDiskFileSystem(cchar *path)
 #endif
     return dfs;
 }
-#endif /* !BIT_FEATURE_ROMFS */
+#endif /* !BIT_ROM */
 
 
 /*

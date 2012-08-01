@@ -32,7 +32,7 @@ Mpr *mprCreate(int argc, char **argv, int flags)
     mpr->exitStrategy = MPR_EXIT_NORMAL;
     mpr->emptyString = sclone("");
     mpr->exitTimeout = MPR_TIMEOUT_STOP;
-    mpr->title = sclone(BIT_NAME);
+    mpr->title = sclone(BIT_TITLE);
     mpr->version = sclone(BIT_VERSION);
     mpr->idleCallback = mprServicesAreIdle;
     mpr->mimeTypes = mprCreateMimeTypes(NULL);

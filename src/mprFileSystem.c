@@ -22,7 +22,7 @@ MprFileSystem *mprCreateFileSystem(cchar *path)
     /*
         FUTURE: evolve this to support multiple file systems in a single system
      */
-#if BIT_FEATURE_ROMFS
+#if BIT_ROM
     fs = (MprFileSystem*) mprCreateRomFileSystem(path);
 #else
     fs = (MprFileSystem*) mprCreateDiskFileSystem(path);

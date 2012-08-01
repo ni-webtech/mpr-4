@@ -282,7 +282,6 @@ char *mprGetMD5WithPrefix(cchar *buf, ssize length, cchar *prefix)
         *r++ = hex[hash[i] & 0xF];
     }
     *r = '\0';
-
     len = (prefix) ? slen(prefix) : 0;
     str = mprAlloc(sizeof(result) + len);
     if (str) {
@@ -301,10 +300,6 @@ char *mprGetMD5WithPrefix(cchar *buf, ssize length, cchar *prefix)
 static void initMD5(MD5CONTEXT *context)
 {
     context->count[0] = context->count[1] = 0;
-
-    /*
-        Load constants
-     */
     context->state[0] = 0x67452301;
     context->state[1] = 0xefcdab89;
     context->state[2] = 0x98badcfe;
@@ -331,7 +326,6 @@ static void update(MD5CONTEXT *context, uchar *input, uint inputLen)
     if (inputLen >= partLen) {
         memcpy((uchar*) &context->buffer[index], (uchar*) input, partLen);
         transform(context->state, context->buffer);
-
         for (i = partLen; i + 63 < inputLen; i += 64) {
             transform(context->state, &input[i]);
         }

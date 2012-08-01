@@ -227,7 +227,7 @@ int mprParseTestArgs(MprTestService *sp, int argc, char *argv[], MprTestParser e
         return MPR_ERR_BAD_ARGS;
     }
     if (outputVersion) {
-        mprPrintfError("%s: Version: %s\n", BIT_NAME, BIT_VERSION);
+        mprPrintfError("%s: Version: %s\n", BIT_TITLE, BIT_VERSION);
         return MPR_ERR_BAD_ARGS;
     }
     sp->argc = argc;

@@ -202,7 +202,7 @@ char *mprGetAbsPath(cchar *path)
     if (path == 0 || *path == '\0') {
         path = ".";
     }
-#if BIT_FEATURE_ROMFS
+#if BIT_ROM
     return mprNormalizePath(path);
 #elif CYGWIN
     {
@@ -980,7 +980,7 @@ char *mprGetWinPath(cchar *path)
     if (path == 0 || *path == '\0') {
         path = ".";
     }
-#if BIT_FEATURE_ROMFS
+#if BIT_ROM
     result = mprNormalizePath(path);
 #elif CYGWIN
 {
