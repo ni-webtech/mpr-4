@@ -23,6 +23,7 @@
 #define BIT_HAS_SYNC_CAS 1
 #define BIT_HAS_UNNAMED_UNIONS 1
 #define BIT_MANAGER "manager"
+#define BIT_MINIMAL "doxygen,dsi,man,man2html,pmaker,ssl"
 #define BIT_OPTIONAL "doxygen,dsi,ejs,http,man,man2html,md5,matrixssl,openssl,ssl,utest"
 #define BIT_PRODUCT "mpr"
 #define BIT_REQUIRED "compiler,link"
@@ -30,7 +31,6 @@
 #define BIT_VERSION "4.0.1"
 #define BIT_WARN64TO32 1
 #define BIT_WARN_UNUSED 1
-#define BIT_WITHOUT_ALL "doxygen,dsi,man,man2html,pmaker,ssl"
 
 /* Prefixes */
 #define BIT_CFG_PREFIX "/etc/mpr"

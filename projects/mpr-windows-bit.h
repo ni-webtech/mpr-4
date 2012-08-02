@@ -17,12 +17,12 @@
 #define BIT_HAS_MMU 1
 #define BIT_HAS_UNNAMED_UNIONS 1
 #define BIT_MANAGER "manager"
+#define BIT_MINIMAL "doxygen,dsi,man,man2html,pmaker,ssl"
 #define BIT_OPTIONAL "doxygen,dsi,ejs,http,man,man2html,md5,matrixssl,openssl,ssl,utest"
 #define BIT_PRODUCT "mpr"
 #define BIT_REQUIRED "winsdk,compiler,link,dumpbin,rc"
 #define BIT_TITLE "Multithreaded Portable Runtime"
 #define BIT_VERSION "4.0.1"
-#define BIT_WITHOUT_ALL "doxygen,dsi,man,man2html,pmaker,ssl"
 
 /* Prefixes */
 #define BIT_CFG_PREFIX "C:/Program Files (x86)/Multithreaded Portable Runtime"

@@ -124,13 +124,13 @@ ${CC} -c -o ${CONFIG}/obj/runProgram.o -arch x86_64 ${CFLAGS} ${DFLAGS} -I${CONF
 
 ${CC} -o ${CONFIG}/bin/runProgram -arch x86_64 ${LDFLAGS} ${LIBPATHS} ${CONFIG}/obj/runProgram.o ${LIBS}
 
-${CC} -c -o ${CONFIG}/obj/mprMatrixssl.o -arch x86_64 ${CFLAGS} ${DFLAGS} -I${CONFIG}/inc src/mprMatrixssl.c
+${CC} -c -o ${CONFIG}/obj/mprMatrixSsl.o -arch x86_64 ${CFLAGS} ${DFLAGS} -I${CONFIG}/inc src/mprMatrixSsl.c
 
 ${CC} -c -o ${CONFIG}/obj/mprOpenssl.o -arch x86_64 ${CFLAGS} ${DFLAGS} -I${CONFIG}/inc src/mprOpenssl.c
 
 ${CC} -c -o ${CONFIG}/obj/mprSsl.o -arch x86_64 ${CFLAGS} ${DFLAGS} -I${CONFIG}/inc src/mprSsl.c
 
-${CC} -dynamiclib -o ${CONFIG}/bin/libmprssl.dylib -arch x86_64 ${LDFLAGS} -compatibility_version 4.0.1 -current_version 4.0.1 ${LIBPATHS} -install_name @rpath/libmprssl.dylib ${CONFIG}/obj/mprMatrixssl.o ${CONFIG}/obj/mprOpenssl.o ${CONFIG}/obj/mprSsl.o ${LIBS} -lmpr
+${CC} -dynamiclib -o ${CONFIG}/bin/libmprssl.dylib -arch x86_64 ${LDFLAGS} -compatibility_version 4.0.1 -current_version 4.0.1 ${LIBPATHS} -install_name @rpath/libmprssl.dylib ${CONFIG}/obj/mprMatrixSsl.o ${CONFIG}/obj/mprOpenssl.o ${CONFIG}/obj/mprSsl.o ${LIBS} -lmpr
 
 ${CC} -c -o ${CONFIG}/obj/testArgv.o -arch x86_64 ${CFLAGS} ${DFLAGS} -I${CONFIG}/inc test/testArgv.c
 
