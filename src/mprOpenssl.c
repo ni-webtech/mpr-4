@@ -180,6 +180,7 @@ static void manageOpenSsl(MprOpenSsl *ossl, int flags)
                 ossl->dhKey1024 = 0;
             }
         }
+        //  MOB - only do if this code did the initialization: ssl_library_cleanup();
     }
 }
 
