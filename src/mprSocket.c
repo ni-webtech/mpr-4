@@ -1494,6 +1494,7 @@ bool mprIsSocketV6(MprSocket *sp)
 }
 
 
+//  MOB - inconsistent with mprIsSocketV6
 bool mprIsIPv6(cchar *ip)
 {
     return ip && ipv6(ip);
