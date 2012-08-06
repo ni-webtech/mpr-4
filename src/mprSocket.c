@@ -1405,33 +1405,36 @@ static int ipv6(cchar *ip)
  */
 int mprParseSocketAddress(cchar *ipAddrPort, char **pip, int *pport, int defaultPort)
 {
-    char    *ip;
-    char    *cp;
+    char    *ip, *cp;
 
     ip = 0;
     if (defaultPort < 0) {
         defaultPort = 80;
     }
-    if ((cp = strstr(ipAddrPort, "://")) != 0) {
-        ipAddrPort = &cp[3];
+    ip = sclone(ipAddrPort);
+    if ((cp = strchr(ip, ' ')) != 0) {
+        *cp++ = '\0';
     }
-    if (ipv6(ipAddrPort)) {
+    if ((cp = strstr(ip, "://")) != 0) {
+        ip = &cp[3];
+    }
+    if (ipv6(ip)) {
         /*  
             IPv6. If port is present, it will follow a closing bracket ']'
          */
-        if ((cp = strchr(ipAddrPort, ']')) != 0) {
+        if ((cp = strchr(ip, ']')) != 0) {
             cp++;
             if ((*cp) && (*cp == ':')) {
                 *pport = (*++cp == '*') ? -1 : atoi(cp);
 
                 /* Set ipAddr to ipv6 address without brackets */
-                ip = sclone(ipAddrPort+1);
+                ip = sclone(ip + 1);
                 cp = strchr(ip, ']');
                 *cp = '\0';
 
             } else {
                 /* Handles [a:b:c:d:e:f:g:h:i] case (no port)- should not occur */
-                ip = sclone(ipAddrPort + 1);
+                ip = sclone(ip + 1);
                 if ((cp = strchr(ip, ']')) != 0) {
                     *cp = '\0';
                 }
@@ -1443,8 +1446,6 @@ int mprParseSocketAddress(cchar *ipAddrPort, char **pip, int *pport, int default
             }
         } else {
             /* Handles a:b:c:d:e:f:g:h:i case (no port) */
-            ip = sclone(ipAddrPort);
-
             /* No port present, use callers default */
             *pport = defaultPort;
         }
@@ -1453,7 +1454,6 @@ int mprParseSocketAddress(cchar *ipAddrPort, char **pip, int *pport, int default
         /*  
             ipv4 
          */
-        ip = sclone(ipAddrPort);
         if ((cp = strchr(ip, ':')) != 0) {
             *cp++ = '\0';
             if (*cp == '*') {
@@ -1464,6 +1464,12 @@ int mprParseSocketAddress(cchar *ipAddrPort, char **pip, int *pport, int default
             if (*ip == '*') {
                 ip = 0;
             }
+
+        } else if (strchr(ip, '.')) {
+            if ((cp = strchr(ip, ' ')) != 0) {
+                *cp++ = '\0';
+            }
+            *pport = defaultPort;
 
         } else {
             if (isdigit((uchar) *ip)) {
