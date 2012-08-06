@@ -18,6 +18,13 @@
     Open/Delete retries to circumvent windows pending delete problems
  */
 #define RETRIES 40
+
+/*
+    Windows only permits owner bits
+ */
+#define MASK_PERMS(perms)    perms & 0600
+#else
+#define MASK_PERMS(perms)    perms
 #endif
 
 /********************************** Forwards **********************************/
@@ -35,13 +42,13 @@ static int cygOpen(MprFileSystem *fs, cchar *path, int omode, int perms)
 {
     int     fd;
 
-    fd = open(path, omode, perms);
+    fd = open(path, omode, MASK_PERMS(perms));
 #if WINDOWS
     if (fd < 0) {
         if (*path == '/') {
             path = sjoin(fs->cygwin, path, NULL);
         }
-        fd = open(path, omode, perms);
+        fd = open(path, omode, MASK_PERMS(perms));
     }
 #endif
     return fd;
@@ -58,7 +65,7 @@ static MprFile *openFile(MprFileSystem *fs, cchar *path, int omode, int perms)
         return NULL;
     }
     file->path = sclone(path);
-    file->fd = open(path, omode, perms);
+    file->fd = open(path, omode, MASK_PERMS(perms));
     if (file->fd < 0) {
 #if WINDOWS
         /*
@@ -67,7 +74,7 @@ static MprFile *openFile(MprFileSystem *fs, cchar *path, int omode, int perms)
         int i, err = GetLastError();
         if (err == ERROR_ACCESS_DENIED) {
             for (i = 0; i < RETRIES; i++) {
-                file->fd = open(path, omode, perms);
+                file->fd = open(path, omode, MASK_PERMS(perms));
                 if (file->fd >= 0) {
                     break;
                 }
