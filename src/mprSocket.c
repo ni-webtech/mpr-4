@@ -1549,6 +1549,23 @@ MprSsl *mprCreateSsl()
 }
 
 
+/*
+    Clone a SSL context object
+ */
+MprSsl *mprCloneSsl(MprSsl *src)
+{
+    MprSsl      *ssl;
+
+    if ((ssl = mprAllocObj(MprSsl, manageSsl)) == 0) {
+        return 0;
+    }
+    if (src) {
+        *ssl = *src;
+    }
+    return ssl;
+}
+
+
 int mprLoadSsl()
 {
 #if BIT_PACK_SSL
