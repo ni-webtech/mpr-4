@@ -44,8 +44,8 @@
 
 /* Profile */
 #define BIT_MPR_PRODUCT 1
-#define BIT_PROFILE "debug"
-#define BIT_CONFIG_CMD "bit -d -platform windows-x86 -without all -configure . -gen nmake"
+#define BIT_PROFILE "vs"
+#define BIT_CONFIG_CMD "bit -d -q -platform windows-x86 -without all -profile vs -configure . -gen vs"
 
 /* Miscellaneous */
 #define BIT_MAJOR_VERSION 4

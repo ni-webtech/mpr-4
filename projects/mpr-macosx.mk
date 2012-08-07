@@ -107,7 +107,7 @@ clean:
 	rm -rf $(CONFIG)/obj/mprWin.o
 	rm -rf $(CONFIG)/obj/mprWince.o
 	rm -rf $(CONFIG)/obj/mprXml.o
-	rm -rf $(CONFIG)/obj/mprMatrixSsl.o
+	rm -rf $(CONFIG)/obj/mprMatrixssl.o
 	rm -rf $(CONFIG)/obj/mprOpenssl.o
 	rm -rf $(CONFIG)/obj/mprSsl.o
 	rm -rf $(CONFIG)/obj/manager.o
@@ -453,11 +453,11 @@ $(CONFIG)/bin/runProgram:  \
         $(CONFIG)/obj/runProgram.o
 	$(CC) -o $(CONFIG)/bin/runProgram -arch x86_64 $(LDFLAGS) $(LIBPATHS) $(CONFIG)/obj/runProgram.o $(LIBS)
 
-$(CONFIG)/obj/mprMatrixSsl.o: \
-        src/mprMatrixSsl.c \
+$(CONFIG)/obj/mprMatrixssl.o: \
+        src/mprMatrixssl.c \
         $(CONFIG)/inc/bit.h \
         $(CONFIG)/inc/mpr.h
-	$(CC) -c -o $(CONFIG)/obj/mprMatrixSsl.o -arch x86_64 $(CFLAGS) $(DFLAGS) -I$(CONFIG)/inc src/mprMatrixSsl.c
+	$(CC) -c -o $(CONFIG)/obj/mprMatrixssl.o -arch x86_64 $(CFLAGS) $(DFLAGS) -I$(CONFIG)/inc src/mprMatrixssl.c
 
 $(CONFIG)/obj/mprOpenssl.o: \
         src/mprOpenssl.c \
@@ -473,10 +473,10 @@ $(CONFIG)/obj/mprSsl.o: \
 
 $(CONFIG)/bin/libmprssl.dylib:  \
         $(CONFIG)/bin/libmpr.dylib \
-        $(CONFIG)/obj/mprMatrixSsl.o \
+        $(CONFIG)/obj/mprMatrixssl.o \
         $(CONFIG)/obj/mprOpenssl.o \
         $(CONFIG)/obj/mprSsl.o
-	$(CC) -dynamiclib -o $(CONFIG)/bin/libmprssl.dylib -arch x86_64 $(LDFLAGS) -compatibility_version 4.0.1 -current_version 4.0.1 -compatibility_version 4.0.1 -current_version 4.0.1 $(LIBPATHS) -install_name @rpath/libmprssl.dylib $(CONFIG)/obj/mprMatrixSsl.o $(CONFIG)/obj/mprOpenssl.o $(CONFIG)/obj/mprSsl.o $(LIBS) -lmpr
+	$(CC) -dynamiclib -o $(CONFIG)/bin/libmprssl.dylib -arch x86_64 $(LDFLAGS) -compatibility_version 4.0.1 -current_version 4.0.1 -compatibility_version 4.0.1 -current_version 4.0.1 $(LIBPATHS) -install_name @rpath/libmprssl.dylib $(CONFIG)/obj/mprMatrixssl.o $(CONFIG)/obj/mprOpenssl.o $(CONFIG)/obj/mprSsl.o $(LIBS) -lmpr
 
 $(CONFIG)/obj/testArgv.o: \
         test/testArgv.c \

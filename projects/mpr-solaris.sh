@@ -124,13 +124,13 @@ ${CC} -c -o ${CONFIG}/obj/runProgram.o -Wall -fPIC ${LDFLAGS} -mtune=generic ${D
 
 ${CC} -o ${CONFIG}/bin/runProgram ${LDFLAGS} ${LIBPATHS} ${CONFIG}/obj/runProgram.o ${LIBS} ${LDFLAGS}
 
-${CC} -c -o ${CONFIG}/obj/mprMatrixSsl.o -Wall -fPIC ${LDFLAGS} -mtune=generic ${DFLAGS} -I${CONFIG}/inc src/mprMatrixSsl.c
+${CC} -c -o ${CONFIG}/obj/mprMatrixssl.o -Wall -fPIC ${LDFLAGS} -mtune=generic ${DFLAGS} -I${CONFIG}/inc src/mprMatrixssl.c
 
 ${CC} -c -o ${CONFIG}/obj/mprOpenssl.o -Wall -fPIC ${LDFLAGS} -mtune=generic ${DFLAGS} -I${CONFIG}/inc src/mprOpenssl.c
 
 ${CC} -c -o ${CONFIG}/obj/mprSsl.o -Wall -fPIC ${LDFLAGS} -mtune=generic ${DFLAGS} -I${CONFIG}/inc src/mprSsl.c
 
-${CC} -shared -o ${CONFIG}/bin/libmprssl.so ${LDFLAGS} ${LIBPATHS} ${CONFIG}/obj/mprMatrixSsl.o ${CONFIG}/obj/mprOpenssl.o ${CONFIG}/obj/mprSsl.o ${LIBS} -lmpr
+${CC} -shared -o ${CONFIG}/bin/libmprssl.so ${LDFLAGS} ${LIBPATHS} ${CONFIG}/obj/mprMatrixssl.o ${CONFIG}/obj/mprOpenssl.o ${CONFIG}/obj/mprSsl.o ${LIBS} -lmpr
 
 ${CC} -c -o ${CONFIG}/obj/testArgv.o -Wall -fPIC ${LDFLAGS} -mtune=generic ${DFLAGS} -I${CONFIG}/inc test/testArgv.c
 

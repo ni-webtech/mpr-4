@@ -119,7 +119,7 @@ clean:
 	-if exist $(CONFIG)\obj\mprWin.obj del /Q $(CONFIG)\obj\mprWin.obj
 	-if exist $(CONFIG)\obj\mprWince.obj del /Q $(CONFIG)\obj\mprWince.obj
 	-if exist $(CONFIG)\obj\mprXml.obj del /Q $(CONFIG)\obj\mprXml.obj
-	-if exist $(CONFIG)\obj\mprMatrixSsl.obj del /Q $(CONFIG)\obj\mprMatrixSsl.obj
+	-if exist $(CONFIG)\obj\mprMatrixssl.obj del /Q $(CONFIG)\obj\mprMatrixssl.obj
 	-if exist $(CONFIG)\obj\mprOpenssl.obj del /Q $(CONFIG)\obj\mprOpenssl.obj
 	-if exist $(CONFIG)\obj\mprSsl.obj del /Q $(CONFIG)\obj\mprSsl.obj
 	-if exist $(CONFIG)\obj\manager.obj del /Q $(CONFIG)\obj\manager.obj
@@ -417,10 +417,10 @@ $(CONFIG)\bin\runProgram.exe:  \
         $(CONFIG)\obj\runProgram.obj
 	"$(LD)" -out:$(CONFIG)\bin\runProgram.exe -entry:mainCRTStartup -subsystem:console $(LDFLAGS) $(LIBPATHS) $(CONFIG)\obj\runProgram.obj $(LIBS)
 
-$(CONFIG)\obj\mprMatrixSsl.obj: \
-        src\mprMatrixSsl.c \
+$(CONFIG)\obj\mprMatrixssl.obj: \
+        src\mprMatrixssl.c \
         $(CONFIG)\inc\bit.h
-	"$(CC)" -c -Fo$(CONFIG)\obj\mprMatrixSsl.obj -Fd$(CONFIG)\obj\mprMatrixSsl.pdb $(CFLAGS) $(DFLAGS) -I$(CONFIG)\inc src\mprMatrixSsl.c
+	"$(CC)" -c -Fo$(CONFIG)\obj\mprMatrixssl.obj -Fd$(CONFIG)\obj\mprMatrixssl.pdb $(CFLAGS) $(DFLAGS) -I$(CONFIG)\inc src\mprMatrixssl.c
 
 $(CONFIG)\obj\mprOpenssl.obj: \
         src\mprOpenssl.c \
@@ -434,10 +434,10 @@ $(CONFIG)\obj\mprSsl.obj: \
 
 $(CONFIG)\bin\libmprssl.dll:  \
         $(CONFIG)\bin\libmpr.dll \
-        $(CONFIG)\obj\mprMatrixSsl.obj \
+        $(CONFIG)\obj\mprMatrixssl.obj \
         $(CONFIG)\obj\mprOpenssl.obj \
         $(CONFIG)\obj\mprSsl.obj
-	"$(LD)" -dll -out:$(CONFIG)\bin\libmprssl.dll -entry:$(ENTRY) -def:$(CONFIG)\bin\libmprssl.def $(LDFLAGS) $(LIBPATHS) $(CONFIG)\obj\mprMatrixSsl.obj $(CONFIG)\obj\mprOpenssl.obj $(CONFIG)\obj\mprSsl.obj $(LIBS) libmpr.lib
+	"$(LD)" -dll -out:$(CONFIG)\bin\libmprssl.dll -entry:$(ENTRY) -def:$(CONFIG)\bin\libmprssl.def $(LDFLAGS) $(LIBPATHS) $(CONFIG)\obj\mprMatrixssl.obj $(CONFIG)\obj\mprOpenssl.obj $(CONFIG)\obj\mprSsl.obj $(LIBS) libmpr.lib
 
 $(CONFIG)\obj\testArgv.obj: \
         test\testArgv.c \

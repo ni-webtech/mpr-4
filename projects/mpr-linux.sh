@@ -124,13 +124,13 @@ ${CC} -c -o ${CONFIG}/obj/runProgram.o ${CFLAGS} ${DFLAGS} -I${CONFIG}/inc test/
 
 ${CC} -o ${CONFIG}/bin/runProgram ${LDFLAGS} ${LIBPATHS} ${CONFIG}/obj/runProgram.o ${LIBS} ${LDFLAGS}
 
-${CC} -c -o ${CONFIG}/obj/mprMatrixSsl.o ${CFLAGS} ${DFLAGS} -I${CONFIG}/inc src/mprMatrixSsl.c
+${CC} -c -o ${CONFIG}/obj/mprMatrixssl.o ${CFLAGS} ${DFLAGS} -I${CONFIG}/inc src/mprMatrixssl.c
 
 ${CC} -c -o ${CONFIG}/obj/mprOpenssl.o ${CFLAGS} ${DFLAGS} -I${CONFIG}/inc src/mprOpenssl.c
 
 ${CC} -c -o ${CONFIG}/obj/mprSsl.o ${CFLAGS} ${DFLAGS} -I${CONFIG}/inc src/mprSsl.c
 
-${CC} -shared -o ${CONFIG}/bin/libmprssl.so ${LDFLAGS} ${LIBPATHS} ${CONFIG}/obj/mprMatrixSsl.o ${CONFIG}/obj/mprOpenssl.o ${CONFIG}/obj/mprSsl.o ${LIBS} -lmpr
+${CC} -shared -o ${CONFIG}/bin/libmprssl.so ${LDFLAGS} ${LIBPATHS} ${CONFIG}/obj/mprMatrixssl.o ${CONFIG}/obj/mprOpenssl.o ${CONFIG}/obj/mprSsl.o ${LIBS} -lmpr
 
 ${CC} -c -o ${CONFIG}/obj/testArgv.o ${CFLAGS} ${DFLAGS} -I${CONFIG}/inc test/testArgv.c
 

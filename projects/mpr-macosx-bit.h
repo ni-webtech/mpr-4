@@ -52,8 +52,8 @@
 
 /* Profile */
 #define BIT_MPR_PRODUCT 1
-#define BIT_PROFILE "debug"
-#define BIT_CONFIG_CMD "bit -d -without all -configure ."
+#define BIT_PROFILE "xcode"
+#define BIT_CONFIG_CMD "bit -d -q -platform macosx-x64 -without all -profile xcode -configure . -gen xcode"
 
 /* Miscellaneous */
 #define BIT_MAJOR_VERSION 4

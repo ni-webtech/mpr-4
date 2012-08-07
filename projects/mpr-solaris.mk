@@ -107,7 +107,7 @@ clean:
 	rm -rf $(CONFIG)/obj/mprWin.o
 	rm -rf $(CONFIG)/obj/mprWince.o
 	rm -rf $(CONFIG)/obj/mprXml.o
-	rm -rf $(CONFIG)/obj/mprMatrixSsl.o
+	rm -rf $(CONFIG)/obj/mprMatrixssl.o
 	rm -rf $(CONFIG)/obj/mprOpenssl.o
 	rm -rf $(CONFIG)/obj/mprSsl.o
 	rm -rf $(CONFIG)/obj/manager.o
@@ -408,10 +408,10 @@ $(CONFIG)/bin/runProgram:  \
         $(CONFIG)/obj/runProgram.o
 	$(CC) -o $(CONFIG)/bin/runProgram $(LDFLAGS) $(LIBPATHS) $(CONFIG)/obj/runProgram.o $(LIBS) $(LDFLAGS)
 
-$(CONFIG)/obj/mprMatrixSsl.o: \
-        src/mprMatrixSsl.c \
+$(CONFIG)/obj/mprMatrixssl.o: \
+        src/mprMatrixssl.c \
         $(CONFIG)/inc/bit.h
-	$(CC) -c -o $(CONFIG)/obj/mprMatrixSsl.o -Wall -fPIC $(LDFLAGS) -mtune=generic $(DFLAGS) -I$(CONFIG)/inc src/mprMatrixSsl.c
+	$(CC) -c -o $(CONFIG)/obj/mprMatrixssl.o -Wall -fPIC $(LDFLAGS) -mtune=generic $(DFLAGS) -I$(CONFIG)/inc src/mprMatrixssl.c
 
 $(CONFIG)/obj/mprOpenssl.o: \
         src/mprOpenssl.c \
@@ -425,10 +425,10 @@ $(CONFIG)/obj/mprSsl.o: \
 
 $(CONFIG)/bin/libmprssl.so:  \
         $(CONFIG)/bin/libmpr.so \
-        $(CONFIG)/obj/mprMatrixSsl.o \
+        $(CONFIG)/obj/mprMatrixssl.o \
         $(CONFIG)/obj/mprOpenssl.o \
         $(CONFIG)/obj/mprSsl.o
-	$(CC) -shared -o $(CONFIG)/bin/libmprssl.so $(LDFLAGS) $(LIBPATHS) $(CONFIG)/obj/mprMatrixSsl.o $(CONFIG)/obj/mprOpenssl.o $(CONFIG)/obj/mprSsl.o $(LIBS) -lmpr
+	$(CC) -shared -o $(CONFIG)/bin/libmprssl.so $(LDFLAGS) $(LIBPATHS) $(CONFIG)/obj/mprMatrixssl.o $(CONFIG)/obj/mprOpenssl.o $(CONFIG)/obj/mprSsl.o $(LIBS) -lmpr
 
 $(CONFIG)/obj/testArgv.o: \
         test/testArgv.c \

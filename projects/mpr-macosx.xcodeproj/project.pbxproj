@@ -103,7 +103,7 @@
 		B591A422B591D3E80000008A /* mprWin.c in Sources */ = {isa = PBXBuildFile; fileRef = B591A422B591D3E80000008B /* mprWin.c */; };
 		B591A422B591D3E80000008C /* mprWince.c in Sources */ = {isa = PBXBuildFile; fileRef = B591A422B591D3E80000008D /* mprWince.c */; };
 		B591A422B591D3E80000008E /* mprXml.c in Sources */ = {isa = PBXBuildFile; fileRef = B591A422B591D3E80000008F /* mprXml.c */; };
-		B591A422B591D3E800000090 /* mprMatrixSsl.c in Sources */ = {isa = PBXBuildFile; fileRef = B591A422B591D3E800000091 /* mprMatrixSsl.c */; };
+		B591A422B591D3E800000090 /* mprMatrixssl.c in Sources */ = {isa = PBXBuildFile; fileRef = B591A422B591D3E800000091 /* mprMatrixssl.c */; };
 		B591A422B591D3E800000092 /* mprOpenssl.c in Sources */ = {isa = PBXBuildFile; fileRef = B591A422B591D3E800000093 /* mprOpenssl.c */; };
 		B591A422B591D3E800000094 /* mprSsl.c in Sources */ = {isa = PBXBuildFile; fileRef = B591A422B591D3E800000095 /* mprSsl.c */; };
 		B591A422B591D3E800000096 /* manager.c in Sources */ = {isa = PBXBuildFile; fileRef = B591A422B591D3E800000097 /* manager.c */; };
@@ -358,7 +358,7 @@
 		B591A422B591D3E80000008D /* mprWince.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; name = mprWince.c; path = src/mprWince.c; sourceTree = "<group>"; };
 		B591A422B591D3E80000008F /* mprXml.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; name = mprXml.c; path = src/mprXml.c; sourceTree = "<group>"; };
 		B591A422B591D3E80000009D /* libmpr */ = {isa = PBXFileReference; explicitFileType = "compiled.mach-o.dylib"; includeInIndex = 0; path = libmpr.dylib; sourceTree = BUILT_PRODUCTS_DIR; };
-		B591A422B591D3E800000091 /* mprMatrixSsl.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; name = mprMatrixSsl.c; path = src/mprMatrixSsl.c; sourceTree = "<group>"; };
+		B591A422B591D3E800000091 /* mprMatrixssl.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; name = mprMatrixssl.c; path = src/mprMatrixssl.c; sourceTree = "<group>"; };
 		B591A422B591D3E800000093 /* mprOpenssl.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; name = mprOpenssl.c; path = src/mprOpenssl.c; sourceTree = "<group>"; };
 		B591A422B591D3E800000095 /* mprSsl.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; name = mprSsl.c; path = src/mprSsl.c; sourceTree = "<group>"; };
 		B591A422B591D3E8000000A0 /* libmprssl */ = {isa = PBXFileReference; explicitFileType = "compiled.mach-o.dylib"; includeInIndex = 0; path = libmprssl.dylib; sourceTree = BUILT_PRODUCTS_DIR; };
@@ -557,7 +557,7 @@
             isa = PBXGroup;
             children = (
 				B591A422B591D3E8000000C5 /* bit.h */,
-				B591A422B591D3E800000091 /* mprMatrixSsl.c */,
+				B591A422B591D3E800000091 /* mprMatrixssl.c */,
 				B591A422B591D3E800000093 /* mprOpenssl.c */,
 				B591A422B591D3E800000095 /* mprSsl.c */,
 			);
@@ -914,7 +914,7 @@ fi";
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				B591A422B591D3E800000090 /* mprMatrixSsl.c in Sources */,
+				B591A422B591D3E800000090 /* mprMatrixssl.c in Sources */,
 				B591A422B591D3E800000092 /* mprOpenssl.c in Sources */,
 				B591A422B591D3E800000094 /* mprSsl.c in Sources */,
 			);
