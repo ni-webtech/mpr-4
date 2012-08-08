@@ -200,8 +200,8 @@ cchar *mprLookupMime(MprHash *table, cchar *ext)
     if (table == 0) {
         table = MPR->mimeTypes;
     }
-    if ((mt = mprLookupKey(table, ext)) == 0) {;
-        return "text/html";
+    if ((mt = mprLookupKey(table, ext)) == 0) {
+        return 0;
     }
     return mt->type;
 }
