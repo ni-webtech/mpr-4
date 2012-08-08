@@ -71,4 +71,4 @@ Copyright (c) 2003-2012 Embedthis Software, LLC. All Rights Reserved.
 Embedthis and AppWeb are trademarks of Embedthis Software, LLC. Other 
 brands and their products are trademarks of their respective holders.
 
-See LICENSE.TXT for software license details.
+See LICENSE.md for software license details.
