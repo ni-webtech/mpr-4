@@ -52,6 +52,9 @@ char *mprUriEncode(cchar *inbuf, int map)
     mprAssert(inbuf);
     mprAssert(inbuf);
 
+    if (!inbuf) {
+        return MPR->emptyString;
+    }
     for (len = 1, ip = inbuf; *ip; ip++, len++) {
         if (charMatch[(int) (uchar) *ip] & map) {
             len += 2;
@@ -93,8 +96,7 @@ char *mprUriDecode(cchar *inbuf)
     if ((result = sclone(inbuf)) == 0) {
         return 0;
     }
-
-    for (op = result, ip = inbuf; *ip; ip++, op++) {
+    for (op = result, ip = inbuf; ip && *ip; ip++, op++) {
         if (*ip == '+') {
             *op = ' ';
 
@@ -136,6 +138,9 @@ char *mprEscapeCmd(cchar *cmd, int escChar)
 
     mprAssert(cmd);
 
+    if (!cmd) {
+        return MPR->emptyString;
+    }
     for (len = 1, ip = cmd; *ip; ip++, len++) {
         if (charMatch[(int) (uchar) *ip] & MPR_ENCODE_SHELL) {
             len++;
@@ -177,6 +182,9 @@ char *mprEscapeHtml(cchar *html)
     char    *result, *op;
     int     len;
 
+    if (!html) {
+        return MPR->emptyString;
+    }
     for (len = 1, ip = html; *ip; ip++, len++) {
         if (charMatch[(int) (uchar) *ip] & MPR_ENCODE_HTML) {
             len += 5;
@@ -234,28 +242,12 @@ char *mprEscapeHtml(cchar *html)
     @copy   default
 
     Copyright (c) Embedthis Software LLC, 2003-2012. All Rights Reserved.
-    Copyright (c) Michael O'Brien, 1993-2012. All Rights Reserved.
 
     This software is distributed under commercial and open source licenses.
-    You may use the GPL open source license described below or you may acquire
-    a commercial license from Embedthis Software. You agree to be fully bound
+    You may use the Embedthis Open Source license or you may acquire a 
+    commercial license from Embedthis Software. You agree to be fully bound
     by the terms of either license. Consult the LICENSE.md distributed with
-    this software for full details.
-
-    This software is open source; you can redistribute it and/or modify it
-    under the terms of the GNU General Public License as published by the
-    Free Software Foundation; either version 2 of the License, or (at your
-    option) any later version. See the GNU General Public License for more
-    details at: http://embedthis.com/downloads/gplLicense.html
-
-    This program is distributed WITHOUT ANY WARRANTY; without even the
-    implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
-
-    This GPL license does NOT permit incorporating this software into
-    proprietary programs. If you are unable to comply with the GPL, you must
-    acquire a commercial license to use this software. Commercial licenses
-    for this software and support services are available from Embedthis
-    Software at http://embedthis.com
+    this software for full details and other copyrights.
 
     Local variables:
     tab-width: 4
