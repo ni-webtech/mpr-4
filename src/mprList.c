@@ -32,7 +32,9 @@ MprList *mprCreateList(int size, int flags)
     }
     lp->maxSize = MAXINT;
     lp->flags = flags | MPR_OBJ_LIST;
-    lp->mutex = mprCreateLock();
+    if (!(flags & MPR_LIST_OWN)) {
+        lp->mutex = mprCreateLock();
+    }
     if (size != 0) {
         mprSetListLimits(lp, size, -1);
     }
@@ -61,12 +63,14 @@ static void manageList(MprList *lp, int flags)
 /*
     Initialize a list which may not be a memory context.
  */
-void mprInitList(MprList *lp)
+void mprInitList(MprList *lp, int flags)
 {
-    lp->capacity = 0;
+    lp->flags = 0;
+    lp->size = 0;
     lp->length = 0;
     lp->maxSize = MAXINT;
     lp->items = 0;
+    lp->mutex = (flags & MPR_LIST_OWN) ? 0 : mprCreateLock();
 }
 
 
@@ -93,7 +97,7 @@ int mprSetListLimits(MprList *lp, int initialSize, int maxSize)
             return MPR_ERR_MEMORY;
         }
         memset(lp->items, 0, size);
-        lp->capacity = initialSize;
+        lp->size = initialSize;
     }
     lp->maxSize = maxSize;
     unlock(lp);
@@ -109,7 +113,7 @@ int mprCopyListContents(MprList *dest, MprList *src)
     mprClearList(dest);
 
     lock(src);
-    if (mprSetListLimits(dest, src->capacity, src->maxSize) < 0) {
+    if (mprSetListLimits(dest, src->size, src->maxSize) < 0) {
         mprAssert(!MPR_ERR_MEMORY);
         unlock(src);
         return MPR_ERR_MEMORY;
@@ -130,7 +134,7 @@ MprList *mprCloneList(MprList *src)
 {
     MprList     *lp;
 
-    if ((lp = mprCreateList(src->capacity, src->flags)) == 0) {
+    if ((lp = mprCreateList(src->size, src->flags)) == 0) {
         return 0;
     }
     if (mprCopyListContents(lp, src) < 0) {
@@ -165,7 +169,7 @@ void *mprSetItem(MprList *lp, int index, cvoid *item)
     int     length;
 
     mprAssert(lp);
-    mprAssert(lp->capacity >= 0);
+    mprAssert(lp->size >= 0);
     mprAssert(lp->length >= 0);
     mprAssert(index >= 0);
 
@@ -175,8 +179,8 @@ void *mprSetItem(MprList *lp, int index, cvoid *item)
         length = index + 1;
     }
     lock(lp);
-    if (length > lp->capacity) {
-        if (growList(lp, length - lp->capacity) < 0) {
+    if (length > lp->size) {
+        if (growList(lp, length - lp->size) < 0) {
             unlock(lp);
             return 0;
         }
@@ -198,11 +202,11 @@ int mprAddItem(MprList *lp, cvoid *item)
     int     index;
 
     mprAssert(lp);
-    mprAssert(lp->capacity >= 0);
+    mprAssert(lp->size >= 0);
     mprAssert(lp->length >= 0);
 
     lock(lp);
-    if (lp->length >= lp->capacity) {
+    if (lp->length >= lp->size) {
         if (growList(lp, 1) < 0) {
             unlock(lp);
             return MPR_ERR_TOO_MANY;
@@ -220,14 +224,14 @@ int mprAddNullItem(MprList *lp)
     int     index;
 
     mprAssert(lp);
-    mprAssert(lp->capacity >= 0);
+    mprAssert(lp->size >= 0);
     mprAssert(lp->length >= 0);
 
     lock(lp);
     if (lp->length != 0 && lp->items[lp->length - 1] == 0) {
         index = lp->length - 1;
     } else {
-        if (lp->length >= lp->capacity) {
+        if (lp->length >= lp->size) {
             if (growList(lp, 1) < 0) {
                 unlock(lp);
                 return MPR_ERR_TOO_MANY;
@@ -251,7 +255,7 @@ int mprInsertItemAtPos(MprList *lp, int index, cvoid *item)
     int     i;
 
     mprAssert(lp);
-    mprAssert(lp->capacity >= 0);
+    mprAssert(lp->size >= 0);
     mprAssert(lp->length >= 0);
     mprAssert(index >= 0);
 
@@ -259,13 +263,13 @@ int mprInsertItemAtPos(MprList *lp, int index, cvoid *item)
         index = 0;
     }
     lock(lp);
-    if (index >= lp->capacity) {
-        if (growList(lp, index - lp->capacity + 1) < 0) {
+    if (index >= lp->size) {
+        if (growList(lp, index - lp->size + 1) < 0) {
             unlock(lp);
             return MPR_ERR_TOO_MANY;
         }
 
-    } else if (lp->length >= lp->capacity) {
+    } else if (lp->length >= lp->size) {
         if (growList(lp, 1) < 0) {
             unlock(lp);
             return MPR_ERR_TOO_MANY;
@@ -314,7 +318,7 @@ int mprRemoveItem(MprList *lp, cvoid *item)
 int mprRemoveLastItem(MprList *lp)
 {
     mprAssert(lp);
-    mprAssert(lp->capacity > 0);
+    mprAssert(lp->size > 0);
     mprAssert(lp->length > 0);
 
     if (lp->length <= 0) {
@@ -333,8 +337,8 @@ int mprRemoveItemAtPos(MprList *lp, int index)
     void    **items;
 
     mprAssert(lp);
-    mprAssert(lp->capacity > 0);
-    mprAssert(index >= 0 && index < lp->capacity);
+    mprAssert(lp->size > 0);
+    mprAssert(index >= 0 && index < lp->size);
     mprAssert(lp->length > 0);
 
     if (index < 0 || index >= lp->length) {
@@ -376,7 +380,7 @@ int mprRemoveRangeOfItems(MprList *lp, int start, int end)
     int     i, count;
 
     mprAssert(lp);
-    mprAssert(lp->capacity > 0);
+    mprAssert(lp->size > 0);
     mprAssert(lp->length > 0);
     mprAssert(start > end);
 
@@ -400,7 +404,7 @@ int mprRemoveRangeOfItems(MprList *lp, int start, int end)
         items[i] = items[i + count];
     }
     lp->length -= count;
-    for (i = lp->length; i < lp->capacity; i++) {
+    for (i = lp->length; i < lp->size; i++) {
         items[i] = 0;
     }
     unlock(lp);
@@ -560,7 +564,7 @@ int mprGetListCapacity(MprList *lp)
     if (lp == 0) {
         return 0;
     }
-    return lp->capacity;
+    return lp->size;
 }
 
 
@@ -629,8 +633,8 @@ static int growList(MprList *lp, int incr)
     /*
         Need to grow the list
      */
-    if (lp->capacity >= lp->maxSize) {
-        mprAssert(lp->capacity < lp->maxSize);
+    if (lp->size >= lp->maxSize) {
+        mprAssert(lp->size < lp->maxSize);
         return MPR_ERR_TOO_MANY;
     }
     /*
@@ -638,9 +642,9 @@ static int growList(MprList *lp, int incr)
         how much the list needs to grow.
      */
     if (incr <= 1) {
-        len = MPR_LIST_INCR + (lp->capacity * 2);
+        len = MPR_LIST_INCR + (lp->size * 2);
     } else {
-        len = lp->capacity + incr;
+        len = lp->size + incr;
     }
     memsize = len * sizeof(void*);
 
@@ -651,7 +655,7 @@ static int growList(MprList *lp, int incr)
         mprAssert(!MPR_ERR_MEMORY);
         return MPR_ERR_MEMORY;
     }
-    lp->capacity = len;
+    lp->size = len;
     return 0;
 }
 

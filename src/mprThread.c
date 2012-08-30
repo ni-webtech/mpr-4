@@ -918,7 +918,6 @@ static void changeState(MprWorker *worker, int state)
     MprList             *lp;
     int                 wake;
 
-    mprAssert(worker->state != state);
     if (state == worker->state) {
         mprLog(4, "changeState already in desired state %d", state);
         return;

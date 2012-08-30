@@ -41,7 +41,9 @@ MprHash *mprCreateHash(int hashSize, int flags)
     hash->size = hashSize;
     hash->flags = flags | MPR_OBJ_HASH;
     hash->length = 0;
-    hash->mutex = mprCreateLock();
+    if (!(flags & MPR_HASH_OWN)) {
+        hash->mutex = mprCreateLock();
+    }
 #if BIT_CHAR_LEN > 1
     if (hash->flags & MPR_HASH_UNICODE) {
         if (hash->flags & MPR_HASH_CASELESS) {
