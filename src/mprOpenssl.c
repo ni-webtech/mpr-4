@@ -897,6 +897,8 @@ static DH *get_dh1024()
     return dh;
 }
 
+#else
+int mprCreateOpenSslModule() { return -1; }
 #endif /* BIT_PACK_OPENSSL */
 
 /*

@@ -32,6 +32,8 @@ int mprSslInit(void *unused, MprModule *module)
     return 0;
 }
 
+#else
+int mprSslInit(void *unused, MprModule *module) { return -1; }
 #endif /* BLD_PACK_SSL */
 
 /*
