@@ -12,7 +12,7 @@
 
 /*************************** Forward Declarations ****************************/
 
-static int changeState(MprWorker *worker, int state);
+static void changeState(MprWorker *worker, int state);
 static MprWorker *createWorker(MprWorkerService *ws, ssize stackSize);
 static int getNextThreadNum(MprWorkerService *ws);
 static void manageThreadService(MprThreadService *ts, int flags);
@@ -678,27 +678,6 @@ MprWorker *mprGetCurrentWorker()
 }
 
 
-#if UNUSED && FUTURE && KEEP
-/*
-    Set the worker as dedicated to the current task
- */
-void mprDedicateWorker(MprWorker *worker)
-{
-    mprLock(worker->workerService->mutex);
-    worker->flags |= MPR_WORKER_DEDICATED;
-    mprUnlock(worker->workerService->mutex);
-}
-
-
-void mprReleaseWorker(MprWorker *worker)
-{
-    mprLock(worker->workerService->mutex);
-    worker->flags &= ~MPR_WORKER_DEDICATED;
-    mprUnlock(worker->workerService->mutex);
-}
-#endif
-
-
 void mprActivateWorker(MprWorker *worker, MprWorkerProc proc, void *data)
 {
     MprWorkerService    *ws;
@@ -708,9 +687,6 @@ void mprActivateWorker(MprWorker *worker, MprWorkerProc proc, void *data)
     mprLock(ws->mutex);
     worker->proc = proc;
     worker->data = data;
-#if UNUSED && FUTURE && KEEP
-    mprAssert(worker->flags & MPR_WORKER_DEDICATED);
-#endif
     changeState(worker, MPR_WORKER_BUSY);
     mprUnlock(ws->mutex);
 }
@@ -732,14 +708,6 @@ int mprAvailableWorkers()
     count = mprGetListLength(ws->idleThreads) + (ws->maxThreads - ws->numThreads);
     mprUnlock(ws->mutex);
     return count;
-
-#if FUTURE && UNUSED && KEEP
-    for (next = 0; (worker = (MprWorker*) mprGetNextItem(ws->idleThreads, &next)) != 0; ) {
-        if (!(worker->flags & MPR_WORKER_DEDICATED)) {
-            count++;
-        }
-    }
-#endif
 }
 
 
@@ -756,15 +724,7 @@ int mprStartWorker(MprWorkerProc proc, void *data)
         another thread to the worker. Must account for workers we've already created but have not yet gone to work 
         and inserted themselves in the idle/busy queues.
      */
-#if UNUSED
-    for (next = 0; (worker = (MprWorker*) mprGetNextItem(ws->idleThreads, &next)) != 0; ) {
-        if (!(worker->flags & MPR_WORKER_DEDICATED)) {
-            break;
-        }
-    }
-#else
     worker = mprGetFirstItem(ws->idleThreads);
-#endif
     if (worker) {
         worker->proc = proc;
         worker->data = data;
@@ -952,14 +912,16 @@ static void workerMain(MprWorker *worker, MprThread *tp)
 }
 
 
-static int changeState(MprWorker *worker, int state)
+static void changeState(MprWorker *worker, int state)
 {
     MprWorkerService    *ws;
     MprList             *lp;
     int                 wake;
 
-    mprAssert(worker->state != state);
-
+    if (state == worker->state) {
+        mprLog(4, "changeState already in desired state %d", state);
+        return;
+    }
     wake = 0;
     lp = 0;
     ws = worker->workerService;
@@ -971,13 +933,7 @@ static int changeState(MprWorker *worker, int state)
         break;
 
     case MPR_WORKER_IDLE:
-#if UNUSED && FUTURE && KEEP
-        if (!(worker->flags & MPR_WORKER_DEDICATED)) {
-#endif
-            lp = ws->idleThreads;
-#if UNUSED && FUTURE && KEEP
-        }
-#endif
+        lp = ws->idleThreads;
         wake = 1;
         break;
         
@@ -998,13 +954,7 @@ static int changeState(MprWorker *worker, int state)
         break;
 
     case MPR_WORKER_IDLE:
-#if UNUSED && FUTURE && KEEP
-        if (!(worker->flags & MPR_WORKER_DEDICATED)) {
-#endif
-            lp = ws->idleThreads;
-#if UNUSED && FUTURE && KEEP
-        }
-#endif
+        lp = ws->idleThreads;
         mprWakePendingDispatchers();
         break;
 
@@ -1019,44 +969,27 @@ static int changeState(MprWorker *worker, int state)
         if (mprAddItem(lp, worker) < 0) {
             mprUnlock(ws->mutex);
             mprAssert(!MPR_ERR_MEMORY);
-            return MPR_ERR_MEMORY;
+            return;
         }
     }
     mprUnlock(ws->mutex);
     if (wake) {
         mprSignalCond(worker->idleCond); 
     }
-    return 0;
 }
 
 
 /*
     @copy   default
-    
+
     Copyright (c) Embedthis Software LLC, 2003-2012. All Rights Reserved.
-    Copyright (c) Michael O'Brien, 1993-2012. All Rights Reserved.
-    
+
     This software is distributed under commercial and open source licenses.
-    You may use the GPL open source license described below or you may acquire 
-    a commercial license from Embedthis Software. You agree to be fully bound 
-    by the terms of either license. Consult the LICENSE.TXT distributed with 
-    this software for full details.
-    
-    This software is open source; you can redistribute it and/or modify it 
-    under the terms of the GNU General Public License as published by the 
-    Free Software Foundation; either version 2 of the License, or (at your 
-    option) any later version. See the GNU General Public License for more 
-    details at: http://embedthis.com/downloads/gplLicense.html
-    
-    This program is distributed WITHOUT ANY WARRANTY; without even the 
-    implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. 
-    
-    This GPL license does NOT permit incorporating this software into 
-    proprietary programs. If you are unable to comply with the GPL, you must
-    acquire a commercial license to use this software. Commercial licenses 
-    for this software and support services are available from Embedthis 
-    Software at http://embedthis.com 
-    
+    You may use the Embedthis Open Source license or you may acquire a 
+    commercial license from Embedthis Software. You agree to be fully bound
+    by the terms of either license. Consult the LICENSE.md distributed with
+    this software for full details and other copyrights.
+
     Local variables:
     tab-width: 4
     c-basic-offset: 4
