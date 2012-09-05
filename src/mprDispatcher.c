@@ -242,6 +242,7 @@ int mprServiceEvents(MprTime timeout, int flags)
                 continue;
             }
             if (justOne) {
+                MPR->eventing = 0;
                 return abs(es->eventCount - beginEventCount);
             }
         } 
