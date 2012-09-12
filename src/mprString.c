@@ -898,7 +898,6 @@ char *strim(cchar *str, cchar *set, int where)
 }
 
 
-
 /*  
     Map a string to upper case
  */
