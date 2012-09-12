@@ -1,5 +1,5 @@
 #
-#   mpr-windows.nmake -- Build It Makefile to build Multithreaded Portable Runtime for windows
+#   mpr-windows.nmake -- Makefile to build Multithreaded Portable Runtime for windows
 #
 
 PA        = $(PROCESSOR_ARCHITECTURE)

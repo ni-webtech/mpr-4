@@ -1,19 +1,27 @@
 #
-#   mpr-linux.mk -- Build It Makefile to build Multithreaded Portable Runtime for linux
+#   mpr-linux.mk -- Makefile to build Multithreaded Portable Runtime for linux
 #
 
-ARCH     := $(shell uname -m | sed 's/i.86/x86/;s/x86_64/x64/')
-OS       := linux
-PROFILE  := debug
-CONFIG   := $(OS)-$(ARCH)-$(PROFILE)
-CC       := /usr/bin/gcc
-LD       := /usr/bin/ld
-CFLAGS   := -fPIC -g -mtune=generic -w
-DFLAGS   := -D_REENTRANT -DPIC -DBIT_DEBUG
-IFLAGS   := -I$(CONFIG)/inc
-LDFLAGS  := '-Wl,--enable-new-dtags' '-Wl,-rpath,$$ORIGIN/' '-Wl,-rpath,$$ORIGIN/../bin' '-rdynamic' '-g'
-LIBPATHS := -L$(CONFIG)/bin
-LIBS     := -lpthread -lm -ldl
+ARCH     ?= $(shell uname -m | sed 's/i.86/x86/;s/x86_64/x64/')
+OS       ?= linux
+CC       ?= gcc
+LD       ?= /usr/bin/ld
+PROFILE  ?= debug
+CONFIG   ?= $(OS)-$(ARCH)-$(PROFILE)
+
+CFLAGS   += -fPIC -mtune=generic -w
+DFLAGS   += -D_REENTRANT -DPIC 
+IFLAGS   += -I$(CONFIG)/inc
+LDFLAGS  += '-Wl,--enable-new-dtags' '-Wl,-rpath,$$ORIGIN/' '-Wl,-rpath,$$ORIGIN/../bin' '-rdynamic'
+LIBPATHS += -L$(CONFIG)/bin
+LIBS     += -lpthread -lm -ldl
+
+CFLAGS-debug    := -DBIT_DEBUG -g
+CFLAGS-release  := -O2
+LDFLAGS-debug   := -g
+LDFLAGS-release := 
+CFLAGS          += $(CFLAGS-$(PROFILE))
+LDFLAGS         += $(LDFLAGS-$(PROFILE))
 
 all: prep \
         $(CONFIG)/bin/benchMpr \
@@ -28,6 +36,7 @@ all: prep \
 .PHONY: prep
 
 prep:
+	@if [ "$(CONFIG)" = "" ] ; then echo WARNING: CONFIG not set ; exit 255 ; fi
 	@[ ! -x $(CONFIG)/inc ] && mkdir -p $(CONFIG)/inc $(CONFIG)/obj $(CONFIG)/lib $(CONFIG)/bin ; true
 	@[ ! -f $(CONFIG)/inc/bit.h ] && cp projects/mpr-$(OS)-bit.h $(CONFIG)/inc/bit.h ; true
 	@if ! diff $(CONFIG)/inc/bit.h projects/mpr-$(OS)-bit.h >/dev/null ; then\

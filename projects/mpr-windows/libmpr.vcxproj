@@ -164,7 +164,7 @@
 
   <CustomBuildStep>
     <Command>cd ..\..
-xcopy /Y /S /D src\mpr.h $(IncDir)
+copy /Y src\mpr.h $(IncDir)
 cd projects\mpr-windows</Command>
     <Outputs>$(BinDir)\libmpr.dll</Outputs>
   </CustomBuildStep>
