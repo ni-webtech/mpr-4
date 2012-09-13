@@ -148,6 +148,10 @@ void mprRemoveWaitHandler(MprWaitHandler *wp)
         return;
     }
     ws = wp->service;
+    if (ws == 0) {
+        /* This wait handler was never initialized. */
+        return;
+    }
     lock(ws);
     if (wp->fd >= 0) {
         if (wp->desiredMask) {
