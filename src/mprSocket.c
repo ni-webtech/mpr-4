@@ -789,12 +789,14 @@ static ssize writeSocket(MprSocket *sp, cvoid *buf, ssize bufsize)
             } else {
                 written = send(sp->fd, &((char*) buf)[sofar], (int) len, MSG_NOSIGNAL);
             }
+            /* Get the error code before calling mprResetYield to avoid clearing global error numbers */
+            errCode = mprGetSocketError(sp);
             if (sp->flags & MPR_SOCKET_BLOCK) {
                 mprResetYield();
             }
             lock(sp);
             if (written < 0) {
-                errCode = mprGetSocketError(sp);
+                mprAssert(errCode != 0);
                 if (errCode == EINTR) {
                     continue;
                 } else if (errCode == EAGAIN || errCode == EWOULDBLOCK) {
